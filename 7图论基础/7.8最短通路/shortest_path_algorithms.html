@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最短路径算法 - 思政可视化</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        /* 扩展样式 */
+        .sidebar {
+            overflow-y: auto;
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.6rem;
+            line-height: 1.3;
+        }
+
+        .algo-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .algo-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .algo-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid var(--accent-red);
+            background: #fff;
+            color: var(--accent-red);
+            font-family: var(--font-family);
+        }
+
+        .algo-btn.active {
+            background: var(--accent-red);
+            color: #fff;
+        }
+
+        .algo-btn:hover:not(.active) {
+            background: rgba(214, 59, 29, 0.1);
+        }
+
+        select {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(139, 0, 0, 0.2);
+            background: #fff;
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--accent-red);
+        }
+
+        .result-display {
+            background: rgba(255, 255, 255, 0.6);
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            border: 1px solid rgba(139, 0, 0, 0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+
+        .result-display strong {
+            color: var(--accent-red);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-display code {
+            background: rgba(139, 0, 0, 0.08);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: var(--accent-red);
+            font-weight: 600;
+        }
+
+        .path-highlight {
+            color: var(--accent-gold);
+            font-weight: 700;
+        }
+
+        /* 右侧步骤面板 */
+        .glass-pane {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .graph-canvas {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .steps-panel {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            padding: 1rem;
+            overflow-y: auto;
+            border: 1px solid rgba(139, 0, 0, 0.1);
+        }
+
+        .steps-panel h3 {
+            font-family: var(--font-title);
+            font-size: 1.1rem;
+            color: var(--accent-red);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--accent-red);
+            padding-bottom: 0.5rem;
+        }
+
+        .step-item {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid var(--text-secondary);
+            font-size: 0.8rem;
+            line-height: 1.5;
+            transition: all 0.2s ease;
+        }
+
+        .step-item.active {
+            background: rgba(214, 59, 29, 0.15);
+            border-left-color: var(--accent-red);
+            font-weight: 600;
+        }
+
+        .step-item .step-num {
+            display: inline-block;
+            background: var(--accent-red);
+            color: #fff;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+            font-weight: 600;
+        }
+
+        .step-item.active .step-num {
+            background: var(--accent-gold);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        /* 响应式 */
+        @media (max-width: 1200px) {
+            .glass-pane {
+                grid-template-columns: 1fr;
+            }
+            .steps-panel {
+                max-height: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>最短路径算法 <span class="highlight">可视化</span></h1>
+                <p class="subtitle">Shortest Path Algorithms</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>算法选择</label>
+                    <div class="algo-selector">
+                        <div class="algo-toggle">
+                            <button class="algo-btn active" data-algo="dijkstra">Dijkstra</button>
+                            <button class="algo-btn" data-algo="floyd">Floyd</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>选择案例</label>
+                    <select id="caseSelector">
+                        <option value="0">精准扶贫最优路径</option>
+                        <option value="1">应急物流调度</option>
+                        <option value="2">区域协作网络</option>
+                        <option value="3">交通规划优化</option>
+                    </select>
+                </div>
+
+                <div class="control-group" id="sourceControl">
+                    <label>起始节点 (Dijkstra)</label>
+                    <select id="sourceSelector">
+                        <!-- 动态生成 -->
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>演示速度</label>
+                    <input type="range" id="speed" min="1" max="100" value="40">
+                </div>
+
+                <div class="control-group">
+                    <label>最短路径结果</label>
+                    <div class="result-display" id="resultDisplay">
+                        <em style="color: var(--text-secondary);">执行算法后显示结果</em>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>思政内涵</label>
+                    <div class="info-panel" id="philosophyPanel">
+                        <p style="color: var(--text-secondary); font-size: 0.85rem;">选择案例查看思政内涵</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="runBtn" class="apple-btn action-btn">执行算法</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="graph-canvas">
+                    <svg id="graphSvg" width="100%" height="100%">
+                        <g id="edgesGroup"></g>
+                        <g id="nodesGroup"></g>
+                    </svg>
+                </div>
+                <div class="steps-panel">
+                    <h3>执行步骤</h3>
+                    <div id="stepsList">
+                        <p style="color: var(--text-secondary); font-size: 0.85rem;">执行算法后显示步骤</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="shortest_path_algorithms.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

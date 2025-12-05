@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>诗词符号化 - 传承中华文化</title>
+    <link rel="stylesheet" href="tokenization.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>诗词符号化 <span class="highlight">传承</span></h1>
+                <p class="subtitle">Chinese Poetry Tokenization</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>选择经典诗词</label>
+                    <select id="poemSelect" class="apple-select">
+                        <option value="0">《沁园春·雪》- 毛泽东</option>
+                        <option value="1">《春望》- 杜甫</option>
+                        <option value="2">《水调歌头》- 苏轼</option>
+                        <option value="3">《登高》- 杜甫</option>
+                        <option value="custom">自定义输入...</option>
+                    </select>
+                </div>
+
+                <div class="control-group" id="customInputGroup" style="display: none;">
+                    <label>输入您的文本</label>
+                    <textarea id="customInput" class="apple-textarea" rows="4"
+                        placeholder="请输入中文诗词或句子..."></textarea>
+                </div>
+
+                <div class="control-group">
+                    <label>符号化方式</label>
+                    <div class="token-mode-buttons">
+                        <button class="mode-btn active" data-mode="word">词语切分</button>
+                        <button class="mode-btn" data-mode="char">字符切分</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>动画速度</label>
+                    <input type="range" id="speed" min="1" max="100" value="60">
+                </div>
+
+                <div class="control-group">
+                    <label>当前状态</label>
+                    <div class="info-panel">
+                        <p id="statusText">准备开始符号化</p>
+                        <div class="stats-display">
+                            <div class="stat-item">
+                                <span class="stat-label">已处理:</span>
+                                <span class="stat-value" id="processedCount">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">总数:</span>
+                                <span class="stat-value" id="totalCount">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="startBtn" class="apple-btn action-btn">开始演示</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="visualization-container">
+                    <!-- 原文区域 -->
+                    <div class="section original-section">
+                        <h2 class="section-title">原文</h2>
+                        <div id="originalText" class="text-display">
+                            <div class="poem-lines"></div>
+                        </div>
+                    </div>
+
+                    <!-- 箭头动画区域 -->
+                    <div class="arrow-section">
+                        <svg class="flow-arrow" viewBox="0 0 100 200" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="arrowGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#d63b1d;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#ffb400;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <path d="M 50 10 L 50 180 M 50 180 L 40 165 M 50 180 L 60 165"
+                                stroke="url(#arrowGradient)" stroke-width="3" fill="none"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <div class="process-label">符号化处理</div>
+                    </div>
+
+                    <!-- 符号化结果区域 -->
+                    <div class="section tokens-section">
+                        <h2 class="section-title">符号序列</h2>
+                        <div id="tokensDisplay" class="tokens-container"></div>
+                    </div>
+
+                    <!-- 谓词逻辑符号化区域 -->
+                    <div class="section predicate-section">
+                        <h2 class="section-title">谓词逻辑符号化</h2>
+                        <div class="predicate-container">
+                            <div class="logic-explanation">
+                                <div class="explanation-title">符号体系说明</div>
+                                <div class="symbol-legend">
+                                    <div class="legend-item">
+                                        <span class="symbol">∀x</span>
+                                        <span class="desc">全称量词 - 对所有个体</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="symbol">∃x</span>
+                                        <span class="desc">存在量词 - 存在个体</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="symbol">P(x)</span>
+                                        <span class="desc">谓词 - 描述性质或关系</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="symbol">∧</span>
+                                        <span class="desc">逻辑与</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="symbol">∨</span>
+                                        <span class="desc">逻辑或</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="symbol">¬</span>
+                                        <span class="desc">逻辑非</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="symbol">→</span>
+                                        <span class="desc">蕴含</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="predicateFormulas" class="formulas-display"></div>
+                        </div>
+                    </div>
+
+                    <!-- 树形结构区域 -->
+                    <div class="section tree-section">
+                        <h2 class="section-title">分类树状图</h2>
+                        <svg id="treeSvg" width="100%" height="300">
+                            <g id="treeGroup"></g>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="tokenization.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

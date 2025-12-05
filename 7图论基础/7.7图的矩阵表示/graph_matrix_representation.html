@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图的矩阵表示 - 关系网络的数学刻画</title>
+    <link rel="stylesheet" href="graph_matrix_representation.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>图的<span class="highlight">矩阵表示</span></h1>
+                <p class="subtitle">关系网络的数学刻画</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <!-- 矩阵类型选择 -->
+                <div class="control-group">
+                    <label>选择矩阵类型</label>
+                    <div class="matrix-type-grid">
+                        <button class="matrix-btn active" data-matrix="adjacency">
+                            邻接矩阵
+                            <span class="matrix-sub">Adjacency</span>
+                        </button>
+                        <button class="matrix-btn" data-matrix="reachability">
+                            可达矩阵
+                            <span class="matrix-sub">Reachability</span>
+                        </button>
+                        <button class="matrix-btn" data-matrix="incidence">
+                            关联矩阵
+                            <span class="matrix-sub">Incidence</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 案例选择 -->
+                <div class="control-group">
+                    <label>选择思政案例</label>
+                    <select id="caseSelector" class="apple-select">
+                        <option value="0">组织架构 - 邻接矩阵</option>
+                        <option value="1">信息传递 - 可达矩阵</option>
+                        <option value="2">任务分配 - 关联矩阵</option>
+                        <option value="3">区域协作网络</option>
+                    </select>
+                </div>
+
+                <!-- 动画速度控制 -->
+                <div class="control-group">
+                    <label>演示速度</label>
+                    <input type="range" id="speedControl" min="300" max="2000" value="800" step="100">
+                    <div class="speed-display">
+                        <span>快</span>
+                        <span id="speedValue">800ms</span>
+                        <span>慢</span>
+                    </div>
+                </div>
+
+                <!-- 信息面板 -->
+                <div class="info-panel">
+                    <p id="matrixInfo">邻接矩阵表示图中顶点之间的直接连接关系。</p>
+                    <div class="stats-display">
+                        <div class="stat-item">
+                            <span class="stat-label">当前类型:</span>
+                            <span class="stat-value" id="currentMatrix">邻接矩阵</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">矩阵维度:</span>
+                            <span class="stat-value" id="matrixDim">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="actions-footer">
+                <button id="startBtn" class="apple-btn action-btn">开始演示</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <!-- 主可视化区域 -->
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="visualization-container" id="vizContainer">
+                    <!-- 矩阵介绍区 -->
+                    <section class="section" id="matricesIntro">
+                        <h2 class="section-title">图的三种矩阵表示</h2>
+                        <div class="matrices-overview">
+                            <!-- 邻接矩阵 -->
+                            <div class="matrix-category adjacency-category">
+                                <div class="category-header">
+                                    <span class="category-icon">⊞</span>
+                                    <h3>邻接矩阵 (Adjacency Matrix)</h3>
+                                </div>
+                                <div class="category-content">
+                                    <div class="definition-box">
+                                        <h4>定义</h4>
+                                        <p>n阶方阵A = (aᵢⱼ)ₙₓₙ,其中:</p>
+                                        <div class="formula-box">
+                                            aᵢⱼ = 1, 若(vᵢ, vⱼ) ∈ E<br>
+                                            aᵢⱼ = 0, 若(vᵢ, vⱼ) ∉ E
+                                        </div>
+                                    </div>
+                                    <div class="properties-box">
+                                        <h4>性质</h4>
+                                        <ul>
+                                            <li>✓ 反映顶点间<strong>直接连接</strong>关系</li>
+                                            <li>✓ 无向图的邻接矩阵是<strong>对称矩阵</strong></li>
+                                            <li>✓ 第i行元素之和 = 顶点vᵢ的<strong>出度</strong></li>
+                                            <li>✓ 第j列元素之和 = 顶点vⱼ的<strong>入度</strong></li>
+                                        </ul>
+                                    </div>
+                                    <div class="application-box">
+                                        <h4>思政应用</h4>
+                                        <p>组织架构中的直接汇报关系</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 可达矩阵 -->
+                            <div class="matrix-category reachability-category">
+                                <div class="category-header">
+                                    <span class="category-icon">⇝</span>
+                                    <h3>可达矩阵 (Reachability Matrix)</h3>
+                                </div>
+                                <div class="category-content">
+                                    <div class="definition-box">
+                                        <h4>定义</h4>
+                                        <p>n阶方阵R = (rᵢⱼ)ₙₓₙ,其中:</p>
+                                        <div class="formula-box">
+                                            rᵢⱼ = 1, 若vᵢ到vⱼ存在路径<br>
+                                            rᵢⱼ = 0, 若vᵢ到vⱼ不存在路径
+                                        </div>
+                                    </div>
+                                    <div class="properties-box">
+                                        <h4>性质</h4>
+                                        <ul>
+                                            <li>✓ 反映顶点间的<strong>间接可达</strong>关系</li>
+                                            <li>✓ 通过邻接矩阵的<strong>布尔幂运算</strong>得到</li>
+                                            <li>✓ R = A ∨ A² ∨ A³ ∨ ... ∨ Aⁿ</li>
+                                            <li>✓ 揭示图的<strong>连通性</strong>结构</li>
+                                        </ul>
+                                    </div>
+                                    <div class="application-box">
+                                        <h4>思政应用</h4>
+                                        <p>信息传递网络的覆盖范围</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 关联矩阵 -->
+                            <div class="matrix-category incidence-category">
+                                <div class="category-header">
+                                    <span class="category-icon">⊹</span>
+                                    <h3>关联矩阵 (Incidence Matrix)</h3>
+                                </div>
+                                <div class="category-content">
+                                    <div class="definition-box">
+                                        <h4>定义</h4>
+                                        <p>n×m矩阵B = (bᵢⱼ)ₙₓₘ,其中:</p>
+                                        <div class="formula-box">
+                                            bᵢⱼ = 1, 若顶点vᵢ与边eⱼ关联<br>
+                                            bᵢⱼ = 0, 若顶点vᵢ与边eⱼ不关联
+                                        </div>
+                                    </div>
+                                    <div class="properties-box">
+                                        <h4>性质</h4>
+                                        <ul>
+                                            <li>✓ 反映<strong>顶点与边</strong>的关联关系</li>
+                                            <li>✓ n行(顶点数) × m列(边数)的矩阵</li>
+                                            <li>✓ 每列恰有<strong>2个1</strong>(无向图)</li>
+                                            <li>✓ 便于表示<strong>超图</strong>和<strong>二分图</strong></li>
+                                        </ul>
+                                    </div>
+                                    <div class="application-box">
+                                        <h4>思政应用</h4>
+                                        <p>任务与责任人的分配关系</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 案例展示区 -->
+                    <section class="section" id="caseDisplay" style="display: none;">
+                        <h2 class="section-title" id="caseTitle"></h2>
+                        <div id="caseContent"></div>
+                    </section>
+
+                    <!-- 图结构展示区 -->
+                    <section class="section" id="graphDisplay" style="display: none;">
+                        <h2 class="section-title">图结构可视化</h2>
+                        <div id="graphCanvas"></div>
+                    </section>
+
+                    <!-- 矩阵构建区 -->
+                    <section class="section" id="matrixConstruction" style="display: none;">
+                        <h2 class="section-title">矩阵构建过程</h2>
+                        <div id="constructionContent"></div>
+                    </section>
+
+                    <!-- 矩阵展示区 -->
+                    <section class="section" id="matrixDisplay" style="display: none;">
+                        <h2 class="section-title">完整矩阵</h2>
+                        <div id="matrixContent"></div>
+                    </section>
+
+                    <!-- 矩阵运算区 -->
+                    <section class="section" id="matrixOperations" style="display: none;">
+                        <h2 class="section-title">矩阵运算与性质</h2>
+                        <div id="operationsContent"></div>
+                    </section>
+
+                    <!-- 思政解读区 -->
+                    <section class="section" id="philosophySection" style="display: none;">
+                        <h2 class="section-title">思政启示</h2>
+                        <div id="philosophyContent"></div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="graph_matrix_representation.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+</html>

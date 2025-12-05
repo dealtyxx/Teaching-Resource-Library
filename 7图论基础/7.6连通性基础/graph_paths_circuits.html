@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图论通路与回路 - 红色征程的数学诠释</title>
+    <link rel="stylesheet" href="graph_paths_circuits.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>图论<span class="highlight">通路回路</span></h1>
+                <p class="subtitle">红色征程的数学诠释</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <!-- 概念类型选择 -->
+                <div class="control-group">
+                    <label>选择图论概念</label>
+                    <div class="concept-grid">
+                        <button class="concept-btn active" data-concept="path">
+                            通路
+                            <span class="concept-sub">Path</span>
+                        </button>
+                        <button class="concept-btn" data-concept="circuit">
+                            回路
+                            <span class="concept-sub">Circuit</span>
+                        </button>
+                        <button class="concept-btn" data-concept="component">
+                            连通分量
+                            <span class="concept-sub">Component</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 案例选择 -->
+                <div class="control-group">
+                    <label>选择历史案例</label>
+                    <select id="caseSelector" class="apple-select">
+                        <option value="0">长征路线 - 初级通路</option>
+                        <option value="1">丝绸之路 - 简单通路</option>
+                        <option value="2">革命根据地 - 初级回路</option>
+                        <option value="3">经济循环 - 简单回路</option>
+                        <option value="4">解放区连片 - 连通分量</option>
+                    </select>
+                </div>
+
+                <!-- 动画速度控制 -->
+                <div class="control-group">
+                    <label>演示速度</label>
+                    <input type="range" id="speedControl" min="300" max="2000" value="800" step="100">
+                    <div class="speed-display">
+                        <span>快</span>
+                        <span id="speedValue">800ms</span>
+                        <span>慢</span>
+                    </div>
+                </div>
+
+                <!-- 信息面板 -->
+                <div class="info-panel">
+                    <p id="conceptInfo">通路是图中从一个顶点到另一个顶点的路径,如同革命征程。</p>
+                    <div class="stats-display">
+                        <div class="stat-item">
+                            <span class="stat-label">当前概念:</span>
+                            <span class="stat-value" id="currentConcept">通路</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">路径长度:</span>
+                            <span class="stat-value" id="pathLength">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="actions-footer">
+                <button id="startBtn" class="apple-btn action-btn">开始演示</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <!-- 主可视化区域 -->
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="visualization-container" id="vizContainer">
+                    <!-- 概念介绍区 -->
+                    <section class="section" id="conceptsIntro">
+                        <h2 class="section-title">图论核心概念</h2>
+                        <div class="concepts-overview">
+                            <!-- 通路概念 -->
+                            <div class="concept-category path-category">
+                                <h3>通路 (Path)</h3>
+                                <div class="concept-cards">
+                                    <div class="definition-card">
+                                        <div class="card-header">
+                                            <span class="card-icon">→</span>
+                                            <h4>初级通路</h4>
+                                        </div>
+                                        <div class="card-content">
+                                            <p class="definition">除起点和终点外,其余顶点不重复的通路</p>
+                                            <div class="formula">v₁ → v₂ → v₃ → ... → vₙ (顶点不重复)</div>
+                                            <p class="example">例: 长征从江西瑞金到陕北延安</p>
+                                        </div>
+                                    </div>
+                                    <div class="definition-card">
+                                        <div class="card-header">
+                                            <span class="card-icon">⇒</span>
+                                            <h4>简单通路</h4>
+                                        </div>
+                                        <div class="card-content">
+                                            <p class="definition">边不重复的通路</p>
+                                            <div class="formula">e₁, e₂, e₃, ..., eₙ (边不重复)</div>
+                                            <p class="example">例: 古代丝绸之路贸易线</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 回路概念 -->
+                            <div class="concept-category circuit-category">
+                                <h3>回路 (Circuit)</h3>
+                                <div class="concept-cards">
+                                    <div class="definition-card">
+                                        <div class="card-header">
+                                            <span class="card-icon">↻</span>
+                                            <h4>初级回路</h4>
+                                        </div>
+                                        <div class="card-content">
+                                            <p class="definition">起点和终点相同,其余顶点不重复的通路</p>
+                                            <div class="formula">v₁ → v₂ → ... → vₙ → v₁ (形成循环)</div>
+                                            <p class="example">例: 革命根据地巡视路线</p>
+                                        </div>
+                                    </div>
+                                    <div class="definition-card">
+                                        <div class="card-header">
+                                            <span class="card-icon">⟲</span>
+                                            <h4>简单回路</h4>
+                                        </div>
+                                        <div class="card-content">
+                                            <p class="definition">起点和终点相同,边不重复的回路</p>
+                                            <div class="formula">闭合路径,边各异</div>
+                                            <p class="example">例: 经济循环系统</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 连通分量概念 -->
+                            <div class="concept-category component-category">
+                                <h3>连通分量 (Connected Component)</h3>
+                                <div class="concept-cards">
+                                    <div class="definition-card wide-card">
+                                        <div class="card-header">
+                                            <span class="card-icon">◎</span>
+                                            <h4>最大连通子图</h4>
+                                        </div>
+                                        <div class="card-content">
+                                            <p class="definition">图中的极大连通子图,任意两点间存在通路</p>
+                                            <div class="formula">∀u,v ∈ V, ∃ path(u,v)</div>
+                                            <p class="example">例: 革命根据地连成一片</p>
+                                            <div class="properties">
+                                                <div class="property-item">✓ 内部完全连通</div>
+                                                <div class="property-item">✓ 不可再扩展</div>
+                                                <div class="property-item">✓ 分量间不连通</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 案例展示区 -->
+                    <section class="section" id="caseDisplay" style="display: none;">
+                        <h2 class="section-title" id="caseTitle"></h2>
+                        <div id="caseContent"></div>
+                    </section>
+
+                    <!-- 图可视化区 -->
+                    <section class="section" id="graphVisualization" style="display: none;">
+                        <h2 class="section-title">图结构可视化</h2>
+                        <div id="graphCanvas"></div>
+                    </section>
+
+                    <!-- 路径追踪区 -->
+                    <section class="section" id="pathTracing" style="display: none;">
+                        <h2 class="section-title">路径追踪演示</h2>
+                        <div id="tracingContent"></div>
+                    </section>
+
+                    <!-- 性质分析区 -->
+                    <section class="section" id="propertyAnalysis" style="display: none;">
+                        <h2 class="section-title">性质分析</h2>
+                        <div id="analysisContent"></div>
+                    </section>
+
+                    <!-- 思政启示区 -->
+                    <section class="section" id="philosophySection" style="display: none;">
+                        <h2 class="section-title">思政启示</h2>
+                        <div id="philosophyContent"></div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="graph_paths_circuits.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+</html>
