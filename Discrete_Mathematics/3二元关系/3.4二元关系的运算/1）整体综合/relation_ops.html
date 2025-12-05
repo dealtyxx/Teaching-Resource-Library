@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色数理 - 伟大的接力</title>
+    <link rel="stylesheet" href="relation_ops.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>红色数理 <span class="highlight">伟大的接力</span></h1>
+                <p class="subtitle">The Great Relay & Relation Ops</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>基础属性 (Properties)</label>
+                    <div class="ops-grid">
+                        <button class="apple-btn op-btn" data-op="domain">
+                            <span class="btn-icon">🚩</span>
+                            <span>定义域 (Domain)</span>
+                        </button>
+                        <button class="apple-btn op-btn" data-op="range">
+                            <span class="btn-icon">🏁</span>
+                            <span>值域 (Range)</span>
+                        </button>
+                        <button class="apple-btn op-btn full-width" data-op="field">
+                            <span class="btn-icon">🌍</span>
+                            <span>域 (Field)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>关系运算 (Operations)</label>
+                    <div class="ops-list">
+                        <button class="apple-btn op-btn" data-op="inverse">
+                            <div class="btn-content">
+                                <span class="btn-icon">🔄</span>
+                                <div class="btn-text">
+                                    <span>逆运算 (Inverse)</span>
+                                    <span class="btn-sub">R⁻¹: 回望历史</span>
+                                </div>
+                            </div>
+                        </button>
+                        <button class="apple-btn op-btn" data-op="composition">
+                            <div class="btn-content">
+                                <span class="btn-icon">🔗</span>
+                                <div class="btn-text">
+                                    <span>复合运算 (Composition)</span>
+                                    <span class="btn-sub">R ∘ R: 接力传递</span>
+                                </div>
+                            </div>
+                        </button>
+                        <button class="apple-btn op-btn" data-op="power">
+                            <div class="btn-content">
+                                <span class="btn-icon">🌟</span>
+                                <div class="btn-text">
+                                    <span>幂运算 (Power)</span>
+                                    <span class="btn-sub">R³: 深远影响</span>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>运算日志 (Operation Log)</label>
+                    <div class="log-card">
+                        <h3 id="logTitle">就绪 Ready</h3>
+                        <p id="logText">点击上方按钮，探索二元关系的运算性质及其在"薪火相传"中的体现。</p>
+                        <div class="math-display" id="mathDisplay">R = {(1,2), (2,3), (3,4), (4,5)}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="resetBtn" class="apple-btn secondary-btn">重置视图 (Reset)</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="stage-header">
+                    <h2 id="stageTitle">接力网络</h2>
+                    <p id="stageSubtitle">Relay Network Topology</p>
+                </div>
+
+                <div class="graph-container" id="graphContainer">
+                    <svg class="graph-svg" id="graphSvg">
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#d63b1d" />
+                            </marker>
+                            <marker id="arrowhead-gold" markerWidth="10" markerHeight="7" refX="28" refY="3.5"
+                                orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#c5a059" />
+                            </marker>
+                            <marker id="arrowhead-blue" markerWidth="10" markerHeight="7" refX="28" refY="3.5"
+                                orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#007aff" />
+                            </marker>
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur" />
+                                    <feMergeNode in="SourceGraphic" />
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <!-- Edges injected here -->
+                    </svg>
+
+                    <div class="nodes-layer" id="nodesLayer">
+                        <!-- Nodes injected here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="relation_ops.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

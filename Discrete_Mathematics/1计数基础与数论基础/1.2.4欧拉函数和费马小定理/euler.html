@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色数理 - 欧拉与费马</title>
+    <link rel="stylesheet" href="euler.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>红色数理 <span class="highlight">欧拉与费马</span></h1>
+                <p class="subtitle">Euler's Totient & Fermat's Little Theorem</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>模式选择</label>
+                    <div class="mode-tabs">
+                        <div class="mode-tab active" data-mode="euler">欧拉函数</div>
+                        <div class="mode-tab" data-mode="fermat">费马小定理</div>
+                    </div>
+                </div>
+
+                <!-- Euler Controls -->
+                <div id="eulerControls" class="control-group">
+                    <label>正整数 n</label>
+                    <input type="range" id="eulerInput" min="2" max="50" value="12">
+                    <div class="slider-label">当前值: <span id="eulerValue">12</span></div>
+                </div>
+
+                <!-- Fermat Controls -->
+                <div id="fermatControls" class="control-group hidden">
+                    <label>底数 a</label>
+                    <input type="range" id="fermatBase" min="2" max="20" value="2">
+                    <div class="slider-label">a = <span id="fermatBaseValue">2</span></div>
+
+                    <label style="margin-top: 10px;">质数 p</label>
+                    <select id="fermatPrime" class="apple-select">
+                        <option value="3">3</option>
+                        <option value="5">5</option>
+                        <option value="7" selected>7</option>
+                        <option value="11">11</option>
+                        <option value="13">13</option>
+                        <option value="17">17</option>
+                        <option value="19">19</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>思政解读</label>
+                    <div class="info-panel">
+                        <h3 id="szTitle">群众路线</h3>
+                        <p id="szDesc">互质关系象征着党和人民群众的紧密联系，不可分割。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="startBtn" class="apple-btn action-btn">开始演示</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="stage-header">
+                    <h2 id="vizTitle">欧拉函数 φ(n)</h2>
+                    <p id="vizSubtitle">寻找与 n 互质的数</p>
+                </div>
+
+                <div id="visualizationArea" class="visualization-area">
+                    <!-- Dynamic Content Here -->
+                </div>
+
+                <div id="resultPanel" class="result-panel hidden">
+                    <div class="result-item">
+                        <span class="result-label">计算结果</span>
+                        <span id="calcResult" class="result-value">4</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">思政启示</span>
+                        <span id="szResult" class="political-text">紧密团结</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="euler.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

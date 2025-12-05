@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色数理 - 容斥原理</title>
+    <link rel="stylesheet" href="inclusion.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>红色数理 <span class="highlight">容斥原理</span></h1>
+                <p class="subtitle">Seeking Truth from Facts</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>统计任务 (Mission)</label>
+                    <div class="mission-card">
+                        <div class="mission-icon">📊</div>
+                        <div class="mission-info">
+                            <h3>实事求是</h3>
+                            <p>统计"统一战线"的真实力量。消除重复计算，挤干数据水分。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>力量构成 (Components)</label>
+                    <div class="legend-list">
+                        <div class="legend-item">
+                            <span class="dot-legend red"></span>
+                            <span>党员 (A)</span>
+                            <span class="count-badge" id="countA">0</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="dot-legend yellow"></span>
+                            <span>志愿者 (B)</span>
+                            <span class="count-badge" id="countB">0</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="dot-legend blue"></span>
+                            <span>专家 (C)</span>
+                            <span class="count-badge" id="countC">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>数据看板 (Dashboard)</label>
+                    <div class="stats-board">
+                        <div class="stat-row">
+                            <span>当前计算值:</span>
+                            <span id="calcValue" class="stat-value highlight">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>真实人数:</span>
+                            <span id="trueValue" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-diff" id="statDiff">
+                            误差: +0
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="refreshBtn" class="apple-btn secondary-btn">
+                    <span class="btn-icon">🔄</span> 生成新数据
+                </button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="stage-header">
+                    <h2 id="stageTitle">统一战线力量分析</h2>
+                    <p id="stageSubtitle">请调整公式，消除重复统计</p>
+                </div>
+
+                <div class="venn-container">
+                    <div class="venn-stage" id="vennStage">
+                        <!-- Circles will be drawn here -->
+                        <div class="venn-circle circle-a" data-set="A"></div>
+                        <div class="venn-circle circle-b" data-set="B"></div>
+                        <div class="venn-circle circle-c" data-set="C"></div>
+                        <!-- Particles container -->
+                        <div id="particlesLayer"></div>
+                    </div>
+                </div>
+
+                <div class="equation-bar">
+                    <div class="equation-term active" data-term="A">|A|</div>
+                    <div class="equation-op">+</div>
+                    <div class="equation-term active" data-term="B">|B|</div>
+                    <div class="equation-op">+</div>
+                    <div class="equation-term active" data-term="C">|C|</div>
+
+                    <div class="equation-op">-</div>
+                    <div class="equation-term" data-term="AB">|A∩B|</div>
+                    <div class="equation-op">-</div>
+                    <div class="equation-term" data-term="BC">|B∩C|</div>
+                    <div class="equation-op">-</div>
+                    <div class="equation-term" data-term="AC">|A∩C|</div>
+
+                    <div class="equation-op">+</div>
+                    <div class="equation-term" data-term="ABC">|A∩B∩C|</div>
+
+                    <div class="equation-equals">=</div>
+                    <div class="equation-result" id="equationResult">?</div>
+                </div>
+
+                <div id="statusBanner" class="status-banner warning">
+                    <span class="status-icon">⚠️</span>
+                    <span id="statusText" class="status-text">数据虚高！存在重复统计，请修正公式。</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="inclusion.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

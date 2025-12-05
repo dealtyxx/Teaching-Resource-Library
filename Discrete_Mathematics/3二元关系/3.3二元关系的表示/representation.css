@@ -1,0 +1,394 @@
+:root {
+    /* Perspective Triad Theme */
+    --app-bg: #fdfbf7;
+    --panel-bg: rgba(255, 255, 255, 0.6);
+    --glass-border: rgba(139, 0, 0, 0.1);
+    --text-primary: #2c2c2c;
+    --text-secondary: #5a5a5a;
+
+    --accent-red: #d63b1d;
+    --accent-gold: #c5a059;
+    --accent-blue: #007aff;
+    --accent-green: #27c93f;
+
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+    --font-family: "Noto Serif SC", "Outfit", serif;
+    --font-mono: "JetBrains Mono", monospace;
+    --font-title: "Ma Shan Zheng", cursive;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--app-bg);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: url('https://images.unsplash.com/photo-1493612276216-9c5901955d43?q=80&w=2672&auto=format&fit=crop');
+    /* Abstract Triad/Geometry */
+    background-size: cover;
+    background-position: center;
+}
+
+.app-container {
+    width: 95vw;
+    height: 90vh;
+    max-width: 1600px;
+    background: rgba(255, 252, 245, 0.92);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Header */
+.main-header {
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.header-content h1 {
+    font-family: var(--font-title);
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--accent-red);
+}
+
+.subtitle {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-top: -5px;
+}
+
+.header-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.apple-btn {
+    padding: 8px 16px;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    font-family: var(--font-family);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+}
+
+.apple-btn:hover {
+    background: #f5f5f5;
+    border-color: var(--accent-gold);
+    transform: translateY(-1px);
+}
+
+/* Main Stage - Triad */
+.triad-stage {
+    flex-grow: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    padding: 20px;
+    overflow: hidden;
+}
+
+.perspective-panel {
+    background: var(--panel-bg);
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.perspective-panel:hover {
+    box-shadow: var(--shadow-md);
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.panel-header {
+    padding: 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    text-align: center;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.panel-icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+.panel-header h3 {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.panel-sub {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.panel-content {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+/* Set View */
+.set-panel {
+    border-top: 4px solid var(--accent-blue);
+}
+
+.set-container {
+    display: flex;
+    align-items: flex-start;
+    font-family: var(--font-mono);
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    width: 100%;
+    height: 100%;
+}
+
+.set-bracket {
+    font-size: 3rem;
+    font-weight: 300;
+    color: var(--text-secondary);
+    line-height: 1;
+}
+
+.set-list {
+    flex-grow: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+    align-content: flex-start;
+    overflow-y: auto;
+    max-height: 100%;
+}
+
+.set-pair {
+    background: #fff;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.set-pair:hover {
+    background: #f0f8ff;
+    border-color: var(--accent-blue);
+    transform: scale(1.05);
+}
+
+.set-pair.active {
+    background: var(--accent-blue);
+    color: white;
+    border-color: var(--accent-blue);
+}
+
+.pair-remove {
+    font-size: 0.8rem;
+    opacity: 0.5;
+    margin-left: 4px;
+}
+
+.pair-remove:hover {
+    opacity: 1;
+    color: var(--accent-red);
+}
+
+.empty-state {
+    color: #ccc;
+    font-style: italic;
+    width: 100%;
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Matrix View */
+.matrix-panel {
+    border-top: 4px solid var(--accent-green);
+}
+
+.matrix-wrapper {
+    display: grid;
+    gap: 4px;
+    background: #f0f0f0;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.matrix-cell {
+    width: 40px;
+    height: 40px;
+    background: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    color: #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.matrix-cell:hover {
+    background: #e0e0e0;
+}
+
+.matrix-cell.active {
+    background: var(--accent-green);
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(39, 201, 63, 0.3);
+}
+
+.matrix-header-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* Graph View */
+.graph-panel {
+    border-top: 4px solid var(--accent-red);
+}
+
+.graph-content {
+    padding: 0;
+}
+
+.graph-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+}
+
+.nodes-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.graph-node {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: #fff;
+    border: 2px solid var(--accent-red);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--font-title);
+    font-size: 1.2rem;
+    color: var(--accent-red);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    pointer-events: auto;
+    cursor: pointer;
+    transition: all 0.3s;
+    z-index: 20;
+}
+
+.graph-node:hover {
+    transform: scale(1.1);
+    background: var(--accent-red);
+    color: white;
+}
+
+.graph-edge {
+    stroke: var(--accent-red);
+    stroke-width: 2;
+    fill: none;
+    marker-end: url(#arrowhead);
+    cursor: pointer;
+    pointer-events: auto;
+    transition: all 0.3s;
+}
+
+.graph-edge:hover {
+    stroke-width: 4;
+    stroke: var(--accent-gold);
+    marker-end: url(#arrowhead-loop);
+}
+
+.graph-edge.loop {
+    marker-end: url(#arrowhead-loop);
+    stroke: var(--accent-gold);
+}
+
+/* Ghost edge for interaction */
+.ghost-edge {
+    stroke: rgba(0, 0, 0, 0.05);
+    stroke-width: 10;
+    fill: none;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.ghost-edge:hover {
+    stroke: rgba(214, 59, 29, 0.2);
+}
+
+/* Footer */
+.insight-footer {
+    padding: 1rem 2rem;
+    background: #fff;
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.insight-icon {
+    font-size: 1.5rem;
+}
+
+.insight-footer p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色数理 - 中秋集合论</title>
+    <link rel="stylesheet" href="midautumn.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>红色数理 <span class="highlight">中秋集合论</span></h1>
+                <p class="subtitle">Cultural Confidence & Set Theory</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>文化活动 (Activities)</label>
+                    <div class="legend-list">
+                        <div class="legend-item" data-set="A">
+                            <span class="icon">🌕</span>
+                            <div class="legend-info">
+                                <span class="legend-name">集合 A: 赏月 (Moon Gazing)</span>
+                                <span class="legend-desc">精神追求 · 审美观照</span>
+                            </div>
+                        </div>
+                        <div class="legend-item" data-set="B">
+                            <span class="icon">🥮</span>
+                            <div class="legend-info">
+                                <span class="legend-name">集合 B: 吃月饼 (Mooncakes)</span>
+                                <span class="legend-desc">物质分享 · 团圆甜蜜</span>
+                            </div>
+                        </div>
+                        <div class="legend-item" data-set="C">
+                            <span class="icon">🏮</span>
+                            <div class="legend-info">
+                                <span class="legend-name">集合 C: 提灯笼 (Lanterns)</span>
+                                <span class="legend-desc">照亮前程 · 传承薪火</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>探索任务 (Missions)</label>
+                    <div class="mission-controls">
+                        <button class="apple-btn mission-btn" data-mission="1">
+                            <span class="btn-icon">✨</span>
+                            <div class="btn-text">
+                                <span>问题 1: 赏月且吃月饼</span>
+                                <span class="btn-sub">A ∩ B</span>
+                            </div>
+                        </button>
+                        <button class="apple-btn mission-btn" data-mission="2">
+                            <span class="btn-icon">🌏</span>
+                            <div class="btn-text">
+                                <span>问题 2: 参与任一活动</span>
+                                <span class="btn-sub">A ∪ B ∪ C</span>
+                            </div>
+                        </button>
+                        <button class="apple-btn mission-btn" data-mission="3">
+                            <span class="btn-icon">🧘</span>
+                            <div class="btn-text">
+                                <span>问题 3: 唯独赏月</span>
+                                <span class="btn-sub">A ∩ Bᶜ ∩ Cᶜ</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>思政解读 (Insight)</label>
+                    <div class="insight-card">
+                        <h3 id="insightTitle">请选择一个任务</h3>
+                        <p id="insightText">点击上方按钮，探索集合运算背后的文化内涵。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="resetBtn" class="apple-btn secondary-btn">重置视图</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="stage-header">
+                    <h2 id="stageTitle">中秋文化图谱</h2>
+                    <p id="stageSubtitle">传承传统节日 · 坚定文化自信</p>
+                </div>
+
+                <div class="venn-container">
+                    <div class="venn-stage" id="vennStage">
+                        <!-- SVG Venn Diagram -->
+                        <svg width="500" height="400" viewBox="0 0 500 400">
+                            <defs>
+                                <filter id="glow">
+                                    <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
+                                    <feMerge>
+                                        <feMergeNode in="coloredBlur" />
+                                        <feMergeNode in="SourceGraphic" />
+                                    </feMerge>
+                                </filter>
+                            </defs>
+
+                            <!-- Circle A: Top -->
+                            <circle id="circleA" cx="250" cy="140" r="110" class="venn-circle" />
+                            <!-- Circle B: Bottom Left -->
+                            <circle id="circleB" cx="170" cy="260" r="110" class="venn-circle" />
+                            <!-- Circle C: Bottom Right -->
+                            <circle id="circleC" cx="330" cy="260" r="110" class="venn-circle" />
+
+                            <!-- Labels -->
+                            <text x="250" y="80" class="venn-label">A 赏月</text>
+                            <text x="120" y="300" class="venn-label">B 月饼</text>
+                            <text x="380" y="300" class="venn-label">C 灯笼</text>
+                        </svg>
+
+                        <!-- Particles Layer -->
+                        <div id="particlesLayer"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="midautumn.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

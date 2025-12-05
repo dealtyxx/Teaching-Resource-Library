@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色数理 - 思想的伟力</title>
+    <link rel="stylesheet" href="power.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="header-content">
+                <h1>红色数理 <span class="highlight">思想的伟力</span></h1>
+                <p class="subtitle">The Power of Ideas: Relation Powers (Rⁿ)</p>
+            </div>
+            <div class="header-controls">
+                <div class="control-group">
+                    <button id="prevBtn" class="apple-btn secondary-btn" disabled>
+                        <span class="btn-icon">⬅️</span>
+                    </button>
+                    <span class="power-display" id="powerDisplay">R¹</span>
+                    <button id="nextBtn" class="apple-btn primary-btn">
+                        <span class="btn-text">深化 (Next Power)</span>
+                        <span class="btn-icon">➡️</span>
+                    </button>
+                </div>
+                <button id="autoBtn" class="apple-btn accent-btn">
+                    <span class="btn-icon">▶️</span>
+                    <span class="btn-text">演进 (Auto)</span>
+                </button>
+                <button id="resetBtn" class="apple-btn secondary-btn">
+                    <span class="btn-icon">🔄</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="split-stage">
+            <!-- Left: Network View -->
+            <section class="view-panel graph-panel">
+                <div class="panel-header">
+                    <h3>传播网络 (Propagation Network)</h3>
+                    <p class="panel-sub">Influence Graph G(V, Eⁿ)</p>
+                </div>
+                <div class="graph-container" id="graphContainer">
+                    <svg class="graph-svg" id="graphSvg">
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="24" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#d63b1d" />
+                            </marker>
+                            <marker id="arrowhead-gold" markerWidth="10" markerHeight="7" refX="24" refY="3.5"
+                                orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#c5a059" />
+                            </marker>
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur" />
+                                    <feMergeNode in="SourceGraphic" />
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <!-- Edges injected here -->
+                    </svg>
+                    <div class="nodes-layer" id="nodesLayer">
+                        <!-- Nodes injected here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right: Matrix View -->
+            <section class="view-panel matrix-panel">
+                <div class="panel-header">
+                    <h3>覆盖矩阵 (Reachability Matrix)</h3>
+                    <p class="panel-sub">M(Rⁿ) = M(R) × ... × M(R)</p>
+                </div>
+                <div class="matrix-container">
+                    <div class="matrix-grid" id="matrixGrid">
+                        <!-- Matrix Cells injected here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="insight-footer">
+            <div class="insight-content">
+                <h4 id="insightTitle">初始阶段 (Initial Stage)</h4>
+                <p id="insightText">R¹ 代表直接的影响力。思想的火种刚刚点燃，开始照亮周围。</p>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="power.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>
