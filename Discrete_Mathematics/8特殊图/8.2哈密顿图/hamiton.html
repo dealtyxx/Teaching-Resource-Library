@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色征程 - 哈密顿回路探索</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>红色征程 <span class="highlight">哈密顿之路</span></h1>
+                <p class="subtitle">Red March - Hamiltonian Path Explorer</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>图类型选择</label>
+                    <div class="graph-type-selector">
+                        <button class="type-btn active" data-type="hamiltonian-circuit">
+                            <span class="icon">🔄</span>
+                            <div>
+                                <strong>哈密顿回路</strong>
+                                <small>访遍所有地点并返回</small>
+                            </div>
+                        </button>
+                        <button class="type-btn" data-type="hamiltonian-path">
+                            <span class="icon">📍</span>
+                            <div>
+                                <strong>哈密顿通路</strong>
+                                <small>访遍所有地点不返回</small>
+                            </div>
+                        </button>
+                        <button class="type-btn" data-type="hamiltonian-graph">
+                            <span class="icon">✅</span>
+                            <div>
+                                <strong>哈密顿图</strong>
+                                <small>存在哈密顿回路</small>
+                            </div>
+                        </button>
+                        <button class="type-btn" data-type="non-hamiltonian">
+                            <span class="icon">❌</span>
+                            <div>
+                                <strong>非哈密顿图</strong>
+                                <small>对比学习</small>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>算法选择</label>
+                    <select id="algorithmSelect" class="apple-select">
+                        <option value="backtracking">回溯算法 - 深度优先搜索</option>
+                        <option value="greedy">贪心算法 - 最近邻居优先</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <button id="generateBtn" class="apple-btn primary-btn">
+                        <span class="icon">⟳</span> 生成新图
+                    </button>
+                </div>
+
+                <div class="control-group">
+                    <label>演示速度</label>
+                    <input type="range" id="speed" min="1" max="100" value="50">
+                </div>
+
+                <div class="control-group">
+                    <label>当前状态</label>
+                    <div class="info-panel">
+                        <p id="statusText">准备就绪</p>
+                        <div class="path-display">
+                            <span>访问顺序:</span>
+                            <div id="pathList"></div>
+                        </div>
+                        <div class="stats-row">
+                            <div class="stat-item">
+                                <span class="stat-label">节点数</span>
+                                <span id="nodeCount" class="stat-value">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">已访问</span>
+                                <span id="visitedCount" class="stat-value">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>💡 革命启示</h3>
+                    <div id="conceptInfo">
+                        <p><strong>哈密顿回路:</strong> 访问每个革命地点恰好一次,最终回到起点的完整征程。</p>
+                        <p><strong>象征意义:</strong> 革命道路要走遍每个地方,深入群众,最终回归人民。</p>
+                        <p><strong>与欧拉回路对比:</strong> 欧拉关注"路径"(边),哈密顿关注"地点"(点)。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="startBtn" class="apple-btn action-btn">开始征程</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="legend">
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background: var(--node-start)"></span>
+                        <span>起点</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background: var(--node-visited)"></span>
+                        <span>已访问</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background: var(--node-current)"></span>
+                        <span>当前位置</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line" style="background: var(--edge-visited)"></span>
+                        <span>征程路径</span>
+                    </div>
+                </div>
+                <svg id="graphSvg" width="100%" height="100%">
+                    <g id="edgesGroup"></g>
+                    <g id="nodesGroup"></g>
+                </svg>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

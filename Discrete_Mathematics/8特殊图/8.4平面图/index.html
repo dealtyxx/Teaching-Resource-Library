@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色平面 - 平面图探索</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>红色平面 <span class="highlight">平面图</span></h1>
+                <p class="subtitle">Red Plane - Planar Graph Explorer</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>表示方式</label>
+                    <div class="representation-selector">
+                        <button class="repr-btn active" data-repr="plane">
+                            <span class="icon">📐</span>
+                            <strong>平面表示</strong>
+                        </button>
+                        <button class="repr-btn" data-repr="sphere">
+                            <span class="icon">🌐</span>
+                            <strong>球面表示</strong>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>示例图选择</label>
+                    <select id="graphSelect" class="apple-select">
+                        <optgroup label="平面图示例">
+                            <option value="k4">K₄ - 完全图(4顶点)</option>
+                            <option value="wheel">轮图W₅ - 中心+外环</option>
+                            <option value="fan">扇形图F₅ - 扇形结构</option>
+                            <option value="tree">树形图T₆ - 无环连通</option>
+                            <option value="octahedron">八面体图 - 立体投影</option>
+                            <option value="custom">六边形网格 - 自定义</option>
+                        </optgroup>
+                        <optgroup label="非平面图示例">
+                            <option value="k5">K₅ - 五顶点完全图</option>
+                            <option value="k33">K₃,₃ - 完全二部图</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <button id="generateBtn" class="apple-btn primary-btn">
+                        <span class="icon">⟳</span> 生成新图
+                    </button>
+                </div>
+
+                <div class="control-group">
+                    <label>面高亮</label>
+                    <div class="face-buttons">
+                        <button id="highlightOuter" class="apple-btn secondary-btn">外部面</button>
+                        <button id="highlightInner" class="apple-btn secondary-btn">内部面</button>
+                        <button id="clearHighlight" class="apple-btn secondary-btn">清除</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>图信息</label>
+                    <div class="info-panel">
+                        <p id="statusText">准备就绪</p>
+                        <div class="euler-formula">
+                            <h4>欧拉公式: V - E + F = 2</h4>
+                            <div class="formula-values">
+                                <div class="formula-item">
+                                    <span>顶点V:</span>
+                                    <strong id="vertexCount">0</strong>
+                                </div>
+                                <div class="formula-item">
+                                    <span>边E:</span>
+                                    <strong id="edgeCount">0</strong>
+                                </div>
+                                <div class="formula-item">
+                                    <span>面F:</span>
+                                    <strong id="faceCount">0</strong>
+                                </div>
+                                <div class="formula-item result">
+                                    <span>V-E+F:</span>
+                                    <strong id="eulerResult">0</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="planarity-check">
+                            <span>平面性:</span>
+                            <strong id="planarityResult">-</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>💡 革命寓意</h3>
+                    <div id="conceptInfo">
+                        <p><strong>平面图:</strong> 革命根据地网络可以不交叉地铺展在大地上,象征和平发展。</p>
+                        <p><strong>外部面:</strong> 与外部世界的联系,开放包容。</p>
+                        <p><strong>内部面:</strong> 内部区域的治理,精细管理。</p>
+                        <p><strong>欧拉公式:</strong> V-E+F=2,体现内在规律性。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="testPlanarity" class="apple-btn action-btn">检测平面性</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="legend">
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background: var(--node-default)"></span>
+                        <span>革命根据地</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line" style="background: var(--edge-default)"></span>
+                        <span>交通线路</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-face outer-face-indicator"></span>
+                        <span>外部面</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-face inner-face-indicator"></span>
+                        <span>内部面</span>
+                    </div>
+                </div>
+                <svg id="graphSvg" width="100%" height="100%">
+                    <g id="facesGroup"></g>
+                    <g id="edgesGroup"></g>
+                    <g id="nodesGroup"></g>
+                </svg>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>
