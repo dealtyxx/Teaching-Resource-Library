@@ -1,0 +1,328 @@
+:root {
+    /* Rhythm Red & Stability Blue Theme */
+    --app-bg: #fdfbf7;
+    --panel-bg: rgba(255, 255, 255, 0.9);
+    --glass-border: rgba(0, 0, 0, 0.08);
+    --text-primary: #2d3436;
+    --text-secondary: #636e72;
+
+    --rhythm-red: #d63031;
+    --stability-blue: #0984e3;
+    --growth-green: #00b894;
+    --constant-gold: #fdcb6e;
+
+    --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.08);
+
+    --font-family: "Noto Serif SC", "Outfit", serif;
+    --font-mono: "JetBrains Mono", monospace;
+    --font-title: "Ma Shan Zheng", cursive;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--app-bg);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: url('https://images.unsplash.com/photo-1516961642265-531546e84af2?q=80&w=2574&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+}
+
+.app-container {
+    width: 95vw;
+    height: 90vh;
+    max-width: 1600px;
+    background: rgba(255, 252, 245, 0.96);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Header */
+.main-header {
+    padding: 1.2rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.header-content h1 {
+    font-family: var(--font-title);
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--rhythm-red);
+}
+
+.highlight {
+    color: var(--stability-blue);
+}
+
+.subtitle {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-top: -5px;
+}
+
+.header-controls {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.mode-nav {
+    display: flex;
+    background: #fff;
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0.7;
+    font-family: var(--font-family);
+    font-weight: 600;
+}
+
+.nav-btn:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.nav-btn.active {
+    opacity: 1;
+    background: var(--rhythm-red);
+    color: white;
+    box-shadow: 0 2px 8px rgba(214, 48, 49, 0.3);
+}
+
+.nav-btn[data-mode="monotonic"].active {
+    background: var(--growth-green);
+    box-shadow: 0 2px 8px rgba(0, 184, 148, 0.3);
+}
+
+.nav-btn[data-mode="constant"].active {
+    background: var(--constant-gold);
+    box-shadow: 0 2px 8px rgba(253, 203, 110, 0.3);
+}
+
+.nav-btn[data-mode="periodic"].active {
+    background: var(--stability-blue);
+    box-shadow: 0 2px 8px rgba(9, 132, 227, 0.3);
+}
+
+.apple-btn {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-secondary);
+}
+
+.apple-btn:hover {
+    background: #f5f5f5;
+    transform: scale(1.05);
+}
+
+/* Main Stage */
+.main-stage {
+    flex-grow: 1;
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 2px;
+    background: rgba(0, 0, 0, 0.02);
+    overflow: hidden;
+}
+
+.graph-panel,
+.insight-panel {
+    background: var(--panel-bg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.canvas-container {
+    flex-grow: 1;
+    position: relative;
+    background: #fff;
+    cursor: crosshair;
+}
+
+#functionCanvas {
+    width: 100%;
+    height: 100%;
+}
+
+.overlay-text {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    pointer-events: none;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 8px 12px;
+    border-radius: 8px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.controls-bar {
+    padding: 20px;
+    background: #fff;
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 200px;
+}
+
+.control-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: space-between;
+}
+
+input[type="range"] {
+    width: 100%;
+    accent-color: var(--rhythm-red);
+}
+
+/* Insight Panel */
+.insight-panel {
+    padding: 24px;
+    gap: 20px;
+    border-left: 1px solid var(--glass-border);
+}
+
+.concept-card,
+.insight-card,
+.stats-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.concept-card {
+    border-top: 4px solid var(--rhythm-red);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.card-icon {
+    font-size: 1.6rem;
+}
+
+.card-header h4 {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.card-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.math-box {
+    background: rgba(0, 0, 0, 0.03);
+    padding: 12px;
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    color: var(--text-primary);
+    text-align: center;
+    border: 1px dashed rgba(0, 0, 0, 0.2);
+}
+
+/* Insight */
+.insight-card {
+    background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
+    border: 1px solid rgba(214, 48, 49, 0.2);
+}
+
+.insight-card h4 {
+    color: var(--rhythm-red);
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.insight-card p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* Stats */
+.stats-box {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+}

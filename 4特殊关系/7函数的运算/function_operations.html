@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色数理 - 奋斗的轨迹</title>
+    <link rel="stylesheet" href="function_operations.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="header-content">
+                <h1>红色数理 <span class="highlight">奋斗的轨迹</span></h1>
+                <p class="subtitle">The Trajectory of Struggle: Composition & Inverse Functions</p>
+            </div>
+            <div class="header-controls">
+                <nav class="mode-nav">
+                    <button class="nav-btn active" data-mode="composition">
+                        <span class="icon">🔗</span>
+                        <span>复合运算</span>
+                    </button>
+                    <button class="nav-btn" data-mode="inverse">
+                        <span class="icon">↩️</span>
+                        <span>逆运算</span>
+                    </button>
+                </nav>
+                <button id="resetBtn" class="apple-btn">🔄</button>
+            </div>
+        </header>
+
+        <main class="main-stage">
+            <!-- Composition View -->
+            <section class="operation-view active" id="viewComposition">
+                <div class="pipeline-container">
+                    <div class="stage-node input-stage">
+                        <div class="stage-header">
+                            <span class="stage-icon">🌱</span>
+                            <h4>人民愿景</h4>
+                            <span class="math-var">$x$</span>
+                        </div>
+                        <div class="selection-list" id="compInputList"></div>
+                    </div>
+
+                    <div class="flow-connector">
+                        <svg class="connector-svg" viewBox="0 0 100 60">
+                            <defs>
+                                <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3"
+                                    orient="auto">
+                                    <polygon points="0 0, 10 3, 0 6" fill="#fdcb6e" />
+                                </marker>
+                            </defs>
+                            <path class="connector-path" d="M 0 30 Q 50 30, 100 30" stroke="#e0e0e0" stroke-width="3"
+                                fill="none" />
+                            <path class="connector-flow" d="M 0 30 Q 50 30, 100 30" stroke="#fdcb6e" stroke-width="3"
+                                fill="none" marker-end="url(#arrowhead)" />
+                        </svg>
+                        <div class="func-label">$f$<span class="label-text">顶层设计</span></div>
+                    </div>
+
+                    <div class="stage-node intermediate-stage">
+                        <div class="stage-header">
+                            <span class="stage-icon">📜</span>
+                            <h4>战略规划</h4>
+                            <span class="math-var">$y$</span>
+                        </div>
+                        <div class="result-display" id="compInterDisplay">
+                            <div class="loading-dots"><span></span><span></span><span></span></div>
+                        </div>
+                    </div>
+
+                    <div class="flow-connector">
+                        <svg class="connector-svg" viewBox="0 0 100 60">
+                            <path class="connector-path" d="M 0 30 Q 50 30, 100 30" stroke="#e0e0e0" stroke-width="3"
+                                fill="none" />
+                            <path class="connector-flow" d="M 0 30 Q 50 30, 100 30" stroke="#fdcb6e" stroke-width="3"
+                                fill="none" marker-end="url(#arrowhead)" />
+                        </svg>
+                        <div class="func-label">$g$<span class="label-text">基层落实</span></div>
+                    </div>
+
+                    <div class="stage-node output-stage">
+                        <div class="stage-header">
+                            <span class="stage-icon">🏆</span>
+                            <h4>美好现实</h4>
+                            <span class="math-var">$z$</span>
+                        </div>
+                        <div class="result-display" id="compOutputDisplay">
+                            <div class="loading-dots"><span></span><span></span><span></span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="formula-box">
+                    <span class="formula">$(g \circ f)(x) = g(f(x)) = z$</span>
+                </div>
+            </section>
+
+            <!-- Inverse View -->
+            <section class="operation-view" id="viewInverse">
+                <div class="pipeline-container reverse">
+                    <div class="stage-node output-stage">
+                        <div class="stage-header">
+                            <span class="stage-icon">🏆</span>
+                            <h4>伟大成就</h4>
+                            <span class="math-var">$y$</span>
+                        </div>
+                        <div class="selection-list" id="invInputList"></div>
+                    </div>
+
+                    <div class="flow-connector reverse">
+                        <svg class="connector-svg" viewBox="0 0 100 60">
+                            <defs>
+                                <marker id="arrowhead-rev" markerWidth="10" markerHeight="10" refX="1" refY="3"
+                                    orient="auto">
+                                    <polygon points="10 0, 0 3, 10 6" fill="#d63031" />
+                                </marker>
+                            </defs>
+                            <path class="connector-path" d="M 0 30 Q 50 30, 100 30" stroke="#e0e0e0" stroke-width="3"
+                                fill="none" />
+                            <path class="connector-flow" d="M 100 30 Q 50 30, 0 30" stroke="#d63031" stroke-width="3"
+                                fill="none" marker-end="url(#arrowhead-rev)" />
+                        </svg>
+                        <div class="func-label">$f^{-1}$<span class="label-text">溯源</span></div>
+                    </div>
+
+                    <div class="stage-node input-stage">
+                        <div class="stage-header">
+                            <span class="stage-icon">❤️</span>
+                            <h4>初心使命</h4>
+                            <span class="math-var">$x$</span>
+                        </div>
+                        <div class="result-display" id="invOutputDisplay">
+                            <div class="loading-dots"><span></span><span></span><span></span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="formula-box">
+                    <span class="formula">$f^{-1}(y) = x \iff f(x) = y$</span>
+                </div>
+            </section>
+
+            <!-- Insight Panel -->
+            <section class="insight-panel">
+                <div class="concept-card" id="conceptCard">
+                    <div class="card-header">
+                        <span class="card-icon">🔗</span>
+                        <h4 id="conceptTitle">复合运算</h4>
+                    </div>
+                    <div class="math-def" id="mathDef">$(g \circ f)(x) = g(f(x))$</div>
+                    <p id="conceptDesc">将一个函数的输出作为另一个函数的输入，形成连续的执行链条。</p>
+                </div>
+
+                <div class="insight-card">
+                    <h4>💡 思政启示</h4>
+                    <p id="insightText">
+                        "一张蓝图绘到底"。从人民的愿景到国家战略，再到基层落实，这是一个环环相扣的执行链条。只有每个环节都精准衔接，才能将美好蓝图变为现实。
+                    </p>
+                </div>
+
+                <div class="progress-indicator" id="progressIndicator">
+                    <div class="progress-step">
+                        <div class="step-dot"></div><span>选择输入</span>
+                    </div>
+                    <div class="progress-step">
+                        <div class="step-dot"></div><span>中间处理</span>
+                    </div>
+                    <div class="progress-step">
+                        <div class="step-dot"></div><span>最终结果</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="function_operations.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>
