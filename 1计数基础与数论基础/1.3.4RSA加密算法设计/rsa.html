@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色数理 - RSA加密</title>
+    <link rel="stylesheet" href="rsa.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>红色数理 <span class="highlight">RSA加密</span></h1>
+                <p class="subtitle">Mass Line & Information Security</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>密钥生成 (Key Generation)</label>
+                    <div class="param-row">
+                        <div class="param-item">
+                            <label class="sub-label">质数 p</label>
+                            <select id="pSelect" class="apple-select">
+                                <option value="3">3</option>
+                                <option value="5">5</option>
+                                <option value="7">7</option>
+                                <option value="11">11</option>
+                            </select>
+                        </div>
+                        <div class="param-item">
+                            <label class="sub-label">质数 q</label>
+                            <select id="qSelect" class="apple-select">
+                                <option value="7">7</option>
+                                <option value="11" selected>11</option>
+                                <option value="13">13</option>
+                                <option value="17">17</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button id="genKeyBtn" class="apple-btn action-btn">生成密钥对</button>
+                </div>
+
+                <div class="control-group">
+                    <label>信息传递 (Message)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="msgInput" class="apple-input" placeholder="输入数字 (M < n)" value="5">
+                    </div>
+                    <div class="action-grid">
+                        <button id="encryptBtn" class="apple-btn warning-btn" disabled>加密投递</button>
+                        <button id="decryptBtn" class="apple-btn success-btn" disabled>解密阅读</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>思政解读</label>
+                    <div class="info-panel">
+                        <h3 id="szTitle">群众路线</h3>
+                        <p id="szDesc">红色信箱（公钥）面向广大群众开放，任何人都可以投递建议（加密）；只有党组织掌握金钥匙（私钥），才能开启信箱，倾听心声（解密）。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="stage-header">
+                    <h2>非对称加密机制</h2>
+                    <p>C = M<sup>e</sup> mod n &nbsp;|&nbsp; M = C<sup>d</sup> mod n</p>
+                </div>
+
+                <div class="viz-content">
+                    <!-- Key Display -->
+                    <div class="keys-container">
+                        <div id="pubKeyCard" class="key-card public hidden">
+                            <div class="key-icon">📮</div>
+                            <div class="key-info">
+                                <span class="key-title">红色信箱 (公钥)</span>
+                                <span class="key-val" id="pubKeyVal">e=?, n=?</span>
+                            </div>
+                        </div>
+                        <div id="privKeyCard" class="key-card private hidden">
+                            <div class="key-icon">🔑</div>
+                            <div class="key-info">
+                                <span class="key-title">金钥匙 (私钥)</span>
+                                <span class="key-val" id="privKeyVal">d=?, n=?</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Animation Area -->
+                    <div class="animation-stage">
+                        <div class="zone sender">
+                            <span class="zone-label">人民群众</span>
+                            <div id="senderBox" class="actor-box">👤</div>
+                        </div>
+
+                        <div class="zone channel">
+                            <span class="zone-label">传输通道</span>
+                            <div class="path-line"></div>
+                            <div id="messageObj" class="message-obj hidden">
+                                <span id="msgContent">5</span>
+                            </div>
+                        </div>
+
+                        <div class="zone receiver">
+                            <span class="zone-label">党组织</span>
+                            <div id="receiverBox" class="actor-box">🏛️</div>
+                        </div>
+                    </div>
+
+                    <!-- Calculation Log -->
+                    <div id="calcLog" class="calc-log hidden">
+                        <div class="log-item" id="logStep1"></div>
+                        <div class="log-item" id="logStep2"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="rsa.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

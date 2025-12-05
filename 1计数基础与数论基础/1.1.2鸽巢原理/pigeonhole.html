@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鸽巢原理 - 统筹兼顾可视化</title>
+    <link rel="stylesheet" href="pigeonhole.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+XiaoWei&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>鸽巢原理 <span class="highlight">可视化</span></h1>
+                <p class="subtitle">统筹兼顾，合理分配 Fair Distribution</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>思政场景选择</label>
+                    <select id="scenarioSelect" class="apple-select">
+                        <option value="resource">资源分配</option>
+                        <option value="talent">人才培养</option>
+                        <option value="region">区域发展</option>
+                        <option value="team">团队协作</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>鸽巢数量（抽屉/容器）</label>
+                    <div class="slider-container">
+                        <span class="slider-label">数量: <span id="holesCount">5</span></span>
+                        <input type="range" id="holesSlider" min="3" max="10" value="5">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>鸽子数量（物品/对象）</label>
+                    <div class="slider-container">
+                        <span class="slider-label">数量: <span id="pigeonsCount">8</span></span>
+                        <input type="range" id="pigeonsSlider" min="4" max="20" value="8">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>原理说明</label>
+                    <div class="info-panel">
+                        <h3>鸽巢原理（抽屉原理）</h3>
+                        <p id="principleDesc">若有 n+1 个物品放入 n 个抽屉，则至少有一个抽屉包含 2 个或更多物品</p>
+                        <p id="politicalMeaning" class="political-text">象征资源有限性与合理分配的必然规律</p>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>计算结果</label>
+                    <div class="result-panel">
+                        <div class="result-item">
+                            <span class="result-label">鸽巢数</span>
+                            <span class="result-value" id="resultHoles">5</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">鸽子数</span>
+                            <span class="result-value" id="resultPigeons">8</span>
+                        </div>
+                        <div class="result-item highlight-result">
+                            <span class="result-label">至少有抽屉包含</span>
+                            <span class="result-value" id="minPerHole">2</span>
+                            <span class="result-unit">个</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>分配策略</label>
+                    <div class="strategy-buttons">
+                        <button class="strategy-btn active" data-strategy="balanced">
+                            均衡分配
+                        </button>
+                        <button class="strategy-btn" data-strategy="random">
+                            随机分配
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="distributeBtn" class="apple-btn action-btn">🎯 开始分配</button>
+                <button id="resetBtn" class="apple-btn secondary-btn">🔄 重新开始</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="visualization-area" id="vizArea">
+                    <div class="pigeonholes-container" id="pigeonsholesContainer">
+                        <!-- 鸽巢将在这里动态生成 -->
+                    </div>
+                    <div class="pigeons-waiting" id="pigeonsWaiting">
+                        <div class="waiting-title">待分配对象</div>
+                        <div class="pigeons-list" id="pigeonsList">
+                            <!-- 鸽子将在这里显示 -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-overlay" id="statsOverlay">
+                    <div class="stat-card">
+                        <span class="stat-icon">📦</span>
+                        <span class="stat-text">鸽巢总数</span>
+                        <span class="stat-number" id="statHoles">5</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-icon">🎯</span>
+                        <span class="stat-text">对象总数</span>
+                        <span class="stat-number" id="statPigeons">8</span>
+                    </div>
+                    <div class="stat-card highlight-card">
+                        <span class="stat-icon">⚡</span>
+                        <span class="stat-text">最大抽屉</span>
+                        <span class="stat-number" id="statMax">0</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="pigeonhole.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

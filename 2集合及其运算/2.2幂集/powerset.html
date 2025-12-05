@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色数理 - 幂集</title>
+    <link rel="stylesheet" href="powerset.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>红色数理 <span class="highlight">幂集</span></h1>
+                <p class="subtitle">Systematic Governance</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>力量选择 (Select Forces)</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" value="worker" checked>
+                            <span class="checkmark"></span>
+                            <span class="label-text">👷 工人阶级</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" value="farmer" checked>
+                            <span class="checkmark"></span>
+                            <span class="label-text">🌾 农民阶级</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" value="soldier">
+                            <span class="checkmark"></span>
+                            <span class="label-text">🪖 人民军队</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" value="scholar">
+                            <span class="checkmark"></span>
+                            <span class="label-text">🎓 知识分子</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>动员操作 (Action)</label>
+                    <button id="mobilizeBtn" class="apple-btn action-btn">动员社会力量</button>
+                    <div class="stats-box">
+                        <div class="stat-row">
+                            <span>基础力量 (n):</span>
+                            <span id="nValue">2</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>组合方案 (2<sup>n</sup>):</span>
+                            <span id="powersetValue" class="highlight-text">4</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>任务系统 (Mission Control)</label>
+                    <div class="mission-box">
+                        <button id="startMissionBtn" class="apple-btn warning-btn" disabled>发布任务</button>
+                        <div class="mission-score">
+                            <span>得分:</span>
+                            <span id="scoreValue">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>思政解读</label>
+                    <div class="info-panel">
+                        <h3 id="szTitle">系统治理</h3>
+                        <p id="szDesc">幂集象征着国家治理体系的丰富性。每一个子集代表一种特定的力量组合（工作专班），通过统筹兼顾，可以形成全方位、多层次的治理效能。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="stage-header">
+                    <h2>力量组合全景图</h2>
+                    <p>P(S) = { x | x ⊆ S }</p>
+                </div>
+
+                <div id="missionBanner" class="mission-banner hidden">
+                    <span class="mission-icon">📢</span>
+                    <div class="mission-info">
+                        <span class="mission-label">当前任务</span>
+                        <span id="missionTarget" class="mission-text">等待发布...</span>
+                    </div>
+                </div>
+
+                <div class="viz-content">
+                    <div id="subsetsContainer" class="subsets-grid">
+                        <!-- Subsets will be generated here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="powerset.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

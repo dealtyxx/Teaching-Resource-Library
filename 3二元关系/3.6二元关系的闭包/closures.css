@@ -1,0 +1,329 @@
+:root {
+    /* Construction Gold & Red Theme */
+    --app-bg: #fdfbf7;
+    --panel-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(0, 0, 0, 0.05);
+    --text-primary: #2c2c2c;
+    --text-secondary: #7a7a7a;
+
+    --accent-red: #d63b1d;
+    --accent-gold: #c5a059;
+    --accent-blue: #007aff;
+    --original-gray: #7a7a7a;
+
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+    --font-family: "Noto Serif SC", "Outfit", serif;
+    --font-mono: "JetBrains Mono", monospace;
+    --font-title: "Ma Shan Zheng", cursive;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--app-bg);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=2670&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+}
+
+.app-container {
+    width: 95vw;
+    height: 90vh;
+    max-width: 1800px;
+    background: rgba(255, 252, 245, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Header */
+.main-header {
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.header-content h1 {
+    font-family: var(--font-title);
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--accent-red);
+}
+
+.highlight {
+    color: var(--accent-gold);
+}
+
+.subtitle {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-top: -5px;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.closure-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.apple-btn {
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-family: var(--font-family);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+}
+
+.closure-btn {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: var(--text-primary);
+}
+
+.closure-btn:hover {
+    background: #f5f5f5;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.closure-btn.active {
+    background: var(--accent-gold);
+    color: white;
+    border-color: var(--accent-gold);
+}
+
+.btn-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.btn-text {
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+
+.btn-sub {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    font-style: italic;
+}
+
+.secondary-btn {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: var(--text-primary);
+    padding: 10px 16px;
+}
+
+.secondary-btn:hover {
+    background: #f5f5f5;
+}
+
+/* Comparison Stage */
+.comparison-stage {
+    flex-grow: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    background: rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.view-panel {
+    background: var(--panel-bg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.panel-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.panel-header h3 {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.panel-sub {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+}
+
+/* Graph Container */
+.graph-container {
+    flex-grow: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.graph-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+}
+
+.nodes-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.graph-node {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background: #fff;
+    border: 2px solid var(--original-gray);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--font-title);
+    font-size: 1.3rem;
+    color: var(--text-primary);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.original-panel .graph-node {
+    border-color: var(--original-gray);
+    color: var(--original-gray);
+}
+
+.closure-panel .graph-node {
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+}
+
+.graph-edge {
+    stroke-width: 2;
+    fill: none;
+    transition: all 0.5s ease;
+}
+
+.edge-original {
+    stroke: var(--original-gray);
+    marker-end: url(#arrow-original);
+    opacity: 0.5;
+}
+
+.edge-original-c {
+    stroke: var(--original-gray);
+    marker-end: url(#arrow-original-c);
+    opacity: 0.4;
+}
+
+.edge-added {
+    stroke: var(--accent-gold);
+    marker-end: url(#arrow-added);
+    stroke-width: 3;
+    filter: drop-shadow(0 0 6px var(--accent-gold));
+    opacity: 0;
+    animation: fadeInEdge 1s forwards;
+}
+
+@keyframes fadeInEdge {
+    to {
+        opacity: 1;
+    }
+}
+
+.edge-self-loop {
+    stroke-width: 2.5;
+}
+
+/* Stats Bar */
+.stats-bar {
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.6);
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: space-around;
+    gap: 16px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.stat-value.added {
+    color: var(--accent-gold);
+}
+
+/* Footer */
+.insight-footer {
+    padding: 1.5rem 2rem;
+    background: #fff;
+    border-top: 1px solid var(--glass-border);
+}
+
+.insight-content h4 {
+    font-size: 1.1rem;
+    color: var(--accent-red);
+    margin-bottom: 4px;
+}
+
+.insight-content p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}

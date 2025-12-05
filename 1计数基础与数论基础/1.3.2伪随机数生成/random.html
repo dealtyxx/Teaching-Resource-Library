@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色数理 - 随机抽样</title>
+    <link rel="stylesheet" href="random.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>红色数理 <span class="highlight">随机抽样</span></h1>
+                <p class="subtitle">Grassroots Investigation & Coverage</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>调研参数 (Parameters)</label>
+
+                    <div class="param-item">
+                        <label class="sub-label">调研点总数 (m)</label>
+                        <input type="range" id="modInput" min="4" max="24" value="12">
+                        <div class="slider-label">m = <span id="modValue">12</span></div>
+                    </div>
+
+                    <div class="param-item">
+                        <label class="sub-label">步长因子 (a)</label>
+                        <input type="range" id="mulInput" min="1" max="20" value="1">
+                        <div class="slider-label">a = <span id="mulValue">1</span></div>
+                    </div>
+
+                    <div class="param-item">
+                        <label class="sub-label">偏移量 (c)</label>
+                        <input type="range" id="incInput" min="0" max="20" value="7">
+                        <div class="slider-label">c = <span id="incValue">7</span></div>
+                    </div>
+
+                    <div class="param-item">
+                        <label class="sub-label">起始站点 (X₀)</label>
+                        <input type="range" id="seedInput" min="0" max="11" value="0">
+                        <div class="slider-label">X₀ = <span id="seedValue">0</span></div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>思政解读</label>
+                    <div class="info-panel">
+                        <h3 id="szTitle">全面覆盖</h3>
+                        <p id="szDesc">调研工作要力戒形式主义，确保足迹遍布每一个基层站点（全周期），做到情况明、底数清，不留死角。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="startBtn" class="apple-btn action-btn">开始调研</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="stage-header">
+                    <h2>线性同余生成器 (LCG)</h2>
+                    <p>X<sub>n+1</sub> = (a · X<sub>n</sub> + c) mod m</p>
+                </div>
+
+                <div class="viz-content">
+                    <div id="graphContainer" class="graph-container">
+                        <!-- Nodes and paths will be generated here -->
+                    </div>
+
+                    <div class="stats-panel">
+                        <div class="stat-item">
+                            <span class="stat-label">覆盖率</span>
+                            <div class="progress-bar-bg">
+                                <div id="coverageBar" class="progress-bar-fill" style="width: 0%"></div>
+                            </div>
+                            <span id="coverageText" class="stat-value">0%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">当前状态</span>
+                            <span id="statusBadge" class="status-badge pending">准备就绪</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="random.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>
