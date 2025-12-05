@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色数理 - 命题公式：政策制定的形式化</title>
+    <link rel="stylesheet" href="propositional_formulas.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="header-content">
+                <h1>红色数理 <span class="highlight">命题公式：政策制定的形式化</span></h1>
+                <p class="subtitle">Propositional Formulas: Formalization of Policy Making</p>
+            </div>
+            <div class="header-tabs">
+                <button class="tab-btn active" data-tab="bnf">BNF定义</button>
+                <button class="tab-btn" data-tab="nary">n元公式</button>
+                <button class="tab-btn" data-tab="hierarchy">公式层次</button>
+                <button class="tab-btn" data-tab="symbol">符号化</button>
+            </div>
+        </header>
+
+        <main class="main-stage">
+            <!-- BNF Tab -->
+            <div class="tab-content active" id="bnfTab">
+                <div class="content-area">
+                    <div class="bnf-section">
+                        <h2>巴科斯范式 (BNF) 定义</h2>
+                        <p class="section-desc">用形式化语法定义命题公式的递归结构</p>
+
+                        <div class="bnf-definition">
+                            <div class="def-card">
+                                <h3>命题公式的BNF定义</h3>
+                                <div class="bnf-rules">
+                                    <div class="bnf-rule">
+                                        <span class="rule-name">$\langle$公式$\rangle$ ::=</span>
+                                        <span class="rule-def">$\langle$原子公式$\rangle$</span>
+                                    </div>
+                                    <div class="bnf-rule indent">
+                                        <span class="rule-or">|</span>
+                                        <span class="rule-def">$\neg \langle$公式$\rangle$</span>
+                                    </div>
+                                    <div class="bnf-rule indent">
+                                        <span class="rule-or">|</span>
+                                        <span class="rule-def">($\langle$公式$\rangle$ $\land$
+                                            $\langle$公式$\rangle$)</span>
+                                    </div>
+                                    <div class="bnf-rule indent">
+                                        <span class="rule-or">|</span>
+                                        <span class="rule-def">($\langle$公式$\rangle$ $\lor$ $\langle$公式$\rangle$)</span>
+                                    </div>
+                                    <div class="bnf-rule indent">
+                                        <span class="rule-or">|</span>
+                                        <span class="rule-def">($\langle$公式$\rangle$ $\rightarrow$
+                                            $\langle$公式$\rangle$)</span>
+                                    </div>
+                                    <div class="bnf-rule indent">
+                                        <span class="rule-or">|</span>
+                                        <span class="rule-def">($\langle$公式$\rangle$ $\leftrightarrow$
+                                            $\langle$公式$\rangle$)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="policy-metaphor">
+                                <h3>政策制定的形式化</h3>
+                                <div class="metaphor-item">
+                                    <strong>原子公式 →</strong> 基本政策目标
+                                    <p>如"经济增长"、"环境保护"等基本政策命题</p>
+                                </div>
+                                <div class="metaphor-item">
+                                    <strong>否定 (¬) →</strong> 政策禁止
+                                    <p>"不允许污染"、"不搞一刀切"</p>
+                                </div>
+                                <div class="metaphor-item">
+                                    <strong>合取 (∧) →</strong> 政策并行
+                                    <p>"既要...又要..."，多目标协同</p>
+                                </div>
+                                <div class="metaphor-item">
+                                    <strong>析取 (∨) →</strong> 政策选择
+                                    <p>"可以...也可以..."，灵活路径</p>
+                                </div>
+                                <div class="metaphor-item">
+                                    <strong>蕴含 (→) →</strong> 政策因果
+                                    <p>"如果...则..."，条件执行</p>
+                                </div>
+                                <div class="metaphor-item">
+                                    <strong>等价 (↔) →</strong> 政策一致
+                                    <p>"当且仅当..."，双向保证</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- N-ary Tab -->
+            <div class="tab-content" id="naryTab">
+                <div class="content-area">
+                    <div class="nary-section">
+                        <h2>n元命题公式</h2>
+                        <p class="section-desc">包含n个命题变元的复合公式</p>
+
+                        <div class="formula-builder">
+                            <h3>交互式公式构建</h3>
+                            <div class="builder-controls">
+                                <label>选择变元数量 (n):</label>
+                                <input type="range" id="nSlider" min="1" max="4" value="2" step="1">
+                                <span id="nValue">2</span>
+                            </div>
+
+                            <div class="variables-display" id="variablesDisplay">
+                                <!-- Populated by JS -->
+                            </div>
+
+                            <div class="formula-examples" id="formulaExamples">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hierarchy Tab -->
+            <div class="tab-content" id="hierarchyTab">
+                <div class="content-area">
+                    <div class="hierarchy-section">
+                        <h2>命题公式层次与优先级</h2>
+                        <p class="section-desc">运算符优先级决定公式的解析顺序</p>
+
+                        <div class="precedence-table">
+                            <h3>运算符优先级（从高到低）</h3>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>优先级</th>
+                                        <th>运算符</th>
+                                        <th>名称</th>
+                                        <th>结合性</th>
+                                        <th>政策类比</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="level-1">
+                                        <td>1 (最高)</td>
+                                        <td>¬</td>
+                                        <td>否定</td>
+                                        <td>右结合</td>
+                                        <td>政策红线（优先判断）</td>
+                                    </tr>
+                                    <tr class="level-2">
+                                        <td>2</td>
+                                        <td>∧</td>
+                                        <td>合取</td>
+                                        <td>左结合</td>
+                                        <td>必须条件（都要满足）</td>
+                                    </tr>
+                                    <tr class="level-3">
+                                        <td>3</td>
+                                        <td>∨</td>
+                                        <td>析取</td>
+                                        <td>左结合</td>
+                                        <td>可选方案（至少一个）</td>
+                                    </tr>
+                                    <tr class="level-4">
+                                        <td>4</td>
+                                        <td>→</td>
+                                        <td>蕴含</td>
+                                        <td>右结合</td>
+                                        <td>政策推导（因果关系）</td>
+                                    </tr>
+                                    <tr class="level-5">
+                                        <td>5 (最低)</td>
+                                        <td>↔</td>
+                                        <td>等价</td>
+                                        <td>左结合</td>
+                                        <td>目标一致（双向要求）</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="parsing-demo">
+                            <h3>公式解析演示</h3>
+                            <div class="demo-input">
+                                <input type="text" id="formulaInput" placeholder="输入公式，如: p ∧ q → r">
+                                <button id="parseBtn">解析</button>
+                            </div>
+                            <div class="parse-tree" id="parseTree">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Symbolization Tab -->
+            <div class="tab-content" id="symbolTab">
+                <div class="content-area">
+                    <div class="symbol-section">
+                        <h2>命题公式符号化</h2>
+                        <p class="section-desc">将自然语言命题转换为符号公式</p>
+
+                        <div class="symbolization-examples">
+                            <div class="example-box">
+                                <h3>政策符号化示例</h3>
+
+                                <div class="symbol-item">
+                                    <div class="natural-lang">
+                                        <strong>自然语言：</strong>
+                                        <p>"坚持党的领导并且依法治国"</p>
+                                    </div>
+                                    <div class="arrow">→</div>
+                                    <div class="symbol-form">
+                                        <strong>符号化：</strong>
+                                        <p>设 p: 坚持党的领导<br>设 q: 依法治国</p>
+                                        <div class="formula">$p \land q$</div>
+                                    </div>
+                                </div>
+
+                                <div class="symbol-item">
+                                    <div class="natural-lang">
+                                        <strong>自然语言：</strong>
+                                        <p>"如果经济发展，那么要保护环境"</p>
+                                    </div>
+                                    <div class="arrow">→</div>
+                                    <div class="symbol-form">
+                                        <strong>符号化：</strong>
+                                        <p>设 p: 经济发展<br>设 q: 保护环境</p>
+                                        <div class="formula">$p \rightarrow q$</div>
+                                    </div>
+                                </div>
+
+                                <div class="symbol-item">
+                                    <div class="natural-lang">
+                                        <strong>自然语言：</strong>
+                                        <p>"人民幸福当且仅当国家富强"</p>
+                                    </div>
+                                    <div class="arrow">→</div>
+                                    <div class="symbol-form">
+                                        <strong>符号化：</strong>
+                                        <p>设 p: 人民幸福<br>设 q: 国家富强</p>
+                                        <div class="formula">$p \leftrightarrow q$</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="interactive-symbolizer">
+                                <h3>交互式符号化工具</h3>
+                                <textarea id="nlInput" placeholder="输入自然语言政策陈述..."></textarea>
+                                <button id="symbolizeBtn">符号化</button>
+                                <div class="symbolized-output" id="symbolOutput"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="sidebar">
+                <div class="panel-section">
+                    <div class="panel-header">
+                        <span class="panel-icon">📚</span>
+                        <h3>核心概念</h3>
+                    </div>
+                    <div class="concept-content" id="conceptContent">
+                        <h4>命题公式定义</h4>
+                        <p>命题公式是由命题变元和逻辑联结词按照一定规则递归构成的符号串。</p>
+
+                        <h4>形式化意义</h4>
+                        <p>通过形式化定义，可以精确描述复杂的逻辑关系，避免歧义，便于推理和验证。</p>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="panel-header">
+                        <span class="panel-icon">💡</span>
+                        <h3>思政启示</h3>
+                    </div>
+                    <div class="insight-content">
+                        <h4>📋 依法治国：法律的形式化</h4>
+                        <p>法律条文的制定需要严格的逻辑结构，每个"如果...则..."都是一个蕴含公式，确保法律的严密性和一致性。</p>
+
+                        <h4>🎯 科学决策：政策的逻辑化</h4>
+                        <p>政策制定需要考虑多个目标的逻辑关系。用命题公式表达政策，可以清晰分析政策间的依赖、冲突和互补关系。</p>
+
+                        <h4>🔍 精准治理：目标的明确化</h4>
+                        <p>将模糊的政策目标符号化、形式化，使其可量化、可验证，体现了新时代治理的精准性和科学性。</p>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="panel-header">
+                        <span class="panel-icon">🧮</span>
+                        <h3>公式示例</h3>
+                    </div>
+                    <div class="formula-examples-panel">
+                        <div class="example-item">
+                            <strong>简单公式:</strong>
+                            <p>$p \land q$</p>
+                        </div>
+                        <div class="example-item">
+                            <strong>复合公式:</strong>
+                            <p>$(p \lor q) \rightarrow r$</p>
+                        </div>
+                        <div class="example-item">
+                            <strong>嵌套公式:</strong>
+                            <p>$\neg(p \land q) \leftrightarrow (\neg p \lor \neg q)$</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <script src="propositional_formulas.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

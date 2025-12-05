@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色数理 - 逻辑关系：一致性与推导</title>
+    <link rel="stylesheet" href="compatibility_equivalence.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="header-content">
+                <h1>红色数理 <span class="highlight">逻辑关系：一致性与推导</span></h1>
+                <p class="subtitle">Logical Equivalence & Implication: Consistency & Deduction</p>
+            </div>
+            <div class="header-tabs">
+                <button class="tab-btn active" data-tab="equivalence">一致性校验 (等价)</button>
+                <button class="tab-btn" data-tab="implication">推导验证 (蕴含)</button>
+                <button class="tab-btn" data-tab="challenge">红色逻辑挑战</button>
+            </div>
+        </header>
+
+        <main class="main-stage">
+            <!-- Equivalence Tab -->
+            <div class="tab-content active" id="equivalenceTab">
+                <div class="content-area">
+                    <div class="section-header">
+                        <h2>一致性校验仪</h2>
+                        <p class="section-desc">验证"理论"与"实践"是否一致，"政策A"与"政策B"是否等效 ($A \Leftrightarrow B$)</p>
+                    </div>
+
+                    <div class="comparator-container">
+                        <div class="formula-input-area">
+                            <div class="input-card">
+                                <h3>公式 A (理论/中央精神)</h3>
+                                <input type="text" id="eqInputA" value="!(p | q)" placeholder="例如: !(p | q)">
+                                <div class="desc-tag">不搞形式主义(p) 且 不搞官僚主义(q)</div>
+                            </div>
+                            <div class="comparison-icon">
+                                <span class="icon-symbol">?</span>
+                            </div>
+                            <div class="input-card">
+                                <h3>公式 B (实践/地方落实)</h3>
+                                <input type="text" id="eqInputB" value="!p & !q" placeholder="例如: !p & !q">
+                                <div class="desc-tag">既不形式主义 也不官僚主义</div>
+                            </div>
+                        </div>
+
+                        <div class="action-area">
+                            <button id="checkEqBtn" class="action-btn">开始校验</button>
+                        </div>
+
+                        <div class="result-panel" id="eqResult">
+                            <div class="placeholder-text">点击校验按钮开始分析</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Implication Tab -->
+            <div class="tab-content" id="implicationTab">
+                <div class="content-area">
+                    <div class="section-header">
+                        <h2>推导验证器</h2>
+                        <p class="section-desc">验证"措施"是否必然导致"结果"，"前提"是否蕴含"结论" ($A \Rightarrow B$)</p>
+                    </div>
+
+                    <div class="comparator-container">
+                        <div class="formula-input-area">
+                            <div class="input-card">
+                                <h3>前提 A (措施/现状)</h3>
+                                <input type="text" id="impInputA" value="p & q" placeholder="例如: p & q">
+                                <div class="desc-tag">经济发展(p) 且 社会稳定(q)</div>
+                            </div>
+                            <div class="comparison-icon">
+                                <span class="icon-symbol">→</span>
+                            </div>
+                            <div class="input-card">
+                                <h3>结论 B (目标/愿景)</h3>
+                                <input type="text" id="impInputB" value="p | q" placeholder="例如: p | q">
+                                <div class="desc-tag">国家繁荣(p) 或 人民安康(q)</div>
+                            </div>
+                        </div>
+
+                        <div class="action-area">
+                            <button id="checkImpBtn" class="action-btn">验证推导</button>
+                        </div>
+
+                        <div class="result-panel" id="impResult">
+                            <div class="placeholder-text">点击验证按钮开始分析</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Challenge Tab -->
+            <div class="tab-content" id="challengeTab">
+                <div class="content-area">
+                    <div class="section-header">
+                        <h2>红色逻辑挑战</h2>
+                        <p class="section-desc">在复杂的逻辑迷宫中，寻找正确的道路</p>
+                    </div>
+
+                    <div class="game-container">
+                        <div class="game-header">
+                            <div class="score-board">得分: <span id="score">0</span></div>
+                            <div class="level-indicator">当前关卡: <span id="levelName">基础篇</span></div>
+                        </div>
+
+                        <div class="question-card" id="questionCard">
+                            <!-- Question injected by JS -->
+                        </div>
+
+                        <div class="options-grid" id="optionsGrid">
+                            <!-- Options injected by JS -->
+                        </div>
+
+                        <div class="feedback-area" id="feedbackArea"></div>
+
+                        <button id="nextLevelBtn" class="next-btn hidden">下一关</button>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="sidebar">
+                <div class="panel-section">
+                    <div class="panel-header">
+                        <span class="panel-icon">📚</span>
+                        <h3>核心概念</h3>
+                    </div>
+                    <div class="concept-content">
+                        <h4>逻辑等价 (Equivalence)</h4>
+                        <p>若 $A \leftrightarrow B$ 是永真式，则称 A 与 B 逻辑等价，记作 $A \Leftrightarrow B$。这意味着两者真值表完全相同。</p>
+
+                        <h4>逻辑蕴含 (Implication)</h4>
+                        <p>若 $A \rightarrow B$ 是永真式，则称 A 逻辑蕴含 B，记作 $A \Rightarrow B$。这意味着当 A 为真时，B 必然为真。</p>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="panel-header">
+                        <span class="panel-icon">💡</span>
+                        <h3>思政启示</h3>
+                    </div>
+                    <div class="insight-content">
+                        <h4>🤝 知行合一</h4>
+                        <p>逻辑等价象征着理论与实践的高度统一。中央的决策部署（公式A）与地方的具体落实（公式B）必须是"等价"的，不能走样。</p>
+
+                        <h4>🚀 科学发展</h4>
+                        <p>逻辑蕴含象征着科学的因果关系。我们制定的政策措施（前提A）必须能够逻辑严密地推导出预期的发展目标（结论B）。</p>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <script src="compatibility_equivalence.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

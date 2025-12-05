@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色数理 - 个人成长与国家发展：智能职业推荐系统</title>
+    <link rel="stylesheet" href="career_recommend.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="header-content">
+                <h1>红色数理 <span class="highlight">个人成长与国家发展</span></h1>
+                <p class="subtitle">Career Recommendation: Unifying Personal Growth and National Development</p>
+            </div>
+            <div class="mission-badge">
+                <span class="badge-icon">🎯</span>
+                <span class="badge-text">服务国家 成就自我</span>
+            </div>
+        </header>
+
+        <main class="main-stage">
+            <!-- Left Panel: Student Profile Input -->
+            <aside class="left-panel">
+                <div class="panel-section">
+                    <div class="panel-header">
+                        <span class="panel-icon">👤</span>
+                        <h3>学生画像</h3>
+                    </div>
+
+                    <div class="input-group">
+                        <label>姓名</label>
+                        <input type="text" id="studentName" placeholder="请输入姓名" value="张明">
+                    </div>
+
+                    <div class="input-group">
+                        <label>专业 (MajorIn)</label>
+                        <select id="majorSelect">
+                            <option value="">请选择专业</option>
+                            <option value="计算机科学">计算机科学</option>
+                            <option value="人工智能">人工智能</option>
+                            <option value="电子工程">电子工程</option>
+                            <option value="生物医学">生物医学</option>
+                            <option value="环境科学">环境科学</option>
+                            <option value="新能源">新能源</option>
+                            <option value="航空航天">航空航天</option>
+                            <option value="材料科学">材料科学</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>兴趣领域 (InterestIn)</label>
+                        <select id="interestSelect">
+                            <option value="">请选择兴趣</option>
+                            <option value="科技创新">科技创新</option>
+                            <option value="工程设计">工程设计</option>
+                            <option value="医疗健康">医疗健康</option>
+                            <option value="绿色环保">绿色环保</option>
+                            <option value="智能制造">智能制造</option>
+                            <option value="航天探索">航天探索</option>
+                            <option value="新材料研发">新材料研发</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>核心能力 (AbleIn)</label>
+                        <select id="abilitySelect">
+                            <option value="">请选择能力</option>
+                            <option value="编程开发">编程开发</option>
+                            <option value="算法设计">算法设计</option>
+                            <option value="系统架构">系统架构</option>
+                            <option value="科研创新">科研创新</option>
+                            <option value="工程实施">工程实施</option>
+                            <option value="数据分析">数据分析</option>
+                            <option value="团队协作">团队协作</option>
+                        </select>
+                    </div>
+
+                    <button id="analyzeBtn" class="btn-analyze">🔍 开始智能匹配</button>
+                </div>
+
+                <div class="panel-section">
+                    <div class="panel-header">
+                        <span class="panel-icon">📘</span>
+                        <h3>谓词逻辑规则</h3>
+                    </div>
+                    <div class="logic-formula">
+                        <p class="formula-title">推荐规则：</p>
+                        <div class="formula-content">
+                            ∀x,y,z,w,p (
+                            <div class="formula-line">MajorIn(x,y) ∧</div>
+                            <div class="formula-line">InterestIn(x,z) ∧</div>
+                            <div class="formula-line">AbleIn(x,w) ∧</div>
+                            <div class="formula-line">NationNeed(y) ∧</div>
+                            <div class="formula-line">Match(y,z,w,p)</div>
+                            <div class="formula-arrow">→</div>
+                            <div class="formula-result">Recommend(x,p)</div>
+                            )
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Center: Reasoning Process -->
+            <div class="center-panel">
+                <div class="reasoning-area">
+                    <div class="area-header">
+                        <h2>🧠 推理过程</h2>
+                    </div>
+
+                    <div id="reasoningSteps" class="reasoning-steps">
+                        <div class="empty-state">
+                            <span class="empty-icon">📋</span>
+                            <p>请填写学生信息后点击"开始智能匹配"</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-area" id="resultArea" style="display:none;">
+                    <div class="area-header">
+                        <h2>✨ 推荐结果</h2>
+                    </div>
+                    <div id="recommendationResult" class="recommendation-card">
+                        <!-- Result will be injected by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: National Needs & Ideology -->
+            <aside class="right-panel">
+                <div class="panel-section">
+                    <div class="panel-header">
+                        <span class="panel-icon">🇨🇳</span>
+                        <h3>国家战略需求</h3>
+                    </div>
+                    <div class="needs-list">
+                        <div class="need-card priority-high">
+                            <div class="need-icon">🤖</div>
+                            <div class="need-info">
+                                <div class="need-title">人工智能</div>
+                                <div class="need-priority">战略优先级：★★★★★</div>
+                            </div>
+                        </div>
+                        <div class="need-card priority-high">
+                            <div class="need-icon">🚀</div>
+                            <div class="need-info">
+                                <div class="need-title">航空航天</div>
+                                <div class="need-priority">战略优先级：★★★★★</div>
+                            </div>
+                        </div>
+                        <div class="need-card priority-high">
+                            <div class="need-icon">💻</div>
+                            <div class="need-info">
+                                <div class="need-title">计算机科学</div>
+                                <div class="need-priority">战略优先级：★★★★★</div>
+                            </div>
+                        </div>
+                        <div class="need-card priority-medium">
+                            <div class="need-icon">🏥</div>
+                            <div class="need-info">
+                                <div class="need-title">生物医学</div>
+                                <div class="need-priority">战略优先级：★★★★</div>
+                            </div>
+                        </div>
+                        <div class="need-card priority-medium">
+                            <div class="need-icon">🌱</div>
+                            <div class="need-info">
+                                <div class="need-title">环境科学</div>
+                                <div class="need-priority">战略优先级：★★★★</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="panel-header">
+                        <span class="panel-icon">🚩</span>
+                        <h3>思政启示</h3>
+                    </div>
+                    <div class="ideology-content">
+                        <h4>🌟 个人价值与社会价值的统一</h4>
+                        <p>青年一代要将个人的专业特长、兴趣爱好与国家战略需求相结合，在服务国家、奉献社会中实现个人价值。</p>
+                        <blockquote>
+                            <p>"志存高远、脚踏实地，把个人的理想追求融入党和国家事业之中，为党、为祖国、为人民多作贡献。"</p>
+                            <cite>—— 习近平</cite>
+                        </blockquote>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="panel-header">
+                        <span class="panel-icon">🎓</span>
+                        <h3>系统说明</h3>
+                    </div>
+                    <div class="system-info">
+                        <p><strong>谓词说明：</strong></p>
+                        <ul>
+                            <li><code>MajorIn(x,y)</code>: 学生x主修y专业</li>
+                            <li><code>InterestIn(x,z)</code>: 学生x对z有兴趣</li>
+                            <li><code>AbleIn(x,w)</code>: 学生x在w方面有能力</li>
+                            <li><code>NationNeed(y)</code>: 国家急需y专业</li>
+                            <li><code>Match(y,z,w,p)</code>: 专业/兴趣/能力匹配职业p</li>
+                            <li><code>Recommend(x,p)</code>: 推荐学生x从事p</li>
+                        </ul>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <script src="career_recommend.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

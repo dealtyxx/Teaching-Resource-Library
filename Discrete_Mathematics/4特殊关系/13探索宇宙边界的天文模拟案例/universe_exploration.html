@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色数理 - 探索宇宙边界</title>
+    <link rel="stylesheet" href="universe_exploration.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="header-content">
+                <h1><span class="china-space">中国航天</span> <span class="highlight">探索宇宙边界</span></h1>
+                <p class="subtitle">Exploring Universe Boundaries: Infinite Sets & Observable Cosmos</p>
+            </div>
+            <div class="mission-badge">
+                <span class="badge-icon">🚀</span>
+                <span>中国梦 · 航天梦</span>
+            </div>
+        </header>
+
+        <main class="main-stage">
+            <div class="universe-container">
+                <canvas id="universeCanvas"></canvas>
+
+                <div class="universe-overlay">
+                    <div class="info-panel top-left">
+                        <h3>可观测宇宙</h3>
+                        <p>Observable Universe</p>
+                        <div class="info-stat">
+                            <span class="stat-label">半径:</span>
+                            <span class="stat-value" id="radiusDisplay">465亿光年</span>
+                        </div>
+                    </div>
+
+                    <div class="legend-panel">
+                        <h4>图例 Legend</h4>
+                        <div class="legend-item">
+                            <div class="legend-icon star"></div>
+                            <span>恒星 (Stars)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-icon mission"></div>
+                            <span>中国航天器</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-icon boundary"></div>
+                            <span>观测边界</span>
+                        </div>
+                    </div>
+
+                    <div class="zoom-controls">
+                        <button class="zoom-btn" id="zoomIn">+</button>
+                        <button class="zoom-btn" id="zoomOut">−</button>
+                        <button class="zoom-btn" id="resetView">⊙</button>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="sidebar">
+                <div class="panel-section">
+                    <div class="panel-header">
+                        <span class="panel-icon">🌟</span>
+                        <h3>宇宙统计</h3>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-number" id="starCount">0</span>
+                            <span class="stat-label">可见恒星</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number">∞</span>
+                            <span class="stat-label">实际总数</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="missionCount">6</span>
+                            <span class="stat-label">航天器</span>
+                        </div>
+                        <div class="stat-card highlight">
+                            <span class="stat-number" id="zoomLevel">1.0×</span>
+                            <span class="stat-label">缩放倍数</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="panel-header">
+                        <span class="panel-icon">🚀</span>
+                        <h3>中国航天成就</h3>
+                    </div>
+                    <div class="missions-list" id="missionsList">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="panel-header">
+                        <span class="panel-icon">📐</span>
+                        <h3>集合论原理</h3>
+                    </div>
+                    <div class="math-content">
+                        <h4>无限集合 (Infinite Set)</h4>
+                        <p class="math-formula">$U = $ 宇宙中所有恒星的集合</p>
+                        <p class="formula-note">$|U| = \aleph_0$ 或更大</p>
+
+                        <h4>有限子集 (Finite Subset)</h4>
+                        <p class="math-formula">$O \subset U$，可观测宇宙</p>
+                        <p class="formula-note">$|O| \approx 10^{24}$ 恒星</p>
+
+                        <h4>关系</h4>
+                        <p class="math-formula">$O \subsetneq U$ (真子集)</p>
+                    </div>
+                </div>
+
+                <div class="panel-section insight-panel">
+                    <div class="panel-header">
+                        <span class="panel-icon">💡</span>
+                        <h3>思政启示</h3>
+                    </div>
+                    <div class="insight-content">
+                        <h4>🌌 宇宙梦想：无限可能</h4>
+                        <p>宇宙无限，人类的探索精神也无限。从东方红一号到天宫空间站，中国航天事业不断突破边界，向着浩瀚星空进发。</p>
+
+                        <h4>🛰️ 科技自信：航天强国</h4>
+                        <p>嫦娥探月、天问探火、北斗导航，每一次突破都展现了中国科技的硬实力，证明了自主创新的力量。</p>
+
+                        <h4>⭐ 人民至上：太空福祉</h4>
+                        <p>航天技术服务人民生活：通信、导航、气象预报。探索宇宙不仅是科学追求，更是为人民创造美好生活。</p>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <script src="universe_exploration.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

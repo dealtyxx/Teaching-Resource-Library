@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公式解释 - 真理的探索</title>
+    <link rel="stylesheet" href="formula_interpretation.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>公式解释 <span class="highlight">真理</span></h1>
+                <p class="subtitle">Formula Interpretation Explorer</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>选择思政主题公式</label>
+                    <select id="formulaSelect" class="apple-select">
+                        <option value="0">永真式 - 真理的普遍性</option>
+                        <option value="1">永假式 - 矛盾的不可能</option>
+                        <option value="2">可满足式 - 理想可实现</option>
+                        <option value="3">条件式 - 因果规律</option>
+                        <option value="custom">自定义公式...</option>
+                    </select>
+                </div>
+
+                <div class="control-group" id="customInputGroup" style="display: none;">
+                    <label>输入谓词公式</label>
+                    <textarea id="customInput" class="apple-textarea" rows="3"
+                        placeholder="例如: ∀x(P(x) ∨ ¬P(x))"></textarea>
+                </div>
+
+                <div class="control-group">
+                    <label>论域设置</label>
+                    <div class="domain-input">
+                        <input type="text" id="domainInput" class="apple-input"
+                            placeholder="输入论域元素,逗号分隔,如: a,b,c">
+                        <button id="setDomainBtn" class="small-btn">设置</button>
+                    </div>
+                    <div id="currentDomain" class="current-domain"></div>
+                </div>
+
+                <div class="control-group">
+                    <label>谓词真值赋值</label>
+                    <div id="predicateAssignments" class="assignment-container"></div>
+                </div>
+
+                <div class="control-group">
+                    <label>动画速度</label>
+                    <input type="range" id="speed" min="1" max="100" value="55">
+                </div>
+
+                <div class="control-group">
+                    <label>解释状态</label>
+                    <div class="info-panel">
+                        <p id="statusText">准备开始解释</p>
+                        <div class="stats-display">
+                            <div class="stat-item">
+                                <span class="stat-label">解释数:</span>
+                                <span class="stat-value" id="interpretationCount">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">真值:</span>
+                                <span class="stat-value" id="truthCount">0/0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="startBtn" class="apple-btn action-btn">开始解释</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="visualization-container">
+                    <!-- 公式展示 -->
+                    <div class="section formula-section">
+                        <h2 class="section-title">待解释公式</h2>
+                        <div class="formula-display">
+                            <div id="originalFormula" class="formula-box"></div>
+                            <div id="formulaInfo" class="formula-info"></div>
+                        </div>
+                    </div>
+
+                    <!-- 解释表格 -->
+                    <div class="section interpretation-section">
+                        <h2 class="section-title">解释空间探索</h2>
+                        <div class="interpretation-explanation">
+                            <p>通过遍历所有可能的解释,我们可以判断公式的逻辑性质</p>
+                        </div>
+                        <div id="interpretationTable" class="interpretation-table-container"></div>
+                    </div>
+
+                    <!-- 分类结果 -->
+                    <div class="section classification-section">
+                        <h2 class="section-title">公式分类判定</h2>
+                        <div class="classification-grid">
+                            <div class="classification-card tautology">
+                                <div class="card-header">
+                                    <span class="card-icon">⊤</span>
+                                    <h3>永真式 (Tautology)</h3>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-desc">在所有解释下都为真的公式,代表普遍真理</p>
+                                    <div class="card-example">
+                                        例: ∀x(P(x) ∨ ¬P(x)) - 排中律
+                                    </div>
+                                    <div id="tautologyResult" class="card-result"></div>
+                                </div>
+                            </div>
+
+                            <div class="classification-card contradiction">
+                                <div class="card-header">
+                                    <span class="card-icon">⊥</span>
+                                    <h3>永假式 (Contradiction)</h3>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-desc">在所有解释下都为假的公式,代表逻辑矛盾</p>
+                                    <div class="card-example">
+                                        例: ∀x(P(x) ∧ ¬P(x)) - 矛盾律
+                                    </div>
+                                    <div id="contradictionResult" class="card-result"></div>
+                                </div>
+                            </div>
+
+                            <div class="classification-card satisfiable">
+                                <div class="card-header">
+                                    <span class="card-icon">◇</span>
+                                    <h3>可满足式 (Satisfiable)</h3>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-desc">至少存在一个解释使公式为真,代表理想可实现</p>
+                                    <div class="card-example">
+                                        例: ∃x(奋斗(x) ∧ 成功(x))
+                                    </div>
+                                    <div id="satisfiableResult" class="card-result"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 真值分布可视化 -->
+                    <div class="section visualization-chart-section">
+                        <h2 class="section-title">真值分布统计</h2>
+                        <div id="truthChart" class="truth-chart"></div>
+                    </div>
+
+                    <!-- 哲学寓意 -->
+                    <div class="section philosophy-section">
+                        <h2 class="section-title">哲学与思政寓意</h2>
+                        <div id="philosophyContent" class="philosophy-content"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="formula_interpretation.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>谓词逻辑关系 - 真理的联系</title>
+    <link rel="stylesheet" href="formula_relations.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>逻辑关系 <span class="highlight">探索</span></h1>
+                <p class="subtitle">Formula Relations Explorer</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>选择关系类型</label>
+                    <div class="relation-type-buttons">
+                        <button class="type-btn active" data-type="equivalence">
+                            <span class="type-icon">≡</span>
+                            <span class="type-name">逻辑等价</span>
+                        </button>
+                        <button class="type-btn" data-type="implication">
+                            <span class="type-icon">⇒</span>
+                            <span class="type-name">逻辑蕴含</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>选择思政主题案例</label>
+                    <select id="caseSelect" class="apple-select">
+                        <option value="0">德摩根律 - 集体与个体</option>
+                        <option value="1">量词转换 - 否定之否定</option>
+                        <option value="2">蕴含传递 - 因果链条</option>
+                        <option value="3">等价链 - 辩证统一</option>
+                        <option value="custom">自定义验证...</option>
+                    </select>
+                </div>
+
+                <div class="control-group" id="customInputGroup" style="display: none;">
+                    <label>公式A</label>
+                    <textarea id="formulaA" class="apple-textarea" rows="2"
+                        placeholder="例如: ∀x(P(x) ∧ Q(x))"></textarea>
+                    <label>公式B</label>
+                    <textarea id="formulaB" class="apple-textarea" rows="2"
+                        placeholder="例如: ∀x P(x) ∧ ∀x Q(x)"></textarea>
+                </div>
+
+                <div class="control-group">
+                    <label>论域设置</label>
+                    <div class="domain-input">
+                        <input type="text" id="domainInput" class="apple-input"
+                            placeholder="个体1,个体2,个体3" value="a,b,c">
+                        <button id="setDomainBtn" class="small-btn">设置</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>动画速度</label>
+                    <input type="range" id="speed" min="1" max="100" value="60">
+                </div>
+
+                <div class="control-group">
+                    <label>验证状态</label>
+                    <div class="info-panel">
+                        <p id="statusText">准备验证</p>
+                        <div class="stats-display">
+                            <div class="stat-item">
+                                <span class="stat-label">测试数:</span>
+                                <span class="stat-value" id="testCount">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">一致:</span>
+                                <span class="stat-value" id="matchCount">0/0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="startBtn" class="apple-btn action-btn">开始验证</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="visualization-container">
+                    <!-- 关系概念说明 -->
+                    <div class="section concept-section">
+                        <h2 class="section-title">逻辑关系概念</h2>
+                        <div class="concept-grid">
+                            <div class="concept-card equivalence-card">
+                                <div class="concept-header">
+                                    <span class="concept-symbol">≡</span>
+                                    <h3>逻辑等价</h3>
+                                </div>
+                                <div class="concept-body">
+                                    <p class="concept-definition">
+                                        两个公式A和B逻辑等价,记作 A ≡ B,当且仅当在所有解释下它们的真值相同
+                                    </p>
+                                    <div class="concept-formula">
+                                        A ≡ B ⟺ (A ↔ B)是永真式
+                                    </div>
+                                    <div class="concept-meaning">
+                                        <strong>思政意义:</strong> 体现事物本质的同一性,虽然表现形式不同,但本质相同,如"为人民服务"的多种实践形式。
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="concept-card implication-card">
+                                <div class="concept-header">
+                                    <span class="concept-symbol">⇒</span>
+                                    <h3>逻辑蕴含</h3>
+                                </div>
+                                <div class="concept-body">
+                                    <p class="concept-definition">
+                                        公式A逻辑蕴含B,记作 A ⇒ B,当且仅当在所有使A为真的解释下B也为真
+                                    </p>
+                                    <div class="concept-formula">
+                                        A ⇒ B ⟺ (A → B)是永真式
+                                    </div>
+                                    <div class="concept-meaning">
+                                        <strong>思政意义:</strong> 体现因果关系和必然性,如"学习 ⇒ 进步","奋斗 ⇒ 成功",揭示事物发展规律。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 当前案例展示 -->
+                    <div class="section case-section">
+                        <h2 class="section-title">当前验证案例</h2>
+                        <div id="currentCase" class="case-display"></div>
+                    </div>
+
+                    <!-- 真值表对比 -->
+                    <div class="section truth-table-section">
+                        <h2 class="section-title">真值表对比验证</h2>
+                        <div id="truthTableContainer" class="truth-table-wrapper"></div>
+                    </div>
+
+                    <!-- 验证结果 -->
+                    <div class="section result-section">
+                        <h2 class="section-title">验证结论</h2>
+                        <div id="verificationResult" class="verification-result"></div>
+                    </div>
+
+                    <!-- 等价/蕴含链可视化 -->
+                    <div class="section chain-section">
+                        <h2 class="section-title">关系链可视化</h2>
+                        <div id="relationChain" class="relation-chain-container"></div>
+                    </div>
+
+                    <!-- 思政解读 -->
+                    <div class="section philosophy-section">
+                        <h2 class="section-title">思政深度解读</h2>
+                        <div id="philosophyInterpretation" class="philosophy-box"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="formula_relations.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>谓词公式解析 - 逻辑之美</title>
+    <link rel="stylesheet" href="predicate_formula.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>谓词公式 <span class="highlight">解析</span></h1>
+                <p class="subtitle">Predicate Formula Interpreter</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>选择经典公式</label>
+                    <select id="formulaSelect" class="apple-select">
+                        <option value="0">全称量词 - 团结就是力量</option>
+                        <option value="1">存在量词 - 英雄人物</option>
+                        <option value="2">复合公式 - 奋斗与成功</option>
+                        <option value="3">嵌套量词 - 互助友爱</option>
+                        <option value="custom">自定义公式...</option>
+                    </select>
+                </div>
+
+                <div class="control-group" id="customInputGroup" style="display: none;">
+                    <label>输入谓词公式</label>
+                    <textarea id="customInput" class="apple-textarea" rows="3"
+                        placeholder="例如: ∀x(P(x) → Q(x))&#10;支持符号: ∀ ∃ ∧ ∨ ¬ → ↔"></textarea>
+                    <div class="input-hint">
+                        <span>快捷键: Alt+A(∀) Alt+E(∃) Alt+V(∧) Alt+7(∨)</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>解析模式</label>
+                    <div class="mode-buttons">
+                        <button class="mode-btn active" data-mode="scope">辖域分析</button>
+                        <button class="mode-btn" data-mode="variable">变元分析</button>
+                        <button class="mode-btn" data-mode="closed">闭式检测</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>动画速度</label>
+                    <input type="range" id="speed" min="1" max="100" value="50">
+                </div>
+
+                <div class="control-group">
+                    <label>解析状态</label>
+                    <div class="info-panel">
+                        <p id="statusText">准备解析</p>
+                        <div class="stats-display">
+                            <div class="stat-item">
+                                <span class="stat-label">量词:</span>
+                                <span class="stat-value" id="quantifierCount">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">变元:</span>
+                                <span class="stat-value" id="variableCount">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="startBtn" class="apple-btn action-btn">开始解析</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="visualization-container">
+                    <!-- 公式展示区域 -->
+                    <div class="section formula-section">
+                        <h2 class="section-title">原始公式</h2>
+                        <div class="formula-display-box">
+                            <div id="originalFormula" class="formula-text"></div>
+                            <div id="formulaDescription" class="formula-desc"></div>
+                        </div>
+                    </div>
+
+                    <!-- 辖域可视化区域 -->
+                    <div class="section scope-section">
+                        <h2 class="section-title">辖域分析</h2>
+                        <div class="scope-explanation">
+                            <p>辖域是量词作用的范围,决定了变元的约束关系</p>
+                        </div>
+                        <div id="scopeVisualization" class="scope-container"></div>
+                    </div>
+
+                    <!-- 变元分析区域 -->
+                    <div class="section variable-section">
+                        <h2 class="section-title">变元分类</h2>
+                        <div class="variable-container">
+                            <div class="variable-category">
+                                <h3 class="category-title">
+                                    <span class="icon">🔗</span> 约束变元
+                                </h3>
+                                <div class="category-desc">被量词约束的变元,其值由量词域决定</div>
+                                <div id="boundVariables" class="variable-list"></div>
+                            </div>
+                            <div class="variable-category">
+                                <h3 class="category-title">
+                                    <span class="icon">🔓</span> 自由变元
+                                </h3>
+                                <div class="category-desc">不受任何量词约束的变元,可自由取值</div>
+                                <div id="freeVariables" class="variable-list"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 闭式检测区域 -->
+                    <div class="section closed-section">
+                        <h2 class="section-title">闭式检测</h2>
+                        <div id="closedFormCheck" class="closed-check-result"></div>
+                    </div>
+
+                    <!-- 变元换名演示 -->
+                    <div class="section rename-section">
+                        <h2 class="section-title">约束变元换名</h2>
+                        <div class="rename-explanation">
+                            <p>约束变元可以重命名而不改变公式的语义,前提是新变元不会产生冲突</p>
+                        </div>
+                        <div id="renameDemo" class="rename-container"></div>
+                    </div>
+
+                    <!-- 语义树结构 -->
+                    <div class="section tree-section">
+                        <h2 class="section-title">公式语法树</h2>
+                        <svg id="treeSvg" width="100%" height="400">
+                            <defs>
+                                <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3"
+                                    orient="auto">
+                                    <polygon points="0 0, 10 3, 0 6" fill="#d63b1d" />
+                                </marker>
+                            </defs>
+                            <g id="treeGroup"></g>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="predicate_formula.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

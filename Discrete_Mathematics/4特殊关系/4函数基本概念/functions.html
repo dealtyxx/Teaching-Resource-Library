@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色数理 - 民生映射</title>
+    <link rel="stylesheet" href="functions.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="header-content">
+                <h1>红色数理 <span class="highlight">民生映射</span></h1>
+                <p class="subtitle">Livelihood Mapping: Function Concepts & Policy Implementation</p>
+            </div>
+            <div class="header-controls">
+                <div class="mode-toggle">
+                    <button class="toggle-btn active" data-mode="single" id="btnSingle">
+                        <span class="icon">👤</span>
+                        <span>个体映射 (Element)</span>
+                    </button>
+                    <button class="toggle-btn" data-mode="set" id="btnSet">
+                        <span class="icon">👥</span>
+                        <span>群体映射 (Set)</span>
+                    </button>
+                </div>
+                <button id="resetBtn" class="apple-btn secondary-btn">
+                    <span class="btn-icon">🔄</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="main-stage">
+            <!-- Domain: The People -->
+            <section class="set-panel domain-panel">
+                <div class="panel-header">
+                    <h3>人民群众 (The People)</h3>
+                    <p class="math-label">定义域 Domain $X$</p>
+                </div>
+                <div class="elements-container" id="domainContainer">
+                    <!-- Injected by JS -->
+                </div>
+                <div class="selection-count" id="domainCount">已选: 0</div>
+            </section>
+
+            <!-- Mapping Area -->
+            <section class="mapping-area">
+                <svg class="mapping-svg" id="mappingSvg">
+                    <defs>
+                        <marker id="arrow-default" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#ccc" />
+                        </marker>
+                        <marker id="arrow-active" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#d63031" />
+                        </marker>
+                    </defs>
+                </svg>
+                <div class="function-label">
+                    <span class="func-icon">⚙️</span>
+                    <span class="func-name">精准施策 $f$</span>
+                </div>
+            </section>
+
+            <!-- Codomain: Well-being -->
+            <section class="set-panel codomain-panel">
+                <div class="panel-header">
+                    <h3>民生福祉 (Well-being)</h3>
+                    <p class="math-label">陪域 Codomain $Y$</p>
+                </div>
+                <div class="elements-container" id="codomainContainer">
+                    <!-- Injected by JS -->
+                </div>
+                <div class="selection-count" id="codomainCount">覆盖: 0</div>
+            </section>
+
+            <!-- Insight Panel -->
+            <section class="insight-panel">
+                <div class="concept-card" id="conceptCard">
+                    <div class="card-header">
+                        <span class="card-icon" id="conceptIcon">🎯</span>
+                        <h4 id="conceptTitle">函数映射 (Mapping)</h4>
+                    </div>
+                    <p class="card-desc" id="conceptDesc">
+                        函数描述了从输入到输出的对应关系。在民生领域，这代表了将群众的具体需求映射为精准的政策供给。
+                    </p>
+                    <div class="math-box" id="conceptMath">
+                        y = f(x)
+                    </div>
+                </div>
+
+                <div class="insight-card">
+                    <h4>💡 思政启示</h4>
+                    <p id="insightText">
+                        "民之所盼，政之所向"。精准扶贫、教育公平、医疗保障等政策，就是为了确保每一位群众（原像）都能享受到国家发展的红利（像），实现"一个都不能少"的庄严承诺。
+                    </p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="functions.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>
