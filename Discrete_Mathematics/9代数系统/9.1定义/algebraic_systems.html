@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>代数系统 - 思政可视化</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        /* 扩展样式 */
+        .sidebar {
+            overflow-y: auto;
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.6rem;
+            line-height: 1.3;
+        }
+
+        .operation-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .op-btn {
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid var(--accent-red);
+            background: #fff;
+            color: var(--accent-red);
+            font-family: var(--font-family);
+            text-align: center;
+        }
+
+        .op-btn.active {
+            background: var(--accent-red);
+            color: #fff;
+        }
+
+        .op-btn:hover:not(.active) {
+            background: rgba(214, 59, 29, 0.1);
+        }
+
+        select {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(139, 0, 0, 0.2);
+            background: #fff;
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--accent-red);
+        }
+
+        .operation-table {
+            background: rgba(255, 255, 255, 0.6);
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            border: 1px solid rgba(139, 0, 0, 0.1);
+            max-height: 200px;
+            overflow: auto;
+        }
+
+        .operation-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+        }
+
+        .operation-table th,
+        .operation-table td {
+            border: 1px solid rgba(139, 0, 0, 0.2);
+            padding: 4px 6px;
+            text-align: center;
+        }
+
+        .operation-table th {
+            background: rgba(214, 59, 29, 0.15);
+            color: var(--accent-red);
+            font-weight: 600;
+        }
+
+        .operation-table td.highlight {
+            background: rgba(255, 180, 0, 0.2);
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+
+        /* 右侧面板 */
+        .glass-pane {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .visualization-area {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .operation-demo {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .operation-formula {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-red);
+            font-family: 'Courier New', monospace;
+            margin: 1rem 0;
+        }
+
+        .operation-arrow {
+            font-size: 1.5rem;
+            color: var(--accent-gold);
+            margin: 0.5rem 0;
+        }
+
+        .operation-result {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            font-family: 'Courier New', monospace;
+            background: rgba(255, 180, 0, 0.15);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            border: 2px solid var(--accent-gold);
+        }
+
+        .properties-display {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .properties-display h4 {
+            font-family: var(--font-title);
+            font-size: 1rem;
+            color: var(--accent-red);
+            margin-bottom: 0.8rem;
+            border-bottom: 2px solid var(--accent-red);
+            padding-bottom: 0.5rem;
+        }
+
+        .property-item {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .property-item .icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .property-item .icon.yes {
+            background: #4caf50;
+            color: white;
+        }
+
+        .property-item .icon.no {
+            background: #f44336;
+            color: white;
+        }
+
+        .info-panel-right {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .definition-panel {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid rgba(139, 0, 0, 0.1);
+        }
+
+        .definition-panel h3 {
+            font-family: var(--font-title);
+            font-size: 1.1rem;
+            color: var(--accent-red);
+            margin-bottom: 0.8rem;
+            border-bottom: 2px solid var(--accent-red);
+            padding-bottom: 0.5rem;
+        }
+
+        .definition-panel p {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .definition-panel .formula-box {
+            background: rgba(139, 0, 0, 0.05);
+            padding: 0.8rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--accent-red);
+            margin: 0.5rem 0;
+            border-left: 4px solid var(--accent-red);
+        }
+
+        .examples-panel {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            padding: 1rem;
+            overflow-y: auto;
+            border: 1px solid rgba(139, 0, 0, 0.1);
+            flex: 1;
+        }
+
+        .examples-panel h3 {
+            font-family: var(--font-title);
+            font-size: 1.1rem;
+            color: var(--accent-red);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--accent-red);
+            padding-bottom: 0.5rem;
+        }
+
+        .example-item {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 0.8rem;
+            border-left: 3px solid var(--accent-gold);
+            font-size: 0.85rem;
+            line-height: 1.5;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .example-item:hover {
+            background: rgba(255, 248, 240, 0.95);
+            transform: translateX(4px);
+        }
+
+        .example-item .example-title {
+            font-weight: 700;
+            color: var(--accent-red);
+            margin-bottom: 0.3rem;
+        }
+
+        .example-item .example-desc {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        /* 响应式 */
+        @media (max-width: 1200px) {
+            .glass-pane {
+                grid-template-columns: 1fr;
+            }
+            .info-panel-right {
+                max-height: 400px;
+                overflow-y: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>代数系统 <span class="highlight">定义与运算</span></h1>
+                <p class="subtitle">Algebraic Systems</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>运算类型</label>
+                    <div class="operation-selector">
+                        <button class="op-btn active" data-type="unary">一元运算</button>
+                        <button class="op-btn" data-type="binary">二元运算</button>
+                        <button class="op-btn" data-type="n-ary">n元运算</button>
+                        <button class="op-btn" data-type="system">代数系统</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>选择案例</label>
+                    <select id="caseSelector">
+                        <!-- 动态生成 -->
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>运算表</label>
+                    <div class="operation-table" id="operationTable">
+                        <em style="color: var(--text-secondary);">选择案例后显示运算表</em>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>思政内涵</label>
+                    <div class="info-panel" id="philosophyPanel">
+                        <p style="color: var(--text-secondary); font-size: 0.85rem;">选择案例查看思政内涵</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="demoBtn" class="apple-btn action-btn">演示运算</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="visualization-area">
+                    <div class="operation-demo" id="operationDemo">
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;">点击"演示运算"开始</div>
+                    </div>
+                    <div class="properties-display" id="propertiesDisplay">
+                        <h4>运算性质</h4>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem;">演示后显示性质检验</div>
+                    </div>
+                </div>
+                <div class="info-panel-right">
+                    <div class="definition-panel" id="definitionPanel">
+                        <h3>定义与概念</h3>
+                        <p>选择左侧的运算类型查看详细定义</p>
+                    </div>
+                    <div class="examples-panel">
+                        <h3>思政案例</h3>
+                        <div id="examplesList">
+                            <p style="color: var(--text-secondary); font-size: 0.85rem;">加载中...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="algebraic_systems.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

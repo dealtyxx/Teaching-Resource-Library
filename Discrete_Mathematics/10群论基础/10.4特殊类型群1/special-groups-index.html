@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>特殊类型群可视化</title>
+    <link rel="stylesheet" href="special-groups-style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>特殊类型<span class="highlight">群</span></h1>
+                <p class="subtitle">Special Types of Groups</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>选择类型</label>
+                    <div class="type-buttons">
+                        <button class="type-btn active" data-type="abelian">交换群</button>
+                        <button class="type-btn" data-type="cyclic">循环群</button>
+                        <button class="type-btn" data-type="permutation">置换群</button>
+                    </div>
+                </div>
+
+                <div class="control-group" id="permutationTypes" style="display: none;">
+                    <label>置换类型</label>
+                    <div class="subtype-buttons">
+                        <button class="subtype-btn active" data-subtype="general">置换</button>
+                        <button class="subtype-btn" data-subtype="odd">奇置换</button>
+                        <button class="subtype-btn" data-subtype="even">偶置换</button>
+                        <button class="subtype-btn" data-subtype="cycle">轮换</button>
+                        <button class="subtype-btn" data-subtype="transposition">对换</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>选择示例</label>
+                    <select id="exampleSelect" class="apple-select">
+                        <option value="z4">ℤ₄ - 循环群</option>
+                        <option value="klein" selected>V₄ - 克莱因群</option>
+                        <option value="s3">S₃ - 对称群</option>
+                        <option value="a3">A₃ - 交错群</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>群的性质</label>
+                    <div class="info-panel">
+                        <p><strong>阶：</strong><span id="orderValue">4</span></p>
+                        <p><strong>特性：</strong><span id="propertyValue">交换但非循环</span></p>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>选择元素</label>
+                    <div id="elementSelector" class="element-selector"></div>
+                </div>
+
+                <div class="control-group">
+                    <label>运算结果</label>
+                    <div id="resultDisplay" class="result-display">
+                        <p style="color: var(--text-secondary);">💡 点击元素或凯莱表查看运算</p>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>💡 <span id="conceptTitle">和谐平等</span></h3>
+                    <div id="conceptContent">
+                        <p><strong>数学定义:</strong> 满足交换律ab=ba的群。</p>
+                        <p><strong>核心思想:</strong> 运算顺序不影响结果。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="demonstrateBtn" class="apple-btn action-btn">▶ 演示运算</button>
+                <button id="resetBtn" class="apple-btn danger-btn">🔄 重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="graph-title">
+                    <h2 id="mainTitle">交换群 - 和谐平等</h2>
+                    <p id="mainSubtitle">Abelian Group</p>
+                </div>
+
+                <div class="quote-banner">
+                    <div class="quote-icon">💬</div>
+                    <p class="quote-text" id="quoteText">"和而不同，和实生物，同则不继。"</p>
+                    <p class="quote-author" id="quoteAuthor">— 《国语·郑语》</p>
+                </div>
+
+                <div class="visualization-container">
+                    <svg id="groupSvg" width="400" height="300">
+                        <defs>
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur" />
+                                    <feMergeNode in="SourceGraphic" />
+                                </feMerge>
+                            </filter>
+                            <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"
+                                markerUnits="strokeWidth">
+                                <path d="M0,0 L0,6 L9,3 z" fill="var(--accent-red)" />
+                            </marker>
+                        </defs>
+                        <g id="structureGroup"></g>
+                        <g id="arrowsGroup"></g>
+                    </svg>
+                </div>
+
+                <div class="cayley-container">
+                    <h3>凯莱表</h3>
+                    <table id="cayleyTable"></table>
+                </div>
+
+                <div class="ideology-content-box">
+                    <div class="ideology-header">
+                        <span class="red-star">★</span>
+                        <h3 id="ideologyTitle">和谐平等</h3>
+                    </div>
+                    <div class="ideology-text" id="ideologyText">
+                        交换群体现了和谐平等的精神。无论运算顺序如何，结果都相同，象征着组织成员地位平等、相互尊重、和谐共处。
+                    </div>
+                    <div class="social-analogy">
+                        <label>社会类比</label>
+                        <p id="analogyText">如同民主协商机制，不论先听谁的意见，最终达成的共识是一致的，体现了平等参与、和谐决策的理念。</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="special-groups-script.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

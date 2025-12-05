@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>循环群密钥生成 - 信息安全基石</title>
+    <link rel="stylesheet" href="key-generation-style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>循环群密钥生成 <span class="highlight">系统</span></h1>
+                <p class="subtitle">Cyclic Group Key Generation - Cryptographic Security</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>🔐 素数选择（基石选择）</label>
+                    <div class="prime-panel">
+                        <select id="primeSelect" class="apple-select">
+                            <option value="23">p = 23 (基础)</option>
+                            <option value="47">p = 47 (进阶)</option>
+                            <option value="97" selected>p = 97 (高级)</option>
+                            <option value="199">p = 199 (专家)</option>
+                        </select>
+                        <div class="prime-info" id="primeInfo">
+                            <p><strong>群的阶:</strong> <span id="groupOrderDisplay">96</span></p>
+                            <p><strong>密钥空间:</strong> <span id="keySpaceDisplay">96</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>⚙️ 生成元（源头活水）</label>
+                    <div class="generator-panel">
+                        <div class="generator-display" id="generatorDisplay">
+                            <span class="gen-symbol">g =</span>
+                            <span class="gen-value" id="generatorValue">计算中...</span>
+                        </div>
+                        <button id="findGeneratorBtn" class="apple-btn secondary-btn">查找生成元</button>
+                        <p class="gen-hint">生成元可以通过其不同幂次生成群中所有元素</p>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>🔑 密钥生成控制</label>
+                    <div class="key-control-panel">
+                        <button id="generateKeyBtn" class="apple-btn action-btn">▶ 生成密钥</button>
+                        <button id="batchGenerateBtn" class="apple-btn construct-btn">📦 批量生成 (10个)</button>
+                        <div class="manual-input">
+                            <input type="number" id="manualExponent" class="manual-input-field" placeholder="手动输入指数k"
+                                min="1" max="96">
+                            <button id="manualGenerateBtn" class="apple-btn secondary-btn">计算</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>📊 密钥统计</label>
+                    <div class="stats-panel" id="statsPanel">
+                        <div class="stat-item">
+                            <span class="stat-label">已生成:</span>
+                            <span class="stat-value" id="totalKeys">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">覆盖率:</span>
+                            <span class="stat-value" id="coverageRate">0%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">唯一性:</span>
+                            <span class="stat-value success" id="uniqueStatus">✓ 100%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>💡 <span id="conceptTitle">信息安全</span></h3>
+                    <div id="conceptContent">
+                        <p><strong>核心理念:</strong> 循环群的数学性质确保密钥安全。</p>
+                        <p><strong>社会意义:</strong> 信息安全关乎国家安全。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="resetBtn" class="apple-btn danger-btn">🔄 重置系统</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="graph-title">
+                    <h2 id="mainTitle">循环群密钥生成 - 信息安全基石</h2>
+                    <p id="mainSubtitle">Secure Key Generation Based on Cyclic Group Theory</p>
+                </div>
+
+                <!-- Ideology Quote -->
+                <div class="quote-banner">
+                    <div class="quote-icon">💬</div>
+                    <p class="quote-text" id="quoteText">"千里之行，始于足下。基石牢固，方能行稳致远。"</p>
+                    <p class="quote-author" id="quoteAuthor">— 老子·《道德经》</p>
+                </div>
+
+                <!-- Main Visualization Area -->
+                <div class="visualization-container">
+                    <!-- Cyclic Group Visualization -->
+                    <div class="cycle-visualization">
+                        <svg id="cycleSvg" width="100%" height="100%">
+                            <defs>
+                                <filter id="glow">
+                                    <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                                    <feMerge>
+                                        <feMergeNode in="coloredBlur" />
+                                        <feMergeNode in="SourceGraphic" />
+                                    </feMerge>
+                                </filter>
+                                <marker id="arrowMarker" markerWidth="8" markerHeight="8" refX="6" refY="3"
+                                    orient="auto">
+                                    <polygon points="0 0, 8 3, 0 6" fill="#ffb400" />
+                                </marker>
+                            </defs>
+                            <g id="cycleGroup"></g>
+                            <g id="arrowsGroup"></g>
+                        </svg>
+                        <div class="cycle-legend">
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #10b981;"></span>
+                                <span>已生成密钥</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #4ecdc4;"></span>
+                                <span>当前生成</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #e0e0e0;"></span>
+                                <span>未使用</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Key List Panel -->
+                    <div class="key-list-panel">
+                        <h4>🔑 已生成密钥列表</h4>
+                        <div class="key-list-container" id="keyListContainer">
+                            <p class="empty-hint">点击"生成密钥"开始生成...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Computation Process Display -->
+                <div class="computation-box" id="computationBox" style="display: none;">
+                    <div class="computation-header">
+                        <span class="comp-icon">⚡</span>
+                        <h3>密钥生成过程</h3>
+                    </div>
+                    <div class="computation-content" id="computationContent">
+                        <div class="formula-display">
+                            <span class="formula-text" id="formulaText">key = g^k mod p</span>
+                        </div>
+                        <p id="computationSteps"></p>
+                    </div>
+                </div>
+
+                <!-- Security Analysis -->
+                <div class="security-box">
+                    <div class="security-header">
+                        <span class="red-star">★</span>
+                        <h3>🛡️ 安全性分析</h3>
+                    </div>
+                    <div class="security-metrics">
+                        <div class="metric-item">
+                            <label>密钥空间大小:</label>
+                            <span id="keySpaceMetric" class="metric-value">96 位</span>
+                        </div>
+                        <div class="metric-item">
+                            <label>碰撞概率:</label>
+                            <span id="collisionProb" class="metric-value">≈ 0%</span>
+                        </div>
+                        <div class="metric-item">
+                            <label>安全等级:</label>
+                            <span id="securityLevel" class="metric-value security-high">🛡️ 高</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ideology Content Box -->
+                <div class="ideology-content-box">
+                    <div class="ideology-header">
+                        <span class="red-star">★</span>
+                        <h3 id="ideologyTitle">信息安全 · 国家安全</h3>
+                    </div>
+                    <div class="ideology-text" id="ideologyText">
+                        <p>循环群的数学性质为密钥生成提供了坚实的理论基础。每个密钥都如同一颗守护信息安全的明珠，独一无二且难以被预测。信息安全关乎国家安全和人民利益，是数字时代的重要基石。</p>
+                    </div>
+                    <div class="social-analogy">
+                        <label>社会类比</label>
+                        <p id="analogyText">
+                            如同国家的密码系统守护着机密信息，每一个密钥都承载着重要使命。从选择基石（素数）到找到源泉（生成元），再到生成守护者（密钥），这个过程体现了"安而不忘危，存而不忘亡"的安全意识。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="key-generation-script.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

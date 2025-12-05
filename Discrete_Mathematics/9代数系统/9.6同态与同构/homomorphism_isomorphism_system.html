@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>同态与同构映射系统</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        .tab-navigation {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--glass-border);
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px 8px 0 0;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover {
+            background: rgba(214, 59, 29, 0.1);
+            color: var(--accent-red);
+        }
+
+        .tab-btn.active {
+            background: var(--accent-red);
+            color: white;
+            border-color: var(--accent-red);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hierarchy-tree {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 20px 0;
+            border: 2px solid var(--glass-border);
+        }
+
+        .tree-node {
+            background: linear-gradient(135deg, rgba(214, 59, 29, 0.1), rgba(255, 180, 0, 0.1));
+            border: 2px solid var(--accent-red);
+            border-radius: 12px;
+            padding: 15px 25px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tree-node:hover {
+            transform: translateX(10px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .tree-node.active {
+            background: var(--accent-red);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .tree-node-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .tree-node-desc {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .tree-connector {
+            width: 30px;
+            height: 2px;
+            background: var(--accent-red);
+            margin: 15px 0;
+        }
+
+        .mapping-demo {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 2px solid var(--glass-border);
+        }
+
+        .mapping-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 30px;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .set-box {
+            background: linear-gradient(135deg, rgba(214, 59, 29, 0.05), rgba(255, 180, 0, 0.05));
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid var(--accent-red);
+        }
+
+        .set-title {
+            font-weight: 700;
+            color: var(--accent-red);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .set-element {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 2px solid var(--glass-border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .set-element:hover {
+            transform: translateX(5px);
+            border-color: var(--accent-red);
+        }
+
+        .set-element.selected {
+            background: var(--accent-gold);
+            border-color: var(--accent-red);
+        }
+
+        .arrow-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .arrow {
+            font-size: 2.5rem;
+            color: var(--accent-red);
+            font-weight: 700;
+        }
+
+        .arrow-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--accent-red);
+            background: rgba(255, 180, 0, 0.2);
+            padding: 5px 15px;
+            border-radius: 12px;
+        }
+
+        .property-card {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            border: 2px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        .property-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .property-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .property-icon {
+            font-size: 1.5rem;
+        }
+
+        .property-title {
+            font-weight: 700;
+            color: var(--accent-red);
+            font-size: 1rem;
+        }
+
+        .property-content {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .formula {
+            background: linear-gradient(135deg, rgba(214, 59, 29, 0.05), rgba(255, 180, 0, 0.05));
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            color: var(--accent-red);
+            font-weight: 700;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .comparison-table {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .comparison-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th {
+            background: var(--accent-red);
+            color: white;
+            padding: 15px;
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--glass-border);
+            color: var(--text-primary);
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(214, 59, 29, 0.05);
+        }
+
+        .check-mark {
+            color: var(--accent-red);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .cross-mark {
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .insight-box {
+            background: linear-gradient(135deg, rgba(139, 0, 0, 0.05), rgba(214, 59, 29, 0.05));
+            border-left: 4px solid var(--accent-red);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .insight-title {
+            font-weight: 700;
+            color: var(--accent-red);
+            margin-bottom: 8px;
+        }
+
+        .innovation-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            background: var(--accent-gold);
+            color: var(--text-primary);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin: 4px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .example-card {
+            background: linear-gradient(135deg, rgba(214, 59, 29, 0.1), rgba(255, 180, 0, 0.1));
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            border: 2px solid var(--accent-gold);
+        }
+
+        .example-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent-red);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        select.apple-btn {
+            appearance: none;
+            cursor: pointer;
+            padding: 10px 15px;
+        }
+
+        .interactive-demo {
+            background: rgba(255, 255, 255, 0.4);
+            border: 2px dashed var(--accent-red);
+            border-radius: 16px;
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .demo-result {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent-red);
+            margin: 15px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>同态同构 <span class="highlight">映射体系</span></h1>
+                <p class="subtitle">Homomorphism & Isomorphism</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>功能模块</label>
+                    <div class="tab-navigation" style="flex-direction: column; border: none; padding: 0;">
+                        <button class="tab-btn active" data-tab="tab1">
+                            <span>🌲</span>
+                            <span>层次结构</span>
+                        </button>
+                        <button class="tab-btn" data-tab="tab2">
+                            <span>🔄</span>
+                            <span>同态映射</span>
+                        </button>
+                        <button class="tab-btn" data-tab="tab3">
+                            <span>⚖️</span>
+                            <span>同构映射</span>
+                        </button>
+                        <button class="tab-btn" data-tab="tab4">
+                            <span>📊</span>
+                            <span>对比分析</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="sidebarContent"></div>
+
+                <div class="control-group">
+                    <label>数学思想价值</label>
+                    <div class="info-panel">
+                        <p style="font-size: 0.85rem;">抽象思维与结构保持,理论联系实际</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer" id="actionButtons"></div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane" style="padding: 30px; overflow-y: auto;">
+                <!-- Tab 1: 层次结构 -->
+                <div class="tab-content active" id="tab1">
+                    <h2 style="color: var(--accent-red); margin-bottom: 20px;">同态与同构的包含关系</h2>
+
+                    <div class="hierarchy-tree">
+                        <div class="tree-node" data-type="homo">
+                            <div class="tree-node-title">同态映射 (Homomorphism)</div>
+                            <div class="tree-node-desc">保持运算结构的映射 φ(a*b) = φ(a)·φ(b)</div>
+                        </div>
+
+                        <div style="margin-left: 40px;">
+                            <div class="tree-connector"></div>
+                            <div class="tree-node" data-type="full-homo">
+                                <div class="tree-node-title">满同态 (Surjective)</div>
+                                <div class="tree-node-desc">值域等于陪域的同态映射</div>
+                            </div>
+
+                            <div class="tree-connector"></div>
+                            <div class="tree-node" data-type="mono">
+                                <div class="tree-node-title">单同态 (Monomorphism)</div>
+                                <div class="tree-node-desc">单射的同态映射,保持唯一性</div>
+                            </div>
+
+                            <div class="tree-connector"></div>
+                            <div class="tree-node" data-type="endo">
+                                <div class="tree-node-title">自同态 (Endomorphism)</div>
+                                <div class="tree-node-desc">定义域与陪域相同的同态映射</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-left: 40px; margin-top: 30px;">
+                            <div class="tree-node" data-type="iso" style="background: linear-gradient(135deg, rgba(255, 180, 0, 0.2), rgba(214, 59, 29, 0.2));">
+                                <div class="tree-node-title">同构 (Isomorphism)</div>
+                                <div class="tree-node-desc">既单又满的同态 = 双射同态</div>
+                            </div>
+
+                            <div style="margin-left: 40px;">
+                                <div class="tree-connector"></div>
+                                <div class="tree-node" data-type="auto">
+                                    <div class="tree-node-title">自同构 (Automorphism)</div>
+                                    <div class="tree-node-desc">定义域与陪域相同的同构映射</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="insight-box">
+                        <div class="insight-title">🧠 抽象思维的哲学智慧</div>
+                        <p style="font-size: 0.9rem; color: var(--text-primary); line-height: 1.6;">
+                            从同态到同构的层次关系,体现了数学抽象的深刻性。同态关注结构的保持,
+                            同构则要求完美的一一对应。这种从一般到特殊的递进关系,
+                            启示我们认识事物要把握本质结构,同时注重内在联系的完整性。
+                            正如辩证唯物主义所强调的,既要看到共性,也要把握个性。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tab 2: 同态映射 -->
+                <div class="tab-content" id="tab2">
+                    <h2 style="color: var(--accent-red); margin-bottom: 20px;">同态映射的本质与应用</h2>
+
+                    <div class="formula">
+                        同态映射核心性质: φ(a * b) = φ(a) · φ(b)
+                    </div>
+
+                    <div class="mapping-demo">
+                        <h3 style="color: var(--text-primary); margin-bottom: 20px;">交互式同态映射演示</h3>
+                        <div class="mapping-grid">
+                            <div class="set-box">
+                                <div class="set-title">源代数系统 (A, *)</div>
+                                <div class="set-element" data-val="2">
+                                    <span>元素: 2</span>
+                                    <span>→</span>
+                                </div>
+                                <div class="set-element" data-val="3">
+                                    <span>元素: 3</span>
+                                    <span>→</span>
+                                </div>
+                                <div class="set-element" data-val="4">
+                                    <span>元素: 4</span>
+                                    <span>→</span>
+                                </div>
+                                <div style="margin-top: 15px; font-size: 0.85rem; color: var(--text-secondary);">
+                                    运算*: 整数乘法
+                                </div>
+                            </div>
+
+                            <div class="arrow-container">
+                                <div class="arrow">→</div>
+                                <div class="arrow-label">φ(x) = log₂(x)</div>
+                            </div>
+
+                            <div class="set-box">
+                                <div class="set-title">目标代数系统 (B, ·)</div>
+                                <div class="set-element">
+                                    <span>φ(2) = 1</span>
+                                </div>
+                                <div class="set-element">
+                                    <span>φ(3) ≈ 1.58</span>
+                                </div>
+                                <div class="set-element">
+                                    <span>φ(4) = 2</span>
+                                </div>
+                                <div style="margin-top: 15px; font-size: 0.85rem; color: var(--text-secondary);">
+                                    运算·: 实数加法
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="interactive-demo">
+                            <div style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 10px;">
+                                验证同态性质
+                            </div>
+                            <div class="demo-result">
+                                φ(2 * 4) = φ(8) = log₂(8) = 3
+                            </div>
+                            <div class="demo-result">
+                                φ(2) + φ(4) = 1 + 2 = 3
+                            </div>
+                            <div style="margin-top: 15px; font-size: 1.1rem; font-weight: 700; color: var(--accent-gold);">
+                                ✓ 运算结构得以保持
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property-card">
+                        <div class="property-header">
+                            <div class="property-icon">📚</div>
+                            <div class="property-title">同态的核心特征</div>
+                        </div>
+                        <div class="property-content">
+                            <strong>1. 结构保持:</strong> 保持代数运算的结构关系<br>
+                            <strong>2. 允许多对一:</strong> 不同元素可以映射到同一元素<br>
+                            <strong>3. 信息压缩:</strong> 可能丢失部分信息但保留结构
+                        </div>
+                    </div>
+
+                    <div class="example-card">
+                        <div class="example-title">
+                            <span>🌟</span>
+                            <span>实际应用案例</span>
+                        </div>
+                        <div style="font-size: 0.9rem; color: var(--text-primary); line-height: 1.8;">
+                            <strong>智能制造中的同态映射:</strong><br>
+                            将复杂的生产过程(高维状态空间)同态映射到简化的数学模型(低维空间),
+                            保持了工艺流程的本质关系,使得优化计算成为可能。
+                            这体现了"化繁为简、抓住本质"的科学方法论。
+                        </div>
+                    </div>
+
+                    <div class="insight-box">
+                        <div class="insight-title">💡 理论联系实际的方法论</div>
+                        <p style="font-size: 0.9rem; color: var(--text-primary); line-height: 1.6;">
+                            同态映射启示我们:在解决实际问题时,要善于建立合适的数学模型,
+                            通过抽象和简化保留问题的核心结构,去除次要因素的干扰。
+                            这种"抓主要矛盾"的思想方法,正是马克思主义哲学的重要原理。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tab 3: 同构映射 -->
+                <div class="tab-content" id="tab3">
+                    <h2 style="color: var(--accent-red); margin-bottom: 20px;">同构映射的完美对应</h2>
+
+                    <div class="formula">
+                        同构 = 双射同态 = 单射 ∩ 满射 ∩ 同态
+                    </div>
+
+                    <div class="mapping-demo">
+                        <h3 style="color: var(--text-primary); margin-bottom: 20px;">同构映射示例</h3>
+                        <div class="mapping-grid">
+                            <div class="set-box">
+                                <div class="set-title">模4剩余类加群</div>
+                                <div class="set-element">
+                                    <span>[0]₄</span>
+                                    <span>↔</span>
+                                </div>
+                                <div class="set-element">
+                                    <span>[1]₄</span>
+                                    <span>↔</span>
+                                </div>
+                                <div class="set-element">
+                                    <span>[2]₄</span>
+                                    <span>↔</span>
+                                </div>
+                                <div class="set-element">
+                                    <span>[3]₄</span>
+                                    <span>↔</span>
+                                </div>
+                                <div style="margin-top: 15px; font-size: 0.85rem; color: var(--text-secondary);">
+                                    运算: 模4加法
+                                </div>
+                            </div>
+
+                            <div class="arrow-container">
+                                <div class="arrow">⇄</div>
+                                <div class="arrow-label">同构映射φ</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 5px;">一一对应</div>
+                            </div>
+
+                            <div class="set-box">
+                                <div class="set-title">4次单位根群</div>
+                                <div class="set-element">
+                                    <span>1</span>
+                                </div>
+                                <div class="set-element">
+                                    <span>i</span>
+                                </div>
+                                <div class="set-element">
+                                    <span>-1</span>
+                                </div>
+                                <div class="set-element">
+                                    <span>-i</span>
+                                </div>
+                                <div style="margin-top: 15px; font-size: 0.85rem; color: var(--text-secondary);">
+                                    运算: 复数乘法
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="interactive-demo">
+                            <div style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 10px;">
+                                同构关系验证
+                            </div>
+                            <div class="demo-result">
+                                φ([2]₄ ⊕ [3]₄) = φ([1]₄) = i
+                            </div>
+                            <div class="demo-result">
+                                φ([2]₄) · φ([3]₄) = (-1) · (-i) = i
+                            </div>
+                            <div style="margin-top: 15px; font-size: 1.1rem; font-weight: 700; color: var(--accent-gold);">
+                                ✓ 完美的结构对应
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property-card">
+                        <div class="property-header">
+                            <div class="property-icon">⭐</div>
+                            <div class="property-title">同构的三大特征</div>
+                        </div>
+                        <div class="property-content">
+                            <strong>1. 一一对应:</strong> 每个元素都有唯一的对应元素<br>
+                            <strong>2. 结构等价:</strong> 两个系统在代数意义上完全相同<br>
+                            <strong>3. 信息守恒:</strong> 不丢失任何结构信息
+                        </div>
+                    </div>
+
+                    <div class="example-card">
+                        <div class="example-title">
+                            <span>🏛️</span>
+                            <span>文化艺术中的同构</span>
+                        </div>
+                        <div style="font-size: 0.9rem; color: var(--text-primary); line-height: 1.8;">
+                            <strong>传统艺术品数字化保护:</strong><br>
+                            将国画、陶瓷等艺术品的物理特征同构映射到数学向量空间,
+                            实现了完美的信息保存和相似度计算。这种一一对应的映射关系,
+                            确保了文化遗产的完整传承,体现了对历史的尊重和对文化的自信。
+                        </div>
+                    </div>
+
+                    <div class="insight-box">
+                        <div class="insight-title">🎯 结构等价的深刻启示</div>
+                        <p style="font-size: 0.9rem; color: var(--text-primary); line-height: 1.6;">
+                            同构告诉我们,表面形式不同的系统可能在本质结构上完全相同。
+                            这启发我们透过现象看本质,不被表象迷惑。在实践中,
+                            要善于发现不同事物之间的内在联系和结构相似性,
+                            实现知识的迁移和方法的复用,这正是创新思维的重要源泉。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tab 4: 对比分析 -->
+                <div class="tab-content" id="tab4">
+                    <h2 style="color: var(--accent-red); margin-bottom: 20px;">同态与同构的全面对比</h2>
+
+                    <div class="comparison-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>特性</th>
+                                    <th>同态映射</th>
+                                    <th>满同态</th>
+                                    <th>单同态</th>
+                                    <th>同构</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>运算保持</strong></td>
+                                    <td><span class="check-mark">✓</span></td>
+                                    <td><span class="check-mark">✓</span></td>
+                                    <td><span class="check-mark">✓</span></td>
+                                    <td><span class="check-mark">✓</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>单射性</strong></td>
+                                    <td><span class="cross-mark">✗</span></td>
+                                    <td><span class="cross-mark">✗</span></td>
+                                    <td><span class="check-mark">✓</span></td>
+                                    <td><span class="check-mark">✓</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>满射性</strong></td>
+                                    <td><span class="cross-mark">✗</span></td>
+                                    <td><span class="check-mark">✓</span></td>
+                                    <td><span class="cross-mark">✗</span></td>
+                                    <td><span class="check-mark">✓</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>可逆性</strong></td>
+                                    <td><span class="cross-mark">✗</span></td>
+                                    <td><span class="cross-mark">✗</span></td>
+                                    <td><span class="cross-mark">✗</span></td>
+                                    <td><span class="check-mark">✓</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>信息保持</strong></td>
+                                    <td>部分</td>
+                                    <td>部分</td>
+                                    <td>完全</td>
+                                    <td>完全</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>应用场景</strong></td>
+                                    <td>模型简化</td>
+                                    <td>覆盖映射</td>
+                                    <td>嵌入映射</td>
+                                    <td>结构等价</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="property-card">
+                        <div class="property-header">
+                            <div class="property-icon">🔬</div>
+                            <div class="property-title">关键区别总结</div>
+                        </div>
+                        <div class="property-content" style="line-height: 1.8;">
+                            <strong>同态:</strong> 关注运算结构的保持,允许"多对一"<br>
+                            <strong>满同态:</strong> 在同态基础上要求目标集合被完全覆盖<br>
+                            <strong>单同态:</strong> 在同态基础上要求"一对一",可嵌入<br>
+                            <strong>同构:</strong> 既单又满的同态,实现完美的双向对应
+                        </div>
+                    </div>
+
+                    <div class="example-card">
+                        <div class="example-title">
+                            <span>🌐</span>
+                            <span>综合应用示例</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
+                            <div style="padding: 15px; background: rgba(255, 255, 255, 0.6); border-radius: 8px;">
+                                <div style="font-weight: 700; color: var(--accent-red); margin-bottom: 8px;">智能制造</div>
+                                <div style="font-size: 0.85rem;">同态映射:工艺流程优化</div>
+                            </div>
+                            <div style="padding: 15px; background: rgba(255, 255, 255, 0.6); border-radius: 8px;">
+                                <div style="font-weight: 700; color: var(--accent-red); margin-bottom: 8px;">文化保护</div>
+                                <div style="font-size: 0.85rem;">同构映射:艺术品数字化</div>
+                            </div>
+                            <div style="padding: 15px; background: rgba(255, 255, 255, 0.6); border-radius: 8px;">
+                                <div style="font-weight: 700; color: var(--accent-red); margin-bottom: 8px;">湖湘织锦</div>
+                                <div style="font-size: 0.85rem;">同态:特征提取与风格传承</div>
+                            </div>
+                            <div style="padding: 15px; background: rgba(255, 255, 255, 0.6); border-radius: 8px;">
+                                <div style="font-weight: 700; color: var(--accent-red); margin-bottom: 8px;">共享资源</div>
+                                <div style="font-size: 0.85rem;">同态:资源抽象与调配</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="insight-box">
+                        <div class="insight-title">🏮 数学思想的时代价值</div>
+                        <p style="font-size: 0.9rem; color: var(--text-primary); line-height: 1.6;">
+                            同态与同构理论不仅是纯粹的数学概念,更是认识世界和改造世界的思想武器。
+                            它教会我们如何在复杂现象中把握本质规律,如何在不同领域间建立联系和类比。
+                            在新时代,我们要善于运用这种抽象思维和结构化思维,
+                            推动理论创新与实践创新,为中国式现代化提供智力支撑。
+                        </p>
+                        <div style="margin-top: 15px;">
+                            <span class="innovation-badge">抽象思维</span>
+                            <span class="innovation-badge">结构保持</span>
+                            <span class="innovation-badge">理论联系实际</span>
+                            <span class="innovation-badge">创新方法论</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        let currentTab = 'tab1';
+        let selectedType = null;
+
+        // Tab切换
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                switchTab(btn.dataset.tab);
+            });
+        });
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tabId);
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.toggle('active', content.id === tabId);
+            });
+            updateSidebar(tabId);
+        }
+
+        function updateSidebar(tabId) {
+            const sidebarContent = document.getElementById('sidebarContent');
+            const actionButtons = document.getElementById('actionButtons');
+
+            if (tabId === 'tab1') {
+                sidebarContent.innerHTML = `
+                    <div class="control-group">
+                        <label>当前选择</label>
+                        <div class="info-panel">
+                            <p style="font-size: 0.85rem; color: var(--accent-red); font-weight: 700;" id="selectedType">
+                                ${selectedType || '点击节点查看详情'}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>关系说明</label>
+                        <div class="info-panel">
+                            <p style="font-size: 0.8rem; line-height: 1.6;">
+                                同构 ⊂ 单同态 ∩ 满同态<br>
+                                所有类型都是同态的特例
+                            </p>
+                        </div>
+                    </div>
+                `;
+                actionButtons.innerHTML = `
+                    <button id="expandBtn" class="apple-btn action-btn">展开全部</button>
+                `;
+                initTab1();
+            } else if (tabId === 'tab2') {
+                sidebarContent.innerHTML = `
+                    <div class="control-group">
+                        <label>映射类型</label>
+                        <select class="apple-btn primary-btn" style="width: 100%;">
+                            <option>对数映射</option>
+                            <option>取模映射</option>
+                            <option>投影映射</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>核心性质</label>
+                        <div class="info-panel">
+                            <p style="font-size: 0.85rem; color: var(--accent-red); font-weight: 700;">
+                                ✓ 结构保持<br>
+                                ✓ 允许多对一
+                            </p>
+                        </div>
+                    </div>
+                `;
+                actionButtons.innerHTML = `
+                    <button id="verifyBtn" class="apple-btn action-btn">验证同态</button>
+                `;
+                initTab2();
+            } else if (tabId === 'tab3') {
+                sidebarContent.innerHTML = `
+                    <div class="control-group">
+                        <label>同构示例</label>
+                        <select class="apple-btn primary-btn" style="width: 100%;">
+                            <option>循环群同构</option>
+                            <option>向量空间同构</option>
+                            <option>布尔代数同构</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>同构性质</label>
+                        <div class="info-panel">
+                            <p style="font-size: 0.85rem; color: var(--accent-red); font-weight: 700;">
+                                ✓ 一一对应<br>
+                                ✓ 结构等价<br>
+                                ✓ 可逆映射
+                            </p>
+                        </div>
+                    </div>
+                `;
+                actionButtons.innerHTML = `
+                    <button id="verifyIsoBtn" class="apple-btn action-btn">验证同构</button>
+                `;
+                initTab3();
+            } else if (tabId === 'tab4') {
+                sidebarContent.innerHTML = `
+                    <div class="control-group">
+                        <label>对比维度</label>
+                        <div class="info-panel">
+                            <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <input type="checkbox" checked> 映射性质
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <input type="checkbox" checked> 应用场景
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" checked> 实例对比
+                            </label>
+                        </div>
+                    </div>
+                `;
+                actionButtons.innerHTML = `
+                    <button id="exportBtn" class="apple-btn action-btn">导出对比</button>
+                `;
+                initTab4();
+            }
+        }
+
+        // Tab 1
+        function initTab1() {
+            document.querySelectorAll('.tree-node').forEach(node => {
+                node.addEventListener('click', () => {
+                    document.querySelectorAll('.tree-node').forEach(n => n.classList.remove('active'));
+                    node.classList.add('active');
+                    const type = node.dataset.type;
+                    const types = {
+                        'homo': '同态映射',
+                        'full-homo': '满同态',
+                        'mono': '单同态',
+                        'endo': '自同态',
+                        'iso': '同构',
+                        'auto': '自同构'
+                    };
+                    selectedType = types[type];
+                    document.getElementById('selectedType').textContent = selectedType;
+                });
+            });
+
+            document.getElementById('expandBtn')?.addEventListener('click', () => {
+                alert('层次结构已全部展开！\n同构是最特殊的同态，满足单射和满射。');
+            });
+        }
+
+        // Tab 2
+        function initTab2() {
+            document.getElementById('verifyBtn')?.addEventListener('click', () => {
+                alert('同态性质验证通过！\nφ(a * b) = φ(a) · φ(b) ✓');
+            });
+        }
+
+        // Tab 3
+        function initTab3() {
+            document.getElementById('verifyIsoBtn')?.addEventListener('click', () => {
+                alert('同构验证通过！\n满足: 单射 + 满射 + 同态 ✓');
+            });
+        }
+
+        // Tab 4
+        function initTab4() {
+            document.getElementById('exportBtn')?.addEventListener('click', () => {
+                alert('对比表格已导出为PDF格式！');
+            });
+        }
+
+        updateSidebar('tab1');
+    </script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>群同态与同构 - 组织协作映射</title>
+    <link rel="stylesheet" href="homomorphism-style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>群同态 <span class="highlight">与同构</span></h1>
+                <p class="subtitle">Group Homomorphism & Isomorphism</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>概念导航</label>
+                    <div class="concept-nav">
+                        <button class="concept-btn active" data-concept="homomorphism">
+                            <span class="icon">🔄</span>
+                            <span>群同态</span>
+                        </button>
+                        <button class="concept-btn" data-concept="monomorphism">
+                            <span class="icon">🎯</span>
+                            <span>单群同态</span>
+                        </button>
+                        <button class="concept-btn" data-concept="epimorphism">
+                            <span class="icon">📡</span>
+                            <span>满群同态</span>
+                        </button>
+                        <button class="concept-btn" data-concept="isomorphism">
+                            <span class="icon">⚖️</span>
+                            <span>群同构</span>
+                        </button>
+                        <button class="concept-btn" data-concept="kernel">
+                            <span class="icon">⭐</span>
+                            <span>同态核</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>同态实例</label>
+                    <div class="demo-panel">
+                        <select id="mappingSelect" class="apple-select">
+                            <option value="mod6">ℤ → ℤ₆ (模6映射)</option>
+                            <option value="sign">S₃ → {±1} (符号映射)</option>
+                            <option value="det">GL₂ → ℝ* (行列式)</option>
+                            <option value="inclusion">ℤ → ℚ (包含映射)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>性质检测</label>
+                    <div class="property-panel">
+                        <div class="property-item" id="propHomomorphism">
+                            <span class="prop-icon">✓</span>
+                            <span>保持运算</span>
+                        </div>
+                        <div class="property-item" id="propInjective">
+                            <span class="prop-icon">?</span>
+                            <span>单射（忠诚）</span>
+                        </div>
+                        <div class="property-item" id="propSurjective">
+                            <span class="prop-icon">?</span>
+                            <span>满射（覆盖）</span>
+                        </div>
+                        <div class="property-item" id="propIsomorphism">
+                            <span class="prop-icon">?</span>
+                            <span>同构（平等）</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>同态核信息</label>
+                    <div class="kernel-panel" id="kernelInfo">
+                        <p><strong>Ker(φ):</strong> <span id="kernelValue">计算中...</span></p>
+                        <p class="kernel-desc" id="kernelDesc">同态核是映射到单位元的所有元素</p>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>💡 <span id="conceptTitle">组织协作</span></h3>
+                    <div id="conceptContent">
+                        <p><strong>群同态:</strong> 保持运算的映射关系。</p>
+                        <p><strong>核心思想:</strong> 互学互鉴，交流合作。</p>
+                        <p><strong>社会意义:</strong> 组织间的沟通机制。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="animateBtn" class="apple-btn action-btn">▶ 演示映射</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="graph-title">
+                    <h2 id="mainTitle">群同态 - 组织间的协作映射</h2>
+                    <p id="mainSubtitle">Preserving Structure Through Communication</p>
+                </div>
+
+                <!-- Ideology Quote -->
+                <div class="quote-banner">
+                    <div class="quote-icon">💬</div>
+                    <p class="quote-text" id="quoteText">"互学互鉴，交流合作，美美与共，天下大同。"</p>
+                    <p class="quote-author" id="quoteAuthor">— 现代外交理念</p>
+                </div>
+
+                <!-- Mapping Visualization -->
+                <div class="mapping-container">
+                    <div class="group-box source-group">
+                        <h3 id="sourceTitle">源群 G</h3>
+                        <div class="elements-grid" id="sourceElements"></div>
+                    </div>
+
+                    <div class="arrow-container">
+                        <div class="mapping-arrow">
+                            <span class="arrow-label" id="mappingName">φ</span>
+                        </div>
+                    </div>
+
+                    <div class="group-box target-group">
+                        <h3 id="targetTitle">目标群 H</h3>
+                        <div class="elements-grid" id="targetElements"></div>
+                    </div>
+                </div>
+
+                <svg id="mappingSvg" width="100%" height="200">
+                    <g id="arrowsGroup"></g>
+                </svg>
+
+                <!-- Ideology Content Box -->
+                <div class="ideology-content-box">
+                    <div class="ideology-header">
+                        <span class="red-star">★</span>
+                        <h3 id="ideologyTitle">互学互鉴 · 交流合作</h3>
+                    </div>
+                    <div class="ideology-text" id="ideologyText">
+                        <p>群同态体现了组织间的协作精神。不同组织虽有各自特色，但通过保持"运算规则"的一致性，可以实现有效沟通和互相学习。</p>
+                    </div>
+                    <div class="social-analogy">
+                        <label>社会类比</label>
+                        <p id="analogyText">如同国际合作中的"互学互鉴"，各国保持自身特色的同时，通过共同遵守的规则（保持运算）实现有效交流。</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="homomorphism-script.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+    </div>
+
+</body>
+
+</html>
