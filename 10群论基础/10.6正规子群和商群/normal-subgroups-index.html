@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>正规子群和商群 - 和谐统一体系</title>
+    <link rel="stylesheet" href="normal-subgroups-style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>正规子群 <span class="highlight">体系</span></h1>
+                <p class="subtitle">Normal Subgroups and Quotient Groups - Harmonious Unity</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>概念导航</label>
+                    <div class="type-nav">
+                        <button class="type-btn active" data-type="normal">
+                            <span class="icon">⚖️</span>
+                            <div class="btn-content">
+                                <strong>正规子群</strong>
+                                <small>Normal Subgroup</small>
+                            </div>
+                        </button>
+                        <button class="type-btn" data-type="quotient">
+                            <span class="icon">📊</span>
+                            <div class="btn-content">
+                                <strong>商群</strong>
+                                <small>Quotient Group</small>
+                            </div>
+                        </button>
+                        <button class="type-btn" data-type="relation">
+                            <span class="icon">🔗</span>
+                            <div class="btn-content">
+                                <strong>关系演示</strong>
+                                <small>Relationship Demo</small>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>群选择</label>
+                    <div class="demo-panel">
+                        <select id="groupSelect" class="apple-select">
+                            <option value="s3">对称群 S₃ (阶数: 6)</option>
+                            <option value="d4">二面体群 D₄ (阶数: 8)</option>
+                            <option value="z6">循环群 ℤ₆ (阶数: 6)</option>
+                            <option value="a4">交错群 A₄ (阶数: 12)</option>
+                        </select>
+                        <div class="example-info" id="exampleInfo">
+                            <p><strong>群阶数:</strong> <span id="groupOrderValue">6</span></p>
+                            <p><strong>子群数:</strong> <span id="subgroupCountValue">3</span></p>
+                            <p><strong>正规子群:</strong> <span id="normalCountValue">2</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>子群选择</label>
+                    <div id="subgroupSelector" class="subgroup-selector"></div>
+                </div>
+
+                <div class="control-group">
+                    <label>正规性检验</label>
+                    <div class="test-panel" id="testPanel">
+                        <div class="conjugacy-test">
+                            <p class="hint-text">选择群元素进行共轭检验</p>
+                            <div class="element-selector" id="elementSelector"></div>
+                            <div class="result-display" id="testResult">
+                                <p style="color: var(--text-secondary);">💡 选择元素检验 gHg⁻¹ = H</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>💡 <span id="conceptTitle">和谐统一</span></h3>
+                    <div id="conceptContent">
+                        <p><strong>正规子群:</strong> 满足 gHg⁻¹ = H 的子群。</p>
+                        <p><strong>核心思想:</strong> 内部对称，外部和谐。</p>
+                        <p><strong>社会意义:</strong> 组织的核心价值观。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="demonstrateBtn" class="apple-btn action-btn">▶ 演示正规性</button>
+                <button id="constructBtn" class="apple-btn construct-btn">🔨 构造商群</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="graph-title">
+                    <h2 id="mainTitle">正规子群 - 和谐统一的组织核心</h2>
+                    <p id="mainSubtitle">Normal Subgroups - Core Values of Harmonious Organizations</p>
+                </div>
+
+                <!-- Ideology Quote -->
+                <div class="quote-banner">
+                    <div class="quote-icon">💬</div>
+                    <p class="quote-text" id="quoteText">"求同存异，和而不同，共建和谐。"</p>
+                    <p class="quote-author" id="quoteAuthor">— 中国传统智慧</p>
+                </div>
+
+                <!-- Visualization Area -->
+                <div class="visualization-area">
+                    <!-- Main SVG Diagram -->
+                    <div class="svg-container">
+                        <svg id="normalSvg" width="100%" height="100%">
+                            <defs>
+                                <filter id="glow">
+                                    <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                                    <feMerge>
+                                        <feMergeNode in="coloredBlur" />
+                                        <feMergeNode in="SourceGraphic" />
+                                    </feMerge>
+                                </filter>
+                                <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="8" refY="3"
+                                    orient="auto">
+                                    <polygon points="0 0, 10 3, 0 6" fill="#d63b1d" />
+                                </marker>
+                                <marker id="arrowGold" markerWidth="10" markerHeight="10" refX="8" refY="3"
+                                    orient="auto">
+                                    <polygon points="0 0, 10 3, 0 6" fill="#ffb400" />
+                                </marker>
+                            </defs>
+                            <g id="mainGroup"></g>
+                            <g id="arrowsGroup"></g>
+                        </svg>
+                    </div>
+
+                    <!-- Info Panel -->
+                    <div class="info-panel-container">
+                        <!-- Normal Subgroup Criteria -->
+                        <div class="criteria-box" id="criteriaBox">
+                            <h4>正规性判定</h4>
+                            <div class="criteria-list" id="criteriaList">
+                                <div class="criteria-item">
+                                    <span class="criteria-icon">✓</span>
+                                    <span>左陪集 = 右陪集</span>
+                                </div>
+                                <div class="criteria-item">
+                                    <span class="criteria-icon">✓</span>
+                                    <span>gHg⁻¹ ⊆ H, ∀g∈G</span>
+                                </div>
+                                <div class="criteria-item">
+                                    <span class="criteria-icon">✓</span>
+                                    <span>商群存在</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quotient Group Table -->
+                        <div class="quotient-table-container" id="quotientContainer" style="display:none;">
+                            <h4>商群运算表 G/H</h4>
+                            <div id="quotientTableContent"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conjugacy Visualization -->
+                <div class="conjugacy-box" id="conjugacyBox">
+                    <div class="conjugacy-header">
+                        <span class="red-star">★</span>
+                        <h3>共轭验证</h3>
+                    </div>
+                    <div class="conjugacy-content" id="conjugacyContent">
+                        <div class="formula-display">
+                            <span class="formula-part">g</span>
+                            <span class="formula-part">H</span>
+                            <span class="formula-part">g⁻¹</span>
+                            <span class="formula-equals">=</span>
+                            <span class="formula-result" id="conjugacyResult">?</span>
+                        </div>
+                        <p id="conjugacyExplanation">选择群元素 g 进行共轭检验</p>
+                    </div>
+                </div>
+
+                <!-- Ideology Content Box -->
+                <div class="ideology-content-box">
+                    <div class="ideology-header">
+                        <span class="red-star">★</span>
+                        <h3 id="ideologyTitle">和谐统一 · 核心价值</h3>
+                    </div>
+                    <div class="ideology-text" id="ideologyText">
+                        <p>正规子群体现了组织的核心价值观念。它在任何变换下都保持不变，象征着组织的核心理念应当坚守不移。无论外部环境如何变化（群元素的共轭作用），核心价值始终如一。</p>
+                    </div>
+                    <div class="social-analogy">
+                        <label>社会类比</label>
+                        <p id="analogyText">如同党的领导核心地位，无论形势如何变化，党的领导始终是中国特色社会主义最本质的特征。正规子群的不变性，正如核心价值观的坚定性，是组织团结统一的基石。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="normal-subgroups-script.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

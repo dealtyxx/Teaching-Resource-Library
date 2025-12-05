@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>环理论纠错线性码</title>
+    <link rel="stylesheet" href="linear-code-style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>纠错<span class="highlight">线性码</span></h1>
+                <p class="subtitle">Error-Correcting Linear Codes</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>编码步骤</label>
+                    <div class="step-buttons">
+                        <button class="step-btn active" data-step="0">生成矩阵</button>
+                        <button class="step-btn" data-step="1">编码过程</button>
+                        <button class="step-btn" data-step="2">最小距离</button>
+                        <button class="step-btn" data-step="3">纠错能力</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>码参数</label>
+                    <div class="info-panel">
+                        <p><strong>码长 n：</strong><span id="codeLength">7</span></p>
+                        <p><strong>信息位 k：</strong><span id="infoLength">4</span></p>
+                        <p><strong>最小距离 d：</strong><span id="minDistance">3</span></p>
+                        <p><strong>纠错能力 t：</strong><span id="errorCapacity">1</span></p>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>生成矩阵 G (mod 2)</label>
+                    <div id="matrixDisplay" class="matrix-display">
+                        <div class="matrix-row">1 0 0 0 | 1 1 0</div>
+                        <div class="matrix-row">0 1 0 0 | 1 0 1</div>
+                        <div class="matrix-row">0 0 1 0 | 0 1 1</div>
+                        <div class="matrix-row">0 0 0 1 | 1 1 1</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>信息向量 u</label>
+                    <div class="input-vector">
+                        <input type="text" id="inputVector" value="1011" maxlength="4" pattern="[01]{4}">
+                        <button id="encodeBtn" class="encode-btn">编码</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>码字 c</label>
+                    <div id="codewordDisplay" class="codeword-display">1011011</div>
+                </div>
+
+                <div class="info-box">
+                    <h3>💡 环理论应用</h3>
+                    <p><strong>数学基础:</strong> 模p整数环 Z/pZ</p>
+                    <p><strong>编码原理:</strong> c = u·G</p>
+                    <p><strong>纠错能力:</strong> t = ⌊(d-1)/2⌋</p>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="autoPlayBtn" class="apple-btn action-btn">▶ 自动演示</button>
+                <button id="nextStepBtn" class="apple-btn action-btn">▶ 下一步</button>
+                <button id="resetBtn" class="apple-btn danger-btn">🔄 重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="graph-title">
+                    <h2 id="mainTitle">生成矩阵构造</h2>
+                    <p id="mainSubtitle">Generator Matrix Construction</p>
+                </div>
+
+                <div class="quote-banner">
+                    <div class="quote-icon">💬</div>
+                    <p class="quote-text">"数学是科学的皇后，理论研究为技术创新铺就道路。"</p>
+                    <p class="quote-author">— 中国科技创新精神</p>
+                </div>
+
+                <div class="visualization-container">
+                    <svg id="codeSvg" width="700" height="420" viewBox="0 0 700 420">
+                        <defs>
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur" />
+                                    <feMergeNode in="SourceGraphic" />
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <g id="visualGroup"></g>
+                    </svg>
+                </div>
+
+                <div class="distance-table" id="distanceTable" style="display: none;">
+                    <h3>汉明距离计算表</h3>
+                    <div id="distanceContent"></div>
+                </div>
+
+                <div class="comparison-panel" id="comparisonPanel" style="display: none;">
+                    <h3>纠错能力分析</h3>
+                    <div class="capability-grid">
+                        <div class="capability-item">
+                            <h4>最小距离</h4>
+                            <p class="value">d = <strong id="dValue">3</strong></p>
+                        </div>
+                        <div class="capability-arrow">→</div>
+                        <div class="capability-item highlight">
+                            <h4>纠错能力</h4>
+                            <p class="value">t = <strong id="tValue">1</strong></p>
+                        </div>
+                    </div>
+                    <div class="analysis-box">
+                        <p>✓ 可检测 <strong>2</strong> 个错误</p>
+                        <p>✓ 可纠正 <strong>1</strong> 个错误</p>
+                        <p>✓ 码率 R = <strong>4/7 ≈ 57.1%</strong></p>
+                    </div>
+                </div>
+
+                <div class="ideology-content-box">
+                    <div class="ideology-header">
+                        <span class="red-star">★</span>
+                        <h3>理论强基 · 技术创新</h3>
+                    </div>
+                    <div class="ideology-text">
+                        环理论作为现代代数的重要分支，在通信系统的纠错码设计中发挥着关键作用。
+                        通过模p整数环Z/pZ的数学框架，我们能够构造出高效的线性码，确保数据传输的准确性和可靠性。
+                        这体现了基础理论研究对科技创新的支撑作用，是建设科技强国的重要基石。
+                    </div>
+                    <div class="social-analogy">
+                        <label>应用价值</label>
+                        <p>
+                            线性码广泛应用于移动通信、卫星通信、数据存储等领域。我国在5G通信、北斗导航等重大工程中，
+                            都运用了先进的纠错编码技术，保障了信息传输的高可靠性，展现了理论创新到技术应用的成功转化。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="linear-code-script.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+</body>
+
+</html>

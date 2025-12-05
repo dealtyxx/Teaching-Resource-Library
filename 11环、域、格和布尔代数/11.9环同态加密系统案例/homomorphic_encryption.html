@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>和谐之密 - 环同态加密</title>
+    <link rel="stylesheet" href="encryption_style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>和谐之密 <span class="highlight">同态加密</span></h1>
+                <p class="subtitle">Ring Homomorphic Encryption</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>🎎 传统文化理念</label>
+                    <div class="info-panel culture-panel">
+                        <p class="culture-text">
+                            <strong>和谐统一</strong> · 结构相通<br>
+                            <strong>内外协调</strong> · 明密对应<br>
+                            <strong>简繁相通</strong> · 同态映射<br>
+                            <strong>知行合一</strong> · 理实结合
+                        </p>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>⚙️ 环参数设置</label>
+                    <div class="param-inputs">
+                        <div class="input-row">
+                            <span class="param-label">明文环 n:</span>
+                            <input type="number" id="paramN" value="10" min="2" max="30">
+                        </div>
+                        <div class="input-row">
+                            <span class="param-label">密文环 m:</span>
+                            <input type="number" id="paramM" value="17" min="2" max="50">
+                        </div>
+                        <div class="input-row">
+                            <span class="param-label">密钥 k:</span>
+                            <input type="number" id="paramK" value="3" min="1" max="20">
+                        </div>
+                        <div class="input-row">
+                            <span class="param-label">逆元 k⁻¹:</span>
+                            <span id="inverseDisplay" class="inverse-value">6</span>
+                        </div>
+                    </div>
+                    <button id="updateParamsBtn" class="apple-btn primary-btn">
+                        <span class="icon">🔄</span> 更新参数
+                    </button>
+                </div>
+
+                <div class="control-group">
+                    <label>🔐 加密操作</label>
+                    <div class="param-inputs">
+                        <div class="input-row">
+                            <span class="param-label">明文 a:</span>
+                            <input type="number" id="plaintextA" value="7" min="0">
+                        </div>
+                        <div class="input-row">
+                            <span class="param-label">密文:</span>
+                            <span id="ciphertextA" class="result-value">-</span>
+                        </div>
+                    </div>
+                    <button id="encryptBtn" class="apple-btn action-btn">加密</button>
+                </div>
+
+                <div class="control-group">
+                    <label>🔓 解密验证</label>
+                    <div class="param-inputs">
+                        <div class="input-row">
+                            <span class="param-label">密文 c:</span>
+                            <input type="number" id="ciphertextInput" value="4" min="0">
+                        </div>
+                        <div class="input-row">
+                            <span class="param-label">明文:</span>
+                            <span id="decryptedText" class="result-value">-</span>
+                        </div>
+                    </div>
+                    <button id="decryptBtn" class="apple-btn action-btn">解密</button>
+                </div>
+
+                <div class="control-group">
+                    <label>📊 系统状态</label>
+                    <div class="info-panel status-panel">
+                        <p id="statusText">系统就绪</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="resetBtn" class="apple-btn danger-btn">重置参数</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <!-- Homomorphic Property Verification -->
+            <div class="verification-panel glass-pane">
+                <div class="panel-header">
+                    <h2>同态性质验证</h2>
+                    <p class="panel-subtitle">E(a+b) = E(a) + E(b)</p>
+                </div>
+                <div class="verification-content">
+                    <div class="verification-inputs">
+                        <div class="ver-input-group">
+                            <label>明文 a:</label>
+                            <input type="number" id="verA" value="7" min="0">
+                        </div>
+                        <div class="ver-input-group">
+                            <label>明文 b:</label>
+                            <input type="number" id="verB" value="5" min="0">
+                        </div>
+                        <button id="verifyBtn" class="apple-btn verify-btn">
+                            <span class="icon">✓</span> 验证同态性
+                        </button>
+                    </div>
+                    <div class="verification-result" id="verificationResult">
+                        <p class="hint-text">点击"验证同态性"查看结果</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ring Visualization -->
+            <div class="rings-panel glass-pane">
+                <div class="panel-header">
+                    <h2>环结构映射</h2>
+                    <p class="panel-subtitle">从明文环到密文环的同态映射</p>
+                </div>
+                <div class="rings-container">
+                    <div class="ring-display">
+                        <div class="ring-title">明文环 Z<sub id="displayN">10</sub></div>
+                        <canvas id="plaintextRing" width="250" height="250"></canvas>
+                        <div class="ring-label">加法环</div>
+                    </div>
+
+                    <div class="mapping-arrow">
+                        <div class="arrow-label">E(a) = (a·k) mod m</div>
+                        <svg width="120" height="100">
+                            <defs>
+                                <marker id="arrowMarker" markerWidth="10" markerHeight="10" refX="9" refY="3"
+                                    orient="auto">
+                                    <polygon points="0 0, 10 3, 0 6" fill="var(--accent-red)" />
+                                </marker>
+                            </defs>
+                            <path d="M 10 50 Q 60 30, 110 50" stroke="var(--accent-red)" stroke-width="3" fill="none"
+                                marker-end="url(#arrowMarker)" />
+                            <path d="M 110 50 Q 60 70, 10 50" stroke="var(--accent-gold)" stroke-width="3" fill="none"
+                                stroke-dasharray="5,5" />
+                        </svg>
+                        <div class="arrow-label decrypt-label">D(c) = (c·k⁻¹) mod m</div>
+                    </div>
+
+                    <div class="ring-display">
+                        <div class="ring-title">密文环 Z<sub id="displayM">17</sub></div>
+                        <canvas id="ciphertextRing" width="250" height="250"></canvas>
+                        <div class="ring-label">同态环</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="encryption_script.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+</body>
+
+</html>

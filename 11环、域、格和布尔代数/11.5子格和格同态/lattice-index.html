@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>格论可视化 - 子格与格同态</title>
+    <link rel="stylesheet" href="lattice-style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>格论<span class="highlight">可视化</span></h1>
+                <p class="subtitle">Lattice Theory Visualization</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>选择概念</label>
+                    <div class="type-buttons">
+                        <button class="type-btn active" data-type="lattice">格结构</button>
+                        <button class="type-btn" data-type="sublattice">子格</button>
+                        <button class="type-btn" data-type="homomorphism">格同态</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>选择示例</label>
+                    <select id="exampleSelect" class="apple-select">
+                        <option value="d4">D₄ - 除数格</option>
+                        <option value="b2" selected>B₂ - 布尔格</option>
+                        <option value="chain">C₄ - 链格</option>
+                        <option value="diamond">M₃ - 菱形格</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>格的性质</label>
+                    <div class="info-panel">
+                        <p><strong>阶数：</strong><span id="orderValue">4</span></p>
+                        <p><strong>类型：</strong><span id="propertyValue">布尔格</span></p>
+                        <p><strong>特征：</strong><span id="featuresValue">有补、分配</span></p>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>选择元素</label>
+                    <div id="elementSelector" class="element-selector"></div>
+                </div>
+
+                <div class="control-group">
+                    <label>运算结果</label>
+                    <div id="resultDisplay" class="result-display">
+                        <p style="color: var(--text-secondary);">💡 选择两个元素查看上确界和下确界</p>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>💡 <span id="conceptTitle">层次结构</span></h3>
+                    <div id="conceptContent">
+                        <p><strong>数学定义:</strong> 偏序集，任意两元素有上确界和下确界。</p>
+                        <p><strong>核心思想:</strong> 层次关系与统一框架。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="demonstrateBtn" class="apple-btn action-btn">▶ 演示运算</button>
+                <button id="resetBtn" class="apple-btn danger-btn">🔄 重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="graph-title">
+                    <h2 id="mainTitle">格论 - 层次结构</h2>
+                    <p id="mainSubtitle">Lattice - Hierarchical Structure</p>
+                </div>
+
+                <div class="quote-banner">
+                    <div class="quote-icon">💬</div>
+                    <p class="quote-text" id="quoteText">"上下同欲者胜，风雨同舟者兴。"</p>
+                    <p class="quote-author" id="quoteAuthor">— 《孙子兵法》</p>
+                </div>
+
+                <div class="visualization-container">
+                    <svg id="latticeSvg" width="500" height="400">
+                        <defs>
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur" />
+                                    <feMergeNode in="SourceGraphic" />
+                                </feMerge>
+                            </filter>
+                            <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"
+                                markerUnits="strokeWidth">
+                                <path d="M0,0 L0,6 L9,3 z" fill="var(--accent-red)" />
+                            </marker>
+                        </defs>
+                        <g id="edgesGroup"></g>
+                        <g id="nodesGroup"></g>
+                        <g id="highlightGroup"></g>
+                    </svg>
+                </div>
+
+                <div class="operations-panel">
+                    <h3>格运算</h3>
+                    <div class="operations-grid">
+                        <div class="operation-box">
+                            <h4>∨ 上确界（Join）</h4>
+                            <p id="joinResult">选择两个元素</p>
+                        </div>
+                        <div class="operation-box">
+                            <h4>∧ 下确界（Meet）</h4>
+                            <p id="meetResult">选择两个元素</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ideology-content-box">
+                    <div class="ideology-header">
+                        <span class="red-star">★</span>
+                        <h3 id="ideologyTitle">层次结构与统筹协调</h3>
+                    </div>
+                    <div class="ideology-text" id="ideologyText">
+                        格论体现了层次结构与统筹协调的管理智慧。每个元素在偏序关系中都有明确的位置，而上确界和下确界运算则实现了不同层次的协调统一。这如同组织管理中的层级制度，既有明确分工，又能协调配合，最终实现整体目标。
+                    </div>
+                    <div class="social-analogy">
+                        <label>社会类比</label>
+                        <p id="analogyText">如同组织的层级结构，上级统筹下级，下级服从上级，通过上下协调（上确界）和统一标准（下确界），实现整体的和谐运转。</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="lattice-script.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

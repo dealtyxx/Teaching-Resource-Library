@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>布尔代数逻辑电路优化</title>
+    <link rel="stylesheet" href="boolean-circuit-style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>逻辑电路<span class="highlight">优化</span></h1>
+                <p class="subtitle">Boolean Circuit Optimization</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>优化步骤</label>
+                    <div class="step-buttons">
+                        <button class="step-btn active" data-step="0">原始电路</button>
+                        <button class="step-btn" data-step="1">抽象化</button>
+                        <button class="step-btn" data-step="2">化简运算</button>
+                        <button class="step-btn" data-step="3">优化电路</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>电路信息</label>
+                    <div class="info-panel">
+                        <p><strong>逻辑门数：</strong><span id="gateCount">7</span></p>
+                        <p><strong>输入数：</strong><span id="inputCount">4</span></p>
+                        <p><strong>复杂度：</strong><span id="complexity">高</span></p>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>布尔表达式</label>
+                    <div id="expressionDisplay" class="expression-display">
+                        ((P∧Q∧R)∨(P∧Q∧S)) ∧((P∧R)∨(P∧S))
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>说明</label>
+                    <div id="optimizationDesc" class="result-display">
+                        <p>原始电路使用7个逻辑门，结构复杂</p>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>💡 布尔代数应用</h3>
+                    <p><strong>核心作用:</strong> 简化逻辑表达式，优化电路设计</p>
+                    <p><strong>优化目标:</strong> 减少逻辑门数量，降低成本和功耗</p>
+                    <p><strong>实际意义:</strong> 提高芯片性能，推动国产芯片发展</p>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="autoPlayBtn" class="apple-btn action-btn">▶ 自动演示</button>
+                <button id="nextStepBtn" class="apple-btn action-btn">▶ 下一步</button>
+                <button id="resetBtn" class="apple-btn danger-btn">🔄 重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="graph-title">
+                    <h2 id="mainTitle">原始电路</h2>
+                    <p id="mainSubtitle">Original Circuit</p>
+                </div>
+
+                <div class="quote-banner">
+                    <div class="quote-icon">💬</div>
+                    <p class="quote-text">"创新是引领发展的第一动力，掌握核心技术才能自立自强。"</p>
+                    <p class="quote-author">— 中国芯片发展战略</p>
+                </div>
+
+                <div class="visualization-container">
+                    <svg id="circuitSvg" width="650" height="450" viewBox="0 0 650 450">
+                        <defs>
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur" />
+                                    <feMergeNode in="SourceGraphic" />
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <g id="circuitGroup"></g>
+                    </svg>
+                </div>
+
+                <div class="simplification-steps" id="simplificationSteps" style="display: none;">
+                    <h3>化简步骤</h3>
+                    <div id="stepsContent"></div>
+                </div>
+
+                <div class="comparison-panel" id="comparisonPanel" style="display: none;">
+                    <h3>优化对比</h3>
+                    <div class="comparison-grid">
+                        <div class="comparison-item">
+                            <h4>原始电路</h4>
+                            <p>逻辑门数: <strong class="old-value">7</strong></p>
+                            <p>复杂度: <strong class="old-value">高</strong></p>
+                        </div>
+                        <div class="comparison-arrow">→</div>
+                        <div class="comparison-item optimized">
+                            <h4>优化电路</h4>
+                            <p>逻辑门数: <strong class="new-value">2</strong></p>
+                            <p>复杂度: <strong class="new-value">低</strong></p>
+                        </div>
+                    </div>
+                    <div class="benefit-box">
+                        <p>✓ 逻辑门减少 <strong>71%</strong></p>
+                        <p>✓ 功耗降低约 <strong>60%</strong></p>
+                        <p>✓ 电路面积减小 <strong>50%</strong></p>
+                    </div>
+                </div>
+
+                <div class="ideology-content-box">
+                    <div class="ideology-header">
+                        <span class="red-star">★</span>
+                        <h3>自主创新 · 科技强国</h3>
+                    </div>
+                    <div class="ideology-text">
+                        中国集成电路和芯片行业正处于快速发展阶段，展现出广阔的发展前景和巨大的增长潜力。
+                        布尔代数在数字集成电路设计中起着至关重要的作用，通过逻辑电路优化，我们可以提高电路效率、
+                        降低成本，这是推动国产芯片自主创新的重要技术基础。
+                    </div>
+                    <div class="social-analogy">
+                        <label>技术意义</label>
+                        <p>
+                            逻辑电路优化体现了科学方法论：从复杂到简单、从冗余到精简。这不仅是技术问题，
+                            更是实事求是、追求卓越的科学精神的体现，为中国芯片产业的自主可控发展提供坚实的理论和技术支撑。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="boolean-circuit-script.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+</body>
+
+</html>
