@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色足迹 - 欧拉回路探索</title>
+    <link rel="stylesheet" href="euler-style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>红色足迹 <span class="highlight">欧拉之路</span></h1>
+                <p class="subtitle">Red Footprints - Euler Path Explorer</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>选择图类型</label>
+                    <div class="graph-type-selector">
+                        <button class="type-btn active" data-type="euler-circuit">
+                            <span class="icon">🔄</span>
+                            <div>
+                                <strong>欧拉回路</strong>
+                                <small>全连通闭环</small>
+                            </div>
+                        </button>
+                        <button class="type-btn" data-type="euler-path">
+                            <span class="icon">➡️</span>
+                            <div>
+                                <strong>欧拉通路</strong>
+                                <small>一笔画通路</small>
+                            </div>
+                        </button>
+                        <button class="type-btn" data-type="semi-euler">
+                            <span class="icon">🌓</span>
+                            <div>
+                                <strong>半欧拉图</strong>
+                                <small>恰有2个奇数度</small>
+                            </div>
+                        </button>
+                        <button class="type-btn" data-type="non-euler">
+                            <span class="icon">❌</span>
+                            <div>
+                                <strong>非欧拉图</strong>
+                                <small>对比学习</small>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>算法选择</label>
+                    <select id="algorithmSelect" class="apple-select">
+                        <option value="fleury">Fleury算法 - 逐步删边法</option>
+                        <option value="hierholzer">Hierholzer算法 - 环路合并法</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>演示速度</label>
+                    <input type="range" id="speed" min="1" max="100" value="50">
+                </div>
+
+                <div class="control-group">
+                    <label>当前状态</label>
+                    <div class="info-panel">
+                        <p id="statusText">准备就绪</p>
+                        <div class="path-display">
+                            <span>遍历路径:</span>
+                            <div id="pathList"></div>
+                        </div>
+                        <div class="stats-row">
+                            <div class="stat-item">
+                                <span class="stat-label">节点数</span>
+                                <span id="nodeCount" class="stat-value">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">边数</span>
+                                <span id="edgeCount" class="stat-value">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>💡 知识要点</h3>
+                    <div id="conceptInfo">
+                        <p><strong>欧拉回路:</strong> 从任意顶点出发，经过每条边恰好一次，最终回到起点的闭合回路。</p>
+                        <p><strong>条件:</strong> 所有顶点的度数均为偶数。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="startBtn" class="apple-btn action-btn">开始探索</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="legend">
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background: var(--node-start)"></span>
+                        <span>起点/当前</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background: var(--node-visited)"></span>
+                        <span>已访问</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background: var(--edge-visited)"></span>
+                        <span>已遍历边</span>
+                    </div>
+                </div>
+                <svg id="graphSvg" width="100%" height="100%">
+                    <!-- Edges will be inserted here -->
+                    <g id="edgesGroup"></g>
+                    <!-- Nodes will be inserted here -->
+                    <g id="nodesGroup"></g>
+                </svg>
+            </div>
+        </main>
+    </div>
+
+    <script src="euler-script.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

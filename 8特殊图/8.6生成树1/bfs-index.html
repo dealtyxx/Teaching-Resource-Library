@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色搜索 - 搜索算法生成树</title>
+    <link rel="stylesheet" href="bfs-style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>红色搜索 <span class="highlight">生成树</span></h1>
+                <p class="subtitle">Red Heritage Search - Spanning Tree (BFS/DFS)</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>搜索算法</label>
+                    <select id="algorithmSelect" class="apple-select">
+                        <option value="bfs">广度优先搜索 (BFS)</option>
+                        <option value="dfs">深度优先搜索 (DFS)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>图类型</label>
+                    <select id="graphType" class="apple-select">
+                        <option value="connected">连通图 - 单棵生成树</option>
+                        <option value="disconnected">非连通图 - 生成森林</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>节点数量</label>
+                    <input type="range" id="nodeCount" min="6" max="14" value="10">
+                    <span id="nodeCountValue">10</span>
+                </div>
+
+                <div class="control-group">
+                    <button id="generateBtn" class="apple-btn primary-btn">
+                        <span class="icon">⟳</span> 生成随机图
+                    </button>
+                </div>
+
+                <div class="control-group">
+                    <label>演示速度</label>
+                    <input type="range" id="speed" min="1" max="100" value="50">
+                </div>
+
+                <div class="control-group">
+                    <label>算法信息</label>
+                    <div class="info-panel">
+                        <p id="statusText">准备就绪</p>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-label">顶点数:</span>
+                                <strong id="vertexCount" class="stat-value">0</strong>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">边数:</span>
+                                <strong id="edgeCount" class="stat-value">0</strong>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">树边数:</span>
+                                <strong id="treeEdgeCount" class="stat-value">0</strong>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">树数量:</span>
+                                <strong id="forestCount" class="stat-value">1</strong>
+                            </div>
+                        </div>
+                        <div class="edge-list">
+                            <span>生成树边:</span>
+                            <div id="treeEdgeList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>💡 革命寓意</h3>
+                    <div id="conceptInfo">
+                        <p><strong>生成树:</strong> 用最少的边连接所有根据地。</p>
+                        <p><strong>BFS:</strong> 层层推进,广泛发动群众,稳步扩大革命根据地。</p>
+                        <p><strong>DFS:</strong> 深入基层,一竿子插到底,深入群众调查研究。</p>
+                        <p><strong>生成森林:</strong> 多个根据地各自发展,最终汇聚成星火燎原之势。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="startBtn" class="apple-btn action-btn">开始搜索</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="legend">
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background: var(--node-start)"></span>
+                        <span>起点</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background: var(--node-current)"></span>
+                        <span>当前</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background: var(--node-visited)"></span>
+                        <span>已访问</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line tree-edge-indicator"></span>
+                        <span>树边</span>
+                    </div>
+                </div>
+                <svg id="graphSvg" width="100%" height="100%">
+                    <g id="edgesGroup"></g>
+                    <g id="nodesGroup"></g>
+                </svg>
+            </div>
+        </main>
+    </div>
+
+    <script src="bfs-script.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

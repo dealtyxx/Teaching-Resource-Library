@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>航天通信 - 网络优化系统</title>
+    <link rel="stylesheet" href="aerospace-mst-style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=Orbitron:wght@400;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>航天通信 <span class="highlight">网络优化</span></h1>
+                <p class="subtitle">Aerospace Communication Network Optimization</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <button id="startBtn" class="apple-btn primary-btn">
+                        <span class="icon">🚀</span> 启动 Kruskal 算法
+                    </button>
+                    <button id="stepBtn" class="apple-btn secondary-btn" disabled>
+                        <span class="icon">➡️</span> 单步执行
+                    </button>
+                    <button id="resetBtn" class="apple-btn danger-btn">
+                        <span class="icon">🔄</span> 重置系统
+                    </button>
+                </div>
+
+                <div class="control-group">
+                    <label>演示速度</label>
+                    <input type="range" id="speed" min="1" max="100" value="50">
+                </div>
+
+                <div class="control-group">
+                    <label>系统状态</label>
+                    <div class="info-panel">
+                        <p id="statusText">系统就绪，等待指令...</p>
+
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-label">已连接节点:</span>
+                                <strong id="connectedCount" class="stat-value">0/8</strong>
+                            </div>
+                            <div class="stat-item highlight-stat">
+                                <span class="stat-label">总通信成本:</span>
+                                <strong id="totalCost" class="stat-value">0</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>链路候选列表 (按成本排序)</label>
+                    <div class="edge-list-container">
+                        <div id="edgeList" class="edge-list">
+                            <!-- Edges will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>💡 航天精神</h3>
+                    <div id="conceptInfo">
+                        <p><strong>Kruskal算法:</strong> 全局贪心策略，优先选择成本最低的链路。</p>
+                        <p><strong>资源优化:</strong> 在资源有限的太空环境中，实现效益最大化。</p>
+                        <p><strong>鲁棒性:</strong> 构建高可靠性的天地一体化通信网络。</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="stars-bg"></div>
+
+                <div class="graph-title">
+                    <h2>天地一体化通信网络</h2>
+                    <p>Space-Ground Integrated Network</p>
+                </div>
+
+                <div class="legend">
+                    <div class="legend-item">
+                        <span class="legend-dot connected"></span>
+                        <span>已入网</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line mst"></span>
+                        <span>主干链路</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line scanning"></span>
+                        <span>扫描中</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line rejected"></span>
+                        <span>冗余链路(环)</span>
+                    </div>
+                </div>
+
+                <div id="nodeInfoPopup" class="node-popup">
+                    <h3 id="popupTitle">节点名称</h3>
+                    <p id="popupDesc">描述信息</p>
+                </div>
+
+                <svg id="graphSvg" width="100%" height="100%">
+                    <defs>
+                        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="2" result="blur" />
+                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        </filter>
+                        <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="var(--edge-mst)" />
+                        </marker>
+                    </defs>
+                    <g id="edgesGroup"></g>
+                    <g id="nodesGroup"></g>
+                </svg>
+            </div>
+        </main>
+    </div>
+
+    <script src="aerospace-mst-script.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

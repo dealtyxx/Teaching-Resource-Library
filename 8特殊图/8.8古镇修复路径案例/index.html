@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色古镇 - 修复路径规划</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>红色古镇 <span class="highlight">修复规划</span></h1>
+                <p class="subtitle">Red Heritage Town - Restoration Path Planning</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>古镇选择</label>
+                    <select id="townSelect" class="apple-select">
+                        <option value="preset1">遵义古城</option>
+                        <option value="preset2">延安古镇</option>
+                        <option value="preset3">井冈山古村</option>
+                        <option value="custom">自定义布局</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <button id="generateBtn" class="apple-btn primary-btn">
+                        <span class="icon">🏛️</span> 生成古镇布局
+                    </button>
+                </div>
+
+                <div class="control-group" id="customControls" style="display:none;">
+                    <label>自定义编辑</label>
+                    <div class="custom-edit-buttons">
+                        <button id="addNodeMode" class="apple-btn secondary-btn">➕ 添加节点</button>
+                        <button id="addEdgeMode" class="apple-btn secondary-btn">🔗 添加边</button>
+                        <button id="clearGraph" class="apple-btn danger-btn">🗑️ 清空</button>
+                    </div>
+                    <p class="edit-hint" id="editHint">点击"添加节点"后在画布上点击添加建筑点</p>
+                </div>
+
+                <div class="control-group">
+                    <label>欧拉性检验</label>
+                    <div class="euler-check">
+                        <div class="check-item">
+                            <span class="check-label">连通性:</span>
+                            <strong id="connectivityStatus" class="check-value">-</strong>
+                        </div>
+                        <div class="check-item">
+                            <span class="check-label">顶点度数:</span>
+                            <strong id="degreeStatus" class="check-value">-</strong>
+                        </div>
+                        <div class="check-result">
+                            <span class="result-label">欧拉回路:</span>
+                            <strong id="eulerStatus" class="result-value">未检测</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>演示速度</label>
+                    <input type="range" id="speed" min="1" max="100" value="50">
+                </div>
+
+                <div class="control-group">
+                    <label>路径信息</label>
+                    <div class="info-panel">
+                        <p id="statusText">准备就绪</p>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-label">建筑点:</span>
+                                <strong id="nodeCount" class="stat-value">0</strong>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">通道数:</span>
+                                <strong id="edgeCount" class="stat-value">0</strong>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">已走通道:</span>
+                                <strong id="visitedEdges" class="stat-value">0</strong>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">路径长度:</span>
+                                <strong id="pathLength" class="stat-value">0</strong>
+                            </div>
+                        </div>
+                        <div class="path-sequence">
+                            <span>修复顺序:</span>
+                            <div id="pathList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>💡 文化遗产保护</h3>
+                    <div id="conceptInfo">
+                        <p><strong>欧拉回路:</strong> 经过每条通道恰好一次的闭合路径。</p>
+                        <p><strong>工匠精神:</strong> 精准规划,不重不漏,高效修复。</p>
+                        <p><strong>科学规划:</strong> 最小化干扰,保护原有结构。</p>
+                        <p><strong>文化传承:</strong> 用现代科学守护历史记忆。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="checkBtn" class="apple-btn secondary-btn">检测欧拉性</button>
+                <button id="startBtn" class="apple-btn action-btn">开始规划</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="town-badge">
+                    <h2 id="townName">遵义古城</h2>
+                    <p id="townDesc">革命圣地 · 文化遗产</p>
+                </div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background: var(--node-default)"></span>
+                        <span>建筑角点</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background: var(--node-current)"></span>
+                        <span>当前位置</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line edge-default"></span>
+                        <span>通道</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line edge-visited"></span>
+                        <span>已修复</span>
+                    </div>
+                </div>
+                <svg id="graphSvg" width="100%" height="100%">
+                    <g id="edgesGroup"></g>
+                    <g id="nodesGroup"></g>
+                </svg>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

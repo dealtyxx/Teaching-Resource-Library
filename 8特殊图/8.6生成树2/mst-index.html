@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红色纽带 - 最小生成树</title>
+    <link rel="stylesheet" href="mst-style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>红色纽带 <span class="highlight">最小生成树</span></h1>
+                <p class="subtitle">Red Bond - Minimum Spanning Tree (MST)</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>算法选择</label>
+                    <select id="algorithmSelect" class="apple-select">
+                        <option value="prim">Prim - 普里姆算法</option>
+                        <option value="kruskal">Kruskal - 克鲁斯卡尔算法</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>节点数量</label>
+                    <input type="range" id="nodeCount" min="5" max="10" value="7">
+                    <span id="nodeCountValue">7</span>
+                </div>
+
+                <div class="control-group">
+                    <button id="generateBtn" class="apple-btn primary-btn">
+                        <span class="icon">⟳</span> 生成带权图
+                    </button>
+                </div>
+
+                <div class="control-group">
+                    <label>演示速度</label>
+                    <input type="range" id="speed" min="1" max="100" value="50">
+                </div>
+
+                <div class="control-group">
+                    <label>MST信息</label>
+                    <div class="info-panel">
+                        <p id="statusText">准备就绪</p>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-label">顶点数:</span>
+                                <strong id="vertexCount" class="stat-value">0</strong>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">边数:</span>
+                                <strong id="edgeCount" class="stat-value">0</strong>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">MST边数:</span>
+                                <strong id="mstEdgeCount" class="stat-value">0</strong>
+                            </div>
+                            <div class="stat-item highlight-stat">
+                                <span class="stat-label">总权重:</span>
+                                <strong id="totalWeight" class="stat-value">0</strong>
+                            </div>
+                        </div>
+                        <div class="edge-list">
+                            <span>MST边(权重):</span>
+                            <div id="mstEdgeList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>💡 革命寓意</h3>
+                    <div id="conceptInfo">
+                        <p><strong>最小生成树:</strong> 用最小的代价连接所有革命根据地。</p>
+                        <p><strong>Prim算法:</strong> 从点扩展,逐步纳入最近的根据地。</p>
+                        <p><strong>Kruskal算法:</strong> 优先选择代价最小的连接,避免环路。</p>
+                        <p><strong>权重:</strong> 代表根据地间的距离或资源消耗。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-footer">
+                <button id="startBtn" class="apple-btn action-btn">开始构建MST</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="legend">
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background: var(--node-start)"></span>
+                        <span>起点</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background: var(--node-current)"></span>
+                        <span>当前</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background: var(--node-visited)"></span>
+                        <span>已加入</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line mst-edge-indicator"></span>
+                        <span>MST边</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line candidate-edge-indicator"></span>
+                        <span>候选边</span>
+                    </div>
+                </div>
+                <svg id="graphSvg" width="100%" height="100%">
+                    <g id="edgesGroup"></g>
+                    <g id="nodesGroup"></g>
+                </svg>
+            </div>
+        </main>
+    </div>
+
+    <script src="mst-script.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>

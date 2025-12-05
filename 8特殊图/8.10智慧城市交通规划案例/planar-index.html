@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧城市 - 交通网络规划</title>
+    <link rel="stylesheet" href="planar-style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>智慧城市 <span class="highlight">交通规划</span></h1>
+                <p class="subtitle">Smart City - Traffic Network Planning</p>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>规划场景</label>
+                    <select id="levelSelect" class="apple-select">
+                        <option value="level1">基础路网 (K4)</option>
+                        <option value="level2">复杂枢纽 (随机平面图)</option>
+                        <option value="level3">高密度区 (随机复杂)</option>
+                        <option value="k33">供水供电问题 (K3,3)</option>
+                        <option value="k5">五城互通问题 (K5)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <button id="resetBtn" class="apple-btn primary-btn">
+                        <span class="icon">🔄</span> 重置布局
+                    </button>
+                </div>
+
+                <div class="control-group">
+                    <label>规划指标</label>
+                    <div class="info-panel">
+                        <div class="status-indicator" id="statusIndicator">
+                            <span class="status-dot"></span>
+                            <span id="statusText">检测中...</span>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-label">交叉点:</span>
+                                <strong id="intersectionCount" class="stat-value danger">0</strong>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">完成度:</span>
+                                <strong id="progressValue" class="stat-value">0%</strong>
+                            </div>
+                        </div>
+
+                        <div class="euler-formula">
+                            <div class="formula-title">欧拉公式验证 (V-E+F=2)</div>
+                            <div class="formula-grid">
+                                <div class="f-item">
+                                    <span class="f-val" id="vCount">0</span>
+                                    <span class="f-label">顶点(V)</span>
+                                </div>
+                                <div class="f-op">-</div>
+                                <div class="f-item">
+                                    <span class="f-val" id="eCount">0</span>
+                                    <span class="f-label">边(E)</span>
+                                </div>
+                                <div class="f-op">+</div>
+                                <div class="f-item">
+                                    <span class="f-val" id="fCount">?</span>
+                                    <span class="f-label">面(F)</span>
+                                </div>
+                                <div class="f-op">=</div>
+                                <div class="f-item">
+                                    <span class="f-val result" id="eulerResult">?</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h3>💡 规划理念</h3>
+                    <div id="conceptInfo">
+                        <p><strong>平面图:</strong> 道路互不交叉的理想网络。</p>
+                        <p><strong>效率:</strong> 消除交叉点，减少拥堵和事故。</p>
+                        <p><strong>环保:</strong> 畅通交通减少碳排放。</p>
+                        <p><strong>不可平面化:</strong> 某些复杂结构(如K5, K3,3)无法完全消除交叉，需立体交通。</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="game-overlay" id="gameOverlay">
+                    <div class="success-message">
+                        <h2>🎉 规划完成!</h2>
+                        <p>交通网络畅通无阻</p>
+                        <button id="nextLevelBtn" class="apple-btn action-btn">下一关</button>
+                    </div>
+                </div>
+
+                <div class="graph-title">
+                    <h2>平面性检测</h2>
+                    <p>Planarity Testing</p>
+                </div>
+
+                <div class="legend">
+                    <div class="legend-item">
+                        <span class="legend-line safe"></span>
+                        <span>畅通道路</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line danger"></span>
+                        <span>拥堵路段(交叉)</span>
+                    </div>
+                </div>
+
+                <svg id="graphSvg" width="100%" height="100%">
+                    <defs>
+                        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="2" result="blur" />
+                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        </filter>
+                    </defs>
+                    <g id="edgesGroup"></g>
+                    <g id="nodesGroup"></g>
+                </svg>
+            </div>
+        </main>
+    </div>
+
+    <script src="planar-script.js"></script>
+
+<!-- 固定底部版权信息 -->
+<footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    z-index: 9999;
+">
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫
+    </p>
+</footer>
+
+
+</body>
+
+</html>
