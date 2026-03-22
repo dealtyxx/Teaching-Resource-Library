@@ -193,30 +193,34 @@ const exampleLattices = {
     },
     pentagon: {
         name: "五边形格 N₅",
-        elements: ['0', 'a', 'b', 'c', '1'],
+        // N5 正确结构: 0 < a < b < 1, 0 < c < 1, a 与 c 不可比，b 与 c 不可比
+        // 违反模律: a ≤ b, 但 a∨(c∧b) = a∨0 = a ≠ c = c∧(a∨b) = c∧b ... 验证 a≤b: a∨(c∧b)=a≠c=(a∨c)∧b
+        elements: ['0', 'a', 'c', 'b', '1'],
         partialOrder: function (x, y) {
             const order = {
                 '0': ['0', 'a', 'b', 'c', '1'],
-                'a': ['a', 'b', 'c', '1'],
-                'b': ['b', 'c', '1'],
+                'a': ['a', 'b', '1'],
+                'b': ['b', '1'],
                 'c': ['c', '1'],
                 '1': ['1']
             };
             return order[x]?.includes(y) || false;
         },
         join: function (a, b) {
-            const levels = [['0'], ['a'], ['b'], ['c'], ['1']];
-            const aLevel = levels.findIndex(l => l.includes(a));
-            const bLevel = levels.findIndex(l => l.includes(b));
-            if (aLevel <= bLevel) return b;
-            return a;
+            if (a === b) return a;
+            if (a === '0') return b;
+            if (b === '0') return a;
+            if (a === '1' || b === '1') return '1';
+            if ((a === 'a' && b === 'b') || (a === 'b' && b === 'a')) return 'b';
+            return '1';
         },
         meet: function (a, b) {
-            const levels = [['0'], ['a'], ['b'], ['c'], ['1']];
-            const aLevel = levels.findIndex(l => l.includes(a));
-            const bLevel = levels.findIndex(l => l.includes(b));
-            if (aLevel <= bLevel) return a;
-            return b;
+            if (a === b) return a;
+            if (a === '1') return b;
+            if (b === '1') return a;
+            if (a === '0' || b === '0') return '0';
+            if ((a === 'a' && b === 'b') || (a === 'b' && b === 'a')) return 'a';
+            return '0';
         },
         top: '1',
         bottom: '0',
@@ -302,7 +306,9 @@ function checkComplementation(lattice) {
 }
 
 function checkCompleteness(lattice) {
-    return lattice.elements.length < 100;
+    // 所有有限格都是完备格（任意子集有上确界和下确界）
+    // 完备格的完备性对有限格自动成立
+    return true;
 }
 
 function checkBoundedness(lattice) {

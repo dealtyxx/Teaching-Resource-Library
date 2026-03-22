@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>红色数理 - 集合运算性质</title>
+    <meta name="description" content="离散数学课程 - 红色数理 - 集合运算性质">
+
     <link rel="stylesheet" href="setprops.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,6 +16,22 @@
 </head>
 
 <body>
+    <!-- 返回主页浮动按钮 (auto-injected) -->
+    <a href="../../index.html" title="返回课程主页" style="
+        position:fixed;top:14px;left:14px;z-index:9999;
+        display:flex;align-items:center;gap:6px;
+        background:rgba(30,30,40,0.82);color:#fff;
+        padding:7px 14px 7px 10px;border-radius:20px;
+        font-size:13px;font-family:'Noto Serif SC',serif;
+        text-decoration:none;backdrop-filter:blur(8px);
+        border:1px solid rgba(255,255,255,0.15);
+        box-shadow:0 2px 12px rgba(0,0,0,0.35);
+        transition:background .2s;
+    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
+       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
+        🏠 <span>课程主页</span>
+    </a>
+
     <div class="app-container">
         <aside class="sidebar">
             <div class="sidebar-header">
@@ -30,47 +48,47 @@
                 <div class="control-group">
                     <label>定律选择 (Select Law)</label>
                     <div class="law-selector" id="lawSelector">
-                        <button class="apple-btn law-btn active" data-law="commutative">
+                        <button class="apple-btn law-btn active" data-law="commutative" aria-label="交换律 A ∪ B = B ∪ A">
                             <span class="law-name">交换律</span>
                             <span class="law-formula">A ∪ B = B ∪ A</span>
                         </button>
-                        <button class="apple-btn law-btn" data-law="associative">
+                        <button class="apple-btn law-btn" data-law="associative" aria-label="结合律 (A ∪ B) ∪ C = A ∪ (B ∪ C)">
                             <span class="law-name">结合律</span>
                             <span class="law-formula">(A ∪ B) ∪ C = A ∪ (B ∪ C)</span>
                         </button>
-                        <button class="apple-btn law-btn" data-law="distributive">
+                        <button class="apple-btn law-btn" data-law="distributive" aria-label="分配律 A ∩ (B ∪ C) = (A ∩ B) ∪ (A ∩ C)">
                             <span class="law-name">分配律</span>
                             <span class="law-formula">A ∩ (B ∪ C) = (A ∩ B) ∪ (A ∩ C)</span>
                         </button>
-                        <button class="apple-btn law-btn" data-law="demorgan">
+                        <button class="apple-btn law-btn" data-law="demorgan" aria-label="德摩根律 ~(A ∪ B) = ~A ∩ ~B">
                             <span class="law-name">德摩根律</span>
                             <span class="law-formula">~(A ∪ B) = ~A ∩ ~B</span>
                         </button>
-                        <button class="apple-btn law-btn" data-law="double">
+                        <button class="apple-btn law-btn" data-law="double" aria-label="双重否定律 ~(~A) = A">
                             <span class="law-name">双重否定律</span>
                             <span class="law-formula">~(~A) = A</span>
                         </button>
-                        <button class="apple-btn law-btn" data-law="contradiction">
+                        <button class="apple-btn law-btn" data-law="contradiction" aria-label="矛盾律 A ∩ ~A = ∅">
                             <span class="law-name">矛盾律</span>
                             <span class="law-formula">A ∩ ~A = ∅</span>
                         </button>
-                        <button class="apple-btn law-btn" data-law="excluded">
+                        <button class="apple-btn law-btn" data-law="excluded" aria-label="排中律 A ∪ ~A = U">
                             <span class="law-name">排中律</span>
                             <span class="law-formula">A ∪ ~A = U</span>
                         </button>
-                        <button class="apple-btn law-btn" data-law="identity">
+                        <button class="apple-btn law-btn" data-law="identity" aria-label="同一律 A ∪ ∅ = A">
                             <span class="law-name">同一律</span>
                             <span class="law-formula">A ∪ ∅ = A</span>
                         </button>
-                        <button class="apple-btn law-btn" data-law="idempotent">
+                        <button class="apple-btn law-btn" data-law="idempotent" aria-label="幂等律 A ∪ A = A">
                             <span class="law-name">幂等律</span>
                             <span class="law-formula">A ∪ A = A</span>
                         </button>
-                        <button class="apple-btn law-btn" data-law="zero">
+                        <button class="apple-btn law-btn" data-law="zero" aria-label="零律 A ∪ U = U">
                             <span class="law-name">零律</span>
                             <span class="law-formula">A ∪ U = U</span>
                         </button>
-                        <button class="apple-btn law-btn" data-law="absorption">
+                        <button class="apple-btn law-btn" data-law="absorption" aria-label="吸收律 A ∪ (A ∩ B) = A">
                             <span class="law-name">吸收律</span>
                             <span class="law-formula">A ∪ (A ∩ B) = A</span>
                         </button>
@@ -89,7 +107,7 @@
 
                 <div class="control-group">
                     <label>验证操作 (Verify)</label>
-                    <button id="verifyBtn" class="apple-btn action-btn">验证真理</button>
+                    <button id="verifyBtn" class="apple-btn action-btn" aria-label="验证真理">验证真理</button>
                 </div>
 
                 <div class="control-group">
@@ -102,7 +120,7 @@
             </div>
 
             <div class="actions-footer">
-                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+                <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置">重置</button>
             </div>
         </aside>
 
@@ -176,7 +194,7 @@ Pan">
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>

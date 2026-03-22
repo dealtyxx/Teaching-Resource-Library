@@ -340,7 +340,9 @@ function updateStats() {
     charCount.textContent = frequencyMap.size;
     totalChars.textContent = text.length;
 
-    const bitsPerChar = Math.ceil(Math.log2(frequencyMap.size));
+    // 等长编码每字符位数：至少1位（防止log2(1)=0导致除以零）
+    const distinctChars = frequencyMap.size;
+    const bitsPerChar = distinctChars <= 1 ? 1 : Math.ceil(Math.log2(distinctChars));
     const original = text.length * bitsPerChar;
     originalBits.textContent = original;
 
@@ -350,7 +352,8 @@ function updateStats() {
     }
     compressedBits.textContent = compressed;
 
-    const ratio = ((1 - compressed / original) * 100).toFixed(1);
+    // 防止除以零（只有一种字符时 original 仍为 text.length）
+    const ratio = original === 0 ? '0.0' : ((1 - compressed / original) * 100).toFixed(1);
     compressionRatio.textContent = ratio + '%';
 }
 

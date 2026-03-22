@@ -1,5 +1,5 @@
 /**
- * Red Mathematics - Checksum Visualizer (Weighted Mod 11)
+ * Red Mathematics - Checksum Visualizer (ISO 7064 MOD 11-2)
  */
 
 // DOM Elements
@@ -20,8 +20,7 @@ const szDesc = document.getElementById('szDesc');
 
 // State
 let currentCode = []; // Array of integers
-let weights = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]; // Standard weights
-let checkCodeMap = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'];
+let originalCheckDigit = null;
 let isGenerated = false;
 let isTampered = false;
 
@@ -31,12 +30,27 @@ function sleep(ms) {
 }
 
 function calculateCheckCode(digits) {
-    let sum = 0;
+    let state = 0;
+    const steps = [];
+
     for (let i = 0; i < digits.length; i++) {
-        sum += digits[i] * weights[i];
+        const prevState = state;
+        state = (2 * (state + digits[i])) % 11;
+        steps.push({
+            index: i + 1,
+            digit: digits[i],
+            prevState,
+            nextState: state
+        });
     }
-    const mod = sum % 11;
-    return checkCodeMap[mod];
+
+    const checkValue = (12 - state) % 11;
+    return {
+        checkDigit: checkValue === 10 ? 'X' : String(checkValue),
+        finalState: state,
+        checkValue,
+        steps
+    };
 }
 
 function renderCode(digits, checkDigit = null) {
@@ -49,7 +63,7 @@ function renderCode(digits, checkDigit = null) {
         if (isGenerated) box.classList.add('editable');
         box.innerHTML = `
             <span class="digit">${d}</span>
-            <span class="weight-badge">×${weights[i]}</span>
+            <span class="weight-badge">P${i + 1}</span>
         `;
 
         // Click to tamper
@@ -91,7 +105,7 @@ function renderCode(digits, checkDigit = null) {
 async function generateChecksum() {
     const input = codeInput.value.trim();
     if (!/^\d{6}$/.test(input)) {
-        alert("请输入6位数字指令代码");
+        alert("请输入6位数字主体码");
         return;
     }
 
@@ -105,31 +119,33 @@ async function generateChecksum() {
     codeInput.disabled = true;
 
     // 2. Calculate
-    const checkDigit = calculateCheckCode(currentCode);
+    const checkData = calculateCheckCode(currentCode);
+    originalCheckDigit = checkData.checkDigit;
 
     // 3. Show calculation details
     calcDetails.classList.remove('hidden');
-    let sumStr = currentCode.map((d, i) => `${d}×${weights[i]}`).join(' + ');
-    let sumVal = currentCode.reduce((acc, d, i) => acc + d * weights[i], 0);
+    const stepSummary = checkData.steps
+        .map(step => `P${step.index}=2×(${step.prevState}+${step.digit}) mod 11=${step.nextState}`)
+        .join(' → ');
 
-    sumFormula.textContent = `${sumStr} = ${sumVal}`;
+    sumFormula.textContent = `P0=0，${stepSummary}`;
     await sleep(500);
 
-    modFormula.textContent = `${sumVal} % 11 = ${sumVal % 11}`;
+    modFormula.textContent = `P${checkData.steps.length} = ${checkData.finalState}`;
     await sleep(500);
 
-    mapFormula.textContent = `${sumVal % 11} → ${checkDigit}`;
+    mapFormula.textContent = `C = (12 - ${checkData.finalState}) mod 11 = ${checkData.checkValue}${checkData.checkValue === 10 ? '，记为 X' : ''}`;
     await sleep(500);
 
     // 4. Append Check Digit
-    renderCode(currentCode, checkDigit);
+    renderCode(currentCode, checkData.checkDigit);
 
     // Enable actions
     tamperBtn.disabled = false;
     verifyBtn.disabled = false;
 
     szTitle.textContent = '铁的纪律';
-    szDesc.textContent = '校验码已生成。每一位数字（指令）都承载着特定的责任权重，共同决定了最终的校验结果（执行标准）。';
+    szDesc.textContent = '校验码已生成。主体码按照 ISO 7064 MOD 11-2 的递推规则生成校验字符，用于核验信息是否保持完整。';
 }
 
 function tamperCode() {
@@ -141,7 +157,7 @@ function tamperCode() {
     let newVal = (oldVal + 1) % 10;
     currentCode[idx] = newVal;
 
-    renderCode(currentCode, calculateCheckCode(codeInput.value.split('').map(Number))); // Keep original check digit
+    renderCode(currentCode, originalCheckDigit);
 
     const box = codeContainer.children[idx];
     box.classList.add('tampered');
@@ -157,18 +173,20 @@ async function verifyIntegrity() {
     const displayedCheckDigit = codeContainer.lastElementChild.querySelector('.digit').textContent;
 
     // Recalculate based on current data digits
-    const calculatedCheckDigit = calculateCheckCode(currentCode);
+    const checkData = calculateCheckCode(currentCode);
 
     calcDetails.classList.remove('hidden');
-    let sumVal = currentCode.reduce((acc, d, i) => acc + d * weights[i], 0);
+    const stepSummary = checkData.steps
+        .map(step => `P${step.index}=2×(${step.prevState}+${step.digit}) mod 11=${step.nextState}`)
+        .join(' → ');
 
-    sumFormula.textContent = `当前求和: ${sumVal}`;
-    modFormula.textContent = `当前取模: ${sumVal % 11}`;
-    mapFormula.textContent = `计算结果: ${calculatedCheckDigit} (应为: ${displayedCheckDigit})`;
+    sumFormula.textContent = `P0=0，${stepSummary}`;
+    modFormula.textContent = `P${checkData.steps.length} = ${checkData.finalState}`;
+    mapFormula.textContent = `计算结果: ${checkData.checkDigit} (应为: ${displayedCheckDigit})`;
 
     await sleep(500);
 
-    if (calculatedCheckDigit === displayedCheckDigit) {
+    if (checkData.checkDigit === displayedCheckDigit) {
         // Success
         resultStamp.className = 'result-stamp visible success';
         stampText.textContent = '核验通过';
@@ -192,6 +210,7 @@ resetBtn.addEventListener('click', () => {
     isGenerated = false;
     isTampered = false;
     currentCode = [];
+    originalCheckDigit = null;
     codeContainer.innerHTML = '';
     calcDetails.classList.add('hidden');
     resultStamp.className = 'result-stamp hidden';
@@ -201,7 +220,7 @@ resetBtn.addEventListener('click', () => {
     verifyBtn.disabled = true;
     codeInput.value = '192107';
     szTitle.textContent = '铁的纪律';
-    szDesc.textContent = '革命指令的传达必须准确无误（完整性），任何微小的偏差（错误）都可能导致严重的后果。';
+    szDesc.textContent = '革命指令的传达必须准确无误（完整性），任何微小的偏差（错误）都可能导致严重的后果。校验码机制象征着严格的纪律审查，确保政令畅通。';
 });
 
 // Init

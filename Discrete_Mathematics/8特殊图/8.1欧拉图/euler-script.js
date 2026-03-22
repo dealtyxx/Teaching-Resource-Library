@@ -182,14 +182,16 @@ function generateEulerPath(cx, cy) {
         });
     }
     
-    // Create edges: make vertices 0 and 3 have odd degree
+    // Create ring edges (all degrees = 2 after this)
     for (let i = 0; i < count; i++) {
         addEdge(i, (i + 1) % count);
     }
-    // Additional edges to make most vertices even degree except 0 and 3
-    addEdge(1, 4);
-    addEdge(2, 5);
-    // Vertices 0 and 3 now have degree 3 (odd), others have degree 4 (even)
+    // Add 3 edges forming a path 0→2→4→1: each intermediate vertex flipped twice (net even),
+    // leaving exactly vertices 0 and 1 with odd degree (degree 3), others even (degree 4)
+    addEdge(0, 2);
+    addEdge(2, 4);
+    addEdge(4, 1);
+    // Vertices 0 and 1 have degree 3 (odd), others have degree 4 (even) → Euler path from 0 to 1
 }
 
 // Generate Semi-Euler (same as Euler Path for this example)
@@ -215,17 +217,20 @@ function generateNonEuler(cx, cy) {
         });
     }
     
-    // Create edges to have multiple odd-degree vertices
-    addEdge(0, 1);
-    addEdge(1, 2);
-    addEdge(2, 3);
-    addEdge(3, 4);
-    addEdge(4, 5);
-    addEdge(0, 3); // Vertices 0,2,3,5 have odd degree
+    // Ring edges (all degrees = 2)
+    for (let i = 0; i < count; i++) {
+        addEdge(i, (i + 1) % count);
+    }
+    // Two cross edges creating 4 odd-degree vertices (0, 1, 3, 4) → no Euler path or circuit
+    addEdge(0, 3);
+    addEdge(1, 4);
 }
 
 function addEdge(u, v) {
-    edges.push({ u, v, id: `${u}-${v}` });
+    // Use sorted min-max id to match findEdgeId() format, ensuring isBridge detection works correctly
+    const minNode = Math.min(u, v);
+    const maxNode = Math.max(u, v);
+    edges.push({ u, v, id: `${minNode}-${maxNode}` });
 }
 
 function buildAdjacencyList() {

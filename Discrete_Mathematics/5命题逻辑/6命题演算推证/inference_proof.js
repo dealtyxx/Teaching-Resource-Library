@@ -152,8 +152,16 @@ function checkRule(rule, lines) {
 
     // Helper functions
     const parseImp = (s) => {
-        const parts = s.split('->').map(x => x.trim());
-        return parts.length === 2 ? { left: parts[0], right: parts[1] } : null;
+        // Bracket-aware split on '->' at depth 0
+        let depth = 0;
+        for (let k = 0; k < s.length - 1; k++) {
+            if (s[k] === '(') depth++;
+            else if (s[k] === ')') depth--;
+            else if (depth === 0 && s.slice(k, k + 2) === '->') {
+                return { left: s.slice(0, k).trim(), right: s.slice(k + 2).trim() };
+            }
+        }
+        return null;
     };
 
     const parseAnd = (s) => {
@@ -209,11 +217,14 @@ function checkRule(rule, lines) {
             }
             return null;
 
-        case 'Simp': // A&B => A (or B)
+        case 'Simp': // A&B => A (left) or A&B => B (right, when second line specified)
             const and1 = parseAnd(f1);
             if (and1) {
-                // User chooses which side to simplify to
-                // For now, return left (can be made interactive)
+                // If second line given, treat it as a hint for which side to extract
+                if (f2 !== null) {
+                    if (f2 === and1.right) return and1.right;
+                    if (f2 === and1.left) return and1.left;
+                }
                 return and1.left;
             }
             return null;

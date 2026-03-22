@@ -319,31 +319,34 @@ async function hungarianAlgorithm() {
         const path = await findAugmentingPath(leftNode.id, visited, matchedRight);
 
         if (path) {
-            // Apply the augmenting path
+            // Apply the augmenting path.
+            // path[] contains only the NEW (unmatched→matched) edges.
+            // For each edge in path: the right node's old left partner must be displaced first.
             for (let i = 0; i < path.length; i++) {
                 const edge = path[i];
 
-                if (i % 2 === 0) {
-                    // Add to matching
-                    matching.set(edge.leftId, edge.rightId);
-                    matchedRight.set(edge.rightId, edge.leftId);
-
-                    const edgeEl = edgeElements.get(edge.id);
-                    edgeEl.classList.remove('augmenting', 'alternating');
-                    edgeEl.classList.add('matched');
-
-                    nodeElements.get(edge.leftId).classList.add('matched');
-                    nodeElements.get(edge.rightId).classList.add('matched');
-
-                    addToMatchDisplay(edge.leftId, edge.rightId);
-                } else {
-                    // Remove from matching
-                    matching.delete(edge.leftId);
-                    matchedRight.delete(edge.rightId);
-
-                    const edgeEl = edgeElements.get(edge.id);
-                    edgeEl.classList.remove('matched');
+                // Remove old match for this right node (if any), then add new match
+                const oldLeftId = matchedRight.get(edge.rightId);
+                if (oldLeftId !== undefined) {
+                    // Displace old match: un-highlight the old matched edge
+                    const oldEdgeId = [...edges].find(e => e.leftId === oldLeftId && e.rightId === edge.rightId)?.id;
+                    if (oldEdgeId) {
+                        edgeElements.get(oldEdgeId)?.classList.remove('matched');
+                    }
+                    matching.delete(oldLeftId);
                 }
+
+                matching.set(edge.leftId, edge.rightId);
+                matchedRight.set(edge.rightId, edge.leftId);
+
+                const edgeEl = edgeElements.get(edge.id);
+                edgeEl.classList.remove('augmenting', 'alternating');
+                edgeEl.classList.add('matched');
+
+                nodeElements.get(edge.leftId).classList.add('matched');
+                nodeElements.get(edge.rightId).classList.add('matched');
+
+                addToMatchDisplay(edge.leftId, edge.rightId);
 
                 await sleep(getDelay() / 2);
             }

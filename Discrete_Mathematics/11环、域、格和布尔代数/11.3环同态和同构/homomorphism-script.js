@@ -88,7 +88,7 @@ const mappingRules = {
     identity: {
         name: "恒等映射",
         func: (x, srcMod, tgtMod) => {
-            if (tgtMod) return x % tgtMod;
+            if (tgtMod) return ((x % tgtMod) + tgtMod) % tgtMod;
             return x;
         }
     },
@@ -103,7 +103,7 @@ const mappingRules = {
     mod: {
         name: "模映射",
         func: (x, srcMod, tgtMod) => {
-            if (tgtMod) return x % tgtMod;
+            if (tgtMod) return ((x % tgtMod) + tgtMod) % tgtMod;
             return x;
         }
     },
@@ -390,7 +390,7 @@ function verifyProperties() {
 
     // Test identity preservation
     const φ1 = rule.func(1, src.modulus, tgt.modulus);
-    const onePreserved = Math.abs(φ1 - 1) < 0.001 || currentRule === 'zero';
+    const onePreserved = Math.abs(φ1 - 1) < 0.001;
     updateCheckItem(checkOne, onePreserved);
 
     // Test bijectivity (for isomorphism)

@@ -183,11 +183,14 @@ function checkSymmetric() {
 
 function checkAntisymmetric() {
     const violations = [];
+    const reported = new Set(); // avoid duplicate reports for each pair
     edges.forEach(key => {
         const [u, v] = key.split('-');
         if (u !== v) {
             const reverse = `${v}-${u}`;
-            if (edges.has(reverse)) {
+            const pairKey = [u, v].sort().join(',');
+            if (edges.has(reverse) && !reported.has(pairKey)) {
+                reported.add(pairKey);
                 violations.push(`(${u},${v}) 和 (${v},${u}) 同时存在`);
             }
         }
@@ -201,7 +204,9 @@ function checkTransitive() {
         const [x, y] = edge1.split('-').map(Number);
         edges.forEach(edge2 => {
             const [y2, z] = edge2.split('-').map(Number);
-            if (y === y2 && x !== z) {
+            // Transitivity requires: if (x,y)∈R and (y,z)∈R then (x,z)∈R
+            // This must hold for ALL cases including x===z (e.g. (1,2),(2,1) requires (1,1))
+            if (y === y2) {
                 const closure = `${x}-${z}`;
                 if (!edges.has(closure)) {
                     violations.push(`(${x},${y}) 和 (${y},${z}) 存在但 (${x},${z}) 不存在`);

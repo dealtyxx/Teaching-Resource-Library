@@ -133,8 +133,15 @@ class GraphData {
             const toIdx = this.vertices.findIndex(v => v.id === edge.to);
 
             if (fromIdx !== -1 && toIdx !== -1) {
-                matrix[fromIdx][edgeIdx] = 1;
-                matrix[toIdx][edgeIdx] = 1;
+                if (this.directed) {
+                    // 有向图关联矩阵：弧尾（出发点）为 +1，弧头（到达点）为 -1
+                    matrix[fromIdx][edgeIdx] = 1;
+                    matrix[toIdx][edgeIdx] = -1;
+                } else {
+                    // 无向图关联矩阵：两端均为 1
+                    matrix[fromIdx][edgeIdx] = 1;
+                    matrix[toIdx][edgeIdx] = 1;
+                }
             }
         });
 
@@ -671,7 +678,6 @@ function resetVisualization() {
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.matrix-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            console.log('Matrix button clicked:', btn.dataset.matrix);
 
             document.querySelectorAll('.matrix-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -707,12 +713,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('startBtn').addEventListener('click', () => {
-        console.log('Start button clicked, case index:', currentCaseIndex);
+
         runMatrixDemo();
     });
 
     document.getElementById('resetBtn').addEventListener('click', () => {
-        console.log('Reset button clicked');
+
         resetVisualization();
     });
 

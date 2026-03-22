@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>红色数理 - 集合论</title>
+    <meta name="description" content="离散数学课程 - 红色数理 - 集合论">
+
     <link rel="stylesheet" href="sets.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,6 +16,22 @@
 </head>
 
 <body>
+    <!-- 返回主页浮动按钮 (auto-injected) -->
+    <a href="../../index.html" title="返回课程主页" style="
+        position:fixed;top:14px;left:14px;z-index:9999;
+        display:flex;align-items:center;gap:6px;
+        background:rgba(30,30,40,0.82);color:#fff;
+        padding:7px 14px 7px 10px;border-radius:20px;
+        font-size:13px;font-family:'Noto Serif SC',serif;
+        text-decoration:none;backdrop-filter:blur(8px);
+        border:1px solid rgba(255,255,255,0.15);
+        box-shadow:0 2px 12px rgba(0,0,0,0.35);
+        transition:background .2s;
+    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
+       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
+        🏠 <span>课程主页</span>
+    </a>
+
     <div class="app-container">
         <aside class="sidebar">
             <div class="sidebar-header">
@@ -42,10 +60,10 @@
                 <div class="control-group">
                     <label>集合运算 (Operations)</label>
                     <div class="ops-grid">
-                        <button class="apple-btn op-btn" data-op="union">并集 (∪)</button>
-                        <button class="apple-btn op-btn" data-op="intersection">交集 (∩)</button>
-                        <button class="apple-btn op-btn" data-op="diffA">差集 (A-B)</button>
-                        <button class="apple-btn op-btn" data-op="diffB">差集 (B-A)</button>
+                        <button class="apple-btn op-btn" data-op="union" aria-label="并集 (∪)">并集 (∪)</button>
+                        <button class="apple-btn op-btn" data-op="intersection" aria-label="交集 (∩)">交集 (∩)</button>
+                        <button class="apple-btn op-btn" data-op="diffA" aria-label="差集 (A-B)">差集 (A-B)</button>
+                        <button class="apple-btn op-btn" data-op="diffB" aria-label="差集 (B-A)">差集 (B-A)</button>
                     </div>
                 </div>
 
@@ -59,7 +77,7 @@
             </div>
 
             <div class="actions-footer">
-                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+                <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置">重置</button>
             </div>
         </aside>
 
@@ -72,17 +90,73 @@
 
                 <div class="venn-container">
                     <div class="venn-wrapper">
-                        <div id="setA" class="venn-circle set-a">
+
+                        <!-- SVG Venn Diagram: handles all region highlighting -->
+                        <svg class="venn-bg-svg" viewBox="0 0 500 310"
+                             xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <defs>
+                                <!-- Clip to circle A -->
+                                <clipPath id="vClipA">
+                                    <circle cx="150" cy="150" r="148"/>
+                                </clipPath>
+                                <!-- Mask: A minus B -->
+                                <mask id="vMaskAonly">
+                                    <rect width="500" height="310" fill="white"/>
+                                    <circle cx="350" cy="150" r="148" fill="black"/>
+                                </mask>
+                                <!-- Mask: B minus A -->
+                                <mask id="vMaskBonly">
+                                    <rect width="500" height="310" fill="white"/>
+                                    <circle cx="150" cy="150" r="148" fill="black"/>
+                                </mask>
+                            </defs>
+
+                            <!-- Base fills -->
+                            <circle cx="150" cy="150" r="148" fill="rgba(214,59,29,0.05)"/>
+                            <circle cx="350" cy="150" r="148" fill="rgba(214,59,29,0.05)"/>
+
+                            <!-- Highlight regions (opacity controlled by JS) -->
+                            <circle id="svgHlA" cx="150" cy="150" r="148"
+                                    fill="rgba(214,59,29,0.30)" mask="url(#vMaskAonly)"
+                                    style="opacity:0;transition:opacity 0.35s ease;pointer-events:none"/>
+                            <circle id="svgHlI" cx="350" cy="150" r="148"
+                                    fill="rgba(255,180,0,0.60)" clip-path="url(#vClipA)"
+                                    style="opacity:0;transition:opacity 0.35s ease;pointer-events:none"/>
+                            <circle id="svgHlB" cx="350" cy="150" r="148"
+                                    fill="rgba(214,59,29,0.30)" mask="url(#vMaskBonly)"
+                                    style="opacity:0;transition:opacity 0.35s ease;pointer-events:none"/>
+
+                            <!-- Drag-over feedback -->
+                            <circle id="svgDragA" cx="150" cy="150" r="148"
+                                    fill="rgba(214,59,29,0.14)"
+                                    style="opacity:0;transition:opacity 0.15s ease;pointer-events:none"/>
+                            <circle id="svgDragB" cx="350" cy="150" r="148"
+                                    fill="rgba(214,59,29,0.14)"
+                                    style="opacity:0;transition:opacity 0.15s ease;pointer-events:none"/>
+
+                            <!-- Circle outlines -->
+                            <circle cx="150" cy="150" r="148" fill="none"
+                                    stroke="rgba(139,0,0,0.40)" stroke-width="2.5"/>
+                            <circle cx="350" cy="150" r="148" fill="none"
+                                    stroke="rgba(139,0,0,0.40)" stroke-width="2.5"/>
+                        </svg>
+
+                        <!-- Drop zones (transparent, handle DnD events) -->
+                        <div id="setA" class="venn-circle set-a" aria-label="集合A拖放区">
                             <span class="set-label">集合 A (工)</span>
                             <div class="set-content"></div>
                         </div>
-                        <div id="setB" class="venn-circle set-b">
+                        <div id="setB" class="venn-circle set-b" aria-label="集合B拖放区">
                             <span class="set-label">集合 B (农)</span>
                             <div class="set-content"></div>
                         </div>
-                        <!-- Intersection Area (Visual only, logic handled by overlap) -->
+
+                        <!-- Intersection element zone -->
                         <div id="setIntersect" class="venn-intersect"></div>
                     </div>
+
+                    <!-- Operation label shown below diagram -->
+                    <div id="opLabel" class="op-label hidden"></div>
                 </div>
 
                 <div id="resultBadge" class="result-badge hidden">
@@ -108,7 +182,7 @@
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>

@@ -154,10 +154,10 @@ function dijkstra(graph, source) {
             visited: new Set(visited)
         });
 
-        // 更新邻居
-        const neighbors = graph.edges.filter(e => e.from === u);
+        // 更新邻居（无向图需同时处理两个方向）
+        const neighbors = graph.edges.filter(e => e.from === u || e.to === u);
         for (let edge of neighbors) {
-            const v = edge.to;
+            const v = edge.from === u ? edge.to : edge.from; // 取另一端
             if (!visited.has(v)) {
                 const alt = dist[u] + edge.weight;
                 if (alt < dist[v]) {
@@ -192,8 +192,11 @@ function floydWarshall(graph) {
     graph.edges.forEach(edge => {
         const i = graph.vertices.findIndex(v => v.id === edge.from);
         const j = graph.vertices.findIndex(v => v.id === edge.to);
+        // 无向图：同时设置两个方向
         dist[i][j] = edge.weight;
         next[i][j] = j;
+        dist[j][i] = edge.weight;
+        next[j][i] = i;
     });
 
     steps.push({

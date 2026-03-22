@@ -222,20 +222,91 @@ function renderMatrix(container, rows, cols, relation, type, isVisible = true) {
 }
 
 function highlightPath(nodeId) {
-    // Reset highlights
-    document.querySelectorAll('.graph-node').forEach(el => el.style.opacity = '1');
-    document.querySelectorAll('.graph-edge').forEach(el => el.style.opacity = '0.6');
+    // Dim everything first
+    document.querySelectorAll('.graph-node').forEach(el => {
+        el.style.opacity = '0.35';
+        el.style.transform = '';
+        el.style.boxShadow = '';
+    });
+    document.querySelectorAll('.graph-edge').forEach(el => {
+        el.style.opacity = '0.1';
+    });
 
-    // Simple highlight logic: find connected edges
-    // If A clicked: show A->B and B->C
-    // If B clicked: show A->B and B->C
-    // If C clicked: show B->C and A->B leading to it
+    const GLOW = '0 0 12px 4px rgba(255,180,0,0.8)';
+    const isA = nodeId.startsWith('a');
+    const isB = nodeId.startsWith('b');
+    const isC = nodeId.startsWith('c');
 
-    // TODO: Implement full path tracing if needed. 
-    // For now, just a visual feedback that node was clicked.
-    const node = document.getElementById(`node-${nodeId}`);
-    node.style.transform = 'scale(1.1)';
-    setTimeout(() => node.style.transform = '', 200);
+    let pathEdgeIds = [];
+    let pathNodes = new Set([nodeId]);
+
+    if (isA) {
+        // Forward: A →R→ B →S→ C
+        relationR.forEach(key => {
+            const [a, b] = key.split('-');
+            if (a === nodeId) {
+                pathNodes.add(b);
+                pathEdgeIds.push(`edge-${a}-${b}`);
+                relationS.forEach(skey => {
+                    const [sb, sc] = skey.split('-');
+                    if (sb === b) { pathNodes.add(sc); pathEdgeIds.push(`edge-${sb}-${sc}`); }
+                });
+            }
+        });
+    } else if (isB) {
+        // Both directions: A→B and B→C
+        relationR.forEach(key => {
+            const [a, b] = key.split('-');
+            if (b === nodeId) { pathNodes.add(a); pathEdgeIds.push(`edge-${a}-${b}`); }
+        });
+        relationS.forEach(key => {
+            const [b, c] = key.split('-');
+            if (b === nodeId) { pathNodes.add(c); pathEdgeIds.push(`edge-${b}-${c}`); }
+        });
+    } else if (isC) {
+        // Backward: C ←S← B ←R← A
+        relationS.forEach(key => {
+            const [b, c] = key.split('-');
+            if (c === nodeId) {
+                pathNodes.add(b);
+                pathEdgeIds.push(`edge-${b}-${c}`);
+                relationR.forEach(rkey => {
+                    const [a, rb] = rkey.split('-');
+                    if (rb === b) { pathNodes.add(a); pathEdgeIds.push(`edge-${a}-${rb}`); }
+                });
+            }
+        });
+    }
+
+    // Light up path nodes
+    pathNodes.forEach(nid => {
+        const el = document.getElementById(`node-${nid}`);
+        if (el) {
+            el.style.opacity = '1';
+            el.style.boxShadow = GLOW;
+            if (nid === nodeId) el.style.transform = 'scale(1.12)';
+        }
+    });
+
+    // Light up path edges
+    pathEdgeIds.forEach(eid => {
+        const el = document.getElementById(eid);
+        if (el) el.style.opacity = '1';
+    });
+
+    // Fallback: just highlight the clicked node if nothing connected
+    if (pathNodes.size === 1) {
+        const el = document.getElementById(`node-${nodeId}`);
+        if (el) { el.style.opacity = '1'; el.style.transform = 'scale(1.1)'; }
+    }
+
+    // Auto-reset after 2.5s
+    setTimeout(() => {
+        document.querySelectorAll('.graph-node').forEach(el => {
+            el.style.opacity = '1'; el.style.transform = ''; el.style.boxShadow = '';
+        });
+        document.querySelectorAll('.graph-edge').forEach(el => { el.style.opacity = '0.6'; });
+    }, 2500);
 }
 
 function updateInsight(synthesized) {

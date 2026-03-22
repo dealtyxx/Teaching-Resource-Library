@@ -2,16 +2,19 @@
 <html lang="zh-CN">
 
 <head>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>红色数理 - 命题解释与真值：求真务实的逻辑</title>
+    <meta name="description" content="离散数学课程 - 红色数理 - 命题解释与真值：求真务实的逻辑">
+
     <link rel="stylesheet" href="formula_interpretation.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet">
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6" defer></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>
         MathJax = {
@@ -24,6 +27,22 @@
 </head>
 
 <body>
+    <!-- 返回主页浮动按钮 (auto-injected) -->
+    <a href="../../index.html" title="返回课程主页" style="
+        position:fixed;top:14px;left:14px;z-index:9999;
+        display:flex;align-items:center;gap:6px;
+        background:rgba(30,30,40,0.82);color:#fff;
+        padding:7px 14px 7px 10px;border-radius:20px;
+        font-size:13px;font-family:'Noto Serif SC',serif;
+        text-decoration:none;backdrop-filter:blur(8px);
+        border:1px solid rgba(255,255,255,0.15);
+        box-shadow:0 2px 12px rgba(0,0,0,0.35);
+        transition:background .2s;
+    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
+       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
+        🏠 <span>课程主页</span>
+    </a>
+
     <div class="app-container">
         <header class="main-header">
             <div class="header-content">
@@ -31,9 +50,9 @@
                 <p class="subtitle">Interpretation & Truth Values: The Logic of Seeking Truth from Facts</p>
             </div>
             <div class="header-tabs">
-                <button class="tab-btn active" data-tab="assignments">成真与成假赋值</button>
-                <button class="tab-btn" data-tab="classification">公式类型判定</button>
-                <button class="tab-btn" data-tab="simulator">实践检验真理</button>
+                <button class="tab-btn active" data-tab="assignments" aria-label="成真与成假赋值">成真与成假赋值</button>
+                <button class="tab-btn" data-tab="classification" aria-label="公式类型判定">公式类型判定</button>
+                <button class="tab-btn" data-tab="simulator" aria-label="实践检验真理">实践检验真理</button>
             </div>
         </header>
 
@@ -51,19 +70,19 @@
                             <h3>设定命题公式</h3>
                             <div class="connective-label">选择联结词示例:</div>
                             <div class="preset-buttons">
-                                <button class="preset-btn" data-formula="!p" data-desc="NOT (¬): 否定 - 不搞一刀切">
+                                <button class="preset-btn" data-formula="!p" data-desc="NOT (¬): 否定 - 不搞一刀切" aria-label="¬ 不搞一刀切">
                                     <span class="op-symbol">¬</span> 不搞一刀切
                                 </button>
-                                <button class="preset-btn" data-formula="p & q" data-desc="AND (∧): 合取 - 既要又要">
+                                <button class="preset-btn" data-formula="p & q" data-desc="AND (∧): 合取 - 既要又要" aria-label="∧ 既要又要">
                                     <span class="op-symbol">∧</span> 既要又要
                                 </button>
-                                <button class="preset-btn" data-formula="p | q" data-desc="OR (∨): 析取 - 多措并举">
+                                <button class="preset-btn" data-formula="p | q" data-desc="OR (∨): 析取 - 多措并举" aria-label="∨ 多措并举">
                                     <span class="op-symbol">∨</span> 多措并举
                                 </button>
-                                <button class="preset-btn" data-formula="p -> q" data-desc="IMPLIES (→): 蕴含 - 科学决策">
+                                <button class="preset-btn" data-formula="p - aria-label="q" data-desc="IMPLIES (→): 蕴含 - 科学决策"> → 科学决策"> q" data-desc="IMPLIES (→): 蕴含 - 科学决策">
                                     <span class="op-symbol">→</span> 科学决策
                                 </button>
-                                <button class="preset-btn" data-formula="p <-> q" data-desc="IFF (↔): 等价 - 理论实践">
+                                <button class="preset-btn" data-formula="p <- aria-label="q" data-desc="IFF (↔): 等价 - 理论实践"> ↔ 理论实践"> q" data-desc="IFF (↔): 等价 - 理论实践">
                                     <span class="op-symbol">↔</span> 理论实践
                                 </button>
                             </div>
@@ -72,7 +91,7 @@
                             </div>
                             <div class="input-group">
                                 <input type="text" id="formulaInput" value="p -> q" placeholder="输入公式 (如 p -> q)">
-                                <button id="analyzeBtn">分析真值</button>
+                                <button id="analyzeBtn" aria-label="分析真值">分析真值</button>
                             </div>
                             <div class="legend">
                                 <span class="legend-item"><span class="dot true"></span>成真赋值 (T)</span>
@@ -124,7 +143,7 @@
                             <h3>智能判定器</h3>
                             <div class="classifier-input">
                                 <input type="text" id="classInput" placeholder="输入公式进行判定 (如 p & !p)">
-                                <button id="classBtn">判定类型</button>
+                                <button id="classBtn" aria-label="判定类型">判定类型</button>
                             </div>
                             <div class="result-display" id="classResult">
                                 <div class="placeholder-text">等待输入...</div>
@@ -163,9 +182,9 @@
                         </div>
 
                         <div class="level-selector">
-                            <button class="level-btn active" data-level="1">初级：乡村振兴</button>
-                            <button class="level-btn" data-level="2">中级：科技强国</button>
-                            <button class="level-btn" data-level="3">高级：民族复兴</button>
+                            <button class="level-btn active" data-level="1" aria-label="初级：乡村振兴">初级：乡村振兴</button>
+                            <button class="level-btn" data-level="2" aria-label="中级：科技强国">中级：科技强国</button>
+                            <button class="level-btn" data-level="3" aria-label="高级：民族复兴">高级：民族复兴</button>
                         </div>
                     </div>
                 </div>
@@ -222,7 +241,7 @@
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>

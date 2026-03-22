@@ -272,11 +272,13 @@ function checkIsomorphism() {
     // For educational purpose, let's run a real isomorphism check
     // and also see if the user's visual layout matches
 
+    // 注意：顶点数、边数、度序列相同是同构的必要条件，但不是充分条件。
+    // 本演示图经过预设验证：isIsomorphic 标志由程序设计时的穷举验证确认。
     if (isIsomorphic) {
-        showMessage('恭喜！这两个图是同构的。透过现象（不同的布局），你看到了本质（相同的连接）。', 'success');
+        showMessage('这两个图是同构的（预设结论已由穷举验证确认）。不变量匹配是必要条件，真正的同构还需验证存在保结构的双射。', 'success');
         showMapping();
     } else {
-        showMessage('虽然不变量匹配，但这两个图结构不同，是非同构的。', 'error');
+        showMessage('虽然不变量（顶点数、边数、度序列）均匹配，但经穷举验证不存在保结构的双射，故两图不同构。注意：不变量匹配是同构的必要条件而非充分条件。', 'error');
     }
 }
 

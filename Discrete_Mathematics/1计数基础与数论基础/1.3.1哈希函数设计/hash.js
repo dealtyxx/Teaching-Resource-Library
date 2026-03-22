@@ -32,7 +32,7 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Simple Hash Function: Sum of ASCII codes % 5
+// Simple Hash Function: Sum of character code units % 5
 function calculateHash(str) {
     let sum = 0;
     for (let i = 0; i < str.length; i++) {
@@ -76,7 +76,7 @@ async function processHash() {
 
     // 2. Calculate
     const hashData = calculateHash(text);
-    calcFormula.textContent = `Sum(${text}) = ${hashData.sum}`;
+    calcFormula.textContent = `字符码和(${text}) = ${hashData.sum}`;
     calcResult.textContent = `${hashData.sum} % 5 = ${hashData.index}`;
     processDisplay.classList.remove('hidden');
     await sleep(1000);

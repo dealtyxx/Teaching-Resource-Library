@@ -71,59 +71,61 @@ resetBtn.addEventListener('click', () => {
     resetVisuals();
 });
 
-// Visual Logic
+// SVG highlight elements
+const hlAB    = document.getElementById('hlAB');
+const hlAonly = document.getElementById('hlAonly');
+const hlFullA = document.getElementById('hlFullA');
+const hlFullB = document.getElementById('hlFullB');
+const hlFullC = document.getElementById('hlFullC');
+
+// Visual Logic — uses SVG overlay elements for mathematically correct region highlighting
+function setHighlightOpacity(ab, aOnly, fullA, fullB, fullC) {
+    hlAB.style.opacity    = ab    ? '1' : '0';
+    hlAonly.style.opacity = aOnly ? '1' : '0';
+    hlFullA.style.opacity = fullA ? '1' : '0';
+    hlFullB.style.opacity = fullB ? '1' : '0';
+    hlFullC.style.opacity = fullC ? '1' : '0';
+}
+
 function updateVisuals(mode) {
     resetVisuals();
 
-    // We use SVG manipulation to show specific regions
-    // Since simple CSS classes on circles can't show A-only or Intersection perfectly without masks,
-    // we will simulate the effect by changing opacity and colors.
-
     if (mode === 'intersection_AB') {
-        // Highlight Intersection A & B
-        // Visual trick: Make A and B colored, but maybe use a clip path or just show them both active
-        // For a simple implementation without complex SVG paths:
-        circleA.style.fill = 'rgba(255, 95, 86, 0.1)';
-        circleA.style.stroke = 'rgba(255, 95, 86, 0.3)';
-        circleB.style.fill = 'rgba(255, 189, 46, 0.1)';
-        circleB.style.stroke = 'rgba(255, 189, 46, 0.3)';
-
-        // We can add a specific particle effect in the intersection area
-        spawnParticlesInIntersection(250, 140, 170, 260, 110);
+        // A ∩ B: show ONLY the lens-shaped overlap of A and B (gold highlight)
+        // The SVG hlAB element uses clip-path="url(#mcClipA)" on circle B,
+        // which correctly renders only the region in both A and B.
+        setHighlightOpacity(true, false, false, false, false);
+        spawnParticlesInIntersection();
 
     } else if (mode === 'union_ABC') {
-        // Highlight All
-        circleA.style.fill = 'rgba(255, 95, 86, 0.2)';
-        circleA.style.stroke = '#ff5f56';
-        circleB.style.fill = 'rgba(255, 189, 46, 0.2)';
-        circleB.style.stroke = '#ffbd2e';
-        circleC.style.fill = 'rgba(255, 149, 0, 0.2)';
-        circleC.style.stroke = '#ff9500';
+        // A ∪ B ∪ C: highlight all three circles
+        setHighlightOpacity(false, false, true, true, true);
 
     } else if (mode === 'only_A') {
-        // Highlight A only
-        circleA.style.fill = 'rgba(255, 95, 86, 0.3)';
-        circleA.style.stroke = '#ff5f56';
-        // Dim others
-        circleB.style.opacity = '0.2';
-        circleC.style.opacity = '0.2';
+        // A ∩ Bᶜ ∩ Cᶜ: only the part of A not in B or C
+        // The SVG hlAonly element uses a mask that subtracts circles B and C.
+        setHighlightOpacity(false, true, false, false, false);
+        // Dim B and C base circles to reinforce the visual
+        circleB.style.opacity = '0.25';
+        circleC.style.opacity = '0.25';
     }
 }
 
 function resetVisuals() {
+    setHighlightOpacity(false, false, false, false, false);
+
+    // Restore base circle styles
     circleA.style.fill = 'rgba(255, 255, 255, 0.3)';
     circleA.style.stroke = 'rgba(139, 0, 0, 0.2)';
     circleA.style.opacity = '1';
-
     circleB.style.fill = 'rgba(255, 255, 255, 0.3)';
     circleB.style.stroke = 'rgba(139, 0, 0, 0.2)';
     circleB.style.opacity = '1';
-
     circleC.style.fill = 'rgba(255, 255, 255, 0.3)';
     circleC.style.stroke = 'rgba(139, 0, 0, 0.2)';
     circleC.style.opacity = '1';
 
-    particlesLayer.innerHTML = ''; // Clear special particles
+    particlesLayer.innerHTML = '';
 }
 
 // Particle System
@@ -132,7 +134,7 @@ function generateParticles() {
     // ...
 }
 
-function spawnParticlesInIntersection(x1, y1, x2, y2, r) {
+function spawnParticlesInIntersection() {
     // Simple visual indicator for intersection
     const el = document.createElement('div');
     el.style.position = 'absolute';

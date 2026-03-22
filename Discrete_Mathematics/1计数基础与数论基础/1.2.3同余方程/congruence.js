@@ -178,7 +178,7 @@ function solveCongruence(a, b, m) {
     const result = extendedGCD(a1, m1);
     let x0 = (result.x * b1) % m1;
 
-    // 确保解为正数
+    // 确保基础解为非负数
     if (x0 < 0) x0 += m1;
 
     // 找出所有解（mod m）
@@ -212,7 +212,7 @@ function updateResults() {
                 <span class="result-value">${result.solutions.length}</span>
             </div>
             <div class="result-item">
-                <span class="result-label">最小正解</span>
+                <span class="result-label">最小非负解</span>
                 <span class="result-value">x = ${result.solutions[0]}</span>
             </div>
         `;

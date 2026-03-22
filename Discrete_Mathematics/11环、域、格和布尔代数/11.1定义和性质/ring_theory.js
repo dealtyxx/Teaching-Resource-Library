@@ -508,7 +508,7 @@ function loadPropertiesMode() {
         
         <div class="definition-item">
             <strong>单位 (Units)</strong><br>
-            {1${units.length > 0 ? ', ' + units.join(', ') : ''}}
+            {${units.join(', ')}}
         </div>
         
         <div class="definition-item">
@@ -650,7 +650,7 @@ function updateProperties() {
             </div>
             <div class="property-badge">
                 <span class="property-label">单位数</span>
-                <span class="property-status">${units.length + 1}</span>
+                <span class="property-status">${units.length}</span>
             </div>
         `;
     } else if (currentMode === 'polynomial') {

@@ -162,8 +162,6 @@ function renderLines() {
                 line.setAttribute('class', 'relation-line hidden'); // Default hidden
                 line.id = `line-${a.id}-${b.id}`;
 
-                console.log(`Created line ${a.id}-${b.id}: x1=${x1}, y1=${y1}, x2=${x2}, y2=${y2}, yDiff=${yDiff}, isNearHorizontal=${isNearHorizontal}, path=${d}`);
-
                 // Click handler
                 line.addEventListener('click', () => toggleRelation(a.id, b.id));
 
@@ -202,7 +200,7 @@ function updateUI() {
             // Update Lines
             const line = document.getElementById(`line-${key}`);
             if (line) {
-                console.log(`Updating line ${key}, isActive: ${isActive}, line exists: ${!!line}`);
+
                 if (isActive) {
                     line.setAttribute('class', 'relation-line active');
                     line.setAttribute('marker-end', 'url(#arrowhead)');

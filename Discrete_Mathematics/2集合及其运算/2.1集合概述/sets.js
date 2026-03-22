@@ -1,36 +1,45 @@
 /**
  * Red Mathematics - Set Theory Visualizer
+ * Fixed: proper SVG-based region highlighting for all set operations
  */
 
-// DOM Elements
-const elementPool = document.getElementById('elementPool');
-const setA = document.getElementById('setA');
-const setB = document.getElementById('setB');
+// ── DOM Elements ──────────────────────────────────────────────
+const elementPool    = document.getElementById('elementPool');
+const setA           = document.getElementById('setA');
+const setB           = document.getElementById('setB');
+const setIntersect   = document.getElementById('setIntersect');
 const notationDisplay = document.getElementById('notationDisplay');
-const resultBadge = document.getElementById('resultBadge');
-const resultText = document.getElementById('resultText');
-const szTitle = document.getElementById('szTitle');
-const szDesc = document.getElementById('szDesc');
-const opBtns = document.querySelectorAll('.op-btn');
-const resetBtn = document.getElementById('resetBtn');
+const resultBadge    = document.getElementById('resultBadge');
+const resultText     = document.getElementById('resultText');
+const szTitle        = document.getElementById('szTitle');
+const szDesc         = document.getElementById('szDesc');
+const opBtns         = document.querySelectorAll('.op-btn');
+const resetBtn       = document.getElementById('resetBtn');
+const opLabel        = document.getElementById('opLabel');
 
-// State
-let elementsA = new Set();
-let elementsB = new Set();
-let currentOp = null;
+// ── SVG Highlight Elements ────────────────────────────────────
+const svgHlA   = document.getElementById('svgHlA');   // A-only region   (red)
+const svgHlI   = document.getElementById('svgHlI');   // Intersection     (gold)
+const svgHlB   = document.getElementById('svgHlB');   // B-only region   (red)
+const svgDragA = document.getElementById('svgDragA'); // Drag-over A hint
+const svgDragB = document.getElementById('svgDragB'); // Drag-over B hint
 
-// Element Definitions
-const ELEMENT_MAP = {
-    'worker': '👷',
-    'farmer': '🌾',
-    'soldier': '🪖',
-    'scholar': '🎓',
-    'youth': '🚩'
-};
-
-// Drag and Drop Logic
+// ── State ─────────────────────────────────────────────────────
+let elementsA  = new Set();
+let elementsB  = new Set();
+let currentOp  = null;
 let draggedType = null;
 
+// ── Element Definitions ───────────────────────────────────────
+const ELEMENT_MAP = {
+    worker:  '👷',
+    farmer:  '🌾',
+    soldier: '🪖',
+    scholar: '🎓',
+    youth:   '🚩'
+};
+
+// ── Drag & Drop ───────────────────────────────────────────────
 elementPool.addEventListener('dragstart', (e) => {
     if (e.target.classList.contains('element-item')) {
         draggedType = e.target.dataset.type;
@@ -39,122 +48,146 @@ elementPool.addEventListener('dragstart', (e) => {
 });
 
 [setA, setB].forEach(zone => {
+    const dragEl = zone.id === 'setA' ? svgDragA : svgDragB;
+
     zone.addEventListener('dragover', (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'copy';
-        zone.classList.add('highlight');
+        dragEl.style.opacity = '1';
     });
 
     zone.addEventListener('dragleave', () => {
-        if (currentOp === null) zone.classList.remove('highlight');
-        else updateHighlights(); // Restore op highlight
+        dragEl.style.opacity = '0';
     });
 
     zone.addEventListener('drop', (e) => {
         e.preventDefault();
-        if (currentOp === null) zone.classList.remove('highlight');
-        else updateHighlights();
+        dragEl.style.opacity = '0';
 
         if (draggedType) {
-            const isSetA = zone.id === 'setA';
-            const targetSet = isSetA ? elementsA : elementsB;
-
+            const targetSet = zone.id === 'setA' ? elementsA : elementsB;
             if (!targetSet.has(draggedType)) {
                 targetSet.add(draggedType);
                 renderSets();
                 updateNotation();
             }
+            draggedType = null;
         }
     });
 });
 
-// Rendering
+// ── Rendering ─────────────────────────────────────────────────
 function renderSets() {
-    // Clear contents
-    setA.querySelector('.set-content').innerHTML = '';
-    setB.querySelector('.set-content').innerHTML = '';
+    const contentA = setA.querySelector('.set-content');
+    const contentB = setB.querySelector('.set-content');
 
-    // Render A (excluding intersection for visual clarity in simple venn, 
-    // but here we just dump them in. Ideally we'd calculate intersection position)
-    // For simplicity in this CSS implementation:
-    // Items in A only -> Left side of A
-    // Items in B only -> Right side of B
-    // Items in both -> Center (we need to handle this visually)
-
-    // Actually, let's just list them. The visual overlap is handled by the circles.
-    // To make it look like they are in the intersection, we need to check membership.
+    contentA.innerHTML = '';
+    contentB.innerHTML = '';
+    setIntersect.innerHTML = '';
 
     const allTypes = new Set([...elementsA, ...elementsB]);
 
     allTypes.forEach(type => {
-        const inA = elementsA.has(type);
-        const inB = elementsB.has(type);
+        const inA  = elementsA.has(type);
+        const inB  = elementsB.has(type);
         const icon = ELEMENT_MAP[type];
 
         const el = document.createElement('div');
         el.className = 'dropped-item';
         el.textContent = icon;
+        el.title = type;
 
-        // Positioning logic (Simulated)
         if (inA && inB) {
-            // Intersection - tricky with two divs. 
-            // We'll add to both but style them to overlap? 
-            // Or just add to the one that visually represents the intersection?
-            // Let's add to both for now, but maybe give them a specific class?
-            // A better way for this specific visual:
-            // Just put them in the circles.
-
-            // For this demo, we will just append to the respective container.
-            // The user sees the icon in the circle.
-        }
-
-        if (inA) {
-            const clone = el.cloneNode(true);
-            setA.querySelector('.set-content').appendChild(clone);
-        }
-        if (inB) {
-            const clone = el.cloneNode(true);
-            setB.querySelector('.set-content').appendChild(clone);
+            // Element is in both sets → show in the intersection zone
+            setIntersect.appendChild(el);
+        } else if (inA) {
+            contentA.appendChild(el);
+        } else {
+            contentB.appendChild(el);
         }
     });
 }
 
 function updateNotation() {
-    const arrA = Array.from(elementsA).map(t => ELEMENT_MAP[t]);
-    const arrB = Array.from(elementsB).map(t => ELEMENT_MAP[t]);
-
-    let text = `A = {${arrA.join(',')}}, B = {${arrB.join(',')}}`;
+    const iconsA = [...elementsA].map(t => ELEMENT_MAP[t]);
+    const iconsB = [...elementsB].map(t => ELEMENT_MAP[t]);
+    let text = `A = {${iconsA.join(' ')}}   B = {${iconsB.join(' ')}}`;
 
     if (currentOp) {
-        let res = [];
-        if (currentOp === 'union') {
-            res = Array.from(new Set([...elementsA, ...elementsB]));
-        } else if (currentOp === 'intersection') {
-            res = Array.from(elementsA).filter(x => elementsB.has(x));
-        } else if (currentOp === 'diffA') {
-            res = Array.from(elementsA).filter(x => !elementsB.has(x));
-        } else if (currentOp === 'diffB') {
-            res = Array.from(elementsB).filter(x => !elementsA.has(x));
-        }
-        const resIcons = res.map(t => ELEMENT_MAP[t]);
-        text += ` => Result = {${resIcons.join(',')}}`;
+        const [sym, res] = computeResult();
+        const resIcons   = res.map(t => ELEMENT_MAP[t]);
+        text += `   |   ${sym} = {${resIcons.join(' ')}}`;
     }
 
     notationDisplay.textContent = text;
 }
 
-// Operations
+// Returns [symbol string, result array of types]
+function computeResult() {
+    if (currentOp === 'union') {
+        return ['A ∪ B', [...new Set([...elementsA, ...elementsB])]];
+    }
+    if (currentOp === 'intersection') {
+        return ['A ∩ B', [...elementsA].filter(x => elementsB.has(x))];
+    }
+    if (currentOp === 'diffA') {
+        return ['A ∖ B', [...elementsA].filter(x => !elementsB.has(x))];
+    }
+    if (currentOp === 'diffB') {
+        return ['B ∖ A', [...elementsB].filter(x => !elementsA.has(x))];
+    }
+    return ['', []];
+}
+
+// ── SVG Region Highlighting ───────────────────────────────────
+// Each argument = whether to show that region
+function setRegions(aOnly, intersect, bOnly) {
+    svgHlA.style.opacity = aOnly     ? '1' : '0';
+    svgHlI.style.opacity = intersect ? '1' : '0';
+    svgHlB.style.opacity = bOnly     ? '1' : '0';
+}
+
+function updateHighlights() {
+    switch (currentOp) {
+        case 'union':
+            setRegions(true, true, true);
+            opLabel.textContent = 'A ∪ B  ← 并集：包含 A 或 B 中的所有元素';
+            break;
+        case 'intersection':
+            setRegions(false, true, false);          // only the lens-shaped center
+            opLabel.textContent = 'A ∩ B  ← 交集：只包含同时属于 A 和 B 的元素（金色区域）';
+            break;
+        case 'diffA':
+            setRegions(true, false, false);          // only A-only region
+            opLabel.textContent = 'A ∖ B  ← 差集：属于 A 但不属于 B 的元素（左侧红色区域）';
+            break;
+        case 'diffB':
+            setRegions(false, false, true);          // only B-only region
+            opLabel.textContent = 'B ∖ A  ← 差集：属于 B 但不属于 A 的元素（右侧红色区域）';
+            break;
+        default:
+            setRegions(false, false, false);
+            opLabel.textContent = '';
+    }
+    opLabel.classList.toggle('hidden', !currentOp);
+}
+
+function resetHighlights() {
+    setRegions(false, false, false);
+    opLabel.classList.add('hidden');
+}
+
+// ── Operation Buttons ─────────────────────────────────────────
 opBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-        // Toggle active state
         opBtns.forEach(b => b.classList.remove('active'));
 
         if (currentOp === btn.dataset.op) {
-            currentOp = null; // Toggle off
+            // Toggle off
+            currentOp = null;
             resetHighlights();
             resultBadge.classList.add('hidden');
-            szTitle.textContent = '统一战线';
-            szDesc.textContent = '集合论中的“并集”象征着大团结，将不同的群体（集合元素）团结在党的周围，形成最广泛的统一战线。';
+            resetIdeology();
         } else {
             btn.classList.add('active');
             currentOp = btn.dataset.op;
@@ -165,56 +198,28 @@ opBtns.forEach(btn => {
     });
 });
 
-function updateHighlights() {
-    resetHighlights();
-
-    if (currentOp === 'union') {
-        setA.classList.add('highlight');
-        setB.classList.add('highlight');
-    } else if (currentOp === 'intersection') {
-        // Visualizing intersection highlight is tricky with CSS circles.
-        // We can dim the non-intersecting parts?
-        // Or just highlight both and let the user focus on overlap.
-        // Let's try a different approach:
-        setA.classList.add('highlight');
-        setB.classList.add('highlight');
-        // Ideally we'd have a specific style for intersection
-    } else if (currentOp === 'diffA') {
-        setA.classList.add('highlight');
-        setB.classList.add('dim');
-    } else if (currentOp === 'diffB') {
-        setB.classList.add('highlight');
-        setA.classList.add('dim');
-    }
-}
-
-function resetHighlights() {
-    setA.classList.remove('highlight', 'dim');
-    setB.classList.remove('highlight', 'dim');
+function resetIdeology() {
+    szTitle.textContent = '统一战线';
+    szDesc.textContent  = '集合论中的"并集"象征着大团结，将不同的群体（集合元素）团结在党的周围，形成最广泛的统一战线。';
 }
 
 function updateIdeology() {
     resultBadge.classList.remove('hidden');
 
-    if (currentOp === 'union') {
-        resultText.textContent = '大团结';
-        szTitle.textContent = '大团结 (并集)';
-        szDesc.textContent = '团结一切可以团结的力量，调动一切积极因素，形成推动发展的强大合力。';
-    } else if (currentOp === 'intersection') {
-        resultText.textContent = '求同存异';
-        szTitle.textContent = '求同存异 (交集)';
-        szDesc.textContent = '在共同目标（交集）的基础上，尊重差异，寻找最大公约数，画出最大同心圆。';
-    } else if (currentOp === 'diffA') {
-        resultText.textContent = '保持先进性';
-        szTitle.textContent = '先进性 (差集)';
-        szDesc.textContent = '保留自身独特的优良品质，剔除不良影响，在比较中彰显自身的先进性和纯洁性。';
-    } else if (currentOp === 'diffB') {
-        resultText.textContent = '特色发展';
-        szTitle.textContent = '特色发展 (差集)';
-        szDesc.textContent = '立足自身实际，发挥独特优势，走出一条具有自身特色的发展道路。';
-    }
+    const ideology = {
+        union:        { badge: '大团结',    title: '大团结 (并集)',        desc: '团结一切可以团结的力量，调动一切积极因素，形成推动发展的强大合力。' },
+        intersection: { badge: '求同存异',  title: '求同存异 (交集)',       desc: '在共同目标（交集）的基础上，尊重差异，寻找最大公约数，画出最大同心圆。' },
+        diffA:        { badge: '保持先进性', title: '先进性 (差集 A∖B)',    desc: '保留自身独特的优良品质，剔除不良影响，在比较中彰显自身的先进性和纯洁性。' },
+        diffB:        { badge: '特色发展',  title: '特色发展 (差集 B∖A)',   desc: '立足自身实际，发挥独特优势，走出一条具有自身特色的发展道路。' },
+    };
+
+    const { badge, title, desc } = ideology[currentOp];
+    resultText.textContent = badge;
+    szTitle.textContent    = title;
+    szDesc.textContent     = desc;
 }
 
+// ── Reset ─────────────────────────────────────────────────────
 resetBtn.addEventListener('click', () => {
     elementsA.clear();
     elementsB.clear();
@@ -224,9 +229,8 @@ resetBtn.addEventListener('click', () => {
     renderSets();
     updateNotation();
     resultBadge.classList.add('hidden');
-    szTitle.textContent = '统一战线';
-    szDesc.textContent = '集合论中的“并集”象征着大团结，将不同的群体（集合元素）团结在党的周围，形成最广泛的统一战线。';
+    resetIdeology();
 });
 
-// Init
+// ── Init ──────────────────────────────────────────────────────
 updateNotation();

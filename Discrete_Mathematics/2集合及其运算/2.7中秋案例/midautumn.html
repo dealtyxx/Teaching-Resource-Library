@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>红色数理 - 中秋集合论</title>
+    <meta name="description" content="离散数学课程 - 红色数理 - 中秋集合论">
+
     <link rel="stylesheet" href="midautumn.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,6 +16,22 @@
 </head>
 
 <body>
+    <!-- 返回主页浮动按钮 (auto-injected) -->
+    <a href="../../index.html" title="返回课程主页" style="
+        position:fixed;top:14px;left:14px;z-index:9999;
+        display:flex;align-items:center;gap:6px;
+        background:rgba(30,30,40,0.82);color:#fff;
+        padding:7px 14px 7px 10px;border-radius:20px;
+        font-size:13px;font-family:'Noto Serif SC',serif;
+        text-decoration:none;backdrop-filter:blur(8px);
+        border:1px solid rgba(255,255,255,0.15);
+        box-shadow:0 2px 12px rgba(0,0,0,0.35);
+        transition:background .2s;
+    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
+       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
+        🏠 <span>课程主页</span>
+    </a>
+
     <div class="app-container">
         <aside class="sidebar">
             <div class="sidebar-header">
@@ -57,21 +75,21 @@
                 <div class="control-group">
                     <label>探索任务 (Missions)</label>
                     <div class="mission-controls">
-                        <button class="apple-btn mission-btn" data-mission="1">
+                        <button class="apple-btn mission-btn" data-mission="1" aria-label="问题 1: 赏月且吃月饼 A ∩ B">
                             <span class="btn-icon">✨</span>
                             <div class="btn-text">
                                 <span>问题 1: 赏月且吃月饼</span>
                                 <span class="btn-sub">A ∩ B</span>
                             </div>
                         </button>
-                        <button class="apple-btn mission-btn" data-mission="2">
+                        <button class="apple-btn mission-btn" data-mission="2" aria-label="问题 2: 参与任一活动 A ∪ B ∪ C">
                             <span class="btn-icon">🌏</span>
                             <div class="btn-text">
                                 <span>问题 2: 参与任一活动</span>
                                 <span class="btn-sub">A ∪ B ∪ C</span>
                             </div>
                         </button>
-                        <button class="apple-btn mission-btn" data-mission="3">
+                        <button class="apple-btn mission-btn" data-mission="3" aria-label="问题 3: 唯独赏月 A ∩ Bᶜ ∩ Cᶜ">
                             <span class="btn-icon">🧘</span>
                             <div class="btn-text">
                                 <span>问题 3: 唯独赏月</span>
@@ -91,7 +109,7 @@
             </div>
 
             <div class="actions-footer">
-                <button id="resetBtn" class="apple-btn secondary-btn">重置视图</button>
+                <button id="resetBtn" class="apple-btn secondary-btn" aria-label="重置视图">重置视图</button>
             </div>
         </aside>
 
@@ -114,14 +132,42 @@
                                         <feMergeNode in="SourceGraphic" />
                                     </feMerge>
                                 </filter>
+                                <!-- Clip paths for each circle -->
+                                <clipPath id="mcClipA"><circle cx="250" cy="140" r="110"/></clipPath>
+                                <clipPath id="mcClipB"><circle cx="170" cy="260" r="110"/></clipPath>
+                                <clipPath id="mcClipC"><circle cx="330" cy="260" r="110"/></clipPath>
+                                <!-- Masks: each circle minus the other two -->
+                                <mask id="mcMaskAonly">
+                                    <rect width="500" height="400" fill="white"/>
+                                    <circle cx="170" cy="260" r="110" fill="black"/>
+                                    <circle cx="330" cy="260" r="110" fill="black"/>
+                                </mask>
                             </defs>
 
-                            <!-- Circle A: Top -->
+                            <!-- Base circles (always visible) -->
                             <circle id="circleA" cx="250" cy="140" r="110" class="venn-circle" />
-                            <!-- Circle B: Bottom Left -->
                             <circle id="circleB" cx="170" cy="260" r="110" class="venn-circle" />
-                            <!-- Circle C: Bottom Right -->
                             <circle id="circleC" cx="330" cy="260" r="110" class="venn-circle" />
+
+                            <!-- Highlight overlays (controlled by JS) -->
+                            <!-- A ∩ B region: circle B clipped to circle A -->
+                            <circle id="hlAB" cx="170" cy="260" r="110"
+                                    fill="rgba(255,180,0,0.55)" clip-path="url(#mcClipA)"
+                                    style="opacity:0;transition:opacity 0.4s ease;pointer-events:none"/>
+                            <!-- A-only region: circle A masked to exclude B and C -->
+                            <circle id="hlAonly" cx="250" cy="140" r="110"
+                                    fill="rgba(255,95,86,0.40)" mask="url(#mcMaskAonly)"
+                                    style="opacity:0;transition:opacity 0.4s ease;pointer-events:none"/>
+                            <!-- Full highlights for union mode -->
+                            <circle id="hlFullA" cx="250" cy="140" r="110"
+                                    fill="rgba(255,95,86,0.28)"
+                                    style="opacity:0;transition:opacity 0.4s ease;pointer-events:none"/>
+                            <circle id="hlFullB" cx="170" cy="260" r="110"
+                                    fill="rgba(255,189,46,0.28)"
+                                    style="opacity:0;transition:opacity 0.4s ease;pointer-events:none"/>
+                            <circle id="hlFullC" cx="330" cy="260" r="110"
+                                    fill="rgba(255,149,0,0.28)"
+                                    style="opacity:0;transition:opacity 0.4s ease;pointer-events:none"/>
 
                             <!-- Labels -->
                             <text x="250" y="80" class="venn-label">A 赏月</text>
@@ -153,7 +199,7 @@
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>

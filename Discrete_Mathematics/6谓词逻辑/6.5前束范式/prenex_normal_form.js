@@ -46,10 +46,9 @@ const CASES = [
         theme: "理论与实践",
         steps: [
             { desc: "消除蕴含符号", formula: "¬(∀x 理论(x)) ∨ (∃y 实践(y))" },
-            { desc: "应用德摩根律", formula: "(∃x ¬理论(x)) ∨ (∃y 实践(y))" },
-            { desc: "统一量词(换名)", formula: "(∃x ¬理论(x)) ∨ (∃z 实践(z))" },
-            { desc: "提取量词", formula: "∃x ∃z (¬理论(x) ∨ 实践(z))" },
-            { desc: "转换为合取范式", formula: "∃x ∃z (¬理论(x) ∨ 实践(z))" }
+            { desc: "应用量词德摩根律：¬∀x P(x) ≡ ∃x ¬P(x)", formula: "(∃x ¬理论(x)) ∨ (∃y 实践(y))" },
+            { desc: "提取量词（变量 x 与 y 不同，无需换名）", formula: "∃x ∃y (¬理论(x) ∨ 实践(y))" },
+            { desc: "得到前束范式（矩阵为单一析取子句）", formula: "∃x ∃y (¬理论(x) ∨ 实践(y))" }
         ]
     },
     {

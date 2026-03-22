@@ -39,7 +39,7 @@ const MISSIONS = {
     2: {
         title: "幽篁独坐 (Secluded Integrity)",
         text: "【C - (A ∪ B ∪ D)】独有的竹类。黄竹与苦竹，虽不如'竹'（Common Bamboo）那样常被归为树木之列，却在幽僻处独自成林。象征着隐士'独善其身'、不随波逐流的高洁情操。",
-        filter: (p) => p.sets.includes('C') && !p.sets.includes('B') // "Bamboo" is in B, so exclude it
+        filter: (p) => p.sets.includes('C') && !p.sets.includes('A') && !p.sets.includes('B') && !p.sets.includes('D') // C - (A∪B∪D)
     },
     3: {
         title: "和而不同 (Harmony in Diversity)",

@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>红色数理 - 校验码</title>
+    <meta name="description" content="离散数学课程 - 红色数理 - 校验码">
+
     <link rel="stylesheet" href="checksum.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,6 +16,22 @@
 </head>
 
 <body>
+    <!-- 返回主页浮动按钮 (auto-injected) -->
+    <a href="../../index.html" title="返回课程主页" style="
+        position:fixed;top:14px;left:14px;z-index:9999;
+        display:flex;align-items:center;gap:6px;
+        background:rgba(30,30,40,0.82);color:#fff;
+        padding:7px 14px 7px 10px;border-radius:20px;
+        font-size:13px;font-family:'Noto Serif SC',serif;
+        text-decoration:none;backdrop-filter:blur(8px);
+        border:1px solid rgba(255,255,255,0.15);
+        box-shadow:0 2px 12px rgba(0,0,0,0.35);
+        transition:background .2s;
+    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
+       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
+        🏠 <span>课程主页</span>
+    </a>
+
     <div class="app-container">
         <aside class="sidebar">
             <div class="sidebar-header">
@@ -30,7 +48,7 @@
                 <div class="control-group">
                     <label>指令代码 (Instruction Code)</label>
                     <div class="input-wrapper">
-                        <input type="text" id="codeInput" class="apple-input" placeholder="输入6位数字" value="192107"
+                        <input type="text" id="codeInput" class="apple-input" placeholder="输入6位数字主体码" value="192107"
                             maxlength="6">
                     </div>
                 </div>
@@ -38,9 +56,9 @@
                 <div class="control-group">
                     <label>操作 (Actions)</label>
                     <div class="action-grid">
-                        <button id="generateBtn" class="apple-btn action-btn">生成校验码</button>
-                        <button id="tamperBtn" class="apple-btn warning-btn" disabled>模拟篡改</button>
-                        <button id="verifyBtn" class="apple-btn success-btn" disabled>核验指令</button>
+                        <button id="generateBtn" class="apple-btn action-btn" aria-label="生成校验码">生成校验码</button>
+                        <button id="tamperBtn" class="apple-btn warning-btn" disabled aria-label="模拟篡改">模拟篡改</button>
+                        <button id="verifyBtn" class="apple-btn success-btn" disabled aria-label="核验指令">核验指令</button>
                     </div>
                 </div>
 
@@ -54,15 +72,15 @@
             </div>
 
             <div class="actions-footer">
-                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
+                <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置">重置</button>
             </div>
         </aside>
 
         <main class="visualizer-stage">
             <div class="glass-pane">
                 <div class="stage-header">
-                    <h2>加权模11算法</h2>
-                    <p>ISO 7064:1983.MOD 11-2</p>
+                    <h2>ISO 7064 MOD 11-2</h2>
+                    <p>纯系统校验码生成与核验</p>
                 </div>
 
                 <div class="viz-content">
@@ -74,15 +92,15 @@
                     <!-- Calculation Details -->
                     <div id="calcDetails" class="calc-details hidden">
                         <div class="calc-row">
-                            <span class="calc-label">加权求和:</span>
+                            <span class="calc-label">递推状态:</span>
                             <span id="sumFormula" class="calc-value"></span>
                         </div>
                         <div class="calc-row">
-                            <span class="calc-label">取模运算:</span>
+                            <span class="calc-label">终止状态:</span>
                             <span id="modFormula" class="calc-value"></span>
                         </div>
                         <div class="calc-row">
-                            <span class="calc-label">校验码映射:</span>
+                            <span class="calc-label">校验字符:</span>
                             <span id="mapFormula" class="calc-value"></span>
                         </div>
                     </div>
@@ -114,7 +132,7 @@
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>

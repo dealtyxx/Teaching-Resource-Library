@@ -391,26 +391,33 @@ function calculateResult(lawType) {
         resLeft = complement(union(A, B)).sort();
         resRight = intersect(complement(A), complement(B)).sort();
     } else if (lawType === 'double') {
-        resLeft = A.sort();
-        resRight = A.sort();
+        // ~~A = A
+        resLeft = complement(complement(A)).sort();
+        resRight = A.slice().sort();
     } else if (lawType === 'contradiction') {
-        resLeft = []; // Empty
-        resRight = []; // Empty
+        // A ∩ ~A = ∅
+        resLeft = intersect(A, complement(A)).sort();
+        resRight = [];
     } else if (lawType === 'excluded') {
-        resLeft = UNIVERSAL_SET.slice().sort();
+        // A ∪ ~A = U
+        resLeft = union(A, complement(A)).sort();
         resRight = UNIVERSAL_SET.slice().sort();
     } else if (lawType === 'identity') {
-        resLeft = A.sort();
-        resRight = A.sort();
+        // A ∪ ∅ = A
+        resLeft = union(A, []).sort();
+        resRight = A.slice().sort();
     } else if (lawType === 'idempotent') {
-        resLeft = A.sort();
-        resRight = A.sort();
+        // A ∪ A = A
+        resLeft = union(A, A).sort();
+        resRight = A.slice().sort();
     } else if (lawType === 'zero') {
-        resLeft = UNIVERSAL_SET.slice().sort();
+        // A ∪ U = U
+        resLeft = union(A, UNIVERSAL_SET).sort();
         resRight = UNIVERSAL_SET.slice().sort();
     } else if (lawType === 'absorption') {
-        resLeft = A.sort();
-        resRight = A.sort();
+        // A ∪ (A ∩ B) = A
+        resLeft = union(A, intersect(A, B)).sort();
+        resRight = A.slice().sort();
     }
 
     return { resLeft, resRight };

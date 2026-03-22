@@ -167,11 +167,10 @@ function evaluateSimpleFormula(formula, assignment, elementIndex) {
     result = result.replace(/∧/g, '&&')
         .replace(/∨/g, '||')
         .replace(/¬/g, '!')
-        .replace(/→/g, '<=')
         .replace(/↔/g, '==');
 
-    // 处理蕴含
-    result = result.replace(/([^<>=!&|]+)<=([^<>=!&|]+)/g, '(!($1)||($2))');
+    // 处理蕴含: A→B 使用 <= 运算符（对布尔0/1值等价于蕴含真值表）
+    result = result.replace(/→/g, '<=');
 
     try {
         return eval(result);

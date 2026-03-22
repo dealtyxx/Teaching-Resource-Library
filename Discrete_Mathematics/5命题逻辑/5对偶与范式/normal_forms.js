@@ -105,7 +105,7 @@ const Logic = {
         const minterms = [];
         for (let i = 0; i < rows; i++) {
             const assignment = {};
-            for (let j = 0; j < vars.length; j++) { assignment[vars[j]] = !!((i >> j) & 1); }
+            for (let j = 0; j < vars.length; j++) { assignment[vars[j]] = !!((i >> (vars.length - 1 - j)) & 1); }
             if (Logic.evaluate(formula, assignment)) {
                 const parts = vars.map(v => assignment[v] ? v : `\\neg ${v}`);
                 minterms.push(`(${parts.join(' \\land ')})`);
@@ -184,7 +184,7 @@ function setupGalaxy() {
             if (activeIndices.has(i)) card.classList.add('active');
 
             const assignment = [];
-            for (let j = 0; j < varCount; j++) { assignment.push(!!((i >> j) & 1)); }
+            for (let j = 0; j < varCount; j++) { assignment.push(!!((i >> (varCount - 1 - j)) & 1)); }
 
             let labelStr, expr;
             if (currentMode === 'minterm') {
@@ -228,7 +228,7 @@ function setupGalaxy() {
         if (currentMode === 'minterm') {
             const parts = sortedIndices.map(i => {
                 const assignment = [];
-                for (let j = 0; j < vars.length; j++) { assignment.push(!!((i >> j) & 1)); }
+                for (let j = 0; j < vars.length; j++) { assignment.push(!!((i >> (vars.length - 1 - j)) & 1)); }
                 const term = vars.map((v, idx) => assignment[idx] ? v : `\\neg ${v}`).join(' \\land ');
                 return `(${term})`;
             });
@@ -237,7 +237,7 @@ function setupGalaxy() {
         } else {
             const parts = sortedIndices.map(i => {
                 const assignment = [];
-                for (let j = 0; j < vars.length; j++) { assignment.push(!!((i >> j) & 1)); }
+                for (let j = 0; j < vars.length; j++) { assignment.push(!!((i >> (vars.length - 1 - j)) & 1)); }
                 const term = vars.map((v, idx) => assignment[idx] ? `\\neg ${v}` : v).join(' \\lor ');
                 return `(${term})`;
             });
@@ -273,7 +273,7 @@ function setupGenerator() {
 
         for (let i = 0; i < rows; i++) {
             const assignment = {};
-            for (let j = 0; j < vars.length; j++) { assignment[vars[j]] = !!((i >> j) & 1); }
+            for (let j = 0; j < vars.length; j++) { assignment[vars[j]] = !!((i >> (vars.length - 1 - j)) & 1); }
             const res = Logic.evaluate(formula, assignment);
 
             // PDNF uses True rows, PCNF uses False rows

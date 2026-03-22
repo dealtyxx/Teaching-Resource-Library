@@ -143,23 +143,21 @@ const GROUPS = {
         order: 8,
         elements: ['e', 'r', 'r²', 'r³', 's', 'sr', 'sr²', 'sr³'],
         operation: (x, y) => {
-            // Simplified D4 operation table
-            const rotations = ['e', 'r', 'r²', 'r³'];
-            const reflections = ['s', 'sr', 'sr²', 'sr³'];
-
-            // This is a simplified version
-            if (x === 'e') return y;
-            if (y === 'e') return x;
-
-            // Rotation composition
-            if (rotations.includes(x) && rotations.includes(y)) {
-                const i = rotations.indexOf(x);
-                const j = rotations.indexOf(y);
-                return rotations[(i + j) % 4];
-            }
-
-            // Simplified for demo
-            return 'e';
+            // Full D4 operation table using abstract group rules:
+            // rot_i * rot_j = rot_(i+j)%4
+            // rot_i * ref_j = ref_(i+j)%4
+            // ref_i * rot_j = ref_(i-j+4)%4
+            // ref_i * ref_j = rot_(i-j+4)%4
+            const rotIdx = { 'e': 0, 'r': 1, 'r²': 2, 'r³': 3 };
+            const refIdx = { 's': 0, 'sr': 1, 'sr²': 2, 'sr³': 3 };
+            const rotNames = ['e', 'r', 'r²', 'r³'];
+            const refNames = ['s', 'sr', 'sr²', 'sr³'];
+            const xIsRot = x in rotIdx;
+            const yIsRot = y in rotIdx;
+            if (xIsRot && yIsRot) return rotNames[(rotIdx[x] + rotIdx[y]) % 4];
+            if (xIsRot && !yIsRot) return refNames[(rotIdx[x] + refIdx[y]) % 4];
+            if (!xIsRot && yIsRot) return refNames[((refIdx[x] - rotIdx[y]) % 4 + 4) % 4];
+            return rotNames[((refIdx[x] - refIdx[y]) % 4 + 4) % 4];
         },
         subgroups: [
             { name: 'H₁', elements: ['e'], description: '平凡子群' },

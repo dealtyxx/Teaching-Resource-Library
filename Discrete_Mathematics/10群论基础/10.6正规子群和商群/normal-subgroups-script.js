@@ -103,7 +103,8 @@ const GROUPS = {
             return table[x][y];
         },
         inverse: (x) => {
-            const inv = { 'e': 'e', 'r': 'r²', 'r²': 'r', 's': 's', 'sr': 'sr²', 'sr²': 'sr' };
+            // All reflections (s, sr, sr²) are self-inverse (order 2); rotations: r^(-1)=r², r²^(-1)=r
+            const inv = { 'e': 'e', 'r': 'r²', 'r²': 'r', 's': 's', 'sr': 'sr', 'sr²': 'sr²' };
             return inv[x];
         },
         subgroups: [
@@ -119,14 +120,25 @@ const GROUPS = {
         order: 8,
         elements: ['e', 'r', 'r²', 'r³', 's', 'sr', 'sr²', 'sr³'],
         operation: (x, y) => {
-            // Simplified operation for demo
-            if (x === 'e') return y;
-            if (y === 'e') return x;
-            // Full D4 table would be here
-            return 'e'; // Simplified
+            // Full D4 operation using abstract group rules (same convention as S3):
+            // rot_i * rot_j = rot_(i+j)%4
+            // rot_i * ref_j = ref_(i+j)%4
+            // ref_i * rot_j = ref_(i-j+4)%4
+            // ref_i * ref_j = rot_(i-j+4)%4
+            const rotIdx = { 'e': 0, 'r': 1, 'r²': 2, 'r³': 3 };
+            const refIdx = { 's': 0, 'sr': 1, 'sr²': 2, 'sr³': 3 };
+            const rotNames = ['e', 'r', 'r²', 'r³'];
+            const refNames = ['s', 'sr', 'sr²', 'sr³'];
+            const xIsRot = x in rotIdx;
+            const yIsRot = y in rotIdx;
+            if (xIsRot && yIsRot) return rotNames[(rotIdx[x] + rotIdx[y]) % 4];
+            if (xIsRot && !yIsRot) return refNames[(rotIdx[x] + refIdx[y]) % 4];
+            if (!xIsRot && yIsRot) return refNames[((refIdx[x] - rotIdx[y]) % 4 + 4) % 4];
+            return rotNames[((refIdx[x] - refIdx[y]) % 4 + 4) % 4];
         },
         inverse: (x) => {
-            const inv = { 'e': 'e', 'r': 'r³', 'r²': 'r²', 'r³': 'r', 's': 's', 'sr': 'sr³', 'sr²': 'sr²', 'sr³': 'sr' };
+            // Rotations: r^i inverse = r^(4-i); reflections: all self-inverse (ref^2=e)
+            const inv = { 'e': 'e', 'r': 'r³', 'r²': 'r²', 'r³': 'r', 's': 's', 'sr': 'sr', 'sr²': 'sr²', 'sr³': 'sr³' };
             return inv[x];
         },
         subgroups: [
@@ -154,11 +166,29 @@ const GROUPS = {
         order: 12,
         elements: ['e', 'a', 'b', 'c', 'd', 'f', 'g', 'h', 'i', 'j', 'k', 'l'],
         operation: (x, y) => {
-            if (x === 'e') return y;
-            if (y === 'e') return x;
-            return 'e'; // Simplified for demo
+            const perms = {
+                'e': [1,2,3,4], 'a': [2,1,4,3], 'b': [3,4,1,2], 'c': [4,3,2,1],
+                'd': [2,3,1,4], 'f': [3,1,2,4], 'g': [2,4,3,1], 'h': [4,1,3,2],
+                'i': [3,2,4,1], 'j': [4,2,1,3], 'k': [1,3,4,2], 'l': [1,4,2,3]
+            };
+            const px = perms[x], py = perms[y];
+            const composed = py.map(val => px[val - 1]);
+            const key = JSON.stringify(composed);
+            return Object.entries(perms).find(([,p]) => JSON.stringify(p) === key)?.[0] || 'e';
         },
-        inverse: (x) => x === 'e' ? 'e' : 'e', // Simplified
+        inverse: (x) => {
+            // A4 elements: e(order1), a/b/c=double-transpositions(order2,self-inverse),
+            // d/f/g/h/i/j/k/l=3-cycles(order3, inverse is the other 3-cycle in same pair)
+            const inv = {
+                'e': 'e',
+                'a': 'a', 'b': 'b', 'c': 'c',       // (12)(34),(13)(24),(14)(23) are self-inverse
+                'd': 'f', 'f': 'd',                   // 3-cycle pairs: d=(123),f=(132)
+                'g': 'h', 'h': 'g',                   // g=(124),h=(142)
+                'i': 'j', 'j': 'i',                   // i=(134),j=(143)
+                'k': 'l', 'l': 'k'                    // k=(234),l=(243)
+            };
+            return inv[x] || 'e';
+        },
         subgroups: [
             { name: 'H₁', elements: ['e'], isNormal: true, description: '平凡子群（正规）' },
             { name: 'H₂', elements: ['e', 'a', 'b', 'c'], isNormal: true, description: '克莱因四元群（正规）' }

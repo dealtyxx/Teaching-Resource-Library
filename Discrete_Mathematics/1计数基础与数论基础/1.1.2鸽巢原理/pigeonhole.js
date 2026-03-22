@@ -104,6 +104,7 @@ function init() {
 function updateValues() {
     numHoles = parseInt(holesSlider.value);
     numPigeons = parseInt(pigeonsSlider.value);
+    const scenario = scenarios[currentScenario];
 
     holesCount.textContent = numHoles;
     pigeonsCount.textContent = numPigeons;
@@ -114,9 +115,8 @@ function updateValues() {
     const minCount = Math.ceil(numPigeons / numHoles);
     minPerHole.textContent = minCount;
 
-    // 更新场景说明
-    const scenario = scenarios[currentScenario];
-    politicalMeaning.textContent = scenario.meaning;
+    principleDesc.textContent = `将 m 个${scenario.pigeonName}放入 n 个${scenario.holeName}，则至少有一个${scenario.holeName}包含 ⌈m/n⌉ 个${scenario.pigeonName}。当前为 ⌈${numPigeons}/${numHoles}⌉ = ${minCount}。`;
+    politicalMeaning.textContent = `当前有 ${numPigeons} 个${scenario.pigeonName}分配到 ${numHoles} 个${scenario.holeName}，因此至少有一个${scenario.holeName}会分到 ${minCount} 个${scenario.pigeonName}。`;
 }
 
 // 创建鸽巢
