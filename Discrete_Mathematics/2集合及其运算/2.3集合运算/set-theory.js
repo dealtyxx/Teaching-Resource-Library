@@ -1,5 +1,5 @@
 /**
- * 集合论运算可视化 - 思政教育版
+ * 集合论运算可视化 - 价值引领版
  */
 
 // DOM 元素
@@ -29,7 +29,7 @@ let setB = [];
 let resultSet = [];
 let isAnimating = false;
 
-// 思政主题数据
+// 价值主题数据
 const themes = {
     revolutionary: {
         name: '革命精神',

@@ -1,0 +1,833 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第6章 谓词逻辑 - 不可判定边界沙盘</title>
+  <meta name="description" content="6.3 谓词公式的类型 - 不可判定边界沙盘">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+
+:root {
+  --ink: #251713;
+  --muted: #6c5a52;
+  --paper: #fff8ec;
+  --card: rgba(255, 253, 246, 0.92);
+  --line: rgba(116, 55, 31, 0.18);
+  --red: #b42318;
+  --red-2: #de5b3d;
+  --gold: #c58a1f;
+  --green: #2f7d57;
+  --blue: #2f5f9f;
+  --shadow: 0 18px 50px rgba(69, 31, 15, 0.14);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: "Noto Serif SC", "Microsoft YaHei", serif;
+  background:
+    radial-gradient(circle at 16% 12%, rgba(222, 91, 61, 0.18), transparent 28%),
+    radial-gradient(circle at 82% 8%, rgba(47, 95, 159, 0.14), transparent 26%),
+    linear-gradient(135deg, #fff7e6 0%, #f8ead3 45%, #f3dfc7 100%);
+  overflow: hidden;
+}
+.home-link {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 10000;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.5);
+  background: rgba(37, 23, 19, 0.82);
+  color: #fff;
+  text-decoration: none;
+  font-size: 13px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  backdrop-filter: blur(10px);
+}
+.app-container {
+  width: min(1440px, calc(100vw - 32px));
+  height: calc(100vh - 166px);
+  min-height: 640px;
+  margin: 74px auto 0;
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  gap: 18px;
+}
+.side-panel,
+.glass-pane {
+  border: 1px solid var(--line);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+}
+.side-panel {
+  border-radius: 8px;
+  padding: 20px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+.glass-pane {
+  border-radius: 8px;
+  padding: 18px;
+  overflow: auto;
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(180, 35, 24, 0.22);
+  color: var(--red);
+  background: rgba(180, 35, 24, 0.08);
+  font-size: 12px;
+  font-weight: 700;
+}
+h1 {
+  margin: 14px 0 8px;
+  font-size: 30px;
+  line-height: 1.18;
+  letter-spacing: 0;
+}
+.side-panel > .eyebrow {
+  order: 1;
+  align-self: flex-start;
+  margin-bottom: 10px;
+}
+.side-panel > h1 {
+  order: 2;
+  margin: 0 0 8px;
+  font-family: "Ma Shan Zheng", "Noto Serif SC", serif;
+  font-size: 2.1rem;
+  line-height: 1.2;
+  font-weight: 400;
+  color: #d63b1d;
+}
+.side-panel > h1 .highlight {
+  color: #ffb400;
+}
+.side-panel > .subtitle {
+  order: 3;
+  margin: 0 0 12px;
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  font-style: normal;
+}
+.side-panel > .intro { order: 4; }
+.side-panel > #dm-ideo-page,
+.side-panel > .value-panel { order: 5; }
+.side-panel > #controls { order: 6; }
+.side-panel > .result-card,
+.side-panel > .mission-card { order: 7; }
+.intro {
+  margin: 0 0 16px;
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 15px;
+}
+.mission-card,
+.control-group,
+.value-panel,
+.result-card {
+  border-radius: 8px;
+  border: 1px solid rgba(116, 55, 31, 0.16);
+  background: rgba(255,255,255,0.66);
+}
+.mission-card {
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.mission-card b { color: var(--red); }
+.mission-card span {
+  color: var(--muted);
+  line-height: 1.6;
+}
+.visual-badge {
+  white-space: nowrap;
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(47,95,159,0.1);
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 700;
+}
+.value-panel {
+  padding: 14px;
+  margin: 14px 0;
+  border-left: 4px solid var(--red);
+}
+.value-panel h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  color: var(--red);
+}
+.value-panel p {
+  margin: 0;
+  line-height: 1.7;
+  color: #563c31;
+  font-size: 14px;
+}
+.dim-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.dim-list span {
+  border-radius: 999px;
+  background: rgba(197, 138, 31, 0.13);
+  color: #8a5d0b;
+  padding: 4px 9px;
+  font-size: 12px;
+  font-weight: 700;
+}
+#controls {
+  display: grid;
+  gap: 10px;
+}
+.control-group {
+  padding: 12px;
+}
+.control-group label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #4e362d;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.control-group small {
+  color: var(--muted);
+  font-weight: 400;
+}
+select,
+input[type="range"] {
+  width: 100%;
+}
+select {
+  min-height: 38px;
+  border-radius: 8px;
+  border: 1px solid rgba(116,55,31,0.22);
+  background: #fffaf2;
+  color: var(--ink);
+  padding: 0 10px;
+  font: inherit;
+}
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--red);
+}
+.switch-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.logic-board {
+  min-height: 360px;
+  border-radius: 8px;
+  border: 1px solid rgba(116,55,31,0.16);
+  background:
+    linear-gradient(90deg, rgba(116,55,31,0.06) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(116,55,31,0.06) 1px, transparent 1px),
+    rgba(255,255,255,0.56);
+  background-size: 28px 28px;
+  padding: 18px;
+  overflow: hidden;
+}
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.node-card,
+.gate-card,
+.table-wrap,
+.proof-card,
+.meter-card {
+  border-radius: 8px;
+  border: 1px solid rgba(116,55,31,0.18);
+  background: rgba(255,255,255,0.84);
+  padding: 14px;
+  box-shadow: 0 8px 22px rgba(69,31,15,0.08);
+}
+.node-card strong,
+.gate-card strong,
+.proof-card strong,
+.meter-card strong {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+.truth-on { border-color: rgba(47,125,87,0.5); background: rgba(47,125,87,0.12); }
+.truth-off { border-color: rgba(180,35,24,0.4); background: rgba(180,35,24,0.09); }
+.truth-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  height: 34px;
+  border-radius: 999px;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 800;
+  color: #fff;
+  background: var(--green);
+}
+.truth-chip.false { background: var(--red); }
+.gate-symbol {
+  display: grid;
+  place-items: center;
+  min-height: 112px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(180,35,24,0.12), rgba(47,95,159,0.13));
+  font-size: 42px;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 800;
+  color: var(--red);
+}
+.formula-line {
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 800;
+  color: #2d211d;
+}
+.stack {
+  display: grid;
+  gap: 10px;
+}
+.flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.flow .node-card { min-height: 112px; }
+.arrow {
+  color: var(--gold);
+  font-weight: 800;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-size: 13px;
+}
+th, td {
+  border-bottom: 1px solid rgba(116,55,31,0.14);
+  padding: 8px 7px;
+  text-align: center;
+}
+th {
+  background: rgba(180,35,24,0.08);
+  color: var(--red);
+}
+tr.hot td { background: rgba(47,125,87,0.1); }
+tr.warn td { background: rgba(180,35,24,0.08); }
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.pill {
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: #53362c;
+  background: rgba(197,138,31,0.14);
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 700;
+}
+.result-card {
+  margin-top: 14px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 12px;
+  align-items: stretch;
+}
+#formulaText,
+#resultValue,
+#resultExtra {
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(255,250,242,0.86);
+  line-height: 1.7;
+}
+#formulaText {
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 800;
+  color: var(--blue);
+}
+#resultValue {
+  font-weight: 800;
+  color: var(--red);
+}
+#resultExtra {
+  grid-column: 1 / -1;
+  color: #5e4338;
+}
+.footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9998;
+  min-height: 72px;
+  padding: 14px 10px;
+  text-align: center;
+  color: inherit;
+    opacity: 0.72;
+  background: transparent;
+  box-shadow: none;
+  font-size: 13px;
+  line-height: 1.7;
+}
+@media (max-width: 920px) {
+  body { overflow: auto; }
+  .app-container {
+    width: min(100vw - 22px, 720px);
+    height: auto;
+    min-height: 0;
+    grid-template-columns: 1fr;
+    margin-bottom: 96px;
+  }
+  .side-panel, .glass-pane { max-height: none; }
+  .viz-grid, .flow, .result-card { grid-template-columns: 1fr; }
+  #resultExtra { grid-column: auto; }
+  .mission-card { grid-template-columns: 1fr; }
+}
+
+  </style>
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="eyebrow">拓展层 · 第6章 谓词逻辑</div>
+      <h1>红色数理 <span class="highlight">拓展层</span></h1>
+                <p class="subtitle">谓词公式类型侦测器</p>
+      <p class="intro">模拟证明搜索与反例搜索，体验谓词逻辑有效性为何不能一键机械判定。</p>
+
+      <div class="value-panel">
+        <h3>真理的探索 · 永无止境</h3>
+        <p>谓词逻辑的有效性不可机械判定，意味着对真理的探索不可能一劳永逸地交给算法，永远需要人的智慧与创造。这启示我们：既要敬畏理性的力量，也要保持谦逊与持续求索的精神，在无尽探索中接近真理。</p>
+        <div class="dim-list"><span>科学精神</span><span>求真探索</span><span>辩证思维</span></div>
+      </div>
+
+      <div id="controls"></div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>敬畏算法能力，也承认认识边界，在持续求索中接近真理。</span>
+        <div class="visual-badge">证明搜索 + 反例搜索</div>
+      </section>
+
+      <section class="logic-board" id="vizArea"></section>
+
+      <section class="result-card">
+        <div id="formulaText">等待交互</div>
+        <div id="resultValue">等待判定</div>
+        <div id="resultExtra">价值观察：谓词逻辑的有效性不可机械判定，意味着对真理的探索不可能一劳永逸地交给算法，永远需要人的智慧与创造。这启示我们：既要敬畏理性的力量，也要保持谦逊与持续求索的精神，在无尽探索中接近真理。</div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+    <div>版权所有 · 项目总负责人：谢鑫</div>
+  </footer>
+
+  <script>
+    window.SECTION_META = {
+      "layers": [
+            {
+                  "name": "按真值分类",
+                  "concepts": "永真 / 永假 / 可满足",
+                  "task": "按一切解释下的真值给公式分类。",
+                  "page": "formula_interpretation-basic.html"
+            },
+            {
+                  "name": "逻辑有效与反模型",
+                  "concepts": "证永真 / 构造反模型",
+                  "task": "证明永真或举反例否定。",
+                  "page": "formula_interpretation.html"
+            },
+            {
+                  "name": "不可判定性",
+                  "concepts": "丘奇定理 / 半可判定 / 枚举证明",
+                  "task": "迁移到一阶逻辑的判定边界。",
+                  "page": "formula_interpretation-extend.html"
+            }
+      ],
+      "chapter": "第6章 谓词逻辑",
+      "section": "6.3 谓词公式的类型",
+      "title": "谓词公式的类型",
+      "grounding": "本节主题：按在一切解释下的真值，谓词公式分为——永真式（逻辑有效，所有解释皆真）、永假式（矛盾，所有解释皆假）、可满足式（存在使其真的解释）。注意：谓词逻辑的有效性判定不可判定（一般无法机械穷举所有解释）。",
+      "steps": [
+            {
+                  "name": "情境引入",
+                  "desc": "什么样的判断是『放之任何论域皆准』的逻辑真理？"
+            },
+            {
+                  "name": "对象抽取",
+                  "desc": "把『所有解释下的真值』抽象为公式类型。"
+            },
+            {
+                  "name": "结构建模",
+                  "desc": "用永真/永假/可满足刻画公式与语义的关系。"
+            },
+            {
+                  "name": "推理求解",
+                  "desc": "证明永真（任意解释为真）或举反例否定。"
+            },
+            {
+                  "name": "程序验证",
+                  "desc": "用本页交互检验公式在多解释下的真值。"
+            },
+            {
+                  "name": "迁移反思",
+                  "desc": "迁移到不可判定性、定理证明、验证。"
+            }
+      ],
+      "ideology": {
+            "title": "真理的探索 · 永无止境",
+            "text": "谓词逻辑的有效性不可机械判定，意味着对真理的探索不可能一劳永逸地交给算法，永远需要人的智慧与创造。这启示我们：既要敬畏理性的力量，也要保持谦逊与持续求索的精神，在无尽探索中接近真理。",
+            "dims": [
+                  "科学精神",
+                  "求真探索",
+                  "辩证思维"
+            ],
+            "quote": "路漫漫其修远兮，吾将上下而求索——逻辑真理的探求，正是一条永无止境的求索之路。"
+      },
+      "reflect": [
+            "永真式（逻辑有效）与某解释下为真，有何本质区别？",
+            "为什么谓词逻辑的有效性是『不可判定』的？这与命题逻辑（可判定）差在哪？",
+            "要否定一个公式是永真式，需要做什么（构造反模型）？"
+      ],
+      "transfer": [
+            "一阶逻辑的不可判定性（丘奇-图灵）划定了机械推理的根本边界。",
+            {
+                  "t": "半可判定",
+                  "d": "有效公式虽不可判定却『可枚举证明』，自动定理证明为何仍然可行？"
+            }
+      ]
+};
+  </script>
+  <script>
+    const PROFILE = {
+  "title": "不可判定边界沙盘",
+  "subtitle": "模拟证明搜索与反例搜索，体验谓词逻辑有效性为何不能一键机械判定。",
+  "family": "type",
+  "layerLabel": "拓展层",
+  "mission": "敬畏算法能力，也承认认识边界，在持续求索中接近真理。",
+  "visual": "证明搜索 + 反例搜索",
+  "params": {
+    "mode": "search"
+  }
+};
+  </script>
+  <script>
+
+(function () {
+  "use strict";
+  const meta = window.SECTION_META || {};
+  const ideology = meta.ideology || {};
+  const controls = document.getElementById("controls");
+  const viz = document.getElementById("vizArea");
+  const formulaText = document.getElementById("formulaText");
+  const resultValue = document.getElementById("resultValue");
+  const resultExtra = document.getElementById("resultExtra");
+
+  function esc(v) {
+    return String(v == null ? "" : v).replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
+  }
+  function boolText(v) { return v ? "真 T" : "假 F"; }
+  function chip(v, text) { return '<span class="truth-chip' + (v ? "" : " false") + '">' + esc(text || boolText(v)) + '</span>'; }
+  function option(value, text, selected) { return '<option value="' + esc(value) + '"' + (value === selected ? " selected" : "") + '>' + esc(text) + '</option>'; }
+  function control(label, body, small) {
+    return '<div class="control-group"><label><span>' + esc(label) + '</span>' + (small ? '<small>' + esc(small) + '</small>' : '') + '</label>' + body + '</div>';
+  }
+  function selectControl(id, label, items, selected, small) {
+    return control(label, '<select id="' + id + '">' + items.map(it => option(it[0], it[1], selected)).join("") + '</select>', small);
+  }
+  function checkControl(id, label, checked, small) {
+    return control(label, '<div class="switch-row"><span>' + esc(small || "切换") + '</span><input type="checkbox" id="' + id + '"' + (checked ? " checked" : "") + '></div>');
+  }
+  function rangeControl(id, label, value, min, max, step, small) {
+    return control(label, '<input type="range" id="' + id + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + value + '">', small);
+  }
+  function val(id) {
+    const el = document.getElementById(id);
+    if (!el) return "";
+    if (el.type === "checkbox") return !!el.checked;
+    if (el.type === "range") return Number(el.value);
+    return el.value;
+  }
+  function setResult(formula, result, extra) {
+    formulaText.textContent = formula;
+    resultValue.innerHTML = result;
+    const dims = (ideology.dims || []).join(" · ");
+    resultExtra.innerHTML = '<b>价值观察：</b>' + esc(ideology.text || "在严谨推理中体会科学精神、责任意识与求真态度。")
+      + (dims ? '<div class="pill-row"><span class="pill">' + esc(dims) + '</span></div>' : "")
+      + (extra ? '<p>' + esc(extra) + '</p>' : "");
+  }
+  function tableHtml(headers, rows, classFn) {
+    return '<div class="table-wrap"><table><thead><tr>' + headers.map(h => '<th>' + esc(h) + '</th>').join("")
+      + '</tr></thead><tbody>' + rows.map((row, idx) => '<tr class="' + (classFn ? classFn(row, idx) : "") + '">' + row.map(cell => '<td>' + cell + '</td>').join("") + '</tr>').join("") + '</tbody></table></div>';
+  }
+  function members(n) { return Array.from({ length: n }, (_, i) => String.fromCharCode(97 + i)); }
+  function truthMark(v) { return v ? "T" : "F"; }
+
+  function setupSymbol() {
+    const query = PROFILE.params.mode === "query";
+    controls.innerHTML =
+      selectControl("sentence", "自然语言", [
+        ["all", query ? "所有重点项目都需要责任人" : "所有君子都讲诚信"],
+        ["some", query ? "存在一个项目需要专项保护" : "有些学子热爱经典"],
+        ["notall", query ? "并非所有记录都已审核" : "并非所有观点都成立"]
+      ], query ? "all" : "some", "选择语句")
+      + selectControl("domain", "论域", [["people", "人物/学生"], ["project", "项目/遗产"], ["record", "数据记录"]], query ? "project" : "people", "确定对象范围")
+      + selectControl("style", "量词结构", [["all", "∀x(P(x)→Q(x))"], ["some", "∃x(P(x)∧Q(x))"], ["notall", "¬∀xP(x) ⇔ ∃x¬P(x)"]], query ? "all" : "some", "选择符号骨架");
+    renderSymbol();
+  }
+  function renderSymbol() {
+    const style = val("style");
+    const domain = val("domain");
+    const names = domain === "people" ? ["孔子", "屈原", "青年"] : domain === "project" ? ["古籍", "遗址", "展陈"] : ["记录1", "记录2", "记录3"];
+    const formula = style === "all" ? "∀x(P(x) → Q(x))" : style === "some" ? "∃x(P(x) ∧ Q(x))" : "¬∀xP(x) ⇔ ∃x¬P(x)";
+    viz.innerHTML = '<div class="stack">'
+      + '<div class="node-card"><strong>论域 D</strong><div class="pill-row">' + names.map(n => '<span class="pill">' + esc(n) + '</span>').join("") + '</div></div>'
+      + '<div class="flow"><div class="node-card"><strong>个体词 x</strong><p>从论域中取一个对象。</p></div><div class="node-card"><strong>谓词 P(x)</strong><p>对象满足前提条件。</p></div><div class="node-card"><strong>谓词 Q(x)</strong><p>对象满足结论属性。</p></div><div class="node-card"><strong>量词</strong><p class="formula-line">' + esc(formula) + '</p></div></div>'
+      + '<div class="node-card"><strong>符号化结果</strong><p>自然语言判断被整理为可计算、可解释的谓词公式。</p></div></div>';
+    setResult("符号化：" + formula, chip(true, "已建模"), "量词选择体现判断分寸：全称不以偏概全，存在不否定整体。");
+  }
+
+  function setupInterpretation() {
+    controls.innerHTML =
+      rangeControl("dsize", "论域规模 |D|", PROFILE.params.mode === "context" ? 5 : 4, 2, 6, 1, "对象数量")
+      + selectControl("predicate", "谓词赋值", [["wide", "多数对象满足 P"], ["narrow", "少数对象满足 P"], ["empty", "无人满足 P"]], PROFILE.params.mode === "context" ? "wide" : "narrow", "改变解释")
+      + selectControl("formula", "公式", [["all", "∀xP(x)"], ["some", "∃xP(x)"], ["mix", "∀x(P(x)→Q(x))"]], "some", "同式不同解释");
+    renderInterpretation();
+  }
+  function renderInterpretation() {
+    const n = val("dsize"), pred = val("predicate"), formula = val("formula");
+    const ms = members(n);
+    const pset = pred === "wide" ? ms.slice(0, Math.max(1, n - 1)) : pred === "narrow" ? ms.slice(0, 1) : [];
+    const qset = ms.filter((_, i) => i % 2 === 0 || pred === "wide");
+    const allP = ms.every(x => pset.includes(x));
+    const someP = ms.some(x => pset.includes(x));
+    const impl = ms.every(x => !pset.includes(x) || qset.includes(x));
+    const out = formula === "all" ? allP : formula === "some" ? someP : impl;
+    const ftext = formula === "all" ? "∀xP(x)" : formula === "some" ? "∃xP(x)" : "∀x(P(x)→Q(x))";
+    viz.innerHTML = '<div class="viz-grid">'
+      + ms.map(x => '<div class="node-card ' + (pset.includes(x) ? "truth-on" : "truth-off") + '"><strong>对象 ' + esc(x) + '</strong>' + chip(pset.includes(x), "P=" + truthMark(pset.includes(x))) + '<p>Q=' + truthMark(qset.includes(x)) + '</p></div>').join("")
+      + '</div><div class="node-card" style="margin-top:12px"><strong>解释 I</strong><p>D={' + ms.join(",") + '}，P={' + pset.join(",") + '}，Q={' + qset.join(",") + '}。</p></div>';
+    setResult(ftext + " 在当前解释下 = " + truthMark(out), chip(out), "同一句公式离开具体论域和谓词赋值就没有确定真值。");
+  }
+
+  function setupType() {
+    controls.innerHTML =
+      selectControl("typeFormula", "公式样本", [["valid", "∀xP(x) → ∃xP(x)"], ["sat", "∃xP(x)"], ["contra", "∀x(P(x) ∧ ¬P(x))"]], PROFILE.params.mode === "search" ? "sat" : "valid", "选择公式")
+      + rangeControl("depth", PROFILE.params.mode === "search" ? "搜索深度" : "样本论域数", PROFILE.params.mode === "search" ? 4 : 3, 1, 6, 1, "有限探索");
+    renderType();
+  }
+  function renderType() {
+    const kind = val("typeFormula"), depth = val("depth");
+    const rows = [];
+    let seenTrue = false, seenFalse = false;
+    for (let n = 1; n <= depth; n++) {
+      const hasP = n % 2 === 1;
+      let out = kind === "valid" ? true : kind === "sat" ? hasP : false;
+      seenTrue = seenTrue || out; seenFalse = seenFalse || !out;
+      rows.push([String(n), hasP ? "非空 P" : "空 P", truthMark(out), out ? "支持" : "反例"]);
+    }
+    const label = !seenFalse ? "样本中全真" : seenTrue ? "样本中可满足" : "样本中全假";
+    viz.innerHTML = tableHtml(["|D|", "谓词赋值", "公式真值", "观察"], rows, row => row[2] === "T" ? "hot" : "warn")
+      + '<div class="node-card" style="margin-top:12px"><strong>类型直觉</strong><p>' + esc(label) + '。注意：有限样本给直觉，不等于完整判定所有解释。</p></div>';
+    setResult(kind + " -> " + label, chip(seenTrue, label), "真理探索不能只依赖少量样本，谓词逻辑提醒我们敬畏无限情形。");
+  }
+
+  function setupRelation() {
+    controls.innerHTML =
+      selectControl("law", "量词关系", [["negAll", "¬∀xP(x) ⇔ ∃x¬P(x)"], ["negSome", "¬∃xP(x) ⇔ ∀x¬P(x)"], ["swap", "∀x∃yR(x,y) vs ∃y∀xR(x,y)"]], PROFILE.params.mode === "scope" ? "swap" : "negAll", "选择关系")
+      + rangeControl("size", "小论域规模", 3, 2, 5, 1, "构造反例");
+    renderRelation();
+  }
+  function renderRelation() {
+    const law = val("law"), n = val("size"), ms = members(n);
+    if (law === "swap") {
+      const rows = ms.map((x, i) => ms.map((y, j) => (j === i || j === (i + 1) % n) ? "✓" : "·"));
+      viz.innerHTML = tableHtml(["R(x,y)"].concat(ms.map(y => "y=" + y)), rows.map((r, i) => ["x=" + ms[i]].concat(r)), () => "")
+        + '<div class="node-card" style="margin-top:12px"><strong>量词顺序</strong><p>每个 x 都能找到某个 y，不代表存在同一个 y 适合所有 x。</p></div>';
+      setResult("∀x∃yR(x,y) 不必推出 ∃y∀xR(x,y)", chip(false, "不可交换"), "关系边界要由反例说话，不能凭直觉交换量词顺序。");
+      return;
+    }
+    const pset = ms.slice(0, Math.max(1, n - 1));
+    const allP = ms.every(x => pset.includes(x));
+    const someP = ms.some(x => pset.includes(x));
+    const left = law === "negAll" ? !allP : !someP;
+    const right = law === "negAll" ? ms.some(x => !pset.includes(x)) : ms.every(x => !pset.includes(x));
+    const formula = law === "negAll" ? "¬∀xP(x) ⇔ ∃x¬P(x)" : "¬∃xP(x) ⇔ ∀x¬P(x)";
+    viz.innerHTML = '<div class="viz-grid">' + ms.map(x => '<div class="node-card ' + (pset.includes(x) ? "truth-on" : "truth-off") + '"><strong>' + x + '</strong>' + chip(pset.includes(x), "P=" + truthMark(pset.includes(x))) + '</div>').join("")
+      + '</div><div class="node-card" style="margin-top:12px"><strong>左右对照</strong><p class="formula-line">左侧=' + truthMark(left) + '，右侧=' + truthMark(right) + '</p></div>';
+    setResult(formula + " = " + truthMark(left === right), chip(left === right, "等价"), "把“并非全部”改写成“存在例外”，是辩证转换视角的逻辑形式。");
+  }
+
+  function setupPrenex() {
+    controls.innerHTML =
+      selectControl("template", "公式模板", [["imp", "∀x(P(x)→∃yQ(x,y))"], ["neg", "¬∃x∀yR(x,y)"], ["mix", "(∀xP(x)) ∧ (∃yQ(y))"]], PROFILE.params.mode === "skolem" ? "imp" : "neg", "选择公式")
+      + rangeControl("stage", "转换步骤", 1, 1, 4, 1, "逐步规范化");
+    renderPrenex();
+  }
+  function renderPrenex() {
+    const tpl = val("template"), stage = val("stage");
+    const data = {
+      imp: ["∀x(P(x)→∃yQ(x,y))", "∀x(¬P(x)∨∃yQ(x,y))", "∀x∃y(¬P(x)∨Q(x,y))", "∀x∃y M(x,y)", "Skolem: ∀x M(x,f(x))"],
+      neg: ["¬∃x∀yR(x,y)", "∀x¬∀yR(x,y)", "∀x∃y¬R(x,y)", "∀x∃y M(x,y)", "Skolem: ∀x M(x,f(x))"],
+      mix: ["(∀xP(x)) ∧ (∃yQ(y))", "变量已分离", "∀xP(x) ∧ ∃yQ(y)", "∀x∃y(P(x)∧Q(y))", "Skolem: ∀x(P(x)∧Q(c))"]
+    }[tpl];
+    const labels = ["原式", "消去/否定深入", "外提准备", "前束范式", "拓展预处理"];
+    viz.innerHTML = '<div class="stack">' + data.map((f, i) => '<div class="node-card ' + (i < stage ? "truth-on" : "") + '"><strong>' + labels[i] + '</strong><p class="formula-line">' + esc(f) + '</p></div>').join("") + '</div>';
+    const current = data[Math.min(stage, data.length - 1)];
+    setResult(current, chip(stage >= 4, stage >= 4 ? "规范完成" : "转换中"), "规范化追求统一，但每一步都要防止变元捕获和条件偷换。");
+  }
+
+  function setupInference() {
+    controls.innerHTML =
+      selectControl("rule", "谓词推理规则", [["ui", "UI 全称指定"], ["ei", "EI 存在指定"], ["ug", "UG 全称推广"], ["eg", "EG 存在推广"]], PROFILE.params.mode === "audit" ? "ei" : "ui", "选择规则")
+      + checkControl("fresh", "新常项限制", PROFILE.params.mode !== "audit", "EI 是否使用新常项")
+      + rangeControl("step", "推理进度", 1, 1, 3, 1, "逐步展开");
+    renderInference();
+  }
+  function renderInference() {
+    const rule = val("rule"), fresh = val("fresh"), step = val("step");
+    const rules = {
+      ui: ["∀xP(x)", "取个体 a", "P(a)", true, "从普遍原则推出个别事实。"],
+      ei: ["∃xP(x)", fresh ? "引入新常项 c" : "复用旧常项 a", "P(c)", fresh, "存在指定必须使用此前未出现的新常项。"],
+      ug: ["P(a) 且 a 任意", "推广到任意 x", "∀xP(x)", fresh, "全称推广要求个体不受特殊假设约束。"],
+      eg: ["P(a)", "存在一个对象满足 P", "∃xP(x)", true, "从个别事实可以推出存在结论。"]
+    }[rule];
+    const ok = rules[3];
+    viz.innerHTML = '<div class="flow">'
+      + '<div class="proof-card truth-on"><strong>1 前提</strong><p class="formula-line">' + esc(rules[0]) + '</p></div>'
+      + '<div class="proof-card ' + (step >= 2 ? (ok ? "truth-on" : "truth-off") : "") + '"><strong>2 规则限制</strong><p>' + esc(rules[1]) + '</p></div>'
+      + '<div class="proof-card ' + (step >= 3 && ok ? "truth-on" : step >= 3 ? "truth-off" : "") + '"><strong>3 结论</strong><p class="formula-line">' + (step >= 3 ? esc(rules[2]) : "待推出") + '</p></div>'
+      + '<div class="proof-card"><strong>审计</strong><p>' + esc(rules[4]) + '</p></div></div>';
+    setResult(rules[0] + " ⊢ " + (step >= 3 ? rules[2] : "..."), step >= 3 ? chip(ok, ok ? "有效" : "违规") : chip(false, "推理中"), "严守推理规则限制，是从一般到个别、从个别到一般时的科学态度。");
+  }
+
+  function setupSystem() {
+    controls.innerHTML =
+      rangeControl("proofPower", "证明能力", PROFILE.params.mode === "search" ? 78 : 68, 0, 100, 1, "可证性")
+      + rangeControl("modelCover", "模型覆盖", PROFILE.params.mode === "search" ? 62 : 70, 0, 100, 1, "语义覆盖")
+      + rangeControl("searchDepth", "搜索深度", PROFILE.params.mode === "search" ? 42 : 35, 0, 100, 1, "半可判定过程");
+    renderSystem();
+  }
+  function meter(label, value, state) {
+    return '<div class="meter-card ' + (state ? "truth-on" : "truth-off") + '"><strong>' + esc(label) + '</strong><div class="gate-symbol" style="font-size:30px">' + value + '</div><p>' + (state ? "成立/可观察" : "边界提醒") + '</p></div>';
+  }
+  function renderSystem() {
+    const p = val("proofPower"), m = val("modelCover"), s = val("searchDepth");
+    const sound = p >= 55 && m >= 55;
+    const complete = p >= 65 && m >= 65;
+    const decidable = s >= 95;
+    viz.innerHTML = '<div class="viz-grid">' + meter("可靠性", p, sound) + meter("完备性", m, complete) + meter("可判定性", s, decidable) + '</div>'
+      + '<div class="node-card" style="margin-top:12px"><strong>一阶逻辑边界</strong><p>可靠且完备，不等于有算法能判定所有公式；有效式可枚举证明，非有效式可能一直等待。</p></div>';
+    setResult("可靠=" + sound + "，完备=" + complete + "，可判定=" + decidable, chip(sound && complete, decidable ? "异常设定" : "边界清晰"), "真理可被证明，却不能被算法一键判定，这正是理性力量与边界的统一。");
+  }
+
+  function setupCareer() {
+    controls.innerHTML =
+      checkControl("skill", "具备核心技能 S(x)", true, "个人努力")
+      + checkControl("need", "国家重点需求 N(j)", PROFILE.params.mode === "national", "时代方向")
+      + checkControl("serve", "愿意服务基层 B(x)", true, "人民需要")
+      + selectControl("job", "岗位方向", [["ai", "人工智能"], ["security", "网络安全"], ["rural", "数字乡村"]], PROFILE.params.mode === "national" ? "rural" : "ai", "选择岗位");
+    renderCareer();
+  }
+  function renderCareer() {
+    const skill = val("skill"), need = val("need"), serve = val("serve"), job = val("job");
+    const national = PROFILE.params.mode === "national";
+    const recommend = skill && (national ? need && serve : true);
+    const jobName = job === "ai" ? "人工智能工程师" : job === "security" ? "网络安全岗位" : "数字乡村建设";
+    viz.innerHTML = '<div class="flow">'
+      + '<div class="node-card ' + (skill ? "truth-on" : "truth-off") + '"><strong>S(x) 技能</strong>' + chip(skill) + '</div>'
+      + '<div class="node-card ' + (need ? "truth-on" : "truth-off") + '"><strong>N(j) 国家需求</strong>' + chip(need) + '</div>'
+      + '<div class="node-card ' + (serve ? "truth-on" : "truth-off") + '"><strong>B(x) 服务意愿</strong>' + chip(serve) + '</div>'
+      + '<div class="node-card ' + (recommend ? "truth-on" : "truth-off") + '"><strong>推荐</strong><p>' + esc(jobName) + '</p>' + chip(recommend, recommend ? "推荐" : "暂缓") + '</div></div>';
+    setResult("∀x∀j((S(x)∧N(j)∧B(x))→Recommend(x,j))", chip(recommend, recommend ? "匹配" : "需补强"), "职业推荐不仅看个人能力，也要把个人理想放进国家发展和人民需要中。");
+  }
+
+  function setupHeritage() {
+    controls.innerHTML =
+      checkControl("relic", "文物/遗产 H(x)", true, "对象识别")
+      + checkControl("risk", "存在损毁风险 R(x)", PROFILE.params.mode === "governance", "风险监测")
+      + checkControl("standard", "符合修缮标准 S(x)", true, "依法保护")
+      + checkControl("publicUse", "活化利用 A(x)", PROFILE.params.mode === "governance", "文明传承");
+    renderHeritage();
+  }
+  function renderHeritage() {
+    const h = val("relic"), r = val("risk"), s = val("standard"), a = val("publicUse");
+    const protect = h && (r || !a) && s;
+    const active = h && a && s;
+    viz.innerHTML = '<div class="flow">'
+      + '<div class="node-card ' + (h ? "truth-on" : "truth-off") + '"><strong>H(x) 遗产</strong>' + chip(h) + '</div>'
+      + '<div class="node-card ' + (r ? "truth-on" : "truth-off") + '"><strong>R(x) 风险</strong>' + chip(r) + '</div>'
+      + '<div class="node-card ' + (s ? "truth-on" : "truth-off") + '"><strong>S(x) 标准</strong>' + chip(s) + '</div>'
+      + '<div class="node-card ' + ((protect || active) ? "truth-on" : "truth-off") + '"><strong>行动</strong><p>' + (protect ? "重点保护" : active ? "活化利用" : "继续评估") + '</p></div></div>'
+      + '<div class="node-card" style="margin-top:12px"><strong>规则</strong><p class="formula-line">∀x((H(x)∧R(x)∧S(x))→Protect(x))</p></div>';
+    setResult("Protect/Activate = " + (protect || active), chip(protect || active, protect ? "重点保护" : active ? "活化利用" : "待评估"), "把保护政策规则化，是用现代治理和技术守护中华文明根脉。");
+  }
+
+  function render() {
+    const family = PROFILE.family;
+    if (family === "symbol") renderSymbol();
+    else if (family === "interpretation") renderInterpretation();
+    else if (family === "type") renderType();
+    else if (family === "relation") renderRelation();
+    else if (family === "prenex") renderPrenex();
+    else if (family === "inference") renderInference();
+    else if (family === "system") renderSystem();
+    else if (family === "career") renderCareer();
+    else if (family === "heritage") renderHeritage();
+  }
+  function init() {
+    const family = PROFILE.family;
+    if (family === "symbol") setupSymbol();
+    else if (family === "interpretation") setupInterpretation();
+    else if (family === "type") setupType();
+    else if (family === "relation") setupRelation();
+    else if (family === "prenex") setupPrenex();
+    else if (family === "inference") setupInference();
+    else if (family === "system") setupSystem();
+    else if (family === "career") setupCareer();
+    else if (family === "heritage") setupHeritage();
+    controls.addEventListener("input", render);
+    controls.addEventListener("change", render);
+  }
+  init();
+})();
+
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

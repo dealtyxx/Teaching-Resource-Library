@@ -8,11 +8,14 @@
     <meta name="description" content="离散数学课程 - 红色数理 - 欧拉与费马">
 
     <link rel="stylesheet" href="euler.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="../chapter1-compact.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
         rel="stylesheet">
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
@@ -79,7 +82,7 @@
                 </div>
 
                 <div class="control-group">
-                    <label>思政解读</label>
+                    <label>价值解读</label>
                     <div class="info-panel">
                         <h3 id="szTitle">群众路线</h3>
                         <p id="szDesc">互质关系象征着党和人民群众的紧密联系，不可分割。</p>
@@ -110,7 +113,7 @@
                         <span id="calcResult" class="result-value">4</span>
                     </div>
                     <div class="result-item">
-                        <span class="result-label">思政启示</span>
+                        <span class="result-label">价值启示</span>
                         <span id="szResult" class="political-text">紧密团结</span>
                     </div>
                 </div>
@@ -126,19 +129,105 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "chapter": "第1章 计数基础与数论基础",
+      "section": "1.2.4 欧拉函数和费马小定理 · 进阶层",
+      "title": "欧拉与费马定理",
+      "grounding": "本节主题：欧拉函数 φ(n) 表示 1..n 中与 n 互素的整数个数；对素数 p，φ(p)=p-1；φ 是积性函数。欧拉定理：gcd(a,n)=1 时 a^φ(n)≡1 (mod n)。费马小定理是其特例：p 为素数且 p∤a 时 a^(p-1)≡1 (mod p)。它们是模指数运算与 RSA 的理论核心。",
+      "steps": [
+            {
+                  "name": "情境引入",
+                  "desc": "为什么 a 的某个幂次模 n 总会回到 1？这个『周期』由谁决定？"
+            },
+            {
+                  "name": "对象抽取",
+                  "desc": "把『与 n 互素的元素』抽象为模 n 既约剩余系，统计其个数 φ(n)。"
+            },
+            {
+                  "name": "结构建模",
+                  "desc": "用欧拉定理刻画模指数的周期性，理解费马小定理的特例地位。"
+            },
+            {
+                  "name": "推理求解",
+                  "desc": "用 φ(n) 化简大指数：a^k ≡ a^(k mod φ(n))（互素时）。"
+            },
+            {
+                  "name": "程序验证",
+                  "desc": "用本页交互验证 a^φ(n) mod n = 1 与素性测试。"
+            },
+            {
+                  "name": "迁移反思",
+                  "desc": "迁移到 RSA 密钥生成、费马素性测试。"
+            }
+      ],
+      "ideology": {
+            "title": "鱼水情深 · 守正创新",
+            "text": "欧拉函数统计『与整体同心同德（互素）』的成员数量，恰如党群关系——只有与人民群众血肉相连、保持一致，系统才能稳定循环、回归本源（a^φ(n)≡1）。费马、欧拉跨越百年的接力，也启示我们：科学是站在巨人肩上的守正创新。",
+            "dims": [
+                  "人民立场",
+                  "守正创新",
+                  "科学精神"
+            ],
+            "quote": "得众则得国——既约剩余系中『同心同德』的成员越多，模运算的世界就越稳固有序。"
+      },
+      "reflect": [
+            "费马小定理是欧拉定理的『特例』——把 n 取成素数 p 时，φ(p) 为什么等于 p-1？",
+            "欧拉定理要求 gcd(a,n)=1，这个条件去掉会怎样？",
+            "为什么知道了 φ(n) 就能把超大指数幂『模周期化』地快速算出？"
+      ],
+      "transfer": [
+            "RSA 解密指数 d 满足 e·d≡1 (mod φ(n))——欧拉定理正是 RSA 正确性的证明核心。",
+            {
+                  "t": "费马素性测试",
+                  "d": "用 a^(p-1)≡1 反向筛素数，为什么会有『伪素数』漏网？"
+            },
+            {
+                  "t": "周期与降幂",
+                  "d": "把指数对 φ(n) 取模来降幂，这与时钟的周期有什么共通之处？"
+            }
+      ],
+      "layers": [
+            {
+                  "name": "欧拉函数 φ(n)",
+                  "concepts": "既约剩余系 / φ(p)=p−1 / 积性",
+                  "task": "会数与 n 互素的整数个数。",
+                  "page": "euler-basic.html"
+            },
+            {
+                  "name": "欧拉与费马定理",
+                  "concepts": "a^φ(n)≡1 / 费马小定理 / 降幂",
+                  "task": "用定理把超大指数幂模周期化快速算出。",
+                  "page": "euler.html"
+            },
+            {
+                  "name": "RSA 与素性测试",
+                  "concepts": "e·d≡1(mod φ) / 费马测试 / 伪素数",
+                  "task": "理解 RSA 正确性与素性判定的原理。",
+                  "page": "euler-extend.html"
+            }
+      ]
+};
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
+    <script src="../../shared/auto-superscript.js"></script>
 
 </body>
 

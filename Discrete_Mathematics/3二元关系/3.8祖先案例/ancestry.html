@@ -1,155 +1,196 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>红色数理 - 寻根问祖</title>
-    <meta name="description" content="离散数学课程 - 红色数理 - 寻根问祖">
-
-    <link rel="stylesheet" href="ancestry.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
-        rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>红色数理 - 寻根问祖 · 进阶层</title>
+  <meta name="description" content="离散数学 3.8 祖先案例 进阶层：用传递闭包求全部祖先">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.cg-label{color:#4e362d;font-weight:700;font-size:13px;}
+.member-card{border-radius:10px;border:1px solid var(--line);background:rgba(255,253,246,.7);padding:11px 13px;}
+.member-card h4{margin:0 0 4px;color:var(--red);font-size:1rem;}
+.member-card p{margin:2px 0;font-size:12.5px;color:#5b4136;line-height:1.5;}
+.empty-state{text-align:center;color:var(--muted);padding:14px 0;font-size:.85rem;}.empty-state .ei{font-size:1.8rem;opacity:.5;display:block;margin-bottom:5px;}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(139,0,0,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}.kg-step-head strong{color:var(--red);font-size:.95rem;}.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.84rem;}.kg-step span{display:block;font-size:.74rem;color:var(--muted);margin-top:2px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.84rem;color:#7a3216;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
+.results{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;}
+.results h4{margin:0 0 8px;color:var(--red);font-size:.95rem;}.results .badge{font-family:"JetBrains Mono",monospace;font-size:.68rem;padding:1px 7px;border-radius:6px;background:rgba(197,138,31,.16);color:#8a5d0b;font-weight:700;}
+.anc-list{list-style:none;padding:0;margin:0;}
+.anc-list li{padding:7px 10px;border-radius:7px;margin-bottom:6px;font-size:.82rem;border-left:3px solid;}
+.anc-list li b{display:block;color:var(--ink);}.anc-list li small{color:var(--muted);}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 12px;}
+.kg-box{flex:1;min-height:440px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,250,239,.7));padding:10px;display:flex;align-items:center;}
+.lg{width:100%;height:auto;display:block;}.lg text{font-family:"Noto Serif SC",serif;font-weight:700;}
+.leg{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;font-size:.74rem;color:#8b0000;margin-top:10px;}.leg i{display:inline-block;width:13px;height:13px;border-radius:4px;margin-right:5px;vertical-align:middle;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
-
 <body>
-    <!-- 返回主页浮动按钮 (auto-injected) -->
-    <a href="../../index.html" title="返回课程主页" style="
-        position:fixed;top:14px;left:14px;z-index:9999;
-        display:flex;align-items:center;gap:6px;
-        background:rgba(30,30,40,0.82);color:#fff;
-        padding:7px 14px 7px 10px;border-radius:20px;
-        font-size:13px;font-family:'Noto Serif SC',serif;
-        text-decoration:none;backdrop-filter:blur(8px);
-        border:1px solid rgba(255,255,255,0.15);
-        box-shadow:0 2px 12px rgba(0,0,0,0.35);
-        transition:background .2s;
-    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
-       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
-        🏠 <span>课程主页</span>
-    </a>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">进阶层</span></h1>
+        <p class="subtitle">寻根问祖 · 祖先=传递闭包</p>
+      </div>
+      <p class="intro">祖先关系 = 亲子关系 R 的<b>传递闭包 R⁺</b>。求某人全部祖先即求世系图上的可达集。</p>
 
-    <div class="app-container">
-        <header class="main-header">
-            <div class="header-content">
-                <h1>红色数理 <span class="highlight">寻根问祖</span></h1>
-                <p class="subtitle">Roots & Heritage: Family Ancestry Tracing System</p>
-            </div>
-            <div class="header-controls">
-                <button id="resetBtn" class="apple-btn secondary-btn" aria-label="重置 (Reset)">
-                    <span class="btn-icon">🔄</span>
-                    <span>重置 (Reset)</span>
-                </button>
-            </div>
-        </header>
+      <div class="value-panel">
+        <h3>慎终追远 · 文化自信</h3>
+        <p>参天之木必有其根——祖先关系正是把根与源一路追溯的传递闭包，体会血脉相连的家国一体情怀。</p>
+        <div class="dim-list"><span>文化自信</span><span>家国情怀</span><span>慎终追远</span></div>
+      </div>
 
-        <main class="main-stage">
-            <!-- Left: Family Tree -->
-            <section class="tree-panel">
-                <div class="panel-header">
-                    <h3>家族世系图 (Family Tree)</h3>
-                    <p class="panel-sub">四代传承 · 百年历程 (Four Generations · Century Journey)</p>
-                </div>
-                <div class="tree-container" id="treeContainer">
-                    <svg class="tree-svg" id="treeSvg">
-                        <defs>
-                            <marker id="arrow-tree" markerWidth="8" markerHeight="6" refX="20" refY="3" orient="auto">
-                                <polygon points="0 0, 8 3, 0 6" fill="#999" />
-                            </marker>
-                            <marker id="arrow-highlight" markerWidth="8" markerHeight="6" refX="20" refY="3"
-                                orient="auto">
-                                <polygon points="0 0, 8 3, 0 6" fill="#c5a059" />
-                            </marker>
-                        </defs>
-                    </svg>
-                    <div class="nodes-layer" id="nodesLayer"></div>
-                </div>
-                <div class="era-legend">
-                    <div class="era-item">
-                        <div class="era-dot gen1"></div>
-                        <span>第一代 (1920s) 抗战时期</span>
-                    </div>
-                    <div class="era-item">
-                        <div class="era-dot gen2"></div>
-                        <span>第二代 (1950s) 建国初期</span>
-                    </div>
-                    <div class="era-item">
-                        <div class="era-dot gen3"></div>
-                        <span>第三代 (1980s) 改革开放</span>
-                    </div>
-                    <div class="era-item">
-                        <div class="era-dot gen4"></div>
-                        <span>第四代 (2010s) 新时代</span>
-                    </div>
-                </div>
-            </section>
+      <div class="cg-label">祖先追溯 (Ancestor Tracing)</div>
+      <div class="member-card" id="selectedMember"><div class="empty-state"><span class="ei">👤</span>点击家族成员查看其祖先</div></div>
 
-            <!-- Right: Info & Query -->
-            <section class="info-panel">
-                <div class="query-section">
-                    <h3>祖先追溯 (Ancestor Tracing)</h3>
-                    <div class="selected-member" id="selectedMember">
-                        <div class="empty-state">
-                            <span class="empty-icon">👤</span>
-                            <p>点击家族成员查看其祖先</p>
-                        </div>
-                    </div>
-                    <div class="query-buttons" id="queryButtons" style="display:none;">
-                        <button class="apple-btn query-btn" data-mode="direct" aria-label="‍‍ 直接祖先 (Direct) R">
-                            <span class="btn-icon">👨‍👩‍👦</span>
-                            <div class="btn-content">
-                                <span>直接祖先 (Direct)</span>
-                                <span class="btn-formula">R</span>
-                            </div>
-                        </button>
-                        <button class="apple-btn query-btn primary" data-mode="all" aria-label="所有祖先 (All) t(R) - DFS">
-                            <span class="btn-icon">🌳</span>
-                            <div class="btn-content">
-                                <span>所有祖先 (All)</span>
-                                <span class="btn-formula">t(R) - DFS</span>
-                            </div>
-                        </button>
-                    </div>
-                </div>
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步追溯互动</strong><span>点一步，看反馈、公式项和世系图同步高亮</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-guide="pick"><b>1 选成员</b><span>确定追溯起点</span></button>
+          <button class="kg-step" type="button" data-guide="direct"><b>2 直接祖先</b><span>R：父母（一步）</span></button>
+          <button class="kg-step" type="button" data-guide="all"><b>3 所有祖先</b><span>t(R)=R⁺：DFS 传递闭包</span></button>
+        </div>
+        <div class="kg-feedback" id="kgFeedback">先选一个家族成员作为追溯起点（已演示『李思源』）。</div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-token="R">R 直接祖先</span>
+          <span class="kg-token" data-token="Rp">R⁺ 传递闭包 (DFS)</span>
+        </div>
+      </div>
 
-                <div class="results-section">
-                    <h3>追溯结果 (Tracing Results)</h3>
-                    <div class="results-container" id="resultsContainer">
-                        <div class="empty-state">
-                            <span class="empty-icon">📜</span>
-                            <p>开始追溯后，这里将显示祖先信息</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
+      <div class="results" id="results"><h4>追溯结果 (Tracing Results)</h4><div class="empty-state"><span class="ei">📜</span>选择成员并追溯后，这里显示祖先信息</div></div>
+    </aside>
 
-    <script src="ancestry.js"></script>
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>点成员选起点，再点『直接祖先 R』或『所有祖先 R⁺』，看世系图上祖先链高亮。</span>
+        <div class="visual-badge">传递闭包 + DFS</div>
+      </section>
+      <h2 class="pane-title">家族世系图（四代传承）</h2>
+      <p class="pane-sub">『直接祖先』只看父母（一步 R）；『所有祖先』沿亲子边逐级上溯（R⁺ 传递闭包，DFS）。</p>
+      <div class="kg-box"><svg id="lg" class="lg" viewBox="0 0 580 440" preserveAspectRatio="xMidYMid meet"></svg></div>
+      <div class="leg"><span><i style="background:#c0392b"></i>1920s 抗战</span><span><i style="background:#e8a317"></i>1950s 建国</span><span><i style="background:#2a9d8f"></i>1980s 改革</span><span><i style="background:#2f5f9f"></i>2010s 新时代</span></div>
+    </main>
+  </div>
 
-<!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
-</footer>
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
 
+  <script>
+    window.SECTION_META = {
+      "layers": [
+        {"name": "亲子关系", "concepts": "父母-子女 / 直接关系", "task": "把家谱抽象为亲子关系。", "page": "ancestry-basic.html"},
+        {"name": "祖先=传递闭包", "concepts": "R⁺ / 可达集 / 无环", "task": "用传递闭包求全部祖先/后代。", "page": "ancestry.html"},
+        {"name": "最近公共祖先与近亲", "concepts": "LCA / 共同祖先 / 近亲判定", "task": "迁移到 LCA 与依赖分析。", "page": "ancestry-extend.html"}
+      ],
+      "chapter": "第3章 二元关系", "section": "3.8 祖先案例 · 进阶层", "title": "二元关系应用 · 寻根问祖",
+      "grounding": "本节主题：用传递闭包从『亲子关系』推出『祖先关系』。亲子关系 R 是直接关系，祖先关系是 R 的传递闭包 R⁺。家谱即关系图，求某人全部祖先即求可达集。本页定位为进阶层：用传递闭包求全部祖先/后代。",
+      "steps": [
+        {"name": "情境引入", "desc": "只知道每个人的父母，如何推出某人的全部祖先？"},
+        {"name": "对象抽取", "desc": "把人抽象为节点，把『父母-子女』抽象为亲子关系。"},
+        {"name": "结构建模", "desc": "用亲子关系的传递闭包刻画祖先关系。"},
+        {"name": "推理求解", "desc": "用 DFS 求传递闭包，得全部祖先链。"},
+        {"name": "程序验证", "desc": "用本页交互构建家谱，查询直接/全部祖先。"},
+        {"name": "迁移反思", "desc": "迁移到 LCA、依赖分析、组织层级。"}
+      ],
+      "ideology": {"title": "寻根问祖 · 慎终追远", "text": "祖先关系由亲子关系传递而来，寻根问祖、慎终追远是中华民族重视家国传承、敬祖睦宗的文化传统。用数学梳理血脉谱系，既彰显文化自信，也让我们体会到个人与家族、家族与民族血脉相连的家国一体情怀。", "dims": ["文化自信", "家国情怀", "慎终追远"], "quote": "参天之木，必有其根；怀山之水，必有其源——祖先关系正是把根与源一路追溯的传递闭包。"},
+      "reflect": ["祖先关系是亲子关系的传递闭包，它满足传递性，但满足自反、对称吗？", "家谱中若出现『环』会意味着什么？现实中可能吗？", "求某人全部祖先，本质是图上的什么操作？"],
+      "transfer": ["依赖的依赖、下属的下属都是传递闭包；近亲判定需查共同祖先与 LCA（拓展层）。"]
+    };
+  </script>
 
+  <script>
+    var $=function(id){return document.getElementById(id);};
+    var FAM={
+      'g1-1':{n:'李建国',gen:1,era:'1920s 抗战时期',story:'投身革命，为新中国奋斗终生',x:150,y:55},
+      'g1-2':{n:'王秀英',gen:1,era:'1920s 抗战时期',story:'巾帼英雄，抗战时期地下工作者',x:300,y:55},
+      'g2-1':{n:'李卫东',gen:2,era:'1950s 建国初期',story:'建国后投身工业建设，大国工匠',x:225,y:165},
+      'g2-2':{n:'张春梅',gen:2,era:'1950s 建国初期',story:'人民教师，培育新中国栋梁',x:430,y:165},
+      'g3-1':{n:'李明',gen:3,era:'1980s 改革开放',story:'改革开放后下海经商，民营企业家',x:330,y:275},
+      'g3-2':{n:'刘芳',gen:3,era:'1980s 改革开放',story:'高校教授，科研工作者',x:500,y:275},
+      'g4-1':{n:'李思源',gen:4,era:'2010s 新时代',story:'新时代青年，科技创业者',x:380,y:385},
+      'g4-2':{n:'李思远',gen:4,era:'2010s 新时代',story:'新时代青年，基层公务员',x:500,y:385}
+    };
+    var PARENTS={'g2-1':['g1-1','g1-2'],'g3-1':['g2-1','g2-2'],'g4-1':['g3-1','g3-2'],'g4-2':['g3-1','g3-2']};
+    var GC={1:'#c0392b',2:'#e8a317',3:'#2a9d8f',4:'#2f5f9f'};
+    var EDGES=[];Object.keys(PARENTS).forEach(function(c){PARENTS[c].forEach(function(p){EDGES.push([p,c]);});});
+    var nameOf=function(id){return FAM[id].n;};
+    var parentsOf=function(id){return PARENTS[id]||[];};
+    function allAncestors(id){var seen={},order=[];(function dfs(x){parentsOf(x).forEach(function(p){if(!seen[p]){seen[p]=1;order.push(p);dfs(p);}});})(id);return order;}
+    var sel=null,guide='pick',hotN={},hotE={};
+    function draw(){
+      var svg='<defs><marker id="ar" markerWidth="8" markerHeight="6" refX="9" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#bbb"/></marker><marker id="arh" markerWidth="8" markerHeight="6" refX="9" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#c5a059"/></marker></defs>';
+      var anyHot=Object.keys(hotN).length>0;
+      EDGES.forEach(function(e){var on=hotE[e[0]+'>'+e[1]];var p1=FAM[e[0]],p2=FAM[e[1]];svg+='<line x1="'+p1.x+'" y1="'+(p1.y+20)+'" x2="'+p2.x+'" y2="'+(p2.y-20)+'" stroke="'+(on?'#c5a059':'#c9b8b0')+'" stroke-width="'+(on?3.2:1.4)+'" opacity="'+(on?1:(anyHot?0.18:0.7))+'" marker-end="url(#'+(on?'arh':'ar')+')"/>';});
+      Object.keys(FAM).forEach(function(id){var p=FAM[id];var isSel=sel===id;var isHot=hotN[id]&&!isSel;var stroke=isSel?'#8b0000':(isHot?'#c5a059':'#fff');var sw=(isSel||isHot)?3.4:2;var op=(anyHot&&!isSel&&!isHot)?0.42:1;
+        svg+='<g style="cursor:pointer" data-id="'+id+'"><rect x="'+(p.x-50)+'" y="'+(p.y-20)+'" width="100" height="40" rx="9" fill="'+GC[p.gen]+'" stroke="'+stroke+'" stroke-width="'+sw+'" opacity="'+op+'"/><text x="'+p.x+'" y="'+(p.y-2)+'" text-anchor="middle" fill="#fff" font-size="14" opacity="'+op+'">'+nameOf(id)+'</text><text x="'+p.x+'" y="'+(p.y+13)+'" text-anchor="middle" fill="rgba(255,255,255,.82)" font-size="9" opacity="'+op+'">第'+p.gen+'代</text></g>';
+      });
+      $('lg').innerHTML=svg;
+      $('lg').querySelectorAll('[data-id]').forEach(function(g){g.onclick=function(){pick(g.dataset.id);};});
+    }
+    function pick(id){
+      sel=id;guide='pick';syncGuide();hotN={};hotE={};
+      var m=FAM[id];
+      $('selectedMember').innerHTML='<div class="member-card"><h4>'+m.n+'</h4><p><strong>时代：</strong>'+m.era+'</p><p><strong>事迹：</strong>'+m.story+'</p></div>';
+      $('results').innerHTML='<h4>追溯结果 (Tracing Results)</h4><div class="empty-state"><span class="ei">👆</span>点上方『直接祖先 R』或『所有祖先 R⁺』开始追溯</div>';
+      draw();
+    }
+    function showResults(arr,title,formula){
+      var html='<h4>'+title+' <span class="badge">'+formula+'</span></h4>';
+      if(!arr.length)html+='<div class="empty-state"><span class="ei">📜</span>该成员无此项祖先（已是始祖一代）</div>';
+      else html+='<ul class="anc-list">'+arr.map(function(id){var a=FAM[id];return '<li style="border-left-color:'+GC[a.gen]+';background:rgba(116,55,31,.05)"><b>'+a.n+'（第'+a.gen+'代）</b><small>'+a.era+' · '+a.story+'</small></li>';}).join('')+'</ul>';
+      $('results').innerHTML=html;
+    }
+    function queryDirect(){var ps=parentsOf(sel);hotN={};hotE={};ps.forEach(function(p){hotN[p]=1;hotE[p+'>'+sel]=1;});draw();showResults(ps,'直接祖先 (Direct)','R 父母关系');}
+    function queryAll(){var anc=allAncestors(sel);hotN={};hotE={};(function hl(x){parentsOf(x).forEach(function(p){hotN[p]=1;hotE[p+'>'+x]=1;hl(p);});})(sel);draw();showResults(anc,'所有祖先 (All)','t(R)=R⁺ 传递闭包(DFS)');}
+    function syncGuide(){
+      document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.guide===guide);});
+      document.querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',(guide==='direct'&&t.dataset.token==='R')||(guide==='all'&&(t.dataset.token==='R'||t.dataset.token==='Rp')));});
+    }
+    function setGuide(g){
+      if(g==='pick'){pick('g4-1');$('kgFeedback').innerHTML='先选一个家族成员作为追溯起点。点世系图节点即可（已演示『李思源』）。';return;}
+      if(!sel)pick('g4-1');
+      guide=g;syncGuide();
+      if(g==='direct'){$('kgFeedback').innerHTML='<b>直接祖先</b>（一步关系 R）：'+nameOf(sel)+' 的父母。金色高亮其上一代亲本。';queryDirect();}
+      else{$('kgFeedback').innerHTML='<b>所有祖先</b>（传递闭包 R⁺）：沿亲子边用 DFS 逐级上溯，得到 '+nameOf(sel)+' 的全部祖先链。';queryAll();}
+    }
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setGuide(b.dataset.guide);};});
+    pick('g4-1');setGuide('pick');
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
 </body>
-
 </html>

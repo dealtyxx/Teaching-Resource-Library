@@ -384,236 +384,274 @@ color: var(--text-dark);
 
 .concept-content h4,
 .insight-content h4 {
+    color: var(--text-dark);
+    margin: 16px 0 8px 0;
+    font-size: 1rem;
+}
 
-    .rule-btn {
-        padding: 8px;
-        background: white;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 0.85rem;
-        transition: all 0.2s;
+.concept-content p,
+.insight-content p {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+.rules-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin-bottom: 15px;
+}
+
+.rules-table th {
+    background: #f8f9fa;
+    padding: 8px;
+    text-align: left;
+    border-bottom: 2px solid var(--primary-red);
+    color: var(--text-dark);
+}
+
+.rules-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #eee;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+}
+
+.rules-table tr:hover {
+    background: #fff5f5;
+}
+
+/* Shared course shell: move the right rail left and keep the proof workspace complete. */
+.app-container[data-dm-app] {
+    width: min(96vw, 1800px) !important;
+    height: calc(100vh - 96px) !important;
+    min-height: 640px !important;
+    display: grid !important;
+    grid-template-columns: 360px minmax(0, 1fr);
+    grid-template-areas: "side main";
+    gap: 0;
+    background: rgba(255, 255, 255, 0.76) !important;
+    border: 1px solid rgba(214, 59, 29, 0.22) !important;
+    box-shadow: 0 18px 54px rgba(214, 59, 29, 0.15) !important;
+    color: var(--text-dark) !important;
+}
+
+.app-container[data-dm-app] > .main-header {
+    grid-area: side;
+    width: 360px;
+    min-width: 360px;
+    height: 100%;
+    min-height: 0;
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 18px;
+    padding: 24px;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(255, 247, 238, 0.96), rgba(255, 235, 229, 0.92)) !important;
+    border-right: 1px solid rgba(214, 59, 29, 0.16);
+    box-shadow: none !important;
+    color: var(--text-dark) !important;
+}
+
+.app-container[data-dm-app] > .main-header .header-content h1 {
+    margin: 0 0 8px;
+    font-family: var(--font-title);
+    font-size: 2.1rem;
+    line-height: 1.2;
+    font-weight: 400;
+    color: #d63b1d !important;
+    letter-spacing: 0;
+}
+
+.app-container[data-dm-app] > .main-header .highlight {
+    margin-left: 4px;
+    color: #ffb400 !important;
+}
+
+.app-container[data-dm-app] > .main-header .subtitle {
+    color: #64748b !important;
+    font-style: normal;
+    opacity: 1;
+    line-height: 1.6;
+}
+
+.app-container[data-dm-app] > .main-header .header-tabs {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0;
+    background: transparent !important;
+    border-radius: 0;
+}
+
+.app-container[data-dm-app] > .main-header .tab-btn {
+    width: 100%;
+    min-height: 46px;
+    border-radius: 12px;
+    border: 1px solid rgba(214, 59, 29, 0.16) !important;
+    background: rgba(255, 255, 255, 0.86) !important;
+    color: var(--text-dark) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.app-container[data-dm-app] > .main-header .tab-btn.active {
+    background: var(--primary-red) !important;
+    color: #fff !important;
+    border-color: var(--primary-red) !important;
+}
+
+.app-container[data-dm-app] > main.main-stage {
+    grid-area: main;
+    min-width: 0;
+    min-height: 0;
+    height: auto;
+    margin: 12px 12px 16px 0;
+    padding: 16px;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 10px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(214, 59, 29, 0.14);
+    border-radius: 20px;
+}
+
+.app-container[data-dm-app] > main.main-stage > #dm-page-layers {
+    grid-row: 1;
+    width: 100%;
+    max-width: 100%;
+}
+
+.app-container[data-dm-app] > main.main-stage > #dm-page-layers .dm-ladder {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.app-container[data-dm-app] > main.main-stage > .proof-workspace {
+    grid-row: 2;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    overflow: hidden;
+    border-radius: 16px;
+}
+
+.app-container[data-dm-app] .toolbox-panel,
+.app-container[data-dm-app] .proof-panel {
+    min-height: 0;
+}
+
+.app-container[data-dm-app] .proof-paper {
+    min-width: 0;
+    overflow-x: auto;
+}
+
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel {
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    padding: 0 4px 0 0 !important;
+    background: transparent !important;
+    border-left: 0 !important;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+}
+
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel #dm-ideo-page,
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel .panel-section {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+}
+
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel #dm-ideo-page {
+    display: block !important;
+    text-align: left !important;
+}
+
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel #dm-ideo-page > label {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 0 10px !important;
+    text-align: left !important;
+}
+
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel .panel-section {
+    margin-bottom: 0 !important;
+    padding: 14px !important;
+    border: 1px solid rgba(214, 59, 29, 0.12) !important;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.86) !important;
+    color: var(--text-dark) !important;
+    box-shadow: 0 8px 22px rgba(214, 59, 29, 0.08);
+}
+
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel .panel-header {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+}
+
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel .panel-header h3 {
+    color: var(--primary-red);
+}
+
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel .concept-content p,
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel .insight-content p {
+    color: #64748b;
+}
+
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel #dm-ideo-page .info-panel {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+}
+
+@media (max-width: 980px) {
+    body {
+        height: auto;
+        min-height: 100vh;
+        overflow: auto;
+        align-items: flex-start;
+        padding: 70px 0 96px;
     }
 
-    .rule-btn:hover {
-        border-color: var(--primary-red);
-        color: var(--primary-red);
+    .app-container[data-dm-app] {
+        width: min(94vw, 720px) !important;
+        height: auto !important;
+        min-height: 0 !important;
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "side"
+            "main";
     }
 
-    .rule-btn.special {
+    .app-container[data-dm-app] > .main-header {
         width: 100%;
-        background: #e8f5e9;
-        border-color: #c8e6c9;
-        color: #2e7d32;
-        margin-bottom: 8px;
+        min-width: 0;
+        height: auto;
+        overflow: visible;
     }
 
-    .rule-btn.special:hover {
-        background: #c8e6c9;
+    .app-container[data-dm-app] > main.main-stage {
+        margin: 0 12px 16px;
+        overflow: visible;
     }
 
-    .hidden {
-        display: none;
+    .app-container[data-dm-app] > main.main-stage > .proof-workspace,
+    .app-container[data-dm-app] > main.main-stage > #dm-page-layers .dm-ladder {
+        grid-template-columns: 1fr;
     }
-
-    .action-row {
-        margin-top: auto;
-        display: flex;
-        gap: 10px;
-    }
-
-    .control-btn {
-        flex: 1;
-        padding: 10px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        background: #e0e0e0;
-        color: var(--text-dark);
-    }
-
-    .control-btn.warning {
-        background: #ffebee;
-        color: var(--error-red);
-    }
-
-    /* Proof Panel */
-    .proof-panel {
-        padding: 30px;
-        background: #f0f2f5;
-        display: flex;
-        flex-direction: column;
-        overflow-y: auto;
-    }
-
-    .goal-card {
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: var(--shadow);
-        margin-bottom: 20px;
-        border-left: 5px solid var(--primary-gold);
-    }
-
-    .goal-label {
-        font-size: 0.9rem;
-        color: var(--text-light);
-        margin-bottom: 5px;
-    }
-
-    .goal-formula {
-        font-family: var(--font-mono);
-        font-size: 1.5rem;
-        color: var(--primary-red);
-        margin-bottom: 8px;
-    }
-
-    .goal-desc {
-        color: var(--text-dark);
-        font-size: 1rem;
-    }
-
-    .proof-paper {
-        background: var(--paper-bg);
-        padding: 40px;
-        border-radius: 4px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        min-height: 500px;
-        position: relative;
-        border: 1px solid #e0d0b0;
-    }
-
-    .paper-header {
-        text-align: center;
-        margin-bottom: 30px;
-        border-bottom: 2px solid var(--primary-red);
-        padding-bottom: 15px;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-    }
-
-    .paper-title {
-        font-family: var(--font-title);
-        font-size: 1.8rem;
-        color: var(--primary-red);
-    }
-
-    .paper-id {
-        font-family: var(--font-mono);
-        color: var(--text-light);
-        font-size: 0.9rem;
-    }
-
-    .proof-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .proof-table th {
-        text-align: left;
-        padding: 10px;
-        border-bottom: 2px solid #ccc;
-        color: var(--text-light);
-        font-weight: normal;
-        font-size: 0.9rem;
-    }
-
-    .proof-table td {
-        padding: 12px 10px;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        font-family: var(--font-mono);
-        font-size: 1.1rem;
-    }
-
-    .proof-table tr.selected {
-        background: rgba(222, 41, 16, 0.05);
-    }
-
-    .proof-table tr:hover {
-        background: rgba(0, 0, 0, 0.02);
-        cursor: pointer;
-    }
-
-    .proof-status {
-        margin-top: 30px;
-        text-align: center;
-        font-family: var(--font-title);
-        font-size: 1.2rem;
-        color: var(--text-light);
-    }
-
-    .proof-status.success {
-        color: #27ae60;
-    }
-
-    /* Sidebar */
-    .sidebar {
-        background: rgba(255, 255, 255, 0.5);
-        border-left: 1px solid rgba(255, 255, 255, 0.8);
-        padding: 30px;
-        overflow-y: auto;
-    }
-
-    .panel-section {
-        margin-bottom: 40px;
-    }
-
-    .panel-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 20px;
-        padding-bottom: 10px;
-        border-bottom: 2px solid var(--primary-gold);
-    }
-
-    .panel-icon {
-        font-size: 1.5rem;
-    }
-
-    .panel-header h3 {
-        font-size: 1.2rem;
-        color: var(--primary-red);
-    }
-
-    .concept-content h4,
-    .insight-content h4 {
-        color: var(--text-dark);
-        margin: 16px 0 8px 0;
-        font-size: 1rem;
-    }
-
-    .concept-content p,
-    .insight-content p {
-        color: var(--text-light);
-        font-size: 0.95rem;
-        line-height: 1.6;
-        margin-bottom: 12px;
-    }
-
-    .rules-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.85rem;
-        margin-bottom: 15px;
-    }
-
-    .rules-table th {
-        background: #f8f9fa;
-        padding: 8px;
-        text-align: left;
-        border-bottom: 2px solid var(--primary-red);
-        color: var(--text-dark);
-    }
-
-    .rules-table td {
-        padding: 6px 8px;
-        border-bottom: 1px solid #eee;
-        font-family: var(--font-mono);
-        font-size: 0.8rem;
-    }
-
-    .rules-table tr:hover {
-        background: #fff5f5;
-    }
+}

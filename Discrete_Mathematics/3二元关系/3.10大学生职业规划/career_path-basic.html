@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>职业领航 · 基础层 — 能力与岗位关系</title>
+  <meta name="description" content="离散数学 3.10 基础层：把课程、技能、岗位抽象为二元关系">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{
+  --ink:#251713; --muted:#6c5a52; --paper:#fff8ec; --card:rgba(255,253,246,0.92);
+  --line:rgba(116,55,31,0.18); --red:#b42318; --red-2:#de5b3d; --gold:#c58a1f;
+  --green:#2f7d57; --blue:#2f5f9f; --amber:#f0a202;
+  --shadow:0 18px 50px rgba(69,31,15,0.14);
+}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;
+  background:radial-gradient(circle at 16% 12%, rgba(222,91,61,.18), transparent 28%),radial-gradient(circle at 82% 8%, rgba(47,95,159,.14), transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}
+.dot.red{background:#ff5f56;} .dot.yellow{background:#ffbd2e;} .dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}
+.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.control-group{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
+.control-group>label{display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:8px;}
+.filt{display:flex;flex-wrap:wrap;gap:6px;}
+.filt .b{padding:6px 12px;border-radius:999px;cursor:pointer;font-size:.8rem;border:1px solid var(--line);color:#8b0000;background:rgba(255,255,255,.55);font-weight:700;transition:.2s;}
+.filt .b.on{color:#fff;}
+.filt .b[data-r=all].on{background:#8b0000;border-color:#8b0000;}
+.filt .b[data-r=培养].on{background:#2a9d8f;border-color:#2a9d8f;}
+.filt .b[data-r=胜任].on{background:#d63b1d;border-color:#d63b1d;}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(139,0,0,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}
+.kg-step-head strong{color:var(--red);font-size:.95rem;}
+.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.86rem;}
+.kg-step span{display:block;font-size:.76rem;color:var(--muted);margin-top:3px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.84rem;color:#7a3216;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
+.qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.86rem;color:#5b4136;line-height:1.9;}
+.qres b{color:var(--red);} .qres .rel{display:inline-block;font-size:.72rem;padding:1px 8px;border-radius:10px;background:rgba(214,59,29,.12);color:#d63b1d;margin:0 3px;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);} .mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}
+.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 12px;}
+.kg-box{flex:1;min-height:420px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,250,239,.7));padding:10px;display:flex;align-items:center;}
+.lg{width:100%;height:auto;display:block;}
+.lg text{font-family:"Noto Serif SC",serif;font-size:11px;fill:#5a2018;font-weight:700;}
+.lg .colhdr{fill:#8b0000;font-size:13px;}
+.leg{display:flex;gap:16px;justify-content:center;font-size:.78rem;color:#8b0000;margin-top:10px;}
+.leg i{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){
+  body{overflow:auto;}
+  .app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}
+  .side-panel,.glass-pane{max-height:none;overflow:visible;}
+}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">基础层</span></h1>
+        <p class="subtitle">职业领航 · 能力-岗位关系</p>
+      </div>
+      <p class="intro">把课程、技能、岗位抽象为三层节点，把『培养』『胜任』抽象为两个二元关系（有向边）。</p>
+
+      <div class="value-panel">
+        <h3>立志报国 · 脚踏实地</h3>
+        <p>认清『课程—技能—岗位』的真实对应，把每一门课、每一项技能对接国家需要，是青年把『小我』融入『大我』的起点。</p>
+        <div class="dim-list"><span>理想信念</span><span>脚踏实地</span></div>
+      </div>
+
+      <div class="control-group">
+        <label>按关系类型筛选边</label>
+        <div class="filt" id="filt"><span class="b on" data-r="all">全部</span><span class="b" data-r="培养">培养</span><span class="b" data-r="胜任">胜任</span></div>
+      </div>
+
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步建模互动</strong><span>点一步，看反馈、公式项和关系图同步高亮</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-guide="entities"><b>1 抽取节点</b><span>V：课程 / 技能 / 岗位</span></button>
+          <button class="kg-step" type="button" data-guide="typed"><b>2 标注关系</b><span>R₁ 培养 / R₂ 胜任</span></button>
+          <button class="kg-step" type="button" data-guide="direct"><b>3 查直接对应</b><span>点节点看一步关系</span></button>
+        </div>
+        <div class="kg-feedback" id="kgFeedback">先把成长要素抽象为三层节点，形成顶点集 V。</div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-token="V">V = 节点集合</span>
+          <span class="kg-token" data-token="R1">R₁ = 培养</span>
+          <span class="kg-token" data-token="R2">R₂ = 胜任</span>
+        </div>
+      </div>
+
+      <div class="control-group" style="padding:0;border:none;background:none;">
+        <div class="qres" id="qres">点击图中任一节点，查看它的直接对应关系。</div>
+      </div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>筛选关系、点击节点，看课程如何『培养』技能、技能如何『胜任』岗位。</span>
+        <div class="visual-badge">三层节点 + 对应边</div>
+      </section>
+      <h2 class="pane-title">课程 → 技能 → 岗位（三列关系图）</h2>
+      <p class="pane-sub">『培养』与『胜任』各是一个有向、不对称的二元关系。点节点查看它的一步直接对应。</p>
+      <div class="kg-box"><svg id="lg" class="lg" viewBox="0 0 460 380" preserveAspectRatio="xMidYMid meet"></svg></div>
+      <div class="leg"><span><i style="background:#2a9d8f"></i>课程</span><span><i style="background:#e8a317"></i>技能</span><span><i style="background:#d63b1d"></i>岗位</span></div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+    <div>版权所有 · 项目总负责人：谢鑫</div>
+  </footer>
+
+  <script>
+    window.SECTION_META = {
+        layers: [
+            { "name": "能力-岗位关系", "concepts": "课程/技能/岗位节点 / 对应为边", "task": "把成长要素抽象为关系。", "page": "career_path-basic.html" },
+            { "name": "路径与可达", "concepts": "课程→技能→岗位 合成 / 可达性", "task": "用合成与可达分析发展通路与缺口。", "page": "career_path.html" },
+            { "name": "学习路径推荐", "concepts": "能力图谱 / 缺口分析 / 课程推荐", "task": "迁移到生涯规划与学习路径推荐。", "page": "career_path-extend.html" }
+        ],
+        chapter: "第3章 二元关系", section: "3.10 大学生职业规划 · 基础层", title: "能力与岗位关系",
+        grounding: "本页（基础层）主题：把成长要素分为课程、技能、岗位三层，『课程培养技能』『技能胜任岗位』各是一个二元关系（有向边）。本层只看一步直接对应；把两步串起需要关系合成（进阶层）。",
+        steps: [
+            { name: "情境引入", desc: "我学的课、我的技能、想去的岗位之间到底怎样对应？" },
+            { name: "对象抽取", desc: "课程/技能/岗位→三层节点，培养/胜任→有向边。" },
+            { name: "结构建模", desc: "用『培养』『胜任』两个二元关系刻画成长链条的两段。" },
+            { name: "推理求解", desc: "点节点看其直接对应（培养/胜任）。" },
+            { name: "程序验证", desc: "每条边都是明确的『要素A → 要素B』对应。" },
+            { name: "迁移反思", desc: "合成两段关系=课程到岗位的发展通路（进阶层）。" }
+        ],
+        ideology: { title: "立志报国 · 脚踏实地", text: "认清『课程—技能—岗位』的真实对应，就是脚踏实地规划成长。把个人的每一门课、每一项技能，对接国家需要与时代使命，正是青年把『小我』融入『大我』的起点。", dims: ["理想信念", "脚踏实地"] },
+        reflect: ["『培养』关系为什么是有向的、不对称的？", "为什么一门课可培养多种技能、一种技能可胜任多个岗位？"],
+        transfer: ["合成『培养』与『胜任』=课程到岗位的可达通路（进阶层）。"]
+    };
+  </script>
+
+  <script>
+    var $=function(id){return document.getElementById(id);};
+    var COURSE={C1:'程序设计',C2:'数据结构',C3:'离散数学',C4:'数据库',C5:'机器学习',C6:'计算机网络'};
+    var SKILL={S1:'编程能力',S2:'算法设计',S3:'数据建模',S4:'AI建模',S5:'网络安全'};
+    var JOB={J1:'后端工程师',J2:'算法工程师',J3:'数据分析师',J4:'安全工程师'};
+    var TRAIN=[['C1','S1'],['C2','S2'],['C3','S2'],['C3','S3'],['C4','S3'],['C5','S4'],['C6','S5']];
+    var QUAL=[['S1','J1'],['S2','J1'],['S2','J2'],['S4','J2'],['S3','J3'],['S1','J3'],['S5','J4'],['S1','J4']];
+    var nameOf=function(id){return COURSE[id]||SKILL[id]||JOB[id];};
+    var colorOf=function(id){return COURSE[id]?'#2a9d8f':(SKILL[id]?'#e8a317':'#d63b1d');};
+    var pos={},sel=null,filter='all',guide='entities';
+    function layout(){function col(arr,x){var H=360;arr.forEach(function(id,i){pos[id]=[x,30+(H-40)*(i+0.5)/arr.length];});}col(Object.keys(COURSE),70);col(Object.keys(SKILL),230);col(Object.keys(JOB),390);}
+    function relType(e,grp){return grp==='train'?'培养':'胜任';}
+    function neighborsOf(id){
+      var rel=[];
+      TRAIN.forEach(function(e){if(e[0]===id)rel.push([id,e[1],'培养']);if(e[1]===id)rel.push([e[0],id,'培养']);});
+      QUAL.forEach(function(e){if(e[0]===id)rel.push([id,e[1],'胜任']);if(e[1]===id)rel.push([e[0],id,'胜任']);});
+      return rel;
+    }
+    function edgeShown(rt){return filter==='all'||filter===rt;}
+    function draw(){
+      var related={};if(sel&&guide==='direct'){neighborsOf(sel).forEach(function(r){if(edgeShown(r[2]))related[r[0]+'>'+r[1]]=1;});}
+      var typedHot=(guide==='typed');
+      var svg='<defs><marker id="ar" markerWidth="9" markerHeight="7" refX="15" refY="3.5" orient="auto"><polygon points="0 0,9 3.5,0 7" fill="#bbb"/></marker><marker id="arh" markerWidth="9" markerHeight="7" refX="15" refY="3.5" orient="auto"><polygon points="0 0,9 3.5,0 7" fill="#d63b1d"/></marker></defs>';
+      svg+='<text class="colhdr" x="70" y="16" text-anchor="middle">课程</text><text class="colhdr" x="230" y="16" text-anchor="middle">技能</text><text class="colhdr" x="390" y="16" text-anchor="middle">岗位</text>';
+      function edge(a,b,rt){if(!edgeShown(rt))return;var on=related[a+'>'+b]||(typedHot&&filter!=='all'&&filter===rt);var p1=pos[a],p2=pos[b];svg+='<line x1="'+(p1[0]+18)+'" y1="'+p1[1]+'" x2="'+(p2[0]-18)+'" y2="'+p2[1]+'" stroke="'+(on?'#d63b1d':'#c9b8b0')+'" stroke-width="'+(on?3:1.3)+'" opacity="'+((sel&&guide==='direct'&&!on)?0.15:0.7)+'" marker-end="url(#'+(on?'arh':'ar')+')"/>';}
+      TRAIN.forEach(function(e){edge(e[0],e[1],'培养');});QUAL.forEach(function(e){edge(e[0],e[1],'胜任');});
+      [COURSE,SKILL,JOB].forEach(function(grp){Object.keys(grp).forEach(function(id){var p=pos[id];var isSel=sel===id&&guide==='direct';svg+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="16" fill="'+colorOf(id)+'" stroke="'+(isSel?'#8b0000':'#fff')+'" stroke-width="'+(isSel?3.5:2)+'" style="cursor:pointer" data-id="'+id+'"/><text x="'+p[0]+'" y="'+(p[1]+30)+'" text-anchor="middle" style="cursor:pointer" data-id="'+id+'">'+nameOf(id)+'</text>';});});
+      $('lg').innerHTML=svg;
+      $('lg').querySelectorAll('[data-id]').forEach(function(el){el.onclick=function(){guide='direct';sel=el.dataset.id;syncGuide();draw();info();};});
+    }
+    function info(){
+      if(!sel){$('qres').innerHTML='点击图中任一节点，查看它的直接对应关系。';return;}
+      var rel=neighborsOf(sel).filter(function(r){return edgeShown(r[2]);}),html='<b>'+nameOf(sel)+'</b> 的直接关系：<br>';
+      if(!rel.length)html+='（该筛选下无直接关系）';
+      rel.forEach(function(r){html+='· '+nameOf(r[0])+'<span class="rel">'+r[2]+'</span>'+nameOf(r[1])+'<br>';});
+      html+='<div style="margin-top:8px;font-size:.76rem;opacity:.8">这些都是<b>一步</b>关系。要回答『学某门课能胜任什么岗位』，需把『培养』与『胜任』<b>合成</b>（进阶层）。</div>';
+      $('qres').innerHTML=html;
+    }
+    function selectFilter(r){$('filt').querySelectorAll('.b').forEach(function(x){x.classList.toggle('on',x.dataset.r===r);});filter=r;}
+    function syncGuide(){
+      document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.guide===guide);});
+      document.querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',(guide==='entities'&&t.dataset.token==='V')||(guide==='typed'&&(t.dataset.token==='R1'||t.dataset.token==='R2'))||(guide==='direct'&&(t.dataset.token==='R1'||t.dataset.token==='R2')));});
+    }
+    function setGuide(g){
+      guide=g;syncGuide();
+      if(g==='entities'){sel=null;selectFilter('all');$('kgFeedback').innerHTML='先把课程、技能、岗位抽象为三层节点，形成顶点集 <b>V</b>。每个节点都是一个可识别、可定位的成长要素。';$('qres').innerHTML='当前是顶点集 <b>V</b>。下一步给节点之间标注两类对应关系：培养、胜任。';}
+      else if(g==='typed'){sel=null;selectFilter('培养');$('kgFeedback').innerHTML='『课程→技能』是<b>培养</b>关系 R₁；『技能→岗位』是<b>胜任</b>关系 R₂。当前高亮 R₁（培养）的所有边。';$('qres').innerHTML='切换上方『培养/胜任』可分别观察两类关系。它们都是<b>有向、不对称</b>的二元关系。';}
+      else{sel='S2';selectFilter('all');$('kgFeedback').innerHTML='点击任一节点，查看它的<b>一步</b>直接对应（出边 + 入边）。例如算法设计 由数据结构/离散数学『培养』，并能『胜任』后端/算法工程师。';info();}
+      draw();
+    }
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setGuide(b.dataset.guide);};});
+    $('filt').querySelectorAll('.b').forEach(function(b){b.onclick=function(){if(guide==='entities')guide='typed';selectFilter(b.dataset.r);syncGuide();$('kgFeedback').innerHTML='当前筛选 <b>'+(b.dataset.r==='all'?'全部关系':b.dataset.r)+'</b> 的边。';draw();if(guide==='direct')info();};});
+    layout();setGuide('entities');
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

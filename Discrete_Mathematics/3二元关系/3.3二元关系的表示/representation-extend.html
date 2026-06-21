@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关系表示 · 拓展层 — 稀疏存储与加速</title>
+    <meta name="description" content="离散数学 3.3 拓展层：稠密邻接矩阵 vs 稀疏邻接表的存储权衡互动可视化">
+    <link rel="stylesheet" href="representation.css">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <style>
+        .dm-t-field { margin: 8px 0; }
+        .dm-t-field .lab { display: flex; justify-content: space-between; font-size: .82rem; color: #8b0000; margin-bottom: 5px; }
+        .dm-t-field .v { font-weight: 700; color: #d63b1d; font-family: 'Courier New', monospace; }
+        .dm-t-field input[type=range] { width: 100%; accent-color: #d63b1d; }
+        .dm-t-info { background: rgba(255,255,255,.6); border: 1px solid rgba(214,59,29,.14); border-radius: 10px; padding: 12px; font-size: .84rem; line-height: 1.7; color: #8b0000; }
+        .dm-t-info b { color: #d63b1d; }
+        .dm-t-wrap { display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center; align-items: flex-start; width: 100%; }
+        .dm-t-card { background: rgba(255,255,255,.6); border: 1px solid rgba(214,59,29,.18); border-radius: 14px; padding: 16px 18px; min-width: 270px; }
+        .dm-t-card h3 { color: #d63b1d; font-size: .96rem; margin-bottom: 10px; font-weight: 700; text-align: center; }
+        .heat { display: inline-grid; gap: 2px; }
+        .hc { width: 13px; height: 13px; border-radius: 2px; background: rgba(214,59,29,.08); }
+        .hc.on { background: #d63b1d; }
+        .bar-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; font-size: .8rem; }
+        .bar-row .lbl { width: 64px; color: #8b0000; }
+        .bar-track { flex: 1; background: rgba(214,59,29,.08); border-radius: 6px; height: 22px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 6px; transition: width .35s; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; color: #fff; font-family: 'Courier New', monospace; font-size: .72rem; }
+        .bar-fill.mtx { background: linear-gradient(90deg, #f0a, #d63b1d); }
+        .bar-fill.adj { background: linear-gradient(90deg, #ffb400, #e8920a); }
+        .winner { font-size: .9rem; font-weight: 700; padding: 10px 14px; border-radius: 10px; text-align: center; margin-top: 8px; }
+        .winner.adj { background: rgba(255,180,0,.18); color: #8a5a00; }
+        .winner.mtx { background: rgba(214,59,29,.12); color: #9c2b1e; }
+    
+        .value-panel {
+            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
+            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
+            box-shadow: var(--shadow-sm);
+        }
+        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
+        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
+        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+        .value-dims span {
+            padding: 3px 8px; border-radius: 999px; color: #8b0000;
+            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
+            font-size: .74rem; font-weight: 700;
+        }
+        .value-quote {
+            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
+            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
+        }
+        .value-inline {
+            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
+            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
+            color: var(--text-primary); line-height: 1.5;
+        }
+    </style>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+
+<body>
+    <a href="../../index.html" title="返回课程主页" style="position:fixed;top:14px;left:14px;z-index:9999;display:flex;align-items:center;gap:6px;background:rgba(30,30,40,0.82);color:#fff;padding:7px 14px 7px 10px;border-radius:20px;font-size:13px;font-family:'Noto Serif SC',serif;text-decoration:none;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.15);box-shadow:0 2px 12px rgba(0,0,0,0.35);transition:background .2s;" onmouseover="this.style.background='rgba(214,59,29,0.88)'" onmouseout="this.style.background='rgba(30,30,40,0.82)'">🏠 <span>课程主页</span></a>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+                <h1>红色数理 <span class="highlight">拓展层</span></h1>
+                <p class="subtitle">关系表示 · 稀疏存储 · 矩阵vs邻接表 · 权衡</p>
+            </div>
+            <div class="controls-wrapper">
+                
+                
+                
+                
+                <div class="control-group value-consistency-group">
+                    <label>价值映射（与进阶层一致）</label>
+                    <div class="value-panel" data-value-source="SECTION_META.ideology">
+                        <h3>一体多面 · 各取所长</h3>
+                        <p>同一个关系可用集合、矩阵、图三种形式表达，恰如同一事物可从不同角度认识——『横看成岭侧成峰』。善于在表示之间切换、各取所长，正是具体问题具体分析、灵活务实的方法论体现。</p>
+                        <div class="value-dims"><span>辩证思维</span><span>灵活务实</span><span>系统观念</span></div>
+                            <div class="value-quote">横看成岭侧成峰——三种表示是同一关系的不同侧面，切换视角方能事半功倍。</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>规模 n（n×n 关系）</label>
+                    <div class="dm-t-field"><div class="lab"><span>n</span><span class="v" id="nVal">12</span></div><input type="range" id="nRange" min="4" max="20" value="12"></div>
+                </div>
+                <div class="control-group">
+                    <label>密度（关系稠密程度）</label>
+                    <div class="dm-t-field"><div class="lab"><span>density</span><span class="v" id="dVal">15%</span></div><input type="range" id="dRange" min="1" max="100" value="15"></div>
+                </div>
+                <div class="control-group">
+                    <label>原理说明</label>
+                    <div class="dm-t-info"><b>邻接矩阵</b>：存满 n² 个格，无论稀疏与否都占 <b>n²</b>。<br><b>邻接表</b>：每行只存真实存在的边，约占 <b>|R| + n</b>。<br>关系越稀疏，邻接表越省——社交网络等真实关系极稀疏。</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="visualization-area" id="vizArea">
+                    <div class="dm-t-wrap">
+                        <div class="dm-t-card"><h3>关系热力图（红=有边）</h3><div class="heat" id="heat"></div><div style="text-align:center;margin-top:8px;font-size:.8rem;color:#8b0000">|R| = <b style="color:#d63b1d" id="cardOut">0</b> / n² = <span id="totOut">144</span></div></div>
+                        <div class="dm-t-card">
+                            <h3>存储开销对比</h3>
+                            <div class="bar-row"><span class="lbl">邻接矩阵</span><div class="bar-track"><div class="bar-fill mtx" id="barM"></div></div></div>
+                            <div class="bar-row"><span class="lbl">邻接表</span><div class="bar-track"><div class="bar-fill adj" id="barA"></div></div></div>
+                            <div class="winner" id="winner"></div>
+                            <div class="dm-t-info" style="margin-top:10px" id="note"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer style="position:fixed;bottom:0;left:0;width:100%;background: transparent;color: inherit;
+    opacity: 0.72;padding:15px 10px;text-align:center;box-shadow: none;z-index:9999;">
+        <p style="font-size:0.9rem;line-height:1.6;margin:0;opacity:0.95;">© 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>版权所有 ｜ 项目总负责人：谢鑫</p>
+    </footer>
+
+    <script>
+        var $ = function (id) { return document.getElementById(id); };
+        var seedR = {};
+        function rebuild() {
+            var n = +$('nRange').value, d = +$('dRange').value / 100;
+            seedR = {};
+            for (var i = 0; i < n; i++) for (var j = 0; j < n; j++) { var h = ((i * 73 + j * 31 + 17) % 100) / 100; if (h < d) seedR[i + '_' + j] = 1; }
+        }
+        function render() {
+            var n = +$('nRange').value, d = +$('dRange').value;
+            $('nVal').textContent = n; $('dVal').textContent = d + '%';
+            rebuild();
+            var card = Object.keys(seedR).length;
+            $('cardOut').textContent = card; $('totOut').textContent = n * n;
+            // heatmap
+            var h = $('heat'); h.style.gridTemplateColumns = 'repeat(' + n + ', 13px)';
+            var html = '';
+            for (var i = 0; i < n; i++) for (var j = 0; j < n; j++) html += '<div class="hc' + (seedR[i + '_' + j] ? ' on' : '') + '"></div>';
+            h.innerHTML = html;
+            // storage
+            var mtx = n * n, adj = card + n;
+            var mx = Math.max(mtx, adj);
+            $('barM').style.width = (mtx / mx * 100) + '%'; $('barM').textContent = mtx;
+            $('barA').style.width = (adj / mx * 100) + '%'; $('barA').textContent = adj;
+            var w = $('winner');
+            if (adj < mtx) { w.className = 'winner adj'; w.innerHTML = '✅ 稀疏 → <b>邻接表更省</b>（' + adj + ' vs ' + mtx + '，省 ' + (100 - Math.round(adj / mtx * 100)) + '%）'; }
+            else { w.className = 'winner mtx'; w.innerHTML = '🟠 稠密 → <b>邻接矩阵不吃亏</b>（' + mtx + ' vs ' + adj + '），且随机访问 O(1)。'; }
+            // crossover density ≈ (n²-n)/n² ... adj<mtx ⟺ card+n<n² ⟺ density < (n²-n)/n²
+            var cross = Math.round((n * n - n) / (n * n) * 100);
+            $('note').innerHTML = '交叉点：密度 < <b>' + cross + '%</b> 时邻接表更省。真实关系（社交关注、网页链接）密度常 <1%，故几乎都用邻接表 / CSR；稠密小关系才用矩阵。';
+        }
+        $('nRange').oninput = render; $('dRange').oninput = render;
+        render();
+    </script>
+
+    <!-- ===== 共享升级框架：学习助手 + 三阶导航 ===== -->
+    <script>
+    window.SECTION_META = {
+        layers: [
+            { "name": "三种表示", "concepts": "集合 / 关系矩阵 / 关系图", "task": "在三种等价表示间互相转换。", "page": "representation-basic.html" },
+            { "name": "矩阵即计算", "concepts": "布尔矩阵 / 合成=布尔乘 / 通路", "task": "用矩阵做关系运算、用图找通路。", "page": "representation.html" },
+            { "name": "稀疏存储与加速", "concepts": "邻接矩阵·邻接表 / CSR / 存储权衡", "task": "迁移到稀疏存储与高性能计算。", "page": "representation-extend.html" }
+        ],
+        chapter: "第3章 二元关系",
+        section: "3.3 二元关系的表示 · 拓展层",
+        title: "稀疏存储与加速",
+        grounding: "本页（拓展层）主题：关系表示的工程权衡。邻接矩阵恒占 n² 空间、随机访问 O(1)；邻接表只存真实存在的边、约占 |R|+n 空间，关系越稀疏越省。交叉点约在密度 (n²−n)/n²。真实关系（社交关注、网页链接）极稀疏（密度常<1%），故普遍用邻接表 / CSR（压缩稀疏行）；稠密小关系才用矩阵。",
+        steps: [
+            { name: "情境引入", desc: "十亿用户的社交关注关系，能用 n×n 矩阵存吗？" },
+            { name: "对象抽取", desc: "把存储代价抽象为矩阵 n² 与邻接表 |R|+n。" },
+            { name: "结构建模", desc: "比较两种存储的空间开销与访问复杂度。" },
+            { name: "推理求解", desc: "调密度与规模，观察谁更省、找交叉点。" },
+            { name: "程序验证", desc: "热力图直观显示稀疏性，开销条对比两种存储。" },
+            { name: "迁移反思", desc: "迁移到 CSR、图数据库、稀疏矩阵库。" }
+        ],
+        ideology: {
+        "title": "一体多面 · 各取所长",
+        "text": "同一个关系可用集合、矩阵、图三种形式表达，恰如同一事物可从不同角度认识——『横看成岭侧成峰』。善于在表示之间切换、各取所长，正是具体问题具体分析、灵活务实的方法论体现。",
+        "dims": [
+                "辩证思维",
+                "灵活务实",
+                "系统观念"
+        ],
+        "quote": "横看成岭侧成峰——三种表示是同一关系的不同侧面，切换视角方能事半功倍。"
+},
+        reflect: ["为什么社交网络几乎都用邻接表而非矩阵？", "邻接矩阵的 O(1) 随机访问优势在什么场景值得用 n² 空间换？"],
+        transfer: ["CSR（压缩稀疏行）是高性能稀疏矩阵库的基础——本层如何连接科学计算？"]
+    };
+    </script>
+    
+    <script data-dm-ideology-bridge="1">
+    (function () {
+        function esc(s) {
+            return String(s || '').replace(/[&<>"']/g, function (c) {
+                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+            });
+        }
+        function noteHtml() {
+            var ideology = (window.SECTION_META && window.SECTION_META.ideology) || {};
+            var title = ideology.title || '价值引领';
+            var text = ideology.text || '本层延续进阶层的价值主线，在操作中体会数学结构与价值判断的一致性。';
+            return '<span class="value-inline" data-ideology-inline="1"><strong>价值观察：</strong>本层沿用进阶层“'
+                + esc(title) + '”主线。' + esc(text) + '</span>';
+        }
+        function appendIdeologyNote() {
+            if (document.querySelector('[data-ideology-inline="1"]')) return;
+            var resultExtra = document.getElementById('resultExtra');
+            if (resultExtra) {
+                resultExtra.insertAdjacentHTML('beforeend', noteHtml());
+                return;
+            }
+            var anchor = document.querySelector('.result-panel, #eqOut, #note, .visualization-area');
+            if (!anchor) return;
+            if (anchor.id === 'eqOut' || anchor.id === 'note') anchor.insertAdjacentHTML('afterend', noteHtml());
+            else anchor.insertAdjacentHTML('beforeend', noteHtml());
+        }
+        function wrapSetResult() {
+            var original = window.setResult;
+            if (typeof original !== 'function' || original.__ideologyWrapped) return;
+            window.setResult = function () {
+                var ret = original.apply(this, arguments);
+                appendIdeologyNote();
+                return ret;
+            };
+            window.setResult.__ideologyWrapped = true;
+        }
+        function boot() {
+            wrapSetResult();
+            appendIdeologyNote();
+            ['input', 'change', 'click'].forEach(function (eventName) {
+                document.addEventListener(eventName, function () {
+                    setTimeout(appendIdeologyNote, 0);
+                }, true);
+            });
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+        else boot();
+    })();
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+
+</html>

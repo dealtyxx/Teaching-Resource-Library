@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8.12 航天通信网络案例 - 拓展层</title>
+  <meta name="description" content="航天通信网络案例拓展层：模拟链路故障、冗余预算和鲁棒骨干网恢复。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+  <style>
+    :root {
+      --paper: #fff8ec;
+      --panel: rgba(255, 252, 245, 0.86);
+      --line: rgba(214, 59, 29, 0.16);
+      --red: #d63b1d;
+      --red-dark: #b8321a;
+      --gold: #ffb400;
+      --cyan: #00d8ee;
+      --green: #1f9d55;
+      --purple: #6d5dfc;
+      --ink: #342018;
+      --muted: #7f6f65;
+      --shadow: 0 18px 46px rgba(139, 0, 0, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      color: var(--ink);
+      font-family: "Noto Serif SC", "Microsoft YaHei", serif;
+      background:
+        radial-gradient(circle at 15% 18%, rgba(255,180,0,0.16), transparent 27%),
+        radial-gradient(circle at 88% 78%, rgba(214,59,29,0.10), transparent 30%),
+        repeating-linear-gradient(90deg, rgba(255,180,0,0.08) 0 1px, transparent 1px 52px),
+        repeating-linear-gradient(0deg, rgba(214,59,29,0.06) 0 1px, transparent 1px 52px),
+        linear-gradient(160deg, #fffdf5 0%, #fffaec 58%, #fff7e0 100%);
+    }
+    .home-link {
+      position: fixed; top: 14px; left: 14px; z-index: 10000;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px; border-radius: 999px;
+      background: rgba(30,30,40,0.82); color: #fff; text-decoration: none;
+      font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,0.20);
+      backdrop-filter: blur(10px);
+    }
+    .app {
+      width: min(1500px, calc(100vw - 42px));
+      height: calc(100vh - 92px);
+      margin: 58px auto 34px;
+      display: grid;
+      grid-template-columns: 370px minmax(0, 1fr);
+      gap: 18px;
+    }
+    .sidebar, .stage {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      overflow: hidden;
+    }
+    .sidebar {
+      padding: 18px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .dots { display: flex; gap: 8px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot.red { background: #ff5f56; } .dot.yellow { background: #ffbd2e; } .dot.green { background: #27c93f; }
+    h1 {
+      margin: 4px 0 0;
+      color: var(--red);
+      font-family: "Ma Shan Zheng", "Noto Serif SC", serif;
+      font-size: 2.18rem;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+    .subtitle { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
+    .pill {
+      display: inline-flex; width: fit-content; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 999px;
+      background: rgba(214,59,29,0.08); border: 1px solid var(--line);
+      color: var(--red-dark); font-weight: 800; font-size: 0.78rem;
+    }
+    .control-card, .metric-card, .edge-list, .note {
+      border: 1px solid rgba(214,59,29,0.13);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.58);
+      padding: 12px;
+    }
+    .control-card { display: grid; gap: 10px; }
+    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    button, select, input[type="range"] { font: inherit; }
+    button, select {
+      min-height: 38px; border-radius: 8px; border: 1px solid rgba(214,59,29,0.22);
+      background: #fffdf8; color: var(--ink); cursor: pointer;
+    }
+    button.primary { background: linear-gradient(135deg, var(--red), var(--red-dark)); color: #fff; font-weight: 900; }
+    button.secondary { color: var(--red-dark); font-weight: 800; }
+    label { display: grid; gap: 6px; color: var(--red-dark); font-size: 0.82rem; font-weight: 800; }
+    input[type="range"] { width: 100%; accent-color: var(--red); }
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .metric-card span { display: block; color: var(--muted); font-size: 0.76rem; }
+    .metric-card strong { display: block; margin-top: 4px; color: var(--red); font: 900 1.18rem "JetBrains Mono", monospace; }
+    .edge-list { max-height: 230px; overflow-y: auto; display: grid; gap: 6px; }
+    .edge-row {
+      display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center;
+      padding: 7px 9px; border-radius: 7px; color: var(--muted);
+      background: rgba(255,252,245,0.72); font-size: 0.82rem;
+    }
+    .edge-row.tree { background: rgba(0,216,238,0.13); color: #087887; border-left: 3px solid var(--cyan); }
+    .edge-row.backup { background: rgba(109,93,252,0.12); color: #4f46b8; border-left: 3px solid var(--purple); }
+    .edge-row.repair { background: rgba(31,157,85,0.12); color: #1f7a4a; border-left: 3px solid var(--green); }
+    .edge-row.failed { background: rgba(214,59,29,0.10); color: var(--red-dark); text-decoration: line-through; }
+    .note { color: var(--muted); line-height: 1.65; font-size: 0.86rem; }
+    .stage {
+      position: relative;
+      padding: 16px;
+      background: radial-gradient(circle at 48% 42%, rgba(255,180,0,0.05), transparent 45%), rgba(255,252,245,0.56);
+    }
+    .stage-head, .legend, .tooltip {
+      position: absolute; z-index: 3;
+      background: rgba(255,252,245,0.82);
+      border: 1px solid rgba(214,59,29,0.14);
+      border-radius: 8px;
+      box-shadow: 0 12px 28px rgba(214,59,29,0.08);
+    }
+    .stage-head { top: 20px; left: 20px; padding: 14px 18px; }
+    .stage-head h2 { margin: 0; color: var(--red); font-size: 1.45rem; }
+    .stage-head p { margin: 4px 0 0; color: var(--muted); font-size: 0.82rem; }
+    .legend { top: 20px; right: 20px; padding: 12px 14px; display: grid; gap: 8px; font-size: 0.78rem; color: var(--muted); }
+    .legend div { display: flex; align-items: center; gap: 8px; }
+    .swatch { width: 22px; height: 3px; border-radius: 3px; background: rgba(0,216,238,0.28); }
+    .swatch.tree { background: var(--cyan); box-shadow: 0 0 8px rgba(0,216,238,0.9); }
+    .swatch.backup { background: var(--purple); }
+    .swatch.repair { background: var(--green); }
+    .swatch.failed { background: var(--red); border-top: 1px dashed var(--red); }
+    svg { width: 100%; height: 100%; display: block; }
+    .edge { stroke: rgba(0,216,238,0.20); stroke-width: 2; transition: all .22s; }
+    .edge.tree { stroke: var(--cyan); stroke-width: 5; filter: drop-shadow(0 0 7px rgba(0,216,238,0.7)); }
+    .edge.backup { stroke: var(--purple); stroke-width: 4; stroke-dasharray: 8 4; }
+    .edge.repair { stroke: var(--green); stroke-width: 5; filter: drop-shadow(0 0 7px rgba(31,157,85,0.55)); }
+    .edge.failed { stroke: var(--red); stroke-width: 4; stroke-dasharray: 4 5; opacity: .62; }
+    .edge-label { fill: #475569; font: 800 11px "JetBrains Mono", monospace; text-anchor: middle; }
+    .label-bg { fill: rgba(255,252,245,0.86); stroke: rgba(214,59,29,0.12); }
+    .node circle { fill: #163248; stroke: var(--cyan); stroke-width: 3; filter: drop-shadow(0 0 6px rgba(0,216,238,.5)); }
+    .node.failed circle { fill: rgba(214,59,29,0.22); stroke: var(--red); }
+    .node text.icon { fill: white; font: 900 13px "JetBrains Mono", monospace; text-anchor: middle; dominant-baseline: middle; }
+    .node text.name { fill: #6b5d54; font: 800 12px "Noto Serif SC"; text-anchor: middle; }
+    .tooltip { display: none; pointer-events: none; padding: 10px 12px; max-width: 245px; color: var(--ink); font-size: 0.82rem; line-height: 1.5; }
+    .tooltip b { color: var(--red); }
+    .footer {
+      position: fixed; left: 0; bottom: 0; width: 100%; padding: 8px 10px;
+      color: rgba(52,32,24,.72); text-align: center; font-size: .78rem;
+    }
+    @media (max-width: 900px) {
+      body { overflow: auto; }
+      .app { height: auto; grid-template-columns: 1fr; margin-bottom: 70px; }
+      .stage { height: 620px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">⌂ 课程主页</a>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="dots"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+      <span class="pill">拓展层 · 故障与冗余</span>
+      <header>
+        <h1>卫星星座鲁棒骨干</h1>
+        <p class="subtitle">模拟链路中断、卫星失效与冗余预算，观察航天通信网络如何从“能连通”走向“抗扰动”。</p>
+      </header>
+
+      <section class="control-card">
+        <button class="primary" id="buildBtn">生成鲁棒骨干方案</button>
+        <div class="btn-row">
+          <button class="secondary" id="failBtn">模拟一次故障</button>
+          <button class="secondary" id="resetBtn">清除故障</button>
+        </div>
+        <label>故障对象
+          <select id="failureMode">
+            <option value="none">无故障</option>
+            <option value="edge:3-5">天链二号 - 天宫空间站链路</option>
+            <option value="edge:6-7">北斗卫星 - 远望测量船链路</option>
+            <option value="node:3">天链二号节点</option>
+            <option value="node:7">远望测量船节点</option>
+          </select>
+        </label>
+        <label>冗余预算：<span id="budgetText">2</span> 条备份链路
+          <input type="range" id="budget" min="0" max="4" value="2">
+        </label>
+        <label>优化目标
+          <select id="objective">
+            <option value="reliable">可靠性优先</option>
+            <option value="cost">成本优先</option>
+            <option value="delay">时延优先</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="metrics">
+        <div class="metric-card"><span>连通状态</span><strong id="connMetric">--</strong></div>
+        <div class="metric-card"><span>鲁棒评分</span><strong id="scoreMetric">--</strong></div>
+      </section>
+
+      <section>
+        <div class="pill">链路状态</div>
+        <div class="edge-list" id="edgeList"></div>
+      </section>
+
+      <section class="note" id="explain">
+        先生成鲁棒骨干，再选择故障对象。紫色为预留备份链路，绿色为故障后用于恢复连通的链路。
+      </section>
+    </aside>
+
+    <main class="stage">
+      <div class="stage-head">
+        <h2>航天通信鲁棒骨干</h2>
+        <p>Failure simulation · Backup links · Resilience score</p>
+      </div>
+      <div class="legend">
+        <div><span class="swatch tree"></span>基础骨干</div>
+        <div><span class="swatch backup"></span>冗余备份</div>
+        <div><span class="swatch repair"></span>故障恢复</div>
+        <div><span class="swatch failed"></span>故障失效</div>
+      </div>
+      <svg id="networkSvg" viewBox="0 0 900 700" role="img" aria-label="航天通信网络鲁棒骨干交互图"></svg>
+      <div class="tooltip" id="tooltip"></div>
+    </main>
+  </div>
+  <footer class="footer">© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</footer>
+
+  <script>
+  window.SECTION_META = {
+    chapter: "第 8 章 特殊图",
+    section: "8.12 航天通信网络案例",
+    title: "卫星星座拓展 · 鲁棒骨干",
+    layers: [
+      { name: "测控通信网络", concepts: "顶点 / 带权边 / 连通性", task: "把通信节点抽象为带权图。", page: "aerospace-mst-index-basic.html" },
+      { name: "MST 与最短路", concepts: "Kruskal / 最小生成树 / 并查集", task: "构建低成本通信骨干网。", page: "aerospace-mst-index.html" },
+      { name: "卫星星座拓展", concepts: "故障 / 冗余 / 鲁棒性", task: "模拟链路失效后的恢复策略。", page: "aerospace-mst-index-extend.html" }
+    ],
+    ideology: {
+      title: "航天报国 · 协同攻关",
+      text: "航天通信不只追求一时连通，更追求极端条件下的可靠保障。鲁棒骨干网体现了底线思维、系统观念和协同攻关能力。",
+      dims: ["底线思维", "系统韧性", "协同攻关"],
+      quote: "面向星辰大海的网络，必须经得起扰动、撑得住任务。"
+    }
+  };
+
+  const nodes = [
+    { id: 0, name: "北京中心", role: "飞控调度中心", x: 450, y: 470, mark: "京" },
+    { id: 1, name: "西安中心", role: "卫星测控中心", x: 240, y: 430, mark: "西" },
+    { id: 2, name: "天链一号", role: "中继卫星", x: 205, y: 245, mark: "链1" },
+    { id: 3, name: "天链二号", role: "中继卫星", x: 695, y: 245, mark: "链2" },
+    { id: 4, name: "神舟飞船", role: "载人飞船", x: 360, y: 115, mark: "神" },
+    { id: 5, name: "天宫空间站", role: "太空实验平台", x: 540, y: 100, mark: "宫" },
+    { id: 6, name: "北斗卫星", role: "导航与授时节点", x: 760, y: 395, mark: "斗" },
+    { id: 7, name: "远望测量船", role: "海上测控平台", x: 630, y: 470, mark: "船" }
+  ];
+  const edges = [
+    [0,1,10,12,0.96], [4,5,12,8,0.94], [2,4,15,10,0.91], [3,5,20,9,0.90], [0,7,25,18,0.88],
+    [1,7,30,22,0.82], [2,5,35,15,0.86], [3,6,40,12,0.89], [0,2,45,16,0.85], [0,3,50,20,0.80],
+    [6,7,55,24,0.78], [1,2,60,26,0.76], [5,6,70,14,0.84], [2,3,42,11,0.87], [1,4,64,19,0.74]
+  ].map(([u,v,cost,delay,rel], i) => ({ id: i, u, v, cost, delay, rel }));
+
+  const svg = document.getElementById("networkSvg");
+  const edgeList = document.getElementById("edgeList");
+  const explain = document.getElementById("explain");
+  const tooltip = document.getElementById("tooltip");
+  const failureMode = document.getElementById("failureMode");
+  const budget = document.getElementById("budget");
+  const budgetText = document.getElementById("budgetText");
+  const objective = document.getElementById("objective");
+  const buildBtn = document.getElementById("buildBtn");
+  const failBtn = document.getElementById("failBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const connMetric = document.getElementById("connMetric");
+  const scoreMetric = document.getElementById("scoreMetric");
+
+  let tree = [];
+  let backups = [];
+  let repairs = [];
+  let failedNode = null;
+  let failedEdge = null;
+  let drag = null;
+
+  function node(id) { return nodes.find(n => n.id === id); }
+  function key(e) { return `${Math.min(e.u,e.v)}-${Math.max(e.u,e.v)}`; }
+  function parseKey(k) { return k.split("-").map(Number); }
+  function weight(e) {
+    if (objective.value === "cost") return e.cost;
+    if (objective.value === "delay") return e.delay * 2 + e.cost * 0.25;
+    return e.cost * (1.18 - e.rel) + e.delay * 0.6;
+  }
+  function isFailedEdge(e) { return failedEdge === key(e) || failedNode === e.u || failedNode === e.v; }
+  function activeEdges(includeBackups = true) {
+    const ids = new Set(tree.map(key).concat(includeBackups ? backups.map(key) : []).concat(repairs.map(key)));
+    return edges.filter(e => ids.has(key(e)) && !isFailedEdge(e));
+  }
+  function components(edgeSet) {
+    const live = nodes.filter(n => n.id !== failedNode).map(n => n.id);
+    const p = Object.fromEntries(live.map(id => [id,id]));
+    function f(x){ while(p[x] !== x){ p[x] = p[p[x]]; x = p[x]; } return x; }
+    edgeSet.forEach(e => { if (p[e.u] == null || p[e.v] == null) return; const a=f(e.u), b=f(e.v); if(a!==b) p[b]=a; });
+    return new Set(live.map(f)).size;
+  }
+  function mst(candidateEdges) {
+    const p = nodes.map(n => n.id);
+    function f(x){ while(p[x] !== x){ p[x] = p[p[x]]; x = p[x]; } return x; }
+    const out = [];
+    candidateEdges.slice().sort((a,b)=>weight(a)-weight(b)).forEach(e => {
+      const a=f(e.u), b=f(e.v);
+      if (a !== b) { p[b] = a; out.push(e); }
+    });
+    return out.slice(0, nodes.length - 1);
+  }
+  function buildPlan() {
+    failedNode = null; failedEdge = null; failureMode.value = "none";
+    tree = mst(edges);
+    const treeIds = new Set(tree.map(key));
+    const extra = edges.filter(e => !treeIds.has(key(e)));
+    extra.sort((a,b) => (b.rel - a.rel) || (weight(a) - weight(b)));
+    backups = extra.slice(0, Number(budget.value));
+    repairs = [];
+    explain.innerHTML = `已生成鲁棒方案：青色为基础骨干，紫色为 ${backups.length} 条预留冗余链路。`;
+    render();
+  }
+  function applyFailure() {
+    repairs = [];
+    const mode = failureMode.value;
+    if (mode.startsWith("node:")) { failedNode = Number(mode.split(":")[1]); failedEdge = null; }
+    else if (mode.startsWith("edge:")) { failedEdge = mode.split(":")[1]; failedNode = null; }
+    else { failedNode = null; failedEdge = null; }
+
+    const before = components(activeEdges(false));
+    const after = components(activeEdges(true));
+    if (after > 1) {
+      const existing = new Set(activeEdges(true).map(key));
+      const repair = edges
+        .filter(e => !existing.has(key(e)) && !isFailedEdge(e))
+        .sort((a,b) => weight(a)-weight(b))
+        .find(e => components(activeEdges(true).concat([e])) < after);
+      if (repair) repairs.push(repair);
+    }
+    const finalComp = components(activeEdges(true));
+    const target = mode === "none" ? "未设置故障" : mode.startsWith("node:") ? node(failedNode).name + " 节点失效" : mode.slice(5) + " 链路中断";
+    explain.innerHTML = `<b>${target}</b>：基础骨干分量数 ${before}，启用备份/修复后分量数 ${finalComp}。`;
+    render();
+  }
+  function score() {
+    const live = nodes.length - (failedNode == null ? 0 : 1);
+    const comp = components(activeEdges(true));
+    const connected = comp === 1;
+    const redundancy = backups.length + repairs.length;
+    return Math.max(0, Math.round((connected ? 82 : 42) + redundancy * 5 - (failedEdge || failedNode != null ? 8 : 0)));
+  }
+  function status(e) {
+    if (isFailedEdge(e)) return "failed";
+    if (repairs.some(x => key(x) === key(e))) return "repair";
+    if (tree.some(x => key(x) === key(e))) return "tree";
+    if (backups.some(x => key(x) === key(e))) return "backup";
+    return "";
+  }
+  function render() {
+    budgetText.textContent = budget.value;
+    svg.innerHTML = "";
+    edges.forEach(e => {
+      const a = node(e.u), b = node(e.v), cls = status(e);
+      const line = document.createElementNS("http://www.w3.org/2000/svg","line");
+      line.setAttribute("x1", a.x); line.setAttribute("y1", a.y);
+      line.setAttribute("x2", b.x); line.setAttribute("y2", b.y);
+      line.setAttribute("class", `edge ${cls}`);
+      line.addEventListener("mouseenter", ev => showTip(ev, `<b>${a.name} - ${b.name}</b><br>成本 ${e.cost}，时延 ${e.delay}，可靠度 ${Math.round(e.rel*100)}%`));
+      line.addEventListener("mouseleave", hideTip);
+      svg.appendChild(line);
+      const mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+      const rect=document.createElementNS("http://www.w3.org/2000/svg","rect");
+      rect.setAttribute("x", mx-17); rect.setAttribute("y", my-9); rect.setAttribute("width",34); rect.setAttribute("height",18); rect.setAttribute("rx",4); rect.setAttribute("class","label-bg");
+      svg.appendChild(rect);
+      const txt=document.createElementNS("http://www.w3.org/2000/svg","text");
+      txt.setAttribute("x",mx); txt.setAttribute("y",my+4); txt.setAttribute("class","edge-label"); txt.textContent=Math.round(weight(e));
+      svg.appendChild(txt);
+    });
+    nodes.forEach(n => {
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("class", `node ${failedNode === n.id ? "failed" : ""}`);
+      g.setAttribute("transform", `translate(${n.x},${n.y})`);
+      g.addEventListener("pointerdown", ev => { drag = n; svg.setPointerCapture(ev.pointerId); });
+      g.addEventListener("mouseenter", ev => showTip(ev, `<b>${n.name}</b><br>${n.role}<br>${failedNode === n.id ? "当前节点失效。" : "可拖拽调整布局。"}`));
+      g.addEventListener("mouseleave", hideTip);
+      const c=document.createElementNS("http://www.w3.org/2000/svg","circle"); c.setAttribute("r",25);
+      const icon=document.createElementNS("http://www.w3.org/2000/svg","text"); icon.setAttribute("class","icon"); icon.textContent=n.mark;
+      const name=document.createElementNS("http://www.w3.org/2000/svg","text"); name.setAttribute("class","name"); name.setAttribute("y",44); name.textContent=n.name;
+      g.append(c,icon,name); svg.appendChild(g);
+    });
+    renderList();
+    const comp = components(activeEdges(true));
+    connMetric.textContent = comp === 1 ? "连通" : `${comp}段`;
+    scoreMetric.textContent = score();
+  }
+  function renderList() {
+    edgeList.innerHTML = "";
+    edges.forEach(e => {
+      const row = document.createElement("div");
+      row.className = `edge-row ${status(e)}`;
+      row.innerHTML = `<span>${node(e.u).name} - ${node(e.v).name}</span><strong>${Math.round(weight(e))}</strong>`;
+      row.addEventListener("click", () => {
+        failureMode.value = `edge:${key(e)}`;
+        applyFailure();
+      });
+      edgeList.appendChild(row);
+    });
+  }
+  function showTip(ev, html) {
+    tooltip.innerHTML = html;
+    tooltip.style.display = "block";
+    tooltip.style.left = `${ev.clientX - svg.getBoundingClientRect().left + 14}px`;
+    tooltip.style.top = `${ev.clientY - svg.getBoundingClientRect().top - 12}px`;
+  }
+  function hideTip() { tooltip.style.display = "none"; }
+  svg.addEventListener("pointermove", ev => {
+    if (!drag) return;
+    const r = svg.getBoundingClientRect();
+    drag.x = Math.max(50, Math.min(850, (ev.clientX - r.left) * 900 / r.width));
+    drag.y = Math.max(70, Math.min(585, (ev.clientY - r.top) * 620 / r.height));
+    render();
+  });
+  svg.addEventListener("pointerup", () => { drag = null; });
+
+  buildBtn.addEventListener("click", buildPlan);
+  failBtn.addEventListener("click", applyFailure);
+  resetBtn.addEventListener("click", () => { failureMode.value = "none"; failedNode = null; failedEdge = null; repairs = []; explain.innerHTML = "故障已清除。可以重新选择故障对象或调整冗余预算。"; render(); });
+  failureMode.addEventListener("change", applyFailure);
+  budget.addEventListener("input", buildPlan);
+  objective.addEventListener("change", buildPlan);
+  buildPlan();
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

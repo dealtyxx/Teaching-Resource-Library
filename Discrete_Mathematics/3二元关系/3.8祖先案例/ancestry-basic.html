@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>寻根问祖 · 基础层 — 亲子关系</title>
+  <meta name="description" content="离散数学 3.8 祖先案例 基础层：把家谱抽象为亲子关系">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(139,0,0,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}.kg-step-head strong{color:var(--red);font-size:.95rem;}.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.86rem;}.kg-step span{display:block;font-size:.76rem;color:var(--muted);margin-top:3px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.84rem;color:#7a3216;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
+.qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.88rem;color:#5b4136;line-height:1.9;}
+.qres b{color:var(--red);}.qres .rel{display:inline-block;font-size:.72rem;padding:1px 8px;border-radius:10px;background:rgba(214,59,29,.12);color:#d63b1d;margin:0 3px;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 12px;}
+.kg-box{flex:1;min-height:430px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,250,239,.7));padding:10px;display:flex;align-items:center;}
+.lg{width:100%;height:auto;display:block;}.lg text{font-family:"Noto Serif SC",serif;font-weight:700;}
+.leg{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;font-size:.74rem;color:#8b0000;margin-top:10px;}.leg i{display:inline-block;width:13px;height:13px;border-radius:4px;margin-right:5px;vertical-align:middle;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">基础层</span></h1>
+        <p class="subtitle">寻根问祖 · 亲子关系</p>
+      </div>
+      <p class="intro">把家族成员抽象为节点，把『父母—子女』抽象为亲子关系 R（一条有向边）。</p>
+
+      <div class="value-panel">
+        <h3>寻根问祖 · 慎终追远</h3>
+        <p>个人与家族、家族与民族血脉相连。用数学梳理血脉谱系，彰显文化自信与家国一体的情怀。</p>
+        <div class="dim-list"><span>文化自信</span><span>家国情怀</span></div>
+      </div>
+
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步建模互动</strong><span>点一步，看反馈、公式项和世系图同步高亮</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-guide="entities"><b>1 抽取成员</b><span>V：四代家族成员</span></button>
+          <button class="kg-step" type="button" data-guide="typed"><b>2 标注亲子</b><span>R：父母 → 子女</span></button>
+          <button class="kg-step" type="button" data-guide="direct"><b>3 查直接亲子</b><span>点成员看父母/子女</span></button>
+        </div>
+        <div class="kg-feedback" id="kgFeedback">先把四代家族成员抽象为世系图的节点 V。</div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-token="V">V = 成员集合</span>
+          <span class="kg-token" data-token="R">R = 亲子关系</span>
+        </div>
+      </div>
+
+      <div class="qres" id="qres">点击图中任一成员，查看其<b>直接</b>父母与子女（一步亲子关系）。</div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>点击家族成员，看『谁是谁的父母、谁是谁的子女』的直接亲子关系。</span>
+        <div class="visual-badge">成员节点 + 亲子边</div>
+      </section>
+      <h2 class="pane-title">家族世系图（四代传承 · 百年历程）</h2>
+      <p class="pane-sub">连线从上到下表示『父母 → 子女』的亲子关系 R。点成员查看其一步直接亲子。</p>
+      <div class="kg-box"><svg id="lg" class="lg" viewBox="0 0 580 440" preserveAspectRatio="xMidYMid meet"></svg></div>
+      <div class="leg"><span><i style="background:#c0392b"></i>1920s</span><span><i style="background:#e8a317"></i>1950s</span><span><i style="background:#2a9d8f"></i>1980s</span><span><i style="background:#2f5f9f"></i>2010s</span></div>
+    </main>
+  </div>
+
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
+
+  <script>
+    window.SECTION_META = {
+      "layers": [
+        {"name": "亲子关系", "concepts": "父母-子女 / 直接关系", "task": "把家谱抽象为亲子关系。", "page": "ancestry-basic.html"},
+        {"name": "祖先=传递闭包", "concepts": "R⁺ / 可达集 / 无环", "task": "用传递闭包求全部祖先/后代。", "page": "ancestry.html"},
+        {"name": "最近公共祖先与近亲", "concepts": "LCA / 共同祖先 / 近亲判定", "task": "迁移到 LCA 与依赖分析。", "page": "ancestry-extend.html"}
+      ],
+      "chapter": "第3章 二元关系", "section": "3.8 祖先案例 · 基础层", "title": "亲子关系",
+      "grounding": "本页（基础层）主题：把家族成员抽象为节点，把『父母-子女』抽象为亲子关系 R（直接关系）。本层只看一步直接亲子；把多步串起、求全部祖先需要传递闭包（进阶层）。",
+      "steps": [
+        {"name": "情境引入", "desc": "只知道每个人的父母，先看清直接亲子关系。"},
+        {"name": "对象抽取", "desc": "把人抽象为节点，把『父母-子女』抽象为亲子关系。"},
+        {"name": "结构建模", "desc": "用有向边表示亲子关系，家谱即关系图。"},
+        {"name": "推理求解", "desc": "点成员看其直接父母与子女。"},
+        {"name": "程序验证", "desc": "每条边都是明确的『父母 → 子女』。"},
+        {"name": "迁移反思", "desc": "用传递闭包求全部祖先/后代（进阶层）。"}
+      ],
+      "ideology": {"title": "寻根问祖 · 慎终追远", "text": "祖先关系由亲子关系传递而来，寻根问祖、慎终追远是中华民族重视家国传承、敬祖睦宗的文化传统。用数学梳理血脉谱系，既彰显文化自信，也让我们体会个人与家族、家族与民族血脉相连的家国一体情怀。", "dims": ["文化自信", "家国情怀", "慎终追远"], "quote": "参天之木，必有其根；怀山之水，必有其源。"},
+      "reflect": ["亲子关系 R 满足自反、对称吗？为什么？", "为什么一个人有两个父母、可有多个子女？"],
+      "transfer": ["用传递闭包求全部祖先 R⁺（进阶层）；最近公共祖先与近亲判定（拓展层）。"]
+    };
+  </script>
+
+  <script>
+    var $=function(id){return document.getElementById(id);};
+    var FAM={
+      'g1-1':{n:'李建国',gen:1,x:150,y:55},'g1-2':{n:'王秀英',gen:1,x:300,y:55},
+      'g2-1':{n:'李卫东',gen:2,x:225,y:165},'g2-2':{n:'张春梅',gen:2,x:430,y:165},
+      'g3-1':{n:'李明',gen:3,x:330,y:275},'g3-2':{n:'刘芳',gen:3,x:500,y:275},
+      'g4-1':{n:'李思源',gen:4,x:380,y:385},'g4-2':{n:'李思远',gen:4,x:500,y:385}
+    };
+    var PARENTS={'g2-1':['g1-1','g1-2'],'g3-1':['g2-1','g2-2'],'g4-1':['g3-1','g3-2'],'g4-2':['g3-1','g3-2']};
+    var GC={1:'#c0392b',2:'#e8a317',3:'#2a9d8f',4:'#2f5f9f'};
+    var EDGES=[];Object.keys(PARENTS).forEach(function(c){PARENTS[c].forEach(function(p){EDGES.push([p,c]);});});
+    var nameOf=function(id){return FAM[id].n;};
+    var sel=null,guide='entities';
+    function parentsOf(id){return PARENTS[id]||[];}
+    function childrenOf(id){return Object.keys(PARENTS).filter(function(c){return PARENTS[c].indexOf(id)>=0;});}
+    function draw(){
+      var hotE={},hotN={};
+      if(guide==='typed'){EDGES.forEach(function(e){hotE[e[0]+'>'+e[1]]=1;});}
+      if(guide==='direct'&&sel){hotN[sel]=1;parentsOf(sel).forEach(function(p){hotN[p]=1;hotE[p+'>'+sel]=1;});childrenOf(sel).forEach(function(c){hotN[c]=1;hotE[sel+'>'+c]=1;});}
+      var svg='<defs><marker id="ar" markerWidth="8" markerHeight="6" refX="9" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#bbb"/></marker><marker id="arh" markerWidth="8" markerHeight="6" refX="9" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#d63b1d"/></marker></defs>';
+      EDGES.forEach(function(e){var on=hotE[e[0]+'>'+e[1]];var p1=FAM[e[0]],p2=FAM[e[1]];svg+='<line x1="'+p1.x+'" y1="'+(p1.y+20)+'" x2="'+p2.x+'" y2="'+(p2.y-20)+'" stroke="'+(on?'#d63b1d':'#c9b8b0')+'" stroke-width="'+(on?3:1.4)+'" opacity="'+((guide==='direct'&&sel&&!on)?0.14:0.7)+'" marker-end="url(#'+(on?'arh':'ar')+')"/>';});
+      Object.keys(FAM).forEach(function(id){var p=FAM[id];var isSel=sel===id&&guide==='direct';var isHot=hotN[id]&&!isSel;var stroke=isSel?'#8b0000':(isHot?'#c5a059':'#fff');var sw=(isSel||isHot)?3.4:2;
+        svg+='<g style="cursor:pointer" data-id="'+id+'"><rect x="'+(p.x-50)+'" y="'+(p.y-20)+'" width="100" height="40" rx="9" fill="'+GC[p.gen]+'" stroke="'+stroke+'" stroke-width="'+sw+'"/><text x="'+p.x+'" y="'+(p.y-2)+'" text-anchor="middle" fill="#fff" font-size="14">'+nameOf(id)+'</text><text x="'+p.x+'" y="'+(p.y+13)+'" text-anchor="middle" fill="rgba(255,255,255,.82)" font-size="9">第'+p.gen+'代</text></g>';
+      });
+      $('lg').innerHTML=svg;
+      $('lg').querySelectorAll('[data-id]').forEach(function(g){g.onclick=function(){guide='direct';sel=g.dataset.id;syncGuide();draw();info();};});
+    }
+    function info(){
+      if(!sel){$('qres').innerHTML='点击图中任一成员，查看其<b>直接</b>父母与子女（一步亲子关系）。';return;}
+      var ps=parentsOf(sel),cs=childrenOf(sel);
+      var html='<b>'+nameOf(sel)+'</b> 的直接亲子关系：<br>';
+      html+='<div style="margin-top:6px">父母（R 的入边）：'+(ps.length?ps.map(function(p){return nameOf(p);}).join('、'):'（无记载，为始祖一代）')+'</div>';
+      html+='<div style="margin-top:6px">子女（R 的出边）：'+(cs.length?cs.map(function(c){return nameOf(c);}).join('、'):'（无）')+'</div>';
+      html+='<div style="margin-top:8px;font-size:.76rem;opacity:.8">这些都是<b>一步</b>亲子关系。要找『全部祖先』需把 R <b>传递闭包</b>（进阶层）。</div>';
+      $('qres').innerHTML=html;
+    }
+    function syncGuide(){
+      document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.guide===guide);});
+      document.querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',(guide==='entities'&&t.dataset.token==='V')||(guide!=='entities'&&t.dataset.token==='R'));});
+    }
+    function setGuide(g){
+      guide=g;syncGuide();
+      if(g==='entities'){sel=null;$('kgFeedback').innerHTML='把四代家族成员抽象为世系图的节点 <b>V</b>。颜色代表所属年代（抗战→建国→改革→新时代）。';$('qres').innerHTML='当前是成员集 <b>V</b>。下一步给成员之间标注『父母→子女』的亲子关系。';}
+      else if(g==='typed'){sel=null;$('kgFeedback').innerHTML='『父母 → 子女』是<b>亲子关系 R</b>，有向、不对称。所有亲子边已高亮——这就是家谱关系图。';$('qres').innerHTML='亲子关系 R 是<b>有向</b>的：父母指向子女，不能反过来。下一步点任意成员看其直接父母/子女。';}
+      else{sel='g3-1';$('kgFeedback').innerHTML='点任意成员，看其<b>一步</b>直接亲子（父母+子女）。例如李明：父母是李卫东、张春梅，子女是李思源、李思远。';info();}
+      draw();
+    }
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setGuide(b.dataset.guide);};});
+    setGuide('entities');
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

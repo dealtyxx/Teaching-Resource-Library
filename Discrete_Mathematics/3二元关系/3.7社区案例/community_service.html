@@ -1,156 +1,210 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>红色数理 - 社区共建者</title>
-    <meta name="description" content="离散数学课程 - 红色数理 - 社区共建者">
-
-    <link rel="stylesheet" href="community_service.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
-        rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>红色数理 - 社区共建者 · 进阶层</title>
+  <meta name="description" content="离散数学 3.7 社区案例 进阶层：用逆关系与合成查询互助网络">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.cg-label{color:#4e362d;font-weight:700;font-size:13px;margin:2px 0 -2px;}
+.query-cards{display:grid;gap:8px;}
+.query-card{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:10px 12px;transition:.2s;}
+.query-card.active{border-color:var(--red);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.card-top{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--ink);font-size:.9rem;}
+.card-desc{font-size:.74rem;color:var(--muted);margin:4px 0 6px;line-height:1.45;}
+.card-formula{font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#8a5d0b;background:rgba(197,138,31,.12);padding:3px 8px;border-radius:6px;display:inline-block;}
+.card-formula.active{color:#fff;background:linear-gradient(135deg,var(--red),#8d1a12);}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(139,0,0,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}.kg-step-head strong{color:var(--red);font-size:.95rem;}.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.84rem;}.kg-step span{display:block;font-size:.74rem;color:var(--muted);margin-top:2px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.84rem;color:#7a3216;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
+.results{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;}
+.results h4{margin:0 0 8px;color:var(--red);font-size:.95rem;}
+.empty-state{text-align:center;color:var(--muted);padding:18px 0;font-size:.86rem;}.empty-state .ei{font-size:2rem;opacity:.5;display:block;margin-bottom:6px;}
+.result-badge{font-family:"JetBrains Mono",monospace;font-size:.68rem;padding:1px 7px;border-radius:6px;background:rgba(197,138,31,.16);color:#8a5d0b;font-weight:700;}
+.result-list{list-style:none;padding:0;margin:0 0 8px;}
+.result-list li{padding:6px 10px;background:rgba(116,55,31,.05);border-radius:6px;margin-bottom:5px;font-size:.85rem;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 12px;}
+.kg-box{flex:1;min-height:440px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,250,239,.7));padding:10px;display:flex;align-items:center;}
+.lg{width:100%;height:auto;display:block;}.lg text{font-family:"Noto Serif SC",serif;font-weight:700;}.lg .colhdr{fill:#8b0000;font-size:13px;}
+.leg{display:flex;gap:16px;justify-content:center;font-size:.78rem;color:#8b0000;margin-top:10px;}.leg i{display:inline-block;width:13px;height:13px;border-radius:4px;margin-right:5px;vertical-align:middle;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
-
 <body>
-    <!-- 返回主页浮动按钮 (auto-injected) -->
-    <a href="../../index.html" title="返回课程主页" style="
-        position:fixed;top:14px;left:14px;z-index:9999;
-        display:flex;align-items:center;gap:6px;
-        background:rgba(30,30,40,0.82);color:#fff;
-        padding:7px 14px 7px 10px;border-radius:20px;
-        font-size:13px;font-family:'Noto Serif SC',serif;
-        text-decoration:none;backdrop-filter:blur(8px);
-        border:1px solid rgba(255,255,255,0.15);
-        box-shadow:0 2px 12px rgba(0,0,0,0.35);
-        transition:background .2s;
-    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
-       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
-        🏠 <span>课程主页</span>
-    </a>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">进阶层</span></h1>
+        <p class="subtitle">社区互助 · 性质与闭包分析</p>
+      </div>
+      <p class="intro">用逆关系 R⁻¹ 反查、用关系合成 ∘ 算影响力，分析社区互助网络。</p>
 
-    <div class="app-container">
-        <header class="main-header">
-            <div class="header-content">
-                <h1>红色数理 <span class="highlight">社区共建者</span></h1>
-                <p class="subtitle">Community Builder: Service Participation System</p>
-            </div>
-            <div class="header-controls">
-                <button id="clearBtn" class="apple-btn secondary-btn" aria-label="清除查询 (Clear)">
-                    <span class="btn-icon">✨</span>
-                    <span>清除查询 (Clear)</span>
-                </button>
-            </div>
-        </header>
+      <div class="value-panel">
+        <h3>邻里守望 · 共建共享</h3>
+        <p>用关系查询看清『谁组织、谁参与、谁影响谁』，确保『不漏一户』，体现以人民为中心的温度。</p>
+        <div class="dim-list"><span>人民立场</span><span>共建共享</span><span>责任担当</span></div>
+      </div>
 
-        <main class="main-stage">
-            <!-- Left: Network Graph -->
-            <section class="network-panel">
-                <div class="panel-header">
-                    <h3>社区活动网络 (Community Network)</h3>
-                    <p class="panel-sub">点击实体查看关系 (Click entities to query)</p>
-                </div>
-                <div class="network-container" id="networkContainer">
-                    <svg class="network-svg" id="networkSvg">
-                        <defs>
-                            <marker id="arrow-normal" markerWidth="8" markerHeight="6" refX="20" refY="3" orient="auto">
-                                <polygon points="0 0, 8 3, 0 6" fill="#999" />
-                            </marker>
-                            <marker id="arrow-highlight" markerWidth="8" markerHeight="6" refX="20" refY="3"
-                                orient="auto">
-                                <polygon points="0 0, 8 3, 0 6" fill="#c5a059" />
-                            </marker>
-                        </defs>
-                    </svg>
-                    <div class="nodes-layer" id="nodesLayer"></div>
-                </div>
-                <div class="legend-bar">
-                    <div class="legend-item">
-                        <div class="legend-dot resident"></div>
-                        <span>居民 (Residents)</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot activity"></div>
-                        <span>活动 (Activities)</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot organizer"></div>
-                        <span>组织者 (Organizers)</span>
-                    </div>
-                </div>
-            </section>
+      <div class="cg-label">查询面板 (Query Panel)</div>
+      <div class="query-cards" id="queryCards">
+        <div class="query-card"><div class="card-top"><span>🔍</span>查询 1: 活动组织者</div><div class="card-desc">点击活动节点，查找负责的组织者</div><div class="card-formula">R<sub>activity</sub><sup>-1</sup></div></div>
+        <div class="query-card"><div class="card-top"><span>👥</span>查询 2: 活动参与者</div><div class="card-desc">点击活动节点，查找所有参与者</div><div class="card-formula">R<sub>participation</sub><sup>-1</sup></div></div>
+        <div class="query-card"><div class="card-top"><span>🌐</span>查询 3: 组织者影响力</div><div class="card-desc">点击组织者节点，查找其活动的所有参与者</div><div class="card-formula">R<sub>activity</sub><sup>-1</sup> ∘ R<sub>participation</sub><sup>-1</sup></div></div>
+      </div>
 
-            <!-- Right: Query & Results -->
-            <section class="query-panel">
-                <div class="query-section">
-                    <h3>查询面板 (Query Panel)</h3>
-                    <div class="query-cards" id="queryCards">
-                        <div class="query-card">
-                            <div class="card-header">
-                                <span class="card-icon">🔍</span>
-                                <h4>查询 1: 活动组织者</h4>
-                            </div>
-                            <p class="card-desc">点击活动节点,查找负责的组织者</p>
-                            <div class="card-formula">R<sub>activity</sub><sup>-1</sup></div>
-                        </div>
-                        <div class="query-card">
-                            <div class="card-header">
-                                <span class="card-icon">👥</span>
-                                <h4>查询 2: 活动参与者</h4>
-                            </div>
-                            <p class="card-desc">点击活动节点,查找所有参与者</p>
-                            <div class="card-formula">R<sub>participation</sub><sup>-1</sup></div>
-                        </div>
-                        <div class="query-card">
-                            <div class="card-header">
-                                <span class="card-icon">🌐</span>
-                                <h4>查询 3: 组织者影响力</h4>
-                            </div>
-                            <p class="card-desc">点击组织者节点,查找其活动的所有参与者</p>
-                            <div class="card-formula">R<sub>activity</sub><sup>-1</sup> ∘ R<sub>participation</sub>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步关系查询</strong><span>点一步，看反馈、公式项与关系图同步高亮</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-guide="org"><b>1 查组织者</b><span>R⁻¹：活动 → 组织者</span></button>
+          <button class="kg-step" type="button" data-guide="part"><b>2 查参与者</b><span>R⁻¹：活动 → 居民</span></button>
+          <button class="kg-step" type="button" data-guide="comp"><b>3 组织者影响力</b><span>合成：组织者 → 全部参与者</span></button>
+        </div>
+        <div class="kg-feedback" id="kgFeedback">点击活动节点，用逆关系反查其组织者。</div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-token="inv">R⁻¹ 逆关系</span>
+          <span class="kg-token" data-token="comp">∘ 关系合成</span>
+        </div>
+      </div>
 
-                <div class="results-section">
-                    <h3>查询结果 (Query Results)</h3>
-                    <div class="results-container" id="resultsContainer">
-                        <div class="empty-state">
-                            <span class="empty-icon">💡</span>
-                            <p>点击网络图中的节点开始查询</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
+      <div class="results" id="results"><h4>查询结果 (Query Results)</h4><div class="empty-state"><span class="ei">💡</span>点击右侧网络图中的节点开始查询</div></div>
+    </aside>
 
-    <script src="community_service.js"></script>
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>点活动看组织者/参与者（逆关系），点组织者看其覆盖的全部参与者（合成）。</span>
+        <div class="visual-badge">逆关系 + 关系合成</div>
+      </section>
+      <h2 class="pane-title">社区活动网络（居民 → 活动 → 组织者）</h2>
+      <p class="pane-sub">点击<b>活动</b>反查组织者与参与者；点击<b>组织者</b>用合成找出其影响到的全部居民。</p>
+      <div class="kg-box"><svg id="lg" class="lg" viewBox="0 0 460 360" preserveAspectRatio="xMidYMid meet"></svg></div>
+      <div class="leg"><span><i style="background:#2a9d8f"></i>居民</span><span><i style="background:#e8a317"></i>活动</span><span><i style="background:#d63b1d"></i>组织者</span></div>
+    </main>
+  </div>
 
-<!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
-</footer>
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
 
+  <script>
+    window.SECTION_META = {
+      "layers": [
+        {"name": "互助关系建模", "concepts": "居民/组织节点 / 帮扶·互助为边", "task": "把社区联系抽象为二元关系。", "page": "community_service-basic.html"},
+        {"name": "性质与闭包分析", "concepts": "对称=互助 / 传递闭包=资源可达", "task": "用性质与闭包分析互助网络。", "page": "community_service.html"},
+        {"name": "孤立点与资源可达", "concepts": "孤立点识别 / 传递可达 / 精准关怀", "task": "迁移到精准关怀与匹配问题。", "page": "community_service-extend.html"}
+      ],
+      "chapter": "第3章 二元关系", "section": "3.7 社区案例 · 进阶层", "title": "二元关系应用 · 社区共建",
+      "grounding": "本节主题：用二元关系建模社区联系，用逆关系反查（活动的组织者/参与者）、用关系合成算组织者的覆盖影响力。本页定位为进阶层：用性质与闭包分析互助网络。",
+      "steps": [
+        {"name": "情境引入", "desc": "社区里的结对帮扶、邻里互助，如何用关系网络看清全貌？"},
+        {"name": "对象抽取", "desc": "把居民/组织抽象为节点，把参与/组织抽象为关系。"},
+        {"name": "结构建模", "desc": "用关系图与逆关系、合成刻画互助结构。"},
+        {"name": "推理求解", "desc": "用 R⁻¹ 反查、用合成算覆盖影响力。"},
+        {"name": "程序验证", "desc": "用本页交互查询社区关系，验证覆盖与连通。"},
+        {"name": "迁移反思", "desc": "迁移到孤立点识别、志愿服务匹配、网格化治理。"}
+      ],
+      "ideology": {"title": "邻里守望 · 共建共享", "text": "社区是社会治理的基本单元，结对帮扶与邻里互助织就守望相助的关系网。用关系查询补全帮扶链条，确保『不漏一户』，正是共建共治共享理念的实践——让每个人都被联系所托举，体现以人民为中心的温度。", "dims": ["人民立场", "共建共享", "责任担当"], "quote": "远亲不如近邻——一张守望相助的关系网，把社区联结成有温度的共同体。"},
+      "reflect": ["逆关系 R⁻¹ 与原关系 R 在图上有什么区别？", "组织者影响力为何要用关系合成？", "如何用关系分析发现社区中的『孤立点』？"],
+      "transfer": ["志愿者—需求的匹配（第8章二部图匹配）；孤立点识别驱动精准关怀（拓展层）。"]
+    };
+  </script>
 
+  <script>
+    var $=function(id){return document.getElementById(id);};
+    var NODES={
+      r1:{n:'张三',t:'res',x:65,y:60},r2:{n:'李四',t:'res',x:65,y:140},r3:{n:'王五',t:'res',x:65,y:220},r4:{n:'赵六',t:'res',x:65,y:300},
+      a1:{n:'🌱环保',t:'act',x:230,y:90},a2:{n:'📚助学',t:'act',x:230,y:190},a3:{n:'🧓敬老',t:'act',x:230,y:290},
+      o1:{n:'王书记',t:'org',x:395,y:90},o2:{n:'李主任',t:'org',x:395,y:190},o3:{n:'张队长',t:'org',x:395,y:290}
+    };
+    var PART=[['r1','a1'],['r1','a2'],['r2','a1'],['r2','a3'],['r3','a2'],['r4','a3']];
+    var ACTV=[['a1','o1'],['a2','o2'],['a3','o3']];
+    var EDGES=PART.map(function(e){return {a:e[0],b:e[1]};}).concat(ACTV.map(function(e){return {a:e[0],b:e[1]};}));
+    var nameOf=function(id){return NODES[id].n;};
+    var colorOf=function(id){var t=NODES[id].t;return t==='res'?'#2a9d8f':(t==='act'?'#e8a317':'#d63b1d');};
+    var hotN={},hotE={},guide='org';
+    function draw(){
+      var svg='<defs><marker id="ar" markerWidth="9" markerHeight="7" refX="13" refY="3.5" orient="auto"><polygon points="0 0,9 3.5,0 7" fill="#bbb"/></marker><marker id="arh" markerWidth="9" markerHeight="7" refX="13" refY="3.5" orient="auto"><polygon points="0 0,9 3.5,0 7" fill="#c5a059"/></marker></defs>';
+      svg+='<text class="colhdr" x="65" y="22" text-anchor="middle">居民</text><text class="colhdr" x="230" y="22" text-anchor="middle">活动</text><text class="colhdr" x="395" y="22" text-anchor="middle">组织者</text>';
+      var anyHot=Object.keys(hotN).length>0;
+      EDGES.forEach(function(e){var on=hotE[e.a+'>'+e.b];var p1=NODES[e.a],p2=NODES[e.b];svg+='<line x1="'+(p1.x+46)+'" y1="'+p1.y+'" x2="'+(p2.x-46)+'" y2="'+p2.y+'" stroke="'+(on?'#c5a059':'#c9b8b0')+'" stroke-width="'+(on?3.2:1.4)+'" opacity="'+(on?1:(anyHot?0.13:0.72))+'" marker-end="url(#'+(on?'arh':'ar')+')"/>';});
+      Object.keys(NODES).forEach(function(id){var p=NODES[id];var h=hotN[id];var stroke=h?'#8b0000':'#fff';var sw=h?3.4:2;var op=h?1:(anyHot?0.4:1);
+        svg+='<g style="cursor:pointer" data-id="'+id+'"><rect x="'+(p.x-46)+'" y="'+(p.y-17)+'" width="92" height="34" rx="9" fill="'+colorOf(id)+'" stroke="'+stroke+'" stroke-width="'+sw+'" opacity="'+op+'"/><text x="'+p.x+'" y="'+(p.y+5)+'" text-anchor="middle" fill="#fff" font-size="13" opacity="'+op+'">'+nameOf(id)+'</text></g>';
+      });
+      $('lg').innerHTML=svg;
+      $('lg').querySelectorAll('[data-id]').forEach(function(g){g.onclick=function(){clickNode(g.dataset.id);};});
+    }
+    function clickNode(id){
+      var t=NODES[id].t;
+      if(t==='act')queryActivity(id);
+      else if(t==='org')queryOrganizer(id);
+      else { hotN={};hotE={};draw();$('results').innerHTML='<h4>查询结果 (Query Results)</h4><div class="empty-state"><span class="ei">👆</span>请点击<b>活动</b>或<b>组织者</b>节点进行查询</div>';}
+    }
+    function setCardActive(i){document.querySelectorAll('.query-card').forEach(function(c,k){c.classList.toggle('active',k===i);var f=c.querySelector('.card-formula');if(f)f.classList.toggle('active',k===i);});}
+    function queryActivity(aid){
+      var org=ACTV.filter(function(e){return e[0]===aid;}).map(function(e){return e[1];});
+      var parts=PART.filter(function(e){return e[1]===aid;}).map(function(e){return e[0];});
+      hotN={};hotE={};hotN[aid]=1;org.forEach(function(o){hotN[o]=1;hotE[aid+'>'+o]=1;});parts.forEach(function(r){hotN[r]=1;hotE[r+'>'+aid]=1;});
+      draw();
+      $('results').innerHTML='<h4>活动查询：'+nameOf(aid)+'</h4>'+
+        '<p style="font-size:.82rem;color:var(--muted);margin:6px 0 3px;">组织者 <span class="result-badge">R<sub>activity</sub>⁻¹</span></p><ul class="result-list">'+(org.length?org.map(function(o){return '<li>'+nameOf(o)+'</li>';}).join(''):'<li>无</li>')+'</ul>'+
+        '<p style="font-size:.82rem;color:var(--muted);margin:6px 0 3px;">参与者 <span class="result-badge">R<sub>participation</sub>⁻¹</span></p><ul class="result-list">'+(parts.length?parts.map(function(r){return '<li>'+nameOf(r)+'</li>';}).join(''):'<li>无</li>')+'</ul>';
+      guide=(guide==='part')?'part':'org';setCardActive(guide==='part'?1:0);syncGuide();
+    }
+    function queryOrganizer(oid){
+      var acts=ACTV.filter(function(e){return e[1]===oid;}).map(function(e){return e[0];});
+      var ps={};acts.forEach(function(a){PART.filter(function(e){return e[1]===a;}).forEach(function(e){ps[e[0]]=1;});});var parts=Object.keys(ps);
+      hotN={};hotE={};hotN[oid]=1;acts.forEach(function(a){hotN[a]=1;hotE[a+'>'+oid]=1;PART.filter(function(e){return e[1]===a;}).forEach(function(e){hotN[e[0]]=1;hotE[e[0]+'>'+a]=1;});});
+      draw();
+      $('results').innerHTML='<h4>组织者影响力：'+nameOf(oid)+'</h4>'+
+        '<p style="font-size:.82rem;color:var(--muted);margin:6px 0 3px;">负责活动 <span class="result-badge">R<sub>activity</sub>⁻¹</span></p><ul class="result-list">'+acts.map(function(a){return '<li>'+nameOf(a)+'</li>';}).join('')+'</ul>'+
+        '<p style="font-size:.82rem;color:var(--muted);margin:6px 0 3px;">覆盖全部参与者 <span class="result-badge">R<sub>act</sub>⁻¹ ∘ R<sub>part</sub>⁻¹</span></p><ul class="result-list">'+parts.map(function(r){return '<li>'+nameOf(r)+'</li>';}).join('')+'</ul>';
+      guide='comp';setCardActive(2);syncGuide();
+    }
+    function syncGuide(){
+      document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.guide===guide);});
+      document.querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',(guide!=='comp'&&t.dataset.token==='inv')||(guide==='comp'&&(t.dataset.token==='inv'||t.dataset.token==='comp')));});
+    }
+    function setGuide(g){
+      guide=g;syncGuide();
+      if(g==='org'){setCardActive(0);$('kgFeedback').innerHTML='查询 1：点击<b>活动</b>节点，用逆关系 <b>R<sub>activity</sub>⁻¹</b> 反查它的组织者。已自动演示『环保』。';queryActivity('a1');}
+      else if(g==='part'){setCardActive(1);$('kgFeedback').innerHTML='查询 2：点击<b>活动</b>节点，用逆关系 <b>R<sub>participation</sub>⁻¹</b> 反查它的全部参与者。已自动演示『助学』。';queryActivity('a2');}
+      else{setCardActive(2);$('kgFeedback').innerHTML='查询 3：点击<b>组织者</b>节点，用<b>关系合成</b>找出其活动覆盖的全部参与者（影响力）。已自动演示『王书记』。';queryOrganizer('o1');}
+    }
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setGuide(b.dataset.guide);};});
+    setGuide('org');
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
 </body>
-
 </html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第5章 命题逻辑 - 逻辑门与神经元</title>
+  <meta name="description" content="5.9 人工智能创新 - 基础层 · 逻辑门与神经元">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{
+  --ink:#251713; --muted:#6c5a52; --paper:#fff8ec; --card:rgba(255,253,246,0.92);
+  --line:rgba(116,55,31,0.18); --red:#b42318; --red-2:#de5b3d; --gold:#c58a1f;
+  --green:#2f7d57; --blue:#2f5f9f; --amber:#f0a202;
+  --shadow:0 18px 50px rgba(69,31,15,0.14);
+}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;
+  background:radial-gradient(circle at 16% 12%, rgba(222,91,61,.18), transparent 28%),radial-gradient(circle at 82% 8%, rgba(47,95,159,.14), transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:14px;overflow:auto;}
+.glass-pane{padding:22px;overflow:auto;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}
+.dot.red{background:#ff5f56;} .dot.yellow{background:#ffbd2e;} .dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}
+.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.sym-box{border-radius:10px;border:1px solid var(--line);background:rgba(255,253,246,.7);padding:12px 14px;}
+.sym-box h3{margin:0 0 8px;font-size:14px;color:var(--blue);}
+.sym-grid{display:grid;gap:5px;font-size:12.5px;color:#5b4136;line-height:1.5;}
+.sym-grid code{font-family:"JetBrains Mono",monospace;color:var(--red);font-weight:700;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:16px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);} .mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.2rem;margin:0 0 6px;}
+.pane-sub{color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 14px;}
+.panel-card{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:16px;margin:12px 0;}
+.panel-card h3{margin:0 0 10px;color:var(--red);font-size:1rem;}
+.gate-btns,.in-btns{display:flex;flex-wrap:wrap;gap:8px;}
+.gate-btn,.in-btn{padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.72);cursor:pointer;font:inherit;font-weight:700;font-size:13px;color:#5b4136;transition:.2s;}
+.gate-btn:hover,.in-btn:hover{border-color:var(--red);color:var(--red);}
+.gate-btn.active{background:var(--red);color:#fff;border-color:var(--red);}
+.in-btn.on{background:var(--green);color:#fff;border-color:var(--green);}
+.neuron-wrap{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.85),rgba(255,250,239,.7));padding:8px;}
+.neuron-svg{width:100%;height:auto;display:block;}
+.nnode{fill:#fff;stroke:var(--line);stroke-width:2;transition:.3s;}
+.nnode.on{fill:rgba(47,125,87,.85);stroke:var(--green);}
+.nnode.off{fill:rgba(180,35,24,.12);stroke:rgba(180,35,24,.4);}
+.nnode.sum{fill:rgba(47,95,159,.12);stroke:var(--blue);}
+.nnode.sum.lit{fill:rgba(47,95,159,.3);stroke:var(--blue);stroke-width:3;}
+.nnode.out.t{fill:rgba(47,125,87,.85);stroke:var(--green);}
+.nnode.out.f{fill:rgba(180,35,24,.65);stroke:var(--red);}
+.nedge{stroke:rgba(116,55,31,.4);stroke-width:2;transition:.3s;}
+.nedge.act{stroke:var(--green);stroke-width:3.5;}
+.nedge.lit{stroke:var(--gold);stroke-width:3.5;}
+.ntext{font-family:"JetBrains Mono",monospace;font-weight:800;fill:var(--ink);}
+.ntext.w{fill:var(--muted);font-size:12px;font-weight:700;}
+.step-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0;}
+.step-btn{border:1px solid var(--line);background:rgba(255,255,255,.72);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#5b4136;transition:.2s;}
+.step-btn:hover,.step-btn.active{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(180,35,24,.12);}
+.step-btn b{display:block;color:var(--red);font-size:.9rem;}
+.step-btn span{display:block;font-size:.74rem;color:var(--muted);margin-top:3px;}
+.feedback{margin-top:10px;padding:11px 13px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);color:#7a3216;font-size:.9rem;line-height:1.7;}
+.token-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.token{padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.8rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.token.on{background:linear-gradient(135deg,var(--red),#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(180,35,24,.18);}
+table.tt{width:100%;border-collapse:collapse;font-family:"JetBrains Mono",monospace;font-size:13px;margin-top:6px;}
+table.tt th{background:rgba(180,35,24,.08);color:var(--red);padding:7px;}
+table.tt td{padding:6px 7px;border-bottom:1px solid var(--line);text-align:center;}
+table.tt tr.hot td{background:rgba(47,125,87,.14);font-weight:800;}
+.verdict{border-radius:12px;border:2px solid var(--gold);background:linear-gradient(135deg,rgba(214,59,29,.1),rgba(197,138,31,.12));padding:16px;text-align:center;margin:12px 0;}
+.verdict .vt{font-weight:700;color:var(--red);margin-bottom:6px;font-size:13px;}
+.verdict .vv{font-size:1.6rem;font-weight:800;color:var(--red);font-family:"JetBrains Mono",monospace;}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:14px 16px;margin-top:16px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}
+.insight-box p{margin:0;font-size:14px;line-height:1.7;color:#4e362d;}
+.badges{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;}
+.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){
+  body{overflow:auto;}
+  .app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}
+  .side-panel,.glass-pane{max-height:none;overflow:visible;} .step-row{grid-template-columns:1fr;}
+}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">基础层</span></h1>
+        <p class="subtitle">逻辑门与神经元 · 符号智能的根基</p>
+      </div>
+      <p class="intro">一个神经元（感知机）就能实现一个逻辑门：用权重与阈值，把布尔函数算出来。</p>
+
+      <div class="value-panel">
+        <h3>智能科技 · 创新引领</h3>
+        <p>深度学习再强大，最底层仍是逻辑门与神经元的运算。读懂这块基石，才能让 AI 既能「学」、也讲「理」。</p>
+        <div class="dim-list"><span>创新引领</span><span>科学精神</span><span>辩证思维</span></div>
+      </div>
+
+      <div class="sym-box">
+        <h3>符号说明</h3>
+        <div class="sym-grid">
+          <div><code>x₁, x₂</code>　输入信号（0 或 1）</div>
+          <div><code>w₁, w₂</code>　连接权重</div>
+          <div><code>θ</code>　　　激活阈值</div>
+          <div><code>y</code>　　　神经元输出（激活=1）</div>
+          <div style="margin-top:4px;color:var(--blue);">激活规则：w₁x₁ + w₂x₂ ≥ θ ⟹ y = 1</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>选逻辑门、拨输入，点三步看神经元如何把逻辑门「算」出来。</span>
+        <div class="visual-badge">感知机 + 逻辑门</div>
+      </section>
+
+      <h2 class="pane-title">🤖 单神经元逻辑门实验</h2>
+      <p class="pane-sub">逻辑门 = 一组权重与阈值。改变门或输入，神经元图与真值表会实时高亮。</p>
+
+      <div class="panel-card">
+        <h3>① 选择逻辑门</h3>
+        <div class="gate-btns" id="gateBtns">
+          <button class="gate-btn active" data-g="and">与门 AND</button>
+          <button class="gate-btn" data-g="or">或门 OR</button>
+          <button class="gate-btn" data-g="not">非门 NOT</button>
+        </div>
+        <div style="margin-top:12px;"><h3 style="margin:0 0 8px;">② 设定输入</h3>
+          <div class="in-btns"><button class="in-btn" id="x1Btn" data-x="1">x₁ = 0</button><button class="in-btn" id="x2Btn" data-x="2">x₂ = 0</button></div>
+        </div>
+      </div>
+
+      <div class="neuron-wrap">
+        <svg class="neuron-svg" viewBox="0 0 440 240" id="neuronSvg">
+          <line class="nedge" id="e1" x1="92" y1="70" x2="208" y2="120"/>
+          <line class="nedge" id="e2" x1="92" y1="170" x2="208" y2="120"/>
+          <line class="nedge" id="e3" x1="262" y1="120" x2="338" y2="120"/>
+          <circle class="nnode" id="nx1" cx="70" cy="70" r="24"/>
+          <circle class="nnode" id="nx2" cx="70" cy="170" r="24"/>
+          <circle class="nnode sum" id="nsum" cx="235" cy="120" r="30"/>
+          <circle class="nnode out" id="nout" cx="362" cy="120" r="26"/>
+          <text class="ntext" x="70" y="76" text-anchor="middle" id="tx1">0</text>
+          <text class="ntext" x="70" y="176" text-anchor="middle" id="tx2">0</text>
+          <text class="ntext" x="235" y="118" text-anchor="middle" font-size="16">Σ</text>
+          <text class="ntext w" x="235" y="135" text-anchor="middle" id="tth">≥1.5</text>
+          <text class="ntext" x="362" y="126" text-anchor="middle" font-size="18" id="tout">0</text>
+          <text class="ntext w" x="145" y="84" text-anchor="middle" id="tw1">w₁=1</text>
+          <text class="ntext w" x="145" y="156" text-anchor="middle" id="tw2">w₂=1</text>
+          <text class="ntext w" x="70" y="36" text-anchor="middle" fill="#2f5f9f">x₁</text>
+          <text class="ntext w" x="70" y="212" text-anchor="middle" fill="#2f5f9f">x₂</text>
+          <text class="ntext w" x="362" y="170" text-anchor="middle" fill="#b42318">输出 y</text>
+        </svg>
+      </div>
+
+      <div class="panel-card">
+        <h3>③ 点一步 · 看反馈 · 看高亮</h3>
+        <div class="step-row" id="stepRow">
+          <button class="step-btn active" data-s="gate"><b>1 选门定权重</b><span>逻辑门 ⟹ w₁,w₂,θ</span></button>
+          <button class="step-btn" data-s="input"><b>2 输入加权</b><span>w₁x₁ + w₂x₂</span></button>
+          <button class="step-btn" data-s="fire"><b>3 阈值激活</b><span>和 ≥ θ ⟹ y</span></button>
+        </div>
+        <div class="feedback" id="feedback">选择一个逻辑门，它对应神经元的一组权重 w₁, w₂ 和阈值 θ。</div>
+        <div class="token-row" id="tokenRow">
+          <span class="token" data-t="w">w₁,w₂,θ</span>
+          <span class="token" data-t="sum">w₁x₁+w₂x₂</span>
+          <span class="token" data-t="cmp">≥ θ</span>
+          <span class="token" data-t="y">y</span>
+        </div>
+      </div>
+
+      <div class="verdict"><div class="vt" id="vtitle">神经元输出</div><div class="vv" id="verdict">y = 0</div></div>
+
+      <div class="panel-card">
+        <h3>真值表（当前门）</h3>
+        <div id="truthTable"></div>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">🚩 从逻辑门到智能</div>
+        <p>与、或、非这些逻辑门，都能由一个神经元用「加权求和 + 阈值」实现——这正是符号逻辑与连接主义的交汇点。把握逻辑与学习的辩证关系，是理解可信 AI 的第一步。</p>
+        <div class="badges"><span class="badge">创新引领</span><span class="badge">科学精神</span><span class="badge">辩证思维</span></div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+    <div>版权所有 · 项目总负责人：谢鑫</div>
+  </footer>
+
+  <script>
+    window.SECTION_META = {
+      "layers": [
+            { "name": "逻辑门与神经元", "concepts": "布尔函数 / 感知机", "task": "理解逻辑与神经元的联系。", "page": "deep_learning_logic-basic.html" },
+            { "name": "规则推理 vs 学习", "concepts": "可解释 / 数据拟合 / 异或需多层", "task": "辨析符号推理与连接主义长短。", "page": "deep_learning_logic.html" },
+            { "name": "神经符号与可信 AI", "concepts": "神经符号融合 / 形式化验证AI", "task": "迁移到可解释、可信的 AI。", "page": "deep_learning_logic-extend.html" }
+      ],
+      "chapter": "第5章 命题逻辑",
+      "section": "5.9 人工智能创新",
+      "title": "命题逻辑应用 · 深度学习的逻辑",
+      "grounding": "本节主题：用命题逻辑理解 AI 中的逻辑结构——逻辑门与神经元激活、布尔函数与感知机、规则推理与可解释性。体会命题逻辑作为符号智能的根基，以及它与连接主义（深度学习）的互补，思考可信 AI 的逻辑基础。本页定位为基础层：理解逻辑门与神经元的联系。",
+      "steps": [
+            { "name": "情境引入", "desc": "深度学习如此强大，它和最基础的逻辑门有什么关系？" },
+            { "name": "对象抽取", "desc": "把判定规则抽象为布尔函数与命题公式。" },
+            { "name": "结构建模", "desc": "用命题逻辑刻画规则推理，对照神经网络的拟合。" },
+            { "name": "推理求解", "desc": "分析逻辑可解释性与神经网络黑箱的张力。" },
+            { "name": "程序验证", "desc": "用本页交互构造逻辑判定，对照学习结果。" },
+            { "name": "迁移反思", "desc": "迁移到可解释AI、神经符号系统、可信AI。" }
+      ],
+      "ideology": {
+            "title": "智能科技 · 创新引领",
+            "text": "人工智能是引领未来的战略性技术。命题逻辑作为符号智能的根基，提醒我们：强大的 AI 更需要可解释、可信赖的逻辑底座。把握逻辑与学习的辩证关系，勇于在神经符号融合等前沿创新，方能让智能科技更好地造福人民、服务国家。",
+            "dims": [ "创新引领", "科学精神", "辩证思维" ],
+            "quote": "既要会『学』，也要讲『理』——可信 AI 的未来，离不开逻辑这块基石。"
+      },
+      "reflect": [
+            "单个感知机能实现『异或』吗？为什么需要多层（这与逻辑的表达能力有何关系）？",
+            "深度学习『拟合数据』与逻辑『严格推理』各有何长短？",
+            "为什么说可解释性是可信 AI 的关键？逻辑能为其提供什么？"
+      ],
+      "transfer": [
+            "神经符号 AI 试图把逻辑推理与神经网络结合，兼得可解释与强表达。",
+            { "t": "形式化验证AI", "d": "用逻辑方法验证神经网络的安全性质（如鲁棒性），为什么越来越重要？" }
+      ]
+    };
+  </script>
+
+  <script>
+  (function(){
+    "use strict";
+    const GATES={
+      and:{ w1:1, w2:1, th:1.5, use2:true, name:'与门 AND', f:'x₁ ∧ x₂' },
+      or :{ w1:1, w2:1, th:0.5, use2:true, name:'或门 OR',  f:'x₁ ∨ x₂' },
+      not:{ w1:-1,w2:0, th:-0.5,use2:false,name:'非门 NOT', f:'¬x₁' }
+    };
+    let gate='and', x1=0, x2=0, step='gate';
+    const $=id=>document.getElementById(id);
+    function g(){ return GATES[gate]; }
+    function sum(){ return g().w1*x1 + g().w2*(g().use2?x2:0); }
+    function out(){ return sum()>=g().th ? 1 : 0; }
+
+    $('gateBtns').querySelectorAll('.gate-btn').forEach(b=>b.addEventListener('click',()=>{
+      gate=b.dataset.g; $('gateBtns').querySelectorAll('.gate-btn').forEach(x=>x.classList.toggle('active',x===b));
+      if(!g().use2) x2=0;
+      render();
+    }));
+    $('x1Btn').addEventListener('click',()=>{ x1=x1?0:1; render(); });
+    $('x2Btn').addEventListener('click',()=>{ if(!g().use2) return; x2=x2?0:1; render(); });
+    $('stepRow').querySelectorAll('.step-btn').forEach(b=>b.addEventListener('click',()=>{
+      step=b.dataset.s; $('stepRow').querySelectorAll('.step-btn').forEach(x=>x.classList.toggle('active',x===b)); render();
+    }));
+
+    function render(){
+      const G=g(), s=sum(), y=out();
+      // controls
+      $('x1Btn').textContent='x₁ = '+x1; $('x1Btn').classList.toggle('on',x1===1);
+      $('x2Btn').textContent='x₂ = '+x2; $('x2Btn').classList.toggle('on',x2===1);
+      $('x2Btn').style.opacity=G.use2?'1':'.4';
+      // diagram
+      $('tx1').textContent=x1; $('tx2').textContent=G.use2?x2:'–';
+      $('tw1').textContent='w₁='+G.w1; $('tw2').textContent=G.use2?('w₂='+G.w2):'w₂=0';
+      $('tth').textContent='≥'+G.th; $('tout').textContent=y;
+      $('nx1').className.baseVal='nnode '+(x1?'on':'off');
+      $('nx2').className.baseVal='nnode '+((G.use2&&x2)?'on':(G.use2?'off':''))+(G.use2?'':' off');
+      $('nout').className.baseVal='nnode out '+(y?'t':'f');
+      $('e1').className.baseVal='nedge'+(x1?' act':'')+(step==='input'?' ':'' );
+      $('e2').className.baseVal='nedge'+((G.use2&&x2)?' act':'');
+      $('e3').className.baseVal='nedge'+(y?' act':'');
+      // step highlight on diagram
+      $('nsum').className.baseVal='nnode sum'+(step==='fire'?' lit':'');
+      if(step==='input'){ $('e1').classList.add('lit'); $('e2').classList.add('lit'); }
+      if(step==='fire'){ $('e3').classList.add('lit'); }
+      // feedback + tokens
+      const fb={
+        gate:`已选 <b>${G.name}</b>：对应权重 w₁=${G.w1}，w₂=${G.use2?G.w2:0}，阈值 θ=${G.th}。逻辑门就是这样被一个神经元参数化的。`,
+        input:`当前输入 x₁=${x1}${G.use2?('，x₂='+x2):''}。加权和 = ${G.w1}×${x1}${G.use2?(' + '+G.w2+'×'+x2):''} = <b>${s}</b>。被激活的输入边会变亮。`,
+        fire:`把加权和 ${s} 与阈值 ${G.th} 比较：${s}${y?' ≥ ':' < '}${G.th} ⟹ 神经元${y?'激活':'不激活'}，输出 y = <b>${y}</b>，正好等于 ${G.f}。`
+      };
+      $('feedback').innerHTML=fb[step];
+      const tmap={gate:['w'],input:['w','sum'],fire:['sum','cmp','y']};
+      $('tokenRow').querySelectorAll('.token').forEach(t=>t.classList.toggle('on',tmap[step].includes(t.dataset.t)));
+      // verdict
+      $('verdict').textContent='y = '+y+'　('+G.f+' = '+y+')';
+      // truth table
+      const rows = G.use2 ? [[0,0],[0,1],[1,0],[1,1]] : [[0],[1]];
+      let html='<table class="tt"><thead><tr>'+(G.use2?'<th>x₁</th><th>x₂</th>':'<th>x₁</th>')+'<th>Σ</th><th>y</th></tr></thead><tbody>';
+      rows.forEach(r=>{
+        const a=r[0], b=G.use2?r[1]:0, ss=G.w1*a+(G.use2?G.w2*b:0), yy=ss>=G.th?1:0;
+        const hot=(a===x1 && (!G.use2 || b===x2));
+        html+='<tr class="'+(hot?'hot':'')+'">'+(G.use2?('<td>'+a+'</td><td>'+b+'</td>'):('<td>'+a+'</td>'))+'<td>'+ss+'</td><td>'+yy+'</td></tr>';
+      });
+      html+='</tbody></table>';
+      $('truthTable').innerHTML=html;
+    }
+    render();
+  })();
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

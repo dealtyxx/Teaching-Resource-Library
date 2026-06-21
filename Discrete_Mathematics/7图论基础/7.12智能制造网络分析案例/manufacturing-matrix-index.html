@@ -13,6 +13,8 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=Orbitron:wght@500;700&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
@@ -33,102 +35,48 @@
     </a>
 
     <div class="app-container">
-        <!-- Left Panel: Network Topology -->
-        <section class="topology-panel">
-            <div class="panel-header">
+        <aside class="sidebar">
+            <div class="sidebar-header">
                 <div class="window-controls">
                     <span class="dot red"></span>
                     <span class="dot yellow"></span>
                     <span class="dot green"></span>
                 </div>
-                <h1>智能制造 <span class="highlight">网络分析</span></h1>
-                <p class="subtitle">Smart Manufacturing Network Analysis</p>
+                <h1>红色数理 <span class="highlight">进阶层</span></h1>
+                <p class="subtitle">制造工序网络图 · 网络分析</p>
             </div>
 
-            <div class="visualizer-stage">
-                <div class="grid-bg"></div>
-                <div class="graph-title">
-                    <h2>制造单元拓扑图</h2>
-                    <p>Manufacturing Unit Topology</p>
-                </div>
-
-                <div class="legend">
-                    <div class="legend-item">
-                        <span class="legend-dot unit"></span>
-                        <span>制造单元 (可拖拽)</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-line flow"></span>
-                        <span>物流路径</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-line optimized"></span>
-                        <span>优化路径</span>
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>选择矩阵类型</label>
+                    <div class="matrix-tabs">
+                        <button class="tab-btn active" data-tab="adjacency" aria-label="邻接矩阵 (Adjacency)">邻接矩阵</button>
+                        <button class="tab-btn" data-tab="incidence" aria-label="关联矩阵 (Incidence)">关联矩阵</button>
                     </div>
                 </div>
 
-                <svg id="graphSvg" width="100%" height="100%">
-                    <defs>
-                        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feGaussianBlur stdDeviation="2" result="blur" />
-                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                        </filter>
-                        <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                            <polygon points="0 0, 10 3.5, 0 7" fill="var(--edge-default)" />
-                        </marker>
-                        <marker id="arrow-active" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                            <polygon points="0 0, 10 3.5, 0 7" fill="var(--accent-blue)" />
-                        </marker>
-                    </defs>
-                    <g id="edgesGroup"></g>
-                    <g id="nodesGroup"></g>
-                </svg>
-            </div>
-
-            <div class="controls-area">
-                <button id="optimizeBtn" class="apple-btn primary-btn" aria-label="网络结构优化">
-                    <span class="icon">⚡</span> 网络结构优化
-                </button>
-                <button id="resetBtn" class="apple-btn secondary-btn" aria-label="重置系统 (随机生成)">
-                    <span class="icon">🔄</span> 重置系统 (随机生成)
-                </button>
-            </div>
-        </section>
-
-        <!-- Right Panel: Matrix Analysis -->
-        <aside class="matrix-panel">
-            <div class="matrix-tabs">
-                <button class="tab-btn active" data-tab="adjacency" aria-label="邻接矩阵 (Adjacency)">邻接矩阵 (Adjacency)</button>
-                <button class="tab-btn" data-tab="incidence" aria-label="关联矩阵 (Incidence)">关联矩阵 (Incidence)</button>
-            </div>
-
-            <div class="matrix-content">
-                <div id="matrixContainer" class="matrix-container">
-                    <!-- Matrix will be generated here -->
-                </div>
-            </div>
-
-            <div class="analysis-info">
-                <div class="info-group">
-                    <label>网络复杂度</label>
-                    <div class="stats-row">
-                        <div class="stat-item">
-                            <span class="label">节点数 (V):</span>
-                            <span id="nodeCount" class="value">0</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="label">边数 (E):</span>
-                            <span id="edgeCount" class="value">0</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="label">密度:</span>
-                            <span id="density" class="value">0.00</span>
+                <div class="analysis-info">
+                    <div class="info-group">
+                        <label>网络复杂度</label>
+                        <div class="stats-row">
+                            <div class="stat-item">
+                                <span class="label">节点数 (V)</span>
+                                <span id="nodeCount" class="value">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="label">边数 (E)</span>
+                                <span id="edgeCount" class="value">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="label">密度</span>
+                                <span id="density" class="value">0.00</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="info-box">
-                    <h3>💡 工匠精神</h3>
+                <div class="info-panel info-box">
+                    <h3>工匠精神</h3>
                     <div id="conceptInfo">
                         <p><strong>邻接矩阵:</strong> 点击单元格 (0/1) 可直接添加或删除连线。</p>
                         <p><strong>关联矩阵:</strong> 左键设为起点(1)，右键设为终点(-1)，自由重组物流路径。</p>
@@ -136,7 +84,73 @@
                     </div>
                 </div>
             </div>
+
+            <div class="actions-footer controls-area">
+                <button id="optimizeBtn" class="apple-btn primary-btn" aria-label="网络结构优化">
+                    <span class="icon">⚡</span> 网络结构优化
+                </button>
+                <button id="resetBtn" class="apple-btn secondary-btn" aria-label="重置系统 (随机生成)">
+                    <span class="icon">🔄</span> 重置系统
+                </button>
+            </div>
         </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="visualization-container">
+                    <section class="section topology-section">
+                        <div class="graph-title">
+                            <h2>制造单元拓扑图</h2>
+                            <p>Manufacturing Unit Topology</p>
+                        </div>
+
+                        <div class="topology-canvas">
+                            <div class="grid-bg"></div>
+                            <div class="legend">
+                                <div class="legend-item">
+                                    <span class="legend-dot unit"></span>
+                                    <span>制造单元 (可拖拽)</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-line flow"></span>
+                                    <span>物流路径</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-line optimized"></span>
+                                    <span>优化路径</span>
+                                </div>
+                            </div>
+
+                            <svg id="graphSvg" width="100%" height="100%" viewBox="0 0 900 460" preserveAspectRatio="xMidYMid meet">
+                                <defs>
+                                    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feGaussianBlur stdDeviation="2" result="blur" />
+                                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                    </filter>
+                                    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                        <polygon points="0 0, 10 3.5, 0 7" fill="var(--edge-default)" />
+                                    </marker>
+                                    <marker id="arrow-active" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                        <polygon points="0 0, 10 3.5, 0 7" fill="var(--accent-blue)" />
+                                    </marker>
+                                </defs>
+                                <g id="edgesGroup"></g>
+                                <g id="nodesGroup"></g>
+                            </svg>
+                        </div>
+                    </section>
+
+                    <section class="section matrix-section">
+                        <h2 class="section-title">图矩阵联动分析</h2>
+                        <div class="matrix-content">
+                            <div id="matrixContainer" class="matrix-container">
+                                <!-- Matrix will be generated here -->
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script src="manufacturing-matrix-script.js"></script>
@@ -147,19 +161,100 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "layers": [
+            {
+                  "name": "工序网络",
+                  "concepts": "工序顶点 / 依赖有向边",
+                  "task": "把产线抽象为有向图。",
+                  "page": "manufacturing-matrix-index-basic.html"
+            },
+            {
+                  "name": "矩阵分析瓶颈",
+                  "concepts": "可达矩阵 / 关键路径定节拍",
+                  "task": "用矩阵与关键路径定位瓶颈。",
+                  "page": "manufacturing-matrix-index.html"
+            },
+            {
+                  "name": "工业互联网",
+                  "concepts": "拓扑排序 / 数字孪生排产",
+                  "task": "迁移到智能排产与数字孪生。",
+                  "page": "manufacturing-matrix-index-extend.html"
+            }
+      ],
+      "chapter": "第7章 图论基础",
+      "section": "7.12 智能制造网络分析案例",
+      "title": "图论应用 · 智能制造网络分析",
+      "grounding": "本节主题：用图与矩阵分析智能制造的工序/设备网络——把工序抽象为顶点、依赖/物流为边，用邻接矩阵、可达矩阵、关键路径分析产线结构、瓶颈工序与节拍，体会图矩阵方法在工业互联网中的应用。",
+      "steps": [
+            {
+                  "name": "情境引入",
+                  "desc": "复杂产线的工序依赖错综，如何用图矩阵看清结构与瓶颈？"
+            },
+            {
+                  "name": "对象抽取",
+                  "desc": "把工序/设备抽象为顶点，把依赖/物流抽象为有向边。"
+            },
+            {
+                  "name": "结构建模",
+                  "desc": "用邻接/可达矩阵与关键路径刻画产线网络。"
+            },
+            {
+                  "name": "推理求解",
+                  "desc": "用矩阵求可达、用关键路径定节拍与瓶颈。"
+            },
+            {
+                  "name": "程序验证",
+                  "desc": "用本页交互分析制造网络，识别瓶颈工序。"
+            },
+            {
+                  "name": "迁移反思",
+                  "desc": "迁移到工业互联网、供应链、流程优化。"
+            }
+      ],
+      "ideology": {
+            "title": "制造强国 · 自立自强",
+            "text": "智能制造是制造强国的主攻方向。用图矩阵方法剖析产线、优化流程、突破瓶颈，是把关键核心技术掌握在自己手中的具体实践。以数学赋能工业，推动制造业高质量发展，彰显自立自强、勇攀高峰的奋斗精神。",
+            "dims": [
+                  "制造强国",
+                  "自立自强",
+                  "系统观念"
+            ],
+            "quote": "把制造业搞上去——用图与矩阵看清产线脉络，是迈向智能制造的硬功夫。"
+      },
+      "reflect": [
+            "用可达矩阵能发现产线中哪些工序间存在（间接）依赖？",
+            "瓶颈工序决定整线节拍，如何用关键路径定位并扩能？",
+            "工序依赖图中若出现环，意味着什么问题（死锁/返工）？"
+      ],
+      "transfer": [
+            "工业互联网的数字孪生用图建模设备与工序关系，实时优化排产。",
+            {
+                  "t": "拓扑排序",
+                  "d": "无环依赖图的拓扑排序给出可行工序序列，如何用于排产调度？"
+            }
+      ]
+};
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 

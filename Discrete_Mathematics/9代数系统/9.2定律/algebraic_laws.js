@@ -470,7 +470,7 @@ function loadCase(index) {
     // 更新案例列表
     updateExamplesList(currentLaw);
 
-    // 更新思政内涵
+    // 更新价值内涵
     document.getElementById('philosophyPanel').innerHTML =
         `<p style="font-size: 0.85rem; line-height: 1.6;">${caseData.philosophy}</p>`;
 

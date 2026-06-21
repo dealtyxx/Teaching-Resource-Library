@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8.12 航天通信网络案例 - 基础层</title>
+  <meta name="description" content="航天通信网络案例基础层：把测控通信系统抽象为带权图，并用 Kruskal 算法交互构建最小生成树。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+  <style>
+    :root {
+      --paper: #fff8ec;
+      --panel: rgba(255, 252, 245, 0.86);
+      --line: rgba(214, 59, 29, 0.16);
+      --red: #d63b1d;
+      --red-dark: #b8321a;
+      --gold: #ffb400;
+      --cyan: #00d8ee;
+      --green: #1f9d55;
+      --ink: #342018;
+      --muted: #7f6f65;
+      --shadow: 0 18px 46px rgba(139, 0, 0, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      color: var(--ink);
+      font-family: "Noto Serif SC", "Microsoft YaHei", serif;
+      background:
+        radial-gradient(circle at 16% 16%, rgba(255,180,0,0.16), transparent 26%),
+        radial-gradient(circle at 84% 80%, rgba(214,59,29,0.10), transparent 28%),
+        repeating-linear-gradient(90deg, rgba(255,180,0,0.08) 0 1px, transparent 1px 52px),
+        repeating-linear-gradient(0deg, rgba(214,59,29,0.06) 0 1px, transparent 1px 52px),
+        linear-gradient(160deg, #fffdf5 0%, #fffaec 58%, #fff7e0 100%);
+    }
+    .home-link {
+      position: fixed; top: 14px; left: 14px; z-index: 10000;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px; border-radius: 999px;
+      background: rgba(30,30,40,0.82); color: #fff; text-decoration: none;
+      font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,0.20);
+      backdrop-filter: blur(10px);
+    }
+    .app {
+      width: min(1500px, calc(100vw - 42px));
+      height: calc(100vh - 92px);
+      margin: 58px auto 34px;
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 18px;
+    }
+    .sidebar, .stage {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      overflow: hidden;
+    }
+    .sidebar {
+      padding: 18px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .dots { display: flex; gap: 8px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot.red { background: #ff5f56; } .dot.yellow { background: #ffbd2e; } .dot.green { background: #27c93f; }
+    h1 {
+      margin: 4px 0 0;
+      color: var(--red);
+      font-family: "Ma Shan Zheng", "Noto Serif SC", serif;
+      font-size: 2.2rem;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+    .subtitle { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
+    .pill {
+      display: inline-flex; width: fit-content; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 999px;
+      background: rgba(214,59,29,0.08); border: 1px solid var(--line);
+      color: var(--red-dark); font-weight: 800; font-size: 0.78rem;
+    }
+    .control-card, .metric-card, .edge-list, .note {
+      border: 1px solid rgba(214,59,29,0.13);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.58);
+      padding: 12px;
+    }
+    .control-card { display: grid; gap: 10px; }
+    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    button, select, input[type="range"] { font: inherit; }
+    button, select {
+      min-height: 38px; border-radius: 8px; border: 1px solid rgba(214,59,29,0.22);
+      background: #fffdf8; color: var(--ink); cursor: pointer;
+    }
+    button.primary { background: linear-gradient(135deg, var(--red), var(--red-dark)); color: #fff; font-weight: 900; }
+    button.secondary { color: var(--red-dark); font-weight: 800; }
+    button:disabled { opacity: 0.48; cursor: not-allowed; }
+    label { display: grid; gap: 6px; color: var(--red-dark); font-size: 0.82rem; font-weight: 800; }
+    input[type="range"] { width: 100%; accent-color: var(--red); }
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .metric-card span { display: block; color: var(--muted); font-size: 0.76rem; }
+    .metric-card strong { display: block; margin-top: 4px; color: var(--red); font: 900 1.25rem "JetBrains Mono", monospace; }
+    .edge-list { max-height: 220px; overflow-y: auto; display: grid; gap: 6px; }
+    .edge-row {
+      display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center;
+      padding: 7px 9px; border-radius: 7px; color: var(--muted);
+      background: rgba(255,252,245,0.72); font-size: 0.82rem;
+    }
+    .edge-row.current { outline: 2px solid var(--gold); color: #8a5d0b; }
+    .edge-row.accept { background: rgba(0,216,238,0.13); color: #087887; border-left: 3px solid var(--cyan); }
+    .edge-row.reject { background: rgba(214,59,29,0.08); color: var(--red-dark); text-decoration: line-through; }
+    .note { color: var(--muted); line-height: 1.65; font-size: 0.86rem; }
+    .stage {
+      position: relative;
+      padding: 16px;
+      background: radial-gradient(circle at 48% 42%, rgba(255,180,0,0.05), transparent 45%), rgba(255,252,245,0.56);
+    }
+    .stage-head, .legend, .tooltip {
+      position: absolute; z-index: 3;
+      background: rgba(255,252,245,0.82);
+      border: 1px solid rgba(214,59,29,0.14);
+      border-radius: 8px;
+      box-shadow: 0 12px 28px rgba(214,59,29,0.08);
+    }
+    .stage-head { top: 20px; left: 20px; padding: 14px 18px; }
+    .stage-head h2 { margin: 0; color: var(--red); font-size: 1.45rem; }
+    .stage-head p { margin: 4px 0 0; color: var(--muted); font-size: 0.82rem; }
+    .legend { top: 20px; right: 20px; padding: 12px 14px; display: grid; gap: 8px; font-size: 0.78rem; color: var(--muted); }
+    .legend div { display: flex; align-items: center; gap: 8px; }
+    .swatch { width: 22px; height: 3px; border-radius: 3px; background: rgba(0,216,238,0.28); }
+    .swatch.chosen { background: var(--cyan); box-shadow: 0 0 8px rgba(0,216,238,0.9); }
+    .swatch.scan { background: var(--gold); }
+    .swatch.drop { background: var(--red); border-top: 1px dashed var(--red); }
+    svg { width: 100%; height: 100%; display: block; }
+    .edge { stroke: rgba(0,216,238,0.22); stroke-width: 2; transition: all .22s; }
+    .edge.scan { stroke: var(--gold); stroke-width: 4; stroke-dasharray: 7 5; }
+    .edge.chosen { stroke: var(--cyan); stroke-width: 5; filter: drop-shadow(0 0 7px rgba(0,216,238,0.7)); }
+    .edge.drop { stroke: var(--red); stroke-width: 3; stroke-dasharray: 3 4; opacity: .55; }
+    .edge-label { fill: #475569; font: 800 11px "JetBrains Mono", monospace; text-anchor: middle; }
+    .label-bg { fill: rgba(255,252,245,0.86); stroke: rgba(214,59,29,0.12); }
+    .node circle { fill: #163248; stroke: var(--cyan); stroke-width: 3; filter: drop-shadow(0 0 6px rgba(0,216,238,.5)); }
+    .node.active circle { fill: rgba(0,216,238,0.24); }
+    .node text.icon { fill: white; font: 900 13px "JetBrains Mono", monospace; text-anchor: middle; dominant-baseline: middle; }
+    .node text.name { fill: #6b5d54; font: 800 12px "Noto Serif SC"; text-anchor: middle; }
+    .tooltip { display: none; pointer-events: none; padding: 10px 12px; max-width: 230px; color: var(--ink); font-size: 0.82rem; line-height: 1.5; }
+    .tooltip b { color: var(--red); }
+    .footer {
+      position: fixed; left: 0; bottom: 0; width: 100%; padding: 8px 10px;
+      color: rgba(52,32,24,.72); text-align: center; font-size: .78rem;
+    }
+    @media (max-width: 900px) {
+      body { overflow: auto; }
+      .app { height: auto; grid-template-columns: 1fr; margin-bottom: 70px; }
+      .stage { height: 620px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">⌂ 课程主页</a>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="dots"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+      <span class="pill">基础层 · 强互动</span>
+      <header>
+        <h1>测控通信网络</h1>
+        <p class="subtitle">把地面站、测控船、卫星和航天器抽象成带权图，亲手构建一棵低成本通信骨干树。</p>
+      </header>
+
+      <section class="control-card">
+        <button class="primary" id="autoBtn">▶ 自动构建骨干树</button>
+        <div class="btn-row">
+          <button class="secondary" id="stepBtn">单步考察链路</button>
+          <button class="secondary" id="resetBtn">重置</button>
+        </div>
+        <label>权重口径
+          <select id="metricMode">
+            <option value="cost">建设成本优先</option>
+            <option value="delay">时延优先</option>
+            <option value="hybrid">成本 × 时延综合</option>
+          </select>
+        </label>
+        <label>演示速度
+          <input type="range" id="speed" min="1" max="100" value="55">
+        </label>
+      </section>
+
+      <section class="metrics">
+        <div class="metric-card"><span>已接入节点</span><strong id="nodeMetric">0/8</strong></div>
+        <div class="metric-card"><span>骨干成本</span><strong id="costMetric">0</strong></div>
+      </section>
+
+      <section>
+        <div class="pill">候选链路（动态排序）</div>
+        <div class="edge-list" id="edgeList"></div>
+      </section>
+
+      <section class="note" id="explain">
+        点击或拖拽图中的节点，观察通信节点如何组成图；点击“单步”可看到 Kruskal 算法如何逐条考察低成本链路。
+      </section>
+    </aside>
+
+    <main class="stage">
+      <div class="stage-head">
+        <h2>航天测控骨干树</h2>
+        <p>Drag nodes · Step through Kruskal · Compare edge weights</p>
+      </div>
+      <div class="legend">
+        <div><span class="swatch chosen"></span>入选骨干链路</div>
+        <div><span class="swatch scan"></span>正在考察</div>
+        <div><span class="swatch drop"></span>形成回路，舍弃</div>
+      </div>
+      <svg id="networkSvg" viewBox="0 0 900 700" role="img" aria-label="航天测控通信网络基础层交互图"></svg>
+      <div class="tooltip" id="tooltip"></div>
+    </main>
+  </div>
+  <footer class="footer">© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</footer>
+
+  <script>
+  window.SECTION_META = {
+    chapter: "第 8 章 特殊图",
+    section: "8.12 航天通信网络案例",
+    title: "测控通信网络 · 基础层",
+    layers: [
+      { name: "测控通信网络", concepts: "顶点 / 带权边 / 连通性", task: "把通信节点抽象为带权图。", page: "aerospace-mst-index-basic.html" },
+      { name: "MST 与最短路", concepts: "Kruskal / 最小生成树 / 并查集", task: "构建低成本通信骨干网。", page: "aerospace-mst-index.html" },
+      { name: "卫星星座拓展", concepts: "故障 / 冗余 / 鲁棒性", task: "模拟链路失效后的恢复策略。", page: "aerospace-mst-index-extend.html" }
+    ],
+    ideology: {
+      title: "航天报国 · 自立自强",
+      text: "从东方红一号到北斗、空间站，中国航天靠系统协同和自主攻关不断突破。把通信系统抽象为图，是用数学服务国家重大工程的第一步。",
+      dims: ["航天精神", "科学建模", "系统观念"],
+      quote: "先把复杂系统看清楚，才能把关键链路建扎实。"
+    }
+  };
+
+  const nodes = [
+    { id: 0, name: "北京中心", role: "飞控调度中心", x: 450, y: 470, mark: "京" },
+    { id: 1, name: "西安中心", role: "卫星测控中心", x: 240, y: 430, mark: "西" },
+    { id: 2, name: "天链一号", role: "中继卫星", x: 205, y: 245, mark: "链1" },
+    { id: 3, name: "天链二号", role: "中继卫星", x: 695, y: 245, mark: "链2" },
+    { id: 4, name: "神舟飞船", role: "载人飞船", x: 360, y: 115, mark: "神" },
+    { id: 5, name: "天宫空间站", role: "太空实验平台", x: 540, y: 100, mark: "宫" },
+    { id: 6, name: "北斗卫星", role: "导航与授时节点", x: 760, y: 395, mark: "斗" },
+    { id: 7, name: "远望测量船", role: "海上测控平台", x: 630, y: 470, mark: "船" }
+  ];
+  const rawEdges = [
+    [0,1,10,12], [4,5,12,8], [2,4,15,10], [3,5,20,9], [0,7,25,18],
+    [1,7,30,22], [2,5,35,15], [3,6,40,12], [0,2,45,16], [0,3,50,20],
+    [6,7,55,24], [1,2,60,26], [5,6,70,14]
+  ].map(([u,v,cost,delay], i) => ({ id: i, u, v, cost, delay }));
+
+  const svg = document.getElementById("networkSvg");
+  const edgeList = document.getElementById("edgeList");
+  const explain = document.getElementById("explain");
+  const tooltip = document.getElementById("tooltip");
+  const nodeMetric = document.getElementById("nodeMetric");
+  const costMetric = document.getElementById("costMetric");
+  const metricMode = document.getElementById("metricMode");
+  const speed = document.getElementById("speed");
+  const autoBtn = document.getElementById("autoBtn");
+  const stepBtn = document.getElementById("stepBtn");
+  const resetBtn = document.getElementById("resetBtn");
+
+  let sorted = [];
+  let parent = [];
+  let step = 0;
+  let chosen = [];
+  let rejected = [];
+  let scanning = null;
+  let running = false;
+  let drag = null;
+
+  function weight(edge) {
+    if (metricMode.value === "delay") return edge.delay;
+    if (metricMode.value === "hybrid") return Math.round(edge.cost * 0.65 + edge.delay * 1.4);
+    return edge.cost;
+  }
+  function node(id) { return nodes.find(n => n.id === id); }
+  function key(edge) { return `${edge.u}-${edge.v}`; }
+  function resetUf() { parent = nodes.map(n => n.id); }
+  function find(x) { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; }
+  function union(a,b) { const x = find(a), y = find(b); if (x === y) return false; parent[y] = x; return true; }
+  function delay() { return Math.max(180, 1500 - Number(speed.value) * 12); }
+  function totalCost() { return chosen.reduce((sum, e) => sum + weight(e), 0); }
+  function connectedCount() { const s = new Set(); chosen.forEach(e => { s.add(e.u); s.add(e.v); }); return s.size; }
+
+  function sortEdges() {
+    sorted = rawEdges.map(e => ({ ...e, w: weight(e) })).sort((a,b) => a.w - b.w);
+  }
+  function status(edge) {
+    if (scanning && scanning.id === edge.id) return "scan";
+    if (chosen.some(e => e.id === edge.id)) return "chosen";
+    if (rejected.some(e => e.id === edge.id)) return "drop";
+    return "";
+  }
+  function render() {
+    svg.innerHTML = "";
+    sorted.forEach(edge => {
+      const a = node(edge.u), b = node(edge.v);
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", a.x); line.setAttribute("y1", a.y);
+      line.setAttribute("x2", b.x); line.setAttribute("y2", b.y);
+      line.setAttribute("class", `edge ${status(edge)}`);
+      line.addEventListener("mouseenter", ev => showTip(ev, `<b>${a.name} - ${b.name}</b><br>建设成本 ${edge.cost}，时延 ${edge.delay}，当前权重 ${edge.w}`));
+      line.addEventListener("mouseleave", hideTip);
+      svg.appendChild(line);
+      const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      rect.setAttribute("x", mx - 14); rect.setAttribute("y", my - 9);
+      rect.setAttribute("width", 28); rect.setAttribute("height", 18); rect.setAttribute("rx", 4);
+      rect.setAttribute("class", "label-bg");
+      svg.appendChild(rect);
+      const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      txt.setAttribute("x", mx); txt.setAttribute("y", my + 4); txt.setAttribute("class", "edge-label");
+      txt.textContent = edge.w;
+      svg.appendChild(txt);
+    });
+    nodes.forEach(n => {
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("class", `node ${chosen.some(e => e.u === n.id || e.v === n.id) ? "active" : ""}`);
+      g.setAttribute("transform", `translate(${n.x},${n.y})`);
+      g.addEventListener("pointerdown", ev => { drag = n; svg.setPointerCapture(ev.pointerId); });
+      g.addEventListener("mouseenter", ev => showTip(ev, `<b>${n.name}</b><br>${n.role}<br>可拖拽改变布局。`));
+      g.addEventListener("mouseleave", hideTip);
+      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      c.setAttribute("r", 25);
+      const icon = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      icon.setAttribute("class", "icon"); icon.textContent = n.mark;
+      const name = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      name.setAttribute("class", "name"); name.setAttribute("y", 44); name.textContent = n.name;
+      g.append(c, icon, name);
+      svg.appendChild(g);
+    });
+    renderList();
+    nodeMetric.textContent = `${connectedCount()}/${nodes.length}`;
+    costMetric.textContent = totalCost();
+  }
+  function renderList() {
+    edgeList.innerHTML = "";
+    sorted.forEach((edge, index) => {
+      const row = document.createElement("div");
+      row.className = `edge-row ${status(edge).replace("scan","current").replace("chosen","accept").replace("drop","reject")}`;
+      row.innerHTML = `<span>${node(edge.u).name} - ${node(edge.v).name}</span><strong>${edge.w}</strong>`;
+      row.addEventListener("click", () => {
+        scanning = edge;
+        explain.innerHTML = `预览链路：<b>${node(edge.u).name} - ${node(edge.v).name}</b>。它在当前排序中位于第 ${index + 1} 位。`;
+        render();
+      });
+      edgeList.appendChild(row);
+    });
+  }
+  function showTip(ev, html) {
+    tooltip.innerHTML = html;
+    tooltip.style.display = "block";
+    tooltip.style.left = `${ev.clientX - svg.getBoundingClientRect().left + 14}px`;
+    tooltip.style.top = `${ev.clientY - svg.getBoundingClientRect().top - 12}px`;
+  }
+  function hideTip() { tooltip.style.display = "none"; }
+  svg.addEventListener("pointermove", ev => {
+    if (!drag) return;
+    const r = svg.getBoundingClientRect();
+    drag.x = Math.max(50, Math.min(850, (ev.clientX - r.left) * 900 / r.width));
+    drag.y = Math.max(70, Math.min(585, (ev.clientY - r.top) * 620 / r.height));
+    render();
+  });
+  svg.addEventListener("pointerup", () => { drag = null; });
+
+  async function stepOnce(pause = true) {
+    if (chosen.length >= nodes.length - 1 || step >= sorted.length) return false;
+    const edge = sorted[step++];
+    scanning = edge;
+    explain.innerHTML = `正在考察：<b>${node(edge.u).name} - ${node(edge.v).name}</b>，权重 ${edge.w}。`;
+    render();
+    if (pause) await new Promise(r => setTimeout(r, delay()));
+    if (union(edge.u, edge.v)) {
+      chosen.push(edge);
+      explain.innerHTML = `接纳链路：它连接了两个尚未连通的部分，骨干树新增一条关键链路。`;
+    } else {
+      rejected.push(edge);
+      explain.innerHTML = `舍弃链路：它会形成回路，Kruskal 算法保持“一条不多”。`;
+    }
+    scanning = null;
+    render();
+    if (chosen.length >= nodes.length - 1) explain.innerHTML = `骨干树构建完成：用 ${chosen.length} 条链路连接 ${nodes.length} 个节点，总权重 ${totalCost()}。`;
+    return true;
+  }
+  async function autoRun() {
+    if (running) return;
+    running = true; autoBtn.disabled = true; stepBtn.disabled = true;
+    while (running && await stepOnce(true)) await new Promise(r => setTimeout(r, Math.max(120, delay()/3)));
+    running = false; autoBtn.disabled = false; stepBtn.disabled = chosen.length >= nodes.length - 1;
+  }
+  function reset() {
+    running = false; sortEdges(); resetUf(); step = 0; chosen = []; rejected = []; scanning = null;
+    explain.innerHTML = "点击或拖拽图中的节点，观察通信节点如何组成图；点击“单步”可看到 Kruskal 算法如何逐条考察低成本链路。";
+    autoBtn.disabled = false; stepBtn.disabled = false;
+    render();
+  }
+  autoBtn.addEventListener("click", autoRun);
+  stepBtn.addEventListener("click", () => stepOnce(true));
+  resetBtn.addEventListener("click", reset);
+  metricMode.addEventListener("change", reset);
+  reset();
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

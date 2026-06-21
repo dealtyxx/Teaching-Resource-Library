@@ -8,11 +8,14 @@
     <meta name="description" content="离散数学课程 - 红色数理 - 随机抽样">
 
     <link rel="stylesheet" href="random.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="../chapter1-compact.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
         rel="stylesheet">
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
@@ -74,7 +77,7 @@
                 </div>
 
                 <div class="control-group">
-                    <label>思政解读</label>
+                    <label>价值解读</label>
                     <div class="info-panel">
                         <h3 id="szTitle">全面覆盖</h3>
                         <p id="szDesc">调研工作要力戒形式主义，确保足迹遍布每一个基层站点（全周期），做到情况明、底数清，不留死角。</p>
@@ -126,19 +129,104 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "chapter": "第1章 计数基础与数论基础",
+      "section": "1.3.2 伪随机数生成 · 进阶层",
+      "title": "周期与质量",
+      "grounding": "本节主题：线性同余发生器（LCG）X_{n+1}=(aX_n+c) mod m。它是确定性递推，却能产生看似随机的序列；周期最长为 m，要达最长周期需满足 Hull–Dobell 条件。伪随机数『可复现』（同种子同序列），适合仿真；但不可用于密码学，需用密码学安全 PRNG（CSPRNG）。",
+      "steps": [
+            {
+                  "name": "情境引入",
+                  "desc": "计算机本身是确定的，怎么『造』出随机？随机又为何要可复现？"
+            },
+            {
+                  "name": "对象抽取",
+                  "desc": "把随机序列抽象为模 m 的递推数列，把『种子』抽象为初值。"
+            },
+            {
+                  "name": "结构建模",
+                  "desc": "用线性同余递推建模，用模运算保证有界与循环。"
+            },
+            {
+                  "name": "推理求解",
+                  "desc": "分析参数 a、c、m 对周期与均匀性的影响（Hull–Dobell）。"
+            },
+            {
+                  "name": "程序验证",
+                  "desc": "用本页交互改变种子/参数，观察周期与分布。"
+            },
+            {
+                  "name": "迁移反思",
+                  "desc": "迁移到蒙特卡洛仿真、密码学安全随机、洗牌算法。"
+            }
+      ],
+      "ideology": {
+            "title": "可控可信 · 实事求是",
+            "text": "伪随机数在『确定』与『随机』之间取得平衡：可复现使科学实验可验证、可追溯，体现实事求是、尊重证据的科学态度；而密码场景下对『真随机』的更高要求，又提醒我们——技术必须分清边界、量体裁衣，安全无小事。",
+            "dims": [
+                  "科学精神",
+                  "底线思维",
+                  "严谨求实"
+            ],
+            "quote": "失之毫厘，谬以千里——错误的随机数生成器，曾让无数加密系统满盘皆输。"
+      },
+      "reflect": [
+            "伪随机数是完全确定的递推，为什么仍然『有用』？可复现性的科研价值在哪里？",
+            "参数 a、c、m 选得不好会出现什么后果（短周期、规律性）？",
+            "为什么 LCG 绝不能用于密码学？密码学对随机源提出了什么额外要求？"
+      ],
+      "transfer": [
+            "蒙特卡洛方法用大量随机样本估计积分与概率，对随机质量有何依赖？",
+            {
+                  "t": "洗牌的公平",
+                  "d": "Fisher–Yates 洗牌若用了有偏的随机源，会产生什么不公平？"
+            },
+            {
+                  "t": "种子与复现",
+                  "d": "机器学习实验固定随机种子以复现结果——这与本节思想如何呼应？"
+            }
+      ],
+      "layers": [
+            {
+                  "name": "线性同余发生器",
+                  "concepts": "X=(aX+c)mod m / 种子 / 可复现",
+                  "task": "理解确定递推为何能『看似随机』。",
+                  "page": "random-basic.html"
+            },
+            {
+                  "name": "周期与质量",
+                  "concepts": "Hull–Dobell 条件 / 周期 / 均匀性",
+                  "task": "会分析参数 a,c,m 对周期与分布的影响。",
+                  "page": "random.html"
+            },
+            {
+                  "name": "仿真与安全",
+                  "concepts": "蒙特卡洛 / CSPRNG / 洗牌公平",
+                  "task": "分清仿真用随机与密码学安全随机的边界。",
+                  "page": "random-extend.html"
+            }
+      ]
+};
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 

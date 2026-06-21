@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第5章 命题逻辑 - 神经符号融合与可信 AI</title>
+  <meta name="description" content="5.9 人工智能创新 - 拓展层 · 神经符号与可信 AI">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{
+  --ink:#251713; --muted:#6c5a52; --paper:#fff8ec; --card:rgba(255,253,246,0.92);
+  --line:rgba(116,55,31,0.18); --red:#b42318; --red-2:#de5b3d; --gold:#c58a1f;
+  --green:#2f7d57; --blue:#2f5f9f; --amber:#f0a202;
+  --shadow:0 18px 50px rgba(69,31,15,0.14);
+}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;
+  background:radial-gradient(circle at 16% 12%, rgba(222,91,61,.18), transparent 28%),radial-gradient(circle at 82% 8%, rgba(47,95,159,.14), transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:14px;overflow:auto;}
+.glass-pane{padding:22px;overflow:auto;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}
+.dot.red{background:#ff5f56;} .dot.yellow{background:#ffbd2e;} .dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}
+.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.tab-nav{display:flex;flex-direction:column;gap:6px;}
+.tab-btn{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);color:#5b4136;cursor:pointer;font:inherit;font-weight:700;font-size:14px;transition:all .2s;text-align:left;}
+.tab-btn:hover{background:rgba(180,35,24,.08);color:var(--red);}
+.tab-btn.active{background:var(--red);color:#fff;border-color:var(--red);box-shadow:0 6px 16px rgba(180,35,24,.25);}
+.tab-btn .ico{font-size:18px;}
+.sidebar-dyn{display:grid;gap:10px;}
+.control-group{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
+.control-group>label{display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:8px;}
+.mini-info{font-size:13px;color:#5b4136;line-height:1.7;}
+.mini-info strong{color:var(--red);}
+.rule-toggle{display:flex;align-items:center;gap:10px;border-radius:8px;border:1px solid var(--line);background:rgba(255,253,246,.7);padding:10px 12px;font-size:13px;font-weight:700;color:#5b4136;cursor:pointer;}
+.rule-toggle input{width:20px;height:20px;accent-color:var(--red);}
+.action-row{margin-top:auto;display:flex;gap:8px;padding-top:6px;}
+.action-btn{flex:1;padding:11px 14px;border-radius:8px;border:none;background:var(--red);color:#fff;font:inherit;font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(180,35,24,.25);transition:all .2s;}
+.action-btn:hover{background:#8d1a12;}
+input[type=range]{appearance:none;-webkit-appearance:none;width:100%;height:5px;border-radius:999px;background:rgba(180,35,24,.16);outline:none;margin:6px 0;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--red);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.2);cursor:pointer;}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--red);border:2px solid #fff;cursor:pointer;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:16px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);} .mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.tab-content{display:none;} .tab-content.active{display:block;animation:fade .3s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.pane-title{color:var(--red);font-size:1.2rem;margin:0 0 6px;}
+.pane-sub{color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 14px;}
+.panel-card{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:16px;margin:12px 0;}
+.panel-card h3{margin:0 0 10px;color:var(--red);font-size:1rem;}
+.pipe-wrap{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.85),rgba(255,250,239,.7));padding:8px;}
+.pipe-svg{width:100%;height:auto;display:block;}
+.pstage{fill:#fff;stroke:var(--line);stroke-width:2;transition:.35s;}
+.pstage.lit{fill:rgba(214,59,29,.9);stroke:var(--red);}
+.pstage.lit2{fill:rgba(47,95,159,.85);stroke:var(--blue);}
+.pstage.lit3{fill:rgba(47,125,87,.85);stroke:var(--green);}
+.parrow{stroke:rgba(116,55,31,.4);stroke-width:2.5;fill:none;transition:.35s;}
+.parrow.lit{stroke:var(--gold);stroke-width:4;}
+.ptext{font-family:"Noto Serif SC",serif;font-weight:800;font-size:13px;transition:.35s;}
+.step-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0;}
+.step-btn{border:1px solid var(--line);background:rgba(255,255,255,.72);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#5b4136;transition:.2s;}
+.step-btn:hover,.step-btn.active{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(180,35,24,.12);}
+.step-btn b{display:block;color:var(--red);font-size:.84rem;}
+.step-btn span{display:block;font-size:.72rem;color:var(--muted);margin-top:3px;}
+.feedback{margin-top:10px;padding:11px 13px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);color:#7a3216;font-size:.9rem;line-height:1.7;}
+.token-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.token{padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.78rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.token.on{background:linear-gradient(135deg,var(--red),#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(180,35,24,.18);}
+.data-table{border-radius:10px;overflow:hidden;border:1px solid var(--line);margin:12px 0;}
+.data-table table{width:100%;border-collapse:collapse;font-size:13px;}
+.data-table th{background:var(--red);color:#fff;padding:9px 7px;text-align:center;font-weight:700;font-size:12px;}
+.data-table td{padding:8px 7px;border-bottom:1px solid var(--line);text-align:center;}
+.data-table td.name{text-align:left;font-weight:700;}
+.data-table tbody tr{cursor:pointer;transition:.15s;}
+.data-table tbody tr:hover{background:rgba(180,35,24,.06);}
+.data-table tbody tr.sel{background:rgba(197,138,31,.18);}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;font-family:"JetBrains Mono",monospace;}
+.pill.ok{background:rgba(47,125,87,.14);color:var(--green);}
+.pill.bad{background:rgba(180,35,24,.12);color:var(--red);}
+.stmt{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;margin:10px 0;}
+.stmt .shead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px;}
+.stmt .sf{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:12.5px;color:var(--blue);word-break:break-word;}
+.stmt-chip{padding:4px 12px;border-radius:999px;font-weight:800;font-size:12px;white-space:nowrap;}
+.stmt-chip.t{background:rgba(47,125,87,.14);color:var(--green);}
+.stmt-chip.f{background:rgba(180,35,24,.12);color:var(--red);}
+.stmt .sw{font-size:12.5px;color:#4e362d;margin-top:6px;line-height:1.6;}
+.stmt .sw b{color:var(--red);}
+.metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:12px 0;}
+.metric-item{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;text-align:center;}
+.metric-item .lab{font-size:12.5px;color:var(--muted);}
+.metric-item .num{font-size:1.5rem;font-weight:800;font-family:"JetBrains Mono",monospace;color:var(--red);}
+.slider-row{margin:10px 0;}
+.slider-top{display:flex;justify-content:space-between;font-size:13px;color:#5b4136;font-weight:600;}
+.slider-top b{font-family:"JetBrains Mono",monospace;}
+.bar-row{display:flex;align-items:center;gap:12px;margin:8px 0;}
+.bar-label{min-width:80px;font-size:13px;color:var(--muted);font-weight:600;}
+.bar-track{flex:1;height:20px;background:rgba(180,35,24,.1);border-radius:999px;overflow:hidden;}
+.bar-fill{height:100%;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;color:#fff;font-weight:700;font-size:11px;border-radius:999px;}
+.verdict{border-radius:12px;border:2px solid var(--gold);background:linear-gradient(135deg,rgba(214,59,29,.1),rgba(197,138,31,.12));padding:18px;text-align:center;margin:12px 0;}
+.verdict .vt{font-weight:700;color:var(--red);margin-bottom:6px;font-size:13px;}
+.verdict .vv{font-size:1.7rem;font-weight:800;font-family:"JetBrains Mono",monospace;}
+.verdict.ok .vv{color:var(--green);} .verdict.bad .vv{color:var(--red);}
+.verdict .vd{margin-top:8px;font-size:12.5px;color:#5b4136;line-height:1.6;}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:14px 16px;margin-top:16px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}
+.insight-box p{margin:0;font-size:14px;line-height:1.7;color:#4e362d;}
+.badges{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;}
+.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){
+  body{overflow:auto;}
+  .app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}
+  .side-panel,.glass-pane{max-height:none;overflow:visible;} .action-row{margin-top:12px;}
+  .step-row{grid-template-columns:1fr 1fr;} .metric-grid{grid-template-columns:1fr;}
+}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">拓展层</span></h1>
+        <p class="subtitle">神经符号融合实验室 · 可信 AI</p>
+      </div>
+      <p class="intro">把神经网络的预测交给符号规则约束、再用 ∀∃ 形式化验证安全性，判定 AI 是否可信。</p>
+
+      <div class="value-panel">
+        <h3>科技自立 · 向善而用</h3>
+        <p>强大的 AI 更需要可解释、可验证的逻辑底座。神经符号融合让模型既能「学」、又讲「理」，是迈向可信 AI 的关键。</p>
+        <div class="dim-list"><span>创新引领</span><span>科学精神</span><span>辩证思维</span></div>
+      </div>
+
+      <label class="rule-toggle"><input type="checkbox" id="ruleToggle" checked> 启用符号规则约束（神经符号融合）</label>
+
+      <nav class="tab-nav" id="tabNav">
+        <button class="tab-btn active" data-tab="tab1"><span class="ico">🔗</span><span>神经符号流程</span></button>
+        <button class="tab-btn" data-tab="tab2"><span class="ico">📋</span><span>测试用例</span></button>
+        <button class="tab-btn" data-tab="tab3"><span class="ico">🧮</span><span>形式化验证 ∀∃</span></button>
+        <button class="tab-btn" data-tab="tab4"><span class="ico">🛡️</span><span>可信判定看板</span></button>
+      </nav>
+
+      <div class="sidebar-dyn" id="sidebarDyn"></div>
+      <div class="action-row" id="actionRow"></div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>点流程一步、看反馈、看公式高亮、看管线高亮，验证神经网络 + 符号规则 = 可信 AI。</span>
+        <div class="visual-badge">神经网络 + 符号规则</div>
+      </section>
+
+      <!-- Tab1 神经符号流程 -->
+      <div class="tab-content active" id="tab1">
+        <h2 class="pane-title">🔗 神经符号融合流程</h2>
+        <p class="pane-sub">点击四个阶段，观察管线节点高亮、公式项点亮与反馈说明。开关左侧「符号规则」会改变最终安全性。</p>
+        <div class="pipe-wrap">
+          <svg class="pipe-svg" viewBox="0 0 700 150" id="pipeSvg">
+            <path class="parrow" id="a1" d="M132 60 L150 60"/>
+            <path class="parrow" id="a2" d="M262 60 L280 60"/>
+            <path class="parrow" id="a3" d="M392 60 L410 60"/>
+            <path class="parrow" id="a4" d="M522 60 L540 60"/>
+            <rect class="pstage" id="sIn" x="12" y="35" width="120" height="50" rx="10"/>
+            <rect class="pstage" id="sNN" x="150" y="35" width="112" height="50" rx="10"/>
+            <rect class="pstage" id="sRule" x="280" y="35" width="112" height="50" rx="10"/>
+            <rect class="pstage" id="sVerify" x="410" y="35" width="112" height="50" rx="10"/>
+            <rect class="pstage" id="sTrust" x="540" y="35" width="120" height="50" rx="10"/>
+            <text class="ptext" x="72" y="64" text-anchor="middle" id="tIn">输入特征 X</text>
+            <text class="ptext" x="206" y="64" text-anchor="middle" id="tNN">神经网络</text>
+            <text class="ptext" x="336" y="64" text-anchor="middle" id="tRule">符号规则</text>
+            <text class="ptext" x="466" y="64" text-anchor="middle" id="tVerify">形式化验证</text>
+            <text class="ptext" x="600" y="64" text-anchor="middle" id="tTrust">可信判定</text>
+            <text class="ptext" x="206" y="108" text-anchor="middle" fill="#6c5a52" font-size="11" id="tNNs">预测+置信度</text>
+            <text class="ptext" x="336" y="108" text-anchor="middle" fill="#6c5a52" font-size="11" id="tRules">∀(危险→拒绝)</text>
+            <text class="ptext" x="466" y="108" text-anchor="middle" fill="#6c5a52" font-size="11">∀∃ 安全性质</text>
+            <text class="ptext" x="600" y="108" text-anchor="middle" fill="#6c5a52" font-size="11">TrustedAI</text>
+          </svg>
+        </div>
+        <div class="step-row" id="stepRow">
+          <button class="step-btn active" data-s="nn"><b>1 神经预测</b><span>黑箱给预测</span></button>
+          <button class="step-btn" data-s="rule"><b>2 符号约束</b><span>规则加硬约束</span></button>
+          <button class="step-btn" data-s="verify"><b>3 形式化验证</b><span>∀∃ 验安全</span></button>
+          <button class="step-btn" data-s="trust"><b>4 可信判定</b><span>因子∧安全</span></button>
+        </div>
+        <div class="feedback" id="feedback">神经网络对输入给出预测与置信度，但它是「黑箱」，可能对危险样本过度自信。</div>
+        <div class="token-row" id="tokenRow">
+          <span class="token" data-t="nn">NeuralApprove(x)</span>
+          <span class="token" data-t="rule">∀x(Danger(x)→Reject(x))</span>
+          <span class="token" data-t="verify">∀∃ 验证</span>
+          <span class="token" data-t="trust">TrustedAI</span>
+        </div>
+        <div class="insight-box"><div class="insight-title">🧩 既要会「学」，也要讲「理」</div>
+          <p>神经网络负责从数据中「学」，符号规则负责讲「理」并守住安全底线，形式化验证负责证明性质成立。三者融合，才能得到既强大又可信的 AI。</p></div>
+      </div>
+
+      <!-- Tab2 测试用例 -->
+      <div class="tab-content" id="tab2">
+        <h2 class="pane-title">📋 测试用例与神经预测</h2>
+        <p class="pane-sub">某 AI 审批系统在 6 个样本上的神经网络置信度与真实风险。点击行查看决策。最终决策受左侧符号规则影响。</p>
+        <div class="data-table">
+          <table><thead><tr><th>样本</th><th>神经置信度<br>(通过)</th><th>真实高危<br>Danger</th><th>神经预测</th><th>最终决策</th></tr></thead><tbody id="caseBody"></tbody></table>
+        </div>
+        <div class="panel-card" id="caseDetail"><div class="mini-info">点击上方样本查看神经预测与符号规则如何共同决定最终决策。</div></div>
+        <div class="insight-box"><div class="insight-title">⚠️ 黑箱的过度自信</div>
+          <p>注意「高危伪装」样本：神经网络以高置信度判为「通过」，却是真实高危——这正是纯数据学习的隐患。符号规则会在最终决策上纠正它。</p></div>
+      </div>
+
+      <!-- Tab3 形式化验证 -->
+      <div class="tab-content" id="tab3">
+        <h2 class="pane-title">🧮 形式化验证（∀ / ∃ 安全性质）</h2>
+        <p class="pane-sub">在当前规则设置下，对全部样本计算安全性质的真值。关闭/开启符号规则，观察安全性命题真值的变化。</p>
+        <div id="stmtList"></div>
+        <div class="insight-box"><div class="insight-title">🛡️ 用逻辑为 AI 兜底</div>
+          <p>纯神经网络无法保证「∀ 危险样本都被拒绝」；加入符号规则后该命题变为真——形式化验证把「安全」从「大概率」提升为「可证明」，这是可信 AI 的核心。</p></div>
+      </div>
+
+      <!-- Tab4 可信判定 -->
+      <div class="tab-content" id="tab4">
+        <h2 class="pane-title">🛡️ 可信 AI 判定看板</h2>
+        <p class="pane-sub">可信 = 四项因子达标 ∧ 形式化安全成立。调节因子并配合符号规则，得到 TrustedAI 判定。</p>
+        <div class="panel-card">
+          <h3>可信因子（命题取值需达阈值）</h3>
+          <div class="slider-row"><div class="slider-top"><span>数据可信度 D（≥65）</span><b id="dV">76</b></div><input type="range" id="dS" min="0" max="100" value="76"></div>
+          <div class="slider-row"><div class="slider-top"><span>逻辑约束 L（≥70）</span><b id="lV">82</b></div><input type="range" id="lS" min="0" max="100" value="82"></div>
+          <div class="slider-row"><div class="slider-top"><span>可解释性 E（≥60）</span><b id="eV">74</b></div><input type="range" id="eS" min="0" max="100" value="74"></div>
+          <div class="slider-row"><div class="slider-top"><span>公共价值校准 V（≥70）</span><b id="vV">80</b></div><input type="range" id="vS" min="0" max="100" value="80"></div>
+        </div>
+        <div class="panel-card">
+          <h3>因子达标情况</h3>
+          <div id="factorBars"></div>
+        </div>
+        <div class="verdict" id="trustVerdict"><div class="vt">可信判定</div><div class="vv">TrustedAI = ?</div></div>
+        <div class="metric-grid">
+          <div class="metric-item"><div class="lab">综合因子分</div><div class="num" id="mScore">--</div></div>
+          <div class="metric-item"><div class="lab">形式化安全 ∀(危险→拒绝)</div><div class="num" id="mSafe">--</div></div>
+        </div>
+        <div class="insight-box"><div class="insight-title">🚩 让智能科技造福人民</div>
+          <p>可信 AI 不只看准确率：技术能力、逻辑约束、可解释性与公共价值缺一不可，且安全性质必须可被形式化证明。把命题逻辑迁移到可信 AI，正是科技自立自强、向善而用的创新担当。</p>
+          <div class="badges"><span class="badge">创新引领</span><span class="badge">科学精神</span><span class="badge">辩证思维</span><span class="badge">科技向善</span></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+    <div>版权所有 · 项目总负责人：谢鑫</div>
+  </footer>
+
+  <script>
+    window.SECTION_META = {
+      "layers": [
+            { "name": "逻辑门与神经元", "concepts": "布尔函数 / 感知机", "task": "理解逻辑与神经元的联系。", "page": "deep_learning_logic-basic.html" },
+            { "name": "规则推理 vs 学习", "concepts": "可解释 / 数据拟合 / 异或需多层", "task": "辨析符号推理与连接主义长短。", "page": "deep_learning_logic.html" },
+            { "name": "神经符号与可信 AI", "concepts": "神经符号融合 / 形式化验证AI", "task": "迁移到可解释、可信的 AI。", "page": "deep_learning_logic-extend.html" }
+      ],
+      "chapter": "第5章 命题逻辑",
+      "section": "5.9 人工智能创新",
+      "title": "命题逻辑应用 · 深度学习的逻辑",
+      "grounding": "本节主题：用命题逻辑理解 AI 中的逻辑结构——逻辑门与神经元激活、布尔函数与感知机、规则推理与可解释性。体会命题逻辑作为符号智能的根基，以及它与连接主义（深度学习）的互补，思考可信 AI 的逻辑基础。本页定位为拓展层：迁移到神经符号融合与可信 AI。",
+      "steps": [
+            { "name": "情境引入", "desc": "深度学习如此强大，它和最基础的逻辑门有什么关系？" },
+            { "name": "对象抽取", "desc": "把判定规则抽象为布尔函数与命题公式。" },
+            { "name": "结构建模", "desc": "用命题逻辑刻画规则推理，对照神经网络的拟合。" },
+            { "name": "推理求解", "desc": "分析逻辑可解释性与神经网络黑箱的张力。" },
+            { "name": "程序验证", "desc": "用本页交互构造逻辑判定，对照学习结果。" },
+            { "name": "迁移反思", "desc": "迁移到可解释AI、神经符号系统、可信AI。" }
+      ],
+      "ideology": {
+            "title": "智能科技 · 创新引领",
+            "text": "人工智能是引领未来的战略性技术。命题逻辑作为符号智能的根基，提醒我们：强大的 AI 更需要可解释、可信赖的逻辑底座。把握逻辑与学习的辩证关系，勇于在神经符号融合等前沿创新，方能让智能科技更好地造福人民、服务国家。",
+            "dims": [ "创新引领", "科学精神", "辩证思维" ],
+            "quote": "既要会『学』，也要讲『理』——可信 AI 的未来，离不开逻辑这块基石。"
+      },
+      "reflect": [
+            "单个感知机能实现『异或』吗？为什么需要多层（这与逻辑的表达能力有何关系）？",
+            "深度学习『拟合数据』与逻辑『严格推理』各有何长短？",
+            "为什么说可解释性是可信 AI 的关键？逻辑能为其提供什么？"
+      ],
+      "transfer": [
+            "神经符号 AI 试图把逻辑推理与神经网络结合，兼得可解释与强表达。",
+            { "t": "形式化验证AI", "d": "用逻辑方法验证神经网络的安全性质（如鲁棒性），为什么越来越重要？" }
+      ]
+    };
+  </script>
+
+  <script>
+  (function(){
+    "use strict";
+    const CASES=[
+      { id:1, name:'正常申请A', conf:88, danger:false },
+      { id:2, name:'正常申请B', conf:72, danger:false },
+      { id:3, name:'高危伪装',   conf:80, danger:true  },
+      { id:4, name:'边缘案例',   conf:55, danger:false },
+      { id:5, name:'明显高危',   conf:30, danger:true  },
+      { id:6, name:'可疑申请',   conf:62, danger:true  }
+    ];
+    let rule=true, step='nn', selected=null, currentTab='tab1';
+    let F={d:76,l:82,e:74,v:80};
+    const $=id=>document.getElementById(id);
+    const sidebarDyn=$('sidebarDyn'), actionRow=$('actionRow');
+
+    const neuralApprove=c=>c.conf>=50;
+    const finalApprove=c=> rule ? (neuralApprove(c)&&!c.danger) : neuralApprove(c);
+    const reject=c=>!finalApprove(c);
+    const wrongNeural=c=>neuralApprove(c)&&c.danger;       // 误放危险
+    const highConf=c=>c.conf>=70;
+    const safetyHolds=()=>CASES.every(c=>!c.danger||reject(c)); // ∀(Danger→Reject)
+
+    $('ruleToggle').addEventListener('change',e=>{ rule=e.target.checked; renderTab(currentTab); });
+
+    $('tabNav').querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+    function switchTab(id){
+      currentTab=id;
+      $('tabNav').querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
+      document.querySelectorAll('.tab-content').forEach(c=>c.classList.toggle('active',c.id===id));
+      updateSidebar(id); renderTab(id);
+    }
+    function renderTab(id){
+      if(id==='tab1') renderPipe();
+      if(id==='tab2') renderCases();
+      if(id==='tab3') renderStmts();
+      if(id==='tab4') renderTrust();
+    }
+    function updateSidebar(id){
+      if(id==='tab1'){
+        sidebarDyn.innerHTML=`<div class="control-group"><label>符号规则</label><div class="mini-info">当前：<strong>${rule?'已启用（神经符号）':'已关闭（纯神经）'}</strong></div></div>
+          <div class="control-group"><label>提示</label><div class="mini-info">点击四个阶段查看管线高亮与公式项；开关规则会影响最终安全性。</div></div>`;
+        actionRow.innerHTML=`<button class="action-btn" id="actBtn">查看测试用例</button>`;
+        $('actBtn').addEventListener('click',()=>switchTab('tab2'));
+      } else if(id==='tab2'){
+        sidebarDyn.innerHTML=`<div class="control-group"><label>当前样本</label><div class="mini-info" id="curC">${selected?selected.name:'未选择'}</div></div>
+          <div class="control-group"><label>规则状态</label><div class="mini-info">符号规则：<strong>${rule?'开':'关'}</strong></div></div>`;
+        actionRow.innerHTML=`<button class="action-btn" id="actBtn">形式化验证</button>`;
+        $('actBtn').addEventListener('click',()=>switchTab('tab3'));
+      } else if(id==='tab3'){
+        sidebarDyn.innerHTML=`<div class="control-group"><label>安全性质</label><div class="mini-info">∀(危险→拒绝)：<strong style="color:${safetyHolds()?'var(--green)':'var(--red)'}">${safetyHolds()?'成立 T':'不成立 F'}</strong></div></div>
+          <div class="control-group"><label>提示</label><div class="mini-info">关闭符号规则，第一条命题会变假——纯神经网络无法保证安全。</div></div>`;
+        actionRow.innerHTML=`<button class="action-btn" id="actBtn">可信判定看板</button>`;
+        $('actBtn').addEventListener('click',()=>switchTab('tab4'));
+      } else {
+        sidebarDyn.innerHTML=`<div class="control-group"><label>形式化安全</label><div class="mini-info">∀(危险→拒绝)：<strong style="color:${safetyHolds()?'var(--green)':'var(--red)'}">${safetyHolds()?'成立':'不成立'}</strong></div></div>
+          <div class="control-group"><label>提示</label><div class="mini-info">即便因子全部拉满，只要安全性质不成立，AI 仍判为不可信。</div></div>`;
+        actionRow.innerHTML=`<button class="action-btn" id="actBtn">生成可信评估</button>`;
+        $('actBtn').addEventListener('click',()=>{ const t=trusted(); alert('可信 AI 评估：\nTrustedAI = '+(t?'True（可信推进）':'False（需校准）')+'\n形式化安全 ∀(危险→拒绝) = '+(safetyHolds()?'成立':'不成立')); });
+      }
+    }
+
+    // Tab1 pipeline
+    $('stepRow').querySelectorAll('.step-btn').forEach(b=>b.addEventListener('click',()=>{
+      step=b.dataset.s; $('stepRow').querySelectorAll('.step-btn').forEach(x=>x.classList.toggle('active',x===b)); renderPipe();
+    }));
+    function renderPipe(){
+      ['sIn','sNN','sRule','sVerify','sTrust'].forEach(id=>$(id).className.baseVal='pstage');
+      ['a1','a2','a3','a4'].forEach(id=>$(id).className.baseVal='parrow');
+      const lit=(id,cls)=>$(id).className.baseVal='pstage '+cls;
+      const tRules=$('tRules'); tRules.textContent = rule?'∀(危险→拒绝)':'（规则关闭）';
+      if(step==='nn'){ lit('sIn','lit2'); lit('sNN','lit2'); $('a1').classList.add('lit'); }
+      if(step==='rule'){ lit('sNN','lit2'); lit('sRule',rule?'lit':''); $('a2').classList.add('lit'); }
+      if(step==='verify'){ lit('sRule',rule?'lit':''); lit('sVerify','lit3'); $('a3').classList.add('lit'); }
+      if(step==='trust'){ lit('sVerify','lit3'); lit('sTrust',trusted()?'lit3':'lit'); $('a4').classList.add('lit'); }
+      const fb={
+        nn:'神经网络对输入给出预测与置信度，但它是「黑箱」：对某些危险样本可能<strong>过度自信</strong>地判为「通过」。',
+        rule: rule?'符号规则 <b>∀x(Danger(x)→Reject(x))</b> 对预测加硬约束：任何真实高危样本，最终决策一律拒绝。':'符号规则已关闭，最终决策完全由神经网络黑箱决定——安全无法保证。',
+        verify:'用 <b>∀∃</b> 命题对全部样本做形式化验证：检查「所有危险样本是否都被拒绝」「是否存在高置信的错误」。',
+        trust:'当四项因子达标，<b>且</b>形式化安全成立时，才判定 <b>TrustedAI = True</b>。安全是可信的硬前提。'
+      };
+      $('feedback').innerHTML=fb[step];
+      const tmap={nn:['nn'],rule:['nn','rule'],verify:['rule','verify'],trust:['verify','trust']};
+      $('tokenRow').querySelectorAll('.token').forEach(t=>t.classList.toggle('on',tmap[step].includes(t.dataset.t)));
+    }
+
+    // Tab2 cases
+    function renderCases(){
+      const tb=$('caseBody'); tb.innerHTML='';
+      CASES.forEach(c=>{
+        const na=neuralApprove(c), fa=finalApprove(c);
+        const tr=document.createElement('tr'); tr.dataset.id=c.id;
+        if(selected&&selected.id===c.id) tr.classList.add('sel');
+        tr.innerHTML=`<td class="name">${c.name}</td><td>${c.conf}%</td><td>${c.danger?'<span class="pill bad">是</span>':'<span class="pill ok">否</span>'}</td>
+          <td>${na?'<span class="pill ok">通过</span>':'<span class="pill bad">拒绝</span>'}</td>
+          <td>${fa?'<span class="pill ok">通过</span>':'<span class="pill bad">拒绝</span>'}</td>`;
+        tr.addEventListener('click',()=>{ selected=c; renderCases(); const cc=$('curC'); if(cc) cc.textContent=c.name; showCase(c); });
+        tb.appendChild(tr);
+      });
+      if(selected) showCase(selected);
+    }
+    function showCase(c){
+      const na=neuralApprove(c), fa=finalApprove(c), wrong=wrongNeural(c);
+      $('caseDetail').innerHTML=`<h3 style="margin:0 0 8px;color:var(--red);">${c.name}</h3>
+        <div class="mini-info" style="font-size:14px;">
+        神经网络置信度 = <strong>${c.conf}%</strong>（${na?'≥50 ⟹ 预测「通过」':'<50 ⟹ 预测「拒绝」'}）<br>
+        真实高危 Danger = <strong>${c.danger?'True':'False'}</strong>　|　高置信 HighConf = <strong>${highConf(c)?'True':'False'}</strong><br>
+        符号规则 ${rule?'<b>启用</b>：∀(危险→拒绝)':'<b>关闭</b>'} ⟹ 最终决策 = <strong style="color:${fa?'var(--green)':'var(--red)'}">${fa?'通过':'拒绝'}</strong><br>
+        ${wrong?'<span class="pill bad" style="margin-top:6px;">⚠️ 神经网络误放：高危样本却预测通过</span>'+(rule?' → 已被符号规则纠正为拒绝。':' → 规则关闭，未被纠正，存在风险！'):'神经预测与安全决策一致。'}
+        </div>`;
+    }
+
+    // Tab3 statements
+    function renderStmts(){
+      const s1cex=CASES.filter(c=>c.danger&&!reject(c));      // ∀ Danger→Reject cex
+      const s2wit=CASES.filter(c=>c.danger&&neuralApprove(c)); // ∃ Danger ∧ NeuralApprove
+      const s3wit=CASES.filter(c=>highConf(c)&&wrongNeural(c));// ∃ HighConf ∧ Wrong
+      const s4cex=CASES.filter(c=>!c.danger&&(finalApprove(c)!==neuralApprove(c))); // ∀ ¬Danger→(final=neural)
+      const stmts=[
+        { f:'∀x ( Danger(x) → Reject(x) )', val:s1cex.length===0, exist:false,
+          ok:'最终决策对所有高危样本都拒绝——安全性质可证明成立。',
+          no:'存在高危样本未被拒绝（安全漏洞）：', cex:s1cex },
+        { f:'∃x ( Danger(x) ∧ NeuralApprove(x) )', val:s2wit.length>0, exist:true,
+          ok:'神经网络存在「误放高危样本」的预测（黑箱隐患）：',
+          no:'神经网络未误放任何高危样本。', cex:s2wit },
+        { f:'∃x ( HighConf(x) ∧ WrongPredict(x) )', val:s3wit.length>0, exist:true,
+          ok:'存在「高置信却判断错误」的样本（过度自信）：',
+          no:'不存在高置信的错误预测。', cex:s3wit },
+        { f:'∀x ( ¬Danger(x) → (Final(x) = Neural(x)) )', val:s4cex.length===0, exist:false,
+          ok:'对安全样本，符号规则不改变神经决策——约束精准、不误伤。',
+          no:'存在安全样本被规则改变了决策：', cex:s4cex }
+      ];
+      $('stmtList').innerHTML=stmts.map(st=>{
+        const names=st.cex.map(c=>'<b>'+c.name+'</b>').join('、');
+        const w = st.exist ? (st.val ? st.ok+names+'。' : st.no) : (st.val ? st.ok : st.no+names+'。');
+        return `<div class="stmt"><div class="shead"><div class="sf">${st.f}</div><span class="stmt-chip ${st.val?'t':'f'}">${st.val?'真 T':'假 F'}</span></div><div class="sw">${w}</div></div>`;
+      }).join('')+`<div class="mini-info" style="margin-top:10px;">符号规则当前：<strong>${rule?'启用':'关闭'}</strong>。关闭后第一条安全命题会变<strong>假</strong>，凸显纯神经网络的安全短板。</div>`;
+    }
+
+    // Tab4 trust
+    ['d','l','e','v'].forEach(k=>$(k+'S').addEventListener('input',()=>{ F[k]=+$(k+'S').value; renderTrust(); }));
+    function score(){ return Math.round((F.d+F.l+F.e+F.v)/4); }
+    function factorsOk(){ return F.d>=65&&F.l>=70&&F.e>=60&&F.v>=70; }
+    function trusted(){ return factorsOk()&&safetyHolds(); }
+    function renderTrust(){
+      $('dV').textContent=F.d; $('lV').textContent=F.l; $('eV').textContent=F.e; $('vV').textContent=F.v;
+      const defs=[['数据 D',F.d,65],['逻辑 L',F.l,70],['解释 E',F.e,60],['价值 V',F.v,70]];
+      $('factorBars').innerHTML=defs.map(d=>{ const ok=d[1]>=d[2]; return `<div class="bar-row"><div class="bar-label">${d[0]}</div><div class="bar-track"><div class="bar-fill" style="width:${d[1]}%;background:${ok?'linear-gradient(90deg,#2f7d57,#69b98d)':'linear-gradient(90deg,#b42318,#de5b3d)'}">${d[1]}</div></div><div style="width:54px;text-align:right;font-size:12px;font-weight:700;color:${ok?'var(--green)':'var(--red)'}">${ok?'达标':'≥'+d[2]}</div></div>`; }).join('');
+      const t=trusted(), safe=safetyHolds();
+      const v=$('trustVerdict'); v.className='verdict '+(t?'ok':'bad');
+      v.innerHTML=`<div class="vt">可信判定 = 因子达标 ∧ 形式化安全</div><div class="vv">TrustedAI = ${t?'True':'False'}</div>
+        <div class="vd">${t?'四项因子均达阈值，且 ∀(危险→拒绝) 成立 ⟹ 可信推进。':(!factorsOk()?'有因子未达阈值':'')+(!factorsOk()&&!safe?'，且':'')+(!safe?'形式化安全不成立（请启用符号规则）':'')+' ⟹ 需校准。'}</div>`;
+      $('mScore').textContent=score();
+      $('mSafe').textContent=safe?'成立':'不成立'; $('mSafe').style.color=safe?'var(--green)':'var(--red)';
+    }
+
+    updateSidebar('tab1'); renderTab('tab1');
+  })();
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

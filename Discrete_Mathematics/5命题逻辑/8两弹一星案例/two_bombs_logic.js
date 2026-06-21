@@ -14,6 +14,17 @@ let proofSteps = [];
 let selectedSteps = [];
 let currentHintIndex = 0;
 
+function renderMath(root) {
+    root = root || document.body;
+    if (window.DMMathJax && window.DMMathJax.typeset) {
+        window.DMMathJax.typeset(root);
+        return;
+    }
+    if (window.MathJax && window.MathJax.typesetPromise && /(?:\$\$|\$[^$\n]{1,160}\$|\\\(|\\\[|\\begin\{)/.test(root.textContent || '')) {
+        MathJax.typesetPromise([root]).catch(() => {});
+    }
+}
+
 // --- Expected Proof Sequence ---
 const EXPECTED_STEPS = [
     { formula: 'P', reason: '前提' },
@@ -74,7 +85,7 @@ function init() {
     updateProofTable();
     updateProgress();
     setupEventListeners();
-    if (window.MathJax) MathJax.typesetPromise();
+    renderMath(document.body);
 }
 
 function setupEventListeners() {
@@ -108,7 +119,7 @@ function loadPremises() {
         list.appendChild(item);
     });
 
-    if (window.MathJax) MathJax.typesetPromise();
+    renderMath(list);
 }
 
 // --- Update Proof Table ---
@@ -132,7 +143,7 @@ function updateProofTable() {
         tbody.appendChild(tr);
     });
 
-    if (window.MathJax) MathJax.typesetPromise();
+    renderMath(tbody);
 }
 
 function toggleSelection(index) {

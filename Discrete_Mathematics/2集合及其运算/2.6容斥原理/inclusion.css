@@ -344,6 +344,16 @@ label {
     border: 2px solid rgba(0, 0, 0, 0.1);
 }
 
+.venn-circle.focus {
+    opacity: 0.92;
+    filter: saturate(1.25);
+    box-shadow: 0 0 0 4px rgba(214, 59, 29, 0.10), 0 10px 30px rgba(214, 59, 29, 0.16);
+}
+
+.venn-circle.muted {
+    opacity: 0.34;
+}
+
 .circle-a {
     width: 240px;
     height: 240px;
@@ -378,8 +388,27 @@ label {
     height: 6px;
     border-radius: 50%;
     background: #333;
-    transition: all 0.5s ease;
-    pointer-events: none;
+    transition: opacity 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+    pointer-events: auto;
+    cursor: crosshair;
+}
+
+.particle.dimmed {
+    opacity: 0.14;
+    transform: scale(0.78);
+}
+
+.particle.highlight {
+    opacity: 1;
+    transform: scale(1.9);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.95), 0 0 18px rgba(214, 59, 29, 0.45);
+    z-index: 4;
+}
+
+.particle.selected {
+    transform: scale(2.15);
+    box-shadow: 0 0 0 4px rgba(255, 180, 0, 0.42), 0 0 20px rgba(47, 111, 159, 0.45);
+    z-index: 5;
 }
 
 /* Equation Bar */
@@ -410,6 +439,16 @@ label {
 
 .equation-term:hover {
     transform: translateY(-2px);
+}
+
+.equation-term:focus-visible {
+    outline: 2px solid var(--accent-blue);
+    outline-offset: 2px;
+}
+
+.equation-term.preview {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.12);
 }
 
 .equation-term.active {
@@ -449,6 +488,143 @@ label {
     text-align: center;
 }
 
+/* Guided Challenge */
+.challenge-panel {
+    margin: -4px 0 18px;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(214, 59, 29, 0.16);
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: var(--shadow-sm);
+}
+
+.challenge-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.challenge-kicker {
+    font-size: 0.78rem;
+    color: var(--accent-red);
+    font-weight: 700;
+}
+
+.challenge-head h3 {
+    margin: 2px 0 0;
+    font-size: 1.02rem;
+    color: var(--text-primary);
+}
+
+.challenge-steps {
+    display: flex;
+    gap: 6px;
+}
+
+.challenge-steps span {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(214, 59, 29, 0.24);
+    color: var(--text-secondary);
+    background: #fff;
+    font-weight: 800;
+    font-size: 0.82rem;
+}
+
+.challenge-steps span.active {
+    color: #fff;
+    background: var(--accent-red);
+    border-color: var(--accent-red);
+}
+
+.challenge-steps span.done {
+    color: #fff;
+    background: var(--success-green);
+    border-color: var(--success-green);
+}
+
+.challenge-hint {
+    margin: 8px 0 10px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    font-size: 0.92rem;
+}
+
+.challenge-actions {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.challenge-actions button {
+    min-height: 34px;
+    border: 1px solid rgba(214, 59, 29, 0.18);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.challenge-actions button:hover {
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+    transform: translateY(-1px);
+}
+
+.challenge-actions button:first-child {
+    color: #fff;
+    background: var(--accent-red);
+    border-color: var(--accent-red);
+}
+
+.challenge-feedback,
+.probe-panel {
+    margin-top: 10px;
+    padding: 9px 11px;
+    border-radius: 10px;
+    line-height: 1.55;
+    color: var(--text-secondary);
+    background: #fffaf2;
+    border: 1px dashed rgba(214, 59, 29, 0.22);
+    font-size: 0.9rem;
+}
+
+.challenge-feedback.success {
+    color: var(--success-green);
+    background: #f0fff4;
+    border-color: rgba(39, 201, 63, 0.22);
+}
+
+.challenge-feedback.warning {
+    color: var(--danger-red);
+    background: #fff5f5;
+    border-color: rgba(255, 59, 48, 0.18);
+}
+
+.probe-panel {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    background: rgba(240, 248, 255, 0.72);
+    border-color: rgba(0, 122, 255, 0.18);
+}
+
+.probe-panel b {
+    color: var(--accent-blue);
+}
+
+.probe-panel span {
+    color: var(--text-secondary);
+}
+
 /* Status Banner */
 .status-banner {
     display: flex;
@@ -477,4 +653,86 @@ label {
 
 .status-text {
     font-weight: 600;
+}
+
+@media (max-width: 760px) {
+    body {
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow: auto !important;
+        align-items: flex-start !important;
+        padding: 10px 0 90px !important;
+    }
+
+    .app-container {
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        border-radius: 16px !important;
+    }
+
+    .sidebar {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-right: 0;
+        border-bottom: 1px solid var(--glass-border);
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .controls-wrapper {
+        gap: 1rem;
+    }
+
+    .visualizer-stage {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 1rem !important;
+        align-items: stretch;
+    }
+
+    .glass-pane {
+        width: 100% !important;
+        min-width: 0 !important;
+        height: auto !important;
+        padding: 1rem;
+    }
+
+    .venn-container {
+        min-height: 300px;
+        overflow: hidden;
+    }
+
+    .venn-stage {
+        transform: scale(0.62);
+        transform-origin: center;
+        flex: 0 0 auto;
+        margin: -52px -96px;
+    }
+
+    .equation-bar {
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding: 10px;
+        gap: 6px;
+    }
+
+    .equation-term {
+        flex: 0 0 auto;
+    }
+
+    .challenge-head,
+    .probe-panel {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .challenge-actions {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .status-banner {
+        align-items: flex-start;
+        padding: 12px;
+    }
 }

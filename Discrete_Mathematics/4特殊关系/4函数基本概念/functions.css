@@ -152,7 +152,7 @@ color: var(--text-primary);
 .main-stage {
     flex-grow: 1;
     display: grid;
-    grid-template-columns: 300px 1fr 300px 320px;
+    grid-template-columns: minmax(220px, 1fr) minmax(130px, 0.55fr) minmax(220px, 1fr) minmax(280px, 0.95fr);
     gap: 2px;
     background: rgba(0, 0, 0, 0.02);
     overflow: hidden;
@@ -271,11 +271,14 @@ color: var(--text-primary);
     position: relative;
     background: rgba(255, 255, 255, 0.4);
     overflow: hidden;
+    min-width: 120px;
 }
 
 .mapping-svg {
+    display: block;
     width: 100%;
     height: 100%;
+    overflow: visible;
 }
 
 .function-label {
@@ -302,6 +305,7 @@ color: var(--text-primary);
     opacity: 0.2;
     transition: all 0.4s ease;
     marker-end: url(#arrow-default);
+    vector-effect: non-scaling-stroke;
 }
 
 .mapping-path.active {
@@ -320,6 +324,68 @@ color: var(--text-primary);
     display: flex;
     flex-direction: column;
     border-left: 1px solid var(--glass-border);
+    overflow-y: auto;
+}
+
+@media (max-width: 1280px) {
+    .main-stage {
+        grid-template-columns: minmax(190px, 1fr) minmax(120px, 0.55fr) minmax(190px, 1fr);
+        grid-template-rows: minmax(0, 1fr) minmax(150px, auto);
+    }
+
+    .insight-panel {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 16px 20px;
+        max-height: 190px;
+        border-left: 0;
+        border-top: 1px solid var(--glass-border);
+    }
+
+    .function-label {
+        top: 16px;
+        padding: 7px 10px;
+    }
+
+    .function-label .func-name {
+        display: none;
+    }
+
+    .function-label::after {
+        content: "f";
+        font-family: var(--font-mono);
+        font-weight: 700;
+    }
+}
+
+@media (max-width: 760px) {
+    body {
+        overflow: auto;
+        align-items: flex-start;
+    }
+
+    .app-container {
+        height: auto;
+        min-height: 90vh;
+        margin: 64px auto 96px;
+    }
+
+    .main-stage {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 220px auto auto;
+        overflow: visible;
+    }
+
+    .mapping-area {
+        min-height: 220px;
+    }
+
+    .insight-panel {
+        display: flex;
+        max-height: none;
+    }
 }
 
 .concept-card,
@@ -385,4 +451,199 @@ color: var(--text-primary);
     font-size: 0.9rem;
     color: var(--text-secondary);
     line-height: 1.6;
+}
+
+/* Keep this page's interactive layout after the shared AI helper injects the
+   tier navigation. The shared shell is useful, but this page needs its own
+   fixed-height mapping grid. */
+body:has(.app-container[data-dm-self-layout]) {
+    min-height: 100vh !important;
+    height: auto !important;
+    overflow: auto !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding-bottom: 0 !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] {
+    flex: 0 0 auto !important;
+    align-self: center !important;
+    width: 95vw !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    max-width: 1600px !important;
+    margin: 0 auto !important;
+    display: grid !important;
+    grid-template-columns: minmax(230px, 0.38fr) minmax(0, 1fr) !important;
+    grid-template-rows: auto !important;
+    grid-template-areas: "side main" !important;
+    gap: 12px !important;
+    padding: 12px !important;
+    align-items: start !important;
+    align-content: start !important;
+    overflow: visible !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] > .main-header {
+    grid-area: side !important;
+    height: auto !important;
+    align-self: start !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    overflow: auto !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    border-right: 1px solid var(--glass-border) !important;
+    border-bottom: 0 !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] > .main-stage {
+    grid-area: main !important;
+    height: auto !important;
+    align-self: start !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    display: grid !important;
+    grid-template-columns: minmax(220px, 1fr) minmax(120px, 0.5fr) minmax(220px, 1fr) !important;
+    grid-template-rows: auto auto auto !important;
+    gap: 2px !important;
+    overflow: visible !important;
+    align-content: start !important;
+    align-items: start !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] #dm-page-layers {
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
+    margin: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 10px 14px !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] #dm-page-layers .dm-pl-head {
+    margin-bottom: 6px !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] #dm-page-layers .dm-ladder {
+    gap: 8px !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] #dm-page-layers .dm-tier {
+    padding: 7px 9px !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] #dm-page-layers .dm-tier-name {
+    margin: 5px 0 1px !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] #dm-page-layers .dm-tier-task {
+    display: none !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] #dm-page-layers .dm-tier-btn {
+    min-height: 26px !important;
+    padding: 5px 10px !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .domain-panel {
+    grid-column: 1 !important;
+    grid-row: 3 !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .mapping-area {
+    grid-column: 2 !important;
+    grid-row: 3 !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .codomain-panel {
+    grid-column: 3 !important;
+    grid-row: 3 !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .domain-panel,
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .codomain-panel,
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .mapping-area {
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .elements-container {
+    min-height: 0 !important;
+    overflow: visible !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .element-item {
+    padding: 9px 10px !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .panel-header {
+    margin-bottom: 12px !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .insight-panel {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border-left: 0 !important;
+    border-top: 1px solid var(--glass-border) !important;
+    padding: 10px 16px !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .concept-card,
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .insight-card {
+    padding: 12px 16px !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .card-header {
+    margin-bottom: 7px !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .card-desc {
+    margin-bottom: 8px !important;
+}
+
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .math-box {
+    padding: 8px !important;
+}
+
+@media (max-width: 1000px) {
+    body:has(.app-container[data-dm-self-layout]) {
+        overflow: auto !important;
+        align-items: flex-start !important;
+    }
+
+    body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] {
+        height: auto !important;
+        max-height: none !important;
+        grid-template-columns: 1fr !important;
+        grid-template-areas: "side" "main" !important;
+        margin: 64px auto 96px !important;
+    }
+
+    body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] > .main-stage {
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto auto auto 220px auto !important;
+        overflow: visible !important;
+    }
+
+    .app-container[data-dm-self-layout] .domain-panel,
+    .app-container[data-dm-self-layout] .mapping-area,
+    .app-container[data-dm-self-layout] .codomain-panel,
+    .app-container[data-dm-self-layout] .insight-panel {
+        grid-column: 1 !important;
+        grid-row: auto !important;
+    }
+
+    .app-container[data-dm-self-layout] .insight-panel {
+        grid-template-columns: 1fr !important;
+        max-height: none !important;
+    }
 }

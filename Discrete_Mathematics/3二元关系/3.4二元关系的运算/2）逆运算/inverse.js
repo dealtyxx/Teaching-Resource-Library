@@ -15,10 +15,10 @@ const appContainer = document.querySelector('.app-container');
 
 // Data
 const NODES = [
-    { id: 1, label: '1921', x: 0.1, y: 0.5 },
-    { id: 2, label: '1949', x: 0.4, y: 0.5 },
-    { id: 3, label: '1978', x: 0.7, y: 0.5 },
-    { id: 4, label: '2025', x: 0.9, y: 0.5 }
+    { id: 1, label: '1921', x: 0, y: 0.46 },
+    { id: 2, label: '1949', x: 0.34, y: 0.46 },
+    { id: 3, label: '1978', x: 0.68, y: 0.46 },
+    { id: 4, label: '2025', x: 1, y: 0.46 }
 ];
 
 // State
@@ -26,14 +26,14 @@ let relation = new Set(['1-2', '2-3', '3-4']); // "u-v"
 let isInverted = false;
 let isEditing = false;
 let nodePositions = {}; // Calculated pixel positions
+let layoutFrame = null;
 
 // Config
-const NODE_RADIUS = 30;
+const NODE_RADIUS = 26;
 
 // Initialization
 function init() {
     calculateLayout();
-    renderNodes();
     renderGraph();
     renderMatrix();
     updateInsight();
@@ -41,13 +41,20 @@ function init() {
 
 // Layout
 function calculateLayout() {
-    const width = document.querySelector('.topology-panel').clientWidth;
-    const height = document.querySelector('.topology-panel').clientHeight - 60;
+    const container = document.getElementById('graphContainer');
+    const rect = container.getBoundingClientRect();
+    const width = Math.max(320, Math.round(rect.width || container.clientWidth || 640));
+    const height = Math.max(280, Math.round(rect.height || container.clientHeight || 420));
+    const padX = NODE_RADIUS + 18;
+    const padY = NODE_RADIUS + 34;
+
+    graphSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    graphSvg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 
     NODES.forEach(node => {
         nodePositions[node.id] = {
-            x: node.x * width,
-            y: node.y * height + 30
+            x: padX + node.x * (width - padX * 2),
+            y: padY + node.y * (height - padY * 2)
         };
     });
 }
@@ -57,12 +64,19 @@ function renderNodes() {
     nodesLayer.innerHTML = '';
     NODES.forEach(node => {
         const pos = nodePositions[node.id];
-        const el = document.createElement('div');
-        el.className = `graph-node ${isInverted ? 'inverted' : ''}`;
-        el.textContent = node.label;
-        el.style.left = `${pos.x - NODE_RADIUS}px`;
-        el.style.top = `${pos.y - NODE_RADIUS}px`;
-        nodesLayer.appendChild(el);
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('class', `svg-node ${isInverted ? 'inverted' : ''}`);
+        g.setAttribute('transform', `translate(${pos.x} ${pos.y})`);
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('r', NODE_RADIUS);
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.textContent = node.label;
+
+        g.appendChild(circle);
+        g.appendChild(text);
+        graphSvg.appendChild(g);
     });
 }
 
@@ -86,16 +100,19 @@ function renderGraph() {
         const [u, v] = key.split('-').map(Number);
         // If inverted, we render v->u but visually styled as inverse
         if (isInverted) {
-            renderEdge(v, u, false, true);
+            renderEdge(u, v, false, true);
         } else {
             renderEdge(u, v, false, false);
         }
     });
+
+    renderNodes();
 }
 
 function renderEdge(u, v, isGhost, isInverseDisplay) {
     const posU = nodePositions[u];
     const posV = nodePositions[v];
+    if (!posU || !posV) return;
 
     // If we are displaying inverse, the logical relation is u->v (in R^-1), 
     // which corresponds to v->u in R.
@@ -116,7 +133,8 @@ function renderEdge(u, v, isGhost, isInverseDisplay) {
     const dx = end.x - start.x;
     const dy = end.y - start.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    const offset = NODE_RADIUS + 5;
+    if (!dist) return;
+    const offset = NODE_RADIUS + 1;
 
     const startX = start.x + (dx / dist) * offset;
     const startY = start.y + (dy / dist) * offset;
@@ -126,14 +144,12 @@ function renderEdge(u, v, isGhost, isInverseDisplay) {
     // Curve
     const midX = (startX + endX) / 2;
     const midY = (startY + endY) / 2;
-    // Arc amount
-    const arc = 40;
-    // Direction of arc depends on u,v to avoid overlap for bi-directional
-    // Simple heuristic: always arc "up" relative to the line
-    const perpX = -dy / dist * arc;
-    const perpY = dx / dist * arc;
+    const chord = Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2);
+    const arc = Math.min(72, Math.max(34, chord * 0.34));
+    const controlX = midX;
+    const controlY = midY - arc;
 
-    const d = `M ${startX} ${startY} Q ${midX + perpX} ${midY + perpY} ${endX} ${endY}`;
+    const d = `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`;
 
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', d);
@@ -235,7 +251,6 @@ function toggleInversion() {
     }
 
     // Re-render
-    renderNodes(); // Update colors
     renderGraph(); // Update arrows
     renderMatrix(); // Update grid
     updateInsight();
@@ -273,10 +288,25 @@ editModeToggle.addEventListener('change', (e) => {
 });
 
 window.addEventListener('resize', () => {
-    calculateLayout();
-    renderNodes();
-    renderGraph();
+    relayoutGraph();
 });
+
+function relayoutGraph() {
+    if (layoutFrame) cancelAnimationFrame(layoutFrame);
+    layoutFrame = requestAnimationFrame(() => {
+        calculateLayout();
+        renderGraph();
+        layoutFrame = null;
+    });
+}
+
+if ('ResizeObserver' in window) {
+    const graphObserver = new ResizeObserver(() => relayoutGraph());
+    graphObserver.observe(document.getElementById('graphContainer'));
+    graphObserver.observe(document.querySelector('.app-container'));
+}
 
 // Init
 init();
+setTimeout(relayoutGraph, 80);
+setTimeout(relayoutGraph, 320);

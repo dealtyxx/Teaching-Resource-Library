@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关系性质 · 基础层 — 性质即矩阵模式</title>
+    <meta name="description" content="离散数学 3.5 基础层：自反/对称/传递作为矩阵的可视模式，互动判定">
+    <link rel="stylesheet" href="properties.css">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <style>
+        .dm-t-field { margin: 8px 0; }
+        .dm-t-field .lab { display: flex; justify-content: space-between; font-size: .82rem; color: #8b0000; margin-bottom: 5px; }
+        .dm-t-field .v { font-weight: 700; color: #d63b1d; font-family: 'Courier New', monospace; }
+        .dm-t-field input[type=range] { width: 100%; accent-color: #d63b1d; }
+        .dm-t-seg { display: flex; flex-direction: column; gap: 7px; }
+        .dm-t-seg button { padding: 9px; border-radius: 9px; border: 1.5px solid rgba(214,59,29,.25); background: #fff; cursor: pointer; font-family: inherit; font-weight: 600; color: #8b0000; transition: all .18s; text-align: left; }
+        .dm-t-seg button.active { background: linear-gradient(135deg, #d63b1d, #b8321a); color: #fff; border-color: #d63b1d; }
+        .dm-t-info { background: rgba(255,255,255,.6); border: 1px solid rgba(214,59,29,.14); border-radius: 10px; padding: 12px; font-size: .84rem; line-height: 1.7; color: #8b0000; }
+        .dm-t-info b { color: #d63b1d; }
+        .dm-t-btn { width: 100%; padding: 9px; border: none; border-radius: 10px; cursor: pointer; font-family: inherit; font-weight: 600; color: #fff; background: linear-gradient(135deg, #d63b1d, #b8321a); margin-top: 6px; }
+        .dm-t-btn.ghost { background: #fff; color: #d63b1d; border: 1px solid #d63b1d; }
+        .dm-t-wrap { display: flex; flex-wrap: wrap; gap: 1.6rem; justify-content: center; align-items: flex-start; width: 100%; }
+        .dm-t-card { background: rgba(255,255,255,.6); border: 1px solid rgba(214,59,29,.18); border-radius: 14px; padding: 16px 18px; }
+        .dm-t-card h3 { color: #d63b1d; font-size: .96rem; margin-bottom: 10px; font-weight: 700; text-align: center; }
+        .mtx { display: inline-grid; gap: 5px; }
+        .mcell { width: 34px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-family: 'Courier New', monospace; font-size: .76rem; }
+        .mcell.hdr { background: #d63b1d; color: #fff; font-weight: 700; }
+        .mcell.corner { background: transparent; }
+        .mcell.b0 { background: rgba(214,59,29,.06); color: #c9a; cursor: pointer; }
+        .mcell.b1 { background: #d63b1d; color: #fff; font-weight: 700; cursor: pointer; }
+        .mcell:hover { outline: 2px solid #ffb400; }
+        .mcell.diag { box-shadow: inset 0 0 0 2px #ffb400; }
+        .mcell.bad { outline: 3px solid #c0392b; }
+        .verdict { font-size: 1rem; font-weight: 700; padding: 11px 16px; border-radius: 11px; text-align: center; max-width: 460px; line-height: 1.6; margin-top: 8px; }
+        .verdict.y { background: rgba(39,201,63,.14); color: #176b2c; } .verdict.n { background: rgba(214,59,29,.1); color: #9c2b1e; }
+        .ptn { font-size: .82rem; color: #8b0000; max-width: 300px; line-height: 1.7; }
+        .ptn b { color: #d63b1d; }
+    
+        .value-panel {
+            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
+            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
+            box-shadow: var(--shadow-sm);
+        }
+        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
+        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
+        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+        .value-dims span {
+            padding: 3px 8px; border-radius: 999px; color: #8b0000;
+            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
+            font-size: .74rem; font-weight: 700;
+        }
+        .value-quote {
+            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
+            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
+        }
+        .value-inline {
+            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
+            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
+            color: var(--text-primary); line-height: 1.5;
+        }
+    </style>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+
+<body>
+    <a href="../../index.html" title="返回课程主页" style="position:fixed;top:14px;left:14px;z-index:9999;display:flex;align-items:center;gap:6px;background:rgba(30,30,40,0.82);color:#fff;padding:7px 14px 7px 10px;border-radius:20px;font-size:13px;font-family:'Noto Serif SC',serif;text-decoration:none;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.15);box-shadow:0 2px 12px rgba(0,0,0,0.35);transition:background .2s;" onmouseover="this.style.background='rgba(214,59,29,0.88)'" onmouseout="this.style.background='rgba(30,30,40,0.82)'">🏠 <span>课程主页</span></a>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+                <h1>红色数理 <span class="highlight">基础层</span></h1>
+                <p class="subtitle">关系性质 · 性质即矩阵模式 · 建立直觉</p>
+            </div>
+            <div class="controls-wrapper">
+                <div class="control-group value-consistency-group">
+                    <label>价值映射（与进阶层一致）</label>
+                    <div class="value-panel" data-value-source="SECTION_META.ideology">
+                        <h3>社会和谐 · 五准则</h3>
+                        <p>自反如『自尊自重』，对称如『平等互敬』，传递如『诚信相续、一诺千金』——关系的性质恰可类比社会和谐的人际准则。以数学之严谨理解人伦之常理，让社会主义核心价值观在抽象结构中可感可证。</p>
+                        <div class="value-dims"><span>社会主义核心价值观</span><span>诚信友善</span><span>辩证思维</span></div>
+                            <div class="value-quote">己所不欲，勿施于人——对称关系的『你来我往』，正是平等相待的数学注脚。</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>聚焦性质</label>
+                    <div class="dm-t-seg" id="seg">
+                        <button data-p="refl" class="active">自反性（对角线全 1）</button>
+                        <button data-p="sym">对称性（关于对角线镜像）</button>
+                        <button data-p="trans">传递性（无断链）</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>集合元素数 n</label>
+                    <div class="dm-t-field"><div class="lab"><span>n</span><span class="v" id="nVal">4</span></div><input type="range" id="nRange" min="2" max="5" value="4"></div>
+                </div>
+                <div class="control-group">
+                    <label>操作</label>
+                    <button class="dm-t-btn" id="randBtn">🎲 随机关系</button>
+                    <button class="dm-t-btn ghost" id="clearBtn">清空</button>
+                </div>
+                <div class="control-group">
+                    <label>性质说明</label>
+                    <div class="dm-t-info" id="info"></div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="visualization-area" id="vizArea">
+                    <div class="dm-t-wrap">
+                        <div class="dm-t-card"><h3>关系矩阵（点格切换，金框=焦点位置，红框=违例）</h3><div class="mtx" id="mtx"></div></div>
+                        <div class="dm-t-card"><h3>判定</h3><div class="ptn" id="ptn"></div><div class="verdict" id="verdict"></div></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer style="position:fixed;bottom:0;left:0;width:100%;background: transparent;color: inherit;
+    opacity: 0.72;padding:15px 10px;text-align:center;box-shadow: none;z-index:9999;">
+        <p style="font-size:0.9rem;line-height:1.6;margin:0;opacity:0.95;">© 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>版权所有 ｜ 项目总负责人：谢鑫</p>
+    </footer>
+
+    <script>
+        var $ = function (id) { return document.getElementById(id); };
+        var n = 4, R = {}, prop = 'refl';
+        function key(i, j) { return i + '_' + j; }
+        var TXT = {
+            refl: { info: '<b>自反性</b>：∀a, aRa——每个元素都与自己相关。模式：<b>主对角线全为 1</b>。', ptn: '焦点：<b>主对角线</b>。自反 ⇔ 对角线每格都是 1。' },
+            sym: { info: '<b>对称性</b>：aRb ⇒ bRa——关系双向。模式：矩阵<b>关于主对角线镜像对称</b>。', ptn: '焦点：<b>镜像格 (i,j) 与 (j,i)</b>。对称 ⇔ 二者总相等。' },
+            trans: { info: '<b>传递性</b>：aRb 且 bRc ⇒ aRc——可顺链相连。模式：<b>无断链</b>（R²⊆R）。', ptn: '传递 ⇔ 凡有 a→b→c 的两跳，必有直达 a→c。' }
+        };
+        function check() {
+            var bad = {};
+            var ok = true;
+            if (prop === 'refl') { for (var i = 1; i <= n; i++) if (!R[key(i, i)]) { ok = false; bad[key(i, i)] = 1; } }
+            else if (prop === 'sym') { for (var a = 1; a <= n; a++) for (var b = 1; b <= n; b++) if (!!R[key(a, b)] !== !!R[key(b, a)]) { ok = false; bad[key(a, b)] = 1; } }
+            else { for (var a2 = 1; a2 <= n; a2++) for (var b2 = 1; b2 <= n; b2++) if (R[key(a2, b2)]) for (var c = 1; c <= n; c++) if (R[key(b2, c)] && !R[key(a2, c)]) { ok = false; bad[key(a2, c)] = 1; } }
+            return { ok: ok, bad: bad };
+        }
+        function render() {
+            n = +$('nRange').value; $('nVal').textContent = n;
+            Object.keys(R).forEach(function (k) { var p = k.split('_'); if (+p[0] > n || +p[1] > n) delete R[k]; });
+            var res = check();
+            var g = $('mtx'); g.style.gridTemplateColumns = 'repeat(' + (n + 1) + ', auto)';
+            var html = '<div class="mcell corner"></div>';
+            for (var j = 1; j <= n; j++) html += '<div class="mcell hdr">' + j + '</div>';
+            for (var i = 1; i <= n; i++) {
+                html += '<div class="mcell hdr">' + i + '</div>';
+                for (var j2 = 1; j2 <= n; j2++) {
+                    var on = R[key(i, j2)], cls = on ? 'b1' : 'b0';
+                    if (prop === 'refl' && i === j2) cls += ' diag';
+                    if (res.bad[key(i, j2)]) cls += ' bad';
+                    html += '<div class="mcell ' + cls + '" data-i="' + i + '" data-j="' + j2 + '">' + (on ? 1 : 0) + '</div>';
+                }
+            }
+            g.innerHTML = html;
+            [].forEach.call(g.querySelectorAll('.mcell[data-i]'), function (c) { c.onclick = function () { var k = key(+c.dataset.i, +c.dataset.j); if (R[k]) delete R[k]; else R[k] = 1; render(); }; });
+            $('info').innerHTML = TXT[prop].info;
+            $('ptn').innerHTML = TXT[prop].ptn;
+            var v = $('verdict');
+            var nm = { refl: '自反', sym: '对称', trans: '传递' }[prop];
+            if (res.ok) { v.className = 'verdict y'; v.innerHTML = '✅ 当前关系<b>满足' + nm + '性</b>。'; }
+            else { v.className = 'verdict n'; v.innerHTML = '❌ <b>不满足' + nm + '性</b>：红框处违例（' + (prop === 'refl' ? '对角缺 1' : prop === 'sym' ? '镜像不一致' : '缺直达边') + '）。'; }
+        }
+        [].forEach.call($('seg').querySelectorAll('button'), function (b) { b.onclick = function () { prop = b.dataset.p; [].forEach.call($('seg').querySelectorAll('button'), function (x) { x.classList.remove('active'); }); b.classList.add('active'); render(); }; });
+        $('nRange').oninput = render;
+        $('randBtn').onclick = function () { R = {}; for (var i = 1; i <= n; i++) for (var j = 1; j <= n; j++) if (Math.random() < 0.4) R[key(i, j)] = 1; render(); };
+        $('clearBtn').onclick = function () { R = {}; render(); };
+        $('randBtn').onclick();
+    </script>
+
+    <!-- ===== 共享升级框架：学习助手 + 三阶导航 ===== -->
+    <script>
+    window.SECTION_META = {
+        layers: [
+            { "name": "自反 · 对称 · 传递（看模式）", "concepts": "对角线 / 镜像 / 无断链", "task": "把性质看成矩阵的可视模式。", "page": "properties-basic.html" },
+            { "name": "五性质综合判定", "concepts": "自反/反自反/对称/反对称/传递", "task": "逐条检验关系的五大性质。", "page": "properties.html" },
+            { "name": "通向等价与偏序", "concepts": "等价=自反对称传递 / 偏序", "task": "迁移到等价关系与偏序判据。", "page": "properties-extend.html" }
+        ],
+        chapter: "第3章 二元关系",
+        section: "3.5 二元关系的性质 · 基础层",
+        title: "性质即矩阵模式",
+        grounding: "本页（基础层）主题：把关系性质看成矩阵的可视模式——自反性 ⇔ 主对角线全 1；对称性 ⇔ 矩阵关于主对角线镜像对称；传递性 ⇔ 无『两跳无直达』的断链（R²⊆R）。聚焦单个性质、高亮焦点位置与违例，建立『性质=结构模式』的直觉。",
+        steps: [
+            { name: "情境引入", desc: "『自重』『互敬』『诚信相续』——人际准则如何对应关系性质？" },
+            { name: "对象抽取", desc: "把每条性质抽象为矩阵/图上的一种模式。" },
+            { name: "结构建模", desc: "自反=对角线、对称=镜像、传递=无断链。" },
+            { name: "推理求解", desc: "选一条性质，自建关系，看是否满足、违例在哪。" },
+            { name: "程序验证", desc: "金框=焦点位置，红框=违例，直观核验。" },
+            { name: "迁移反思", desc: "为五性质综合（进阶层）与等价/偏序（拓展层）打基础。" }
+        ],
+        ideology: {
+        "title": "社会和谐 · 五准则",
+        "text": "自反如『自尊自重』，对称如『平等互敬』，传递如『诚信相续、一诺千金』——关系的性质恰可类比社会和谐的人际准则。以数学之严谨理解人伦之常理，让社会主义核心价值观在抽象结构中可感可证。",
+        "dims": [
+                "社会主义核心价值观",
+                "诚信友善",
+                "辩证思维"
+        ],
+        "quote": "己所不欲，勿施于人——对称关系的『你来我往』，正是平等相待的数学注脚。"
+},
+        reflect: ["自反与反自反是否互为否定？能否两者都不满足？", "对称为什么对应矩阵的镜像相等？"],
+        transfer: ["五性质的不同组合 → 等价关系、偏序关系（拓展层）。"]
+    };
+    </script>
+    
+    <script data-dm-ideology-bridge="1">
+    (function () {
+        function esc(s) {
+            return String(s || '').replace(/[&<>"']/g, function (c) {
+                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+            });
+        }
+        function noteHtml() {
+            var ideology = (window.SECTION_META && window.SECTION_META.ideology) || {};
+            var title = ideology.title || '价值引领';
+            var text = ideology.text || '本层延续进阶层的价值主线，在操作中体会数学结构与价值判断的一致性。';
+            return '<span class="value-inline" data-ideology-inline="1"><strong>价值观察：</strong>本层沿用进阶层“'
+                + esc(title) + '”主线。' + esc(text) + '</span>';
+        }
+        function appendIdeologyNote() {
+            if (document.querySelector('[data-ideology-inline="1"]')) return;
+            var resultExtra = document.getElementById('resultExtra');
+            if (resultExtra) {
+                resultExtra.insertAdjacentHTML('beforeend', noteHtml());
+                return;
+            }
+            var anchor = document.querySelector('.result-panel, #eqOut, #note, .visualization-area');
+            if (!anchor) return;
+            if (anchor.id === 'eqOut' || anchor.id === 'note') anchor.insertAdjacentHTML('afterend', noteHtml());
+            else anchor.insertAdjacentHTML('beforeend', noteHtml());
+        }
+        function wrapSetResult() {
+            var original = window.setResult;
+            if (typeof original !== 'function' || original.__ideologyWrapped) return;
+            window.setResult = function () {
+                var ret = original.apply(this, arguments);
+                appendIdeologyNote();
+                return ret;
+            };
+            window.setResult.__ideologyWrapped = true;
+        }
+        function boot() {
+            wrapSetResult();
+            appendIdeologyNote();
+            ['input', 'change', 'click'].forEach(function (eventName) {
+                document.addEventListener(eventName, function () {
+                    setTimeout(appendIdeologyNote, 0);
+                }, true);
+            });
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+        else boot();
+    })();
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+
+</html>

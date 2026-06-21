@@ -213,7 +213,7 @@ function setupGalaxy() {
             });
             grid.appendChild(card);
         }
-        if (window.MathJax) MathJax.typesetPromise();
+        if (window.MathJax) window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise();
     }
 
     function updateFormula(vars) {
@@ -244,7 +244,7 @@ function setupGalaxy() {
             formulaDisplay.textContent = `$$ ${parts.join(' \\land ')} $$`;
             noteDisplay.textContent = `已填补 ${activeIndices.size} 个漏洞，形成主合取范式。`;
         }
-        if (window.MathJax) MathJax.typesetPromise();
+        if (window.MathJax) window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise();
     }
 
     select.addEventListener('change', renderGrid);
@@ -305,7 +305,7 @@ function setupGenerator() {
         const joiner = mode === 'PDNF' ? ' \\lor ' : ' \\land ';
         const latex = resultParts.length > 0 ? resultParts.join(joiner) : (mode === 'PDNF' ? '\\text{False}' : '\\text{True}');
         resultDiv.textContent = `$$ ${latex} $$`;
-        if (window.MathJax) MathJax.typesetPromise();
+        if (window.MathJax) window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise();
     }
 
     pdnfBtn.addEventListener('click', () => generate('PDNF'));

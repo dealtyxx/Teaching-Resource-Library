@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>逻辑电路表达式 · 拓展层 — 逻辑综合与 EDA</title>
+  <meta name="description" content="11.11 逻辑电路 拓展层：四变量卡诺图、NAND 通用门映射与逻辑综合指标">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1500px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.tab-nav{display:flex;flex-direction:column;gap:6px;}
+.tab-btn{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);color:#5b4136;cursor:pointer;font:inherit;font-weight:700;font-size:14px;transition:all .2s;text-align:left;}
+.tab-btn:hover{background:rgba(180,35,24,.08);color:var(--red);}
+.tab-btn.active{background:var(--red);color:#fff;border-color:var(--red);box-shadow:0 6px 16px rgba(180,35,24,.25);}
+.tab-btn .ico{font-size:18px;}
+.sidebar-dyn{display:grid;gap:10px;}
+.ctrl-box{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
+.ctrl-box>label{display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:8px;}
+.grpbtns{display:flex;flex-wrap:wrap;gap:6px;}
+.grpbtn{padding:7px 11px;border-radius:8px;border:1.5px solid var(--line);background:rgba(255,255,255,.7);cursor:pointer;font:inherit;font-weight:700;font-size:.82rem;color:#5b4136;transition:.12s;}
+.grpbtn.g1{border-color:#2f7d57;}.grpbtn.g1.on{background:#2f7d57;color:#fff;}
+.grpbtn.g2{border-color:#2f5f9f;}.grpbtn.g2.on{background:#2f5f9f;color:#fff;}
+.kg-feedback{padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.83rem;color:#7a3216;line-height:1.75;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.72rem;color:#a05a5a;font-weight:700;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;}
+.qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.86rem;color:#5b4136;line-height:1.85;}
+.qres b{color:var(--red);}.qres .formula{font-family:"JetBrains Mono",monospace;font-weight:800;color:var(--red);}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.tab-content{display:none;flex-direction:column;flex:1;}.tab-content.active{display:flex;animation:fade .3s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 8px;}
+.svgbox{flex:1;min-height:330px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(255,250,239,.7));padding:6px;display:flex;align-items:center;}
+.viz{width:100%;height:auto;display:block;}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:13px 15px;margin-top:12px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}.insight-box p{margin:0;font-size:13.5px;line-height:1.7;color:#4e362d;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">拓展层</span></h1>
+        <p class="subtitle">逻辑电路优化 · 逻辑综合与 EDA</p>
+      </div>
+      <p class="intro">从化简走向工程综合：四变量卡诺图化简、用<b>通用门 NAND</b> 实现任意逻辑（功能完备）、并用<b>综合指标</b>权衡门数/延迟/功耗——这正是 EDA 与自主芯片的核心链路。</p>
+
+      <div class="value-panel">
+        <h3>自立自强 · 全链条核心技术</h3>
+        <p>芯片是信息技术的『心脏』。唯有掌握从布尔代数到逻辑综合的全链条核心技术、自主创新，才能在关键领域不被卡脖子。</p>
+        <div class="dim-list"><span>自立自强</span><span>工匠精神</span><span>精益求精</span></div>
+      </div>
+
+      <nav class="tab-nav" id="tabNav">
+        <button class="tab-btn active" data-tab="tab1"><span class="ico">🔲</span><span>四变量卡诺图</span></button>
+        <button class="tab-btn" data-tab="tab2"><span class="ico">🔁</span><span>NAND 通用门映射</span></button>
+        <button class="tab-btn" data-tab="tab3"><span class="ico">📊</span><span>综合指标 · EDA 流程</span></button>
+      </nav>
+
+      <div class="sidebar-dyn" id="sidebarDyn"></div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>四变量卡诺图化简 F=A′C′+AC、用 NAND 通用门实现它、并对比原始/最简/NAND 的综合指标。</span>
+        <div class="visual-badge">逻辑综合 · EDA</div>
+      </section>
+
+      <!-- Tab1 -->
+      <div class="tab-content active" id="tab1">
+        <h2 class="pane-title">四变量卡诺图化简</h2>
+        <p class="pane-sub">F(A,B,C,D)=Σm(0,1,4,5,10,11,14,15)。16 格卡诺图中两个『四格组』各消去 2 个变量，化简为 F=A′C′+AC。</p>
+        <div class="svgbox"><svg class="viz" id="viz1" viewBox="0 0 680 400" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <div class="insight-box">
+          <div class="insight-title">🔲 4 格合并消 2 变量</div>
+          <p>四变量卡诺图有 16 格。<b>2 格组</b>消 1 变量、<b>4 格组</b>消 2 变量、<b>8 格组</b>消 3 变量。本例两个四格组（A=0,C=0 与 A=1,C=1）分别得 A′C′、AC，把 8 个最小项化简成仅 2 个二变量积项——变量越多，化简带来的门数节省越惊人。</p>
+        </div>
+      </div>
+
+      <!-- Tab2 -->
+      <div class="tab-content" id="tab2">
+        <h2 class="pane-title">NAND 通用门映射</h2>
+        <p class="pane-sub">NAND（与非）功能完备：与、或、非都能只用 NAND 实现。F=A′C′+AC 可化为两级 NAND-NAND 结构。</p>
+        <div class="svgbox" id="vbox2"><svg class="viz" id="viz2" viewBox="0 0 680 360" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <div class="insight-box">
+          <div class="insight-title">🔁 一种门，造万千逻辑</div>
+          <p>NAND（及 NOR）是<b>功能完备</b>的：非 = NAND(x,x)，与 = NAND 后取非，或 = 先非再 NAND。任何 SOP 都能转成两级 <b>NAND-NAND</b>。工艺上只需一种标准单元，便于版图复用与优化——这是逻辑综合工艺映射的基础，也是国产 EDA/工艺库自主化的关键一环。</p>
+        </div>
+      </div>
+
+      <!-- Tab3 -->
+      <div class="tab-content" id="tab3">
+        <h2 class="pane-title">综合指标 · EDA 流程</h2>
+        <p class="pane-sub">对比原始展开 / 最简 SOP / NAND 映射 的门数与逻辑层级（延迟），并展示 RTL→优化→映射→网表 的综合流程。</p>
+        <div class="svgbox" id="vbox3" style="min-height:330px"><svg class="viz" id="viz3" viewBox="0 0 680 380" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <div class="insight-box">
+          <div class="insight-title">📊 多目标权衡，方见真功夫</div>
+          <p>逻辑综合不是只追门数：<b>门数→面积/成本</b>、<b>逻辑层级→延迟/速度</b>、<b>翻转→功耗</b>，常此消彼长。EDA 工具在约束下自动完成『布尔优化 + 工艺映射』，求多目标最优。把数学化简落到芯片效率，正是精益求精、自主创新的细节功夫。</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
+
+  <script>
+    window.SECTION_META = {
+      "chapter": "第11章 环、域、格和布尔代数", "section": "11.11 逻辑电路表达式案例 · 拓展层", "title": "逻辑综合与 EDA",
+      "grounding": "本页（拓展层）主题：从布尔化简走向逻辑综合与 EDA。四变量卡诺图化简 F(A,B,C,D)=Σm(0,1,4,5,10,11,14,15)=A′C′+AC；用功能完备的 NAND 通用门做两级 NAND-NAND 映射；用门数(面积)、逻辑层级(延迟)、功耗等综合指标多目标权衡——这是自主芯片设计的核心链路。",
+      "steps": [
+        {"name": "情境引入", "desc": "工程上如何把布尔化简落到真实芯片的面积、延迟、功耗？"},
+        {"name": "对象抽取", "desc": "把功能抽象为布尔函数，把工艺单元抽象为通用门。"},
+        {"name": "结构建模", "desc": "卡诺图化简 + NAND 通用门映射 + 指标模型。"},
+        {"name": "推理求解", "desc": "化简、映射、对比门数/层级/功耗。"},
+        {"name": "程序验证", "desc": "圈卡诺图组、看 NAND 结构、读综合指标。"},
+        {"name": "迁移反思", "desc": "迁移到 EDA 逻辑综合、工艺库与自主芯片。"}
+      ],
+      "ideology": {"title": "精益设计 · 自主芯片", "text": "逻辑电路优化以布尔代数为工具，化简表达式、减少门数，体现精益求精、降本增效的工匠精神。芯片是信息技术的心脏，唯有掌握从布尔代数到逻辑综合的全链条核心技术、自主创新，才能在关键领域不被卡脖子。", "dims": ["自立自强", "工匠精神", "精益求精"], "quote": "把芯片的根基筑牢——从布尔代数到逻辑综合，每一次化简都是迈向自主芯片的硬功夫。"},
+      "reflect": ["四变量卡诺图中 8 格组、4 格组、2 格组各消去几个变量？", "为什么 NAND（或 NOR）功能完备，能单独实现任意逻辑？", "门数、延迟、功耗为何常此消彼长？EDA 如何多目标权衡？"],
+      "transfer": ["EDA 逻辑综合的布尔优化与工艺映射；标准单元库；国产 EDA 与自主芯片。"],
+      "layers": [
+        {"name": "电路=布尔函数", "concepts": "真值表 / 布尔表达式", "task": "把电路功能写成布尔表达式。", "page": "boolean-circuit-index-basic.html"},
+        {"name": "卡诺图化简", "concepts": "布尔定律 / 卡诺图 / 最简式", "task": "化简表达式得最少门电路。", "page": "boolean-circuit-index.html"},
+        {"name": "逻辑综合与 EDA", "concepts": "门级映射 / 自主芯片", "task": "迁移到逻辑综合与芯片设计。", "page": "boolean-circuit-index-extend.html"}
+      ]
+    };
+  </script>
+
+  <script>
+  (function(){
+    "use strict";
+    var $=function(id){return document.getElementById(id);};
+    function txt(x,y,t,c,s,mono){return '<text x="'+x+'" y="'+y+'" text-anchor="middle" font-family="'+(mono?'JetBrains Mono':'Noto Serif SC')+',monospace" font-size="'+(s||13)+'" font-weight="800" fill="'+(c||'#4e362d')+'">'+t+'</text>';}
+
+    // ===== Tab1: 4-var K-map =====
+    var MIN=[0,1,4,5,10,11,14,15];
+    var GR=[0,1,3,2]; // gray
+    var G1={cells:[0,1,4,5],color:'#2f7d57',name:'A′C′'},G2={cells:[10,11,14,15],color:'#2f5f9f',name:'AC'};
+    var grpOn={g1:true,g2:true};
+    function kmap4(){
+      var kx=185,ky=110,cw=92,ch=58,svg='';
+      svg+=txt(360,42,'四变量卡诺图　F(A,B,C,D)','#b42318',17);
+      svg+=txt(150,ky-18,'AB\\CD','#6c5a52',12);
+      var CDL=['00','01','11','10'],ABL=['00','01','11','10'];
+      CDL.forEach(function(l,c){svg+=txt(kx+c*cw+cw/2,ky-18,l,'#2f5f9f',12);});
+      for(var r=0;r<4;r++){var ab=GR[r];svg+=txt(kx-26,ky+r*ch+ch/2+5,ABL[r],'#b42318',12,true);
+        for(var c=0;c<4;c++){var cd=GR[c];var A=ab>>1,B=ab&1,C=cd>>1,D=cd&1;var m=A*8+B*4+C*2+D;var v=MIN.indexOf(m)>=0?1:0;
+          var hl=null;if(grpOn.g1&&G1.cells.indexOf(m)>=0)hl=G1.color;else if(grpOn.g2&&G2.cells.indexOf(m)>=0)hl=G2.color;
+          var x=kx+c*cw,y=ky+r*ch;
+          svg+='<rect x="'+x+'" y="'+y+'" width="'+cw+'" height="'+ch+'" fill="'+(hl?(hl===G1.color?'rgba(47,125,87,.18)':'rgba(47,95,159,.18)'):(v?'rgba(214,59,29,.06)':'#fff'))+'" stroke="'+(hl||'rgba(116,55,31,.3)')+'" stroke-width="'+(hl?3.2:1.2)+'"/>';
+          svg+=txt(x+cw/2,y+ch/2+2,''+v,v?'#b42318':'#b9a89a',18,true);
+          svg+=txt(x+cw-13,y+14,'m'+m,'#a08b80',9,true);}}
+      var f=[grpOn.g1?'A′C′':'',grpOn.g2?'AC':''].filter(Boolean).join(' + ')||'（请选组）';
+      svg+=txt(360,ky+4*ch+34,'F = '+f,'#b42318',17);
+      $('viz1').innerHTML=svg;
+      $('t1res').innerHTML='<span class="formula">F = '+f+'</span><br>组1 A=0,C=0（B,D 变化均被消去）→ A′C′；组2 A=1,C=1 → AC。8 个最小项化简为 2 个二变量积项。';
+    }
+
+    // ===== Tab2: NAND-NAND =====
+    function nandBox(x,y,w,h,label){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="11" fill="rgba(214,59,29,.08)" stroke="#b42318" stroke-width="2.4"/>'+txt(x+w/2,y+h/2+5,label,'#b42318',13);}
+    function renderTab2(){
+      var svg='';svg+=txt(360,40,'两级 NAND-NAND 实现　F = A′C′ + AC','#b42318',16);
+      // inverters
+      svg+=nandBox(70,80,110,46,"NAND(A,A)=A′");
+      svg+=nandBox(70,150,110,46,"NAND(C,C)=C′");
+      // level1
+      svg+=nandBox(250,70,150,52,"g1=NAND(A′,C′)");
+      svg+=nandBox(250,180,150,52,"g2=NAND(A,C)");
+      // level2
+      svg+=nandBox(470,120,150,60,"F=NAND(g1,g2)");
+      svg+='<circle cx="660" cy="150" r="16" fill="rgba(47,125,87,.16)" stroke="#2f7d57" stroke-width="2.4"/>'+txt(660,155,'F','#2f7d57',14);
+      // wires
+      function w(x1,y1,x2,y2){return '<polyline points="'+x1+','+y1+' '+x2+','+y2+'" fill="none" stroke="rgba(180,35,24,.5)" stroke-width="2.2"/>';}
+      svg+=w(180,103,250,96);svg+=w(180,173,250,206);
+      svg+=w(400,96,470,140);svg+=w(400,206,470,160);
+      svg+=w(620,150,644,150);
+      svg+=txt(325,108,'级1','#8a5d0b',11);svg+=txt(545,108,'级2','#8a5d0b',11);
+      svg+=txt(360,300,'非 = NAND(x,x)　·　与 = NAND 后取非　·　或 = 先非再 NAND','#6c5a52',12.5);
+      svg+=txt(360,326,'共 5 个 NAND（2 反相器 + 2 级1 + 1 级2）——只用一种通用门','#2f7d57',13);
+      $('viz2').innerHTML=svg;
+    }
+
+    // ===== Tab3: metrics + EDA flow =====
+    function renderTab3(){
+      var svg='',data=[{n:'原始展开',gates:9,lvl:2,col:'#b42318'},{n:'最简 SOP',gates:5,lvl:3,col:'#c58a1f'},{n:'NAND 映射',gates:5,lvl:3,col:'#2f7d57'}];
+      svg+=txt(360,32,'综合指标对比（门数）','#b42318',15);
+      var x0=120,baseY=210,bw=110,gap=70,maxG=9;
+      data.forEach(function(d,i){var h=d.gates/maxG*150,x=x0+i*(bw+gap),y=baseY-h;
+        svg+='<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+h+'" rx="6" fill="'+d.col+'" opacity="0.8" stroke="'+d.col+'" stroke-width="1.6"/>';
+        svg+=txt(x+bw/2,y-9,d.gates+' 门','#4e362d',13);
+        svg+=txt(x+bw/2,baseY+20,d.n,'#4e362d',12.5);
+        svg+=txt(x+bw/2,baseY+38,'层级 '+d.lvl,'#6c5a52',11);});
+      svg+=txt(360,baseY+66,'原始 9 门 → 最简/NAND 5 门　门数省 ≈44%','#2f7d57',13);
+      // EDA pipeline
+      var py=300,steps=['RTL 设计','布尔优化','工艺映射','门级网表'],sw=130,sg=22,sx0=(680-(steps.length*sw+(steps.length-1)*sg))/2;
+      svg+=txt(360,py-14,'逻辑综合流程（EDA）','#b42318',13);
+      steps.forEach(function(s,i){var x=sx0+i*(sw+sg);
+        svg+='<rect x="'+x+'" y="'+py+'" width="'+sw+'" height="40" rx="9" fill="rgba(47,95,159,.1)" stroke="#2f5f9f" stroke-width="2"/>'+txt(x+sw/2,py+25,s,'#2f5f9f',12.5);
+        if(i<steps.length-1)svg+=txt(x+sw+sg/2,py+26,'→','#b42318',18);});
+      $('viz3').innerHTML=svg;
+    }
+
+    // ===== tabs =====
+    $('tabNav').querySelectorAll('.tab-btn').forEach(function(b){b.addEventListener('click',function(){switchTab(b.dataset.tab);});});
+    function switchTab(id){$('tabNav').querySelectorAll('.tab-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tab===id);});document.querySelectorAll('.tab-content').forEach(function(c){c.classList.toggle('active',c.id===id);});updateSidebar(id);}
+    function updateSidebar(id){
+      var sd=$('sidebarDyn');
+      if(id==='tab1'){
+        sd.innerHTML='<div class="ctrl-box"><label>选择卡诺图四格组（看图高亮）</label><div class="grpbtns"><button class="grpbtn g1'+(grpOn.g1?' on':'')+'" data-g="g1">组1 A′C′</button><button class="grpbtn g2'+(grpOn.g2?' on':'')+'" data-g="g2">组2 AC</button></div></div>'+
+          '<div class="kg-feedback">四变量卡诺图 16 格。四格组消去 2 个变量。两组合并 → F=A′C′+AC（即 A、C 同或）。</div>'+
+          '<div class="kg-formula-row"><span class="kg-token on">16 格</span><span class="kg-token on">4格消2变量</span><span class="kg-token on">A′C′+AC</span></div>'+
+          '<div class="qres" id="t1res"></div>';
+        sd.querySelectorAll('.grpbtn').forEach(function(b){b.onclick=function(){grpOn[b.dataset.g]=!grpOn[b.dataset.g];b.classList.toggle('on');kmap4();};});
+        kmap4();
+      } else if(id==='tab2'){
+        sd.innerHTML='<div class="ctrl-box"><label>NAND 通用门</label><div style="font-size:12.5px;color:#6c5a52;line-height:1.7">NAND（与非）功能完备：非=NAND(x,x)、与=NAND 取非、或=先非再 NAND。任意 SOP 可转两级 NAND-NAND。</div></div>'+
+          '<div class="kg-feedback">右侧为 F=A′C′+AC 的两级 NAND-NAND 实现，仅用一种通用门——便于工艺统一与版图复用。</div>'+
+          '<div class="kg-formula-row"><span class="kg-token on">NAND 完备</span><span class="kg-token on">NAND-NAND</span></div>';
+        renderTab2();
+      } else {
+        sd.innerHTML='<div class="ctrl-box"><label>综合指标看板</label><div style="font-size:12.5px;color:#6c5a52;line-height:1.7">门数→面积/成本，逻辑层级→延迟，翻转→功耗。EDA 在约束下做多目标优化（布尔优化+工艺映射）。</div></div>'+
+          '<div class="kg-feedback">原始展开 9 门 → 最简/NAND 5 门。门数、延迟、功耗常此消彼长，需权衡。</div>'+
+          '<div class="kg-formula-row"><span class="kg-token on">面积</span><span class="kg-token on">延迟</span><span class="kg-token on">功耗</span></div>';
+        renderTab3();
+      }
+    }
+    updateSidebar('tab1');
+  })();
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

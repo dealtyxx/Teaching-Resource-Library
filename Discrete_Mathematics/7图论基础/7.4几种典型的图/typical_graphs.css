@@ -350,3 +350,445 @@ background-image:
         height: 400px;
     }
 }
+
+/* ===== 7.3-style compact board layout ===== */
+.app-container[data-dm-app] {
+    width: min(96vw, 1800px) !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-width: none !important;
+    margin: 64px auto 0 !important;
+    padding: 0 !important;
+    display: grid !important;
+    grid-template-columns: 400px minmax(0, 1fr) !important;
+    grid-template-areas: "side main" !important;
+    grid-template-rows: auto !important;
+    gap: 12px !important;
+    align-items: start;
+    align-content: start;
+    overflow: hidden;
+}
+
+.app-container[data-dm-app] > .main-header {
+    grid-area: side;
+    width: 400px;
+    min-width: 400px;
+    min-height: 0;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 0 16px 12px !important;
+    padding: 24px 24px 18px !important;
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 12px;
+    overflow: visible;
+    border-radius: 16px;
+}
+
+.app-container[data-dm-app] .main-header .header-content h1,
+.app-container[data-dm-side-shell] .main-header .header-content h1 {
+    margin: 0 0 8px;
+    font-family: var(--font-title);
+    font-size: 2.1rem;
+    line-height: 1.2;
+    font-weight: 400;
+    color: #d63b1d;
+}
+
+.app-container[data-dm-app] .main-header .highlight,
+.app-container[data-dm-side-shell] .main-header .highlight {
+    margin-left: 4px;
+    color: #ffb400 !important;
+    font-family: var(--font-title);
+    font-size: inherit;
+}
+
+.app-container[data-dm-app] .main-header .subtitle,
+.app-container[data-dm-side-shell] .main-header .subtitle {
+    color: #64748b !important;
+    font-style: normal;
+    opacity: 1;
+    line-height: 1.6;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.app-container[data-dm-app] .ideology-badge,
+.app-container[data-dm-side-shell] .ideology-badge {
+    width: 100%;
+    justify-content: center;
+}
+
+.app-container[data-dm-app] > main.main-stage {
+    grid-area: main;
+    min-width: 0;
+    min-height: 0;
+    height: auto !important;
+    margin: 12px 12px 16px 0 !important;
+    padding: 16px !important;
+    display: grid !important;
+    grid-template-columns: minmax(720px, 1fr) 320px !important;
+    grid-template-rows: auto auto;
+    gap: 14px;
+    align-items: start;
+    align-self: start;
+    overflow: hidden;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.74);
+    border: 1px solid rgba(214, 59, 29, 0.12);
+    box-shadow: var(--shadow);
+}
+
+.app-container[data-dm-app] > main.main-stage > #dm-page-layers {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    width: 100%;
+    max-width: 100%;
+}
+
+.app-container[data-dm-app] > main.main-stage > #dm-page-layers .dm-ladder {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.app-container[data-dm-app] > main.main-stage > .left-panel {
+    display: none !important;
+}
+
+.app-container[data-dm-app] > main.main-stage > .center-panel {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(420px, 50vh) auto;
+    gap: 12px;
+    align-content: start;
+    padding: 0;
+    overflow: hidden;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+.app-container[data-dm-app] > main.main-stage > .right-panel {
+    grid-column: 2;
+    grid-row: 2;
+    width: 100% !important;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 0 !important;
+    overflow: visible;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column;
+    gap: 10px;
+    align-self: start;
+}
+
+.app-container[data-dm-app] > .main-header > .left-priority-panel,
+.app-container[data-dm-side-shell] .main-header > .left-priority-panel {
+    width: 100% !important;
+    min-width: 0;
+    max-width: 100%;
+    height: auto;
+    max-height: none;
+    margin: 0 !important;
+    padding: 12px !important;
+    overflow: visible;
+    border: 1px solid rgba(214, 59, 29, 0.12) !important;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.62) !important;
+    box-shadow: none !important;
+}
+
+.app-container[data-dm-app] .graph-nav,
+.app-container[data-dm-side-shell] .graph-nav {
+    gap: 8px;
+}
+
+.app-container[data-dm-app] .nav-btn,
+.app-container[data-dm-side-shell] .nav-btn {
+    min-height: 56px;
+    padding: 10px 12px;
+    border-radius: 10px;
+}
+
+.app-container[data-dm-app] .nav-btn:hover,
+.app-container[data-dm-side-shell] .nav-btn:hover {
+    transform: translateX(3px);
+}
+
+.app-container[data-dm-app] .nav-icon,
+.app-container[data-dm-side-shell] .nav-icon {
+    font-size: 1.25rem;
+}
+
+.app-container[data-dm-app] > main.main-stage > .right-panel .panel-section,
+.app-container[data-dm-side-shell] > main.main-stage.visualizer-stage > .right-panel .panel-section {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-bottom: 0 !important;
+    padding: 12px !important;
+    border: 1px solid rgba(214, 59, 29, 0.12) !important;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.68);
+}
+
+.app-container[data-dm-app] .right-panel .panel-header,
+.app-container[data-dm-side-shell] .right-panel .panel-header {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+}
+
+.app-container[data-dm-app] .right-panel .panel-header h3,
+.app-container[data-dm-side-shell] .right-panel .panel-header h3 {
+    font-size: 1.05rem;
+}
+
+.app-container[data-dm-app] .canvas-header,
+.app-container[data-dm-side-shell] .canvas-header {
+    margin-bottom: 0;
+    min-height: 44px;
+    gap: 12px;
+}
+
+.app-container[data-dm-app] .canvas-header h2,
+.app-container[data-dm-side-shell] .canvas-header h2 {
+    font-size: 1.55rem;
+    line-height: 1.2;
+}
+
+.app-container[data-dm-app] .canvas-controls,
+.app-container[data-dm-side-shell] .canvas-controls {
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.app-container[data-dm-app] .canvas-container,
+.app-container[data-dm-side-shell] .canvas-container {
+    width: 100%;
+    height: clamp(420px, 50vh, 540px);
+    min-height: 0;
+    border: 1px solid rgba(24, 76, 140, 0.16);
+    background:
+        radial-gradient(circle at center, rgba(24, 144, 255, 0.035), transparent 58%),
+        linear-gradient(90deg, rgba(24, 76, 140, 0.035) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(24, 76, 140, 0.035) 1px, transparent 1px),
+        #fff;
+    background-size: auto, 26px 26px, 26px 26px;
+}
+
+.app-container[data-dm-app] .ideology-box,
+.app-container[data-dm-side-shell] .ideology-box {
+    margin-top: 0;
+    padding: 14px;
+    border-radius: 12px;
+    border-width: 1px;
+}
+
+.app-container[data-dm-app] .ideology-title,
+.app-container[data-dm-side-shell] .ideology-title {
+    margin-bottom: 8px;
+    font-size: 1rem;
+}
+
+.app-container[data-dm-app] .ideology-content,
+.app-container[data-dm-side-shell] .ideology-content,
+.app-container[data-dm-app] .info-content,
+.app-container[data-dm-side-shell] .info-content {
+    font-size: 0.9rem;
+    line-height: 1.58;
+}
+
+.app-container[data-dm-app] .stats-list,
+.app-container[data-dm-side-shell] .stats-list {
+    gap: 8px;
+}
+
+.app-container[data-dm-app] .stat-item,
+.app-container[data-dm-side-shell] .stat-item {
+    min-height: 42px;
+    padding: 10px 12px;
+}
+
+/* ai-tutor wraps pages with a .left-panel into this generated side shell. */
+.app-container[data-dm-side-shell] {
+    width: min(96vw, 1800px) !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-width: none !important;
+    margin: 64px auto 0 !important;
+    padding: 0 !important;
+    display: grid !important;
+    grid-template-columns: 400px minmax(0, 1fr) !important;
+    grid-template-areas: "side main" !important;
+    grid-template-rows: auto !important;
+    gap: 12px !important;
+    align-items: start;
+    align-content: start;
+    overflow: hidden;
+}
+
+.app-container[data-dm-side-shell] > .dm-generated-sidebar {
+    grid-area: side;
+    width: 400px !important;
+    min-width: 400px !important;
+    min-height: 0;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 0 16px 12px !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    border-radius: 16px;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+.app-container[data-dm-side-shell] > .dm-generated-sidebar > .main-header {
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 24px 24px 18px !important;
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 12px;
+    overflow: visible;
+    border-radius: 16px;
+}
+
+.app-container[data-dm-side-shell] > main.main-stage.visualizer-stage {
+    grid-area: main;
+    min-width: 0;
+    min-height: 0;
+    height: auto !important;
+    margin: 12px 12px 16px 0 !important;
+    padding: 16px !important;
+    display: grid !important;
+    grid-template-columns: minmax(720px, 1fr) 320px !important;
+    grid-template-rows: auto auto;
+    gap: 14px;
+    align-items: start;
+    align-self: start;
+    overflow: hidden;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.74);
+    border: 1px solid rgba(214, 59, 29, 0.12);
+    box-shadow: var(--shadow);
+}
+
+.app-container[data-dm-side-shell] > main.main-stage.visualizer-stage > #dm-page-layers {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    width: 100%;
+    max-width: 100%;
+}
+
+.app-container[data-dm-side-shell] > main.main-stage.visualizer-stage > #dm-page-layers .dm-ladder {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.app-container[data-dm-side-shell] > main.main-stage.visualizer-stage > .center-panel {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(420px, 50vh) auto;
+    gap: 12px;
+    align-content: start;
+    padding: 0;
+    overflow: hidden;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+.app-container[data-dm-side-shell] > main.main-stage.visualizer-stage > .right-panel {
+    grid-column: 2;
+    grid-row: 2;
+    min-width: 0;
+    min-height: 0;
+    padding: 0 !important;
+    overflow: visible;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column;
+    gap: 10px;
+}
+
+@media (max-width: 1000px) {
+    .app-container[data-dm-app],
+    .app-container[data-dm-side-shell] {
+        width: min(94vw, 760px) !important;
+        height: auto !important;
+        min-height: 0 !important;
+        grid-template-columns: 1fr !important;
+        grid-template-areas:
+            "side"
+            "main" !important;
+        overflow: visible;
+    }
+
+    .app-container[data-dm-app] > .main-header,
+    .app-container[data-dm-side-shell] > .dm-generated-sidebar {
+        width: 100% !important;
+        min-width: 0 !important;
+        height: auto;
+        margin: 0 !important;
+        overflow: visible !important;
+    }
+
+    .app-container[data-dm-app] > main.main-stage,
+    .app-container[data-dm-side-shell] > main.main-stage.visualizer-stage {
+        grid-template-columns: 1fr !important;
+        margin: 0 0 16px !important;
+        overflow: visible;
+    }
+
+    .app-container[data-dm-app] > main.main-stage > .center-panel,
+    .app-container[data-dm-app] > main.main-stage > .right-panel,
+    .app-container[data-dm-side-shell] > main.main-stage.visualizer-stage > .center-panel,
+    .app-container[data-dm-side-shell] > main.main-stage.visualizer-stage > .right-panel {
+        grid-column: 1;
+    }
+
+    .app-container[data-dm-app] > main.main-stage > .center-panel,
+    .app-container[data-dm-side-shell] > main.main-stage.visualizer-stage > .center-panel {
+        grid-row: 2;
+    }
+
+    .app-container[data-dm-app] > main.main-stage > .right-panel,
+    .app-container[data-dm-side-shell] > main.main-stage.visualizer-stage > .right-panel {
+        grid-row: 3;
+        overflow: visible;
+    }
+
+    .app-container[data-dm-app] > main.main-stage > #dm-page-layers .dm-ladder,
+    .app-container[data-dm-side-shell] > main.main-stage.visualizer-stage > #dm-page-layers .dm-ladder {
+        grid-template-columns: 1fr;
+    }
+
+    .app-container[data-dm-app] .canvas-container,
+    .app-container[data-dm-side-shell] .canvas-container {
+        height: clamp(360px, 56vh, 500px);
+    }
+}

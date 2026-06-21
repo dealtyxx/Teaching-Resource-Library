@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>计数原理 · 基础层 — 加法与乘法法则可视化</title>
+    <meta name="description" content="离散数学 1.1.1 基础层：加法法则（分类相加）与乘法法则（分步相乘）互动可视化">
+    <link rel="stylesheet" href="counting.css">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="../chapter1-compact.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <style>
+        /* 仅为本层独有控件补充，沿用 counting.css 设计令牌，保证完全一致 */
+        .per-item { display: flex; align-items: center; gap: 10px; padding: 4px 0; font-size: 0.8rem; color: var(--text-primary); }
+        .per-item .nm { width: 56px; flex-shrink: 0; }
+        .per-item input[type=range] { flex: 1; }
+        .per-item .v { width: 18px; text-align: center; color: var(--accent-red); font-weight: 700; }
+        .cat-bin { border: 2px solid var(--glass-border); border-radius: 12px; padding: 14px 16px; text-align: center; background: rgba(255, 255, 255, 0.55); box-shadow: var(--shadow-sm); }
+        .cat-bin .cnt { margin-top: 10px; font-weight: 700; color: var(--accent-red); }
+        .mini-row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; max-width: 130px; }
+        .mini-box { width: 18px; height: 18px; border-radius: 5px; background: linear-gradient(135deg, var(--accent-red), var(--accent-gold)); animation: fadeIn .35s ease; }
+        .add-stage { display: flex; gap: 1rem; align-items: flex-end; justify-content: center; flex-wrap: wrap; }
+    
+        .value-panel {
+            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
+            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
+            box-shadow: var(--shadow-sm);
+        }
+        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
+        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
+        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+        .value-dims span {
+            padding: 3px 8px; border-radius: 999px; color: #8b0000;
+            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
+            font-size: .74rem; font-weight: 700;
+        }
+        .value-quote {
+            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
+            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
+        }
+        .value-inline {
+            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
+            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
+            color: var(--text-primary); line-height: 1.5;
+        }
+
+        /* 修复：让内容自然流动，图例不再绝对定位浮在内容之上（避免与注入的“价值观察”说明重叠） */
+        .glass-pane {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        .glass-pane .visualization-area {
+            height: auto;
+            min-height: 0;
+            flex: 0 0 auto;
+            justify-content: flex-start;
+            padding-bottom: 0;
+        }
+        .glass-pane .legend {
+            position: static;
+            max-width: 100%;
+            margin: 8px auto 0;
+        }
+    </style>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+
+<body>
+    <!-- 返回主页浮动按钮 (auto-injected) -->
+    <a href="../../index.html" title="返回课程主页" style="
+        position:fixed;top:14px;left:14px;z-index:9999;
+        display:flex;align-items:center;gap:6px;
+        background:rgba(30,30,40,0.82);color:#fff;
+        padding:7px 14px 7px 10px;border-radius:20px;
+        font-size:13px;font-family:'Noto Serif SC',serif;
+        text-decoration:none;backdrop-filter:blur(8px);
+        border:1px solid rgba(255,255,255,0.15);
+        box-shadow:0 2px 12px rgba(0,0,0,0.35);
+        transition:background .2s;
+    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
+       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
+        🏠 <span>课程主页</span>
+    </a>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>计数原理 <span class="highlight">基础层</span></h1>
+                <p class="subtitle">●○○ 加法法则 · 乘法法则 · 建立直觉</p>
+            </div>
+
+            <div class="controls-wrapper">
+                
+                
+                
+                
+                <div class="control-group value-consistency-group">
+                    <label>价值映射（与进阶层一致）</label>
+                    <div class="value-panel" data-value-source="SECTION_META.ideology">
+                        <h3>多元一体 · 求同存异</h3>
+                        <p>加法法则包容并列的多元路径，乘法法则刻画协同递进的系统工程——正如中国式现代化既尊重道路的多样选择，又强调各环节协同发力。计数的『不重不漏』，也是一种实事求是、严谨周密的治理智慧。</p>
+                        <div class="value-dims"><span>辩证思维</span><span>系统观念</span><span>家国情怀</span></div>
+                            <div class="value-quote">团结一切可以团结的力量——把每一种可能都数清、用好，正是统一战线的数学注脚。</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>选择法则</label>
+                    <div class="principle-buttons">
+                        <button class="principle-btn active" id="btnAdd" aria-label="加法法则">
+                            <span class="icon">+</span><span class="text">加法法则</span>
+                        </button>
+                        <button class="principle-btn" id="btnMul" aria-label="乘法法则">
+                            <span class="icon">×</span><span class="text">乘法法则</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="control-group" id="addCtl">
+                    <label>分类相加（每类方法数）</label>
+                    <div class="param-item">
+                        <div class="param-label">类别数 k<span class="value" id="kVal">3</span></div>
+                        <input type="range" id="kRange" min="2" max="5" value="3">
+                    </div>
+                    <div id="addPer"></div>
+                </div>
+
+                <div class="control-group" id="mulCtl" style="display:none">
+                    <label>分步相乘（每步选项数）</label>
+                    <div class="param-item">
+                        <div class="param-label">步骤数<span class="value" id="sVal">3</span></div>
+                        <input type="range" id="sRange" min="2" max="4" value="3">
+                    </div>
+                    <div id="mulPer"></div>
+                </div>
+
+                <div class="control-group">
+                    <label>原理说明</label>
+                    <div class="info-panel">
+                        <h3 id="pName">加法法则</h3>
+                        <p id="pDesc">分类相加：完成一件事有 k 类互斥方法，方法数相加。各类之间「选其一即可」。</p>
+                        <p class="political-text">象征多元化发展路径的选择与包容。</p>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>计算结果</label>
+                    <div class="result-panel">
+                        <div class="formula-display"><span id="formula">n₁ + n₂ + n₃</span></div>
+                        <div class="result-display">
+                            <span class="result-label">总方案数</span>
+                            <span class="result-value" id="num">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="visualization-area" id="vizArea"></div>
+                <div class="legend" id="legendPanel">
+                    <div class="legend-title">说明</div>
+                    <div class="legend-content" id="legendContent"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 固定底部版权信息 -->
+    <footer style="
+        position: fixed; bottom: 0; left: 0; width: 100%;
+        background: transparent;
+        color: inherit;
+    opacity: 0.72; padding: 15px 10px; text-align: center;
+        box-shadow: none; z-index: 9999;">
+        <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+            © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
+            版权所有 ｜ 项目总负责人：谢鑫
+        </p>
+    </footer>
+
+    <script>
+        var mode = 'add';
+        var addCounts = [2, 3, 4, 2, 3];
+        var mulCounts = [2, 3, 2, 3];
+        var $ = function (id) { return document.getElementById(id); };
+
+        function buildPer(listId, k, arr, label) {
+            var box = $(listId); box.innerHTML = '';
+            for (var i = 0; i < k; i++) (function (i) {
+                var row = document.createElement('div'); row.className = 'per-item';
+                row.innerHTML = '<span class="nm">' + label + (i + 1) + '</span>';
+                var r = document.createElement('input'); r.type = 'range'; r.min = 1; r.max = 6; r.value = arr[i];
+                var v = document.createElement('span'); v.className = 'v'; v.textContent = arr[i];
+                r.oninput = function () { arr[i] = +r.value; v.textContent = r.value; render(); };
+                row.appendChild(r); row.appendChild(v); box.appendChild(row);
+            })(i);
+        }
+
+        function render() {
+            if (mode === 'add') {
+                var k = +$('kRange').value, vals = addCounts.slice(0, k);
+                var sum = vals.reduce(function (a, b) { return a + b; }, 0);
+                $('pName').textContent = '加法法则';
+                $('pDesc').textContent = '分类相加：完成一件事有 k 类互斥方法，方法数相加。各类之间「选其一即可」。';
+                $('formula').textContent = vals.join(' + ') + ' = ' + sum;
+                $('num').textContent = sum;
+                var html = '<div class="category-title">加法法则：分类相加</div><div class="add-stage">';
+                vals.forEach(function (n, i) {
+                    if (i) html += '<div class="operation-symbol">+</div>';
+                    var boxes = ''; for (var j = 0; j < n; j++) boxes += '<div class="mini-box" style="animation-delay:' + (j * .04) + 's"></div>';
+                    html += '<div class="cat-bin"><div class="category-title" style="font-size:.95rem">第' + (i + 1) + '类</div><div class="mini-row">' + boxes + '</div><div class="cnt">' + n + ' 种</div></div>';
+                });
+                html += '</div>';
+                $('vizArea').innerHTML = html;
+                $('legendContent').innerHTML = '<div class="legend-item">每个小方块是一种方法</div><div class="legend-item">' + k + ' 类互斥，任选其一</div><div class="legend-item">总数 = 各类相加 = <b>' + sum + '</b></div>';
+            } else {
+                var s = +$('sRange').value, vals = mulCounts.slice(0, s);
+                var prod = vals.reduce(function (a, b) { return a * b; }, 1);
+                $('pName').textContent = '乘法法则';
+                $('pDesc').textContent = '分步相乘：完成一件事需依次完成 k 个步骤，每步各有若干选项，方法数相乘。步步「都要做」。';
+                $('formula').textContent = vals.join(' × ') + ' = ' + prod;
+                $('num').textContent = prod;
+                $('vizArea').innerHTML = '<div class="category-title">乘法法则：分步相乘</div>' + buildTree(vals);
+                $('legendContent').innerHTML = '<div class="legend-item">从根到叶每条路径 = 一种方案</div><div class="legend-item">' + s + ' 步，分支 ' + vals.join('×') + '</div><div class="legend-item">叶子总数 = 各步相乘 = <b>' + prod + '</b></div>';
+            }
+        }
+
+        function buildTree(vals) {
+            var prod = vals.reduce(function (a, b) { return a * b; }, 1);
+            if (prod > 24) {
+                return '<div class="tree-container"><div class="tree-node highlighted" style="font-size:1.4rem;padding:18px 28px">' + vals.join(' × ') + ' = ' + prod + ' 种</div><p style="color:var(--text-secondary);text-align:center;max-width:420px">方案数较大（>24），以数值呈现。<br>每减少一步或一个选项，总数都会成倍变化——这正是「相乘」的威力。</p></div>';
+            }
+            var html = '<div class="tree-container">';
+            html += '<div class="tree-level"><div class="tree-node highlighted">开始</div></div>';
+            var count = 1;
+            for (var lv = 0; lv < vals.length; lv++) {
+                count *= vals[lv];
+                html += '<div class="tree-level">';
+                for (var n = 0; n < count; n++) {
+                    var isLeaf = lv === vals.length - 1;
+                    html += '<div class="tree-node' + (isLeaf ? ' highlighted' : '') + '">' + (isLeaf ? '✓' : ('第' + (lv + 1) + '步')) + '</div>';
+                }
+                html += '</div>';
+            }
+            html += '</div>';
+            return html;
+        }
+
+        function setMode(m) {
+            mode = m;
+            $('btnAdd').classList.toggle('active', m === 'add');
+            $('btnMul').classList.toggle('active', m === 'mul');
+            $('addCtl').style.display = m === 'add' ? '' : 'none';
+            $('mulCtl').style.display = m === 'mul' ? '' : 'none';
+            render();
+        }
+        $('btnAdd').onclick = function () { setMode('add'); };
+        $('btnMul').onclick = function () { setMode('mul'); };
+        $('kRange').oninput = function () { $('kVal').textContent = this.value; buildPer('addPer', +this.value, addCounts, '第'); render(); };
+        $('sRange').oninput = function () { $('sVal').textContent = this.value; buildPer('mulPer', +this.value, mulCounts, '步'); render(); };
+
+        buildPer('addPer', 3, addCounts, '第');
+        buildPer('mulPer', 3, mulCounts, '步');
+        render();
+    </script>
+
+    <!-- ===== 共享升级框架：学习助手 + 三阶导航 ===== -->
+    <script>
+    window.SECTION_META = {
+        layers: [
+            { "name": "加法与乘法法则", "concepts": "分类相加 / 分步相乘", "task": "辨清『分类』与『分步』，数清简单事件方案数。", "page": "counting-basic.html" },
+            { "name": "排列与组合（综合）", "concepts": "P(n,k) / C(n,k) / 有序vs无序", "task": "会用排列组合公式，避免重复与遗漏。", "page": "counting.html" },
+            { "name": "计数 → 概率与密码空间", "concepts": "古典概率 / 口令强度 / 组合爆炸", "task": "把计数迁移到概率、密码空间与复杂度。", "page": "counting-extend.html" }
+        ],
+        chapter: "第1章 计数基础与数论基础",
+        section: "1.1.1 基本概念 · 基础层",
+        title: "加法与乘法法则",
+        grounding: "本页（基础层）主题：加法法则——完成一件事有 k 类互斥方法，方法数相加（分类相加）；乘法法则——依次完成 k 个步骤，每步若干选项，方法数相乘（分步相乘）。核心辨析：『分类（选其一）→相加』 vs 『分步（都要做）→相乘』。",
+        steps: [
+            { name: "情境引入", desc: "完成一件事，有时是『选哪一类』，有时是『一步步做完』——算法不同。" },
+            { name: "对象抽取", desc: "把选择抽象为『互斥的类别』或『依次的步骤』。" },
+            { name: "结构建模", desc: "分类→加法 n₁+…+n_k；分步→乘法 n₁·…·n_k。" },
+            { name: "推理求解", desc: "拖动滑块改变类别/步骤数与各自选项，观察总数如何变化。" },
+            { name: "程序验证", desc: "用分箱图（加法）与分支树（乘法）验证公式与直觉一致。" },
+            { name: "迁移反思", desc: "辨清何时相加何时相乘，为排列组合（进阶层）打基础。" }
+        ],
+        ideology: {
+        "title": "多元一体 · 求同存异",
+        "text": "加法法则包容并列的多元路径，乘法法则刻画协同递进的系统工程——正如中国式现代化既尊重道路的多样选择，又强调各环节协同发力。计数的『不重不漏』，也是一种实事求是、严谨周密的治理智慧。",
+        "dims": [
+                "辩证思维",
+                "系统观念",
+                "家国情怀"
+        ],
+        "quote": "团结一切可以团结的力量——把每一种可能都数清、用好，正是统一战线的数学注脚。"
+},
+        reflect: ["同一问题，什么时候『相加』、什么时候『相乘』？判据是什么？", "把一个『加法』情境改成『分步』，结果会怎样剧变？"],
+        transfer: ["进阶层将引入『顺序是否要紧』，区分排列与组合。"]
+    };
+    </script>
+    
+    <script data-dm-ideology-bridge="1">
+    (function () {
+        function esc(s) {
+            return String(s || '').replace(/[&<>"']/g, function (c) {
+                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+            });
+        }
+        function noteHtml() {
+            var ideology = (window.SECTION_META && window.SECTION_META.ideology) || {};
+            var title = ideology.title || '价值引领';
+            var text = ideology.text || '本层延续进阶层的价值主线，在操作中体会数学结构与价值判断的一致性。';
+            return '<span class="value-inline" data-ideology-inline="1"><strong>价值观察：</strong>本层沿用进阶层“'
+                + esc(title) + '”主线。' + esc(text) + '</span>';
+        }
+        function appendIdeologyNote() {
+            if (document.querySelector('[data-ideology-inline="1"]')) return;
+            var resultExtra = document.getElementById('resultExtra');
+            if (resultExtra) {
+                resultExtra.insertAdjacentHTML('beforeend', noteHtml());
+                return;
+            }
+            var anchor = document.querySelector('.result-panel, #eqOut, #note, .visualization-area');
+            if (!anchor) return;
+            if (anchor.id === 'eqOut' || anchor.id === 'note') anchor.insertAdjacentHTML('afterend', noteHtml());
+            else anchor.insertAdjacentHTML('beforeend', noteHtml());
+        }
+        function wrapSetResult() {
+            var original = window.setResult;
+            if (typeof original !== 'function' || original.__ideologyWrapped) return;
+            window.setResult = function () {
+                var ret = original.apply(this, arguments);
+                appendIdeologyNote();
+                return ret;
+            };
+            window.setResult.__ideologyWrapped = true;
+        }
+        function boot() {
+            wrapSetResult();
+            appendIdeologyNote();
+            ['input', 'change', 'click'].forEach(function (eventName) {
+                document.addEventListener(eventName, function () {
+                    setTimeout(appendIdeologyNote, 0);
+                }, true);
+            });
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+        else boot();
+    })();
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+
+</html>

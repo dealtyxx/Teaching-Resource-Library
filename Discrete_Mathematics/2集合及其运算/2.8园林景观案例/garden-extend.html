@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>园林集合论 · 拓展层 — 路径与空间规划</title>
+  <meta name="description" content="2.8 园林景观案例 拓展层：用路径与并集覆盖做参观动线优化">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1500px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#2f7d57;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--green);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--green);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(47,125,87,.13);color:#1c6b48;padding:3px 9px;font-size:12px;font-weight:700;}
+.tab-nav{display:flex;flex-direction:column;gap:6px;}
+.tab-btn{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);color:#3a4a40;cursor:pointer;font:inherit;font-weight:700;font-size:14px;transition:all .2s;text-align:left;}
+.tab-btn:hover{background:rgba(47,125,87,.08);color:var(--green);}
+.tab-btn.active{background:var(--green);color:#fff;border-color:var(--green);box-shadow:0 6px 16px rgba(47,125,87,.25);}
+.tab-btn .ico{font-size:18px;}
+.sidebar-dyn{display:grid;gap:10px;}
+.control-group{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
+.control-group>label{display:block;color:#2c5a45;font-weight:700;font-size:13px;margin-bottom:8px;}
+.pref-row{display:flex;flex-wrap:wrap;gap:6px;}
+.pbtn{padding:6px 12px;border-radius:999px;border:1.5px solid var(--line);background:rgba(255,255,255,.7);cursor:pointer;font:inherit;font-size:.82rem;font-weight:700;color:#5b4136;transition:.15s;}
+.pbtn.on{background:var(--green);color:#fff;border-color:var(--green);}
+.selrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:#2c5a45;font-weight:700;}
+.fsel{min-height:34px;border-radius:8px;border:1px solid rgba(116,55,31,.22);background:#fffaf2;color:var(--ink);padding:0 10px;font:inherit;font-weight:700;}
+.kg-feedback{padding:10px 12px;border-radius:10px;border:1px dashed rgba(47,125,87,.3);background:rgba(47,125,87,.08);font-size:.83rem;color:#2c5a45;line-height:1.75;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#7d8a7d;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#2f7d57,#1c5f40);color:#fff;}
+.qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.88rem;color:#5b4136;line-height:1.85;}
+.qres b{color:var(--green);}.qres .formula{font-family:"JetBrains Mono",monospace;font-weight:800;color:var(--green);}
+.qres .tag{display:inline-block;padding:2px 9px;border-radius:11px;margin:2px;font-size:.78rem;font-weight:700;}
+.tag.A{background:rgba(214,59,29,.15);color:#a8331a;}.tag.B{background:rgba(197,138,31,.18);color:#8a5d0b;}.tag.C{background:rgba(47,95,159,.15);color:#274e7a;}.tag.D{background:rgba(47,125,87,.15);color:#1c6b48;}.tag.off{background:rgba(116,55,31,.07);color:var(--muted);}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--green);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.tab-content{display:none;flex-direction:column;flex:1;}.tab-content.active{display:flex;animation:fade .3s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.pane-title{color:var(--green);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 8px;}
+.netbox{flex:1;min-height:360px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(247,253,247,.95),rgba(238,248,239,.8));background-image:linear-gradient(rgba(47,125,87,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(47,125,87,.05) 1px,transparent 1px);background-size:30px 30px;padding:6px;display:flex;align-items:center;}
+.net{width:100%;height:auto;display:block;}
+.edge{stroke:rgba(116,90,60,.22);stroke-width:2.5;stroke-linecap:round;transition:.3s;}
+.edge.lit{stroke:#2f7d57;stroke-width:6;}
+.nlabel{font-family:"Noto Serif SC",serif;font-size:12.5px;font-weight:700;fill:#3d2b25;}
+.ordnum{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:800;fill:#fff;}
+.maplegend{display:flex;gap:13px;justify-content:center;flex-wrap:wrap;font-size:.78rem;color:#3d2b25;margin-top:8px;}
+.maplegend i{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+.cmp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.cmp-table th,.cmp-table td{border:1px solid var(--line);padding:7px 9px;text-align:center;}
+.cmp-table th{background:rgba(47,125,87,.1);color:var(--green);font-weight:800;}
+.cmp-table tr{cursor:pointer;transition:.15s;}.cmp-table tbody tr:hover{background:rgba(47,125,87,.06);}
+.cmp-table tr.sel{background:rgba(47,125,87,.14);}
+.cmp-table .rname{text-align:left;font-weight:700;color:#3a4a40;}
+.insight-box{border-radius:8px;border-left:4px solid var(--green);background:linear-gradient(135deg,rgba(47,125,87,.06),rgba(197,138,31,.05));padding:13px 15px;margin-top:12px;}
+.insight-title{font-weight:700;color:var(--green);margin-bottom:6px;}.insight-box p{margin:0;font-size:13.5px;line-height:1.7;color:#3a4a40;}
+.badges{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px;}.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>园林集合论 <span class="highlight">拓展层</span></h1>
+        <p class="subtitle">路径与空间规划 · 游线覆盖优化</p>
+      </div>
+      <p class="intro">把园林建成图：每个景点带有功能集合标签，一条参观路径能体验的功能 = 沿途各景点功能的<b>并集</b>。游客偏好各异，最优路径随之改变。</p>
+
+      <div class="value-panel">
+        <h3>移步换景 · 数字孪生</h3>
+        <p>把园林建成图、用路径与并集覆盖优化参观动线，是传统造园智慧走向数字孪生与智慧文旅的桥梁。</p>
+        <div class="dim-list"><span>文化自信</span><span>系统观念</span><span>守正创新</span></div>
+      </div>
+
+      <nav class="tab-nav" id="tabNav">
+        <button class="tab-btn active" data-tab="tab1"><span class="ico">🧭</span><span>游线覆盖规划</span></button>
+        <button class="tab-btn" data-tab="tab2"><span class="ico">📊</span><span>多游线对比</span></button>
+      </nav>
+
+      <div class="sidebar-dyn" id="sidebarDyn"></div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>选偏好与起讫点，求覆盖最优的参观游线（路径），覆盖 = 沿线标签并集；再对比不同偏好的最优游线。</span>
+        <div class="visual-badge">路径 · 并集覆盖</div>
+      </section>
+
+      <!-- Tab1 -->
+      <div class="tab-content active" id="tab1">
+        <h2 class="pane-title">哲思园 · 游线覆盖规划</h2>
+        <p class="pane-sub">绿色加粗连线即推荐游线，节点上的序号为游览顺序。偏好不同 → 最优游线随之改变。</p>
+        <div class="netbox"><svg class="net" id="net1" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <div class="maplegend"><span><i style="background:#d63b1d"></i>A 赏景</span><span><i style="background:#c58a1f"></i>B 休憩</span><span><i style="background:#2f5f9f"></i>C 文化</span><span><i style="background:#2f7d57"></i>D 亲水</span></div>
+        <div class="insight-box">
+          <div class="insight-title">🧭 路线覆盖 = 沿线标签的并集</div>
+          <p>把景点连成图、游线视为路径，一条游线能体验的功能 = 沿途各景点功能集合的<b>并集</b>。设定偏好（如『文化优先』），即可在所有路径中选出覆盖最优的游线——这正是集合运算通向<b>图论与路径优化</b>（第7章）、服务智慧文旅的桥梁。</p>
+          <div class="badges"><span class="badge">文化自信</span><span class="badge">系统观念</span><span class="badge">守正创新</span></div>
+        </div>
+      </div>
+
+      <!-- Tab2 -->
+      <div class="tab-content" id="tab2">
+        <h2 class="pane-title">多游线对比 · 覆盖看板</h2>
+        <p class="pane-sub">不同偏好得到不同的最优游线。点表格任一行，在地图上查看该游线。</p>
+        <div class="netbox" style="min-height:300px"><svg class="net" id="net2" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <div style="margin-top:10px"><table class="cmp-table" id="cmpTable"></table></div>
+        <div class="insight-box">
+          <div class="insight-title">📊 偏好不同，覆盖重点不同</div>
+          <p>同一座园林，『赏景优先』『文化优先』『亲水优先』给出的最优游线各异——但都以<b>并集覆盖</b>衡量体验完整度。规划即是在约束（起讫、步数）下对集合覆盖的优化，体现系统观念与因人而异的人文关怀。</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
+
+  <script>
+    window.SECTION_META = {
+      "chapter": "第2章 集合及其运算", "section": "2.8 园林景观案例 · 拓展层", "title": "路径与空间规划",
+      "grounding": "本页（拓展层）主题：把园林建成图——节点是景点、标签是功能集合，游线是路径。一条游线的覆盖 = 沿线景点标签的并集；给定偏好与起讫点，在所有路径中求覆盖最优的参观游线。这是集合运算通向图论与路径优化、服务数字孪生与智慧文旅的桥梁。",
+      "steps": [
+        {"name": "情境引入", "desc": "如何为不同偏好的游客规划覆盖最优的参观动线？"},
+        {"name": "对象抽取", "desc": "景点为节点（带功能集合标签），游线为图的路径。"},
+        {"name": "结构建模", "desc": "路线覆盖 = 沿线标签的并集；偏好为优化目标。"},
+        {"name": "推理求解", "desc": "在所有路径中求并集覆盖最优的游线。"},
+        {"name": "程序验证", "desc": "选偏好与起讫点，验证推荐游线与覆盖。"},
+        {"name": "迁移反思", "desc": "迁移到城市参观动线、智慧文旅与数字孪生。"}
+      ],
+      "ideology": {"title": "移步换景 · 守正创新", "text": "中国古典园林讲求移步换景、步移景异。把造园智慧建成图、用路径与并集覆盖优化参观动线，是以现代数学与信息技术传承弘扬传统美学、走向数字孪生与智慧文旅的实践——守正创新，让千年园林在数字时代焕发新生。", "dims": ["文化自信", "系统观念", "守正创新"], "quote": "虽由人作，宛自天开——好的游线，让有限步履览尽无限意境。"},
+      "reflect": ["为什么一条游线的『覆盖』正是沿线标签的并集？", "偏好不同为何得到不同的最优游线？这对个性化文旅有何启示？", "从集合覆盖到图的路径优化，本案例如何通向第7章图论？"],
+      "transfer": ["博物馆/景区的个性化参观动线推荐；城市旅游线路的覆盖优化；园林数字孪生与智慧导览。"],
+      "layers": [
+        {"name": "景点与功能集合", "concepts": "景点/功能区元素", "task": "把园林造景要素抽象为集合。", "page": "garden-basic.html"},
+        {"name": "分区与游线", "concepts": "功能分区划分 / 并交衔接", "task": "用划分与运算组织功能区与游线。", "page": "garden.html"},
+        {"name": "路径与空间规划", "concepts": "参观动线 / 路径图论 / 数字孪生", "task": "迁移到城市规划与路径优化。", "page": "garden-extend.html"}
+      ]
+    };
+  </script>
+
+  <script>
+  (function(){
+    "use strict";
+    var $=function(id){return document.getElementById(id);};
+    var FCOLOR={A:'#d63b1d',B:'#c58a1f',C:'#2f5f9f',D:'#2f7d57'},FNAME={A:'赏景',B:'休憩',C:'文化',D:'亲水'};
+    var NODES=[
+      {id:'mdt',n:'牡丹亭',s:['A','B'],x:150,y:110},{id:'js',n:'假山叠石',s:['A'],x:340,y:80},
+      {id:'sfx',n:'松风轩',s:['B'],x:560,y:100},{id:'ydm',n:'月洞门',s:['A','C'],x:760,y:150},
+      {id:'zyl',n:'竹影廊',s:['A','C'],x:230,y:310},{id:'tkb',n:'题刻壁',s:['C'],x:480,y:290},
+      {id:'cl',n:'茶寮',s:['B'],x:700,y:330},{id:'qsls',n:'曲水流觞',s:['C','D'],x:180,y:480},
+      {id:'hfx',n:'荷风榭',s:['B','D'],x:450,y:490},{id:'lc',n:'莲池',s:['D'],x:710,y:510}
+    ];
+    var EDGES=[['mdt','js'],['js','sfx'],['sfx','ydm'],['mdt','zyl'],['js','tkb'],['sfx','cl'],['ydm','cl'],['zyl','tkb'],['tkb','hfx'],['zyl','qsls'],['qsls','hfx'],['hfx','lc'],['cl','lc'],['tkb','cl']];
+    var nmap={};NODES.forEach(function(n){nmap[n.id]=n;});
+    var adj={};NODES.forEach(function(n){adj[n.id]=[];});EDGES.forEach(function(e){adj[e[0]].push(e[1]);adj[e[1]].push(e[0]);});
+    function inS(n,L){return n.s.indexOf(L)>=0;}
+    function coverage(path){var c={};path.forEach(function(id){nmap[id].s.forEach(function(L){c[L]=1;});});return c;}
+    function allPaths(s,e){var res=[],vis={};(function go(u,path){if(res.length>3000)return;if(u===e){res.push(path.slice());return;}vis[u]=1;adj[u].forEach(function(v){if(!vis[v]){path.push(v);go(v,path);path.pop();}});vis[u]=0;})(s,[s]);return res;}
+    function bestPath(pref,s,e){
+      var paths=allPaths(s,e);if(!paths.length)return null;
+      paths.sort(function(p,q){
+        var cp=coverage(p),cq=coverage(q),szp=Object.keys(cp).length,szq=Object.keys(cq).length;
+        if(pref!=='ALL'){var pp=p.filter(function(id){return inS(nmap[id],pref);}).length,pq=q.filter(function(id){return inS(nmap[id],pref);}).length;if(pp!==pq)return pq-pp;}
+        if(szp!==szq)return szq-szp;
+        return p.length-q.length;
+      });
+      return paths[0];
+    }
+    function wedges(n,r,faded){
+      var fs=n.s,k=fs.length,out='';
+      for(var i=0;i<k;i++){var a0=-Math.PI/2+i*2*Math.PI/k,a1=-Math.PI/2+(i+1)*2*Math.PI/k;var op=faded?0.16:0.92;
+        if(k===1){out+='<circle cx="'+n.x+'" cy="'+n.y+'" r="'+r+'" fill="'+FCOLOR[fs[0]]+'" opacity="'+op+'"/>';}
+        else{var x0=n.x+r*Math.cos(a0),y0=n.y+r*Math.sin(a0),x1=n.x+r*Math.cos(a1),y1=n.y+r*Math.sin(a1);out+='<path d="M'+n.x+' '+n.y+' L'+x0.toFixed(1)+' '+y0.toFixed(1)+' A'+r+' '+r+' 0 0 1 '+x1.toFixed(1)+' '+y1.toFixed(1)+' Z" fill="'+FCOLOR[fs[i]]+'" opacity="'+op+'"/>';}}
+      return out;
+    }
+    function drawRoute(svgId,path){
+      var ord={};if(path)path.forEach(function(id,i){ord[id]=i+1;});var onP={};if(path)path.forEach(function(id){onP[id]=1;});
+      var litE={};if(path)for(var i=0;i+1<path.length;i++){litE[path[i]+'|'+path[i+1]]=1;litE[path[i+1]+'|'+path[i]]=1;}
+      var r=24,svg='';
+      EDGES.forEach(function(e){var a=nmap[e[0]],b=nmap[e[1]];var lit=litE[e[0]+'|'+e[1]];svg+='<line class="edge'+(lit?' lit':'')+'" x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'"/>';});
+      NODES.forEach(function(n){var on=onP[n.id],faded=!on;
+        svg+='<g opacity="'+(faded?0.4:1)+'"><circle cx="'+n.x+'" cy="'+n.y+'" r="'+r+'" fill="rgba(255,255,255,.95)"/>'+wedges(n,r,faded)+'<circle cx="'+n.x+'" cy="'+n.y+'" r="'+r+'" fill="none" stroke="'+(on?'#1c5f40':'rgba(116,90,60,.4)')+'" stroke-width="'+(on?3.6:1.6)+'"/>';
+        if(on&&ord[n.id]){svg+='<circle cx="'+(n.x+r-3)+'" cy="'+(n.y-r+3)+'" r="10" fill="#1c5f40"/><text class="ordnum" x="'+(n.x+r-3)+'" y="'+(n.y-r+7)+'" text-anchor="middle">'+ord[n.id]+'</text>';}
+        svg+='<text class="nlabel" x="'+n.x+'" y="'+(n.y+r+16)+'" text-anchor="middle">'+n.n+'</text></g>';});
+      $(svgId).innerHTML=svg;
+    }
+    function covTags(cov){return ['A','B','C','D'].map(function(L){return '<span class="tag '+(cov[L]?L:'off')+'">'+L+' '+FNAME[L]+(cov[L]?' ✓':' ✗')+'</span>';}).join('');}
+
+    // ---- Tab1 ----
+    var pref='ALL',startN='mdt',endN='lc';
+    function renderTab1(){
+      var path=bestPath(pref,startN,endN);
+      drawRoute('net1',path);
+      var box=$('t1res');
+      if(!path){box.innerHTML='<span style="opacity:.6">起讫点之间无可行游线。</span>';return;}
+      var cov=coverage(path),names=path.map(function(id){return nmap[id].n;});
+      var prefHit=pref==='ALL'?'—':path.filter(function(id){return inS(nmap[id],pref);}).length+' 个景点';
+      box.innerHTML='<b>推荐游线（'+(path.length)+' 站，'+(path.length-1)+' 段）：</b><br>'+names.join(' → ')+
+        '<br><span class="formula">覆盖 = ∪ 沿线标签</span> = { '+Object.keys(cov).map(function(L){return FNAME[L];}).join('、')+' }（'+Object.keys(cov).length+'/4）<br>'+covTags(cov)+
+        '<br><span style="font-size:.8rem;opacity:.85">偏好：<b>'+(pref==='ALL'?'均衡覆盖':FNAME[pref]+'优先')+'</b> · 命中偏好景点：'+prefHit+'</span>';
+      var fb=$('t1fb');if(fb)fb.innerHTML='当前偏好 <b>'+(pref==='ALL'?'均衡覆盖':FNAME[pref]+'优先')+'</b>：在所有 '+startN+'→'+endN+' 路径中，选并集覆盖最优'+(pref==='ALL'?'':('且多经『'+FNAME[pref]+'』景点'))+'的游线。';
+      $('sidebarDyn').querySelectorAll('.pbtn').forEach(function(b){b.classList.toggle('on',b.dataset.p===pref);});
+    }
+    // ---- Tab2 ----
+    var PREFS=[{k:'ALL',name:'均衡覆盖'},{k:'A',name:'赏景优先'},{k:'C',name:'文化优先'},{k:'D',name:'亲水优先'}];
+    var cmpSel=0;
+    function renderTab2(){
+      var rows=PREFS.map(function(p){var path=bestPath(p.k,'mdt','lc');var cov=coverage(path);return {name:p.name,k:p.k,path:path,cov:cov,covN:Object.keys(cov).length,hit:p.k==='ALL'?'—':path.filter(function(id){return inS(nmap[id],p.k);}).length};});
+      var html='<thead><tr><th>偏好</th><th>推荐游线</th><th>站数</th><th>覆盖 |∪|</th><th>偏好命中</th></tr></thead><tbody>';
+      rows.forEach(function(row,i){html+='<tr class="'+(i===cmpSel?'sel':'')+'" data-i="'+i+'"><td class="rname">'+row.name+'</td><td style="text-align:left">'+row.path.map(function(id){return nmap[id].n;}).join('→')+'</td><td>'+row.path.length+'</td><td><b>'+row.covN+'/4</b></td><td>'+row.hit+'</td></tr>';});
+      html+='</tbody>';
+      $('cmpTable').innerHTML=html;
+      $('cmpTable').querySelectorAll('tbody tr').forEach(function(tr){tr.onclick=function(){cmpSel=+tr.dataset.i;renderTab2();};});
+      drawRoute('net2',rows[cmpSel].path);
+    }
+    // ---- Tabs ----
+    $('tabNav').querySelectorAll('.tab-btn').forEach(function(b){b.addEventListener('click',function(){switchTab(b.dataset.tab);});});
+    function switchTab(id){$('tabNav').querySelectorAll('.tab-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tab===id);});document.querySelectorAll('.tab-content').forEach(function(c){c.classList.toggle('active',c.id===id);});updateSidebar(id);}
+    function updateSidebar(id){
+      var sd=$('sidebarDyn');
+      if(id==='tab1'){
+        sd.innerHTML='<div class="control-group"><label>① 选游览偏好（点一步看图变化）</label><div class="pref-row">'+
+          [{k:'ALL',n:'均衡覆盖'},{k:'A',n:'赏景优先'},{k:'B',n:'休憩优先'},{k:'C',n:'文化优先'},{k:'D',n:'亲水优先'}].map(function(p){return '<span class="pbtn'+(pref===p.k?' on':'')+'" data-p="'+p.k+'">'+p.n+'</span>';}).join('')+'</div>'+
+          '<div class="selrow" style="margin-top:10px">② 起点 <select class="fsel" id="startSel"></select> 终点 <select class="fsel" id="endSel"></select></div></div>'+
+          '<div class="kg-feedback" id="t1fb"></div>'+
+          '<div class="kg-formula-row"><span class="kg-token on" data-t="cup">∪ 覆盖并集</span><span class="kg-token on" data-t="path">游线 path</span><span class="kg-token on" data-t="pref">偏好优化</span></div>'+
+          '<div class="qres" id="t1res"></div>';
+        var opt=NODES.map(function(n){return '<option value="'+n.id+'">'+n.n+'</option>';}).join('');
+        $('startSel').innerHTML=opt;$('startSel').value=startN;$('endSel').innerHTML=opt;$('endSel').value=endN;
+        $('startSel').onchange=function(e){startN=e.target.value;renderTab1();};
+        $('endSel').onchange=function(e){endN=e.target.value;renderTab1();};
+        sd.querySelectorAll('.pbtn').forEach(function(b){b.onclick=function(){pref=b.dataset.p;renderTab1();};});
+        renderTab1();
+      } else {
+        sd.innerHTML='<div class="control-group"><label>偏好游线对比</label><div class="kg-feedback">四种偏好各自的最优游线（起讫固定 牡丹亭→莲池）。点右侧表格行查看对应游线；对比覆盖 |∪| 与偏好命中。</div></div>'+
+          '<div class="kg-formula-row"><span class="kg-token on" data-t="cup">∪ 覆盖</span><span class="kg-token on" data-t="opt">覆盖优化</span></div>';
+        renderTab2();
+      }
+    }
+    updateSidebar('tab1');
+  })();
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关系闭包 · 拓展层 — 三闭包对照与可达性</title>
+    <meta name="description" content="离散数学 3.6 拓展层：自反/对称/传递闭包对照，传递闭包=可达性（祖先/依赖/递归查询）">
+    <link rel="stylesheet" href="closures.css">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <style>
+        .dm-t-field { margin: 8px 0; }
+        .dm-t-field .lab { display: flex; justify-content: space-between; font-size: .82rem; color: #8b0000; margin-bottom: 5px; }
+        .dm-t-field .v { font-weight: 700; color: #d63b1d; font-family: 'Courier New', monospace; }
+        .dm-t-field input[type=range] { width: 100%; accent-color: #d63b1d; }
+        .dm-t-btn { width: 100%; padding: 9px; border: none; border-radius: 10px; cursor: pointer; font-family: inherit; font-weight: 600; color: #fff; background: linear-gradient(135deg, #d63b1d, #b8321a); margin-top: 6px; }
+        .dm-t-btn.ghost { background: #fff; color: #d63b1d; border: 1px solid #d63b1d; }
+        .dm-t-info { background: rgba(255,255,255,.6); border: 1px solid rgba(214,59,29,.14); border-radius: 10px; padding: 12px; font-size: .84rem; line-height: 1.7; color: #8b0000; }
+        .dm-t-info b { color: #d63b1d; }
+        .dm-t-wrap { display: flex; flex-wrap: wrap; gap: 1.3rem; justify-content: center; align-items: flex-start; width: 100%; }
+        .dm-t-card { background: rgba(255,255,255,.6); border: 1px solid rgba(214,59,29,.18); border-radius: 14px; padding: 14px 16px; }
+        .dm-t-card h3 { color: #d63b1d; font-size: .9rem; margin-bottom: 8px; font-weight: 700; text-align: center; }
+        .mtx { display: inline-grid; gap: 4px; }
+        .mcell { width: 26px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 5px; font-family: 'Courier New', monospace; font-size: .7rem; }
+        .mcell.hdr { background: #d63b1d; color: #fff; font-weight: 700; }
+        .mcell.corner { background: transparent; }
+        .mcell.b0 { background: rgba(214,59,29,.06); color: #c9a; cursor: pointer; }
+        .mcell.b1 { background: #d63b1d; color: #fff; font-weight: 700; cursor: pointer; }
+        .mcell.add { background: #ffb400; color: #5a3d00; font-weight: 700; }
+        .mcell:hover { outline: 2px solid #27c93f; }
+        .dm-t-note { font-size: .84rem; color: #8b0000; max-width: 640px; line-height: 1.7; text-align: center; margin-top: 4px; }
+        .dm-t-note b { color: #d63b1d; }
+    </style>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+
+<body>
+    <a href="../../index.html" title="返回课程主页" style="position:fixed;top:14px;left:14px;z-index:9999;display:flex;align-items:center;gap:6px;background:rgba(30,30,40,0.82);color:#fff;padding:7px 14px 7px 10px;border-radius:20px;font-size:13px;font-family:'Noto Serif SC',serif;text-decoration:none;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.15);box-shadow:0 2px 12px rgba(0,0,0,0.35);transition:background .2s;" onmouseover="this.style.background='rgba(214,59,29,0.88)'" onmouseout="this.style.background='rgba(30,30,40,0.82)'">🏠 <span>课程主页</span></a>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+                <h1>红色数理 <span class="highlight">拓展层</span></h1>
+                <p class="subtitle">关系闭包 · 三闭包对照 · 可达性 · 应用</p>
+            </div>
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>集合元素数 n</label>
+                    <div class="dm-t-field"><div class="lab"><span>n</span><span class="v" id="nVal">5</span></div><input type="range" id="nRange" min="3" max="6" value="5"></div>
+                </div>
+                <div class="control-group">
+                    <label>操作</label>
+                    <button class="dm-t-btn" id="chainBtn">↪ 载入链式关系（1→2→3…）</button>
+                    <button class="dm-t-btn" id="randBtn">🎲 随机关系</button>
+                    <button class="dm-t-btn ghost" id="clearBtn">清空</button>
+                </div>
+                <div class="control-group">
+                    <label>原理说明</label>
+                    <div class="dm-t-info">三种闭包对照：<br>· <b>r(R)</b> 补对角线 → 自反<br>· <b>s(R)</b> 补镜像 → 对称<br>· <b>t(R)</b> 补可达 → 传递<br><b>传递闭包 t(R) = 可达矩阵</b>：i 能否经若干步到 j。</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="visualization-area" id="vizArea">
+                    <div class="dm-t-wrap">
+                        <div class="dm-t-card"><h3>原关系 R（点格切换）</h3><div class="mtx" id="mR"></div></div>
+                        <div class="dm-t-card"><h3>r(R) 自反闭包</h3><div class="mtx" id="mr"></div></div>
+                        <div class="dm-t-card"><h3>s(R) 对称闭包</h3><div class="mtx" id="ms"></div></div>
+                        <div class="dm-t-card"><h3>t(R) 传递闭包 = 可达</h3><div class="mtx" id="mt"></div></div>
+                    </div>
+                    <div class="dm-t-note" id="note"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer style="position:fixed;bottom:0;left:0;width:100%;background: transparent;color: inherit;
+    opacity: 0.72;padding:15px 10px;text-align:center;box-shadow: none;z-index:9999;">
+        <p style="font-size:0.9rem;line-height:1.6;margin:0;opacity:0.95;">© 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>版权所有 ｜ 项目总负责人：谢鑫</p>
+    </footer>
+
+    <script>
+        var $ = function (id) { return document.getElementById(id); };
+        var n = 5, R = {};
+        function key(i, j) { return i + '_' + j; }
+        function grid(id, set, addset) {
+            var g = $(id); g.style.gridTemplateColumns = 'repeat(' + (n + 1) + ', auto)';
+            var html = '<div class="mcell corner"></div>';
+            for (var j = 1; j <= n; j++) html += '<div class="mcell hdr">' + j + '</div>';
+            for (var i = 1; i <= n; i++) { html += '<div class="mcell hdr">' + i + '</div>'; for (var j2 = 1; j2 <= n; j2++) { var k = key(i, j2); var on = set[k]; var cls = on ? (addset && addset[k] ? 'add' : 'b1') : 'b0'; html += '<div class="mcell ' + cls + '"' + (id === 'mR' ? ' data-i="' + i + '" data-j="' + j2 + '"' : '') + '>' + (on ? 1 : 0) + '</div>'; } }
+            g.innerHTML = html; return g;
+        }
+        function transClosure(base) {
+            var C = {}; for (var k in base) C[k] = 1;
+            for (var m = 1; m <= n; m++) for (var i = 1; i <= n; i++) for (var j = 1; j <= n; j++) if (C[key(i, m)] && C[key(m, j)]) C[key(i, j)] = 1;
+            return C;
+        }
+        function render() {
+            n = +$('nRange').value; $('nVal').textContent = n;
+            Object.keys(R).forEach(function (k) { var p = k.split('_'); if (+p[0] > n || +p[1] > n) delete R[k]; });
+            var gR = grid('mR', R, null);
+            [].forEach.call(gR.querySelectorAll('.mcell[data-i]'), function (c) { c.onclick = function () { var k = key(+c.dataset.i, +c.dataset.j); if (R[k]) delete R[k]; else R[k] = 1; render(); }; });
+            // r
+            var r = {}, ra = {}; for (var k in R) r[k] = 1; for (var i = 1; i <= n; i++) { if (!r[key(i, i)]) ra[key(i, i)] = 1; r[key(i, i)] = 1; }
+            grid('mr', r, ra);
+            // s
+            var s = {}, sa = {}; for (var k2 in R) s[k2] = 1; for (var a = 1; a <= n; a++) for (var b = 1; b <= n; b++) if (R[key(a, b)] && !s[key(b, a)]) { sa[key(b, a)] = 1; s[key(b, a)] = 1; }
+            grid('ms', s, sa);
+            // t
+            var t = transClosure(R), ta = {}; for (var k3 in t) if (!R[k3]) ta[k3] = 1;
+            grid('mt', t, ta);
+            var nT = Object.keys(t).length, nR = Object.keys(R).length, newReach = Object.keys(ta).length;
+            $('note').innerHTML = '传递闭包新增 <b>' + newReach + '</b> 条「间接可达」(金色)：|R|=' + nR + ' → |t(R)|=' + nT + '。<br>' +
+                '<b>t(R) 就是可达矩阵</b>——亲子关系的 t(R)=<b>祖先关系</b>；依赖关系的 t(R)=<b>全部间接依赖</b>；数据库用 <code>WITH RECURSIVE</code> 求层级闭包。';
+        }
+        $('nRange').oninput = render;
+        $('chainBtn').onclick = function () { R = {}; for (var i = 1; i < n; i++) R[key(i, i + 1)] = 1; render(); };
+        $('randBtn').onclick = function () { R = {}; for (var i = 1; i <= n; i++) for (var j = 1; j <= n; j++) if (i !== j && Math.random() < 0.22) R[key(i, j)] = 1; render(); };
+        $('clearBtn').onclick = function () { R = {}; render(); };
+        $('chainBtn').onclick();
+    </script>
+
+    <!-- ===== 共享升级框架：学习助手 + 三阶导航 ===== -->
+    <script>
+    window.SECTION_META = {
+        layers: [
+            { "name": "自反闭包与对称闭包", "concepts": "r(R)=R∪I / s(R)=R∪R⁻¹ / 最小添加", "task": "理解『最小补全使其具备某性质』。", "page": "closures-basic.html" },
+            { "name": "传递闭包", "concepts": "t(R)=R∪R²∪… / Warshall O(n³)", "task": "会求传递闭包并理解最小性。", "page": "closures.html" },
+            { "name": "三闭包对照与可达应用", "concepts": "r/s/t 对照 / 可达性 / 祖先·递归查询", "task": "迁移到可达、族谱与数据库递归。", "page": "closures-extend.html" }
+        ],
+        chapter: "第3章 二元关系",
+        section: "3.6 二元关系的闭包 · 拓展层",
+        title: "三闭包对照与可达性",
+        grounding: "本页（拓展层）主题：对照三种闭包并落到应用。r(R) 补对角线（自反）、s(R) 补镜像（对称）、t(R) 补可达（传递）。传递闭包 t(R) 即『可达矩阵』：i 经若干步能否到 j。亲子关系的 t(R)=祖先关系；依赖关系的 t(R)=全部间接依赖；数据库 WITH RECURSIVE 求层级闭包。金色格=传递闭包新增的间接可达。",
+        steps: [
+            { name: "情境引入", desc: "只知道直接联系，如何推出全部间接可达（祖先/依赖）？" },
+            { name: "对象抽取", desc: "把『若干步可达』抽象为传递闭包。" },
+            { name: "结构建模", desc: "r/s/t 三闭包；t(R)=可达矩阵=R∪R²∪…。" },
+            { name: "推理求解", desc: "载入链式/随机关系，对照三闭包、看新增可达。" },
+            { name: "程序验证", desc: "金色格显示传递闭包新增的间接可达对。" },
+            { name: "迁移反思", desc: "迁移到祖先关系（3.8）、依赖分析、SQL 递归查询。" }
+        ],
+        ideology: { title: "完善网络 · 推己及人", text: "传递闭包把『一步联系』推演成『可达全局』，体现由点及面、推己及人、完善社会网络的治理理念。", dims: ["系统观念", "辩证思维"] },
+        reflect: ["为什么 t(R) 只需算到 Rⁿ 就够？再高次幂为何不产生新可达？", "r/s/t 三种闭包，哪个最难算？为什么传递闭包需要 Warshall？"],
+        transfer: ["亲子关系的传递闭包=祖先关系——直通第 3.8 节祖先案例。"]
+    };
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+
+</html>

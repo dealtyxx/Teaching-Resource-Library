@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>等价类合并工坊 · 拓展层 - 离散数学课程资源库</title>
+    <meta name="description" content="第四章 特殊关系 等价类合并工坊 拓展层互动可视化页面">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --accent-red:#D63B1D; --accent-gold:#FFB400; --text-primary:#2C1810; --text-secondary:#6B4A38; --paper:#FFF8F1; --line:rgba(214,59,29,.18); --shadow-sm:0 2px 10px rgba(214,59,29,.12); --shadow-md:0 10px 28px rgba(214,59,29,.18); --font-title:'Ma Shan Zheng','Noto Serif SC',serif; --font-family:'Noto Serif SC','Microsoft YaHei',serif; }
+        * { box-sizing: border-box; }
+        body.interactive-layer-page { margin:0; min-height:100vh; padding-bottom:72px; font-family:var(--font-family); color:var(--text-primary); background: radial-gradient(circle at top left, #fff8ea 0, #fff 44%, #f1f6ff 100%); overflow:hidden; }
+        .home-link { position:fixed; top:14px; left:14px; z-index:9999; display:flex; align-items:center; gap:6px; background:rgba(30,30,40,.82); color:#fff; padding:7px 14px 7px 10px; border-radius:20px; font-size:13px; text-decoration:none; backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.15); box-shadow:0 2px 12px rgba(0,0,0,.35); }
+        .app-container { width:min(94vw,1420px); height:calc(100vh - 166px); min-height:640px; margin:74px auto 0; display:flex; border:1px solid rgba(214,59,29,.18); border-radius:22px; overflow:hidden; background:rgba(255,255,255,.68); box-shadow:0 18px 54px rgba(214,59,29,.14); }
+        .sidebar { width:352px; flex:0 0 352px; padding:24px; overflow:auto; background:linear-gradient(180deg, rgba(255,248,241,.92), rgba(255,238,230,.72)); border-right:1px solid rgba(214,59,29,.16); }
+        .window-controls { display:flex; gap:8px; margin-bottom:18px; }
+        .dot { width:12px; height:12px; border-radius:50%; display:block; }
+        .red { background:#ff5f57; } .yellow { background:#ffbd2e; } .green { background:#28c840; }
+        .sidebar h1 { font-family:var(--font-title); color:var(--accent-red); font-size:2.05rem; line-height:1.12; font-weight:400; margin:0 0 8px; }
+        .subtitle { margin:0 0 12px; color:var(--text-secondary); font-size:.9rem; line-height:1.5; }
+        .layer-badge { display:inline-flex; width:fit-content; padding:5px 12px; border-radius:999px; background:rgba(255,180,0,.18); border:1px solid rgba(214,59,29,.2); color:var(--accent-red); font-weight:800; font-size:.78rem; }
+        .controls-wrapper { margin-top:18px; display:grid; gap:14px; }
+        .control-group label { display:block; color:var(--text-secondary); font-size:.84rem; font-weight:800; margin-bottom:8px; }
+        .apple-select, .apple-input { width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(214,59,29,.22); background:rgba(255,255,255,.88); color:var(--text-primary); font-family:var(--font-family); font-size:.9rem; box-shadow:var(--shadow-sm); margin-bottom:8px; }
+        input[type=range] { width:100%; accent-color:var(--accent-red); }
+        .slider-container { display:grid; gap:4px; margin:8px 0; }
+        .slider-label { color:var(--text-secondary); font-size:.82rem; }
+        .info-panel, .result-panel, .value-panel { background:rgba(255,255,255,.76); border:1px solid rgba(214,59,29,.16); border-radius:14px; padding:13px 15px; box-shadow:var(--shadow-sm); }
+        .info-panel h3, .value-panel h3 { margin:0 0 7px; color:var(--accent-red); font-size:1rem; }
+        .info-panel p, .value-panel p { margin:0; color:var(--text-primary); font-size:.84rem; line-height:1.6; }
+        .value-panel { background:linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13)); }
+        .value-dims { display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; }
+        .value-dims span { padding:3px 8px; border-radius:999px; color:#8b0000; background:rgba(255,255,255,.72); border:1px solid rgba(214,59,29,.16); font-size:.74rem; font-weight:800; }
+        .value-quote { margin-top:9px; padding-left:10px; border-left:3px solid var(--accent-red); color:var(--text-secondary); font-size:.78rem; line-height:1.5; }
+        .result-panel { min-height:124px; }
+        .formula-display { color:var(--accent-red); font-weight:800; line-height:1.45; word-break:break-word; }
+        .result-display { margin-top:8px; display:grid; gap:4px; }
+        .result-label { font-size:.78rem; color:var(--text-secondary); }
+        .result-value { color:var(--accent-red); font-size:1.14rem; font-weight:900; }
+        .political-text, .value-inline { display:block; margin-top:8px; color:var(--text-secondary); font-size:.81rem; line-height:1.55; }
+        .value-inline { padding:7px 9px; border-radius:10px; background:rgba(255,180,0,.13); border:1px solid rgba(214,59,29,.14); color:var(--text-primary); }
+        .visualizer-stage { flex:1; min-width:0; padding:32px; overflow:hidden; }
+        .glass-pane { height:100%; background:rgba(255,255,255,.72); border-radius:18px; padding:32px; overflow:auto; box-shadow:inset 0 0 40px rgba(255,255,255,.8); }
+        .stage-header { text-align:center; margin-bottom:14px; }
+        .stage-header h2 { margin:0 0 7px; font-family:var(--font-title); color:var(--accent-red); font-size:2rem; font-weight:400; }
+        .stage-header p { margin:0 auto; max-width:780px; color:var(--text-secondary); font-size:.95rem; line-height:1.6; }
+        .mission-card { position:relative; overflow:hidden; display:grid; grid-template-columns:1fr minmax(128px, 190px); gap:14px; align-items:center; padding:13px 15px; border-radius:16px; background:linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.16), rgba(39,201,63,.08)); border:1px solid rgba(214,59,29,.18); box-shadow:var(--shadow-sm); margin-bottom:12px; }
+        .mission-card::before { content:""; position:absolute; inset:-60% auto auto -20%; width:46%; height:220%; background:linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent); transform:rotate(18deg); animation:sweepLight 4.8s ease-in-out infinite; }
+        .mission-title, .mission-text, .mission-value, .energy-meter { position:relative; }
+        .mission-title { color:var(--accent-red); font-weight:900; margin-bottom:4px; }
+        .mission-text { color:var(--text-primary); font-size:.9rem; line-height:1.5; }
+        .mission-value { margin-top:5px; color:#8b0000; font-size:.82rem; line-height:1.45; }
+        .energy-meter { display:grid; gap:6px; }
+        .energy-label { display:flex; justify-content:space-between; color:var(--text-secondary); font-size:.78rem; }
+        .energy-track { height:10px; border-radius:999px; background:rgba(139,0,0,.08); overflow:hidden; border:1px solid rgba(214,59,29,.14); }
+        .energy-fill { height:100%; border-radius:inherit; background:linear-gradient(90deg, var(--accent-red), var(--accent-gold), #27c93f); animation:breatheWidth 2.4s ease-in-out infinite; }
+        .visualization-area { display:flex; flex-direction:column; gap:12px; min-height:420px; }
+        .viz-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(84px,1fr)); gap:8px; width:100%; }
+        .card-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:10px; width:100%; }
+        .viz-card, .viz-panel, .metric-card, .node-card { background:rgba(255,255,255,.8); border:1px solid rgba(214,59,29,.16); border-radius:14px; box-shadow:var(--shadow-sm); padding:13px 15px; transition:transform .18s, box-shadow .18s, border-color .18s; }
+        .viz-card:hover, .metric-card:hover, .node-card:hover, .matrix-cell:hover, .flow-node:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); border-color:rgba(214,59,29,.32); }
+        .viz-card strong, .metric-card strong, .node-card strong { color:var(--accent-red); }
+        .matrix { display:grid; gap:4px; align-self:center; width:min(100%, 560px); margin:auto; }
+        .matrix-cell { min-height:38px; display:grid; place-items:center; border-radius:8px; border:1px solid rgba(214,59,29,.14); background:rgba(255,255,255,.82); font-family:Consolas,monospace; font-weight:800; transition:.18s; }
+        .matrix-cell.head { background:var(--accent-red); color:#fff; }
+        .matrix-cell.hit { background:linear-gradient(135deg, var(--accent-red), #b32b12); color:#fff; }
+        .matrix-cell.soft { background:rgba(255,180,0,.18); color:#7a3d12; }
+        .network-svg { width:100%; min-height:280px; border-radius:18px; background:linear-gradient(135deg, rgba(255,255,255,.84), rgba(255,244,229,.72)); border:1px solid rgba(214,59,29,.16); box-shadow:var(--shadow-sm); }
+        .flow-row { display:flex; flex-wrap:wrap; justify-content:center; align-items:stretch; gap:10px; width:100%; }
+        .flow-node { min-width:132px; flex:1 1 132px; max-width:230px; padding:13px; border-radius:14px; text-align:center; background:linear-gradient(135deg, rgba(214,59,29,.08), rgba(255,180,0,.12)); border:1px solid rgba(214,59,29,.16); }
+        .flow-node b { display:block; color:var(--accent-red); margin-bottom:6px; }
+        .flow-node span { color:var(--text-secondary); font-size:.82rem; line-height:1.45; }
+        .pill { display:inline-flex; align-items:center; justify-content:center; margin:3px; padding:5px 10px; border-radius:999px; background:rgba(255,180,0,.18); color:#7a3d12; font-size:.78rem; font-weight:800; border:1px solid rgba(255,180,0,.22); }
+        .pill.hot { background:var(--accent-red); color:#fff; border-color:var(--accent-red); }
+        .pill.good { background:#27c93f; color:#fff; border-color:#1f9d55; }
+        .bar-wrap { display:grid; gap:8px; }
+        .bar-row { display:grid; grid-template-columns:104px 1fr 54px; gap:8px; align-items:center; color:var(--text-secondary); font-size:.86rem; }
+        .bar { height:26px; border-radius:999px; background:rgba(139,0,0,.08); overflow:hidden; border:1px solid rgba(214,59,29,.14); }
+        .bar span { display:block; height:100%; min-width:8px; border-radius:inherit; background:linear-gradient(90deg, var(--accent-red), var(--accent-gold)); }
+        .layer-links { display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:4px; }
+        .layer-link { display:inline-flex; align-items:center; justify-content:center; padding:8px 14px; border-radius:11px; text-decoration:none; background:linear-gradient(135deg, var(--accent-red), #b32b12); color:#fff; font-size:.85rem; font-weight:800; box-shadow:var(--shadow-sm); }
+        .layer-link.secondary { background:#fff; color:var(--accent-red); border:1px solid rgba(214,59,29,.3); }
+        .legend { margin-top:10px; color:var(--text-secondary); font-size:.84rem; line-height:1.6; }
+        .legend-title { color:var(--accent-red); font-weight:900; margin-bottom:6px; }
+        .sparkle { position:fixed; z-index:10000; pointer-events:none; width:9px; height:9px; border-radius:50%; background:var(--accent-gold); box-shadow:0 0 0 6px rgba(255,180,0,.18); animation:sparkFly .62s ease-out forwards; }
+        @keyframes sweepLight { 0%,46% { left:-40%; opacity:0; } 58% { opacity:1; } 100% { left:130%; opacity:0; } }
+        @keyframes breatheWidth { 0%,100% { filter:saturate(1); } 50% { filter:saturate(1.35) brightness(1.05); } }
+        @keyframes sparkFly { from { transform:translate(-50%,-50%) scale(1); opacity:1; } to { transform:translate(-50%,-88px) scale(.2); opacity:0; } }
+        @media (max-width:900px) { body.interactive-layer-page { overflow:auto; } .app-container { height:auto; flex-direction:column; margin:66px auto 96px; } .sidebar { width:100%; flex:auto; } .visualizer-stage { min-height:620px; padding:16px; } .mission-card { grid-template-columns:1fr; } }
+    </style>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body class="interactive-layer-page">
+    <a class="home-link" href="../../index.html">首页</a>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+                <h1>红色数理 <span class="highlight">拓展层</span></h1>
+                <p class="subtitle">关系性质判定台 · 把“同类”的对象逐步合并，观察并查集如何维护动态等价类。</p>
+                <span class="layer-badge">高天花板 · 强迁移</span>
+            </div>
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>价值映射（与进阶层一致）</label>
+                    <div class="value-panel">
+                        <h3>团结的逻辑 · 求同存异</h3>
+                        <p>等价关系把『本质相同者』聚为一类，又让不同类各得其所——既求同（类内一致）又存异（类间有别），正是团结而不强求一律的辩证智慧。等价类的『不重不漏』，体现公平普惠、人人有归属的治理理想。</p>
+                        <div class="value-dims"><span>辩证思维</span><span>团结观念</span><span>公平正义</span></div>
+                        <div class="value-quote">和而不同，求同存异——等价关系正是把『大同』与『小异』辩证统一的数学结构。</div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>合并进度</label>
+                    <div class="slider-container"><span class="slider-label">union 步数：<span id="stepVal">3</span></span><input type="range" id="stepRange" min="0" max="7" value="3"></div>
+                    <select id="unionMode" class="apple-select">
+                        <option value="home">同乡归类</option>
+                        <option value="skill">技能共同体</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>本层原理</label>
+                    <div class="info-panel">
+                        <h3>并查集合并动画</h3>
+                        <p>拖动合并步数，跟踪每一次 union 如何把分散对象组织成不重不漏的类。</p>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>即时结果</label>
+                    <div class="result-panel">
+                        <div class="formula-display"><span id="formulaText">等待互动</span></div>
+                        <div class="result-display"><span class="result-label">判定 / 结论</span><span class="result-value" id="resultValue">--</span></div>
+                        <p id="resultExtra" class="political-text"></p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="stage-header">
+                    <h2>等价类合并工坊</h2>
+                    <p>把“同类”的对象逐步合并，观察并查集如何维护动态等价类。</p>
+                </div>
+                <div class="visualization-area" id="vizArea"></div>
+                <div class="legend" id="legendPanel"></div>
+            </div>
+        </main>
+    </div>
+    <footer class="site-footer" style="
+        position: fixed; bottom: 0; left: 0; width: 100%;
+        background: transparent;
+        color: inherit; opacity: 0.72; padding: 15px 10px; text-align: center;
+        box-shadow: none; z-index: 9999;">
+        <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+            © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
+            版权所有 ｜ 项目总负责人：谢鑫
+        </p>
+    </footer>
+    <script>
+    const KIND = "union_find";
+    const PROFILE = {"title": "等价类合并工坊", "subtitle": "把“同类”的对象逐步合并，观察并查集如何维护动态等价类。", "family": "union_find", "mission": "拖动合并步数，跟踪每一次 union 如何把分散对象组织成不重不漏的类。", "visual": "并查集合并动画"};
+    const MID_PAGE = "compatibility.html";
+    const OTHER_PAGE = "compatibility-basic.html";
+    const OTHER_TEXT = "回基础层";
+    window.SECTION_META = {"layers": [{"name": "相容关系", "concepts": "自反+对称 / 相容类可重叠", "task": "认识相容关系与相容类。", "page": "compatibility-basic.html"}, {"name": "等价关系与划分", "concepts": "自反+对称+传递 / 等价类 / 商集", "task": "判定等价关系并求其划分。", "page": "compatibility.html"}, {"name": "等价类的应用", "concepts": "模剩余类 / 并查集 / 聚类", "task": "迁移到去重、并查集与聚类。", "page": "compatibility-extend.html"}], "chapter": "第4章 特殊关系与函数", "section": "4.1 相容和等价关系 · 进阶层 · 拓展层", "title": "等价类的应用", "grounding": "本节主题：相容关系=自反+对称；等价关系=自反+对称+传递。等价关系把集合划分为互不相交的等价类（商集 A/R），划分与等价关系一一对应。相容关系对应相容类（可重叠）。典型等价关系：同余、同班、同乡。 本页定位为进阶层：承接原页面的核心推理、综合辨析和课程资源主线。 本页定位为拓展层：把本节结构迁移到工程、治理、文化或科学探索场景。", "steps": [{"name": "情境引入", "desc": "『同乡』『同届』把人自然分群，这种分群的数学本质是什么？"}, {"name": "对象抽取", "desc": "把『某种意义下相同』抽象为等价关系。"}, {"name": "结构建模", "desc": "用自反+对称+传递判定等价关系，导出等价类与划分。"}, {"name": "推理求解", "desc": "求等价类、商集，验证划分的不重不漏。"}, {"name": "程序验证", "desc": "用本页交互构造关系，自动判定等价并生成划分。"}, {"name": "迁移反思", "desc": "迁移到模运算剩余类、聚类、数据去重。"}], "ideology": {
+        "title": "团结的逻辑 · 求同存异",
+        "text": "等价关系把『本质相同者』聚为一类，又让不同类各得其所——既求同（类内一致）又存异（类间有别），正是团结而不强求一律的辩证智慧。等价类的『不重不漏』，体现公平普惠、人人有归属的治理理想。",
+        "dims": [
+                "辩证思维",
+                "团结观念",
+                "公平正义"
+        ],
+        "quote": "和而不同，求同存异——等价关系正是把『大同』与『小异』辩证统一的数学结构。"
+}, "reflect": ["等价关系比相容关系多了『传递性』，这一条为何能保证『分类不重叠』？", "为什么每个等价关系都唯一对应一个划分？反之成立吗？", "模 m 同余是等价关系，它的等价类是什么？与第1章如何呼应？"], "transfer": ["数据去重、并查集（Union-Find）维护的正是动态等价类。", {"t": "聚类", "d": "理想聚类是把数据按相似性分成等价类，但『相似』常不传递——这带来什么困难？"}]};
+    const IDEOLOGY = window.SECTION_META.ideology || {
+        "title": "团结的逻辑 · 求同存异",
+        "text": "等价关系把『本质相同者』聚为一类，又让不同类各得其所——既求同（类内一致）又存异（类间有别），正是团结而不强求一律的辩证智慧。等价类的『不重不漏』，体现公平普惠、人人有归属的治理理想。",
+        "dims": [
+                "辩证思维",
+                "团结观念",
+                "公平正义"
+        ],
+        "quote": "和而不同，求同存异——等价关系正是把『大同』与『小异』辩证统一的数学结构。"
+};
+    const $ = id => document.getElementById(id);
+    const escHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+    function links() { return `<div class="layer-links"><a class="layer-link" href="${MID_PAGE}">进入进阶层互动页</a><a class="layer-link secondary" href="${OTHER_PAGE}">${OTHER_TEXT}</a></div>`; }
+    function syncRange(id, out) { const el=$(id), o=$(out); if(el && o) o.textContent = el.value; }
+    function setResult(formula, value, extra) {
+      $('formulaText').innerHTML = formula;
+      $('resultValue').textContent = value;
+      const line = `<span class="value-inline"><strong>价值观察：</strong>本层沿用进阶层“${escHtml(IDEOLOGY.title || '价值引领')}”主线。${escHtml(PROFILE.mission)} 数学判断越清楚，价值表达越有落点。</span>`;
+      $('resultExtra').innerHTML = (extra || '') + line;
+    }
+    function legend(title, items) { $('legendPanel').innerHTML = '<div class="legend-title">'+title+'</div><ul>'+items.map(x=>'<li>'+x+'</li>').join('')+'</ul>'; }
+    function missionCard(score=72) {
+      return `<div class="mission-card"><div><div class="mission-title">本页挑战</div><div class="mission-text">${escHtml(PROFILE.mission)}</div><div class="mission-value">价值主线：${escHtml(IDEOLOGY.title || '价值引领')}。基础层、拓展层与进阶层保持同一价值表达。</div></div><div class="energy-meter"><div class="energy-label"><span>互动热度</span><span>${score}%</span></div><div class="energy-track"><div class="energy-fill" style="width:${score}%"></div></div></div></div>`;
+    }
+    function spawnSpark(x,y) { const s=document.createElement('span'); s.className='sparkle'; s.style.left=x+'px'; s.style.top=y+'px'; document.body.appendChild(s); setTimeout(()=>s.remove(),650); }
+    document.addEventListener('click', e => { const target=e.target.closest('.matrix-cell,.viz-card,.flow-node,.node-card,.pill'); if(target) spawnSpark(e.clientX,e.clientY); }, true);
+
+    const names = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+    function relationPairs(n, pattern) {
+      const groups = i => pattern === 'equiv' ? i % 3 : pattern === 'compat' ? [i%2, i%3] : i;
+      const rel = [];
+      for(let i=0;i<n;i++) for(let j=0;j<n;j++) {
+        let hit = i===j;
+        if(pattern==='equiv') hit = i%3 === j%3;
+        else if(pattern==='compat') hit = i===j || i%2===j%2 || i%3===j%3;
+        else if(pattern==='chain') hit = i===j || Math.abs(i-j)===1;
+        if(hit) rel.push([i,j]);
+      }
+      return rel;
+    }
+    function propCheck(n, rel) {
+      const has=(a,b)=>rel.some(p=>p[0]===a&&p[1]===b);
+      let reflexive=true, symmetric=true, transitive=true;
+      for(let i=0;i<n;i++) if(!has(i,i)) reflexive=false;
+      rel.forEach(([a,b])=>{ if(!has(b,a)) symmetric=false; });
+      rel.forEach(([a,b])=>rel.forEach(([c,d])=>{ if(b===c && !has(a,d)) transitive=false; }));
+      return {reflexive,symmetric,transitive};
+    }
+    function matrix(n, rel) {
+      const has=(a,b)=>rel.some(p=>p[0]===a&&p[1]===b);
+      let h=`<div class="matrix" style="grid-template-columns:repeat(${n+1}, minmax(34px,1fr))"><div class="matrix-cell head">R</div>`;
+      for(let j=0;j<n;j++) h+=`<div class="matrix-cell head">${names[j]}</div>`;
+      for(let i=0;i<n;i++) { h+=`<div class="matrix-cell head">${names[i]}</div>`; for(let j=0;j<n;j++) h+=`<div class="matrix-cell ${has(i,j)?'hit':''}">${has(i,j)?'1':'0'}</div>`; }
+      return h+'</div>';
+    }
+    function network(n, rel) {
+      const cx=360, cy=145, r=105;
+      const pts=Array.from({length:n},(_,i)=>[cx+r*Math.cos(2*Math.PI*i/n-Math.PI/2), cy+r*Math.sin(2*Math.PI*i/n-Math.PI/2)]);
+      let edges='';
+      rel.forEach(([a,b])=>{ if(a<b) edges+=`<line x1="${pts[a][0]}" y1="${pts[a][1]}" x2="${pts[b][0]}" y2="${pts[b][1]}" stroke="#D63B1D" stroke-width="2" opacity=".42"/>`; });
+      let nodes=pts.map((p,i)=>`<g><circle cx="${p[0]}" cy="${p[1]}" r="22" fill="${i%3===0?'#D63B1D':i%3===1?'#FFB400':'#27c93f'}" opacity=".92"/><text x="${p[0]}" y="${p[1]+5}" text-anchor="middle" fill="#fff" font-weight="800">${names[i]}</text></g>`).join('');
+      return `<svg class="network-svg" viewBox="0 0 720 290">${edges}${nodes}</svg>`;
+    }
+    function renderRelation() {
+      syncRange('nRange','nVal');
+      const n=+$('nRange').value, pat=$('pattern').value, rel=relationPairs(n,pat), p=propCheck(n,rel);
+      $('vizArea').innerHTML = missionCard(64+n*4) + `<div class="card-grid"><div class="metric-card"><strong>自反</strong><br>${p.reflexive?'成立':'不成立'}</div><div class="metric-card"><strong>对称</strong><br>${p.symmetric?'成立':'不成立'}</div><div class="metric-card"><strong>传递</strong><br>${p.transitive?'成立':'不成立'}</div></div>` + network(n,rel) + matrix(n,rel) + links();
+      const cls = p.reflexive&&p.symmetric&&p.transitive ? '等价关系' : p.reflexive&&p.symmetric ? '相容关系' : '一般关系';
+      setResult(`R 的性质 = ${p.reflexive?'自反':''} ${p.symmetric?'对称':''} ${p.transitive?'传递':''}`, cls, '等价关系会导出不重不漏的划分；相容关系允许重叠，更强调求同存异。');
+      legend('关系图例', ['红色连线表示存在关系 R', '矩阵中的 1 表示有序对属于 R', '传递性是从“可以相连”走向“稳定分类”的关键']);
+    }
+    function renderUnionFind() {
+      syncRange('stepRange','stepVal');
+      const step=+$('stepRange').value, mode=$('unionMode').value;
+      const ops = mode==='home' ? [[0,2],[1,4],[3,5],[2,4],[6,7],[0,1],[5,7]] : [[0,1],[2,3],[4,5],[1,3],[6,7],[0,4],[3,7]];
+      const parent=Array.from({length:8},(_,i)=>i);
+      const find=x=>parent[x]===x?x:(parent[x]=find(parent[x]));
+      const unite=(a,b)=>{ a=find(a); b=find(b); if(a!==b) parent[b]=a; };
+      for(let i=0;i<step;i++) unite(...ops[i]);
+      const groups={}; for(let i=0;i<8;i++) (groups[find(i)] ||= []).push(i);
+      const cards=Object.values(groups).map((g,idx)=>`<div class="viz-card"><strong>等价类 C${idx+1}</strong><div>${g.map(i=>`<span class="pill hot">${names[i]}</span>`).join('')}</div></div>`).join('');
+      const flow=ops.map((o,i)=>`<div class="flow-node"><b>${i<step?'已合并':'待合并'}</b><span>${names[o[0]]} ↔ ${names[o[1]]}</span></div>`).join('');
+      $('vizArea').innerHTML = missionCard(70+step*3) + `<div class="card-grid">${cards}</div><div class="flow-row">${flow}</div>` + links();
+      setResult(`当前合并步数 = ${step}`, `${Object.keys(groups).length} 个等价类`, '每次合并都在扩大共同体，但等价类之间依然边界清楚、不重不漏。');
+      legend('并查集图例', ['每张卡片是一类代表同一根节点的对象', 'union 使两个等价类合并', 'find 帮我们快速追踪“属于哪一类”']);
+    }
+    function renderPoset() {
+      syncRange('levelRange','levelVal');
+      const n=+$('levelRange').value, mode=$('posetMode').value;
+      let vals = mode==='divisor' ? Array.from({length:n},(_,i)=>i+1) : Array.from({length:n},(_,i)=>i);
+      let rel=(a,b)=> mode==='divisor' ? (b%a===0) : mode==='subset' ? ((a & b) === a) : (a<=b && Math.floor(a/2)<=Math.floor(b/2));
+      const covers=[];
+      for(let a of vals) for(let b of vals) if(a!==b && rel(a,b)) {
+        let cover=true; for(let c of vals) if(c!==a&&c!==b&&rel(a,c)&&rel(c,b)) cover=false;
+        if(cover) covers.push([a,b]);
+      }
+      const levels={}; vals.forEach(v=>{ const lv=mode==='divisor'?Math.floor(Math.log2(v)):String(v).split('').filter(ch=>ch==='1').length; (levels[lv] ||= []).push(v); });
+      const levelKeys=Object.keys(levels).map(Number).sort((a,b)=>a-b);
+      const pos={}; levelKeys.forEach((lv,li)=>levels[lv].forEach((v,idx)=>{ pos[v]=[120+idx*150+(li%2)*34, 238-li*54]; }));
+      let edges=covers.map(([a,b])=>`<line x1="${pos[a][0]}" y1="${pos[a][1]}" x2="${pos[b][0]}" y2="${pos[b][1]}" stroke="#D63B1D" stroke-width="2" opacity=".5"/>`).join('');
+      let nodes=vals.map(v=>`<g><circle cx="${pos[v][0]}" cy="${pos[v][1]}" r="23" fill="#fff" stroke="#D63B1D" stroke-width="2"/><text x="${pos[v][0]}" y="${pos[v][1]+5}" text-anchor="middle" fill="#D63B1D" font-weight="800">${mode==='subset'?v.toString(2):v}</text></g>`).join('');
+      $('vizArea').innerHTML = missionCard(78) + `<svg class="network-svg" viewBox="0 0 760 290">${edges}${nodes}</svg><div class="card-grid"><div class="metric-card"><strong>覆盖边</strong><br>${covers.length}</div><div class="metric-card"><strong>层数</strong><br>${levelKeys.length}</div><div class="metric-card"><strong>偏序信号</strong><br>自反 + 反对称 + 传递</div></div>` + links();
+      setResult('Hasse 图 = 去掉自环与传递边后的偏序骨架', `${covers.length} 条覆盖关系`, '偏序让多线任务有先后、有并行，既守规则又鼓励协同推进。');
+      legend('Hasse 图例', ['圆点是对象，连线是覆盖关系', '位置越高表示在偏序中越“大”或越靠后', '不可比对象可以并行处理']);
+    }
+    function renderOrder() {
+      syncRange('orderRange','orderVal');
+      const n=+$('orderRange').value, mode=$('orderMode').value;
+      const items=Array.from({length:n},(_,i)=>({name:names[i], score: mode==='preorder'?Math.floor((n-i)/2):n-i, lane: mode==='partial'?i%3:0}));
+      const nodes=items.map((it,i)=>`<div class="flow-node"><b>${it.name}</b><span>等级 ${it.score}${mode==='partial'?' / 线 '+(it.lane+1):''}</span></div>`).join('');
+      const bars=items.map(it=>`<div class="bar-row"><span>${it.name}</span><div class="bar"><span style="width:${Math.max(12,it.score/n*100)}%"></span></div><b>${it.score}</b></div>`).join('');
+      const comparable = mode==='partial' ? '部分不可比' : '任意两者可比';
+      const minimal = mode==='preorder' ? '有最小等级代表' : '有明确最小元';
+      $('vizArea').innerHTML = missionCard(mode==='total'?80:68) + `<div class="flow-row">${nodes}</div><div class="viz-panel bar-wrap">${bars}</div>` + links();
+      setResult(`模式：${mode}`, `${comparable}；${minimal}`, '有序不是简单“排队”，而是把规则公开，让比较、优先和责任都有依据。');
+      legend('秩序图例', ['全序：任意两个对象都能比较', '良序：每个非空子集都有最小元', '拟序：允许不同对象处于同一等级']);
+    }
+    function renderFunction() {
+      syncRange('domainRange','domainVal'); syncRange('codomainRange','codomainVal');
+      const a=+$('domainRange').value, b=+$('codomainRange').value, mode=$('mapMode').value;
+      const pairs=[]; for(let i=0;i<a;i++) if(!(mode==='missing' && i===a-1)) { pairs.push([i,i%b]); if(mode==='multi' && i===1) pairs.push([i,(i+1)%b]); }
+      drawMap(a,b,pairs, mode==='multi'?'一对多警报':mode==='missing'?'遗漏输入警报':'规范函数');
+      const total = pairs.map(p=>p[0]).filter((v,i,arr)=>arr.indexOf(v)===i).length===a;
+      const single = !Array.from({length:a},(_,i)=>pairs.filter(p=>p[0]===i).length).some(c=>c>1);
+      setResult('函数条件：全定义 + 单值', total&&single?'是函数':'不是函数', `全定义：${total?'通过':'失败'}；单值：${single?'通过':'失败'}。`);
+      legend('映射图例', ['左侧是定义域输入，右侧是陪域输出', '每个输入必须恰好射出一支箭头', '多对一允许，一对多禁止']);
+    }
+    function drawMap(a,b,pairs,label) {
+      const left=Array.from({length:a},(_,i)=>[120,55+i*42]);
+      const right=Array.from({length:b},(_,i)=>[610,70+i*48]);
+      let edges=pairs.map(([i,j])=>`<line x1="${left[i][0]+24}" y1="${left[i][1]}" x2="${right[j][0]-24}" y2="${right[j][1]}" stroke="#D63B1D" stroke-width="2.4" opacity=".62"/>`).join('');
+      let nodes=left.map((p,i)=>`<g><circle cx="${p[0]}" cy="${p[1]}" r="22" fill="#D63B1D"/><text x="${p[0]}" y="${p[1]+5}" text-anchor="middle" fill="#fff" font-weight="800">x${i+1}</text></g>`).join('')+
+        right.map((p,i)=>`<g><circle cx="${p[0]}" cy="${p[1]}" r="22" fill="#FFB400"/><text x="${p[0]}" y="${p[1]+5}" text-anchor="middle" fill="#7a3d12" font-weight="800">y${i+1}</text></g>`).join('');
+      $('vizArea').innerHTML = missionCard(76) + `<svg class="network-svg" viewBox="0 0 720 310"><text x="360" y="28" text-anchor="middle" fill="#D63B1D" font-weight="800">${label}</text>${edges}${nodes}</svg>` + links();
+    }
+    function renderFunctionType() {
+      syncRange('typeARange','typeAVal'); syncRange('typeBRange','typeBVal');
+      const a=+$('typeARange').value, b=+$('typeBRange').value, mode=$('typeMode').value; const pairs=[];
+      for(let i=0;i<a;i++) { let y=i%b; if(mode==='injective') y=Math.min(i,b-1); if(mode==='surjective') y=i%b; if(mode==='bijective') y=i%Math.min(a,b); if(mode==='neither') y=i<2?0:(i+1)%b; pairs.push([i,y]); }
+      drawMap(a,b,pairs, '函数类型判定');
+      const image=new Set(pairs.map(p=>p[1])); const counts={}; pairs.forEach(p=>counts[p[1]]=(counts[p[1]]||0)+1);
+      const injective=Object.values(counts).every(c=>c<=1); const surjective=image.size===b;
+      setResult(`|A|=${a}, |B|=${b}, |f(A)|=${image.size}`, injective&&surjective?'双射':injective?'单射':surjective?'满射':'一般函数', `单射：${injective?'通过':'失败'}；满射：${surjective?'通过':'失败'}。`);
+      legend('类型图例', ['单射关注“不同输入不撞车”', '满射关注“陪域每个目标被覆盖”', '双射同时保证公平配对与可逆追踪']);
+    }
+    function renderSpecial() {
+      syncRange('specialRange','specialVal');
+      const n=+$('specialRange').value, mode=$('specialMode').value; const pairs=[];
+      for(let i=0;i<n;i++) { let y=i; if(mode==='constant') y=0; if(mode==='inverse') y=n-1-i; if(mode==='indicator') y=i%2; pairs.push([i,y]); }
+      drawMap(n, mode==='indicator'?2:n, pairs, '特殊函数：'+mode);
+      const reversible = mode==='identity'||mode==='inverse';
+      setResult(mode==='identity'?'id(x)=x':mode==='constant'?'c(x)=a':mode==='inverse'?'h(x)=n+1-x':'χ_A(x)∈(0, 1)', reversible?'可逆 / 信息保留':'不可逆 / 信息压缩', '特殊函数用极简规则表达结构特征：保留、压缩、分类或还原。');
+      legend('特殊函数图例', ['恒等函数保持对象不变', '常值函数把所有对象压缩到一点', '逆函数体现可恢复性，特征函数体现分类判断']);
+    }
+    function applyFun(mode,x) { if(mode==='double') return 2*x; if(mode==='plus3') return x+3; if(mode==='mod5') return x%5; if(mode==='plus1') return x+1; if(mode==='square') return x*x; return Math.min(x,6); }
+    function renderComposition() {
+      syncRange('xRange','xVal');
+      const x=+$('xRange').value, f=$('fMode').value, g=$('gMode').value; const gx=applyFun(g,x), fg=applyFun(f,gx), fx=applyFun(f,x), gf=applyFun(g,fx);
+      $('vizArea').innerHTML = missionCard(82) + `<div class="flow-row"><div class="flow-node"><b>输入 x</b><span>${x}</span></div><div class="flow-node"><b>先 g</b><span>g(x)=${gx}</span></div><div class="flow-node"><b>再 f</b><span>(f∘g)(x)=${fg}</span></div></div><div class="flow-row"><div class="flow-node"><b>输入 x</b><span>${x}</span></div><div class="flow-node"><b>先 f</b><span>f(x)=${fx}</span></div><div class="flow-node"><b>再 g</b><span>(g∘f)(x)=${gf}</span></div></div>` + links();
+      setResult(`(f∘g)(${x})=${fg}，(g∘f)(${x})=${gf}`, fg===gf?'本例相同':'次序影响结果', '函数复合提示我们：流程有先后，责任有链条，顺序改变常常改变结果。');
+      legend('复合图例', ['f∘g 表示先做 g，再做 f', '复合函数仍是确定映射', '工程流程中，步骤顺序决定输出质量']);
+    }
+    function renderInfinity() {
+      syncRange('infRange','infVal');
+      const n=+$('infRange').value, mode=$('infMode').value;
+      if(mode==='hotel') {
+        const rooms=Array.from({length:n},(_,i)=>`<div class="flow-node"><b>房间 ${i+1}</b><span>客人 ${i+1} → 房间 ${i+2}</span></div>`).join('');
+        $('vizArea').innerHTML=missionCard(88)+`<div class="flow-row">${rooms}</div>`+links();
+        setResult('重排规则：客人 n → 房间 n+1', '腾出 1 号房', '无限不是随意扩张，而是依靠清晰规则实现有序安排。');
+      } else {
+        let cells=''; for(let s=0;s<n;s++) for(let i=0;i<=s;i++) { const j=s-i; cells+=`<div class="matrix-cell ${(s+i)%3===0?'hit':'soft'}">(${i},${j})</div>`; }
+        $('vizArea').innerHTML=missionCard(80)+`<div class="viz-grid">${cells}</div>`+links();
+        setResult('按 i+j 的对角线枚举', `前 ${n} 条对角线`, '面对无限对象，科学方法不是畏惧，而是建立次序、逐步逼近。');
+      }
+      legend('无限图例', ['可数化的关键是给每个对象安排一个编号', '对角线法让二维网格排成一列', '希尔伯特旅馆展示无限集合的反直觉性质']);
+    }
+    function renderCase() {
+      syncRange('caseRange','caseVal');
+      const val=+$('caseRange').value, mode=$('caseMode').value, caseName=PROFILE.case || 'case';
+      const labels = {
+        social:['社区A','学校','企业','志愿队','社区B','医院'],
+        social_ext:['网格员','社区','学校','医院','企业','志愿者'],
+        hierarchy:['县','礼','户','兵','工','基层'],
+        duty:['决策','分解','执行','监督','反馈','改进'],
+        migration:['长沙','武汉','广州','铁路','公路','乡镇'],
+        migration_ext:['需求','车次','站点','志愿','应急','抵达'],
+        gis:['古城','遗址','博物馆','游客中心','保护区','道路'],
+        gis_ext:['遗产点','讲解','修缮','数字档案','服务站','社区'],
+        universe:['地月','太阳系','恒星','星系','星系团','可观测边界'],
+        universe_ext:['望远镜','探测器','算法','数据','验证','新发现'],
+      }[caseName] || ['对象A','对象B','对象C','对象D','对象E','对象F'];
+      const n=labels.length, cx=360, cy=150, r=105;
+      const pts=labels.map((_,i)=>[cx+r*Math.cos(2*Math.PI*i/n-Math.PI/2),cy+r*Math.sin(2*Math.PI*i/n-Math.PI/2)]);
+      let edges=''; for(let i=0;i<n;i++) for(let j=i+1;j<n;j++) if(((i*j+val)%100)<(mode==='risk'?38:mode==='optimize'?62:50)) edges+=`<line x1="${pts[i][0]}" y1="${pts[i][1]}" x2="${pts[j][0]}" y2="${pts[j][1]}" stroke="#D63B1D" stroke-width="2" opacity=".38"/>`;
+      const nodes=pts.map((p,i)=>`<g><circle cx="${p[0]}" cy="${p[1]}" r="28" fill="${i%2?'#FFB400':'#D63B1D'}" opacity=".92"/><text x="${p[0]}" y="${p[1]+4}" text-anchor="middle" fill="${i%2?'#7a3d12':'#fff'}" font-size="12" font-weight="800">${labels[i]}</text></g>`).join('');
+      const bars=labels.slice(0,5).map((l,i)=>`<div class="bar-row"><span>${l}</span><div class="bar"><span style="width:${Math.min(100, val-i*8)}%"></span></div><b>${Math.max(0,val-i*8)}%</b></div>`).join('');
+      $('vizArea').innerHTML=missionCard(val)+`<svg class="network-svg" viewBox="0 0 720 310">${edges}${nodes}</svg><div class="viz-panel bar-wrap">${bars}</div>`+links();
+      const conclusion = mode==='risk'?'识别薄弱节点':mode==='optimize'?'提升协同覆盖':'看清结构关系';
+      setResult(`案例模式：${mode}，强度=${val}%`, conclusion, '案例页把抽象关系、函数和有序结构迁移到真实问题，体现数学服务国家治理与科学探索。');
+      legend('案例图例', ['节点表示对象、部门、空间点或科学目标', '连线表示关系、依赖、流动或协同', '强度越高，覆盖越广，但也要关注边界与成本']);
+    }
+    function render() {
+      const fam=PROFILE.family;
+      if(fam==='relation') return renderRelation();
+      if(fam==='union_find') return renderUnionFind();
+      if(fam==='poset'||fam==='dependency') return renderPoset();
+      if(fam==='order'||fam==='order_app') return renderOrder();
+      if(fam==='function'||fam==='responsibility') return renderFunction();
+      if(fam==='function_type'||fam==='resource') return renderFunctionType();
+      if(fam==='special_function'||fam==='transform') return renderSpecial();
+      if(fam==='composition'||fam==='pipeline') return renderComposition();
+      if(fam==='infinity'||fam==='hotel') return renderInfinity();
+      return renderCase();
+    }
+    document.querySelectorAll('input,select').forEach(el=>{ el.addEventListener('input', render); el.addEventListener('change', render); });
+    render();
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

@@ -17,17 +17,18 @@ let selectedNode = null;
 let isDragging = false;
 let dragOffset = { x: 0, y: 0 };
 let difficulty = 'medium'; // easy (4), medium (5), hard (6)
+let canvasResizeObserver = null;
 
 // ===== Configuration =====
 const CONFIG = {
-    easy: { nodes: 4, radius: 100 },
-    medium: { nodes: 5, radius: 120 },
-    hard: { nodes: 6, radius: 140 },
-    nodeRadius: 20,
+    easy: { nodes: 4, radius: 112 },
+    medium: { nodes: 5, radius: 132 },
+    hard: { nodes: 6, radius: 150 },
+    nodeRadius: 16,
     colors: {
         nodeA: '#1890ff',
         nodeB: '#722ed1',
-        edge: '#8c8c8c',
+        edge: '#667085',
         selected: '#ff4d4f',
         match: '#52c41a',
         mismatch: '#f5222d'
@@ -43,22 +44,45 @@ function init() {
 
     resizeCanvases();
     window.addEventListener('resize', resizeCanvases);
+    if ('ResizeObserver' in window) {
+        canvasResizeObserver = new ResizeObserver(() => resizeCanvases());
+        canvasResizeObserver.observe(canvasA.parentElement);
+        canvasResizeObserver.observe(canvasB.parentElement);
+    }
 
     setupEventListeners();
     generateNewGame(true); // Start with isomorphic pair
 }
 
 function resizeCanvases() {
-    const container = canvasA.parentElement;
-    const size = Math.min(container.clientWidth, container.clientHeight);
-
-    // Make square canvases
-    canvasA.width = container.clientWidth;
-    canvasA.height = container.clientHeight;
-    canvasB.width = container.clientWidth;
-    canvasB.height = container.clientHeight;
+    resizeCanvasToParent(canvasA, graphA);
+    resizeCanvasToParent(canvasB, graphB);
 
     drawGraphs();
+}
+
+function resizeCanvasToParent(canvas, graph) {
+    if (!canvas || !canvas.parentElement) return;
+
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const width = Math.max(1, Math.round(rect.width));
+    const height = Math.max(1, Math.round(rect.height));
+    const oldWidth = canvas.width || width;
+    const oldHeight = canvas.height || height;
+
+    if (canvas.width === width && canvas.height === height) return;
+
+    if (graph && graph.nodes && graph.nodes.length && oldWidth > 1 && oldHeight > 1) {
+        const scaleX = width / oldWidth;
+        const scaleY = height / oldHeight;
+        graph.nodes.forEach(node => {
+            node.x *= scaleX;
+            node.y *= scaleY;
+        });
+    }
+
+    canvas.width = width;
+    canvas.height = height;
 }
 
 function setupEventListeners() {
@@ -188,21 +212,32 @@ function generateNonIsomorphicGraph(baseGraph) {
 function layoutGraph(graph, canvas, isCircular) {
     const cx = canvas.width / 2;
     const cy = canvas.height / 2;
-    const r = CONFIG[difficulty].radius;
+    const padding = CONFIG.nodeRadius + 22;
+    const rx = Math.max(74, Math.min(canvas.width / 2 - padding, CONFIG[difficulty].radius * 1.12));
+    const ry = Math.max(88, Math.min(canvas.height / 2 - padding, CONFIG[difficulty].radius * 1.28));
 
     if (isCircular) {
         graph.nodes.forEach((node, i) => {
             const angle = (i / graph.nodes.length) * 2 * Math.PI - Math.PI / 2;
-            node.x = cx + r * Math.cos(angle);
-            node.y = cy + r * Math.sin(angle);
+            node.x = cx + rx * Math.cos(angle);
+            node.y = cy + ry * Math.sin(angle);
         });
     } else {
-        // Random layout within bounds
-        graph.nodes.forEach(node => {
-            node.x = cx + (Math.random() - 0.5) * r * 2;
-            node.y = cy + (Math.random() - 0.5) * r * 2;
+        // Spread nodes around an adaptive ellipse, then add light jitter.
+        // This keeps the graph "scrambled" without letting nodes overlap.
+        const order = shuffle(graph.nodes.map((_, i) => i));
+        const phase = Math.random() * Math.PI * 2;
+        order.forEach((nodeIndex, position) => {
+            const node = graph.nodes[nodeIndex];
+            const angle = phase + (position / graph.nodes.length) * 2 * Math.PI + (Math.random() - 0.5) * 0.24;
+            const radial = 0.82 + Math.random() * 0.14;
+            node.x = cx + rx * radial * Math.cos(angle);
+            node.y = cy + ry * radial * Math.sin(angle);
         });
+        relaxNodeSpacing(graph, canvas, 56);
     }
+
+    graph.nodes.forEach(node => clampNodeToCanvas(node, canvas));
 }
 
 function scrambleGraphB() {
@@ -238,6 +273,7 @@ function handleMouseMove(e) {
 
     selectedNode.x = x - dragOffset.x;
     selectedNode.y = y - dragOffset.y;
+    clampNodeToCanvas(selectedNode, canvasB);
 
     drawGraphs();
 }
@@ -343,17 +379,8 @@ function drawGraphs() {
 function drawGraph(ctx, graph, nodeColor) {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-    // Edges
-    ctx.strokeStyle = CONFIG.colors.edge;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    graph.edges.forEach(e => {
-        const n1 = graph.nodes[e.from]; // Note: e.from is index/id
-        const n2 = graph.nodes[e.to];
-        ctx.moveTo(n1.x, n1.y);
-        ctx.lineTo(n2.x, n2.y);
-    });
-    ctx.stroke();
+    drawEdges(ctx, graph, 'rgba(255, 255, 255, 0.92)', 5.2);
+    drawEdges(ctx, graph, CONFIG.colors.edge, 2.15);
 
     // Nodes
     graph.nodes.forEach(n => {
@@ -362,16 +389,91 @@ function drawGraph(ctx, graph, nodeColor) {
         ctx.fillStyle = (n === selectedNode) ? CONFIG.colors.selected : nodeColor;
         ctx.fill();
         ctx.strokeStyle = 'white';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2.6;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.16)';
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetY = 2;
         ctx.stroke();
+        ctx.shadowColor = 'transparent';
 
         // Label
         ctx.fillStyle = 'white';
-        ctx.font = 'bold 14px Arial';
+        ctx.font = 'bold 13px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(n.label, n.x, n.y);
     });
+}
+
+function drawEdges(ctx, graph, color, width) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    graph.edges.forEach(e => {
+        const n1 = graph.nodes[e.from]; // Note: e.from is index/id
+        const n2 = graph.nodes[e.to];
+        const endpoints = trimmedEdge(n1, n2);
+        ctx.moveTo(endpoints.x1, endpoints.y1);
+        ctx.lineTo(endpoints.x2, endpoints.y2);
+    });
+    ctx.stroke();
+}
+
+function trimmedEdge(n1, n2) {
+    const dx = n2.x - n1.x;
+    const dy = n2.y - n1.y;
+    const length = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+    const inset = CONFIG.nodeRadius + 2;
+    const ux = dx / length;
+    const uy = dy / length;
+
+    return {
+        x1: n1.x + ux * inset,
+        y1: n1.y + uy * inset,
+        x2: n2.x - ux * inset,
+        y2: n2.y - uy * inset
+    };
+}
+
+function relaxNodeSpacing(graph, canvas, minDistance) {
+    const padding = CONFIG.nodeRadius + 12;
+
+    for (let step = 0; step < 48; step++) {
+        for (let i = 0; i < graph.nodes.length; i++) {
+            for (let j = i + 1; j < graph.nodes.length; j++) {
+                const a = graph.nodes[i];
+                const b = graph.nodes[j];
+                let dx = b.x - a.x;
+                let dy = b.y - a.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < 0.01) {
+                    dx = Math.random() - 0.5;
+                    dy = Math.random() - 0.5;
+                    distance = Math.sqrt(dx * dx + dy * dy);
+                }
+
+                if (distance < minDistance) {
+                    const push = (minDistance - distance) / 2;
+                    const ux = dx / distance;
+                    const uy = dy / distance;
+                    a.x -= ux * push;
+                    a.y -= uy * push;
+                    b.x += ux * push;
+                    b.y += uy * push;
+                    clampNodeToCanvas(a, canvas, padding);
+                    clampNodeToCanvas(b, canvas, padding);
+                }
+            }
+        }
+    }
+}
+
+function clampNodeToCanvas(node, canvas, padding = CONFIG.nodeRadius + 10) {
+    node.x = Math.max(padding, Math.min(canvas.width - padding, node.x));
+    node.y = Math.max(padding, Math.min(canvas.height - padding, node.y));
 }
 
 // Utility

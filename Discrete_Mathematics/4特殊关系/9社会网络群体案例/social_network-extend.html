@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基层治理协同网络 · 拓展层 - 离散数学课程资源库</title>
+    <meta name="description" content="第四章 特殊关系 基层治理协同网络 拓展层互动可视化页面">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --accent-red:#D63B1D; --accent-gold:#FFB400; --text-primary:#2C1810; --text-secondary:#6B4A38; --paper:#FFF8F1; --line:rgba(214,59,29,.18); --shadow-sm:0 2px 10px rgba(214,59,29,.12); --shadow-md:0 10px 28px rgba(214,59,29,.18); --font-title:'Ma Shan Zheng','Noto Serif SC',serif; --font-family:'Noto Serif SC','Microsoft YaHei',serif; }
+        * { box-sizing: border-box; }
+        body.interactive-layer-page { margin:0; min-height:100vh; padding-bottom:72px; font-family:var(--font-family); color:var(--text-primary); background: radial-gradient(circle at top left, #fff8ea 0, #fff 44%, #f1f6ff 100%); overflow:hidden; }
+        .home-link { position:fixed; top:14px; left:14px; z-index:9999; display:flex; align-items:center; gap:6px; background:rgba(30,30,40,.82); color:#fff; padding:7px 14px 7px 10px; border-radius:20px; font-size:13px; text-decoration:none; backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.15); box-shadow:0 2px 12px rgba(0,0,0,.35); }
+        .app-container { width:min(94vw,1420px); height:calc(100vh - 166px); min-height:640px; margin:74px auto 0; display:flex; border:1px solid rgba(214,59,29,.18); border-radius:22px; overflow:hidden; background:rgba(255,255,255,.68); box-shadow:0 18px 54px rgba(214,59,29,.14); }
+        .sidebar { width:352px; flex:0 0 352px; padding:24px; overflow:auto; background:linear-gradient(180deg, rgba(255,248,241,.92), rgba(255,238,230,.72)); border-right:1px solid rgba(214,59,29,.16); }
+        .window-controls { display:flex; gap:8px; margin-bottom:18px; }
+        .dot { width:12px; height:12px; border-radius:50%; display:block; }
+        .red { background:#ff5f57; } .yellow { background:#ffbd2e; } .green { background:#28c840; }
+        .sidebar h1 { font-family:var(--font-title); color:var(--accent-red); font-size:2.05rem; line-height:1.12; font-weight:400; margin:0 0 8px; }
+        .subtitle { margin:0 0 12px; color:var(--text-secondary); font-size:.9rem; line-height:1.5; }
+        .layer-badge { display:inline-flex; width:fit-content; padding:5px 12px; border-radius:999px; background:rgba(255,180,0,.18); border:1px solid rgba(214,59,29,.2); color:var(--accent-red); font-weight:800; font-size:.78rem; }
+        .controls-wrapper { margin-top:18px; display:grid; gap:14px; }
+        .control-group label { display:block; color:var(--text-secondary); font-size:.84rem; font-weight:800; margin-bottom:8px; }
+        .apple-select, .apple-input { width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(214,59,29,.22); background:rgba(255,255,255,.88); color:var(--text-primary); font-family:var(--font-family); font-size:.9rem; box-shadow:var(--shadow-sm); margin-bottom:8px; }
+        input[type=range] { width:100%; accent-color:var(--accent-red); }
+        .slider-container { display:grid; gap:4px; margin:8px 0; }
+        .slider-label { color:var(--text-secondary); font-size:.82rem; }
+        .info-panel, .result-panel, .value-panel { background:rgba(255,255,255,.76); border:1px solid rgba(214,59,29,.16); border-radius:14px; padding:13px 15px; box-shadow:var(--shadow-sm); }
+        .info-panel h3, .value-panel h3 { margin:0 0 7px; color:var(--accent-red); font-size:1rem; }
+        .info-panel p, .value-panel p { margin:0; color:var(--text-primary); font-size:.84rem; line-height:1.6; }
+        .value-panel { background:linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13)); }
+        .value-dims { display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; }
+        .value-dims span { padding:3px 8px; border-radius:999px; color:#8b0000; background:rgba(255,255,255,.72); border:1px solid rgba(214,59,29,.16); font-size:.74rem; font-weight:800; }
+        .value-quote { margin-top:9px; padding-left:10px; border-left:3px solid var(--accent-red); color:var(--text-secondary); font-size:.78rem; line-height:1.5; }
+        .result-panel { min-height:124px; }
+        .formula-display { color:var(--accent-red); font-weight:800; line-height:1.45; word-break:break-word; }
+        .result-display { margin-top:8px; display:grid; gap:4px; }
+        .result-label { font-size:.78rem; color:var(--text-secondary); }
+        .result-value { color:var(--accent-red); font-size:1.14rem; font-weight:900; }
+        .political-text, .value-inline { display:block; margin-top:8px; color:var(--text-secondary); font-size:.81rem; line-height:1.55; }
+        .value-inline { padding:7px 9px; border-radius:10px; background:rgba(255,180,0,.13); border:1px solid rgba(214,59,29,.14); color:var(--text-primary); }
+        .visualizer-stage { flex:1; min-width:0; padding:32px; overflow:hidden; }
+        .glass-pane { height:100%; background:rgba(255,255,255,.72); border-radius:18px; padding:32px; overflow:auto; box-shadow:inset 0 0 40px rgba(255,255,255,.8); }
+        .stage-header { text-align:center; margin-bottom:14px; }
+        .stage-header h2 { margin:0 0 7px; font-family:var(--font-title); color:var(--accent-red); font-size:2rem; font-weight:400; }
+        .stage-header p { margin:0 auto; max-width:780px; color:var(--text-secondary); font-size:.95rem; line-height:1.6; }
+        .mission-card { position:relative; overflow:hidden; display:grid; grid-template-columns:1fr minmax(128px, 190px); gap:14px; align-items:center; padding:13px 15px; border-radius:16px; background:linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.16), rgba(39,201,63,.08)); border:1px solid rgba(214,59,29,.18); box-shadow:var(--shadow-sm); margin-bottom:12px; }
+        .mission-card::before { content:""; position:absolute; inset:-60% auto auto -20%; width:46%; height:220%; background:linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent); transform:rotate(18deg); animation:sweepLight 4.8s ease-in-out infinite; }
+        .mission-title, .mission-text, .mission-value, .energy-meter { position:relative; }
+        .mission-title { color:var(--accent-red); font-weight:900; margin-bottom:4px; }
+        .mission-text { color:var(--text-primary); font-size:.9rem; line-height:1.5; }
+        .mission-value { margin-top:5px; color:#8b0000; font-size:.82rem; line-height:1.45; }
+        .energy-meter { display:grid; gap:6px; }
+        .energy-label { display:flex; justify-content:space-between; color:var(--text-secondary); font-size:.78rem; }
+        .energy-track { height:10px; border-radius:999px; background:rgba(139,0,0,.08); overflow:hidden; border:1px solid rgba(214,59,29,.14); }
+        .energy-fill { height:100%; border-radius:inherit; background:linear-gradient(90deg, var(--accent-red), var(--accent-gold), #27c93f); animation:breatheWidth 2.4s ease-in-out infinite; }
+        .visualization-area { display:flex; flex-direction:column; gap:12px; min-height:420px; }
+        .viz-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(84px,1fr)); gap:8px; width:100%; }
+        .card-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:10px; width:100%; }
+        .viz-card, .viz-panel, .metric-card, .node-card { background:rgba(255,255,255,.8); border:1px solid rgba(214,59,29,.16); border-radius:14px; box-shadow:var(--shadow-sm); padding:13px 15px; transition:transform .18s, box-shadow .18s, border-color .18s; }
+        .viz-card:hover, .metric-card:hover, .node-card:hover, .matrix-cell:hover, .flow-node:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); border-color:rgba(214,59,29,.32); }
+        .viz-card strong, .metric-card strong, .node-card strong { color:var(--accent-red); }
+        .matrix { display:grid; gap:4px; align-self:center; width:min(100%, 560px); margin:auto; }
+        .matrix-cell { min-height:38px; display:grid; place-items:center; border-radius:8px; border:1px solid rgba(214,59,29,.14); background:rgba(255,255,255,.82); font-family:Consolas,monospace; font-weight:800; transition:.18s; }
+        .matrix-cell.head { background:var(--accent-red); color:#fff; }
+        .matrix-cell.hit { background:linear-gradient(135deg, var(--accent-red), #b32b12); color:#fff; }
+        .matrix-cell.soft { background:rgba(255,180,0,.18); color:#7a3d12; }
+        .network-svg { width:100%; min-height:280px; border-radius:18px; background:linear-gradient(135deg, rgba(255,255,255,.84), rgba(255,244,229,.72)); border:1px solid rgba(214,59,29,.16); box-shadow:var(--shadow-sm); }
+        .case-network-lab { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:12px; min-height:520px; }
+        .case-canvas-wrap { position:relative; min-height:520px; border-radius:18px; border:1px solid rgba(214,59,29,.16); background:linear-gradient(135deg, #fdfcfb 0%, #f8fbff 100%); box-shadow:var(--shadow-sm); overflow:hidden; }
+        .case-canvas-wrap canvas { width:100%; height:100%; display:block; cursor:crosshair; }
+        .case-mode-card { position:absolute; top:14px; left:14px; max-width:330px; padding:12px 15px; border-radius:13px; background:rgba(255,255,255,.94); box-shadow:var(--shadow-sm); border-left:4px solid #0984e3; pointer-events:none; }
+        .case-mode-card strong { display:block; color:#0984e3; margin-bottom:3px; }
+        .case-mode-card span { display:block; color:var(--text-secondary); font-size:.8rem; line-height:1.45; }
+        .case-community-legend { position:absolute; right:14px; bottom:14px; min-width:190px; max-width:240px; display:grid; gap:7px; padding:12px; border-radius:13px; background:rgba(255,255,255,.94); box-shadow:var(--shadow-sm); }
+        .case-legend-item { display:flex; align-items:center; gap:8px; color:var(--text-secondary); font-size:.8rem; }
+        .case-legend-color { width:18px; height:18px; border-radius:5px; border:2px solid #fff; box-shadow:0 2px 5px rgba(0,0,0,.12); }
+        .case-side-panel { display:flex; flex-direction:column; gap:10px; min-width:0; }
+        .case-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+        .case-action { display:flex; align-items:center; justify-content:center; gap:6px; min-height:38px; border:1px solid rgba(214,59,29,.18); border-radius:11px; background:#fff; color:var(--accent-red); font-family:var(--font-family); font-weight:900; cursor:pointer; box-shadow:var(--shadow-sm); transition:transform .18s, box-shadow .18s; }
+        .case-action.primary { background:#0984e3; color:#fff; border-color:transparent; }
+        .case-action.success { background:#00b894; color:#fff; border-color:transparent; }
+        .case-action.warn { background:#fd79a8; color:#fff; border-color:transparent; }
+        .case-action:hover { transform:translateY(-1px); box-shadow:var(--shadow-md); }
+        .case-stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+        .case-stat { min-height:72px; display:flex; align-items:center; gap:10px; padding:10px; border-radius:12px; background:rgba(255,255,255,.86); border:1px solid rgba(214,59,29,.14); box-shadow:var(--shadow-sm); }
+        .case-stat.highlight { grid-column:span 2; background:linear-gradient(135deg, rgba(9,132,227,.1), rgba(255,255,255,.9)); }
+        .case-stat.warn { grid-column:span 2; background:linear-gradient(135deg, rgba(253,203,110,.24), rgba(255,255,255,.9)); }
+        .case-stat i { font-style:normal; font-size:1.45rem; }
+        .case-stat b { display:block; font-family:Consolas, monospace; font-size:1.24rem; color:var(--text-primary); line-height:1; }
+        .case-stat span { display:block; margin-top:3px; color:var(--text-secondary); font-size:.74rem; }
+        .case-community-list { display:grid; gap:8px; max-height:210px; overflow:auto; }
+        .case-community-item { padding:9px 11px; border-radius:10px; background:#fff; border-left:4px solid #0984e3; box-shadow:var(--shadow-sm); font-size:.82rem; }
+        .case-community-item strong { display:block; color:var(--text-primary); margin-bottom:3px; }
+        .case-community-item span { color:var(--text-secondary); font-size:.76rem; }
+        .case-tip { padding:11px 12px; border-radius:12px; border:1px dashed rgba(214,59,29,.28); background:rgba(255,180,0,.11); color:var(--text-secondary); font-size:.82rem; line-height:1.55; }
+        .flow-row { display:flex; flex-wrap:wrap; justify-content:center; align-items:stretch; gap:10px; width:100%; }
+        .flow-node { min-width:132px; flex:1 1 132px; max-width:230px; padding:13px; border-radius:14px; text-align:center; background:linear-gradient(135deg, rgba(214,59,29,.08), rgba(255,180,0,.12)); border:1px solid rgba(214,59,29,.16); }
+        .flow-node b { display:block; color:var(--accent-red); margin-bottom:6px; }
+        .flow-node span { color:var(--text-secondary); font-size:.82rem; line-height:1.45; }
+        .pill { display:inline-flex; align-items:center; justify-content:center; margin:3px; padding:5px 10px; border-radius:999px; background:rgba(255,180,0,.18); color:#7a3d12; font-size:.78rem; font-weight:800; border:1px solid rgba(255,180,0,.22); }
+        .pill.hot { background:var(--accent-red); color:#fff; border-color:var(--accent-red); }
+        .pill.good { background:#27c93f; color:#fff; border-color:#1f9d55; }
+        .bar-wrap { display:grid; gap:8px; }
+        .bar-row { display:grid; grid-template-columns:104px 1fr 54px; gap:8px; align-items:center; color:var(--text-secondary); font-size:.86rem; }
+        .bar { height:26px; border-radius:999px; background:rgba(139,0,0,.08); overflow:hidden; border:1px solid rgba(214,59,29,.14); }
+        .bar span { display:block; height:100%; min-width:8px; border-radius:inherit; background:linear-gradient(90deg, var(--accent-red), var(--accent-gold)); }
+        .layer-links { display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:4px; }
+        .layer-link { display:inline-flex; align-items:center; justify-content:center; padding:8px 14px; border-radius:11px; text-decoration:none; background:linear-gradient(135deg, var(--accent-red), #b32b12); color:#fff; font-size:.85rem; font-weight:800; box-shadow:var(--shadow-sm); }
+        .layer-link.secondary { background:#fff; color:var(--accent-red); border:1px solid rgba(214,59,29,.3); }
+        .legend { margin-top:10px; color:var(--text-secondary); font-size:.84rem; line-height:1.6; }
+        .legend-title { color:var(--accent-red); font-weight:900; margin-bottom:6px; }
+        .sparkle { position:fixed; z-index:10000; pointer-events:none; width:9px; height:9px; border-radius:50%; background:var(--accent-gold); box-shadow:0 0 0 6px rgba(255,180,0,.18); animation:sparkFly .62s ease-out forwards; }
+        @keyframes sweepLight { 0%,46% { left:-40%; opacity:0; } 58% { opacity:1; } 100% { left:130%; opacity:0; } }
+        @keyframes breatheWidth { 0%,100% { filter:saturate(1); } 50% { filter:saturate(1.35) brightness(1.05); } }
+        @keyframes sparkFly { from { transform:translate(-50%,-50%) scale(1); opacity:1; } to { transform:translate(-50%,-88px) scale(.2); opacity:0; } }
+        @media (max-width:900px) { body.interactive-layer-page { overflow:auto; } .app-container { height:auto; flex-direction:column; margin:66px auto 96px; } .sidebar { width:100%; flex:auto; } .visualizer-stage { min-height:620px; padding:16px; } .mission-card { grid-template-columns:1fr; } .case-network-lab { grid-template-columns:1fr; } .case-canvas-wrap { min-height:430px; } }
+    </style>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body class="interactive-layer-page">
+    <a class="home-link" href="../../index.html">首页</a>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+                <h1>红色数理 <span class="highlight">拓展层</span></h1>
+                <p class="subtitle">社会网络群体识别 · 从网络关系迁移到服务协同：既看团结，也看沟通路径。</p>
+                <span class="layer-badge">高天花板 · 强迁移</span>
+            </div>
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>价值映射（与进阶层一致）</label>
+                    <div class="value-panel">
+                        <h3>精准帮扶 · 一个都不少</h3>
+                        <p>用等价关系划分社群、用函数把帮扶责任精准对应到每个人，确保『全覆盖、不重复、一个都不少』，是精准扶贫、精准治理理念的数学落地。技术服务于民生，让每位需要帮助的群众都被看见、被托举。</p>
+                        <div class="value-dims"><span>人民立场</span><span>精准治理</span><span>责任担当</span></div>
+                        <div class="value-quote">全面小康路上一个都不能少——满射的『全覆盖』正是这一承诺的数学保证。</div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>案例参数</label>
+                    <select id="caseMode" class="apple-select">
+                        <option value="observe">结构观察</option>
+                        <option value="optimize">协同优化</option>
+                        <option value="risk">风险预警</option>
+                    </select>
+                    <div class="slider-container"><span class="slider-label">阈值 / 资源强度：<span id="caseVal">60</span>%</span><input type="range" id="caseRange" min="20" max="100" value="60"></div>
+                </div>
+                <div class="control-group">
+                    <label>本层原理</label>
+                    <div class="info-panel">
+                        <h3>协同网络</h3>
+                        <p>选择治理策略，观察跨群体桥接如何提升整体联通性。</p>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>即时结果</label>
+                    <div class="result-panel">
+                        <div class="formula-display"><span id="formulaText">等待互动</span></div>
+                        <div class="result-display"><span class="result-label">判定 / 结论</span><span class="result-value" id="resultValue">--</span></div>
+                        <p id="resultExtra" class="political-text"></p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="stage-header">
+                    <h2>基层治理协同网络</h2>
+                    <p>从网络关系迁移到服务协同：既看团结，也看沟通路径。</p>
+                </div>
+                <div class="visualization-area" id="vizArea"></div>
+                <div class="legend" id="legendPanel"></div>
+            </div>
+        </main>
+    </div>
+    <footer class="site-footer" style="
+        position: fixed; bottom: 0; left: 0; width: 100%;
+        background: transparent;
+        color: inherit; opacity: 0.72; padding: 15px 10px; text-align: center;
+        box-shadow: none; z-index: 9999;">
+        <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+            © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
+            版权所有 ｜ 项目总负责人：谢鑫
+        </p>
+    </footer>
+    <script>
+    const KIND = "social_bridge";
+    const PROFILE = {"title": "基层治理协同网络", "subtitle": "从网络关系迁移到服务协同：既看团结，也看沟通路径。", "family": "case", "case": "social_ext", "mission": "选择治理策略，观察跨群体桥接如何提升整体联通性。", "visual": "协同网络"};
+    const MID_PAGE = "social_network.html";
+    const OTHER_PAGE = "social_network-basic.html";
+    const OTHER_TEXT = "回基础层";
+    window.SECTION_META = {"layers": [{"name": "社群=等价类", "concepts": "同社群等价关系 / 划分", "task": "用等价关系划分社会网络群体。", "page": "social_network-basic.html"}, {"name": "帮扶=函数映射", "concepts": "居民→责任人 / 满射全覆盖", "task": "用函数把帮扶责任精准对应到人。", "page": "social_network.html"}, {"name": "社区发现与网格", "concepts": "社区发现算法 / 网格责任制", "task": "迁移到社区发现与精准治理。", "page": "social_network-extend.html"}], "chapter": "第4章 特殊关系与函数", "section": "4.9 社会网络群体案例 · 进阶层 · 拓展层", "title": "社区发现与网格", "grounding": "本节主题：用等价关系对社会网络做『社群划分』，用划分识别群体（等价类），用函数刻画『居民→帮扶责任人』的精准对应，把等价关系与函数落到社区治理与精准帮扶。 本页定位为进阶层：承接原页面的核心推理、综合辨析和课程资源主线。 本页定位为拓展层：把本节结构迁移到工程、治理、文化或科学探索场景。", "steps": [{"name": "情境引入", "desc": "庞大的社会网络如何科学分群、并把帮扶责任精准落实到人？"}, {"name": "对象抽取", "desc": "把『同社群』抽象为等价关系，把『帮扶对应』抽象为函数。"}, {"name": "结构建模", "desc": "用等价类做社群划分，用函数做责任映射。"}, {"name": "推理求解", "desc": "求社群划分，检验帮扶映射的全覆盖（满射）。"}, {"name": "程序验证", "desc": "用本页交互划分群体、分配帮扶，验证不漏一人。"}, {"name": "迁移反思", "desc": "迁移到社区发现算法、网格责任制。"}], "ideology": {
+        "title": "精准帮扶 · 一个都不少",
+        "text": "用等价关系划分社群、用函数把帮扶责任精准对应到每个人，确保『全覆盖、不重复、一个都不少』，是精准扶贫、精准治理理念的数学落地。技术服务于民生，让每位需要帮助的群众都被看见、被托举。",
+        "dims": [
+                "人民立场",
+                "精准治理",
+                "责任担当"
+        ],
+        "quote": "全面小康路上一个都不能少——满射的『全覆盖』正是这一承诺的数学保证。"
+}, "reflect": ["社群划分要求『不重不漏』，这对应等价关系的什么性质？", "帮扶映射若不是满射，意味着什么后果？", "现实中『社群』边界常常模糊（相容而非等价），这给划分带来什么挑战？"], "transfer": ["社交网络的『社区发现』算法本质是寻找近似等价类（紧密子群）。", {"t": "网格责任制", "d": "把责任人精准映射到每个网格，正是函数『单值全定义』的治理应用。"}]};
+    const IDEOLOGY = window.SECTION_META.ideology || {
+        "title": "精准帮扶 · 一个都不少",
+        "text": "用等价关系划分社群、用函数把帮扶责任精准对应到每个人，确保『全覆盖、不重复、一个都不少』，是精准扶贫、精准治理理念的数学落地。技术服务于民生，让每位需要帮助的群众都被看见、被托举。",
+        "dims": [
+                "人民立场",
+                "精准治理",
+                "责任担当"
+        ],
+        "quote": "全面小康路上一个都不能少——满射的『全覆盖』正是这一承诺的数学保证。"
+};
+    const $ = id => document.getElementById(id);
+    const escHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+    function links() { return `<div class="layer-links"><a class="layer-link" href="${MID_PAGE}">进入进阶层互动页</a><a class="layer-link secondary" href="${OTHER_PAGE}">${OTHER_TEXT}</a></div>`; }
+    function syncRange(id, out) { const el=$(id), o=$(out); if(el && o) o.textContent = el.value; }
+    function setResult(formula, value, extra) {
+      $('formulaText').innerHTML = formula;
+      $('resultValue').textContent = value;
+      const line = `<span class="value-inline"><strong>价值观察：</strong>本层沿用进阶层“${escHtml(IDEOLOGY.title || '价值引领')}”主线。${escHtml(PROFILE.mission)} 数学判断越清楚，价值表达越有落点。</span>`;
+      $('resultExtra').innerHTML = (extra || '') + line;
+    }
+    function legend(title, items) { $('legendPanel').innerHTML = '<div class="legend-title">'+title+'</div><ul>'+items.map(x=>'<li>'+x+'</li>').join('')+'</ul>'; }
+    function missionCard(score=72) {
+      return `<div class="mission-card"><div><div class="mission-title">本页挑战</div><div class="mission-text">${escHtml(PROFILE.mission)}</div><div class="mission-value">价值主线：${escHtml(IDEOLOGY.title || '价值引领')}。基础层、拓展层与进阶层保持同一价值表达。</div></div><div class="energy-meter"><div class="energy-label"><span>互动热度</span><span>${score}%</span></div><div class="energy-track"><div class="energy-fill" style="width:${score}%"></div></div></div></div>`;
+    }
+    function spawnSpark(x,y) { const s=document.createElement('span'); s.className='sparkle'; s.style.left=x+'px'; s.style.top=y+'px'; document.body.appendChild(s); setTimeout(()=>s.remove(),650); }
+    document.addEventListener('click', e => { const target=e.target.closest('.matrix-cell,.viz-card,.flow-node,.node-card,.pill,.case-action,.case-stat,.case-community-item'); if(target) spawnSpark(e.clientX,e.clientY); }, true);
+
+    const names = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+    let caseNetworkRuntime = null;
+    const CASE_COLORS = ['#00b894','#0984e3','#fd79a8','#6c5ce7','#fdcb6e','#e17055','#00cec9','#74b9ff'];
+    function relationPairs(n, pattern) {
+      const groups = i => pattern === 'equiv' ? i % 3 : pattern === 'compat' ? [i%2, i%3] : i;
+      const rel = [];
+      for(let i=0;i<n;i++) for(let j=0;j<n;j++) {
+        let hit = i===j;
+        if(pattern==='equiv') hit = i%3 === j%3;
+        else if(pattern==='compat') hit = i===j || i%2===j%2 || i%3===j%3;
+        else if(pattern==='chain') hit = i===j || Math.abs(i-j)===1;
+        if(hit) rel.push([i,j]);
+      }
+      return rel;
+    }
+    function propCheck(n, rel) {
+      const has=(a,b)=>rel.some(p=>p[0]===a&&p[1]===b);
+      let reflexive=true, symmetric=true, transitive=true;
+      for(let i=0;i<n;i++) if(!has(i,i)) reflexive=false;
+      rel.forEach(([a,b])=>{ if(!has(b,a)) symmetric=false; });
+      rel.forEach(([a,b])=>rel.forEach(([c,d])=>{ if(b===c && !has(a,d)) transitive=false; }));
+      return {reflexive,symmetric,transitive};
+    }
+    function matrix(n, rel) {
+      const has=(a,b)=>rel.some(p=>p[0]===a&&p[1]===b);
+      let h=`<div class="matrix" style="grid-template-columns:repeat(${n+1}, minmax(34px,1fr))"><div class="matrix-cell head">R</div>`;
+      for(let j=0;j<n;j++) h+=`<div class="matrix-cell head">${names[j]}</div>`;
+      for(let i=0;i<n;i++) { h+=`<div class="matrix-cell head">${names[i]}</div>`; for(let j=0;j<n;j++) h+=`<div class="matrix-cell ${has(i,j)?'hit':''}">${has(i,j)?'1':'0'}</div>`; }
+      return h+'</div>';
+    }
+    function network(n, rel) {
+      const cx=360, cy=145, r=105;
+      const pts=Array.from({length:n},(_,i)=>[cx+r*Math.cos(2*Math.PI*i/n-Math.PI/2), cy+r*Math.sin(2*Math.PI*i/n-Math.PI/2)]);
+      let edges='';
+      rel.forEach(([a,b])=>{ if(a<b) edges+=`<line x1="${pts[a][0]}" y1="${pts[a][1]}" x2="${pts[b][0]}" y2="${pts[b][1]}" stroke="#D63B1D" stroke-width="2" opacity=".42"/>`; });
+      let nodes=pts.map((p,i)=>`<g><circle cx="${p[0]}" cy="${p[1]}" r="22" fill="${i%3===0?'#D63B1D':i%3===1?'#FFB400':'#27c93f'}" opacity=".92"/><text x="${p[0]}" y="${p[1]+5}" text-anchor="middle" fill="#fff" font-weight="800">${names[i]}</text></g>`).join('');
+      return `<svg class="network-svg" viewBox="0 0 720 290">${edges}${nodes}</svg>`;
+    }
+    function renderRelation() {
+      syncRange('nRange','nVal');
+      const n=+$('nRange').value, pat=$('pattern').value, rel=relationPairs(n,pat), p=propCheck(n,rel);
+      $('vizArea').innerHTML = missionCard(64+n*4) + `<div class="card-grid"><div class="metric-card"><strong>自反</strong><br>${p.reflexive?'成立':'不成立'}</div><div class="metric-card"><strong>对称</strong><br>${p.symmetric?'成立':'不成立'}</div><div class="metric-card"><strong>传递</strong><br>${p.transitive?'成立':'不成立'}</div></div>` + network(n,rel) + matrix(n,rel) + links();
+      const cls = p.reflexive&&p.symmetric&&p.transitive ? '等价关系' : p.reflexive&&p.symmetric ? '相容关系' : '一般关系';
+      setResult(`R 的性质 = ${p.reflexive?'自反':''} ${p.symmetric?'对称':''} ${p.transitive?'传递':''}`, cls, '等价关系会导出不重不漏的划分；相容关系允许重叠，更强调求同存异。');
+      legend('关系图例', ['红色连线表示存在关系 R', '矩阵中的 1 表示有序对属于 R', '传递性是从“可以相连”走向“稳定分类”的关键']);
+    }
+    function renderUnionFind() {
+      syncRange('stepRange','stepVal');
+      const step=+$('stepRange').value, mode=$('unionMode').value;
+      const ops = mode==='home' ? [[0,2],[1,4],[3,5],[2,4],[6,7],[0,1],[5,7]] : [[0,1],[2,3],[4,5],[1,3],[6,7],[0,4],[3,7]];
+      const parent=Array.from({length:8},(_,i)=>i);
+      const find=x=>parent[x]===x?x:(parent[x]=find(parent[x]));
+      const unite=(a,b)=>{ a=find(a); b=find(b); if(a!==b) parent[b]=a; };
+      for(let i=0;i<step;i++) unite(...ops[i]);
+      const groups={}; for(let i=0;i<8;i++) (groups[find(i)] ||= []).push(i);
+      const cards=Object.values(groups).map((g,idx)=>`<div class="viz-card"><strong>等价类 C${idx+1}</strong><div>${g.map(i=>`<span class="pill hot">${names[i]}</span>`).join('')}</div></div>`).join('');
+      const flow=ops.map((o,i)=>`<div class="flow-node"><b>${i<step?'已合并':'待合并'}</b><span>${names[o[0]]} ↔ ${names[o[1]]}</span></div>`).join('');
+      $('vizArea').innerHTML = missionCard(70+step*3) + `<div class="card-grid">${cards}</div><div class="flow-row">${flow}</div>` + links();
+      setResult(`当前合并步数 = ${step}`, `${Object.keys(groups).length} 个等价类`, '每次合并都在扩大共同体，但等价类之间依然边界清楚、不重不漏。');
+      legend('并查集图例', ['每张卡片是一类代表同一根节点的对象', 'union 使两个等价类合并', 'find 帮我们快速追踪“属于哪一类”']);
+    }
+    function renderPoset() {
+      syncRange('levelRange','levelVal');
+      const n=+$('levelRange').value, mode=$('posetMode').value;
+      let vals = mode==='divisor' ? Array.from({length:n},(_,i)=>i+1) : Array.from({length:n},(_,i)=>i);
+      let rel=(a,b)=> mode==='divisor' ? (b%a===0) : mode==='subset' ? ((a & b) === a) : (a<=b && Math.floor(a/2)<=Math.floor(b/2));
+      const covers=[];
+      for(let a of vals) for(let b of vals) if(a!==b && rel(a,b)) {
+        let cover=true; for(let c of vals) if(c!==a&&c!==b&&rel(a,c)&&rel(c,b)) cover=false;
+        if(cover) covers.push([a,b]);
+      }
+      const levels={}; vals.forEach(v=>{ const lv=mode==='divisor'?Math.floor(Math.log2(v)):String(v).split('').filter(ch=>ch==='1').length; (levels[lv] ||= []).push(v); });
+      const levelKeys=Object.keys(levels).map(Number).sort((a,b)=>a-b);
+      const pos={}; levelKeys.forEach((lv,li)=>levels[lv].forEach((v,idx)=>{ pos[v]=[120+idx*150+(li%2)*34, 238-li*54]; }));
+      let edges=covers.map(([a,b])=>`<line x1="${pos[a][0]}" y1="${pos[a][1]}" x2="${pos[b][0]}" y2="${pos[b][1]}" stroke="#D63B1D" stroke-width="2" opacity=".5"/>`).join('');
+      let nodes=vals.map(v=>`<g><circle cx="${pos[v][0]}" cy="${pos[v][1]}" r="23" fill="#fff" stroke="#D63B1D" stroke-width="2"/><text x="${pos[v][0]}" y="${pos[v][1]+5}" text-anchor="middle" fill="#D63B1D" font-weight="800">${mode==='subset'?v.toString(2):v}</text></g>`).join('');
+      $('vizArea').innerHTML = missionCard(78) + `<svg class="network-svg" viewBox="0 0 760 290">${edges}${nodes}</svg><div class="card-grid"><div class="metric-card"><strong>覆盖边</strong><br>${covers.length}</div><div class="metric-card"><strong>层数</strong><br>${levelKeys.length}</div><div class="metric-card"><strong>偏序信号</strong><br>自反 + 反对称 + 传递</div></div>` + links();
+      setResult('Hasse 图 = 去掉自环与传递边后的偏序骨架', `${covers.length} 条覆盖关系`, '偏序让多线任务有先后、有并行，既守规则又鼓励协同推进。');
+      legend('Hasse 图例', ['圆点是对象，连线是覆盖关系', '位置越高表示在偏序中越“大”或越靠后', '不可比对象可以并行处理']);
+    }
+    function renderOrder() {
+      syncRange('orderRange','orderVal');
+      const n=+$('orderRange').value, mode=$('orderMode').value;
+      const items=Array.from({length:n},(_,i)=>({name:names[i], score: mode==='preorder'?Math.floor((n-i)/2):n-i, lane: mode==='partial'?i%3:0}));
+      const nodes=items.map((it,i)=>`<div class="flow-node"><b>${it.name}</b><span>等级 ${it.score}${mode==='partial'?' / 线 '+(it.lane+1):''}</span></div>`).join('');
+      const bars=items.map(it=>`<div class="bar-row"><span>${it.name}</span><div class="bar"><span style="width:${Math.max(12,it.score/n*100)}%"></span></div><b>${it.score}</b></div>`).join('');
+      const comparable = mode==='partial' ? '部分不可比' : '任意两者可比';
+      const minimal = mode==='preorder' ? '有最小等级代表' : '有明确最小元';
+      $('vizArea').innerHTML = missionCard(mode==='total'?80:68) + `<div class="flow-row">${nodes}</div><div class="viz-panel bar-wrap">${bars}</div>` + links();
+      setResult(`模式：${mode}`, `${comparable}；${minimal}`, '有序不是简单“排队”，而是把规则公开，让比较、优先和责任都有依据。');
+      legend('秩序图例', ['全序：任意两个对象都能比较', '良序：每个非空子集都有最小元', '拟序：允许不同对象处于同一等级']);
+    }
+    function renderFunction() {
+      syncRange('domainRange','domainVal'); syncRange('codomainRange','codomainVal');
+      const a=+$('domainRange').value, b=+$('codomainRange').value, mode=$('mapMode').value;
+      const pairs=[]; for(let i=0;i<a;i++) if(!(mode==='missing' && i===a-1)) { pairs.push([i,i%b]); if(mode==='multi' && i===1) pairs.push([i,(i+1)%b]); }
+      drawMap(a,b,pairs, mode==='multi'?'一对多警报':mode==='missing'?'遗漏输入警报':'规范函数');
+      const total = pairs.map(p=>p[0]).filter((v,i,arr)=>arr.indexOf(v)===i).length===a;
+      const single = !Array.from({length:a},(_,i)=>pairs.filter(p=>p[0]===i).length).some(c=>c>1);
+      setResult('函数条件：全定义 + 单值', total&&single?'是函数':'不是函数', `全定义：${total?'通过':'失败'}；单值：${single?'通过':'失败'}。`);
+      legend('映射图例', ['左侧是定义域输入，右侧是陪域输出', '每个输入必须恰好射出一支箭头', '多对一允许，一对多禁止']);
+    }
+    function drawMap(a,b,pairs,label) {
+      const left=Array.from({length:a},(_,i)=>[120,55+i*42]);
+      const right=Array.from({length:b},(_,i)=>[610,70+i*48]);
+      let edges=pairs.map(([i,j])=>`<line x1="${left[i][0]+24}" y1="${left[i][1]}" x2="${right[j][0]-24}" y2="${right[j][1]}" stroke="#D63B1D" stroke-width="2.4" opacity=".62"/>`).join('');
+      let nodes=left.map((p,i)=>`<g><circle cx="${p[0]}" cy="${p[1]}" r="22" fill="#D63B1D"/><text x="${p[0]}" y="${p[1]+5}" text-anchor="middle" fill="#fff" font-weight="800">x${i+1}</text></g>`).join('')+
+        right.map((p,i)=>`<g><circle cx="${p[0]}" cy="${p[1]}" r="22" fill="#FFB400"/><text x="${p[0]}" y="${p[1]+5}" text-anchor="middle" fill="#7a3d12" font-weight="800">y${i+1}</text></g>`).join('');
+      $('vizArea').innerHTML = missionCard(76) + `<svg class="network-svg" viewBox="0 0 720 310"><text x="360" y="28" text-anchor="middle" fill="#D63B1D" font-weight="800">${label}</text>${edges}${nodes}</svg>` + links();
+    }
+    function renderFunctionType() {
+      syncRange('typeARange','typeAVal'); syncRange('typeBRange','typeBVal');
+      const a=+$('typeARange').value, b=+$('typeBRange').value, mode=$('typeMode').value; const pairs=[];
+      for(let i=0;i<a;i++) { let y=i%b; if(mode==='injective') y=Math.min(i,b-1); if(mode==='surjective') y=i%b; if(mode==='bijective') y=i%Math.min(a,b); if(mode==='neither') y=i<2?0:(i+1)%b; pairs.push([i,y]); }
+      drawMap(a,b,pairs, '函数类型判定');
+      const image=new Set(pairs.map(p=>p[1])); const counts={}; pairs.forEach(p=>counts[p[1]]=(counts[p[1]]||0)+1);
+      const injective=Object.values(counts).every(c=>c<=1); const surjective=image.size===b;
+      setResult(`|A|=${a}, |B|=${b}, |f(A)|=${image.size}`, injective&&surjective?'双射':injective?'单射':surjective?'满射':'一般函数', `单射：${injective?'通过':'失败'}；满射：${surjective?'通过':'失败'}。`);
+      legend('类型图例', ['单射关注“不同输入不撞车”', '满射关注“陪域每个目标被覆盖”', '双射同时保证公平配对与可逆追踪']);
+    }
+    function renderSpecial() {
+      syncRange('specialRange','specialVal');
+      const n=+$('specialRange').value, mode=$('specialMode').value; const pairs=[];
+      for(let i=0;i<n;i++) { let y=i; if(mode==='constant') y=0; if(mode==='inverse') y=n-1-i; if(mode==='indicator') y=i%2; pairs.push([i,y]); }
+      drawMap(n, mode==='indicator'?2:n, pairs, '特殊函数：'+mode);
+      const reversible = mode==='identity'||mode==='inverse';
+      setResult(mode==='identity'?'id(x)=x':mode==='constant'?'c(x)=a':mode==='inverse'?'h(x)=n+1-x':'χ_A(x)∈(0, 1)', reversible?'可逆 / 信息保留':'不可逆 / 信息压缩', '特殊函数用极简规则表达结构特征：保留、压缩、分类或还原。');
+      legend('特殊函数图例', ['恒等函数保持对象不变', '常值函数把所有对象压缩到一点', '逆函数体现可恢复性，特征函数体现分类判断']);
+    }
+    function applyFun(mode,x) { if(mode==='double') return 2*x; if(mode==='plus3') return x+3; if(mode==='mod5') return x%5; if(mode==='plus1') return x+1; if(mode==='square') return x*x; return Math.min(x,6); }
+    function renderComposition() {
+      syncRange('xRange','xVal');
+      const x=+$('xRange').value, f=$('fMode').value, g=$('gMode').value; const gx=applyFun(g,x), fg=applyFun(f,gx), fx=applyFun(f,x), gf=applyFun(g,fx);
+      $('vizArea').innerHTML = missionCard(82) + `<div class="flow-row"><div class="flow-node"><b>输入 x</b><span>${x}</span></div><div class="flow-node"><b>先 g</b><span>g(x)=${gx}</span></div><div class="flow-node"><b>再 f</b><span>(f∘g)(x)=${fg}</span></div></div><div class="flow-row"><div class="flow-node"><b>输入 x</b><span>${x}</span></div><div class="flow-node"><b>先 f</b><span>f(x)=${fx}</span></div><div class="flow-node"><b>再 g</b><span>(g∘f)(x)=${gf}</span></div></div>` + links();
+      setResult(`(f∘g)(${x})=${fg}，(g∘f)(${x})=${gf}`, fg===gf?'本例相同':'次序影响结果', '函数复合提示我们：流程有先后，责任有链条，顺序改变常常改变结果。');
+      legend('复合图例', ['f∘g 表示先做 g，再做 f', '复合函数仍是确定映射', '工程流程中，步骤顺序决定输出质量']);
+    }
+    function renderInfinity() {
+      syncRange('infRange','infVal');
+      const n=+$('infRange').value, mode=$('infMode').value;
+      if(mode==='hotel') {
+        const rooms=Array.from({length:n},(_,i)=>`<div class="flow-node"><b>房间 ${i+1}</b><span>客人 ${i+1} → 房间 ${i+2}</span></div>`).join('');
+        $('vizArea').innerHTML=missionCard(88)+`<div class="flow-row">${rooms}</div>`+links();
+        setResult('重排规则：客人 n → 房间 n+1', '腾出 1 号房', '无限不是随意扩张，而是依靠清晰规则实现有序安排。');
+      } else {
+        let cells=''; for(let s=0;s<n;s++) for(let i=0;i<=s;i++) { const j=s-i; cells+=`<div class="matrix-cell ${(s+i)%3===0?'hit':'soft'}">(${i},${j})</div>`; }
+        $('vizArea').innerHTML=missionCard(80)+`<div class="viz-grid">${cells}</div>`+links();
+        setResult('按 i+j 的对角线枚举', `前 ${n} 条对角线`, '面对无限对象，科学方法不是畏惧，而是建立次序、逐步逼近。');
+      }
+      legend('无限图例', ['可数化的关键是给每个对象安排一个编号', '对角线法让二维网格排成一列', '希尔伯特旅馆展示无限集合的反直觉性质']);
+    }
+    function caseScenario(caseName, val, mode) {
+      const social = {
+        nodes:[
+          ['张阿姨','社区A','👵',.22,.25], ['李叔','社区A','👨',.32,.31], ['王老师','学校','👩‍🏫',.42,.22],
+          ['刘工','企业','👷',.58,.29], ['小周','志愿队','🙋',.68,.22], ['陈奶奶','社区B','👵',.76,.39],
+          ['赵医生','医院','👩‍⚕️',.62,.60], ['小林','社区B','🧑',.74,.68], ['独居老人','待关注','⚠️',.24,.72], ['留守儿童','待关注','🎒',.45,.76]
+        ],
+        edges:[[0,1,28],[1,2,42],[2,3,55],[3,4,48],[4,5,50],[5,7,36],[6,7,52],[3,6,64],[0,8,78],[2,9,72],[4,9,86],[1,8,88],[5,6,70]]
+      };
+      const socialExt = {
+        nodes:[
+          ['网格员','网格','🧭',.22,.28], ['社区','基层','🏘️',.36,.30], ['学校','教育','🏫',.55,.22],
+          ['医院','医疗','🏥',.72,.31], ['企业','就业','🏭',.63,.57], ['志愿者','服务','🤝',.42,.63],
+          ['数据平台','平台','💾',.26,.62], ['社工站','服务','📋',.78,.68], ['独居老人','需求','⚠️',.18,.78], ['应急队','应急','🚑',.50,.80]
+        ],
+        edges:[[0,1,26],[1,2,44],[1,5,38],[2,3,64],[3,7,50],[4,5,56],[5,6,48],[0,6,54],[7,9,70],[3,9,66],[6,8,82],[0,8,74],[4,9,88],[2,5,62]]
+      };
+      const source = caseName==='social_ext' ? socialExt : social;
+      const boost = mode==='optimize' ? 20 : mode==='risk' ? -12 : 0;
+      const limit = Math.max(10, Math.min(100, val + boost));
+      return {
+        nodes: source.nodes.map((n,i)=>({ id:i, name:n[0], group:n[1], icon:n[2], px:n[3], py:n[4], x:0, y:0, vx:0, vy:0, community:-1, served:false })),
+        edges: source.edges.filter(e=>e[2]<=limit).map(e=>({ from:e[0], to:e[1], strength:e[2] }))
+      };
+    }
+    function caseShell(mode, val, caseName) {
+      const isExt = caseName==='social_ext';
+      return `<div class="case-network-lab">
+        <div class="case-canvas-wrap">
+          <canvas id="caseNetworkCanvas"></canvas>
+          <div class="case-mode-card"><strong>${isExt?'协同网络模式':'社区网格模式'}</strong><span>点击空白处添加节点；拖拽节点调整结构；按住 Shift 从一个节点拖到另一个节点可建立联系；右键节点可移除。</span></div>
+          <div class="case-community-legend" id="caseLegendBox" style="display:none"></div>
+        </div>
+        <aside class="case-side-panel">
+          <div class="case-actions">
+            <button type="button" class="case-action primary" data-case-action="analyze">🔍 网格摸排</button>
+            <button type="button" class="case-action success" data-case-action="service">🎁 精准服务</button>
+            <button type="button" class="case-action warn" data-case-action="bridge">🤝 融合孤岛</button>
+            <button type="button" class="case-action" data-case-action="reset">🔄 重置网络</button>
+          </div>
+          <div class="case-stat-grid">
+            <div class="case-stat"><i>👥</i><div><b id="caseNodeCount">0</b><span>${isExt?'协同主体':'居民节点'}</span></div></div>
+            <div class="case-stat"><i>🔗</i><div><b id="caseEdgeCount">0</b><span>${isExt?'协同纽带':'互助纽带'}</span></div></div>
+            <div class="case-stat highlight"><i>🏘️</i><div><b id="caseCommunityCount">-</b><span>${isExt?'协同网格数':'社区网格数'}</span></div></div>
+            <div class="case-stat warn"><i>⚠️</i><div><b id="caseIsolatedCount">-</b><span>需重点关注</span></div></div>
+          </div>
+          <div class="viz-panel"><strong>网格详情</strong><div class="case-community-list" id="caseCommunityList"><div class="case-community-item"><strong>等待摸排</strong><span>点击“网格摸排”查看连通分量。</span></div></div></div>
+          <div class="case-tip">强互动任务：先调节左侧强度，再在画布中增删节点、拖拽建边；用“网格摸排”识别等价类，用“融合孤岛”观察连通性如何改变群体划分。</div>
+        </aside>
+      </div>`;
+    }
+    function initCaseNetwork(data, val, mode, caseName) {
+      const canvas=$('caseNetworkCanvas'), ctx=canvas.getContext('2d');
+      const rt={ canvas, ctx, nodes:data.nodes, edges:data.edges, communities:[], analyzed:false, dragging:null, connecting:null, hovering:null, mouseX:0, mouseY:0, raf:null, servedUntil:0, val, mode, caseName };
+      function resize() {
+        const rect=canvas.getBoundingClientRect(), dpr=window.devicePixelRatio || 1;
+        rt.w = Math.max(480, rect.width || 720); rt.h = Math.max(360, rect.height || 520);
+        canvas.width = Math.round(rt.w*dpr); canvas.height = Math.round(rt.h*dpr);
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+        rt.nodes.forEach(n=>{ if(!n.ready){ n.x=n.px*rt.w; n.y=n.py*rt.h; n.ready=true; } });
+      }
+      function findNode(x,y) { return rt.nodes.find(n=>{ const dx=n.x-x, dy=n.y-y; return dx*dx+dy*dy<420; }); }
+      function pos(e) { const r=canvas.getBoundingClientRect(); return { x:e.clientX-r.left, y:e.clientY-r.top }; }
+      function hasEdge(a,b) { return rt.edges.some(e=>(e.from===a&&e.to===b)||(e.from===b&&e.to===a)); }
+      function updateResult(reason) {
+        const isolated = rt.analyzed ? rt.communities.filter(c=>c.length===1).length : rt.nodes.filter(n=>!rt.edges.some(e=>e.from===n.id||e.to===n.id)).length;
+        const result = rt.analyzed ? `${rt.communities.length} 个网格` : '待摸排';
+        const modeText = mode==='risk'?'风险预警':mode==='optimize'?'协同优化':'结构观察';
+        setResult(`模式：${modeText}，强度=${val}%`, result, `${reason || '点击画布可以继续改造网络。'} 当前节点 ${rt.nodes.length} 个、纽带 ${rt.edges.length} 条、重点关注 ${isolated} 个。`);
+      }
+      function updateStats(reason) {
+        $('caseNodeCount').textContent=rt.nodes.length;
+        $('caseEdgeCount').textContent=rt.edges.length;
+        $('caseCommunityCount').textContent=rt.analyzed ? rt.communities.length : '-';
+        $('caseIsolatedCount').textContent=rt.analyzed ? rt.communities.filter(c=>c.length===1).length : rt.nodes.filter(n=>!rt.edges.some(e=>e.from===n.id||e.to===n.id)).length;
+        updateResult(reason);
+      }
+      function analyze() {
+        rt.communities=[]; rt.nodes.forEach(n=>n.community=-1);
+        const seen=new Set();
+        rt.nodes.forEach(n=>{
+          if(seen.has(n.id)) return;
+          const q=[n.id], comp=[]; seen.add(n.id);
+          while(q.length){
+            const cur=q.shift(); comp.push(cur);
+            rt.edges.forEach(e=>{
+              const next=e.from===cur?e.to:e.to===cur?e.from:-1;
+              if(next>=0 && !seen.has(next)){ seen.add(next); q.push(next); }
+            });
+          }
+          const ci=rt.communities.length; comp.forEach(id=>rt.nodes[id].community=ci); rt.communities.push(comp);
+        });
+        rt.analyzed=true; renderCommunities(); updateStats('网格摸排完成：连通分量就是“同社群”的等价类。');
+      }
+      function renderCommunities() {
+        const list=$('caseCommunityList'), legend=$('caseLegendBox');
+        list.innerHTML = rt.communities.map((c,i)=>`<div class="case-community-item" style="border-left-color:${CASE_COLORS[i%CASE_COLORS.length]}"><strong>${caseName==='social_ext'?'协同网格':'社区网格'} ${i+1}</strong><span>${c.map(id=>escHtml(rt.nodes[id].name)).join('、')}${c.length===1?' / 需关注':''}</span></div>`).join('');
+        legend.innerHTML = rt.communities.map((c,i)=>`<div class="case-legend-item"><span class="case-legend-color" style="background:${CASE_COLORS[i%CASE_COLORS.length]}"></span><span>网格 ${i+1}（${c.length}）</span></div>`).join('');
+        legend.style.display='grid';
+      }
+      function bridge() {
+        if(!rt.analyzed) analyze();
+        const isolated = rt.communities.filter(c=>c.length===1).map(c=>c[0]);
+        if(!isolated.length){ updateResult('当前没有孤岛节点，可以继续添加新节点或降低强度制造断点。'); return; }
+        const largest = rt.communities.reduce((a,c)=>c.length>a.length?c:a, []);
+        const from=isolated[0], to=largest.find(id=>id!==from);
+        if(to!==undefined && !hasEdge(from,to)) rt.edges.push({from,to,strength:rt.val});
+        analyze();
+        updateResult('已建立一条桥接纽带，孤岛节点被纳入更大的连通分量。');
+      }
+      function service() {
+        if(!rt.analyzed) analyze();
+        rt.servedUntil=performance.now()+1200;
+        rt.nodes.forEach(n=>n.served=true);
+        updateResult('精准服务已覆盖到每个已识别网格，观察节点的高亮反馈。');
+      }
+      function reset() {
+        if(caseNetworkRuntime?.raf) cancelAnimationFrame(caseNetworkRuntime.raf);
+        renderCase();
+      }
+      function physics() {
+        for(let i=0;i<rt.nodes.length;i++) for(let j=i+1;j<rt.nodes.length;j++){
+          const a=rt.nodes[i], b=rt.nodes[j], dx=a.x-b.x, dy=a.y-b.y, d2=Math.max(36,dx*dx+dy*dy), d=Math.sqrt(d2), f=900/d2;
+          a.vx+=(dx/d)*f; a.vy+=(dy/d)*f; b.vx-=(dx/d)*f; b.vy-=(dy/d)*f;
+        }
+        rt.edges.forEach(e=>{
+          const a=rt.nodes[e.from], b=rt.nodes[e.to], dx=b.x-a.x, dy=b.y-a.y, d=Math.max(1,Math.sqrt(dx*dx+dy*dy)), f=(d-92)*.018;
+          a.vx+=(dx/d)*f; a.vy+=(dy/d)*f; b.vx-=(dx/d)*f; b.vy-=(dy/d)*f;
+        });
+        rt.nodes.forEach(n=>{
+          if(n===rt.dragging) return;
+          n.vx+=(rt.w/2-n.x)*.0018; n.vy+=(rt.h/2-n.y)*.0018; n.vx*=.86; n.vy*=.86; n.x+=n.vx; n.y+=n.vy;
+          n.x=Math.max(28,Math.min(rt.w-28,n.x)); n.y=Math.max(34,Math.min(rt.h-34,n.y));
+        });
+      }
+      function draw() {
+        ctx.clearRect(0,0,rt.w,rt.h);
+        ctx.save();
+        ctx.strokeStyle='rgba(9,132,227,.06)'; ctx.lineWidth=1;
+        for(let x=0;x<rt.w;x+=42){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,rt.h); ctx.stroke(); }
+        for(let y=0;y<rt.h;y+=42){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(rt.w,y); ctx.stroke(); }
+        rt.edges.forEach(e=>{
+          const a=rt.nodes[e.from], b=rt.nodes[e.to], same=rt.analyzed && a.community===b.community && a.community>=0;
+          ctx.strokeStyle=same?CASE_COLORS[a.community%CASE_COLORS.length]:'#dfe6e9'; ctx.globalAlpha=same?.68:.42; ctx.lineWidth=same?3:2;
+          ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+        });
+        ctx.globalAlpha=1;
+        if(rt.connecting){ ctx.setLineDash([6,5]); ctx.strokeStyle='#636e72'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(rt.connecting.x,rt.connecting.y); ctx.lineTo(rt.mouseX,rt.mouseY); ctx.stroke(); ctx.setLineDash([]); }
+        const pulse = Math.max(0, rt.servedUntil-performance.now())/1200;
+        rt.nodes.forEach(n=>{
+          const color=rt.analyzed&&n.community>=0?CASE_COLORS[n.community%CASE_COLORS.length]:'#fff';
+          if(pulse>0 && n.served){ ctx.beginPath(); ctx.arc(n.x,n.y,24+18*(1-pulse),0,Math.PI*2); ctx.strokeStyle='rgba(0,184,148,'+pulse+')'; ctx.lineWidth=4; ctx.stroke(); }
+          ctx.shadowBlur=n===rt.hovering?16:8; ctx.shadowColor='rgba(0,0,0,.18)';
+          ctx.beginPath(); ctx.arc(n.x,n.y,18,0,Math.PI*2); ctx.fillStyle=color; ctx.fill(); ctx.strokeStyle=n===rt.hovering||n===rt.dragging?'#2d3436':'#636e72'; ctx.lineWidth=n===rt.hovering?3:2; ctx.stroke(); ctx.shadowBlur=0;
+          ctx.font='16px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(n.icon,n.x,n.y);
+          ctx.font='12px Microsoft YaHei, sans-serif'; ctx.fillStyle='#2C1810'; ctx.fillText(n.name,n.x,n.y+32);
+        });
+        ctx.restore();
+      }
+      function tick(){ physics(); draw(); rt.raf=requestAnimationFrame(tick); }
+      canvas.addEventListener('mousedown', e=>{
+        const p=pos(e), node=findNode(p.x,p.y); rt.mouseX=p.x; rt.mouseY=p.y;
+        if(node){ if(e.shiftKey) rt.connecting=node; else rt.dragging=node; }
+        else {
+          const id=rt.nodes.length, label=caseName==='social_ext'?'新增协同点':'新增居民';
+          rt.nodes.push({id,name:label,group:'新增',icon:'➕',px:.5,py:.5,x:p.x,y:p.y,vx:0,vy:0,community:-1,served:false,ready:true});
+          rt.analyzed=false; $('caseLegendBox').style.display='none'; updateStats('已添加新节点，请重新摸排网络结构。');
+        }
+      });
+      canvas.addEventListener('mousemove', e=>{
+        const p=pos(e); rt.mouseX=p.x; rt.mouseY=p.y; rt.hovering=findNode(p.x,p.y);
+        if(rt.dragging){ rt.dragging.x=p.x; rt.dragging.y=p.y; rt.dragging.vx=0; rt.dragging.vy=0; }
+      });
+      canvas.addEventListener('mouseup', ()=>{
+        if(rt.connecting){ const target=findNode(rt.mouseX,rt.mouseY); if(target && target!==rt.connecting && !hasEdge(rt.connecting.id,target.id)){ rt.edges.push({from:rt.connecting.id,to:target.id,strength:rt.val}); rt.analyzed=false; $('caseLegendBox').style.display='none'; updateStats('已建立新联系，请重新摸排查看网格变化。'); } }
+        rt.connecting=null; rt.dragging=null;
+      });
+      canvas.addEventListener('contextmenu', e=>{
+        e.preventDefault(); const p=pos(e), node=findNode(p.x,p.y); if(!node) return;
+        const idx=node.id; rt.nodes.splice(idx,1); rt.edges=rt.edges.filter(edge=>edge.from!==idx&&edge.to!==idx); rt.edges.forEach(edge=>{ if(edge.from>idx) edge.from--; if(edge.to>idx) edge.to--; }); rt.nodes.forEach((n,i)=>n.id=i);
+        rt.analyzed=false; $('caseLegendBox').style.display='none'; updateStats('已移除节点，请重新摸排。');
+      });
+      document.querySelectorAll('[data-case-action]').forEach(btn=>btn.addEventListener('click', ()=>{
+        const act=btn.dataset.caseAction; if(act==='analyze') analyze(); if(act==='service') service(); if(act==='bridge') bridge(); if(act==='reset') reset();
+      }));
+      rt.resize=resize; resize(); window.addEventListener('resize', resize); updateStats('当前为可编辑网络。'); tick();
+      return rt;
+    }
+    function renderCase() {
+      syncRange('caseRange','caseVal');
+      const val=+$('caseRange').value, mode=$('caseMode').value, caseName=PROFILE.case || 'case';
+      if(caseNetworkRuntime?.raf) cancelAnimationFrame(caseNetworkRuntime.raf);
+      if(caseNetworkRuntime?.resize) window.removeEventListener('resize', caseNetworkRuntime.resize);
+      $('vizArea').innerHTML=missionCard(Math.max(72,val))+caseShell(mode,val,caseName)+links();
+      $('legendPanel').innerHTML='';
+      caseNetworkRuntime = initCaseNetwork(caseScenario(caseName,val,mode), val, mode, caseName);
+    }
+    function render() {
+      const fam=PROFILE.family;
+      if(fam==='relation') return renderRelation();
+      if(fam==='union_find') return renderUnionFind();
+      if(fam==='poset'||fam==='dependency') return renderPoset();
+      if(fam==='order'||fam==='order_app') return renderOrder();
+      if(fam==='function'||fam==='responsibility') return renderFunction();
+      if(fam==='function_type'||fam==='resource') return renderFunctionType();
+      if(fam==='special_function'||fam==='transform') return renderSpecial();
+      if(fam==='composition'||fam==='pipeline') return renderComposition();
+      if(fam==='infinity'||fam==='hotel') return renderInfinity();
+      return renderCase();
+    }
+    document.querySelectorAll('input,select').forEach(el=>{ el.addEventListener('input', render); el.addEventListener('change', render); });
+    render();
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

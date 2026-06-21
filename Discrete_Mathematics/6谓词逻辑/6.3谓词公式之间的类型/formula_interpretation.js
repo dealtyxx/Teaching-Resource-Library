@@ -26,7 +26,7 @@ const satisfiableResult = document.getElementById('satisfiableResult');
 const truthChart = document.getElementById('truthChart');
 const philosophyContent = document.getElementById('philosophyContent');
 
-// 思政主题公式库
+// 价值主题公式库
 const FORMULAS = [
     {
         formula: "∀x(努力(x) ∨ ¬努力(x))",

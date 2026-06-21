@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8.8 古镇修复路径案例 - 基础层</title>
+  <meta name="description" content="8.8 古镇修复路径案例基础层：用欧拉通路判定与一笔巡检交互规划古镇街巷修复路线。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+  <style>
+    :root {
+      --ink: #251713;
+      --muted: #6c5a52;
+      --panel: rgba(255, 253, 246, 0.88);
+      --line: rgba(116, 55, 31, 0.18);
+      --red: #b42318;
+      --red-2: #de5b3d;
+      --gold: #c58a1f;
+      --green: #20b455;
+      --blue: #2f5f9f;
+      --lane: #d8aaa1;
+      --shadow: 0 18px 50px rgba(69, 31, 15, 0.14);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Noto Serif SC", "Microsoft YaHei", serif;
+      background:
+        radial-gradient(circle at 16% 12%, rgba(222, 91, 61, 0.18), transparent 28%),
+        radial-gradient(circle at 82% 8%, rgba(47, 95, 159, 0.14), transparent 26%),
+        repeating-linear-gradient(90deg, rgba(197,138,31,0.08) 0 1px, transparent 1px 54px),
+        repeating-linear-gradient(0deg, rgba(180,35,24,0.055) 0 1px, transparent 1px 54px),
+        linear-gradient(135deg, #fff7e6 0%, #f8ead3 45%, #f3dfc7 100%);
+      overflow: hidden;
+    }
+    .home-link {
+      position: fixed; top: 14px; left: 14px; z-index: 10000;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px; border-radius: 999px;
+      background: rgba(37, 23, 19, 0.82); color: #fff; text-decoration: none;
+      font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,0.20);
+      backdrop-filter: blur(10px);
+    }
+    .app {
+      width: min(1500px, calc(100vw - 42px));
+      height: calc(100vh - 92px);
+      margin: 58px auto 34px;
+      display: grid;
+      grid-template-columns: 370px minmax(0, 1fr);
+      gap: 18px;
+    }
+    .sidebar, .stage {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      overflow: hidden;
+    }
+    .sidebar {
+      padding: 18px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .dots { display: flex; gap: 8px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot.red { background: #ff5f56; } .dot.yellow { background: #ffbd2e; } .dot.green { background: #27c93f; }
+    h1 {
+      margin: 4px 0 0;
+      color: #d63b1d;
+      font-family: "Ma Shan Zheng", "Noto Serif SC", serif;
+      font-size: 2.18rem;
+      font-weight: 400;
+      line-height: 1.12;
+      letter-spacing: 0;
+    }
+    .subtitle { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
+    .pill {
+      display: inline-flex; width: fit-content; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 999px;
+      background: rgba(180,35,24,0.08); border: 1px solid rgba(180,35,24,0.22);
+      color: var(--red); font-weight: 800; font-size: 0.78rem;
+    }
+    .control-card, .metric-card, .edge-list, .note {
+      border: 1px solid rgba(116,55,31,0.16);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.56);
+    }
+    .control-card { padding: 12px; display: grid; gap: 10px; }
+    .button-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    button, select, input {
+      font-family: "Noto Serif SC", "Microsoft YaHei", serif;
+    }
+    button, select {
+      min-height: 38px;
+      border-radius: 8px;
+      border: 1px solid rgba(180,35,24,0.18);
+      background: rgba(255,253,246,0.72);
+      color: var(--red);
+      font-weight: 900;
+    }
+    button { cursor: pointer; transition: transform .16s, box-shadow .16s; }
+    button:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(180,35,24,0.12); }
+    button.primary { background: linear-gradient(135deg, #df3a1f, #b42318); color: #fff; border-color: transparent; grid-column: 1 / -1; }
+    button:disabled { opacity: .56; cursor: not-allowed; transform: none; box-shadow: none; }
+    label { display: grid; gap: 6px; color: var(--red); font-size: 0.82rem; font-weight: 900; }
+    input[type=range] { width: 100%; accent-color: var(--red); }
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .metric-card { padding: 12px; }
+    .metric-card span { display: block; color: #8a756c; font-size: 0.78rem; }
+    .metric-card strong { display: block; margin-top: 5px; color: var(--red); font-family: "JetBrains Mono", monospace; font-size: 1.15rem; }
+    .edge-list { max-height: 178px; overflow: auto; padding: 8px; display: grid; gap: 6px; }
+    .edge-row {
+      display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 8px;
+      padding: 8px 10px; border-radius: 7px; color: var(--muted);
+      background: rgba(255,253,246,0.66); border-left: 3px solid transparent;
+      font-size: 0.82rem; cursor: pointer;
+    }
+    .edge-row.hot { border-left-color: var(--gold); background: rgba(197,138,31,0.15); color: #7a520b; }
+    .edge-row.done { border-left-color: var(--green); background: rgba(32,180,85,0.12); color: #1d7f43; }
+    .edge-row.blocked { border-left-color: var(--red); background: rgba(180,35,24,0.10); color: var(--red); text-decoration: line-through; }
+    .note { padding: 13px; color: var(--muted); line-height: 1.68; font-size: 0.86rem; }
+    .note b { color: var(--red); }
+    .stage { position: relative; background: rgba(255,253,246,0.58); }
+    .stage-head, .legend, .tooltip {
+      position: absolute; z-index: 3;
+      background: rgba(255,253,246,0.84);
+      border: 1px solid rgba(116,55,31,0.16);
+      border-radius: 8px;
+      box-shadow: 0 12px 28px rgba(69,31,15,0.09);
+    }
+    .stage-head { top: 20px; left: 20px; padding: 14px 18px; }
+    .stage-head h2 { margin: 0; color: var(--red); font-size: 1.45rem; }
+    .stage-head p { margin: 4px 0 0; color: var(--muted); font-size: 0.82rem; }
+    .legend { top: 20px; right: 20px; padding: 12px 14px; display: grid; gap: 8px; font-size: 0.78rem; color: var(--muted); }
+    .legend div { display: flex; align-items: center; gap: 8px; }
+    .swatch { width: 22px; height: 3px; border-radius: 3px; background: var(--lane); }
+    .swatch.walked { background: var(--green); }
+    .swatch.next { background: #f0a000; }
+    .swatch.blocked { background: var(--red); }
+    svg { width: 100%; height: 100%; display: block; touch-action: none; }
+    .edge-line { stroke: var(--lane); stroke-width: 4; fill: none; transition: .2s; cursor: pointer; }
+    .edge-line.walked { stroke: var(--green); stroke-width: 5; }
+    .edge-line.next { stroke: #f0a000; stroke-width: 5; stroke-dasharray: 10 8; }
+    .edge-line.blocked { stroke: var(--red); stroke-dasharray: 5 7; opacity: .46; }
+    .edge-weight { font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 800; fill: #4e362d; pointer-events: none; }
+    .node circle { fill: #fffaf5; stroke: #d9341c; stroke-width: 4; filter: drop-shadow(0 3px 8px rgba(180,35,24,.12)); }
+    .node.odd circle { stroke: #d9341c; fill: #fff1e8; stroke-dasharray: 7 4; }
+    .node.current circle { fill: #fff7e6; stroke: #f0a000; }
+    .node text { text-anchor: middle; dominant-baseline: middle; fill: #b42318; font-weight: 900; pointer-events: none; }
+    .node-label { fill: #7a3429; font-size: 14px; font-weight: 900; text-anchor: middle; dominant-baseline: hanging; pointer-events: none; }
+    .tooltip { display: none; padding: 10px 12px; max-width: 230px; color: var(--muted); font-size: 0.82rem; line-height: 1.55; }
+    .footer { position: fixed; left: 0; right: 0; bottom: 12px; text-align: center; color: rgba(37,23,19,.55); font-size: 12px; pointer-events: none; }
+    @media (max-width: 900px) {
+      body { overflow: auto; }
+      .app { height: auto; grid-template-columns: 1fr; margin-bottom: 70px; }
+      .stage { height: 660px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="dots"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+      <span class="pill">基础层 · 强互动</span>
+      <h1>古镇街巷一笔巡检</h1>
+      <p class="subtitle">街巷为边，路口为点；判断能否一笔走完并逐步模拟巡检。</p>
+
+      <section class="control-card">
+        <button id="autoBtn" class="primary">▶ 自动一笔巡检</button>
+        <div class="button-row">
+          <button id="stepBtn">单步走巷</button>
+          <button id="checkBtn">判定欧拉性</button>
+        </div>
+        <button id="resetBtn">重置路线</button>
+        <label>古镇布局
+          <select id="townMode">
+            <option value="balanced">遵义古城 · 可一笔回路</option>
+            <option value="trail">井冈山古村 · 可一笔通路</option>
+            <option value="broken">延安老街 · 需补修一巷</option>
+          </select>
+        </label>
+        <label>临时封闭
+          <select id="closureMode">
+            <option value="none">无封闭</option>
+            <option value="bridge">封闭石桥巷</option>
+            <option value="market">封闭集市巷</option>
+          </select>
+        </label>
+        <label>演示速度
+          <input id="speed" type="range" min="1" max="100" value="54">
+        </label>
+      </section>
+
+      <section class="metrics">
+        <div class="metric-card"><span>奇度路口</span><strong id="oddMetric">0</strong></div>
+        <div class="metric-card"><span>已巡巷道</span><strong id="walkMetric">0/0</strong></div>
+        <div class="metric-card"><span>路线类型</span><strong id="typeMetric">-</strong></div>
+        <div class="metric-card"><span>修复长度</span><strong id="costMetric">0</strong></div>
+      </section>
+
+      <span class="pill">街巷列表（点击可重点标记）</span>
+      <div class="edge-list" id="edgeList"></div>
+
+      <section class="note" id="explain">
+        <b>操作提示：</b>拖动路口可调整古镇图；点击巷道可标记重点；点击“判定欧拉性”查看奇度路口，点击“单步走巷”观察一笔巡检如何覆盖每条街巷。
+      </section>
+    </aside>
+
+    <main class="stage">
+      <div class="stage-head">
+        <h2>古镇街巷图</h2>
+        <p>Drag nodes · Click lanes · Step through Euler walk</p>
+      </div>
+      <div class="legend">
+        <div><span class="swatch"></span>待巡街巷</div>
+        <div><span class="swatch next"></span>下一条巷</div>
+        <div><span class="swatch walked"></span>已巡街巷</div>
+        <div><span class="swatch blocked"></span>临时封闭</div>
+      </div>
+      <svg id="townSvg" viewBox="0 0 900 700" role="img" aria-label="古镇街巷一笔巡检交互图"></svg>
+      <div class="tooltip" id="tooltip"></div>
+    </main>
+  </div>
+  <footer class="footer">© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</footer>
+
+  <script>
+  window.SECTION_META = {
+    chapter: "第 8 章 特殊图",
+    section: "8.8 古镇修复路径案例",
+    title: "古镇街巷一笔巡检 · 基础层",
+    layers: [
+      { name: "街巷建模", concepts: "街巷为边 / 路口为顶点", task: "把古镇街巷抽象为图。", page: "index-basic.html" },
+      { name: "路径规划", concepts: "欧拉遍历 / MST 最省连通", task: "规划遍历或最省成本修复路径。", page: "index.html" },
+      { name: "巡检与邮路", concepts: "市政巡检 / 中国邮路", task: "迁移到巡检与最优环游。", page: "index-extend.html" }
+    ],
+    grounding: "用欧拉图判定古镇街巷能否一笔巡检，理解“边不重不漏”的路径规划思想。",
+    steps: [
+      { name: "抽象建模", desc: "把路口看成顶点，把街巷看成边。" },
+      { name: "奇偶判定", desc: "统计各路口度数，判断是否存在欧拉通路或回路。" },
+      { name: "路线演示", desc: "逐步走过每条街巷，验证不重不漏。" },
+      { name: "价值迁移", desc: "用科学规划保护古镇肌理，减少重复施工扰动。" }
+    ],
+    ideology: {
+      title: "守护乡愁 · 留住根脉",
+      text: "修复古镇要尊重原有街巷肌理。用图论安排巡检和修复顺序，既节约资源，也体现对文化遗产的敬畏。",
+      dims: ["文化自信", "绿色修复", "精细治理"]
+    }
+  };
+
+  const baseNodes = [
+    { id:0, name:"东门", role:"游客入口", x:180, y:250, mark:"东" },
+    { id:1, name:"鼓楼", role:"核心地标", x:360, y:165, mark:"鼓" },
+    { id:2, name:"书院", role:"文脉节点", x:560, y:200, mark:"书" },
+    { id:3, name:"石桥", role:"水系过街", x:700, y:350, mark:"桥" },
+    { id:4, name:"戏台", role:"公共活动", x:540, y:430, mark:"戏" },
+    { id:5, name:"西巷", role:"传统民居", x:300, y:430, mark:"西" },
+    { id:6, name:"祠堂", role:"宗族记忆", x:170, y:400, mark:"祠" },
+    { id:7, name:"集市", role:"生活街区", x:430, y:340, mark:"市" }
+  ];
+  const layouts = {
+    balanced: [[0,1,3],[1,2,4],[2,3,3],[3,4,5],[4,5,4],[5,6,3],[6,7,4],[7,0,2],[0,2,5],[2,4,3],[4,6,4],[6,0,4],[1,3,3],[3,5,4],[5,7,2],[7,1,3]],
+    trail: [[0,1,3],[1,2,4],[2,3,3],[3,4,5],[4,5,4],[5,6,3],[6,7,4],[7,0,2],[0,2,5],[2,4,3],[4,6,4],[6,0,4],[1,3,3],[3,5,4],[5,7,2]],
+    broken: [[0,1,3],[1,2,4],[2,3,3],[3,4,5],[4,5,4],[5,6,3],[6,7,4],[7,0,2],[0,2,5],[2,4,3],[4,6,4],[1,3,3],[3,5,4]]
+  };
+  const closures = { bridge: [2,3], market: [5,7] };
+  let nodes = baseNodes.map(n => ({...n}));
+  let edges = [];
+  let route = [];
+  let stepIndex = 0;
+  let timer = null;
+  let focusEdge = null;
+  const svg = document.getElementById("townSvg");
+  const edgeList = document.getElementById("edgeList");
+  const explain = document.getElementById("explain");
+  const tooltip = document.getElementById("tooltip");
+  const oddMetric = document.getElementById("oddMetric");
+  const walkMetric = document.getElementById("walkMetric");
+  const typeMetric = document.getElementById("typeMetric");
+  const costMetric = document.getElementById("costMetric");
+  const townMode = document.getElementById("townMode");
+  const closureMode = document.getElementById("closureMode");
+
+  const key = e => [e.u,e.v].sort((a,b)=>a-b).join("-");
+  const node = id => nodes.find(n => n.id === id);
+  function currentEdges() {
+    const close = closures[closureMode.value];
+    return layouts[townMode.value].map(([u,v,w], id) => ({id,u,v,w, blocked: close && key({u,v}) === key({u:close[0], v:close[1]})}));
+  }
+  function degrees(active) {
+    const d = Array(nodes.length).fill(0);
+    active.filter(e=>!e.blocked).forEach(e => { d[e.u]++; d[e.v]++; });
+    return d;
+  }
+  function components(active) {
+    const parent = nodes.map((_,i)=>i);
+    const find = x => parent[x] === x ? x : parent[x] = find(parent[x]);
+    const unite = (a,b) => { a=find(a); b=find(b); if(a!==b) parent[b]=a; };
+    active.filter(e=>!e.blocked).forEach(e => unite(e.u,e.v));
+    return new Set(nodes.filter(n => degrees(active)[n.id] > 0).map(n => find(n.id))).size || 1;
+  }
+  function eulerType(active) {
+    const d = degrees(active), odd = d.map((v,i)=>v%2?i:null).filter(v=>v!==null);
+    if (components(active) > 1) return {kind:"不连通", odd, ok:false, d};
+    if (odd.length === 0) return {kind:"欧拉回路", odd, ok:true, d};
+    if (odd.length === 2) return {kind:"欧拉通路", odd, ok:true, d};
+    return {kind:"需补修", odd, ok:false, d};
+  }
+  function buildRoute(active) {
+    const usable = active.filter(e=>!e.blocked);
+    const info = eulerType(active);
+    if (!info.ok) return [];
+    const start = info.odd[0] ?? usable[0]?.u ?? 0;
+    const adj = new Map(nodes.map(n => [n.id, []]));
+    usable.forEach(e => { adj.get(e.u).push(e); adj.get(e.v).push(e); });
+    const used = new Set(), stack = [start], path = [];
+    while (stack.length) {
+      const v = stack[stack.length - 1];
+      const e = adj.get(v).find(x => !used.has(x.id));
+      if (e) { used.add(e.id); stack.push(e.u === v ? e.v : e.u); }
+      else path.push(stack.pop());
+    }
+    path.reverse();
+    const out = [];
+    for (let i=0; i<path.length-1; i++) {
+      const e = usable.find(x => !out.some(y=>y.id===x.id) && ((x.u===path[i] && x.v===path[i+1]) || (x.v===path[i] && x.u===path[i+1])));
+      if (e) out.push({...e, from:path[i], to:path[i+1]});
+    }
+    return out;
+  }
+  function check() {
+    edges = currentEdges();
+    route = buildRoute(edges);
+    stepIndex = 0;
+    const info = eulerType(edges);
+    const msg = info.ok
+      ? `当前图满足${info.kind}条件：奇度路口 ${info.odd.length} 个，可以规划一笔巡检。`
+      : `当前图奇度路口 ${info.odd.length} 个或不连通，需要补修/开放街巷后再一笔巡检。`;
+    explain.innerHTML = `<b>欧拉判定：</b>${msg}<br>度序列：${info.d.map((x,i)=>node(i).name + "=" + x).join("，")}`;
+    render();
+  }
+  function stepOnce() {
+    if (!route.length) check();
+    if (!route.length || stepIndex >= route.length) return false;
+    stepIndex++;
+    const e = route[stepIndex - 1];
+    explain.innerHTML = `<b>第 ${stepIndex} 步：</b>从 ${node(e.from).name} 走向 ${node(e.to).name}，完成 ${node(e.u).name}-${node(e.v).name} 巷道巡检。`;
+    render();
+    return stepIndex < route.length;
+  }
+  function autoRun() {
+    clearInterval(timer);
+    if (!route.length || stepIndex >= route.length) check();
+    const delay = 1050 - Number(document.getElementById("speed").value) * 8;
+    timer = setInterval(() => { if (!stepOnce()) clearInterval(timer); }, Math.max(160, delay));
+  }
+  function reset() { clearInterval(timer); nodes = baseNodes.map(n=>({...n})); route = []; stepIndex = 0; focusEdge = null; edges = currentEdges(); explain.innerHTML = "<b>操作提示：</b>拖动路口可调整古镇图；点击巷道可标记重点；点击“判定欧拉性”查看奇度路口。"; render(); }
+  function showTip(html, x, y) { tooltip.innerHTML = html; tooltip.style.display = "block"; tooltip.style.left = x + "px"; tooltip.style.top = y + "px"; }
+  function hideTip() { tooltip.style.display = "none"; }
+  function renderList(info) {
+    const done = new Set(route.slice(0, stepIndex).map(key));
+    const next = route[stepIndex] && key(route[stepIndex]);
+    edgeList.innerHTML = edges.map(e => {
+      const k = key(e);
+      const cls = e.blocked ? "blocked" : done.has(k) ? "done" : next === k ? "hot" : "";
+      return `<div class="edge-row ${cls}" data-id="${e.id}"><span>${node(e.u).name} - ${node(e.v).name}</span><b>${e.w}</b></div>`;
+    }).join("");
+    edgeList.querySelectorAll(".edge-row").forEach(row => row.addEventListener("click", () => { focusEdge = Number(row.dataset.id); render(); }));
+    oddMetric.textContent = info.odd.length;
+    walkMetric.textContent = `${Math.min(stepIndex, route.length)}/${edges.filter(e=>!e.blocked).length}`;
+    typeMetric.textContent = info.kind;
+    costMetric.textContent = route.slice(0, stepIndex).reduce((s,e)=>s+e.w,0);
+  }
+  function render() {
+    edges = currentEdges();
+    const info = eulerType(edges);
+    const odd = new Set(info.odd), done = new Set(route.slice(0, stepIndex).map(key));
+    const next = route[stepIndex] && key(route[stepIndex]);
+    renderList(info);
+    svg.innerHTML = "";
+    edges.forEach(e => {
+      const a=node(e.u), b=node(e.v), k=key(e);
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", a.x); line.setAttribute("y1", a.y); line.setAttribute("x2", b.x); line.setAttribute("y2", b.y);
+      line.setAttribute("class", `edge-line ${e.blocked ? "blocked" : done.has(k) ? "walked" : next === k || focusEdge === e.id ? "next" : ""}`);
+      line.addEventListener("click", () => { focusEdge = e.id; explain.innerHTML = `<b>重点街巷：</b>${a.name} - ${b.name}，修复长度 ${e.w}。`; render(); });
+      svg.appendChild(line);
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      t.setAttribute("x", (a.x+b.x)/2); t.setAttribute("y", (a.y+b.y)/2 - 8); t.setAttribute("class", "edge-weight"); t.textContent = e.w;
+      svg.appendChild(t);
+    });
+    const currentNode = route[stepIndex - 1]?.to ?? route[0]?.from;
+    nodes.forEach(n => {
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("class", `node ${odd.has(n.id) ? "odd" : ""} ${currentNode === n.id ? "current" : ""}`);
+      g.setAttribute("transform", `translate(${n.x},${n.y})`);
+      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle"); c.setAttribute("r", 28); g.appendChild(c);
+      const tx = document.createElementNS("http://www.w3.org/2000/svg", "text"); tx.textContent = n.mark; g.appendChild(tx);
+      g.addEventListener("mouseenter", ev => showTip(`<b>${n.name}</b><br>${n.role}<br>度数：${info.d[n.id]}`, ev.clientX + 12, ev.clientY + 12));
+      g.addEventListener("mouseleave", hideTip);
+      g.addEventListener("pointerdown", ev => { g.setPointerCapture(ev.pointerId); g.dataset.drag = "1"; });
+      g.addEventListener("pointermove", ev => {
+        if (g.dataset.drag !== "1") return;
+        const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+        const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+        n.x = Math.max(70, Math.min(830, p.x)); n.y = Math.max(90, Math.min(620, p.y)); render();
+      });
+      g.addEventListener("pointerup", () => { g.dataset.drag = "0"; });
+      svg.appendChild(g);
+      const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      label.setAttribute("x", n.x); label.setAttribute("y", n.y + 36); label.setAttribute("class", "node-label"); label.textContent = n.name;
+      svg.appendChild(label);
+    });
+  }
+  document.getElementById("autoBtn").addEventListener("click", autoRun);
+  document.getElementById("stepBtn").addEventListener("click", stepOnce);
+  document.getElementById("checkBtn").addEventListener("click", check);
+  document.getElementById("resetBtn").addEventListener("click", reset);
+  townMode.addEventListener("change", reset);
+  closureMode.addEventListener("change", reset);
+  reset();
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

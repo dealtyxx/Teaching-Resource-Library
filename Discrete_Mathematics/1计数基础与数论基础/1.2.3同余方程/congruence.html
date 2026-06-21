@@ -4,15 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>同余方程 - 思政可视化</title>
-    <meta name="description" content="离散数学课程 - 同余方程 - 思政可视化">
+    <title>同余方程 - 价值引领可视化</title>
+    <meta name="description" content="离散数学课程 - 同余方程 - 价值引领可视化">
 
     <link rel="stylesheet" href="congruence.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="../chapter1-compact.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+XiaoWei&display=swap"
         rel="stylesheet">
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
@@ -46,7 +49,7 @@
 
             <div class="controls-wrapper">
                 <div class="control-group">
-                    <label>思政主题</label>
+                    <label>价值主题</label>
                     <select id="themeSelect" class="apple-select">
                         <option value="balance">平衡分配</option>
                         <option value="coordination">协调发展</option>
@@ -118,7 +121,7 @@
             <div class="glass-pane">
                 <div class="stage-header">
                     <h2 id="stageTitle">同余方程求解可视化</h2>
-                    <p id="stageDescription">展示方程求解过程和思政应用</p>
+                    <p id="stageDescription">展示方程求解过程和价值引领应用</p>
                 </div>
 
                 <div class="visualization-area" id="vizArea">
@@ -140,19 +143,104 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "chapter": "第1章 计数基础与数论基础",
+      "section": "1.2.3 同余方程 · 进阶层",
+      "title": "逆元与中国剩余定理",
+      "grounding": "本节主题：一次同余方程 ax≡b (mod m)。有解的充要条件是 gcd(a,m)|b；当 gcd(a,m)=1 时解唯一（模 m），可用扩展欧几里得求 a 的逆元。中国剩余定理（CRT）：若 m₁,…,m_k 两两互素，则同余方程组对模 M=∏mᵢ 有唯一解，体现『分而治之、合而为一』。",
+      "steps": [
+            {
+                  "name": "情境引入",
+                  "desc": "『物不知数』：一个数除以3余2、除以5余3、除以7余2，它是几？"
+            },
+            {
+                  "name": "对象抽取",
+                  "desc": "把多条余数约束抽象为同余方程组，把未知量抽象为模 M 的剩余类。"
+            },
+            {
+                  "name": "结构建模",
+                  "desc": "用 gcd 判定单个方程可解性，用 CRT 把方程组合并求解。"
+            },
+            {
+                  "name": "推理求解",
+                  "desc": "扩展欧几里得求逆元，CRT 构造法拼出唯一解。"
+            },
+            {
+                  "name": "程序验证",
+                  "desc": "用本页交互输入余数约束，观察解的存在性与唯一性。"
+            },
+            {
+                  "name": "迁移反思",
+                  "desc": "迁移到密码学加速、并行计算、误差校验。"
+            }
+      ],
+      "ideology": {
+            "title": "分而治之 · 合而为一",
+            "text": "中国剩余定理源自《孙子算经》『物不知数』，是中华数学智慧的瑰宝，早于西方千余年。它把一个难题拆成若干互素的子问题分别求解、再合成全局唯一答案——正是『分工协作、统一领导』『局部服从全局』的方法论写照，彰显文化自信与系统思维。",
+            "dims": [
+                  "文化自信",
+                  "系统观念",
+                  "辩证思维"
+            ],
+            "quote": "三人同行七十稀，五树梅花廿一支——古人用一首歌诀，道尽了中国剩余定理的构造之美。"
+      },
+      "reflect": [
+            "ax≡b (mod m) 何时无解、何时唯一解、何时多解？判据是什么？",
+            "中国剩余定理要求模数『两两互素』——若不互素会发生什么？",
+            "为什么求逆元要用扩展欧几里得，而不能简单地『除以 a』？"
+      ],
+      "transfer": [
+            "RSA 解密用 CRT 把模 n 的大运算拆成模 p、模 q 的小运算，可提速约 4 倍。",
+            {
+                  "t": "并行与分布",
+                  "d": "把大数运算按互素模数拆分到多机并行，再用 CRT 合并——这是什么思想？"
+            },
+            {
+                  "t": "古今对话",
+                  "d": "《孙子算经》的歌诀与现代构造法殊途同归，你能把歌诀翻译成公式吗？"
+            }
+      ],
+      "layers": [
+            {
+                  "name": "一次同余方程",
+                  "concepts": "ax≡b(mod m) / 有解判据",
+                  "task": "判断方程是否有解、解是否唯一。",
+                  "page": "congruence-basic.html"
+            },
+            {
+                  "name": "逆元与中国剩余定理",
+                  "concepts": "扩展欧几里得 / CRT / 两两互素",
+                  "task": "会求乘法逆元、用 CRT 求解方程组。",
+                  "page": "congruence.html"
+            },
+            {
+                  "name": "古今智慧与工程",
+                  "concepts": "孙子算经 / RSA加速 / 并行计算",
+                  "task": "迁移到密码加速与分布式并行计算。",
+                  "page": "congruence-extend.html"
+            }
+      ]
+};
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 

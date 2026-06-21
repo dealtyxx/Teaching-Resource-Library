@@ -1,5 +1,5 @@
 /**
- * 同余方程 - 思政可视化
+ * 同余方程 - 价值引领可视化
  * 主题：平衡协调·和谐统一
  */
 
@@ -28,7 +28,7 @@ let a = 3, b = 2, m = 7;
 let currentTheme = 'balance';
 let isAnimating = false;
 
-// 思政主题数据
+// 价值主题数据
 const themes = {
     balance: {
         name: '平衡分配',
@@ -269,7 +269,7 @@ async function solve() {
         noSolution.innerHTML = `
             <h3>⚠️ 方程无解</h3>
             <p>gcd(${a}, ${m}) = ${g} 不能整除 ${b}</p>
-            <p style="margin-top: 1rem;">思政寓意：某些条件下可能没有完美的平衡点，需要调整参数或重新规划方案</p>
+            <p style="margin-top: 1rem;">价值引领寓意：某些条件下可能没有完美的平衡点，需要调整参数或重新规划方案</p>
         `;
         container.appendChild(noSolution);
     } else {
@@ -320,7 +320,7 @@ async function solve() {
         step4.appendChild(grid);
         container.appendChild(step4);
 
-        // 思政应用
+        // 价值引领应用
         await sleep(500);
         const scenarioIndex = result.solutions[0] % theme.scenarios.length;
         const application = document.createElement('div');

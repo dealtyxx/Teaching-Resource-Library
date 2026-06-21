@@ -350,7 +350,7 @@ function loadCase(index) {
     updateDefinitionPanel(currentConcept);
     updateExamplesList(currentConcept);
 
-    // 更新思政内涵
+    // 更新价值内涵
     document.getElementById('philosophyPanel').innerHTML =
         `<p style="font-size: 0.85rem; line-height: 1.6;">${caseData.philosophy}</p>`;
 
@@ -398,8 +398,9 @@ document.addEventListener('DOMContentLoaded', () => {
             '<p style="color: var(--text-secondary); font-size: 0.85rem;">展示映射后显示性质</p>';
     });
 
-    // 对比按钮
-    document.getElementById('compareBtn').addEventListener('click', () => {
+    // 对比按钮（该页未提供 compareBtn 时安全跳过，避免初始化中断）
+    const compareBtn = document.getElementById('compareBtn');
+    if (compareBtn) compareBtn.addEventListener('click', () => {
         showConceptComparison();
     });
 
@@ -425,7 +426,7 @@ function showConceptComparison() {
                         <th>核心特征</th>
                         <th>数学表示</th>
                         <th>关键条件</th>
-                        <th>思政意义</th>
+                        <th>价值意义</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -499,7 +500,7 @@ function showConceptComparison() {
 
         <div style="margin-top: 1.5rem; background: linear-gradient(135deg, rgba(214, 59, 29, 0.1), rgba(255, 180, 0, 0.1)); padding: 1.5rem; border-radius: 12px; border: 2px solid var(--accent-red);">
             <h4 style="font-family: var(--font-title); font-size: 1.1rem; color: var(--accent-red); margin-bottom: 1rem;">
-                思政综合：中国特色社会主义制度的代数结构
+                价值引领综合：中国特色社会主义制度的代数结构
             </h4>
             <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
                 <p style="margin-bottom: 0.8rem;">

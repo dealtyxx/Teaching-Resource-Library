@@ -14,16 +14,20 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet">
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6" defer></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>
         MathJax = {
             tex: {
                 inlineMath: [['$', '$'], ['\\(', '\\)']],
                 displayMath: [['$$', '$$'], ['\\[', '\\]']]
             }
+        ,
+            startup: { typeset: true }
         };
     </script>
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="formula_interpretation.css" data-page-fix="1">
 </head>
 
 <body>
@@ -46,8 +50,8 @@
     <div class="app-container">
         <header class="main-header">
             <div class="header-content">
-                <h1>红色数理 <span class="highlight">命题解释与真值：求真务实的逻辑</span></h1>
-                <p class="subtitle">Interpretation & Truth Values: The Logic of Seeking Truth from Facts</p>
+                <h1>红色数理 <span class="highlight">进阶层</span></h1>
+                <p class="subtitle">真值表自动铺排 · 命题解释与真值：求真务实的逻辑</p>
             </div>
             <div class="header-tabs">
                 <button class="tab-btn active" data-tab="assignments" aria-label="成真与成假赋值">成真与成假赋值</button>
@@ -62,13 +66,13 @@
                 <div class="content-area">
                     <div class="section-header">
                         <h2>成真赋值与成假赋值</h2>
-                        <p class="section-desc">探索不同条件（赋值）下命题的真假，理解"实践是检验真理的唯一标准"</p>
+                        <p class="section-desc">探索不同条件（赋值）下命题的真假，理解“实践是检验真理的唯一标准”。</p>
                     </div>
 
                     <div class="explorer-container">
                         <div class="control-panel">
                             <h3>设定命题公式</h3>
-                            <div class="connective-label">选择联结词示例:</div>
+                            <div class="connective-label">选择联结词示例</div>
                             <div class="preset-buttons">
                                 <button class="preset-btn" data-formula="!p" data-desc="NOT (¬): 否定 - 不搞一刀切" aria-label="¬ 不搞一刀切">
                                     <span class="op-symbol">¬</span> 不搞一刀切
@@ -79,18 +83,18 @@
                                 <button class="preset-btn" data-formula="p | q" data-desc="OR (∨): 析取 - 多措并举" aria-label="∨ 多措并举">
                                     <span class="op-symbol">∨</span> 多措并举
                                 </button>
-                                <button class="preset-btn" data-formula="p - aria-label="q" data-desc="IMPLIES (→): 蕴含 - 科学决策"> → 科学决策"> q" data-desc="IMPLIES (→): 蕴含 - 科学决策">
+                                <button class="preset-btn" data-formula="p -> q" data-desc="IMPLIES (→): 蕴含 - 科学决策" aria-label="→ 科学决策">
                                     <span class="op-symbol">→</span> 科学决策
                                 </button>
-                                <button class="preset-btn" data-formula="p <- aria-label="q" data-desc="IFF (↔): 等价 - 理论实践"> ↔ 理论实践"> q" data-desc="IFF (↔): 等价 - 理论实践">
+                                <button class="preset-btn" data-formula="p <-> q" data-desc="IFF (↔): 等价 - 理论实践" aria-label="↔ 理论实践">
                                     <span class="op-symbol">↔</span> 理论实践
                                 </button>
                             </div>
                             <div class="current-connective" id="currentConnective">
-                                当前选择: <strong>自定义</strong>
+                                当前选择: <strong>自定</strong>
                             </div>
                             <div class="input-group">
-                                <input type="text" id="formulaInput" value="p -> q" placeholder="输入公式 (如 p -> q)">
+                                <input type="text" id="formulaInput" value="p -> q" placeholder="输入公式（如 p -> q）">
                                 <button id="analyzeBtn" aria-label="分析真值">分析真值</button>
                             </div>
                             <div class="legend">
@@ -110,39 +114,38 @@
             <div class="tab-content" id="classificationTab">
                 <div class="content-area">
                     <div class="section-header">
-                        <h2>命题公式分类</h2>
-                        <p class="section-desc">永真式（重言式）、永假式（矛盾式）与可满足式</p>
+                        <h2>成真赋值与成假赋值</h2><p class="section-desc">探索不同条件（赋值）下命题的真假，理解“实践是检验真理的唯一标准”。</p>
                     </div>
 
                     <div class="classification-stage">
                         <div class="type-cards">
                             <div class="type-card tautology">
-                                <div class="card-icon">☀️</div>
+                                <div class="card-icon">☀</div>
                                 <h3>永真式 (Tautology)</h3>
-                                <p>无论变元如何取值，公式恒为真。</p>
+                                <p>无论变元如何取值，公式恒为真</p>
                                 <div class="ideology-tag">核心价值</div>
                                 <p class="example">例如：$p \lor \neg p$ (发展是硬道理)</p>
                             </div>
                             <div class="type-card contradiction">
                                 <div class="card-icon">🌑</div>
                                 <h3>永假式 (Contradiction)</h3>
-                                <p>无论变元如何取值，公式恒为假。</p>
+                                <p>无论变元如何取值，公式恒为假</p>
                                 <div class="ideology-tag">根本错误</div>
                                 <p class="example">例如：$p \land \neg p$ (自相矛盾)</p>
                             </div>
                             <div class="type-card satisfiable">
-                                <div class="card-icon">🌤️</div>
+                                <div class="card-icon">🌤</div>
                                 <h3>可满足式 (Satisfiable)</h3>
-                                <p>至少存在一种赋值使公式为真。</p>
+                                <p>至少存在一种赋值使公式为真</p>
                                 <div class="ideology-tag">具体政策</div>
                                 <p class="example">例如：$p \rightarrow q$ (因地制宜)</p>
                             </div>
                         </div>
 
                         <div class="classifier-tool">
-                            <h3>智能判定器</h3>
+                            <h3>智能判定</h3>
                             <div class="classifier-input">
-                                <input type="text" id="classInput" placeholder="输入公式进行判定 (如 p & !p)">
+                                <input type="text" id="classInput" placeholder="输入公式进行判定（如 p & !p）">
                                 <button id="classBtn" aria-label="判定类型">判定类型</button>
                             </div>
                             <div class="result-display" id="classResult">
@@ -157,8 +160,7 @@
             <div class="tab-content" id="simulatorTab">
                 <div class="content-area">
                     <div class="section-header">
-                        <h2>情景模拟：寻找成真之路</h2>
-                        <p class="section-desc">通过调整"政策变量"（赋值），实现"国家发展目标"（命题为真）</p>
+                        <h2>成真赋值与成假赋值</h2><p class="section-desc">探索不同条件（赋值）下命题的真假，理解“实践是检验真理的唯一标准”。</p>
                     </div>
 
                     <div class="game-container">
@@ -167,7 +169,7 @@
                             <div class="formula-display" id="missionFormula">
                                 $$ (p \land q) \lor (r \land s) $$
                             </div>
-                            <p class="mission-desc">只有当产业兴旺(p)且生态宜居(q)，或者乡风文明(r)且治理有效(s)时，才能实现目标。</p>
+                            <p class="mission-desc">只有当产业兴旺 (p) 且生态宜居 (q)，或者乡风文明 (r) 且治理有效 (s) 时，才能实现目标。</p>
                         </div>
 
                         <div class="controls-area" id="variableControls">
@@ -176,7 +178,7 @@
 
                         <div class="status-monitor">
                             <div class="status-indicator" id="missionStatus">
-                                <span class="status-icon">⏳</span>
+                                <span class="status-icon"></span>
                                 <span class="status-text">等待实践...</span>
                             </div>
                         </div>
@@ -198,54 +200,101 @@
                     </div>
                     <div class="concept-content" id="conceptContent">
                         <h4>解释 (Interpretation)</h4>
-                        <p>命题公式中各变元的一组真值赋值，称为该公式的一个解释。</p>
+                        <p>命题公式中各变元的一组真值赋值，称为该公式的一个解释</p>
 
                         <h4>成真与成假</h4>
-                        <p>使公式真值为T的解释称为<strong>成真赋值</strong>；使公式真值为F的解释称为<strong>成假赋值</strong>。</p>
+                        <p>使公式真值为 T 的解释称为 <strong>成真赋值</strong>；使公式真值为 F 的解释称为 <strong>成假赋值</strong>。</p>
                     </div>
                 </div>
 
                 <div class="panel-section">
                     <div class="panel-header">
                         <span class="panel-icon">💡</span>
-                        <h3>思政启示</h3>
+                        <h3>价值启示</h3>
                     </div>
                     <div class="insight-content">
                         <h4>🔍 求真务实</h4>
                         <p>"解释"就是实践。不同的实践条件（赋值）会导致不同的结果。我们要寻找能使国家发展目标"成真"的正确道路。</p>
 
                         <h4>🚫 避免矛盾</h4>
-                        <p>永假式代表逻辑上的自相矛盾。在政策制定中，要避免"既要...又要..."中的逻辑冲突，确保政策的可执行性。</p>
+                        <p>永假式代表逻辑上的自相矛盾。在政策制定中，要避免“既要...又要...”中的逻辑冲突，确保政策的可执行性。</p>
 
                         <h4>🌟 坚定信仰</h4>
-                        <p>永真式代表绝对真理。就像"为人民服务"的宗旨，在任何时代、任何条件下都是正确的。</p>
+                        <p>永真式代表绝对真理。就“为人民服务”的宗旨而言，在任何时代、任何条件下都是正确的。</p>
                     </div>
                 </div>
             </aside>
         </main>
     </div>
-
-    <script src="formula_interpretation.js"></script>
+<script>
+    (function () {
+        var sidebar = document.querySelector('main.main-stage > .sidebar');
+        var header = document.querySelector('.main-header');
+        if (sidebar && header && !header.contains(sidebar)) {
+            sidebar.classList.add('left-info-panel');
+            header.appendChild(sidebar);
+        }
+    })();
+</script>
+<script src="formula_interpretation.js"></script>
 
 <!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
+<footer class="page-footer">
+    <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队<br>
+        版权所有 · 项目总负责人：谢鑫</p>
 </footer>
-
+    <script>
+        window.SECTION_META = {
+          "layers": [
+            {
+              "name": "解释与赋值",
+              "concepts": "变元真值指派 / 2ⁿ 种解释",
+              "task": "枚举所有解释下的真值。",
+              "page": "formula_interpretation-basic.html"
+            },
+            {
+              "name": "公式分类",
+              "concepts": "重言式 / 矛盾式 / 可满足式",
+              "task": "据真值表对公式分类。",
+              "page": "formula_interpretation.html"
+            },
+            {
+              "name": "SAT 与电路验证",
+              "concepts": "SAT / NP完全 / 电路等价",
+              "task": "迁移到可满足性与电路验证。",
+              "page": "formula_interpretation-extend.html"
+            }
+          ],
+          "chapter": "第5章 命题逻辑",
+          "section": "5.3 命题公式解释与真值表 · 进阶层",
+          "title": "公式分类",
+          "grounding": "本节主题：解释=对所有命题变元的一组真值指派；真值表列出全部 2ⁿ 种解释下公式的真值。据此分类：重言式（永真）、矛盾式（永假）、可满足式（存在使其真的解释）。真值表是判定逻辑性质的根本方法。本页定位为进阶层：据真值表对公式分类，理解重言式、矛盾式与可满足式。",
+          "steps": [
+            {"name":"情境引入","desc":"一个论断是『放之四海皆准』还是『偶尔成立』？如何穷举判定？"},
+            {"name":"对象抽取","desc":"把变元的所有取值组合抽象为 2ⁿ 种解释。"},
+            {"name":"结构建模","desc":"用真值表系统枚举所有解释下的真值。"},
+            {"name":"推理求解","desc":"据真值表判定重言/矛盾/可满足。"},
+            {"name":"程序验证","desc":"用本页交互生成真值表，分类公式。"},
+            {"name":"迁移反思","desc":"迁移到 SAT 求解、电路验证、测试覆盖。"}
+          ],
+          "ideology": {
+            "title": "求真务实 · 实践检验",
+            "text": "真值表用『穷举一切情形』来判定真理的普遍性，正是实事求是、用实践检验认识的科学态度。重言式象征经得起一切检验的真理，可满足式提醒我们结论的成立有其条件——不可以偏概全，也不可因噎废食。",
+            "dims": ["实事求是", "求真务实", "科学精神"],
+            "quote": "实践是检验真理的唯一标准——真值表正是把『一切情形』逐一检验的逻辑实践。"
+          },
+          "reflect": [
+            "重言式、矛盾式、可满足式三者的关系是什么？矛盾式可满足吗？",
+            "真值表有 2ⁿ 行，当 n 很大时为何不可行？这预示了什么计算难题（SAT）？",
+            "如何只用真值表判断两个公式是否逻辑等价？"
+          ],
+          "transfer": [
+            "SAT 问题（判定公式是否可满足）是第一个被证明的 NP 完全问题。",
+            {"t":"电路验证","d":"判断两个电路是否等价，本质是判断对应公式是否重言等价。"}
+          ]
+        };
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 

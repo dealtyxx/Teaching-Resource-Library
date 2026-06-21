@@ -1,5 +1,5 @@
 /**
- * 鸽巢原理可视化 - 思政教育版
+ * 鸽巢原理可视化 - 价值引领版
  */
 
 // DOM 元素
@@ -29,7 +29,7 @@ let numPigeons = 8;
 let currentStrategy = 'balanced';
 let isAnimating = false;
 
-// 思政场景数据
+// 价值引领场景数据
 const scenarios = {
     resource: {
         name: '资源分配',

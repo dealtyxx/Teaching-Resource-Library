@@ -8,11 +8,14 @@
     <meta name="description" content="离散数学课程 - 红色数理 - 校验码">
 
     <link rel="stylesheet" href="checksum.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="../chapter1-compact.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
         rel="stylesheet">
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
@@ -63,7 +66,7 @@
                 </div>
 
                 <div class="control-group">
-                    <label>思政解读</label>
+                    <label>价值解读</label>
                     <div class="info-panel">
                         <h3 id="szTitle">铁的纪律</h3>
                         <p id="szDesc">革命指令的传达必须准确无误（完整性），任何微小的偏差（错误）都可能导致严重的后果。校验码机制象征着严格的纪律审查，确保政令畅通。</p>
@@ -124,19 +127,104 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "chapter": "第1章 计数基础与数论基础",
+      "section": "1.3.3 校验码设计 · 进阶层",
+      "title": "常见校验方案",
+      "grounding": "本节主题：校验码用模运算给数据附加冗余位以检错。如 ISBN-10 用 mod 11 加权校验，身份证末位用 mod 11 映射，银行卡用 Luhn（mod 10）算法。核心：构造加权和并取模，使合法编码满足某个同余式；单个数字错误或相邻换位会破坏该同余式，从而被检出。",
+      "steps": [
+            {
+                  "name": "情境引入",
+                  "desc": "录入身份证、银行卡时打错一位，系统怎么当场发现？"
+            },
+            {
+                  "name": "对象抽取",
+                  "desc": "把编码各位抽象为整数，把『合法』抽象为满足某个模同余式。"
+            },
+            {
+                  "name": "结构建模",
+                  "desc": "设计加权系数与模数，使常见错误（错位、换位）必然违反同余。"
+            },
+            {
+                  "name": "推理求解",
+                  "desc": "计算加权和取模得校验位，验证检错能力的覆盖范围。"
+            },
+            {
+                  "name": "程序验证",
+                  "desc": "用本页交互篡改某位，观察校验是否报错。"
+            },
+            {
+                  "name": "迁移反思",
+                  "desc": "迁移到 ISBN、Luhn、CRC、纠错码。"
+            }
+      ],
+      "ideology": {
+            "title": "严谨把关 · 责任担当",
+            "text": "校验码以一位冗余守住数据的『最后一公里』，象征着严格的审查把关与责任意识——差之毫厘的录入错误，被一道模运算的关卡拦下。它启示我们：制度的价值，往往在于用低成本的校验机制，防住高代价的系统性差错。",
+            "dims": [
+                  "规则意识",
+                  "责任担当",
+                  "严谨求实"
+            ],
+            "quote": "100-1=0——一位校验码看似微小，却是数据可信链条上不可或缺的一环。"
+      },
+      "reflect": [
+            "为什么 ISBN 用模 11 而不是模 10？模数的选择如何影响检错能力？",
+            "校验码能『检错』却一般不能『纠错』——这两者的本质区别是什么？",
+            "相邻两位换位是常见录入错误，好的校验方案为何能专门防住它？"
+      ],
+      "transfer": [
+            "Luhn 算法（mod 10）保护着全球银行卡号，它如何用简单加权防住手误？",
+            {
+                  "t": "从检错到纠错",
+                  "d": "再加冗余位就能定位并纠正错误（汉明码）——本节是纠错码的起点。"
+            },
+            {
+                  "t": "CRC 校验",
+                  "d": "网络与存储用 CRC（多项式取模）检错，与本节模运算思想如何一脉相承？"
+            }
+      ],
+      "layers": [
+            {
+                  "name": "校验位思想",
+                  "concepts": "加权和取模 / 冗余位 / 同余判定",
+                  "task": "理解一位冗余如何当场发现录入错误。",
+                  "page": "checksum-basic.html"
+            },
+            {
+                  "name": "常见校验方案",
+                  "concepts": "ISBN(mod11) / Luhn(mod10) / 换位检测",
+                  "task": "会算校验位、分析其检错能力边界。",
+                  "page": "checksum.html"
+            },
+            {
+                  "name": "从检错到纠错",
+                  "concepts": "CRC / 汉明码 / 纠错冗余",
+                  "task": "迁移到通信与存储中的纠错编码。",
+                  "page": "checksum-extend.html"
+            }
+      ]
+};
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 

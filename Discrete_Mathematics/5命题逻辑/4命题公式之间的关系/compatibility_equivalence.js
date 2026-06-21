@@ -169,7 +169,7 @@ function setupEquivalence() {
                 </div>
             `;
         }
-        if (window.MathJax) MathJax.typesetPromise();
+        if (window.MathJax) window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise();
     });
 }
 
@@ -231,7 +231,7 @@ function setupImplication() {
                 </div>
             `;
         }
-        if (window.MathJax) MathJax.typesetPromise();
+        if (window.MathJax) window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise();
     });
 }
 
@@ -306,7 +306,7 @@ function setupChallenge() {
 
         feedback.textContent = '';
         nextBtn.classList.add('hidden');
-        if (window.MathJax) MathJax.typesetPromise();
+        if (window.MathJax) window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise();
     }
 
     function checkAnswer(idx, btn) {

@@ -337,7 +337,7 @@ function setupClassifier() {
                 <h3 style="color: ${color}; margin-bottom: 12px; font-size: 1.8rem;">${type}</h3>
                 <p style="color: #34495e; font-size: 1.1rem; margin-bottom: 16px;">${desc}</p>
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; border-left: 5px solid ${color}; text-align: left;">
-                    <h4 style="margin-bottom: 8px; color: ${color};">💡 思政解读</h4>
+                    <h4 style="margin-bottom: 8px; color: ${color};">💡 价值解读</h4>
                     <p style="color: #7f8c8d; line-height: 1.6; margin: 0;">${ideologyNote}</p>
                 </div>
             </div>
@@ -398,7 +398,7 @@ function setupSimulator() {
 
         // Re-render MathJax
         if (window.MathJax) {
-            MathJax.typesetPromise();
+            window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise();
         }
 
         checkStatus();

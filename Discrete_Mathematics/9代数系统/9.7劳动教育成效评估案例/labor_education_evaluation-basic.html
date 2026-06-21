@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第9章 代数系统 - 劳动评价合成面板</title>
+  <meta name="description" content="9.7 劳动教育成效评估案例 - 基础层 · 评价合成运算">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{
+  --ink:#251713; --muted:#6c5a52; --paper:#fff8ec; --card:rgba(255,253,246,0.92);
+  --line:rgba(116,55,31,0.18); --red:#b42318; --red-2:#de5b3d; --gold:#c58a1f;
+  --green:#2f7d57; --blue:#2f5f9f; --amber:#f0a202;
+  --shadow:0 18px 50px rgba(69,31,15,0.14);
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; min-height:100vh; color:var(--ink);
+  font-family:"Noto Serif SC","Microsoft YaHei",serif;
+  background:
+    radial-gradient(circle at 16% 12%, rgba(222,91,61,.18), transparent 28%),
+    radial-gradient(circle at 82% 8%, rgba(47,95,159,.14), transparent 26%),
+    linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);
+  overflow:hidden;
+}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:14px;overflow:auto;}
+.glass-pane{padding:22px;overflow:auto;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}
+.dot.red{background:#ff5f56;} .dot.yellow{background:#ffbd2e;} .dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}
+.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.tab-nav{display:flex;flex-direction:column;gap:6px;}
+.tab-btn{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);color:#5b4136;cursor:pointer;font:inherit;font-weight:700;font-size:14px;transition:all .2s;text-align:left;}
+.tab-btn:hover{background:rgba(180,35,24,.08);color:var(--red);}
+.tab-btn.active{background:var(--red);color:#fff;border-color:var(--red);box-shadow:0 6px 16px rgba(180,35,24,.25);}
+.tab-btn .ico{font-size:18px;}
+.sidebar-dyn{display:grid;gap:10px;}
+.control-group{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
+.control-group>label{display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:8px;}
+.control-group select{width:100%;min-height:36px;border-radius:8px;border:1px solid rgba(116,55,31,.22);background:#fffaf2;color:var(--ink);padding:0 10px;font:inherit;}
+.mini-info{font-size:13px;color:#5b4136;line-height:1.7;}
+.mini-info strong{color:var(--red);}
+.action-row{margin-top:auto;display:flex;gap:8px;padding-top:6px;}
+.action-btn{flex:1;padding:11px 14px;border-radius:8px;border:none;background:var(--red);color:#fff;font:inherit;font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(180,35,24,.25);transition:all .2s;}
+.action-btn:hover{background:#8d1a12;}
+input[type=range]{appearance:none;-webkit-appearance:none;width:100%;height:5px;border-radius:999px;background:rgba(180,35,24,.16);outline:none;margin:6px 0;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--red);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.2);cursor:pointer;}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--red);border:2px solid #fff;cursor:pointer;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:16px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);} .mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.tab-content{display:none;}
+.tab-content.active{display:block;animation:fade .3s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.pane-title{color:var(--red);font-size:1.25rem;margin:0 0 6px;}
+.pane-sub{color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 16px;}
+.data-table{border-radius:10px;overflow:hidden;border:1px solid var(--line);margin:14px 0;}
+.data-table table{width:100%;border-collapse:collapse;font-size:14px;}
+.data-table th{background:var(--red);color:#fff;padding:11px 10px;text-align:left;font-weight:700;font-size:13px;}
+.data-table td{padding:10px;border-bottom:1px solid var(--line);}
+.data-table tbody tr{cursor:pointer;transition:background .15s;}
+.data-table tbody tr:hover{background:rgba(180,35,24,.06);}
+.data-table tbody tr.sel{background:rgba(197,138,31,.18);}
+.dim-card{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:16px;margin:12px 0;}
+.dim-card h3{margin:0 0 10px;color:var(--ink);font-size:1rem;}
+.score-display{display:flex;align-items:center;gap:12px;margin:10px 0;}
+.score-label{min-width:108px;font-weight:600;color:var(--muted);font-size:13px;display:flex;align-items:center;gap:6px;}
+.score-bar{flex:1;height:26px;background:rgba(180,35,24,.1);border-radius:999px;overflow:hidden;}
+.score-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--gold));display:flex;align-items:center;justify-content:flex-end;padding-right:10px;color:#fff;font-weight:700;font-size:12px;width:0;transition:width .6s ease;border-radius:999px;white-space:nowrap;}
+.panel-card{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:18px;margin:14px 0;}
+.panel-card h3{margin:0 0 14px;color:var(--ink);font-size:1rem;}
+.weight-item{margin:14px 0;}
+.weight-head{display:flex;justify-content:space-between;margin-bottom:4px;font-weight:700;font-size:14px;}
+.weight-head .wv{color:var(--red);font-family:"JetBrains Mono",monospace;}
+.weight-sum{margin-top:14px;padding:12px;border-radius:8px;background:rgba(180,35,24,.08);display:flex;justify-content:space-between;align-items:center;font-weight:700;}
+.weight-sum b{color:var(--red);font-size:1.1rem;font-family:"JetBrains Mono",monospace;}
+.formula-box{border-radius:10px;border:2px solid var(--gold);background:linear-gradient(135deg,rgba(214,59,29,.05),rgba(197,138,31,.06));padding:18px;margin:14px 0;text-align:center;}
+.formula-box h3{margin:0 0 8px;color:var(--ink);font-size:1rem;}
+.formula{font-family:"JetBrains Mono",monospace;font-size:1.05rem;color:var(--red);font-weight:800;margin:10px 0;line-height:1.6;}
+.formula-note{color:var(--muted);font-size:13px;line-height:1.7;}
+.result-card{border-radius:12px;border:2px solid var(--gold);background:linear-gradient(135deg,rgba(214,59,29,.1),rgba(197,138,31,.12));padding:22px;margin:14px 0;text-align:center;}
+.result-title{color:var(--red);font-weight:700;margin-bottom:8px;}
+.result-score{font-size:3rem;font-weight:800;color:var(--red);font-family:"JetBrains Mono",monospace;line-height:1.1;}
+.result-level{display:inline-block;margin-top:8px;padding:6px 20px;border-radius:999px;background:rgba(197,138,31,.2);color:#8a5d0b;font-weight:700;}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:14px 16px;margin-top:16px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}
+.insight-box p{margin:0;font-size:14px;line-height:1.7;color:#4e362d;}
+.badges{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;}
+.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){
+  body{overflow:auto;}
+  .app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}
+  .side-panel,.glass-pane{max-height:none;overflow:visible;}
+  .action-row{margin-top:12px;}
+}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">基础层</span></h1>
+        <p class="subtitle">劳动评价合成面板 · 评价合成运算</p>
+      </div>
+      <p class="intro">把劳动态度、技能实践、协作服务三项表现作为代数元素，用一个加权合成运算汇成综合评价。</p>
+
+      <div class="value-panel">
+        <h3>崇尚劳动</h3>
+        <p>把每一项劳动表现都纳入可量、可比的合成运算，让评价公平一致，引导青年在实践中成长。</p>
+        <div class="dim-list"><span>劳动态度</span><span>技能实践</span><span>协作服务</span></div>
+      </div>
+
+      <nav class="tab-nav" id="tabNav">
+        <button class="tab-btn active" data-tab="tab1"><span class="ico">📋</span><span>数据采集</span></button>
+        <button class="tab-btn" data-tab="tab2"><span class="ico">➕</span><span>评价合成</span></button>
+      </nav>
+
+      <div class="sidebar-dyn" id="sidebarDyn"></div>
+      <div class="action-row" id="actionRow"></div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>选择一名学生，调节三项权重，把多项表现合成为一个综合评价分。</span>
+        <div class="visual-badge">评价指标 + 加权合成</div>
+      </section>
+
+      <!-- Tab 1 -->
+      <div class="tab-content active" id="tab1">
+        <h2 class="pane-title">劳动表现数据采集</h2>
+        <p class="pane-sub">点击表格任一行选择学生，作为评价合成的对象。每个学生有三项劳动表现得分。</p>
+        <div class="data-table">
+          <table><thead><tr><th>学号</th><th>姓名</th><th>劳动态度 a</th><th>技能实践 b</th><th>协作服务 c</th></tr></thead>
+          <tbody id="studentBody"></tbody></table>
+        </div>
+        <div class="insight-box">
+          <div class="insight-title">🌱 把表现抽象成元素</div>
+          <p>每名学生的三项得分 (a, b, c) 就是代数系统里的「元素」。要得到一个综合评价，需要一个「运算」把这三项合成为一个分数——这正是评价合成运算的起点。</p>
+        </div>
+      </div>
+
+      <!-- Tab 2 -->
+      <div class="tab-content" id="tab2">
+        <h2 class="pane-title">评价合成：把三项表现汇成一个分</h2>
+        <p class="pane-sub">拖动滑杆调整三项权重，系统自动归一化（权重之和为 1），实时合成综合评价。</p>
+
+        <div class="panel-card">
+          <h3>权重配置</h3>
+          <div class="weight-item"><div class="weight-head"><span>🙂 劳动态度权重 w₁</span><span class="wv" id="w1Value">0.34</span></div><input type="range" id="w1Slider" min="0" max="100" value="34" step="2"></div>
+          <div class="weight-item"><div class="weight-head"><span>🛠️ 技能实践权重 w₂</span><span class="wv" id="w2Value">0.33</span></div><input type="range" id="w2Slider" min="0" max="100" value="33" step="2"></div>
+          <div class="weight-item"><div class="weight-head"><span>🤝 协作服务权重 w₃</span><span class="wv" id="w3Value">0.33</span></div><input type="range" id="w3Slider" min="0" max="100" value="33" step="2"></div>
+          <div class="weight-sum"><span>权重总和</span><b id="weightSum">1.00</b></div>
+        </div>
+
+        <div class="dim-card">
+          <h3>三项表现（当前学生）</h3>
+          <div class="score-display"><div class="score-label">🙂 劳动态度</div><div class="score-bar"><div class="score-fill" id="barA">0</div></div></div>
+          <div class="score-display"><div class="score-label">🛠️ 技能实践</div><div class="score-bar"><div class="score-fill" id="barB">0</div></div></div>
+          <div class="score-display"><div class="score-label">🤝 协作服务</div><div class="score-bar"><div class="score-fill" id="barC">0</div></div></div>
+        </div>
+
+        <div class="formula-box">
+          <h3>合成运算</h3>
+          <div class="formula" id="formulaLine">f(a,b,c) = w₁·a + w₂·b + w₃·c</div>
+          <div class="formula-note">把三项表现「合成」为一个综合分，就是在元素上定义一个运算。</div>
+        </div>
+
+        <div class="result-card">
+          <div class="result-title">综合评价分</div>
+          <div class="result-score" id="finalScore">--</div>
+          <div class="result-level" id="scoreLevel">请选择学生</div>
+        </div>
+
+        <div class="insight-box">
+          <div class="insight-title">⚖️ 合成即运算</div>
+          <p>权重决定每一项表现在综合评价中的分量。无论怎样分配权重，合成运算都把 (a, b, c) 唯一地映射到一个综合分——这就是把评价「合成」抽象成代数运算的直观含义。</p>
+          <div class="badges"><span class="badge">劳动精神</span><span class="badge">公平评价</span><span class="badge">全面成长</span></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+    <div>版权所有 · 项目总负责人：谢鑫</div>
+  </footer>
+
+  <script>
+    window.SECTION_META = {
+      "layers": [
+            { "name": "评价合成运算", "concepts": "指标合成 / 代数元素", "task": "把评价合成抽象为运算。", "page": "labor_education_evaluation-basic.html" },
+            { "name": "良构评价", "concepts": "结合律保一致 / 同态综合", "task": "设计满足良好性质的评价合成。", "page": "labor_education_evaluation.html" },
+            { "name": "综合评价体系", "concepts": "绩效考核 / 聚合算子", "task": "迁移到综合素质评价体系。", "page": "labor_education_evaluation-extend.html" }
+      ],
+      "chapter": "第9章 代数系统",
+      "section": "9.7 劳动教育成效评估案例",
+      "title": "代数系统应用 · 劳动教育成效评估",
+      "grounding": "本节主题：用代数系统建模劳动教育评估——把评价指标的『合成』抽象为运算，用结合律保证分批汇总一致、用单位元表示基准、用同态把多维评分映射为综合评价，体会代数结构在评价体系设计中的应用。",
+      "steps": [
+            { "name": "情境引入", "desc": "多维度的劳动教育成效，如何科学合成为可比的综合评价？" },
+            { "name": "对象抽取", "desc": "把评价指标与合成规则抽象为代数系统的元素与运算。" },
+            { "name": "结构建模", "desc": "用结合律保证汇总一致、用同态做综合映射。" },
+            { "name": "推理求解", "desc": "设计满足良好性质的评价合成运算。" },
+            { "name": "程序验证", "desc": "用本页交互合成评价，验证一致性与公平性。" },
+            { "name": "迁移反思", "desc": "迁移到综合评价、绩效考核、指标体系。" }
+      ],
+      "ideology": {
+            "title": "崇尚劳动 · 五育并举",
+            "text": "劳动教育是培养德智体美劳全面发展的社会主义建设者和接班人的重要一环。用代数系统科学评估劳动成效，让评价公平一致、可量可比，体现尊重劳动、崇尚劳动的价值导向，引导青年树立正确的劳动观、奋斗观。",
+            "dims": [ "劳动精神", "五育并举", "公平正义" ],
+            "quote": "劳动最光荣、最崇高、最伟大、最美丽——科学的评价，让每一份劳动付出都被公正看见。"
+      },
+      "reflect": [
+            "评价合成运算若不满足结合律，分批汇总与一次汇总结果不同，会带来什么问题？",
+            "如何用『单位元』表示评价的基准/中性项？",
+            "把多维评分映射为综合分（同态），如何避免重要维度被淹没？"
+      ],
+      "transfer": [
+            "学生综合素质评价、员工绩效考核都需要良构的合成运算保证公平。",
+            { "t": "加权与聚合", "d": "不同聚合算子（求和/取大/加权）满足哪些代数性质？如何选择？" }
+      ]
+    };
+  </script>
+
+  <script>
+  (function(){
+    "use strict";
+    const students = [
+      { id:'2021001', name:'张明', a:88, b:84, c:90 },
+      { id:'2021002', name:'李华', a:92, b:90, c:86 },
+      { id:'2021003', name:'王芳', a:85, b:95, c:88 },
+      { id:'2021004', name:'刘强', a:78, b:82, c:80 },
+      { id:'2021005', name:'陈静', a:95, b:90, c:92 },
+      { id:'2021006', name:'赵磊', a:82, b:85, c:83 }
+    ];
+    let weights = { w1:0.34, w2:0.33, w3:0.33 };
+    let currentStudent = null;
+    let currentTab = 'tab1';
+    const $ = id => document.getElementById(id);
+    const sidebarDyn = $('sidebarDyn');
+    const actionRow = $('actionRow');
+
+    function composite(s){ return weights.w1*s.a + weights.w2*s.b + weights.w3*s.c; }
+    function levelOf(v){ return v>=90?'优秀':v>=80?'良好':v>=60?'合格':'待提升'; }
+
+    $('tabNav').querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+    function switchTab(id){
+      currentTab=id;
+      $('tabNav').querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
+      document.querySelectorAll('.tab-content').forEach(c=>c.classList.toggle('active',c.id===id));
+      updateSidebar(id);
+    }
+
+    function selectStudent(s){
+      currentStudent=s;
+      document.querySelectorAll('#studentBody tr').forEach(tr=>tr.classList.toggle('sel',tr.dataset.id===s.id));
+      const sel=$('studentSelect'); if(sel) sel.value=s.id;
+      const cur=$('curStudent'); if(cur) cur.textContent=`${s.name}（${s.id}）`;
+      if(currentTab==='tab2') renderCompose();
+    }
+
+    function updateSidebar(id){
+      if(id==='tab1'){
+        sidebarDyn.innerHTML=`
+          <div class="control-group"><label>选择学生</label>
+            <select id="studentSelect"><option value="">— 请选择 —</option>${students.map(s=>`<option value="${s.id}">${s.id} ${s.name}</option>`).join('')}</select></div>
+          <div class="control-group"><label>样本统计</label><div class="mini-info">样本数量：<strong>${students.length}</strong> 人　|　评价维度：<strong>3</strong> 项</div></div>`;
+        actionRow.innerHTML=`<button class="action-btn" id="actBtn">开始合成评价</button>`;
+        $('studentSelect').addEventListener('change',e=>{ const s=students.find(x=>x.id===e.target.value); if(s) selectStudent(s); });
+        if(currentStudent) $('studentSelect').value=currentStudent.id;
+        $('actBtn').addEventListener('click',()=>{ if(!currentStudent){alert('请先选择一个学生！');return;} switchTab('tab2'); });
+      } else {
+        sidebarDyn.innerHTML=`
+          <div class="control-group"><label>当前学生</label><div class="mini-info" id="curStudent">${currentStudent?`${currentStudent.name}（${currentStudent.id}）`:'未选择'}</div></div>
+          <div class="control-group"><label>权重预设</label>
+            <select id="presetSelect"><option value="balanced">均衡（1:1:1）</option><option value="attitude">态度优先（5:3:2）</option><option value="skill">技能优先（2:5:3）</option><option value="coop">协作优先（2:3:5）</option></select></div>`;
+        actionRow.innerHTML=`<button class="action-btn" id="actBtn">动画演示合成</button>`;
+        $('presetSelect').addEventListener('change',e=>{
+          const p={balanced:[34,33,33],attitude:[50,30,20],skill:[20,50,30],coop:[20,30,50]}[e.target.value];
+          $('w1Slider').value=p[0]; $('w2Slider').value=p[1]; $('w3Slider').value=p[2]; updateWeights();
+        });
+        $('actBtn').addEventListener('click',()=>{ if(!currentStudent){alert('请先选择学生！');return;} animateCompose(); });
+        renderCompose();
+      }
+    }
+
+    function buildTable(){
+      const tb=$('studentBody'); tb.innerHTML='';
+      students.forEach(s=>{
+        const tr=document.createElement('tr'); tr.dataset.id=s.id;
+        tr.innerHTML=`<td>${s.id}</td><td>${s.name}</td><td>${s.a}</td><td>${s.b}</td><td>${s.c}</td>`;
+        tr.addEventListener('click',()=>selectStudent(s));
+        tb.appendChild(tr);
+      });
+    }
+
+    function updateWeights(){
+      const a=+$('w1Slider').value, b=+$('w2Slider').value, c=+$('w3Slider').value, sum=(a+b+c)||1;
+      weights={ w1:a/sum, w2:b/sum, w3:c/sum };
+      $('w1Value').textContent=weights.w1.toFixed(2);
+      $('w2Value').textContent=weights.w2.toFixed(2);
+      $('w3Value').textContent=weights.w3.toFixed(2);
+      $('weightSum').textContent='1.00';
+      $('formulaLine').textContent=`f = ${weights.w1.toFixed(2)}·a + ${weights.w2.toFixed(2)}·b + ${weights.w3.toFixed(2)}·c`;
+      renderCompose();
+    }
+    ['w1Slider','w2Slider','w3Slider'].forEach(id=>$(id).addEventListener('input',updateWeights));
+
+    function setBar(id,val){ const el=$(id); el.style.width=Math.max(0,Math.min(100,val))+'%'; el.textContent=val.toFixed(0); }
+    function renderCompose(){
+      if(!currentStudent){ ['barA','barB','barC'].forEach(i=>{$(i).style.width='0%';$(i).textContent='0';}); $('finalScore').textContent='--'; $('scoreLevel').textContent='请选择学生'; return; }
+      const s=currentStudent;
+      setBar('barA',s.a); setBar('barB',s.b); setBar('barC',s.c);
+      const v=composite(s);
+      $('finalScore').textContent=v.toFixed(1);
+      $('scoreLevel').textContent=levelOf(v);
+    }
+    function animateCompose(){
+      const s=currentStudent;
+      ['barA','barB','barC'].forEach(i=>{$(i).style.width='0%';});
+      setTimeout(()=>{ setBar('barA',s.a); setBar('barB',s.b); setBar('barC',s.c); },120);
+      $('finalScore').textContent='0.0';
+      const v=composite(s); let cur=0; const step=v/26;
+      const t=setInterval(()=>{ cur+=step; if(cur>=v){cur=v;clearInterval(t);} $('finalScore').textContent=cur.toFixed(1); $('scoreLevel').textContent=levelOf(cur); },28);
+    }
+
+    buildTable();
+    updateSidebar('tab1');
+  })();
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

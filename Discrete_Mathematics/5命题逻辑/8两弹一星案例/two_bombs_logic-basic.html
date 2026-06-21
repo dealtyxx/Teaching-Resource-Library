@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第5章 命题逻辑 - 关键判断符号化</title>
+  <meta name="description" content="5.8 两弹一星案例 - 基础层 · 关键判断符号化">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{
+  --ink:#251713; --muted:#6c5a52; --paper:#fff8ec; --card:rgba(255,253,246,0.92);
+  --line:rgba(116,55,31,0.18); --red:#b42318; --red-2:#de5b3d; --gold:#c58a1f;
+  --green:#2f7d57; --blue:#2f5f9f; --amber:#f0a202;
+  --shadow:0 18px 50px rgba(69,31,15,0.14);
+}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;
+  background:radial-gradient(circle at 16% 12%, rgba(222,91,61,.18), transparent 28%),radial-gradient(circle at 82% 8%, rgba(47,95,159,.14), transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(320px,380px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:14px;overflow:auto;}
+.glass-pane{padding:22px;overflow:auto;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}
+.dot.red{background:#ff5f56;} .dot.yellow{background:#ffbd2e;} .dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}
+.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.sym-box{border-radius:10px;border:1px solid var(--line);background:rgba(255,253,246,.7);padding:12px 14px;}
+.sym-box h3{margin:0 0 8px;font-size:14px;color:var(--blue);}
+.sym-grid{display:grid;gap:5px;font-size:12.5px;color:#5b4136;line-height:1.5;}
+.sym-grid code{font-family:"JetBrains Mono",monospace;color:var(--red);font-weight:700;}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(139,0,0,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}
+.kg-step-head strong{color:var(--red);font-size:.95rem;}
+.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.86rem;}
+.kg-step span{display:block;font-size:.76rem;color:var(--muted);margin-top:3px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.84rem;color:#7a3216;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.76rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);} .mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}
+.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 12px;}
+.diagram-wrap{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,250,239,.7));padding:8px;}
+.dgm{width:100%;height:auto;display:block;}
+.dnode{fill:#fff;stroke:var(--line);stroke-width:2;transition:.35s;}
+.dnode.lit{fill:rgba(214,59,29,.9);stroke:var(--red);stroke-width:3;}
+.dnode.lit2{fill:rgba(47,95,159,.85);stroke:var(--blue);stroke-width:3;}
+.dnode.neg{fill:rgba(180,35,24,.16);stroke:var(--red);stroke-dasharray:5 3;}
+.dedge{stroke:rgba(116,55,31,.4);stroke-width:2.5;fill:none;transition:.35s;}
+.dedge.lit{stroke:var(--gold);stroke-width:4;}
+.dtext{font-family:"Noto Serif SC",serif;font-weight:800;fill:#fff;}
+.dlabel{font-size:12px;fill:var(--muted);font-weight:700;}
+.panel-card{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:16px;margin:12px 0;}
+.panel-card h3{margin:0 0 10px;color:var(--red);font-size:1rem;}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px;}
+.ctrl-btn{padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.72);cursor:pointer;font:inherit;font-weight:700;font-size:13px;color:#5b4136;transition:.2s;}
+.ctrl-btn:hover{border-color:var(--red);color:var(--red);}
+.ctrl-btn.primary{background:var(--red);color:#fff;border-color:var(--red);}
+.ctrl-btn.primary:hover{background:#8d1a12;color:#fff;}
+.ctrl-btn:disabled{opacity:.45;cursor:not-allowed;}
+table.proof{width:100%;border-collapse:collapse;font-size:13px;}
+table.proof th{background:rgba(180,35,24,.08);color:var(--red);padding:8px;text-align:left;}
+table.proof td{padding:7px 8px;border-bottom:1px solid var(--line);}
+table.proof td.f{font-family:"JetBrains Mono",monospace;font-weight:700;color:var(--ink);}
+table.proof tr:last-child td{background:rgba(47,125,87,.08);}
+table.tt{width:100%;border-collapse:collapse;font-family:"JetBrains Mono",monospace;font-size:13px;margin-top:6px;}
+table.tt th{background:rgba(180,35,24,.08);color:var(--red);padding:7px;}
+table.tt td{padding:6px 7px;border-bottom:1px solid var(--line);text-align:center;}
+table.tt tr.hot td{background:rgba(47,125,87,.14);font-weight:800;}
+.verdict{border-radius:12px;border:2px solid var(--gold);background:linear-gradient(135deg,rgba(214,59,29,.1),rgba(197,138,31,.12));padding:16px;text-align:center;margin:12px 0;}
+.verdict .vt{font-weight:700;color:var(--red);margin-bottom:6px;font-size:13px;}
+.verdict .vv{font-size:1.4rem;font-weight:800;color:var(--red);font-family:"JetBrains Mono",monospace;}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:14px 16px;margin-top:16px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}
+.insight-box p{margin:0;font-size:14px;line-height:1.7;color:#4e362d;}
+.badges{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;}
+.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){
+  body{overflow:auto;}
+  .app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}
+  .side-panel,.glass-pane{max-height:none;overflow:visible;}
+}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">基础层</span></h1>
+        <p class="subtitle">两弹一星 · 关键判断符号化</p>
+      </div>
+      <p class="intro">把战略论断「唯有自力更生，才能保障国家安全」抽象为命题，用蕴含与拒取式做一步推理。</p>
+
+      <div class="value-panel">
+        <h3>科技强国 · 自立自强</h3>
+        <p>用命题逻辑揭示「自主才能安全」的必然性——关键核心技术必须牢牢掌握在自己手中。</p>
+        <div class="dim-list"><span>两弹一星精神</span><span>自立自强</span><span>家国情怀</span></div>
+      </div>
+
+      <div class="sym-box">
+        <h3>符号说明</h3>
+        <div class="sym-grid">
+          <div><code>P</code>　自力更生 / 自主研发</div>
+          <div><code>S</code>　国家安全有保障</div>
+          <div style="margin-top:4px;color:var(--blue);">「唯有 P 才能 S」 ⟹ S → P（P 是 S 的必要条件）</div>
+          <div>逆否：¬P → ¬S（不自主，则不安全）</div>
+        </div>
+      </div>
+
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步符号化互动</strong><span>点一步，看反馈、公式项和逻辑图同步高亮</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-s="extract"><b>1 抽取命题</b><span>识别 P、S 两个命题变元</span></button>
+          <button class="kg-step" type="button" data-s="imply"><b>2 建立蕴含</b><span>S → P 及其逆否 ¬P → ¬S</span></button>
+          <button class="kg-step" type="button" data-s="infer"><b>3 拒取推理</b><span>S→P, ¬P ⊢ ¬S（MT）</span></button>
+        </div>
+        <div class="kg-feedback" id="feedback">先把战略论断中的关键判断抽象为命题变元 P、S。</div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-t="PS">P, S</span>
+          <span class="kg-token" data-t="imp">S → P</span>
+          <span class="kg-token" data-t="neg">¬P</span>
+          <span class="kg-token" data-t="mt">∴ ¬S（MT）</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>点三步把论断符号化，再点「下一步」逐行搭出拒取式 MT 的小证明。</span>
+        <div class="visual-badge">命题变元 + 蕴含</div>
+      </section>
+      <h2 class="pane-title">「自主才能安全」的逻辑结构</h2>
+      <p class="pane-sub">国家安全 S 以自主研发 P 为必要条件：要 S 成立，必先有 P。逻辑图与公式项随每步高亮。</p>
+
+      <div class="diagram-wrap">
+        <svg class="dgm" viewBox="0 0 520 180" id="dgm">
+          <path class="dedge" id="edge" d="M150 90 L370 90"/>
+          <circle class="dnode" id="nP" cx="110" cy="90" r="44"/>
+          <circle class="dnode" id="nS" cx="410" cy="90" r="44"/>
+          <text class="dtext" x="110" y="86" text-anchor="middle" font-size="15">P</text>
+          <text class="dtext" x="110" y="104" text-anchor="middle" font-size="11">自主研发</text>
+          <text class="dtext" x="410" y="86" text-anchor="middle" font-size="15">S</text>
+          <text class="dtext" x="410" y="104" text-anchor="middle" font-size="11">国家安全</text>
+          <text class="dlabel" x="260" y="78" text-anchor="middle" id="edgeLabel">必要条件 S → P</text>
+        </svg>
+      </div>
+
+      <div class="panel-card">
+        <h3>📜 拒取式（MT）小证明</h3>
+        <div class="controls"><button class="ctrl-btn primary" id="nextBtn">▶ 下一步</button><button class="ctrl-btn" id="resetBtn">🔄 重置</button></div>
+        <table class="proof"><thead><tr><th style="width:48px;">步骤</th><th>公式</th><th style="width:170px;">理由</th></tr></thead><tbody id="proofBody"></tbody></table>
+      </div>
+
+      <div class="verdict"><div class="vt" id="vtitle">推理结论</div><div class="vv" id="verdict">等待推理…</div></div>
+
+      <div class="panel-card">
+        <h3>逆否命题真值表（¬P → ¬S 与 S → P 等价）</h3>
+        <div id="truthTable"></div>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">🚩 自主才能安全的逻辑必然</div>
+        <p>把「唯有自主才能安全」符号化为 S → P，其逆否 ¬P → ¬S 揭示：失去自主就失去安全。由 S→P 与 ¬P，用拒取式 MT 推出 ¬S——这正是「两弹一星」必须自力更生的逻辑根据。</p>
+        <div class="badges"><span class="badge">两弹一星精神</span><span class="badge">自立自强</span><span class="badge">家国情怀</span></div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+    <div>版权所有 · 项目总负责人：谢鑫</div>
+  </footer>
+
+  <script>
+    window.SECTION_META = {
+      "layers": [
+            { "name": "关键判断符号化", "concepts": "命题变元 / 蕴含", "task": "把战略判断抽象为命题。", "page": "two_bombs_logic-basic.html" },
+            { "name": "逻辑必然性论证", "concepts": "蕴含链 / 有效推理 / 逆否命题", "task": "用有效推理证明结论的必然性。", "page": "two_bombs_logic.html" },
+            { "name": "战略论证迁移", "concepts": "种业·芯片自主 / 政策论证", "task": "迁移到当代战略与政策论证。", "page": "two_bombs_logic-extend.html" }
+      ],
+      "chapter": "第5章 命题逻辑",
+      "section": "5.8 两弹一星案例",
+      "title": "命题逻辑应用 · 两弹一星的逻辑必然",
+      "grounding": "本节主题：用命题逻辑分析『两弹一星』决策的逻辑结构——把『自主研发』『国家安全』『科技自立』等抽象为命题，用蕴含与推理刻画『唯有自力更生才能保障安全』的必然性，体会逻辑推理在重大战略论证中的力量。本页定位为基础层：把战略判断抽象为命题。",
+      "steps": [
+            { "name": "情境引入", "desc": "为什么说独立自主搞『两弹一星』是历史的逻辑必然？" },
+            { "name": "对象抽取", "desc": "把关键判断抽象为命题变元，识别其逻辑联系。" },
+            { "name": "结构建模", "desc": "用蕴含链建模『前提→必然结论』的战略论证。" },
+            { "name": "推理求解", "desc": "用有效推理证明结论在前提下的必然性。" },
+            { "name": "程序验证", "desc": "用本页交互搭建推理链，检验逻辑有效。" },
+            { "name": "迁移反思", "desc": "迁移到战略决策论证、政策合理性分析。" }
+      ],
+      "ideology": {
+            "title": "科技强国 · 自立自强",
+            "text": "『两弹一星』凝聚着老一辈科学家热爱祖国、无私奉献、自力更生、艰苦奋斗的精神。用逻辑揭示其『自主才能安全』的必然性，让青年理解关键核心技术必须自主可控。",
+            "dims": ["两弹一星精神", "自立自强", "家国情怀"],
+            "quote": "自主创新的战略选择，有其不容辩驳的逻辑必然。"
+      },
+      "reflect": [
+            "『唯有自主研发才能保障安全』可符号化为什么蕴含式？其逆否命题说明什么？",
+            "战略论证中如何区分『充分条件』与『必要条件』？两弹一星属于哪种？",
+            "逻辑必然与历史偶然如何辩证统一？"
+      ],
+      "transfer": [
+            "把同样的逻辑分析迁移到『种业安全』『芯片自主』等当代命题。",
+            { "t": "政策论证", "d": "用命题逻辑梳理一项政策的前提与结论，如何检验其论证是否严密？" }
+      ]
+    };
+  </script>
+
+  <script>
+  (function(){
+    "use strict";
+    var $=function(id){return document.getElementById(id);};
+    var SEQ=[
+      { f:'S → P', r:'前提：唯有自主才能安全' },
+      { f:'¬P',    r:'前提：核心技术被封锁，无法自主' },
+      { f:'¬S',    r:'拒取式 MT (1)(2)' }
+    ];
+    var step='extract', proofN=0;
+
+    function setDiagram(){
+      var nP=$('nP'),nS=$('nS'),edge=$('edge'),lab=$('edgeLabel');
+      nP.setAttribute('class','dnode'); nS.setAttribute('class','dnode'); edge.setAttribute('class','dedge');
+      if(step==='extract'){ nP.setAttribute('class','dnode lit'); nS.setAttribute('class','dnode lit2'); lab.textContent='命题变元 P、S'; }
+      if(step==='imply'){ nP.setAttribute('class','dnode lit'); nS.setAttribute('class','dnode lit2'); edge.setAttribute('class','dedge lit'); lab.textContent='必要条件 S → P'; }
+      if(step==='infer'){ nP.setAttribute('class','dnode neg'); nS.setAttribute('class','dnode neg'); edge.setAttribute('class','dedge lit'); lab.textContent='¬P ⟹ ¬S（逆否链）'; }
+    }
+    function setTokens(){
+      var map={extract:['PS'],imply:['PS','imp'],infer:['imp','neg','mt']};
+      document.querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',map[step].indexOf(t.dataset.t)>=0);});
+    }
+    var FB={
+      extract:'先把论断中的关键判断抽象为命题变元：<b>P</b>＝自力更生/自主研发，<b>S</b>＝国家安全有保障。',
+      imply:'「唯有 P 才能 S」表示 P 是 S 的<b>必要条件</b>，符号化为 <b>S → P</b>；其逆否命题 <b>¬P → ¬S</b> 与之等价。',
+      infer:'已知 <b>¬P</b>（技术被封锁、无法自主），结合 <b>S → P</b>，用<b>拒取式 MT</b> 推出 <b>¬S</b>：不自主就没有安全。'
+    };
+    function setStep(s){
+      step=s;
+      document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.s===s);});
+      $('feedback').innerHTML=FB[s]; setTokens(); setDiagram();
+      if(s==='infer'){ while(proofN<SEQ.length) addRow(); }
+    }
+    function addRow(){
+      if(proofN>=SEQ.length)return;
+      var s=SEQ[proofN]; proofN++;
+      var tr=document.createElement('tr'); tr.innerHTML='<td>('+proofN+')</td><td class="f">'+s.f+'</td><td>'+s.r+'</td>';
+      $('proofBody').appendChild(tr);
+      $('nextBtn').disabled=proofN>=SEQ.length;
+      if(proofN>=SEQ.length){ $('nextBtn').textContent='✓ 完成'; $('verdict').textContent='¬S：失去自主 ⟹ 失去安全'; $('vtitle').textContent='拒取式 MT 结论'; }
+      else { $('verdict').textContent='推理中…（已 '+proofN+'/'+SEQ.length+' 步）'; }
+    }
+    function reset(){ proofN=0; $('proofBody').innerHTML=''; $('nextBtn').disabled=false; $('nextBtn').textContent='▶ 下一步'; $('verdict').textContent='等待推理…'; $('vtitle').textContent='推理结论'; }
+    function truth(){
+      var rows=[[0,0],[0,1],[1,0],[1,1]]; // P,S
+      var html='<table class="tt"><thead><tr><th>P</th><th>S</th><th>S → P</th><th>¬P → ¬S</th></tr></thead><tbody>';
+      rows.forEach(function(r){var P=r[0],S=r[1];var imp=(!S)||P?1:0;var contra=(P)||(!S)?1:0;var hot=(P===0);html+='<tr class="'+(hot?'hot':'')+'"><td>'+P+'</td><td>'+S+'</td><td>'+imp+'</td><td>'+contra+'</td></tr>';});
+      html+='</tbody></table><div style="font-size:.78rem;color:var(--muted);margin-top:6px;">两列真值完全相同 ⟹ S → P 与 ¬P → ¬S 逻辑等价；高亮行（P=0）显示：不自主时，安全无法成立。</div>';
+      $('truthTable').innerHTML=html;
+    }
+
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setStep(b.dataset.s);};});
+    $('nextBtn').onclick=addRow; $('resetBtn').onclick=reset;
+    truth(); setStep('extract');
+  })();
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

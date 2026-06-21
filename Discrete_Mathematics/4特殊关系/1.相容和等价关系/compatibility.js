@@ -1,8 +1,7 @@
 /**
- * Red Mathematics - Compatibility & Equivalence Visualization
+ * Compatibility & equivalence relation visualization.
  */
 
-// DOM Elements
 const btnCompat = document.getElementById('btnCompat');
 const btnEquiv = document.getElementById('btnEquiv');
 const resetBtn = document.getElementById('resetBtn');
@@ -22,15 +21,15 @@ const statComponents = document.getElementById('statComponents');
 const statEdges = document.getElementById('statEdges');
 const mainHeader = document.querySelector('.main-header h1');
 
-// Data: Delegates
-const REGIONS = [
-    { id: 'r1', name: '华北', color: '#ff7675' }, // Red
-    { id: 'r2', name: '华东', color: '#74b9ff' }, // Blue
-    { id: 'r3', name: '西南', color: '#55efc4' }, // Green
-    { id: 'r4', name: '西北', color: '#ffeaa7' }  // Yellow
-];
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const NODE_RADIUS = 22;
 
-const INTERESTS = ['经济', '文化', '科技', '教育', '环保', '医疗'];
+const REGIONS = [
+    { id: 'r1', name: '华北', color: '#ff7675' },
+    { id: 'r2', name: '华东', color: '#74b9ff' },
+    { id: 'r3', name: '西南', color: '#55efc4' },
+    { id: 'r4', name: '西北', color: '#ffeaa7' }
+];
 
 const DELEGATES = [
     { id: 1, name: '代表A', region: 'r1', interests: ['经济', '科技'] },
@@ -45,34 +44,65 @@ const DELEGATES = [
     { id: 10, name: '代表J', region: 'r2', interests: ['教育', '经济'] }
 ];
 
-// State
-let currentMode = 'compatibility'; // 'compatibility' or 'equivalence'
+let currentMode = 'compatibility';
 let nodes = [];
 let links = [];
-let simulation = null;
-let width, height;
+let width = 760;
+let height = 480;
 
-// Initialization
 function init() {
     setupResize();
-    setupData();
     updateLegend();
-    startSimulation();
     updateView();
 }
 
-function setupData() {
-    // Initialize nodes with random positions
-    width = document.getElementById('graphContainer').clientWidth;
-    height = document.getElementById('graphContainer').clientHeight;
+function measureGraph() {
+    const container = document.getElementById('graphContainer');
+    const rect = container.getBoundingClientRect();
+    width = Math.max(520, Math.round(rect.width || container.clientWidth || 760));
+    height = Math.max(420, Math.round(rect.height || container.clientHeight || 480));
+    graphSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    graphSvg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+}
 
-    nodes = DELEGATES.map(d => ({
-        ...d,
-        x: width / 2 + (Math.random() - 0.5) * 200,
-        y: height / 2 + (Math.random() - 0.5) * 200,
-        vx: 0,
-        vy: 0
-    }));
+function setupData() {
+    measureGraph();
+    nodes = DELEGATES.map(delegate => ({ ...delegate, x: 0, y: 0 }));
+    layoutNodes();
+}
+
+function layoutNodes() {
+    const padX = NODE_RADIUS + 34;
+    const padY = NODE_RADIUS + 34;
+
+    if (currentMode === 'compatibility') {
+        const cx = width / 2;
+        const cy = height / 2;
+        const rx = Math.max(170, width * 0.36);
+        const ry = Math.max(130, height * 0.32);
+
+        nodes.forEach((node, index) => {
+            const angle = -Math.PI / 2 + (Math.PI * 2 * index) / nodes.length;
+            node.x = clamp(cx + Math.cos(angle) * rx, padX, width - padX);
+            node.y = clamp(cy + Math.sin(angle) * ry, padY, height - padY);
+        });
+    } else {
+        const clusters = [
+            { region: 'r1', x: width * 0.28, y: height * 0.30 },
+            { region: 'r2', x: width * 0.72, y: height * 0.30 },
+            { region: 'r3', x: width * 0.30, y: height * 0.72 },
+            { region: 'r4', x: width * 0.72, y: height * 0.72 }
+        ];
+
+        clusters.forEach(cluster => {
+            const group = nodes.filter(node => node.region === cluster.region);
+            group.forEach((node, index) => {
+                const angle = -Math.PI / 2 + (Math.PI * 2 * index) / Math.max(3, group.length);
+                node.x = clamp(cluster.x + Math.cos(angle) * 54, padX, width - padX);
+                node.y = clamp(cluster.y + Math.sin(angle) * 44, padY, height - padY);
+            });
+        });
+    }
 }
 
 function updateRelations() {
@@ -82,178 +112,125 @@ function updateRelations() {
         for (let j = i + 1; j < nodes.length; j++) {
             const a = nodes[i];
             const b = nodes[j];
-            let isRelated = false;
+            const related = currentMode === 'compatibility'
+                ? a.interests.some(interest => b.interests.includes(interest))
+                : a.region === b.region;
 
-            if (currentMode === 'compatibility') {
-                // Compatibility: Share ANY interest
-                const common = a.interests.filter(int => b.interests.includes(int));
-                if (common.length > 0) isRelated = true;
-            } else {
-                // Equivalence: Same Region
-                if (a.region === b.region) isRelated = true;
-            }
-
-            if (isRelated) {
+            if (related) {
                 links.push({ source: a, target: b });
             }
         }
     }
 
-    // Update Stats
     statEdges.textContent = links.length;
+    statComponents.textContent = countComponents();
+}
 
-    // Count Components (BFS)
-    let visited = new Set();
+function countComponents() {
+    const visited = new Set();
     let components = 0;
 
     nodes.forEach(node => {
-        if (!visited.has(node.id)) {
-            components++;
-            let queue = [node.id];
-            visited.add(node.id);
-            while (queue.length > 0) {
-                let curr = queue.shift();
-                links.forEach(l => {
-                    let neighbor = null;
-                    if (l.source.id === curr) neighbor = l.target.id;
-                    if (l.target.id === curr) neighbor = l.source.id;
+        if (visited.has(node.id)) return;
+        components++;
 
-                    if (neighbor && !visited.has(neighbor)) {
-                        visited.add(neighbor);
-                        queue.push(neighbor);
-                    }
-                });
-            }
+        const queue = [node.id];
+        visited.add(node.id);
+
+        while (queue.length > 0) {
+            const current = queue.shift();
+            links.forEach(link => {
+                const neighbor = link.source.id === current
+                    ? link.target.id
+                    : link.target.id === current ? link.source.id : null;
+
+                if (neighbor && !visited.has(neighbor)) {
+                    visited.add(neighbor);
+                    queue.push(neighbor);
+                }
+            });
         }
     });
-    statComponents.textContent = components;
+
+    return components;
 }
 
-// Force Simulation (Simple Custom Implementation)
-function startSimulation() {
-    if (simulation) cancelAnimationFrame(simulation);
-
-    function step() {
-        // 1. Repulsion
-        for (let i = 0; i < nodes.length; i++) {
-            for (let j = i + 1; j < nodes.length; j++) {
-                const dx = nodes[i].x - nodes[j].x;
-                const dy = nodes[i].y - nodes[j].y;
-                const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-                const force = 5000 / (dist * dist); // Repulsion strength
-
-                const fx = (dx / dist) * force;
-                const fy = (dy / dist) * force;
-
-                nodes[i].vx += fx;
-                nodes[i].vy += fy;
-                nodes[j].vx -= fx;
-                nodes[j].vy -= fy;
-            }
-        }
-
-        // 2. Attraction (Springs)
-        links.forEach(link => {
-            const dx = link.target.x - link.source.x;
-            const dy = link.target.y - link.source.y;
-            const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-            const targetDist = currentMode === 'compatibility' ? 120 : 80; // Tighter for equivalence
-            const force = (dist - targetDist) * 0.05;
-
-            const fx = (dx / dist) * force;
-            const fy = (dy / dist) * force;
-
-            link.source.vx += fx;
-            link.source.vy += fy;
-            link.target.vx -= fx;
-            link.target.vy -= fy;
-        });
-
-        // 3. Center Gravity
-        nodes.forEach(node => {
-            node.vx += (width / 2 - node.x) * 0.01;
-            node.vy += (height / 2 - node.y) * 0.01;
-
-            // Damping
-            node.vx *= 0.9;
-            node.vy *= 0.9;
-
-            // Update Position
-            node.x += node.vx;
-            node.y += node.vy;
-
-            // Bounds
-            node.x = Math.max(20, Math.min(width - 20, node.x));
-            node.y = Math.max(20, Math.min(height - 20, node.y));
-        });
-
-        renderGraph();
-        simulation = requestAnimationFrame(step);
-    }
-
-    step();
-}
-
-// Rendering
 function renderGraph() {
-    // Clear SVG
-    while (graphSvg.firstChild) {
-        graphSvg.removeChild(graphSvg.firstChild);
-    }
+    graphSvg.innerHTML = '';
 
-    // Draw Links
     links.forEach(link => {
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', link.source.x);
-        line.setAttribute('y1', link.source.y);
-        line.setAttribute('x2', link.target.x);
-        line.setAttribute('y2', link.target.y);
-        line.setAttribute('class', `link ${currentMode === 'compatibility' ? 'compat' : 'equiv'}`);
-        line.setAttribute('stroke-width', currentMode === 'compatibility' ? 1 : 2);
-        graphSvg.appendChild(line);
+        graphSvg.appendChild(createLink(link));
     });
 
-    // Draw Nodes
     nodes.forEach(node => {
-        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        g.setAttribute('transform', `translate(${node.x}, ${node.y})`);
-        g.style.cursor = 'pointer';
-
-        // Circle
-        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        circle.setAttribute('r', 20);
-        const region = REGIONS.find(r => r.id === node.region);
-        circle.setAttribute('fill', region.color);
-        circle.setAttribute('class', 'node-circle');
-
-        // Label
-        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        text.setAttribute('dy', 5);
-        text.setAttribute('class', 'node-label');
-        text.textContent = node.name.replace('代表', '');
-
-        // Events
-        g.addEventListener('mouseenter', (e) => showTooltip(e, node));
-        g.addEventListener('mouseleave', hideTooltip);
-
-        g.appendChild(circle);
-        g.appendChild(text);
-        graphSvg.appendChild(g);
+        graphSvg.appendChild(createNode(node));
     });
 }
 
-function showTooltip(e, node) {
-    const rect = graphSvg.getBoundingClientRect();
-    tooltip.style.left = `${node.x + rect.left + 20}px`;
-    tooltip.style.top = `${node.y + rect.top - 20}px`;
+function createLink(link) {
+    const line = document.createElementNS(SVG_NS, 'line');
+    const points = edgeEndpoints(link.source, link.target);
+
+    line.setAttribute('x1', points.start.x);
+    line.setAttribute('y1', points.start.y);
+    line.setAttribute('x2', points.end.x);
+    line.setAttribute('y2', points.end.y);
+    line.setAttribute('class', `link ${currentMode === 'compatibility' ? 'compat' : 'equiv'}`);
+    line.setAttribute('stroke-width', currentMode === 'compatibility' ? 1.8 : 2.4);
+
+    return line;
+}
+
+function createNode(node) {
+    const group = document.createElementNS(SVG_NS, 'g');
+    group.setAttribute('class', 'node-group');
+    group.setAttribute('transform', `translate(${node.x}, ${node.y})`);
+    group.addEventListener('mouseenter', event => showTooltip(event, node));
+    group.addEventListener('mouseleave', hideTooltip);
+
+    const circle = document.createElementNS(SVG_NS, 'circle');
+    circle.setAttribute('r', NODE_RADIUS);
+    circle.setAttribute('fill', getRegion(node.region).color);
+    circle.setAttribute('class', 'node-circle');
+
+    const text = document.createElementNS(SVG_NS, 'text');
+    text.setAttribute('dy', 5);
+    text.setAttribute('class', 'node-label');
+    text.textContent = node.name.replace('代表', '');
+
+    group.appendChild(circle);
+    group.appendChild(text);
+    return group;
+}
+
+function edgeEndpoints(source, target) {
+    const dx = target.x - source.x;
+    const dy = target.y - source.y;
+    const length = Math.hypot(dx, dy) || 1;
+    const ux = dx / length;
+    const uy = dy / length;
+
+    return {
+        start: {
+            x: source.x + ux * (NODE_RADIUS + 2),
+            y: source.y + uy * (NODE_RADIUS + 2)
+        },
+        end: {
+            x: target.x - ux * (NODE_RADIUS + 2),
+            y: target.y - uy * (NODE_RADIUS + 2)
+        }
+    };
+}
+
+function showTooltip(event, node) {
+    const graphRect = document.getElementById('graphContainer').getBoundingClientRect();
+    tooltip.style.left = `${Math.min(graphRect.width - 220, node.x + 24)}px`;
+    tooltip.style.top = `${Math.max(8, node.y - 28)}px`;
     tooltip.style.opacity = 1;
-
-    const regionName = REGIONS.find(r => r.id === node.region).name;
-
     tooltip.innerHTML = `
         <h4>${node.name}</h4>
-        <p><strong>地区:</strong> ${regionName}</p>
-        <p><strong>兴趣:</strong> ${node.interests.join(', ')}</p>
+        <p><strong>地区:</strong> ${getRegion(node.region).name}</p>
+        <p><strong>兴趣:</strong> ${node.interests.join('、')}</p>
     `;
 }
 
@@ -263,79 +240,68 @@ function hideTooltip() {
 
 function updateLegend() {
     legendBar.innerHTML = '';
-    REGIONS.forEach(r => {
+    REGIONS.forEach(region => {
         const item = document.createElement('div');
         item.className = 'legend-item';
         item.innerHTML = `
-            <div class="legend-color" style="background:${r.color}"></div>
-            <span>${r.name}</span>
+            <div class="legend-color" style="background:${region.color}"></div>
+            <span>${region.name}</span>
         `;
         legendBar.appendChild(item);
     });
 }
 
 function updateView() {
+    setupData();
     updateRelations();
 
-    // Update UI Text based on mode
     if (currentMode === 'compatibility') {
-        // Header
         mainHeader.classList.remove('equiv-mode');
         btnCompat.classList.add('active');
         btnEquiv.classList.remove('active');
-
-        // Graph Titles
         graphTitle.textContent = '代表网络 (Delegate Network)';
         graphSub.textContent = '基于共同兴趣的广泛团结 (Unity based on shared interests)';
-
-        // Property Card
         propCard.classList.remove('equiv');
-        propIcon.textContent = '🌟';
+        propIcon.textContent = '◎';
         propTitle.textContent = '相容关系 (Compatibility)';
-        propDesc.textContent = '只要有共同点即可建立联系。这是一种"求同存异"的广泛团结，允许差异存在，强调包容性。';
-        propMath.textContent = 'x R y ⇔ x ∩ y ≠ ∅';
-
-        // Check List
+        propDesc.textContent = '只要存在共同兴趣即可建立联系，强调求同存异与开放协作。';
+        propMath.textContent = 'x R y ⇔ Interest(x) ∩ Interest(y) ≠ ∅';
         transitiveCheck.classList.remove('satisfied');
-        transitiveCheck.innerHTML = '<span class="check-icon">✗</span> 传递性 (Transitive)';
-
-        // Insight
-        insightText.textContent = '在统一战线工作中，我们强调"大团结、大联合"。相容关系象征着不同背景的人们因为共同的爱国热情和奋斗目标走到一起，形成最广泛的同心圆。';
-
+        transitiveCheck.innerHTML = '<span class="check-icon">×</span> 传递性 (Transitive)';
+        insightText.textContent = '相容关系允许不同背景的人围绕共同议题形成联系，体现开放、包容、协作的网络结构。';
     } else {
-        // Header
         mainHeader.classList.add('equiv-mode');
         btnCompat.classList.remove('active');
         btnEquiv.classList.add('active');
-
-        // Graph Titles
         graphTitle.textContent = '组织结构 (Organizational Structure)';
-        graphSub.textContent = '基于地区的严密组织 (Strict organization based on region)';
-
-        // Property Card
+        graphSub.textContent = '基于地区的严格分组 (Strict organization based on region)';
         propCard.classList.add('equiv');
-        propIcon.textContent = '⚖️';
+        propIcon.textContent = '≡';
         propTitle.textContent = '等价关系 (Equivalence)';
-        propDesc.textContent = '严格的分类标准。同类元素之间完全互通，不同类之间界限分明。这是组织划分、行政管理的基础。';
+        propDesc.textContent = '以相同地区为标准进行分组，同组内互相关联，不同组之间界限清晰。';
         propMath.textContent = 'x R y ⇔ Region(x) = Region(y)';
-
-        // Check List
         transitiveCheck.classList.add('satisfied');
         transitiveCheck.innerHTML = '<span class="check-icon">✓</span> 传递性 (Transitive)';
-
-        // Insight
-        insightText.textContent = '等价关系体现了"物以类聚，人以群分"的秩序感。在国家治理中，行政区划、行业分类等都体现了等价关系的应用，确保了管理的规范有序。';
+        insightText.textContent = '等价关系把集合划分为互不重叠的等价类，便于观察分类、归属与组织结构。';
     }
+
+    renderGraph();
 }
 
 function setupResize() {
     window.addEventListener('resize', () => {
-        width = document.getElementById('graphContainer').clientWidth;
-        height = document.getElementById('graphContainer').clientHeight;
+        updateView();
     });
 }
 
-// Event Listeners
+function getRegion(id) {
+    return REGIONS.find(region => region.id === id);
+}
+
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+}
+
 btnCompat.addEventListener('click', () => {
     currentMode = 'compatibility';
     updateView();
@@ -346,10 +312,6 @@ btnEquiv.addEventListener('click', () => {
     updateView();
 });
 
-resetBtn.addEventListener('click', () => {
-    setupData(); // Reshuffle positions
-    updateView();
-});
+resetBtn.addEventListener('click', updateView);
 
-// Start
 init();

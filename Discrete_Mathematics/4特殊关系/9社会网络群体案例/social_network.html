@@ -8,22 +8,25 @@
     <title>红色数理 - 社区和谐与精准帮扶</title>
     <meta name="description" content="离散数学课程 - 红色数理 - 社区和谐与精准帮扶">
 
-    <link rel="stylesheet" href="social_network.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet">
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6" defer></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>
         MathJax = {
             tex: {
                 inlineMath: [['$', '$'], ['\\(', '\\)']],
                 displayMath: [['$$', '$$'], ['\\[', '\\]']]
             }
+        ,
+            startup: { typeset: true }
         };
     </script>
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="social_network.css?v=layout-unified-20260620a">
 </head>
 
 <body>
@@ -40,14 +43,16 @@
         transition:background .2s;
     " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
        onmouseout="this.style.background='rgba(30,30,40,0.82)'">
-        🏠 <span>课程主页</span>
+        <span>首页</span>
     </a>
 
-    <div class="app-container">
+    <div class="app-container" data-dm-self-layout="1">
         <header class="main-header">
             <div class="header-content">
-                <h1>红色数理 <span class="highlight">社区和谐与精准帮扶</span></h1>
-                <p class="subtitle">Community Harmony Through Equivalence Relations & Targeted Support</p>
+                <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+                <h1>红色数理 <span class="highlight">进阶层</span></h1>
+                <p class="subtitle">社会网络群体识别 · 社区和谐与精准帮扶</p>
+                <span class="layer-badge">核心层 · 强互动</span>
             </div>
             <div class="header-controls">
                 <button class="action-btn primary" id="analyzeBtn" aria-label="网格摸排">
@@ -69,6 +74,21 @@
         </header>
 
         <main class="main-stage">
+            <section class="stage-header">
+                <h2>社区和谐与精准帮扶</h2>
+                <p>用连通分量识别社区网格，把等价关系、划分与精准帮扶落到可操作的社会网络中。</p>
+            </section>
+            <section class="mission-card">
+                <div>
+                    <div class="mission-title">本页挑战</div>
+                    <div class="mission-text">通过网格摸排识别社群结构，连接孤岛节点，并观察精准服务如何覆盖每个群体。</div>
+                    <div class="mission-value">价值主线：精准扶持 · 一个都不少。基础层、拓展层与进阶层保持同一价值表达。</div>
+                </div>
+                <div class="energy-meter">
+                    <div class="energy-label"><span>互动热度</span><span>95%</span></div>
+                    <div class="energy-track"><div class="energy-fill" style="width:95%"></div></div>
+                </div>
+            </section>
             <div class="canvas-container">
                 <canvas id="networkCanvas"></canvas>
                 <div class="canvas-overlay">
@@ -104,7 +124,7 @@
                         <div class="stat-item highlight">
                             <div class="stat-icon">🏘️</div>
                             <div class="stat-info">
-                                <span class="stat-value" id="communityCount">—</span>
+                                <span class="stat-value" id="communityCount">0</span>
                                 <span class="stat-label">社区网格数</span>
                             </div>
                         </div>
@@ -134,7 +154,7 @@
                 </div>
 
                 <div class="panel-section">
-                    <h3>💡 思政启示</h3>
+                    <h3>💡 价值启示</h3>
                     <div class="insight-card">
                         <p><strong>"一个都不能少"的治理理念</strong></p>
                         <p>通过等价关系理论，我们可以：</p>
@@ -155,7 +175,18 @@
         </main>
     </div>
 
-    <script src="social_network.js"></script>
+    <script>
+        (function () {
+            var sidebar = document.querySelector('main.main-stage > .sidebar');
+            var header = document.querySelector('.main-header');
+            if (sidebar && header && !header.contains(sidebar)) {
+                sidebar.classList.add('left-info-panel');
+                header.appendChild(sidebar);
+            }
+        })();
+    </script>
+
+    <script src="social_network.js?v=layout-fix-20260617c"></script>
 
 <!-- 固定底部版权信息 -->
 <footer style="
@@ -163,20 +194,175 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">© 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫</p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+  "layers": [
+    {
+      "name": "社群=等价类",
+      "concepts": "同社群等价关系 / 划分",
+      "task": "用等价关系划分社会网络群体。",
+      "page": "social_network-basic.html"
+    },
+    {
+      "name": "帮扶=函数映射",
+      "concepts": "居民→责任人 / 满射全覆盖",
+      "task": "用函数把帮扶责任精准对应到人。",
+      "page": "social_network.html"
+    },
+    {
+      "name": "社区发现与网格",
+      "concepts": "社区发现算法 / 网格责任制",
+      "task": "迁移到社区发现与精准治理。",
+      "page": "social_network-extend.html"
+    }
+  ],
+  "chapter": "第4章 特殊关系与函数",
+  "section": "4.9 社会网络群体案例 · 进阶层",
+  "title": "帮扶=函数映射",
+  "grounding": "本节主题：用等价关系对社会网络做『社群划分』，用划分识别群体（等价类），用函数刻画『居民→帮扶责任人』的精准对应，把等价关系与函数落到社区治理与精准帮扶。 本页定位为进阶层：承接原页面的核心推理、综合辨析和课程资源主线。 本页定位为基础层：以可操作的直观模型建立概念、性质和符号的第一连接。",
+  "steps": [
+    {
+      "name": "情境引入",
+      "desc": "庞大的社会网络如何科学分群、并把帮扶责任精准落实到人？"
+    },
+    {
+      "name": "对象抽取",
+      "desc": "把『同社群』抽象为等价关系，把『帮扶对应』抽象为函数。"
+    },
+    {
+      "name": "结构建模",
+      "desc": "用等价类做社群划分，用函数做责任映射。"
+    },
+    {
+      "name": "推理求解",
+      "desc": "求社群划分，检验帮扶映射的全覆盖（满射）。"
+    },
+    {
+      "name": "程序验证",
+      "desc": "用本页交互划分群体、分配帮扶，验证不漏一人。"
+    },
+    {
+      "name": "迁移反思",
+      "desc": "迁移到社区发现算法、网格责任制。"
+    }
+  ],
+  "ideology": {
+    "title": "精准帮扶 · 一个都不少",
+    "text": "用等价关系划分社群、用函数把帮扶责任精准对应到每个人，确保『全覆盖、不重复、一个都不少』，是精准扶贫、精准治理理念的数学落地。技术服务于民生，让每位需要帮助的群众都被看见、被托举。",
+    "dims": [
+      "人民立场",
+      "精准治理",
+      "责任担当"
+    ],
+    "quote": "全面小康路上一个都不能少——满射的『全覆盖』正是这一承诺的数学保证。"
+  },
+  "reflect": [
+    "社群划分要求『不重不漏』，这对应等价关系的什么性质？",
+    "帮扶映射若不是满射，意味着什么后果？",
+    "现实中『社群』边界常常模糊（相容而非等价），这给划分带来什么挑战？"
+  ],
+  "transfer": [
+    "社交网络的『社区发现』算法本质是寻找近似等价类（紧密子群）。",
+    {
+      "t": "网格责任制",
+      "d": "把责任人精准映射到每个网格，正是函数『单值全定义』的治理应用。"
+    }
+  ]
+};
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
+    <script>
+        (function () {
+            function setImportant(node, prop, value) {
+                if (node) node.style.setProperty(prop, value, 'important');
+            }
+            function applyUnifiedSocialLayout() {
+                var app = document.querySelector('.app-container');
+                var side = document.querySelector('.main-header');
+                var main = document.querySelector('main.main-stage');
+                var canvas = document.querySelector('.canvas-container');
+                var networkCanvas = document.getElementById('networkCanvas');
+                var movedSidebar = document.querySelector('.sidebar.left-info-panel');
+                if (!app || !side || !main) return;
+                var compact = window.innerWidth < 861;
+                app.setAttribute('data-dm-self-layout', '1');
+                setImportant(app, 'display', 'grid');
+                setImportant(app, 'grid-template-columns', compact ? '1fr' : '352px minmax(0, 1fr)');
+                setImportant(app, 'grid-template-areas', compact ? '"side" "main"' : '"side main"');
+                setImportant(app, 'grid-template-rows', compact ? 'auto auto' : 'minmax(0, 1fr)');
+                setImportant(app, 'width', compact ? 'min(94vw, 760px)' : 'min(94vw, 1420px)');
+                setImportant(app, 'height', compact ? 'auto' : 'calc(100vh - 166px)');
+                setImportant(app, 'min-height', compact ? '0' : '640px');
+                setImportant(app, 'margin', compact ? '66px auto 96px' : '74px auto 0');
+                setImportant(app, 'padding', '0');
+                setImportant(app, 'gap', '0');
+                setImportant(app, 'overflow', compact ? 'visible' : 'hidden');
+                setImportant(side, 'grid-area', 'side');
+                setImportant(side, 'width', compact ? '100%' : '352px');
+                setImportant(side, 'min-width', compact ? '0' : '352px');
+                setImportant(side, 'height', compact ? 'auto' : '100%');
+                setImportant(side, 'padding', '24px');
+                setImportant(side, 'overflow-y', 'auto');
+                setImportant(main, 'grid-area', 'main');
+                setImportant(main, 'height', compact ? 'auto' : '100%');
+                setImportant(main, 'min-height', '0');
+                setImportant(main, 'margin', '0');
+                setImportant(main, 'padding', compact ? '16px' : '22px 26px 18px');
+                setImportant(main, 'display', 'grid');
+                setImportant(main, 'grid-template-columns', 'minmax(0, 1fr)');
+                setImportant(main, 'grid-template-rows', 'auto auto auto minmax(0, 1fr)');
+                setImportant(main, 'gap', '12px');
+                setImportant(main, 'overflow', compact ? 'visible' : 'hidden');
+                if (movedSidebar) {
+                    setImportant(movedSidebar, 'width', '100%');
+                    setImportant(movedSidebar, 'height', 'auto');
+                    setImportant(movedSidebar, 'min-height', '0');
+                    setImportant(movedSidebar, 'max-height', 'none');
+                    setImportant(movedSidebar, 'overflow-y', 'auto');
+                }
+                if (canvas) {
+                    setImportant(canvas, 'grid-column', '1');
+                    setImportant(canvas, 'grid-row', 'auto');
+                    setImportant(canvas, 'height', compact ? '430px' : '100%');
+                    setImportant(canvas, 'min-height', compact ? '430px' : '0');
+                }
+                if (networkCanvas) {
+                    setImportant(networkCanvas, 'height', '100%');
+                    setImportant(networkCanvas, 'min-height', '0');
+                }
+            }
+            function scheduleUnifiedSocialLayout() {
+                applyUnifiedSocialLayout();
+                requestAnimationFrame(applyUnifiedSocialLayout);
+                setTimeout(applyUnifiedSocialLayout, 120);
+                setTimeout(applyUnifiedSocialLayout, 700);
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', scheduleUnifiedSocialLayout);
+            } else {
+                scheduleUnifiedSocialLayout();
+            }
+            window.addEventListener('load', scheduleUnifiedSocialLayout);
+            window.addEventListener('resize', scheduleUnifiedSocialLayout);
+        })();
+    </script>
 
 </body>
 
 </html>
+

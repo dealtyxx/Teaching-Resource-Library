@@ -536,3 +536,25 @@ background-image:
         grid-template-columns: 1fr;
     }
 }
+
+/* ===== 版式优化：共享框架(三阶/AI助教)重排后，让「数学定义·性质分析」右栏
+   与中间内容并排显示，不再被挤到页面最底部；注入的三阶导航带置顶通栏。===== */
+.main-stage {
+    grid-template-columns: minmax(0, 1fr) clamp(280px, 23vw, 360px) !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    grid-template-areas:
+        "band   band"
+        "center right" !important;
+    align-items: stretch;
+}
+.main-stage > #dm-page-layers { grid-area: band !important; margin: 0 0 4px !important; }
+.main-stage > .center-panel { grid-area: center !important; min-width: 0; }
+.main-stage > .right-panel { grid-area: right !important; }
+
+/* 屏幕较窄时再纵向堆叠 */
+@media (max-width: 1024px) {
+    .main-stage {
+        grid-template-columns: 1fr !important;
+        grid-template-areas: "band" "center" "right" !important;
+    }
+}

@@ -13,6 +13,8 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
@@ -40,8 +42,8 @@
                     <span class="dot yellow"></span>
                     <span class="dot green"></span>
                 </div>
-                <h1>循环群密钥生成 <span class="highlight">系统</span></h1>
-                <p class="subtitle">Cyclic Group Key Generation - Cryptographic Security</p>
+                <h1>红色数理 <span class="highlight">进阶层</span></h1>
+                <p class="subtitle">循环群密钥生成器 · 系统</p>
             </div>
 
             <div class="controls-wrapper">
@@ -242,19 +244,100 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "layers": [
+            {
+                  "name": "循环群密钥",
+                  "concepts": "⟨g⟩ / 公钥 g^x",
+                  "task": "用循环群生成密钥。",
+                  "page": "key-generation-index-basic.html"
+            },
+            {
+                  "name": "离散对数与 DH",
+                  "concepts": "单向难度 / g^{xy} 协商",
+                  "task": "走通 Diffie-Hellman 密钥协商。",
+                  "page": "key-generation-index.html"
+            },
+            {
+                  "name": "ECC 与后量子",
+                  "concepts": "椭圆曲线 / 后量子密码",
+                  "task": "迁移到 ECC 与后量子方案。",
+                  "page": "key-generation-index-extend.html"
+            }
+      ],
+      "chapter": "第10章 群论基础",
+      "section": "10.9 密钥生成方案案例",
+      "title": "群论应用 · 循环群密钥生成",
+      "grounding": "本节主题：用循环群与离散对数难题生成密钥——在循环群 ⟨g⟩ 中，由私钥 x 算公钥 g^x 容易，反推 x（离散对数）极难。Diffie-Hellman 据此让双方在公开信道协商出共享密钥，体现循环群在现代密码学中的核心地位。",
+      "steps": [
+            {
+                  "name": "情境引入",
+                  "desc": "素不相识的双方，如何在公开信道上安全地『约定』一把共享密钥？"
+            },
+            {
+                  "name": "对象抽取",
+                  "desc": "把密钥抽象为循环群元素，把『单向难度』抽象为离散对数。"
+            },
+            {
+                  "name": "结构建模",
+                  "desc": "用循环群幂运算与离散对数难题建模密钥协商。"
+            },
+            {
+                  "name": "推理求解",
+                  "desc": "走一遍 Diffie-Hellman：各算 g^x、g^y，共享 g^{xy}。"
+            },
+            {
+                  "name": "程序验证",
+                  "desc": "用本页交互生成密钥，验证双方得到同一共享密钥。"
+            },
+            {
+                  "name": "迁移反思",
+                  "desc": "迁移到 ElGamal、椭圆曲线密码、数字签名。"
+            }
+      ],
+      "ideology": {
+            "title": "信息安全基石 · 自主创新",
+            "text": "循环群与离散对数是现代密码学的基石，支撑着网络通信的安全。密钥安全事关国家网络安全与数据主权，必须自主创新、掌握核心算法。理解其数学原理，是青年投身网络强国建设、筑牢信息安全长城的根基。",
+            "dims": [
+                  "总体国家安全观",
+                  "自立自强",
+                  "科学精神"
+            ],
+            "quote": "没有网络安全就没有国家安全——循环群上的密钥生成，是守护数字疆域的数学基石。"
+      },
+      "reflect": [
+            "为什么『由 x 算 g^x 容易、由 g^x 反推 x 难』能成为安全基础？",
+            "Diffie-Hellman 中双方从未传过共享密钥，却得到相同的 g^{xy}——原理是什么？",
+            "椭圆曲线密码用更小密钥达到同等安全，它换了什么群？"
+      ],
+      "transfer": [
+            "HTTPS、VPN 的密钥协商广泛使用 Diffie-Hellman 及其椭圆曲线版。",
+            {
+                  "t": "后量子挑战",
+                  "d": "量子计算机能快速解离散对数，密码学如何向后量子方案演进？"
+            }
+      ]
+};
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>逻辑电路表达式 · 基础层 — 电路=布尔函数</title>
+  <meta name="description" content="11.11 逻辑电路 基础层：把电路功能写成真值表与布尔表达式">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1500px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(139,0,0,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}.kg-step-head strong{color:var(--red);font-size:.95rem;}.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.86rem;}.kg-step span{display:block;font-size:.76rem;color:var(--muted);margin-top:3px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.84rem;color:#7a3216;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
+.ctrl-box{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
+.ctrl-box>label{display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:8px;}
+.inbtns{display:flex;gap:10px;flex-wrap:wrap;}
+.inbtn{display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:10px;border:1.5px solid var(--line);background:rgba(255,255,255,.7);cursor:pointer;font:inherit;font-weight:800;color:#5b4136;transition:.12s;}
+.inbtn .v{font-family:"JetBrains Mono",monospace;width:22px;height:22px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;background:#e7ded2;color:#6c5a52;}
+.inbtn.on{border-color:var(--red);color:var(--red);}.inbtn.on .v{background:var(--red);color:#fff;}
+.qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.88rem;color:#5b4136;line-height:1.85;}
+.qres b{color:var(--red);}.qres .formula{font-family:"JetBrains Mono",monospace;font-weight:800;color:var(--red);font-size:1rem;}
+.qres .on1{color:var(--green);font-weight:800;}.qres .off0{color:var(--muted);font-weight:800;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 8px;}
+.svgbox{flex:1;min-height:300px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(255,250,239,.7));padding:6px;display:flex;align-items:center;}
+.viz{width:100%;height:auto;display:block;}
+.ttbl{border-collapse:collapse;width:100%;font-size:13px;font-family:"JetBrains Mono",monospace;margin-top:10px;}
+.ttbl th,.ttbl td{border:1px solid var(--line);padding:5px 4px;text-align:center;}
+.ttbl th{background:rgba(47,95,159,.08);color:var(--blue);font-weight:800;}
+.ttbl td.f1{color:var(--green);font-weight:800;}
+.ttbl tr.cur td{background:rgba(214,59,29,.14);font-weight:800;}
+.ttbl tr.min td:last-child{background:rgba(47,125,87,.12);}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:13px 15px;margin-top:12px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}.insight-box p{margin:0;font-size:13.5px;line-height:1.7;color:#4e362d;}
+.badges{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px;}.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">基础层</span></h1>
+        <p class="subtitle">逻辑电路表达式 · 电路=布尔函数</p>
+      </div>
+      <p class="intro">一个逻辑电路就是一个<b>布尔函数</b>：拨动输入开关 A、B、C，信号经与门 ∧、或门 ∨ 传到输出 F。它的功能可用<b>真值表</b>和<b>布尔表达式</b>精确描述。</p>
+
+      <div class="value-panel">
+        <h3>精益求精 · 工匠精神</h3>
+        <p>把电路功能写成布尔表达式，是用数学语言精确刻画硬件的第一步，也是逻辑优化、自主造芯的根基。</p>
+        <div class="dim-list"><span>工匠精神</span><span>精益求精</span></div>
+      </div>
+
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步建模互动</strong><span>点一步，看反馈、公式项与电路/真值表同步高亮</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-guide="circuit"><b>1 看电路</b><span>拨开关，信号点亮门与连线</span></button>
+          <button class="kg-step" type="button" data-guide="truth"><b>2 列真值表</b><span>枚举输入，记录输出 F</span></button>
+          <button class="kg-step" type="button" data-guide="expr"><b>3 写表达式</b><span>F = (A∧B)∨C</span></button>
+        </div>
+        <div class="kg-feedback" id="kgFeedback"></div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-token="circuit">电路（门）</span>
+          <span class="kg-token" data-token="truth">真值表</span>
+          <span class="kg-token" data-token="expr">F=(A∧B)∨C</span>
+        </div>
+      </div>
+
+      <div class="ctrl-box" id="ctrlBox"></div>
+      <div class="qres" id="qres"></div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>拨动输入开关，观察信号在与门、或门间流动，再用真值表和布尔表达式描述这个电路。</span>
+        <div class="visual-badge">逻辑门电路图</div>
+      </section>
+      <h2 class="pane-title">逻辑电路 F = (A ∧ B) ∨ C</h2>
+      <p class="pane-sub">左=输入开关，中=与门/或门，右=输出 F。红色连线表示信号为 1（高电平），灰色为 0。</p>
+      <div class="svgbox"><svg class="viz" id="viz" viewBox="0 0 650 360" preserveAspectRatio="xMidYMid meet"></svg></div>
+      <div id="ttwrap"></div>
+      <div class="insight-box">
+        <div class="insight-title">💡 电路 ⟺ 布尔函数</div>
+        <p>每个逻辑门对应一个布尔运算（与 ∧、或 ∨、非 ¬）。整个电路的输入–输出关系，既能用<b>真值表</b>逐行列出，也能用一个<b>布尔表达式</b> F=(A∧B)∨C 紧凑表达——三者完全等价。这种对应，是用布尔代数化简、优化电路（进阶层）的前提。</p>
+        <div class="badges"><span class="badge">工匠精神</span><span class="badge">精益求精</span><span class="badge">自立自强</span></div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
+
+  <script>
+    window.SECTION_META = {
+      "chapter": "第11章 环、域、格和布尔代数", "section": "11.11 逻辑电路表达式案例 · 基础层", "title": "电路=布尔函数",
+      "grounding": "本页（基础层）主题：把逻辑电路理解为布尔函数。以 F=(A∧B)∨C 为例，拨动输入开关观察信号经与门/或门传到输出，用真值表逐行列出输入-输出关系，并写成布尔表达式——电路、真值表、表达式三者等价，是布尔化简与优化的前提。",
+      "steps": [
+        {"name": "情境引入", "desc": "一个逻辑电路到底在计算什么函数？"},
+        {"name": "对象抽取", "desc": "把输入/输出抽象为布尔变量，门抽象为运算。"},
+        {"name": "结构建模", "desc": "用真值表与布尔表达式刻画电路功能。"},
+        {"name": "推理求解", "desc": "枚举输入求输出，写出布尔表达式。"},
+        {"name": "程序验证", "desc": "拨开关看信号、对照真值表与表达式。"},
+        {"name": "迁移反思", "desc": "卡诺图化简（进阶层）、逻辑综合与芯片（拓展层）。"}
+      ],
+      "ideology": {"title": "精益设计 · 自主芯片", "text": "逻辑电路优化以布尔代数为工具。把电路功能写成布尔函数，是用数学语言精确刻画硬件、进而化简优化、降本增效的第一步，也是掌握从布尔代数到逻辑综合全链条核心技术、推动自主造芯的根基。", "dims": ["自立自强", "工匠精神", "精益求精"], "quote": "把芯片的根基筑牢——从布尔代数到逻辑综合，每一次化简都是迈向自主芯片的硬功夫。"},
+      "reflect": ["为什么真值表、布尔表达式与逻辑电路三者完全等价？", "同一功能能写成不同表达式吗？这对化简意味着什么？"],
+      "transfer": ["卡诺图化简与最少门电路（进阶层）；逻辑综合、EDA 与自主芯片（拓展层）。"],
+      "layers": [
+        {"name": "电路=布尔函数", "concepts": "真值表 / 布尔表达式", "task": "把电路功能写成布尔表达式。", "page": "boolean-circuit-index-basic.html"},
+        {"name": "卡诺图化简", "concepts": "布尔定律 / 卡诺图 / 最简式", "task": "化简表达式得最少门电路。", "page": "boolean-circuit-index.html"},
+        {"name": "逻辑综合与 EDA", "concepts": "门级映射 / 自主芯片", "task": "迁移到逻辑综合与芯片设计。", "page": "boolean-circuit-index-extend.html"}
+      ]
+    };
+  </script>
+
+  <script>
+    var $=function(id){return document.getElementById(id);};
+    var ON='#d63b1d',OFF='rgba(116,90,60,.35)';
+    var sig={A:1,B:1,C:0};var guide='circuit';
+    function calc(){var and1=sig.A&sig.B;var f=and1|sig.C;return {and1:and1,f:f};}
+    function wire(x1,y1,x2,y2,v){return '<polyline points="'+x1+','+y1+' '+x2+','+y2+'" fill="none" stroke="'+(v?ON:OFF)+'" stroke-width="'+(v?4:2.5)+'" stroke-linecap="round"/>';}
+    function inode(x,y,name,v){return '<circle cx="'+x+'" cy="'+y+'" r="20" fill="'+(v?'rgba(214,59,29,.16)':'rgba(255,255,255,.9)')+'" stroke="'+(v?ON:OFF)+'" stroke-width="2.6"/><text x="'+x+'" y="'+(y-26)+'" text-anchor="middle" font-family="Noto Serif SC" font-size="14" font-weight="800" fill="#4e362d">'+name+'</text><text x="'+x+'" y="'+(y+6)+'" text-anchor="middle" font-family="JetBrains Mono" font-size="16" font-weight="800" fill="'+(v?ON:'#9a8b80')+'">'+v+'</text>';}
+    function gate(x,y,w,h,label,v){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="12" fill="'+(v?'rgba(214,59,29,.12)':'rgba(255,255,255,.95)')+'" stroke="'+(v?ON:'#8b6f5a')+'" stroke-width="2.6"/><text x="'+(x+w/2)+'" y="'+(y+h/2+6)+'" text-anchor="middle" font-family="Noto Serif SC" font-size="17" font-weight="800" fill="'+(v?ON:'#6c5a52')+'">'+label+'</text>';}
+    function draw(){
+      var c=calc();var svg='';
+      // input nodes
+      svg+=inode(60,80,'A',sig.A);svg+=inode(60,160,'B',sig.B);svg+=inode(60,290,'C',sig.C);
+      // AND gate
+      svg+=gate(230,90,90,80,'∧ 与',c.and1);
+      // OR gate
+      svg+=gate(420,180,90,80,'∨ 或',c.f);
+      // output
+      svg+=inode(600,220,'F',c.f);
+      // wires
+      svg+=wire(80,80,230,115,sig.A);
+      svg+=wire(80,160,230,145,sig.B);
+      svg+=wire(320,130,420,205,c.and1);
+      svg+=wire(80,290,420,235,sig.C);
+      svg+=wire(510,220,580,220,c.f);
+      svg+='<text x="325" y="345" text-anchor="middle" font-family="JetBrains Mono" font-size="14" font-weight="800" fill="#b42318">F = (A∧B)∨C = ('+sig.A+'∧'+sig.B+')∨'+sig.C+' = '+c.f+'</text>';
+      $('viz').innerHTML=svg;
+    }
+    function truthTable(){
+      var rows='';for(var a=0;a<2;a++)for(var b=0;b<2;b++)for(var cc=0;cc<2;cc++){var f=(a&b)|cc;var cur=(a===sig.A&&b===sig.B&&cc===sig.C);
+        rows+='<tr class="'+(cur?'cur':'')+(f&&guide==='expr'?' min':'')+'"><td>'+a+'</td><td>'+b+'</td><td>'+cc+'</td><td class="'+(f?'f1':'')+'">'+f+'</td></tr>';}
+      $('ttwrap').innerHTML='<table class="ttbl"><thead><tr><th>A</th><th>B</th><th>C</th><th>F</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    }
+    function info(){
+      var c=calc();
+      if(guide==='circuit')$('qres').innerHTML='当前输入 A='+sig.A+', B='+sig.B+', C='+sig.C+'<br>与门 A∧B = <b>'+c.and1+'</b>，或门后输出 <span class="formula">F = '+c.f+'</span>。红线=高电平(1)。';
+      else if(guide==='truth')$('qres').innerHTML='真值表枚举全部 2³=8 种输入组合，逐行记录输出 F。当前输入对应高亮行（F=<b>'+c.f+'</b>）。改开关看高亮行移动。';
+      else $('qres').innerHTML='<span class="formula">F = (A∧B)∨C</span><br>真值表中 F=1 的行（绿色）即电路成立的条件：当前 '+(c.f? '<span class="on1">满足</span>（A∧B 或 C 至少一真）':'<span class="off0">不满足</span>')+'。表达式、真值表、电路三者等价。';
+    }
+    function renderCtrl(){
+      $('ctrlBox').innerHTML='<label>拨动输入开关</label><div class="inbtns" id="inb"></div>';
+      $('inb').innerHTML=['A','B','C'].map(function(k){return '<button class="inbtn'+(sig[k]?' on':'')+'" data-k="'+k+'">'+k+' <span class="v">'+sig[k]+'</span></button>';}).join('');
+      $('inb').querySelectorAll('.inbtn').forEach(function(b){b.onclick=function(){sig[b.dataset.k]^=1;draw();truthTable();info();renderCtrl();};});
+    }
+    function syncGuide(){
+      document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.guide===guide);});
+      var map={circuit:'circuit',truth:'truth',expr:'expr'};
+      document.querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',map[guide]===t.dataset.token);});
+    }
+    function setGuide(g){
+      guide=g;syncGuide();
+      if(g==='circuit')$('kgFeedback').innerHTML='<b>看电路</b>：拨动 A/B/C 开关，红色连线/门表示信号为 1。与门两输入都为 1 才输出 1；或门有一个为 1 即输出 1。';
+      else if(g==='truth')$('kgFeedback').innerHTML='<b>列真值表</b>：8 种输入组合逐行求 F。当前输入对应行高亮——电路功能完全由真值表确定。';
+      else $('kgFeedback').innerHTML='<b>写表达式</b>：把 F=1 的行（绿色）合起来即布尔表达式 F=(A∧B)∨C。电路、真值表、表达式三者等价。';
+      draw();truthTable();info();renderCtrl();
+    }
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setGuide(b.dataset.guide);};});
+    setGuide('circuit');
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

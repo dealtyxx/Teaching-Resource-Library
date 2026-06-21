@@ -19,7 +19,7 @@ const finalResult = document.getElementById('finalResult');
 const structureVisualization = document.getElementById('structureVisualization');
 const philosophyContent = document.getElementById('philosophyContent');
 
-// 思政主题案例
+// 价值主题案例
 const CASES = [
     {
         formula: "∀x 团结(x) ∧ ∃y 协作(y)",
@@ -303,7 +303,7 @@ async function renderStructureVisualization(caseData) {
 async function renderPhilosophy(caseData) {
     philosophyContent.innerHTML = '';
 
-    statusText.textContent = '正在生成思政解读...';
+    statusText.textContent = '正在生成价值解读...';
     await sleep(getDelay());
 
     const philEl = document.createElement('div');

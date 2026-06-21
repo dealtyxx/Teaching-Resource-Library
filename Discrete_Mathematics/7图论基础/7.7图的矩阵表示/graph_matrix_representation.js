@@ -150,7 +150,7 @@ class GraphData {
 }
 
 // ============================================
-// 案例数据 - 思政主题
+// 案例数据 - 价值主题
 // ============================================
 const CASES = [
     {
@@ -388,6 +388,8 @@ function createGraphSVG(graph, width = 800, height = 500) {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('width', width);
     svg.setAttribute('height', height);
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     svg.setAttribute('class', 'graph-svg');
 
     // 绘制边

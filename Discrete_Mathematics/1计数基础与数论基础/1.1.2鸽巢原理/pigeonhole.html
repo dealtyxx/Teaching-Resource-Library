@@ -8,11 +8,14 @@
     <meta name="description" content="离散数学课程 - 鸽巢原理 - 统筹兼顾可视化">
 
     <link rel="stylesheet" href="pigeonhole.css">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="../chapter1-compact.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+XiaoWei&display=swap"
         rel="stylesheet">
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
@@ -46,7 +49,7 @@
 
             <div class="controls-wrapper">
                 <div class="control-group">
-                    <label>思政场景选择</label>
+                    <label>价值场景选择</label>
                     <select id="scenarioSelect" class="apple-select">
                         <option value="resource">资源分配</option>
                         <option value="talent">人才培养</option>
@@ -161,19 +164,89 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "layers": [
+        {"name": "简单鸽巢原理", "concepts": "n+1 进 n 必有重复", "task": "理解为何不数也能断定『必然存在重复』。", "page": "pigeon-basic.html"},
+        {"name": "推广鸽巢原理", "concepts": "⌈m/n⌉ / 构造鸽巢与鸽子 / 分配策略", "task": "会构造盒子、用推广式给出『至少几个』的下界。", "page": "pigeonhole.html"},
+        {"name": "存在性的威力", "concepts": "哈希冲突 / 生日悖论 / 系统必然性", "task": "用鸽巢证明真实系统中的必然冲突。", "page": "pigeon-extend.html"}
+      ],
+      "chapter": "第1章 计数基础与数论基础",
+      "section": "1.1.2 鸽巢原理",
+      "title": "鸽巢原理（抽屉原理）",
+      "grounding": "本节主题：鸽巢原理。简单形式——把 n+1 个物体放入 n 个盒子，至少有一个盒子含 ≥2 个物体；推广形式——把 n 个物体放入 k 个盒子，至少有一个盒子含 ≥⌈n/k⌉ 个物体。核心在于『构造盒子（鸽巢）』与『统计物体（鸽子）』，是纯粹的存在性证明，不指出具体是哪个盒子。",
+      "steps": [
+        {
+          "name": "情境引入",
+          "desc": "13 个人里必有两人生月相同——为什么不数也能断定？"
+        },
+        {
+          "name": "对象抽取",
+          "desc": "辨认谁是『鸽子』（物体）、谁是『鸽巢』（分类），明确二者数量。"
+        },
+        {
+          "name": "结构建模",
+          "desc": "建立物体到盒子的映射，套用 n>k ⇒ 必有重复 的存在性结构。"
+        },
+        {
+          "name": "推理求解",
+          "desc": "用推广式 ⌈n/k⌉ 给出『至少几个落入同一盒子』的下界。"
+        },
+        {
+          "name": "程序验证",
+          "desc": "用本页交互调整物体/盒子数，观察必然碰撞的临界点。"
+        },
+        {
+          "name": "迁移反思",
+          "desc": "迁移到哈希冲突、压缩极限、调度抢占等真实存在性问题。"
+        }
+      ],
+      "ideology": {
+        "title": "统筹兼顾 · 实事求是",
+        "text": "鸽巢原理告诉我们：当资源（鸽巢）有限而需求（鸽子）增长，矛盾必然出现——这正是统筹兼顾、未雨绸缪的科学决策依据。它不靠枚举而靠严密推理就能断定『必然』，体现了实事求是、透过现象看本质的辩证唯物主义思维。",
+        "dims": [
+          "辩证思维",
+          "统筹观念",
+          "科学精神"
+        ],
+        "quote": "不谋全局者，不足谋一域——鸽巢原理用最朴素的计数，揭示资源约束下的必然规律。"
+      },
+      "reflect": [
+        "鸽巢原理只断言『存在重复』，却不指出是哪个盒子——这种『存在性证明』的价值在哪里？",
+        "把『至少一个盒子有 2 个』推广到『至少一个盒子有 m 个』，物体数应满足什么条件？",
+        "如果要让『没有任何盒子重复』，物体数与盒子数必须是什么关系？"
+      ],
+      "transfer": [
+        "哈希表中元素数超过桶数时，冲突必然发生——这就是鸽巢原理在数据结构中的化身。",
+        {
+          "t": "无损压缩的极限",
+          "d": "为什么不存在能压缩所有文件的算法？用鸽巢原理证明：长度更短的串数量不够用。"
+        },
+        {
+          "t": "调度与抢占",
+          "d": "任务数超过 CPU 核数时，必有任务排队——存在性结论如何指导系统设计？"
+        }
+      ]
+    };
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 

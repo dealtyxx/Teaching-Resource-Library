@@ -82,7 +82,7 @@ class Graph {
 }
 
 // ============================================
-// 案例数据 - 思政主题
+// 案例数据 - 价值主题
 // ============================================
 const CASES = [
     {
@@ -369,6 +369,8 @@ function createGraphSVG(graph, width = 900, height = 500) {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('width', width);
     svg.setAttribute('height', height);
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     svg.setAttribute('class', 'graph-svg');
 
     // 绘制边
@@ -684,7 +686,7 @@ async function renderPropertyAnalysis(caseData) {
 }
 
 // ============================================
-// 渲染思政启示
+// 渲染价值启示
 // ============================================
 async function renderPhilosophy(caseData) {
     const container = document.getElementById('philosophyContent');
@@ -729,7 +731,7 @@ async function runGraphDemo() {
     showSection('propertyAnalysis');
     await renderPropertyAnalysis(caseData);
 
-    // 5. 思政启示
+    // 5. 价值启示
     showSection('philosophySection');
     await renderPhilosophy(caseData);
 

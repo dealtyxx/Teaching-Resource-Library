@@ -309,7 +309,7 @@ function loadLevel(levelId) {
     document.getElementById('goalDesc').innerHTML = `
         <div style="margin-bottom: 8px;">${config.goalDesc}</div>
         <div style="background: #fff5f5; padding: 10px; border-radius: 6px; margin-top: 10px; font-size: 0.95rem; border-left: 3px solid #de2910;">
-            <strong>🚩 思政启示：</strong>${config.ideology}
+            <strong>🚩 价值启示：</strong>${config.ideology}
         </div>
         <div style="margin-top: 8px; color: #999; font-size:0.85rem;">难度: ${config.difficulty}</div>
     `;
@@ -332,7 +332,7 @@ function loadLevel(levelId) {
     });
 
     renderProofTable();
-    if (window.MathJax) MathJax.typesetPromise();
+    if (window.MathJax) window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise();
 }
 
 function setupToolbox() {
@@ -462,7 +462,7 @@ function renderProofTable() {
         tbody.appendChild(tr);
     });
 
-    if (window.MathJax) MathJax.typesetPromise();
+    if (window.MathJax) window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise();
 }
 
 function checkWinCondition() {

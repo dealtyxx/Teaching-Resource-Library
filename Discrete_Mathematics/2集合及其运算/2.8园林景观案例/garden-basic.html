@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>园林集合论 · 基础层 — 景点与功能集合</title>
+  <meta name="description" content="2.8 园林景观案例 基础层：把园林景点抽象为元素，按功能归入集合，判定归属">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1500px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#2f7d57;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--green);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--green);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(47,125,87,.13);color:#1c6b48;padding:3px 9px;font-size:12px;font-weight:700;}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(47,125,87,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}.kg-step-head strong{color:var(--green);font-size:.95rem;}.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#1c6b48;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--green);transform:translateY(-2px);box-shadow:0 8px 20px rgba(47,125,87,.12);}
+.kg-step b{display:block;color:var(--green);font-size:.86rem;}.kg-step span{display:block;font-size:.76rem;color:var(--muted);margin-top:3px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(47,125,87,.3);background:rgba(47,125,87,.08);font-size:.84rem;color:#2c5a45;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#7d8a7d;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#2f7d57,#1c5f40);color:#fff;box-shadow:0 8px 18px rgba(47,125,87,.18);}
+.func-row{display:flex;flex-wrap:wrap;gap:6px;}
+.fbtn{padding:5px 11px;border-radius:999px;border:1.5px solid var(--line);background:rgba(255,255,255,.7);cursor:pointer;font:inherit;font-size:.8rem;font-weight:700;color:#5b4136;transition:.15s;display:flex;align-items:center;gap:5px;}
+.fbtn .sw{width:11px;height:11px;border-radius:50%;display:inline-block;}
+.fbtn.on{color:#fff;}.fbtn.on.A{background:#d63b1d;border-color:#d63b1d;}.fbtn.on.B{background:#c58a1f;border-color:#c58a1f;}.fbtn.on.C{background:#2f5f9f;border-color:#2f5f9f;}.fbtn.on.D{background:#2f7d57;border-color:#2f7d57;}
+.qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.88rem;color:#5b4136;line-height:1.95;}
+.qres b{color:var(--green);}.qres .mem{display:inline-block;font-family:"JetBrains Mono",monospace;font-weight:800;padding:1px 9px;border-radius:8px;margin:2px;}
+.qres .yes{background:rgba(47,125,87,.15);color:#1c7a6e;}.qres .no{background:rgba(116,55,31,.08);color:var(--muted);}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--green);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--green);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 8px;}
+.netbox{flex:1;min-height:420px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(247,253,247,.95),rgba(238,248,239,.8));background-image:linear-gradient(rgba(47,125,87,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(47,125,87,.05) 1px,transparent 1px);background-size:30px 30px;padding:6px;display:flex;align-items:center;position:relative;}
+.net{width:100%;height:auto;display:block;}
+.edge{stroke:rgba(116,90,60,.32);stroke-width:3;stroke-linecap:round;transition:.3s;}
+.nlabel{font-family:"Noto Serif SC",serif;font-size:13px;font-weight:700;fill:#3d2b25;}
+.nodeg{cursor:pointer;}
+.maplegend{display:flex;gap:13px;justify-content:center;flex-wrap:wrap;font-size:.78rem;color:#3d2b25;margin-top:8px;}
+.maplegend i{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+.insight-box{border-radius:8px;border-left:4px solid var(--green);background:linear-gradient(135deg,rgba(47,125,87,.06),rgba(197,138,31,.05));padding:13px 15px;margin-top:12px;}
+.insight-title{font-weight:700;color:var(--green);margin-bottom:6px;}.insight-box p{margin:0;font-size:13.5px;line-height:1.7;color:#3a4a40;}
+.badges{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px;}.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>园林集合论 <span class="highlight">基础层</span></h1>
+        <p class="subtitle">景点与功能集合 · 把景点抽象为集合</p>
+      </div>
+      <p class="intro">把园林景点抽象为元素（图中节点），按功能归入集合 A 赏景 / B 休憩 / C 文化 / D 亲水，用 ∈ 判定归属。</p>
+
+      <div class="value-panel">
+        <h3>天人合一 · 匠心营造</h3>
+        <p>景点要素按功能归类，是规划游线、营造意境的第一步——以理性工具理解传统造园美学。</p>
+        <div class="dim-list"><span>文化自信</span><span>审美素养</span></div>
+      </div>
+
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步建模互动</strong><span>点一步，看反馈、公式项与地图节点同步高亮</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-guide="list"><b>1 景点抽取</b><span>e ∈ U：把景点抽象为元素</span></button>
+          <button class="kg-step" type="button" data-guide="group"><b>2 功能归类</b><span>归入 A/B/C/D 功能集合</span></button>
+          <button class="kg-step" type="button" data-guide="member"><b>3 判定归属</b><span>点景点看 e ∈ A？</span></button>
+        </div>
+        <div class="kg-feedback" id="kgFeedback">把园林的亭、台、廊、池等景点抽象为<b>元素</b>，它们构成全集 U（景点集）。</div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-token="e">e ∈ U</span>
+          <span class="kg-token" data-token="set">A / B / C / D</span>
+          <span class="kg-token" data-token="mem">归属 ∈</span>
+        </div>
+      </div>
+
+      <div class="control-group" style="border:none;background:none;padding:0;">
+        <label style="display:block;color:#2c5a45;font-weight:700;font-size:13px;margin-bottom:6px;">按功能高亮景点</label>
+        <div class="func-row" id="funcRow"></div>
+      </div>
+
+      <div class="qres" id="qres">点功能按钮高亮该功能的景点；点地图节点查看它属于哪些功能集合。</div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>把园林景点（节点）按功能归入赏景/休憩/文化/亲水集合，并用 ∈ 判定每个景点的归属。</span>
+        <div class="visual-badge">景点网络图</div>
+      </section>
+      <h2 class="pane-title">哲思园 · 景点功能网络</h2>
+      <p class="pane-sub">节点=景点，连线=游线。节点的色块表示它所属的功能集合（可同属多个=衔接节点）。</p>
+      <div class="netbox"><svg class="net" id="net" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid meet"></svg></div>
+      <div class="maplegend"><span><i style="background:#d63b1d"></i>A 赏景</span><span><i style="background:#c58a1f"></i>B 休憩</span><span><i style="background:#2f5f9f"></i>C 文化</span><span><i style="background:#2f7d57"></i>D 亲水</span></div>
+      <div class="insight-box">
+        <div class="insight-title">🌿 景点集合化是空间规划的第一步</div>
+        <p>每个景点是一个<b>元素</b>，每种功能是一个<b>集合</b>。归类要满足<b>确定性</b>：景点是否具备某功能必须明确（∈ 或 ∉）。同属多个功能的景点（色块为两半）正是空间的<b>衔接节点</b>，为后续分区与游线规划（进阶层）奠定基础。</p>
+        <div class="badges"><span class="badge">文化自信</span><span class="badge">审美素养</span></div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
+
+  <script>
+    window.SECTION_META = {
+      "chapter": "第2章 集合及其运算", "section": "2.8 园林景观案例 · 基础层", "title": "景点与功能集合",
+      "grounding": "本页（基础层）主题：把古典园林的景点抽象为元素（网络图节点），按功能归入集合 A 赏景 / B 休憩 / C 文化 / D 亲水，用 ∈ 判定确定的归属。同属多个功能的景点是空间衔接节点，为分区与游线规划（进阶层）奠定基础。",
+      "steps": [
+        {"name": "情境引入", "desc": "游览一座园林，如何用集合把景点有序组织？"},
+        {"name": "对象抽取", "desc": "把景点抽象为元素，把功能抽象为集合。"},
+        {"name": "结构建模", "desc": "按功能把景点归入 A/B/C/D 集合。"},
+        {"name": "推理求解", "desc": "用 ∈ 判定每个景点具备哪些功能（确定性）。"},
+        {"name": "程序验证", "desc": "点功能或点节点，验证景点归属。"},
+        {"name": "迁移反思", "desc": "功能分区与游线（进阶层）、路径规划（拓展层）。"}
+      ],
+      "ideology": {"title": "天人合一 · 匠心营造", "text": "中国古典园林『虽由人作，宛自天开』，以有限空间营造无限意境。用集合论分析造园要素，是以理性工具理解传统美学的尝试——科学与人文交融，既传承匠心，又坚定文化自信。", "dims": ["文化自信", "审美素养", "工匠精神"], "quote": "一峰则太华千寻，一勺则江湖万里——园林以小见大，与集合的层次之美异曲同工。"},
+      "reflect": ["把景点归类为功能集合时，如何保证分类的确定性？", "为什么同属多个功能的景点是空间的『衔接节点』？"],
+      "transfer": ["功能分区与并交衔接（进阶层）；参观动线与路径优化（拓展层）。"],
+      "layers": [
+        {"name": "景点与功能集合", "concepts": "景点/功能区元素", "task": "把园林造景要素抽象为集合。", "page": "garden-basic.html"},
+        {"name": "分区与游线", "concepts": "功能分区划分 / 并交衔接", "task": "用划分与运算组织功能区与游线。", "page": "garden.html"},
+        {"name": "路径与空间规划", "concepts": "参观动线 / 路径图论 / 数字孪生", "task": "迁移到城市规划与路径优化。", "page": "garden-extend.html"}
+      ]
+    };
+  </script>
+
+  <script>
+    var $=function(id){return document.getElementById(id);};
+    var FCOLOR={A:'#d63b1d',B:'#c58a1f',C:'#2f5f9f',D:'#2f7d57'},FNAME={A:'赏景',B:'休憩',C:'文化',D:'亲水'};
+    var NODES=[
+      {id:'mdt',n:'牡丹亭',s:['A','B'],x:150,y:110},{id:'js',n:'假山叠石',s:['A'],x:340,y:80},
+      {id:'sfx',n:'松风轩',s:['B'],x:560,y:100},{id:'ydm',n:'月洞门',s:['A','C'],x:760,y:150},
+      {id:'zyl',n:'竹影廊',s:['A','C'],x:230,y:310},{id:'tkb',n:'题刻壁',s:['C'],x:480,y:290},
+      {id:'cl',n:'茶寮',s:['B'],x:700,y:330},{id:'qsls',n:'曲水流觞',s:['C','D'],x:180,y:480},
+      {id:'hfx',n:'荷风榭',s:['B','D'],x:450,y:490},{id:'lc',n:'莲池',s:['D'],x:710,y:510}
+    ];
+    var EDGES=[['mdt','js'],['js','sfx'],['sfx','ydm'],['mdt','zyl'],['js','tkb'],['sfx','cl'],['ydm','cl'],['zyl','tkb'],['tkb','hfx'],['zyl','qsls'],['qsls','hfx'],['hfx','lc'],['cl','lc'],['tkb','cl']];
+    var nmap={};NODES.forEach(function(n){nmap[n.id]=n;});
+    function inS(n,L){return n.s.indexOf(L)>=0;}
+    var guide='list',activeFunc=null,selNode=null;
+    function wedges(n,r,faded){
+      var fs=n.s,k=fs.length,out='';
+      for(var i=0;i<k;i++){var a0=-Math.PI/2+i*2*Math.PI/k,a1=-Math.PI/2+(i+1)*2*Math.PI/k;
+        var emph=(activeFunc?fs[i]===activeFunc:(selNode?selNode===n.id:true));
+        var op=faded?0.16:(activeFunc&&!emph?0.18:0.9);
+        if(k===1){out+='<circle cx="'+n.x+'" cy="'+n.y+'" r="'+r+'" fill="'+FCOLOR[fs[0]]+'" opacity="'+op+'"/>';}
+        else{var x0=n.x+r*Math.cos(a0),y0=n.y+r*Math.sin(a0),x1=n.x+r*Math.cos(a1),y1=n.y+r*Math.sin(a1);
+          out+='<path d="M'+n.x+' '+n.y+' L'+x0.toFixed(1)+' '+y0.toFixed(1)+' A'+r+' '+r+' 0 0 1 '+x1.toFixed(1)+' '+y1.toFixed(1)+' Z" fill="'+FCOLOR[fs[i]]+'" opacity="'+op+'"/>';}
+      }
+      return out;
+    }
+    function draw(){
+      var svg='',r=24;
+      EDGES.forEach(function(e){var a=nmap[e[0]],b=nmap[e[1]];svg+='<line class="edge" x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'"/>';});
+      NODES.forEach(function(n){
+        var emph=(activeFunc?inS(n,activeFunc):(selNode?selNode===n.id:true));
+        var faded=(activeFunc||selNode)&&!emph;
+        var ring=selNode===n.id?'#1c5f40':(activeFunc&&inS(n,activeFunc)?FCOLOR[activeFunc]:'rgba(116,90,60,.4)');
+        var rw=(selNode===n.id||(activeFunc&&inS(n,activeFunc)))?3.5:1.6;
+        svg+='<g class="nodeg" data-id="'+n.id+'" opacity="'+(faded?0.45:1)+'">';
+        if(guide==='list'){svg+='<circle cx="'+n.x+'" cy="'+n.y+'" r="'+r+'" fill="rgba(255,255,255,.9)"/>';}
+        else{svg+='<circle cx="'+n.x+'" cy="'+n.y+'" r="'+r+'" fill="rgba(255,255,255,.95)"/>'+wedges(n,r,faded);}
+        svg+='<circle cx="'+n.x+'" cy="'+n.y+'" r="'+r+'" fill="none" stroke="'+ring+'" stroke-width="'+rw+'"/>';
+        svg+='<text class="nlabel" x="'+n.x+'" y="'+(n.y+r+16)+'" text-anchor="middle">'+n.n+'</text></g>';
+      });
+      $('net').innerHTML=svg;
+      $('net').querySelectorAll('.nodeg').forEach(function(g){g.onclick=function(){guide='member';selNode=g.dataset.id;activeFunc=null;syncGuide();draw();info();renderFuncs();};});
+    }
+    function info(){
+      if(selNode){var n=nmap[selNode];var html='<b>'+n.n+'</b> 的功能归属：<br>';
+        ['A','B','C','D'].forEach(function(L){var ok=inS(n,L);html+='<span class="mem '+(ok?'yes':'no')+'">'+n.n+' '+(ok?'∈':'∉')+' '+L+' '+FNAME[L]+'</span> ';});
+        html+='<div style="margin-top:8px;font-size:.78rem;opacity:.8">该景点具备 <b>'+n.s.length+'</b> 种功能'+(n.s.length>1?'，是空间<b>衔接节点</b>。':'。')+'归属是<b>确定</b>的：要么 ∈，要么 ∉。</div>';
+        $('qres').innerHTML=html;return;}
+      if(activeFunc){var arr=NODES.filter(function(n){return inS(n,activeFunc);});
+        $('qres').innerHTML='集合 <b>'+activeFunc+' '+FNAME[activeFunc]+'</b> = { '+arr.map(function(n){return n.n;}).join('、')+' }<br><span style="font-size:.8rem;opacity:.8">共 '+arr.length+' 个景点具备该功能（地图中高亮）。</span>';return;}
+      $('qres').innerHTML='点功能按钮高亮该功能的景点；点地图节点查看它属于哪些功能集合。';
+    }
+    function renderFuncs(){
+      $('funcRow').innerHTML=['A','B','C','D'].map(function(L){return '<span class="fbtn '+L+(activeFunc===L?' on':'')+'" data-f="'+L+'"><span class="sw" style="background:'+FCOLOR[L]+'"></span>'+L+' '+FNAME[L]+'</span>';}).join('');
+      $('funcRow').querySelectorAll('.fbtn').forEach(function(b){b.onclick=function(){if(guide==='list')setGuide('group');activeFunc=(activeFunc===b.dataset.f)?null:b.dataset.f;selNode=null;draw();info();renderFuncs();};});
+    }
+    function syncGuide(){
+      document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.guide===guide);});
+      document.querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',(guide==='list'&&t.dataset.token==='e')||(guide==='group'&&t.dataset.token==='set')||(guide==='member'&&t.dataset.token==='mem'));});
+    }
+    function setGuide(g){
+      guide=g;syncGuide();
+      if(g==='list'){activeFunc=null;selNode=null;$('kgFeedback').innerHTML='把园林的亭、台、廊、池等景点抽象为<b>元素</b>，它们构成全集 U（景点集）。';}
+      else if(g==='group'){selNode=null;$('kgFeedback').innerHTML='按功能归类：点上方功能按钮，高亮属于该集合的景点。色块两半的节点同属多个功能（<b>衔接节点</b>）。';}
+      else{$('kgFeedback').innerHTML='用 <b>∈</b> 判定归属：点任意节点，查看它属于哪些功能集合。归属必须<b>确定</b>（∈ 或 ∉）。';if(!selNode&&!activeFunc)selNode='mdt';}
+      draw();info();renderFuncs();
+    }
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setGuide(b.dataset.guide);};});
+    setGuide('list');
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

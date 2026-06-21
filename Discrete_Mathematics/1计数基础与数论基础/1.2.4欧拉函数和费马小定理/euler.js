@@ -28,7 +28,7 @@ const fermatPrime = document.getElementById('fermatPrime');
 let currentMode = 'euler';
 let isRunning = false;
 
-// Ideological Keywords (思政关键词)
+// Ideological Keywords (价值引领关键词)
 const SZ_KEYWORDS = {
     coprime: ['团结', '互助', '平等', '和谐', '友善', '诚信', '敬业', '爱国'],
     nonCoprime: [],

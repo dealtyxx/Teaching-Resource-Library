@@ -48,7 +48,7 @@ function setupTabs() {
 
             // Trigger MathJax rendering
             if (window.MathJax) {
-                MathJax.typesetPromise();
+                window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise();
             }
         });
     });
@@ -182,7 +182,7 @@ function updateNaryDisplay(n) {
 
     // Trigger MathJax
     if (window.MathJax) {
-        MathJax.typesetPromise([formulaExamples]);
+        window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise([formulaExamples]);
     }
 }
 

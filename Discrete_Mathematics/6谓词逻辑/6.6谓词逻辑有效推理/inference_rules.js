@@ -17,7 +17,7 @@ const inferenceDiagram = document.getElementById('inferenceDiagram');
 const conclusionDisplay = document.getElementById('conclusionDisplay');
 const philosophyPanel = document.getElementById('philosophyPanel');
 
-// 思政主题推理案例
+// 价值主题推理案例
 const CASES = [
     {
         name: "为人民服务 - US规则应用",
@@ -388,7 +388,7 @@ async function renderConclusion(caseData) {
 async function renderPhilosophy(caseData) {
     philosophyPanel.innerHTML = '';
 
-    statusText.textContent = '正在生成思政解读...';
+    statusText.textContent = '正在生成价值解读...';
     await sleep(getDelay());
 
     const philEl = document.createElement('div');

@@ -112,7 +112,7 @@ function updateSidebar() {
     const data = CONTENT[activeTab];
     document.getElementById('insightContent').innerHTML = data.insight;
     document.getElementById('conceptContent').innerHTML = data.concept;
-    if (window.MathJax) MathJax.typesetPromise();
+    if (window.MathJax) window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise();
 }
 
 // --- Module 1: Reliability (Fallacy Detector) ---

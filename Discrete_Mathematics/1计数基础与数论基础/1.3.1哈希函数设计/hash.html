@@ -8,11 +8,14 @@
     <meta name="description" content="离散数学课程 - 红色数理 - 哈希映射">
 
     <link rel="stylesheet" href="hash.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="../chapter1-compact.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
         rel="stylesheet">
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
@@ -67,7 +70,7 @@
                 </div>
 
                 <div class="control-group">
-                    <label>思政解读</label>
+                    <label>价值解读</label>
                     <div class="info-panel">
                         <h3 id="szTitle">民主集中制</h3>
                         <p id="szDesc">广泛听取群众心声（输入），通过制度化的程序（哈希函数）进行统筹兼顾，最终落实到五位一体总体布局（哈希桶）中去。</p>
@@ -124,19 +127,104 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "chapter": "第1章 计数基础与数论基础",
+      "section": "1.3.1 哈希函数设计 · 进阶层",
+      "title": "冲突与处理",
+      "grounding": "本节主题：哈希函数把任意输入映射到固定范围 [0,m)。常用构造 h(k)=k mod m（除留余数法），m 宜取素数以减少冲突。好的哈希应均匀、确定、抗碰撞。鸽巢原理保证：键多于桶时冲突必然发生，故需链地址或开放定址等冲突处理。模运算是哈希的数学内核。",
+      "steps": [
+            {
+                  "name": "情境引入",
+                  "desc": "海量数据如何做到『近乎瞬时』的查找？钥匙与抽屉怎么对应？"
+            },
+            {
+                  "name": "对象抽取",
+                  "desc": "把键抽象为整数，把存储桶抽象为模 m 的剩余类。"
+            },
+            {
+                  "name": "结构建模",
+                  "desc": "用 h(k)=k mod m 建模映射，用鸽巢原理理解冲突的不可避免。"
+            },
+            {
+                  "name": "推理求解",
+                  "desc": "选取素数模、分析装填因子，权衡冲突率与空间。"
+            },
+            {
+                  "name": "程序验证",
+                  "desc": "用本页交互观察不同 m 下的分布均匀性与碰撞。"
+            },
+            {
+                  "name": "迁移反思",
+                  "desc": "迁移到哈希表、数字指纹、区块链、密码学哈希。"
+            }
+      ],
+      "ideology": {
+            "title": "效率为民 · 守正创新",
+            "text": "哈希以巧妙的映射换取查找效率，让海量信息『各归其位、一索即得』，体现了为人民提供高效便捷服务的创新追求。模数取素数以求分布均匀，恰似制度设计要公平普惠、不偏不倚——技术之善，始终服务于人的需要。",
+            "dims": [
+                  "创新意识",
+                  "效率观念",
+                  "公平正义"
+            ],
+            "quote": "工欲善其事，必先利其器——一个好的哈希函数，是高效系统背后默默无闻的『利器』。"
+      },
+      "reflect": [
+            "除留余数法里 m 为什么宜取素数而非 2 的幂或合数？",
+            "鸽巢原理保证冲突必然发生，那么我们能优化的到底是什么？",
+            "『确定性』和『均匀性』看似矛盾（同一输入总同一输出，却要看起来随机），它们如何统一？"
+      ],
+      "transfer": [
+            "密码学哈希（SHA-256）要求抗碰撞、雪崩效应，与本节的散列有何异同？",
+            {
+                  "t": "数字指纹",
+                  "d": "文件校验、去重、区块链都用哈希做『指纹』，依赖它的什么性质？"
+            },
+            {
+                  "t": "装填因子",
+                  "d": "当装填因子接近 1，性能为何急剧下降？如何通过扩容（rehash）化解？"
+            }
+      ],
+      "layers": [
+            {
+                  "name": "哈希映射",
+                  "concepts": "h(k)=k mod m / 确定性 / 均匀性",
+                  "task": "理解键到桶的映射与均匀分布的意义。",
+                  "page": "hash-basic.html"
+            },
+            {
+                  "name": "冲突与处理",
+                  "concepts": "鸽巢必冲突 / 链地址·开放定址 / 装填因子",
+                  "task": "会选素数模、分析冲突率与扩容。",
+                  "page": "hash.html"
+            },
+            {
+                  "name": "从散列到数字指纹",
+                  "concepts": "SHA-256 / 雪崩效应 / 区块链",
+                  "task": "迁移到密码学哈希、去重与防篡改校验。",
+                  "page": "hash-extend.html"
+            }
+      ]
+};
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 

@@ -8,11 +8,34 @@
     <meta name="description" content="离散数学课程 - 计数原理 - 多元发展可视化">
 
     <link rel="stylesheet" href="counting.css">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="../chapter1-compact.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+XiaoWei&display=swap"
         rel="stylesheet">
+    <style>
+        /* 修复：让内容自然流动，图例不再绝对定位浮在内容之上（避免与动态内容/注入说明重叠） */
+        .glass-pane {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        .glass-pane .visualization-area {
+            height: auto;
+            min-height: 0;
+            flex: 0 0 auto;
+            justify-content: flex-start;
+            padding-bottom: 0;
+        }
+        .glass-pane .legend {
+            position: static;
+            max-width: 100%;
+            margin: 8px auto 0;
+        }
+    </style>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
@@ -68,7 +91,7 @@
                 </div>
 
                 <div class="control-group">
-                    <label>思政场景</label>
+                    <label>价值场景</label>
                     <select id="scenarioSelect" class="apple-select">
                         <option value="development">发展道路</option>
                         <option value="policy">政策方针</option>
@@ -126,7 +149,47 @@
         </main>
     </div>
 
-    <script src="counting.js"></script>
+    <script src="counting.js?v=20260618-init"></script>
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "layers": [
+        {"name": "加法与乘法法则", "concepts": "分类相加 / 分步相乘", "task": "辨清『分类』与『分步』，数清简单事件方案数。", "page": "counting-basic.html"},
+        {"name": "排列与组合（综合）", "concepts": "P(n,k) / C(n,k) / 有序vs无序", "task": "会用排列组合公式，避免重复与遗漏。", "page": "counting.html"},
+        {"name": "计数 → 概率与密码空间", "concepts": "古典概率 / 口令强度 / 组合爆炸", "task": "把计数迁移到概率、密码空间与复杂度。", "page": "counting-extend.html"}
+      ],
+      chapter: "第1章 计数基础与数论基础",
+      section: "1.1.1 基本概念",
+      title: "计数原理：加法、乘法、排列、组合",
+      grounding: "本节主题：四大计数原理。加法法则——完成一件事有 k 类互斥方法，方法数相加 n₁+n₂+…+n_k（对应『分类』）；乘法法则——完成一件事需依次完成 k 个步骤，方法数相乘 n₁·n₂·…·n_k（对应『分步』）；排列 P(n,k)=n!/(n-k)! 计『有序』选取；组合 C(n,k)=n!/(k!(n-k)!) 计『无序』选取。核心辨析：分类相加 vs 分步相乘、有序排列 vs 无序组合。",
+      steps: [
+        { name: "情境引入", desc: "面对『发展道路 / 政策方针 / 团队组建』等多元选择，如何系统地数清所有方案？" },
+        { name: "对象抽取", desc: "把现实选择抽象为『类别』与『步骤』，把人/方案抽象为可计数的离散对象。" },
+        { name: "结构建模", desc: "判断是分类（互斥→加法）还是分步（依次→乘法）；判断是否计较顺序（排列/组合）。" },
+        { name: "推理求解", desc: "套用 加法 / 乘法 / P(n,k) / C(n,k) 公式，注意避免重复计数与遗漏。" },
+        { name: "程序验证", desc: "用本页交互改变参数，观察方案数变化，验证公式与直觉是否一致。" },
+        { name: "迁移反思", desc: "把计数方法迁移到概率、密码空间、组合优化等真实问题。" }
+      ],
+      ideology: {
+        title: "多元一体 · 求同存异",
+        text: "加法法则包容并列的多元路径，乘法法则刻画协同递进的系统工程——正如中国式现代化既尊重道路的多样选择，又强调各环节协同发力。计数的『不重不漏』，也是一种实事求是、严谨周密的治理智慧。",
+        dims: ["辩证思维", "系统观念", "家国情怀"],
+        quote: "团结一切可以团结的力量——把每一种可能都数清、用好，正是统一战线的数学注脚。"
+      },
+      reflect: [
+        "同一个问题，什么时候该『相加』、什么时候该『相乘』？判据是什么？",
+        "排列与组合只差一个『顺序』，这个差别在 P(n,k) 与 C(n,k) 公式里体现在哪里？",
+        "若某些方案被重复计数，你会如何用『先多算再除去重复』的思想修正？"
+      ],
+      transfer: [
+        "把 4 位十进制密码换成 6 位、再换成含字母的情形，密码空间各有多大？这正是口令强度的计数基础。",
+        { t: "概率的入口", d: "古典概率 P=有利结果数/总结果数，分子分母都是计数问题——本节方法如何直接服务于概率计算？" },
+        { t: "组合爆炸", d: "当 n 增大，排列数增长有多快？由此理解『暴力枚举不可行』与算法优化的必要性。" }
+      ]
+    };
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 <!-- 固定底部版权信息 -->
 <footer style="
@@ -134,19 +197,18 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
-</footer>
-
 </footer>
 
 

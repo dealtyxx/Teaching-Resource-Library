@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第5章 命题逻辑 - 战略论证迁移与联合审计</title>
+  <meta name="description" content="5.8 两弹一星案例 - 拓展层 · 战略论证迁移">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{
+  --ink:#251713; --muted:#6c5a52; --paper:#fff8ec; --card:rgba(255,253,246,0.92);
+  --line:rgba(116,55,31,0.18); --red:#b42318; --red-2:#de5b3d; --gold:#c58a1f;
+  --green:#2f7d57; --blue:#2f5f9f; --amber:#f0a202;
+  --shadow:0 18px 50px rgba(69,31,15,0.14);
+}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;
+  background:radial-gradient(circle at 16% 12%, rgba(222,91,61,.18), transparent 28%),radial-gradient(circle at 82% 8%, rgba(47,95,159,.14), transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:14px;overflow:auto;}
+.glass-pane{padding:22px;overflow:auto;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}
+.dot.red{background:#ff5f56;} .dot.yellow{background:#ffbd2e;} .dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}
+.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.tab-nav{display:flex;flex-direction:column;gap:6px;}
+.tab-btn{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);color:#5b4136;cursor:pointer;font:inherit;font-weight:700;font-size:14px;transition:all .2s;text-align:left;}
+.tab-btn:hover{background:rgba(180,35,24,.08);color:var(--red);}
+.tab-btn.active{background:var(--red);color:#fff;border-color:var(--red);box-shadow:0 6px 16px rgba(180,35,24,.25);}
+.tab-btn .ico{font-size:18px;}
+.sidebar-dyn{display:grid;gap:10px;}
+.control-group{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
+.control-group>label{display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:8px;}
+.control-group select{width:100%;min-height:36px;border-radius:8px;border:1px solid rgba(116,55,31,.22);background:#fffaf2;color:var(--ink);padding:0 10px;font:inherit;}
+.toggle-grid{display:grid;gap:6px;}
+.tg-row{display:flex;align-items:center;gap:8px;font-size:13px;color:#5b4136;font-weight:600;cursor:pointer;}
+.tg-row input{width:17px;height:17px;accent-color:var(--red);}
+.mini-info{font-size:13px;color:#5b4136;line-height:1.7;}
+.mini-info strong{color:var(--red);}
+.action-row{margin-top:auto;display:flex;gap:8px;padding-top:6px;}
+.action-btn{flex:1;padding:11px 14px;border-radius:8px;border:none;background:var(--red);color:#fff;font:inherit;font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(180,35,24,.25);transition:all .2s;}
+.action-btn:hover{background:#8d1a12;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);} .mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.tab-content{display:none;} .tab-content.active{display:block;animation:fade .3s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}
+.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 12px;}
+.panel-card{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:16px;margin:12px 0;}
+.panel-card h3{margin:0 0 10px;color:var(--red);font-size:1rem;}
+.data-table{border-radius:10px;overflow:hidden;border:1px solid var(--line);margin:12px 0;}
+.data-table table{width:100%;border-collapse:collapse;font-size:13px;}
+.data-table th{background:var(--red);color:#fff;padding:9px 7px;text-align:center;font-weight:700;font-size:12px;}
+.data-table td{padding:8px 7px;border-bottom:1px solid var(--line);text-align:center;}
+.data-table td.name{text-align:left;font-weight:700;}
+.data-table tbody tr{cursor:pointer;transition:.15s;}
+.data-table tbody tr:hover{background:rgba(180,35,24,.06);}
+.data-table tbody tr.sel{background:rgba(197,138,31,.18);}
+.tv{color:var(--green);font-weight:800;} .fv{color:#c2877f;font-weight:800;}
+.chain-wrap{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.88),rgba(255,250,239,.7));padding:8px;}
+.chain-svg{width:100%;height:auto;display:block;}
+.cnode{fill:#fff;stroke:var(--line);stroke-width:2;transition:.4s;}
+.cnode.lit{fill:rgba(47,125,87,.85);stroke:var(--green);stroke-width:3;}
+.cnode.ms.lit{fill:rgba(214,59,29,.9);stroke:var(--red);}
+.cnode.goal.lit{fill:rgba(197,138,31,.92);stroke:var(--gold);}
+.cedge{stroke:rgba(116,55,31,.3);stroke-width:2.4;transition:.4s;fill:none;}
+.cedge.lit{stroke:var(--gold);stroke-width:3.6;}
+.ctext{font-family:"Noto Serif SC",serif;font-weight:800;fill:#fff;}
+.clabel{font-size:11.5px;fill:var(--muted);font-weight:700;}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;}
+.ctrl-btn{padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.72);cursor:pointer;font:inherit;font-weight:700;font-size:13px;color:#5b4136;transition:.2s;}
+.ctrl-btn:hover{border-color:var(--red);color:var(--red);}
+.ctrl-btn.primary{background:var(--red);color:#fff;border-color:var(--red);}
+.ctrl-btn.primary:hover{background:#8d1a12;color:#fff;}
+.ctrl-btn:disabled{opacity:.45;cursor:not-allowed;}
+.feedback{margin-top:10px;padding:11px 13px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);color:#7a3216;font-size:.9rem;line-height:1.7;}
+.token-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;}
+.token{padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.78rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.token.on{background:linear-gradient(135deg,var(--red),#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(180,35,24,.18);}
+table.proof{width:100%;border-collapse:collapse;font-size:13px;}
+table.proof th{background:rgba(180,35,24,.08);color:var(--red);padding:8px;text-align:left;}
+table.proof td{padding:7px 8px;border-bottom:1px solid var(--line);}
+table.proof td.f{font-family:"JetBrains Mono",monospace;font-weight:700;color:var(--ink);}
+.contra-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:"JetBrains Mono",monospace;font-weight:700;font-size:14px;margin:6px 0;}
+.contra-chip{padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.7);color:#5b4136;}
+.contra-chip.neg{background:rgba(180,35,24,.1);color:var(--red);border-color:rgba(180,35,24,.35);}
+.contra-arrow{color:var(--gold);font-weight:800;}
+.audit-card{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;margin:10px 0;}
+.audit-card.pass{border-color:rgba(47,125,87,.45);background:rgba(47,125,87,.07);}
+.audit-card.fail{border-color:rgba(180,35,24,.4);background:rgba(180,35,24,.06);}
+.audit-head{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:800;}
+.audit-flags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.flag{padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;font-family:"JetBrains Mono",monospace;}
+.flag.ok{background:rgba(47,125,87,.14);color:var(--green);}
+.flag.no{background:rgba(180,35,24,.12);color:var(--red);}
+.joint{border-radius:12px;padding:16px;text-align:center;margin:12px 0;font-weight:700;line-height:1.6;}
+.joint.ok{background:rgba(47,125,87,.12);color:var(--green);border:1px solid rgba(47,125,87,.4);}
+.joint.bad{background:rgba(180,35,24,.1);color:var(--red);border:1px solid rgba(180,35,24,.4);}
+.joint .jv{font-size:1.3rem;font-weight:800;font-family:"JetBrains Mono",monospace;margin-bottom:6px;}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:14px 16px;margin-top:16px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}
+.insight-box p{margin:0;font-size:14px;line-height:1.7;color:#4e362d;}
+.badges{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;}
+.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){
+  body{overflow:auto;}
+  .app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}
+  .side-panel,.glass-pane{max-height:none;overflow:visible;} .action-row{margin-top:12px;}
+}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">拓展层</span></h1>
+        <p class="subtitle">两弹一星 · 战略论证迁移</p>
+      </div>
+      <p class="intro">把「自主才能安全」的逻辑迁移到种业、芯片、能源等当代战略领域，并做联合审计。</p>
+
+      <div class="value-panel">
+        <h3>科技强国 · 战略自主</h3>
+        <p>同一套命题逻辑可论证多个领域：投入 ∧ 攻关 ∧ 协同 → 自主可控 → 安全。逻辑揭示关键核心技术必须自主可控。</p>
+        <div class="dim-list"><span>两弹一星精神</span><span>战略自主</span><span>居安思危</span></div>
+      </div>
+
+      <nav class="tab-nav" id="tabNav">
+        <button class="tab-btn active" data-tab="tab1"><span class="ico">🧭</span><span>战略命题</span></button>
+        <button class="tab-btn" data-tab="tab2"><span class="ico">🔗</span><span>蕴含链论证</span></button>
+        <button class="tab-btn" data-tab="tab3"><span class="ico">🔄</span><span>逆否检验</span></button>
+        <button class="tab-btn" data-tab="tab4"><span class="ico">🛡️</span><span>联合审计</span></button>
+      </nav>
+
+      <div class="sidebar-dyn" id="sidebarDyn"></div>
+      <div class="action-row" id="actionRow"></div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>选领域、调前提，点一步看蕴含链与公式高亮，再做多领域联合审计。</span>
+        <div class="visual-badge">战略论证 + 联合审计</div>
+      </section>
+
+      <!-- Tab1 战略命题 -->
+      <div class="tab-content active" id="tab1">
+        <h2 class="pane-title">🧭 当代战略命题</h2>
+        <p class="pane-sub">三个战略领域共享同一逻辑结构：投入 F ∧ 攻关 A ∧ 协同 C → 自主可控 Z → 安全 G。点击行选择领域，在左侧调节前提。</p>
+        <div class="data-table">
+          <table><thead><tr><th>领域</th><th>投入 F</th><th>攻关 A</th><th>协同 C</th><th>自主 Z</th><th>安全 G</th></tr></thead><tbody id="domainBody"></tbody></table>
+        </div>
+        <div class="insight-box"><div class="insight-title">🌐 一套逻辑，多域迁移</div>
+          <p>把「两弹一星」的论证结构抽象出来，就能迁移到种业安全、芯片自主、能源安全：只要投入、攻关、协同三项前提齐备，自主可控与安全便是逻辑必然。</p></div>
+      </div>
+
+      <!-- Tab2 蕴含链论证 -->
+      <div class="tab-content" id="tab2">
+        <h2 class="pane-title">🔗 蕴含链论证（选定领域）</h2>
+        <p class="pane-sub">点「下一步」逐步搭建该领域的有效论证：F、A、C → F∧A∧C → Z → G，链路与公式项同步高亮。</p>
+        <div class="chain-wrap">
+          <svg class="chain-svg" viewBox="0 0 600 230" id="chainSvg">
+            <path class="cedge" id="fZ" d="M60 45 L300 115"/>
+            <path class="cedge" id="aZ" d="M60 115 L300 115"/>
+            <path class="cedge" id="cZ" d="M60 185 L300 115"/>
+            <path class="cedge" id="zG" d="M300 115 L520 115"/>
+            <circle class="cnode" id="nF" cx="60" cy="45" r="26"/>
+            <circle class="cnode" id="nA" cx="60" cy="115" r="26"/>
+            <circle class="cnode" id="nC" cx="60" cy="185" r="26"/>
+            <circle class="cnode ms" id="nZ" cx="300" cy="115" r="34"/>
+            <circle class="cnode goal" id="nG" cx="520" cy="115" r="34"/>
+            <text class="ctext" x="60" y="50" text-anchor="middle" font-size="14">F</text>
+            <text class="ctext" x="60" y="120" text-anchor="middle" font-size="14">A</text>
+            <text class="ctext" x="60" y="190" text-anchor="middle" font-size="14">C</text>
+            <text class="ctext" x="300" y="120" text-anchor="middle" font-size="15">Z</text>
+            <text class="ctext" x="520" y="120" text-anchor="middle" font-size="15">G</text>
+            <text class="clabel" x="60" y="84" text-anchor="middle">投入</text>
+            <text class="clabel" x="60" y="154" text-anchor="middle">攻关</text>
+            <text class="clabel" x="60" y="224" text-anchor="middle">协同</text>
+            <text class="clabel" x="300" y="164" text-anchor="middle">自主可控</text>
+            <text class="clabel" x="520" y="164" text-anchor="middle">安全</text>
+          </svg>
+        </div>
+        <div class="controls"><button class="ctrl-btn primary" id="nextBtn">▶ 下一步</button><button class="ctrl-btn" id="resetBtn">🔄 重置</button></div>
+        <div class="feedback" id="feedback">选定领域后点击「下一步」，从引入前提 F 开始构建论证。</div>
+        <div class="token-row" id="tokenRow">
+          <span class="token" data-t="F">F</span><span class="token" data-t="A">A</span><span class="token" data-t="C">C</span>
+          <span class="token" data-t="Z">Z</span><span class="token" data-t="G">G</span>
+        </div>
+        <div class="panel-card"><h3>📜 证明步骤</h3><table class="proof"><thead><tr><th style="width:48px;">步骤</th><th>公式</th><th style="width:180px;">理由</th></tr></thead><tbody id="proofBody"></tbody></table></div>
+      </div>
+
+      <!-- Tab3 逆否检验 -->
+      <div class="tab-content" id="tab3">
+        <h2 class="pane-title">🔄 逆否检验（选定领域）</h2>
+        <p class="pane-sub">原命题 (F∧A∧C → Z) → G 的逆否：¬G → ¬Z → ¬(F∧A∧C)。失去安全，必是某项前提缺失。</p>
+        <div class="panel-card">
+          <h3>原命题（正向蕴含链）</h3>
+          <div class="contra-row"><span class="contra-chip">F∧A∧C</span><span class="contra-arrow">→</span><span class="contra-chip">Z 自主</span><span class="contra-arrow">→</span><span class="contra-chip">G 安全</span></div>
+        </div>
+        <div class="panel-card">
+          <h3>逆否命题（反向追责链）</h3>
+          <div class="contra-row"><span class="contra-chip neg">¬G 不安全</span><span class="contra-arrow">→</span><span class="contra-chip neg">¬Z 不自主</span><span class="contra-arrow">→</span><span class="contra-chip neg">¬(F∧A∧C) 缺前提</span></div>
+          <div class="mini-info" id="contraNote" style="margin-top:8px;"></div>
+        </div>
+        <div class="insight-box"><div class="insight-title">⚖️ 逆否命题的战略警示</div>
+          <p>原命题与逆否命题逻辑等价。正向看：前提齐备则安全必然；逆否看：一旦失去安全，必能追溯到某项前提（投入/攻关/协同）的缺失——这就是「居安思危、补齐短板」的逻辑依据。</p></div>
+      </div>
+
+      <!-- Tab4 联合审计 -->
+      <div class="tab-content" id="tab4">
+        <h2 class="pane-title">🛡️ 多领域联合审计（G ∧ E ∧ B）</h2>
+        <p class="pane-sub">每个领域需同时满足：目标 G（自主可控达成）、证据 E（事实充分）、边界 B（行动合规）。三者同时成立，战略推进才有充分逻辑依据。</p>
+        <div id="auditList"></div>
+        <div class="joint" id="jointVerdict"></div>
+        <div class="insight-box"><div class="insight-title">🚩 把好钢用在刀刃上</div>
+          <p>联合审计用合取把「目标—证据—边界」绑定：任一领域有缺口，整体就不轻言推进。这既是严谨论证，也是对国家战略负责的底线思维。</p>
+          <div class="badges"><span class="badge">战略自主</span><span class="badge">科学决策</span><span class="badge">底线思维</span></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+    <div>版权所有 · 项目总负责人：谢鑫</div>
+  </footer>
+
+  <script>
+    window.SECTION_META = {
+      "layers": [
+        { "name": "关键判断符号化", "concepts": "命题变元 / 蕴含", "task": "把战略判断抽象为命题。", "page": "two_bombs_logic-basic.html" },
+        { "name": "逻辑必然性论证", "concepts": "蕴含链 / 有效推理 / 逆否命题", "task": "用有效推理证明结论的必然性。", "page": "two_bombs_logic.html" },
+        { "name": "战略论证迁移", "concepts": "种业·芯片自主 / 政策论证", "task": "迁移到当代战略与政策论证。", "page": "two_bombs_logic-extend.html" }
+      ],
+      "chapter": "第5章 命题逻辑",
+      "section": "5.8 两弹一星案例",
+      "title": "命题逻辑应用 · 两弹一星的逻辑必然",
+      "grounding": "本节主题：用命题逻辑分析『两弹一星』决策的逻辑结构——把『自主研发』『国家安全』『科技自立』等抽象为命题，用蕴含与推理刻画『唯有自力更生才能保障安全』的必然性。本页定位为拓展层：迁移到当代战略与政策论证。",
+      "steps": [
+        {"name":"情境引入","desc":"为什么说独立自主搞『两弹一星』是历史的逻辑必然？"},
+        {"name":"对象抽取","desc":"把关键判断抽象为命题变元，识别其逻辑联系。"},
+        {"name":"结构建模","desc":"用蕴含链建模『前提→必然结论』的战略论证。"},
+        {"name":"推理求解","desc":"用有效推理证明结论在前提下的必然性。"},
+        {"name":"程序验证","desc":"用本页交互搭建推理链，检验逻辑有效。"},
+        {"name":"迁移反思","desc":"迁移到战略决策论证、政策合理性分析。"}
+      ],
+      "ideology": {
+        "title": "科技强国 · 自立自强",
+        "text": "『两弹一星』凝聚着老一辈科学家热爱祖国、无私奉献、自力更生、艰苦奋斗的精神。用逻辑揭示其『自主才能安全』的必然性，让青年理解关键核心技术必须自主可控。",
+        "dims": ["两弹一星精神", "自立自强", "家国情怀"],
+        "quote": "自主创新的战略选择，有其不容辩驳的逻辑必然。"
+      },
+      "reflect": [
+        "『唯有自主研发才能保障安全』可符号化为什么蕴含式？",
+        "战略论证中如何区分充分条件与必要条件？",
+        "逻辑必然与历史偶然如何统一？"
+      ],
+      "transfer": [
+        "把同样的逻辑分析迁移到『种业安全』『芯片自主』等当代命题。",
+        {"t":"政策论证","d":"用命题逻辑梳理一项政策的前提与结论，检验其论证是否严密。"}
+      ]
+    };
+  </script>
+
+  <script>
+  (function(){
+    "use strict";
+    var $=function(id){return document.getElementById(id);};
+    var DOMAINS=[
+      { k:'seed',   name:'种业安全', icon:'🌾', f:true, a:true, c:true,  e:true,  b:true },
+      { k:'chip',   name:'芯片自主', icon:'💾', f:true, a:true, c:false, e:true,  b:true },
+      { k:'energy', name:'能源安全', icon:'⚡', f:true, a:true, c:true,  e:false, b:true }
+    ];
+    var sel=0, currentTab='tab1', step=0;
+    var SEQ=[
+      { f:'F', r:'前提：战略投入', tok:'F' },
+      { f:'A', r:'前提：核心技术攻关', tok:'A' },
+      { f:'C', r:'前提：产学研协同', tok:'C' },
+      { f:'F ∧ A ∧ C', r:'合取引入 ∧I (1)(2)(3)' },
+      { f:'F ∧ A ∧ C → Z', r:'前提：战略规则' },
+      { f:'Z', r:'假言推理 MP (4)(5)', tok:'Z' },
+      { f:'Z → G', r:'前提：自主则安全' },
+      { f:'G', r:'假言推理 MP (6)(7)', tok:'G' }
+    ];
+    var HINTS=['引入前提 F（战略投入）。','引入前提 A（核心技术攻关）。','引入前提 C（产学研协同）。','合取引入 ∧I，合成 F∧A∧C。','引入战略规则 F∧A∧C → Z。','假言推理 MP，推出 Z（自主可控）！','引入前提 Z → G（自主则安全）。','假言推理 MP，推出 G（安全）！论证完成。'];
+    var TOKMAP={F:'nF',A:'nA',C:'nC',Z:'nZ',G:'nG'};
+    var EDGEMAP={Z:['fZ','aZ','cZ'],G:['zG']};
+
+    function Z(d){return d.f&&d.a&&d.c;} function G(d){return Z(d);} function pass(d){return G(d)&&d.e&&d.b;}
+    function tf(v){return v?'<span class="tv">T</span>':'<span class="fv">F</span>';}
+
+    $('tabNav').querySelectorAll('.tab-btn').forEach(function(b){b.addEventListener('click',function(){switchTab(b.dataset.tab);});});
+    function switchTab(id){
+      currentTab=id;
+      $('tabNav').querySelectorAll('.tab-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tab===id);});
+      document.querySelectorAll('.tab-content').forEach(function(c){c.classList.toggle('active',c.id===id);});
+      updateSidebar(id); renderTab(id);
+    }
+    function renderTab(id){ if(id==='tab1')renderDomains(); if(id==='tab2')resetProof(); if(id==='tab3')renderContra(); if(id==='tab4')renderAudit(); }
+
+    function updateSidebar(id){
+      var d=DOMAINS[sel];
+      var domSelect='<div class="control-group"><label>选择战略领域</label><select id="domSel">'+DOMAINS.map(function(x,i){return '<option value="'+i+'"'+(i===sel?' selected':'')+'>'+x.icon+' '+x.name+'</option>';}).join('')+'</select></div>';
+      var toggles='<div class="control-group"><label>'+d.icon+' '+d.name+' · 前提开关</label><div class="toggle-grid">'+
+        [['f','投入 F'],['a','攻关 A'],['c','协同 C'],['e','证据 E'],['b','边界 B']].map(function(t){return '<label class="tg-row"><input type="checkbox" data-k="'+t[0]+'"'+(d[t[0]]?' checked':'')+'> '+t[1]+'</label>';}).join('')+'</div></div>';
+      $('sidebarDyn').innerHTML=domSelect+toggles;
+      $('domSel').addEventListener('change',function(e){ sel=+e.target.value; updateSidebar(currentTab); renderTab(currentTab); });
+      $('sidebarDyn').querySelectorAll('input[data-k]').forEach(function(cb){cb.addEventListener('change',function(){ DOMAINS[sel][cb.dataset.k]=cb.checked; renderTab(currentTab); });});
+      var btns={tab1:['进入蕴含链论证','tab2'],tab2:['逆否检验','tab3'],tab3:['联合审计','tab4'],tab4:['生成审计报告','']};
+      var bt=btns[id];
+      $('actionRow').innerHTML='<button class="action-btn" id="actBtn">'+bt[0]+'</button>';
+      $('actBtn').addEventListener('click',function(){ if(bt[1]) switchTab(bt[1]); else { var n=DOMAINS.filter(pass).length; alert('联合审计报告：\n达标领域 '+n+'/'+DOMAINS.length+'\n结论：'+(n===DOMAINS.length?'可推进决策':'暂缓推进，需补齐短板')); } });
+    }
+
+    function renderDomains(){
+      $('domainBody').innerHTML=DOMAINS.map(function(d,i){
+        return '<tr data-i="'+i+'"'+(i===sel?' class="sel"':'')+'><td class="name">'+d.icon+' '+d.name+'</td><td>'+tf(d.f)+'</td><td>'+tf(d.a)+'</td><td>'+tf(d.c)+'</td><td>'+tf(Z(d))+'</td><td>'+tf(G(d))+'</td></tr>';
+      }).join('');
+      $('domainBody').querySelectorAll('tr').forEach(function(tr){tr.addEventListener('click',function(){ sel=+tr.dataset.i; updateSidebar(currentTab); renderDomains(); });});
+    }
+
+    function resetProof(){
+      step=0; $('proofBody').innerHTML='';
+      $('tokenRow').querySelectorAll('.token').forEach(function(t){t.classList.remove('on');});
+      ['nF','nA','nC','nZ','nG'].forEach(function(n){ $(n).setAttribute('class',$(n).getAttribute('class').replace(/ lit/g,'')); });
+      ['fZ','aZ','cZ','zG'].forEach(function(e){ $(e).setAttribute('class','cedge'); });
+      $('nextBtn').disabled=false; $('nextBtn').textContent='▶ 下一步';
+      $('feedback').innerHTML='当前领域：<b>'+DOMAINS[sel].icon+' '+DOMAINS[sel].name+'</b>。点击「下一步」开始构建有效论证（论证结构对所有领域都成立）。';
+    }
+    function nextProof(){
+      if(step>=SEQ.length)return;
+      var s=SEQ[step]; step++;
+      var tr=document.createElement('tr'); tr.innerHTML='<td>('+step+')</td><td class="f">'+s.f+'</td><td>'+s.r+'</td>';
+      $('proofBody').appendChild(tr);
+      if(s.tok){ var t=$('tokenRow').querySelector('.token[data-t="'+s.tok+'"]'); if(t)t.classList.add('on'); var nid=TOKMAP[s.tok]; if(nid){var nd=$(nid);nd.setAttribute('class',nd.getAttribute('class')+' lit');} if(EDGEMAP[s.tok])EDGEMAP[s.tok].forEach(function(e){$(e).setAttribute('class','cedge lit');}); }
+      $('feedback').innerHTML=HINTS[step-1];
+      $('nextBtn').disabled=step>=SEQ.length;
+      if(step>=SEQ.length){ $('nextBtn').textContent='✓ 论证完成'; }
+    }
+
+    function renderContra(){
+      var d=DOMAINS[sel];
+      var miss=[]; if(!d.f)miss.push('投入 F'); if(!d.a)miss.push('攻关 A'); if(!d.c)miss.push('协同 C');
+      var note;
+      if(Z(d)) note='当前 <b>'+d.name+'</b> 前提齐备（F∧A∧C 为真），Z 与 G 成立。逆否命题提醒：一旦缺失任一前提，安全 G 立即不可达。';
+      else note='当前 <b>'+d.name+'</b> 缺失前提：<b>'+miss.join('、')+'</b> ⟹ F∧A∧C 为假 ⟹ Z 不成立 ⟹ G（安全）不可达。逆否链精确定位了短板。';
+      $('contraNote').innerHTML=note;
+    }
+
+    function renderAudit(){
+      $('auditList').innerHTML=DOMAINS.map(function(d){
+        var ok=pass(d);
+        return '<div class="audit-card '+(ok?'pass':'fail')+'"><div class="audit-head"><span>'+d.icon+' '+d.name+'</span><span style="color:'+(ok?'var(--green)':'var(--red)')+'">'+(ok?'✓ 通过':'✗ 未通过')+'</span></div>'+
+          '<div class="audit-flags"><span class="flag '+(G(d)?'ok':'no')+'">G 目标 '+(G(d)?'达成':'未达')+'</span><span class="flag '+(d.e?'ok':'no')+'">E 证据 '+(d.e?'充分':'不足')+'</span><span class="flag '+(d.b?'ok':'no')+'">B 边界 '+(d.b?'清晰':'待定')+'</span></div></div>';
+      }).join('');
+      var n=DOMAINS.filter(pass).length, all=n===DOMAINS.length;
+      var gaps=DOMAINS.filter(function(d){return !pass(d);}).map(function(d){ var why=[]; if(!G(d))why.push('自主未达'); if(!d.e)why.push('证据不足'); if(!d.b)why.push('边界待定'); return d.name+'（'+why.join('、')+'）'; });
+      var v=$('jointVerdict'); v.className='joint '+(all?'ok':'bad');
+      v.innerHTML='<div class="jv">联合审计 ∀域(G ∧ E ∧ B) = '+(all?'True':'False')+'</div>'+
+        (all?'三项条件在所有领域同时成立，战略推进具备充分逻辑依据。':'达标领域 '+n+'/'+DOMAINS.length+'；待补齐：'+gaps.join('；')+'。');
+    }
+
+    $('nextBtn').onclick=nextProof; $('resetBtn').onclick=resetProof;
+    updateSidebar('tab1'); renderTab('tab1');
+  })();
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

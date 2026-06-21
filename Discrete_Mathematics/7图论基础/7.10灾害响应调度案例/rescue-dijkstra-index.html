@@ -7,12 +7,14 @@
     <title>灾害响应 - 救援调度系统</title>
     <meta name="description" content="离散数学课程 - 灾害响应 - 救援调度系统">
 
-    <link rel="stylesheet" href="rescue-dijkstra-style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=Black+Ops+One&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="rescue-dijkstra-style.css">
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
@@ -40,8 +42,8 @@
                     <span class="dot yellow"></span>
                     <span class="dot green"></span>
                 </div>
-                <h1>灾害响应 <span class="highlight">救援调度</span></h1>
-                <p class="subtitle">Disaster Response Rescue Scheduling</p>
+                <h1>红色数理 <span class="highlight">进阶层</span></h1>
+                <p class="subtitle">救援路网带权图 · 救援调度</p>
             </div>
 
             <div class="controls-wrapper">
@@ -138,7 +140,7 @@
                     <p id="popupDesc">描述信息</p>
                 </div>
 
-                <svg id="graphSvg" width="100%" height="100%">
+                <svg id="graphSvg" width="100%" height="100%" viewBox="0 0 900 620" preserveAspectRatio="xMidYMid meet">
                     <defs>
                         <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
                             <feGaussianBlur stdDeviation="3" result="blur" />
@@ -163,19 +165,218 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "layers": [
+            {
+                  "name": "灾区路网带权图",
+                  "concepts": "路口顶点 / 权=时间·通行性",
+                  "task": "把救援路网抽象为带权图。",
+                  "page": "rescue-dijkstra-index-basic.html"
+            },
+            {
+                  "name": "最短路调度",
+                  "concepts": "Dijkstra 最快路径 / 资源分配",
+                  "task": "求最快救援路径、优化调度。",
+                  "page": "rescue-dijkstra-index.html"
+            },
+            {
+                  "name": "应急物流",
+                  "concepts": "动态权重 / 多目标优化",
+                  "task": "迁移到急救、消防智能调度。",
+                  "page": "rescue-dijkstra-index-extend.html"
+            }
+      ],
+      "chapter": "第7章 图论基础",
+      "section": "7.10 灾害响应调度案例",
+      "title": "图论应用 · 灾害救援调度",
+      "grounding": "本节主题：用带权图与最短路径（Dijkstra）建模灾害救援调度——把灾区路网抽象为带权图，求救援队到各受灾点的最短/最快路径，优化调度方案。体会最短路径算法在应急管理中的生命价值。",
+      "steps": [
+            {
+                  "name": "情境引入",
+                  "desc": "灾害发生，如何让救援以最快速度抵达最需要的地方？"
+            },
+            {
+                  "name": "对象抽取",
+                  "desc": "把灾区路网抽象为带权图（权=时间/距离/通行性）。"
+            },
+            {
+                  "name": "结构建模",
+                  "desc": "用最短路径与调度建模救援可达与时效。"
+            },
+            {
+                  "name": "推理求解",
+                  "desc": "用 Dijkstra 求最快路径，优化资源分配。"
+            },
+            {
+                  "name": "程序验证",
+                  "desc": "用本页交互调度救援，验证路径与时效。"
+            },
+            {
+                  "name": "迁移反思",
+                  "desc": "迁移到应急物流、医疗急救、消防调度。"
+            }
+      ],
+      "ideology": {
+            "title": "人民至上 · 生命至上",
+            "text": "灾害救援调度中，最短路径每缩短一分钟，就可能多挽救一条生命。用图论优化救援，正是『人民至上、生命至上』理念的技术落地，彰显国家应急管理体系的能力与温度——把数学算到与生命赛跑的分秒之间。",
+            "dims": [
+                  "人民至上",
+                  "生命至上",
+                  "责任担当"
+            ],
+            "quote": "争分夺秒、向险而行——最短路径算法，让救援的每一步都跑在与时间赛跑的最优线上。"
+      },
+      "reflect": [
+            "救援场景中边权可能是『时间』而非『距离』，且会随路况变化——算法如何应对动态权重？",
+            "若有多支救援队、多个灾点，如何从『单源最短路』扩展到调度分配？",
+            "道路可能因灾损中断（删边），如何快速重算可达与最优路径？"
+      ],
+      "transfer": [
+            "120 急救、消防出警的智能调度系统，内核正是动态最短路径。",
+            {
+                  "t": "多目标优化",
+                  "d": "救援既要快又要覆盖广、还要保安全，如何在多目标间权衡？"
+            }
+      ]
+};
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
+    <script>
+        window.addEventListener('load', function () {
+            var old = document.getElementById('rescue-dijkstra-runtime-layout');
+            if (old) old.remove();
+            var style = document.createElement('style');
+            style.id = 'rescue-dijkstra-runtime-layout';
+            style.textContent = `
+body {
+    min-height: 100vh !important;
+    height: auto !important;
+    overflow: auto !important;
+    overflow-x: hidden !important;
+    display: block !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    padding: 50px 0 0 !important;
+}
+.app-container[data-dm-side-shell] {
+    width: min(94vw, 1760px) !important;
+    max-width: none !important;
+    min-height: calc(100vh - 88px) !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    grid-template-columns: 390px minmax(0, 1fr) !important;
+    grid-template-areas: "side main" !important;
+    gap: 12px !important;
+    overflow: visible !important;
+    background: rgba(255, 252, 245, 0.92) !important;
+    border: 1px solid rgba(214, 59, 29, 0.16) !important;
+    border-radius: 22px !important;
+    box-shadow: 0 18px 40px rgba(139, 0, 0, 0.10) !important;
+}
+.app-container[data-dm-side-shell] > .sidebar {
+    grid-area: side !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 0 16px !important;
+}
+.app-container[data-dm-side-shell] > .visualizer-stage {
+    grid-area: main !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 16px !important;
+    overflow: hidden !important;
+}
+.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers,
+.app-container[data-dm-side-shell] > .visualizer-stage > .glass-pane {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-ladder {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+}
+.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-tier {
+    min-width: 0 !important;
+    padding: 12px 14px !important;
+}
+.app-container[data-dm-side-shell] .glass-pane {
+    min-height: clamp(420px, 52vh, 540px) !important;
+    height: auto !important;
+    overflow: hidden !important;
+}
+@media (max-width: 1000px) {
+    .app-container[data-dm-side-shell] {
+        width: min(94vw, 760px) !important;
+        grid-template-columns: 1fr !important;
+        grid-template-areas: "side" "main" !important;
+    }
+}`;
+            document.head.appendChild(style);
+            setTimeout(function () { document.head.appendChild(style); }, 250);
+            setTimeout(function () { document.head.appendChild(style); }, 1000);
+            function lockLayout() {
+                var app = document.querySelector('.app-container');
+                var side = document.querySelector('.sidebar');
+                var stage = document.querySelector('.visualizer-stage');
+                var pane = document.querySelector('.glass-pane');
+                if (app) {
+                    app.style.setProperty('width', 'min(94vw, 1760px)', 'important');
+                    app.style.setProperty('max-width', 'none', 'important');
+                    app.style.setProperty('height', 'auto', 'important');
+                    app.style.setProperty('min-height', 'calc(100vh - 88px)', 'important');
+                    app.style.setProperty('display', 'grid', 'important');
+                    app.style.setProperty('grid-template-columns', '390px minmax(0, 1fr)', 'important');
+                    app.style.setProperty('grid-template-areas', '"side main"', 'important');
+                    app.style.setProperty('gap', '12px', 'important');
+                    app.style.setProperty('margin', '0 auto', 'important');
+                    app.style.setProperty('background', 'rgba(255, 252, 245, 0.92)', 'important');
+                    app.style.setProperty('border', '1px solid rgba(214, 59, 29, 0.16)', 'important');
+                    app.style.setProperty('border-radius', '22px', 'important');
+                    app.style.setProperty('box-shadow', '0 18px 40px rgba(139, 0, 0, 0.10)', 'important');
+                }
+                if (side) {
+                    side.style.setProperty('grid-area', 'side', 'important');
+                    side.style.setProperty('width', 'auto', 'important');
+                    side.style.setProperty('min-width', '0', 'important');
+                }
+                if (stage) {
+                    stage.style.setProperty('grid-area', 'main', 'important');
+                    stage.style.setProperty('width', '100%', 'important');
+                    stage.style.setProperty('min-width', '0', 'important');
+                }
+                if (pane) {
+                    pane.style.setProperty('width', '100%', 'important');
+                    pane.style.setProperty('min-height', 'clamp(420px, 52vh, 540px)', 'important');
+                }
+            }
+            lockLayout();
+            setTimeout(lockLayout, 250);
+            setTimeout(lockLayout, 1000);
+        });
+    </script>
 
 </body>
 

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>社区共建者 · 拓展层 — 孤立点与资源可达</title>
+  <meta name="description" content="离散数学 3.7 社区案例 拓展层：用传递闭包做资源可达分析与孤立点识别">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.control-group{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
+.control-group>label{display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:8px;}
+.control-group select{width:100%;min-height:36px;border-radius:8px;border:1px solid rgba(116,55,31,.22);background:#fffaf2;color:var(--ink);padding:0 10px;font:inherit;}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(139,0,0,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}.kg-step-head strong{color:var(--red);font-size:.95rem;}.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.84rem;}.kg-step span{display:block;font-size:.74rem;color:var(--muted);margin-top:2px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.84rem;color:#7a3216;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
+.qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.86rem;color:#5b4136;line-height:1.9;}
+.qres b{color:var(--red);}.qres .tag{display:inline-block;padding:2px 9px;border-radius:11px;margin:2px;font-size:.78rem;}
+.qres .direct{background:rgba(42,157,143,.18);color:#1c7a6e;}.qres .reach{background:rgba(197,138,31,.2);color:#8a5d0b;}.qres .iso{background:#d63b1d;color:#fff;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 12px;}
+.kg-box{flex:1;min-height:440px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,250,239,.7));padding:10px;display:flex;align-items:center;}
+.lg{width:100%;height:auto;display:block;}.lg text{font-family:"Noto Serif SC",serif;font-weight:700;}
+.leg{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.76rem;color:#8b0000;margin-top:10px;}.leg i{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">拓展层</span></h1>
+        <p class="subtitle">社区互助 · 孤立点与资源可达</p>
+      </div>
+      <p class="intro">用传递闭包看『资源能传到谁』（资源可达），用度为 0 识别『被遗忘的人』（孤立点），驱动精准关怀。</p>
+
+      <div class="value-panel">
+        <h3>不漏一户 · 精准关怀</h3>
+        <p>用关系闭包补全帮扶链条、确保『不漏一户』，让每个人都被联系所托举——这正是以人民为中心的治理温度。</p>
+        <div class="dim-list"><span>人民立场</span><span>精准关怀</span><span>责任担当</span></div>
+      </div>
+
+      <div class="control-group">
+        <label>选择居民（也可点图中节点）</label>
+        <select id="sel"></select>
+      </div>
+
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步可达分析</strong><span>点一步，看反馈、公式项和互助图同步高亮</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-guide="direct"><b>1 直接帮扶</b><span>R：一步可达邻居</span></button>
+          <button class="kg-step" type="button" data-guide="reach"><b>2 资源可达</b><span>R⁺：传递闭包（多跳）</span></button>
+          <button class="kg-step" type="button" data-guide="iso"><b>3 孤立点识别</b><span>度=0 → 精准关怀</span></button>
+        </div>
+        <div class="kg-feedback" id="kgFeedback">选一位居民，先看他能<b>直接帮扶</b>到谁（一步关系 R）。</div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-token="R">R 直接帮扶</span>
+          <span class="kg-token" data-token="Rp">R⁺ 传递闭包</span>
+          <span class="kg-token" data-token="iso">孤立点 deg=0</span>
+        </div>
+      </div>
+
+      <div class="qres" id="qres"></div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>选居民看其直接帮扶与传递可达；再识别无人联系的孤立点，落实精准关怀。</span>
+        <div class="visual-badge">传递闭包 + 孤立点</div>
+      </section>
+      <h2 class="pane-title">社区互助关系网（结对帮扶 · 资源传导）</h2>
+      <p class="pane-sub">箭头表示『帮扶』关系。资源可沿箭头多跳传导（传递闭包）；无任何连线的居民即孤立点。</p>
+      <div class="kg-box"><svg id="lg" class="lg" viewBox="0 0 460 410" preserveAspectRatio="xMidYMid meet"></svg></div>
+      <div class="leg"><span><i style="background:#d63b1d"></i>选中</span><span><i style="background:#2a9d8f"></i>直接帮扶</span><span><i style="background:#e8a317"></i>传递可达</span><span><i style="background:#9a4848"></i>孤立点</span></div>
+    </main>
+  </div>
+
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
+
+  <script>
+    window.SECTION_META = {
+      "layers": [
+        {"name": "互助关系建模", "concepts": "居民/组织节点 / 帮扶·互助为边", "task": "把社区联系抽象为二元关系。", "page": "community_service-basic.html"},
+        {"name": "性质与闭包分析", "concepts": "对称=互助 / 传递闭包=资源可达", "task": "用性质与闭包分析互助网络。", "page": "community_service.html"},
+        {"name": "孤立点与资源可达", "concepts": "孤立点识别 / 传递可达 / 精准关怀", "task": "迁移到精准关怀与匹配问题。", "page": "community_service-extend.html"}
+      ],
+      "chapter": "第3章 二元关系", "section": "3.7 社区案例 · 拓展层", "title": "孤立点与资源可达",
+      "grounding": "本页（拓展层）主题：把帮扶关系的传递闭包用于『资源可达』分析（资源能多跳传到谁），用度为 0 识别孤立点（无人联系的居民），驱动精准关怀。这正是网格化治理与精准帮扶的关系内核。",
+      "steps": [
+        {"name": "情境引入", "desc": "社区资源如何沿帮扶链多跳传导？谁被遗漏了？"},
+        {"name": "对象抽取", "desc": "居民为节点，帮扶/互助为有向边。"},
+        {"name": "结构建模", "desc": "用传递闭包刻画资源可达；用度刻画联系强弱。"},
+        {"name": "推理求解", "desc": "求某居民的传递可达集；找度为 0 的孤立点。"},
+        {"name": "程序验证", "desc": "改变起点，观察可达集与孤立点的变化。"},
+        {"name": "迁移反思", "desc": "迁移到精准关怀、志愿匹配、资源调度。"}
+      ],
+      "ideology": {"title": "不漏一户 · 精准关怀", "text": "用关系闭包补全帮扶链条，确保『不漏一户』；用孤立点识别找到『被遗忘的人』，把精准关怀送到最需要的角落。这正是共建共治共享、以人民为中心治理理念的数学化实践。", "dims": ["人民立场", "精准关怀", "责任担当"], "quote": "一个都不能少——关系网托起每一个人，精准关怀不漏一户。"},
+      "reflect": ["传递闭包为何能发现『间接可达但尚未对接』的帮扶机会？", "度为 0 的孤立点在现实中意味着什么？如何驱动关怀？", "互助关系应当对称吗？单向帮扶如何刻画？"],
+      "transfer": ["志愿者—需求匹配（第8章二部图匹配）；网格化治理的资源可达与精准帮扶。"]
+    };
+  </script>
+
+  <script>
+    var $=function(id){return document.getElementById(id);};
+    var R=[ // 帮扶关系（有向）
+      ['r1','r2'],['r2','r3'],['r3','r2'],['r1','r4'],['r4','r5'],['r7','r8'],['r8','r7']
+    ];
+    var NAME={r1:'张三',r2:'李四',r3:'王五',r4:'赵六',r5:'孙七',r6:'周八',r7:'吴九',r8:'郑十'};
+    var IDS=['r1','r2','r3','r4','r5','r6','r7','r8'];
+    var pos={},sel='r1',guide='direct';
+    function layout(){var cx=230,cy=200,rad=150;IDS.forEach(function(id,i){var a=-Math.PI/2+i*2*Math.PI/IDS.length;pos[id]=[cx+Math.cos(a)*rad,cy+Math.sin(a)*rad];});}
+    function out(id){return R.filter(function(e){return e[0]===id;}).map(function(e){return e[1];});}
+    function degree(id){var d=0;R.forEach(function(e){if(e[0]===id||e[1]===id)d++;});return d;}
+    function closure(id){var seen={},q=out(id).slice();q.forEach(function(x){seen[x]=1;});var i=0;while(i<q.length){var u=q[i++];out(u).forEach(function(v){if(!seen[v]&&v!==id){seen[v]=1;q.push(v);}});}return Object.keys(seen);}
+    function isolated(){return IDS.filter(function(id){return degree(id)===0;});}
+    function draw(){
+      var direct=out(sel),reach=closure(sel),iso=isolated();
+      var reachSet={};reach.forEach(function(x){reachSet[x]=1;});var directSet={};direct.forEach(function(x){directSet[x]=1;});var isoSet={};iso.forEach(function(x){isoSet[x]=1;});
+      var hotE={};
+      if(guide==='direct')direct.forEach(function(t){hotE[sel+'>'+t]=1;});
+      if(guide==='reach'){ // highlight all edges within reachable closure + from sel
+        var inSet={};inSet[sel]=1;reach.forEach(function(x){inSet[x]=1;});R.forEach(function(e){if(inSet[e[0]]&&inSet[e[1]])hotE[e[0]+'>'+e[1]]=1;});
+      }
+      var svg='<defs><marker id="ar" markerWidth="9" markerHeight="7" refX="14" refY="3.5" orient="auto"><polygon points="0 0,9 3.5,0 7" fill="#bbb"/></marker><marker id="arh" markerWidth="9" markerHeight="7" refX="14" refY="3.5" orient="auto"><polygon points="0 0,9 3.5,0 7" fill="#d63b1d"/></marker></defs>';
+      R.forEach(function(e){var on=hotE[e[0]+'>'+e[1]];var p1=pos[e[0]],p2=pos[e[1]];var dx=p2[0]-p1[0],dy=p2[1]-p1[1],L=Math.sqrt(dx*dx+dy*dy)||1,ux=dx/L,uy=dy/L;
+        svg+='<line x1="'+(p1[0]+ux*22)+'" y1="'+(p1[1]+uy*22)+'" x2="'+(p2[0]-ux*22)+'" y2="'+(p2[1]-uy*22)+'" stroke="'+(on?'#d63b1d':'#c9b8b0')+'" stroke-width="'+(on?3.2:1.4)+'" opacity="'+(on?1:0.55)+'" marker-end="url(#'+(on?'arh':'ar')+')"/>';});
+      IDS.forEach(function(id){var p=pos[id];var isSel=id===sel;var fill='#bfae9f';
+        if(isSel)fill='#d63b1d';
+        else if(guide==='iso'&&isoSet[id])fill='#9a4848';
+        else if(guide==='direct'&&directSet[id])fill='#2a9d8f';
+        else if(guide==='reach'&&reachSet[id])fill='#e8a317';
+        else if(degree(id)===0&&guide!=='iso')fill='#c7b6ad';
+        var stroke=isSel?'#8b0000':((guide==='iso'&&isoSet[id])?'#fff':'#fff');var sw=(isSel||(guide==='iso'&&isoSet[id]))?3.4:2;
+        svg+='<g style="cursor:pointer" data-id="'+id+'"><circle cx="'+p[0]+'" cy="'+p[1]+'" r="22" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+sw+'"/><text x="'+p[0]+'" y="'+(p[1]+5)+'" text-anchor="middle" fill="#fff" font-size="13">'+NAME[id]+'</text></g>';
+      });
+      $('lg').innerHTML=svg;
+      $('lg').querySelectorAll('[data-id]').forEach(function(g){g.onclick=function(){sel=g.dataset.id;$('sel').value=sel;if(guide==='iso')guide='direct';syncGuide();draw();info();};});
+    }
+    function tagList(arr,cls){return arr.length?arr.map(function(x){return '<span class="tag '+cls+'">'+NAME[x]+'</span>';}).join(''):'<span style="opacity:.6">（无）</span>';}
+    function info(){
+      var direct=out(sel),reach=closure(sel),iso=isolated();
+      var html='起点：<b>'+NAME[sel]+'</b><br>';
+      html+='直接帮扶（R）：'+tagList(direct,'direct')+'<br>';
+      html+='资源可达（R⁺ 传递闭包，'+reach.length+' 人）：'+tagList(reach,'reach')+'<br>';
+      html+='<div style="margin-top:6px">社区孤立点（度=0，被遗忘的人）：'+tagList(iso,'iso')+'</div>';
+      html+='<div style="margin-top:8px;font-size:.76rem;opacity:.8">资源可达 = 帮扶关系的<b>传递闭包</b>，资源可多跳传导；孤立点提示需<b>精准关怀</b>、主动结对。</div>';
+      $('qres').innerHTML=html;
+    }
+    function syncGuide(){
+      document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.guide===guide);});
+      document.querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',(guide==='direct'&&t.dataset.token==='R')||(guide==='reach'&&(t.dataset.token==='R'||t.dataset.token==='Rp'))||(guide==='iso'&&t.dataset.token==='iso'));});
+    }
+    function setGuide(g){
+      guide=g;syncGuide();
+      if(g==='direct')$('kgFeedback').innerHTML='<b>直接帮扶</b>（一步关系 R）：'+NAME[sel]+' 能直接帮到的邻居。绿色高亮其出边邻居。';
+      else if(g==='reach')$('kgFeedback').innerHTML='<b>资源可达</b>（传递闭包 R⁺）：沿帮扶箭头多跳，'+NAME[sel]+' 的资源最终能传到的所有人（黄色高亮）。';
+      else $('kgFeedback').innerHTML='<b>孤立点识别</b>：度为 0 的居民无人联系（红棕高亮），是『被遗忘的人』，需主动结对、精准关怀。';
+      draw();info();
+    }
+    function fill(){var s=$('sel');IDS.forEach(function(id){var o=document.createElement('option');o.value=id;o.textContent=NAME[id];s.appendChild(o);});s.value=sel;s.onchange=function(){sel=s.value;if(guide==='iso')guide='direct';syncGuide();draw();info();};}
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setGuide(b.dataset.guide);};});
+    layout();fill();setGuide('direct');
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

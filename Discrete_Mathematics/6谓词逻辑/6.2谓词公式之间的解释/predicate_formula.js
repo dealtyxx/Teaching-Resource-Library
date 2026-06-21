@@ -1,6 +1,6 @@
 /**
  * Predicate Formula Interpreter
- * 谓词公式解析器 - 思政教育可视化
+ * 谓词公式解析器 - 价值引领可视化
  */
 
 // DOM Elements
@@ -23,7 +23,7 @@ const renameDemo = document.getElementById('renameDemo');
 const treeSvg = document.getElementById('treeSvg');
 const treeGroup = document.getElementById('treeGroup');
 
-// 思政主题公式库
+// 价值主题公式库
 const FORMULAS = [
     {
         formula: "∀x(团结(x) → 力量(x))",

@@ -113,6 +113,11 @@ function renderMappings() {
 
 function drawPaths() {
     const svgRect = mappingSvg.getBoundingClientRect();
+    const width = Math.max(120, Math.round(svgRect.width || mappingSvg.clientWidth || 160));
+    const height = Math.max(260, Math.round(svgRect.height || mappingSvg.clientHeight || 420));
+
+    mappingSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    mappingSvg.setAttribute('preserveAspectRatio', 'none');
 
     PEOPLE.forEach(p => {
         const targetId = MAPPING[p.id];
@@ -126,10 +131,10 @@ function drawPaths() {
             const tRect = targetEl.getBoundingClientRect();
 
             // Calculate coordinates relative to SVG
-            const x1 = 0; // Left edge of SVG
-            const y1 = sRect.top - svgRect.top + sRect.height / 2;
-            const x2 = svgRect.width; // Right edge of SVG
-            const y2 = tRect.top - svgRect.top + tRect.height / 2;
+            const x1 = 6; // Left edge of SVG
+            const y1 = clamp(sRect.top - svgRect.top + sRect.height / 2, 12, height - 12);
+            const x2 = width - 12; // Right edge of SVG
+            const y2 = clamp(tRect.top - svgRect.top + tRect.height / 2, 12, height - 12);
 
             // Bezier Curve
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -146,6 +151,32 @@ function drawPaths() {
             mappingSvg.appendChild(path);
         }
     });
+
+    applyPathHighlights();
+}
+
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+}
+
+function applyPathHighlights() {
+    document.querySelectorAll('.mapping-path').forEach(p => p.classList.remove('active'));
+
+    if (selectedDomain.size > 0) {
+        selectedDomain.forEach(pid => {
+            const path = mappingSvg.querySelector(`[data-source="${pid}"]`);
+            if (path) path.classList.add('active');
+        });
+    } else if (selectedCodomain.size > 0) {
+        selectedCodomain.forEach(oid => {
+            PEOPLE.forEach(p => {
+                if (MAPPING[p.id] === oid) {
+                    const path = mappingSvg.querySelector(`[data-source="${p.id}"]`);
+                    if (path) path.classList.add('active');
+                }
+            });
+        });
+    }
 }
 
 // Interactions
@@ -192,7 +223,7 @@ function updateView() {
     });
 
     // 2. Calculate Highlights & Paths
-    document.querySelectorAll('.mapping-path').forEach(p => p.classList.remove('active'));
+    applyPathHighlights();
 
     let imageSet = new Set();
     let preImageSet = new Set();

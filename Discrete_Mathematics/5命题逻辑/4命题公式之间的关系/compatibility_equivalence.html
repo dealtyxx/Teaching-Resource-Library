@@ -14,16 +14,20 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet">
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6" defer></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>
         MathJax = {
             tex: {
                 inlineMath: [['$', '$'], ['\\(', '\\)']],
                 displayMath: [['$$', '$$'], ['\\[', '\\]']]
             }
+        ,
+            startup: { typeset: true }
         };
     </script>
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="compatibility_equivalence.css" data-page-fix="1">
 </head>
 
 <body>
@@ -46,8 +50,8 @@
     <div class="app-container">
         <header class="main-header">
             <div class="header-content">
-                <h1>红色数理 <span class="highlight">逻辑关系：一致性与推导</span></h1>
-                <p class="subtitle">Logical Equivalence & Implication: Consistency & Deduction</p>
+                <h1>红色数理 <span class="highlight">进阶层</span></h1>
+                <p class="subtitle">公式关系比对台 · 逻辑关系：一致性与推导</p>
             </div>
             <div class="header-tabs">
                 <button class="tab-btn active" data-tab="equivalence" aria-label="一致性校验 (等价)">一致性校验 (等价)</button>
@@ -62,7 +66,7 @@
                 <div class="content-area">
                     <div class="section-header">
                         <h2>一致性校验仪</h2>
-                        <p class="section-desc">验证"理论"与"实践"是否一致，"政策A"与"政策B"是否等效 ($A \Leftrightarrow B$)</p>
+                        <p class="section-desc">验证“理论”与“实践”是否一致，“政策A”与“政策B”是否等效 ($A \Leftrightarrow B$)</p>
                     </div>
 
                     <div class="comparator-container">
@@ -70,10 +74,10 @@
                             <div class="input-card">
                                 <h3>公式 A (理论/中央精神)</h3>
                                 <input type="text" id="eqInputA" value="!(p | q)" placeholder="例如: !(p | q)">
-                                <div class="desc-tag">不搞形式主义(p) 且 不搞官僚主义(q)</div>
+                                <div class="desc-tag">不搞形式主义(p) ↔ 不搞官僚主义(q)</div>
                             </div>
                             <div class="comparison-icon">
-                                <span class="icon-symbol">?</span>
+                                <span class="icon-symbol">↔</span>
                             </div>
                             <div class="input-card">
                                 <h3>公式 B (实践/地方落实)</h3>
@@ -97,8 +101,8 @@
             <div class="tab-content" id="implicationTab">
                 <div class="content-area">
                     <div class="section-header">
-                        <h2>推导验证器</h2>
-                        <p class="section-desc">验证"措施"是否必然导致"结果"，"前提"是否蕴含"结论" ($A \Rightarrow B$)</p>
+                        <h2>推导验证</h2>
+                        <p class="section-desc">验证"措施"是否必然导致“结果”与“前提”是否蕴含"结论" ($A \Rightarrow B$)</p>
                     </div>
 
                     <div class="comparator-container">
@@ -106,7 +110,7 @@
                             <div class="input-card">
                                 <h3>前提 A (措施/现状)</h3>
                                 <input type="text" id="impInputA" value="p & q" placeholder="例如: p & q">
-                                <div class="desc-tag">经济发展(p) 且 社会稳定(q)</div>
+                                <div class="desc-tag">经济发展(p) → 社会稳定(q)</div>
                             </div>
                             <div class="comparison-icon">
                                 <span class="icon-symbol">→</span>
@@ -114,7 +118,7 @@
                             <div class="input-card">
                                 <h3>结论 B (目标/愿景)</h3>
                                 <input type="text" id="impInputB" value="p | q" placeholder="例如: p | q">
-                                <div class="desc-tag">国家繁荣(p) 或 人民安康(q)</div>
+                                <div class="desc-tag">国家繁荣(p) ↔ 人民安康(q)</div>
                             </div>
                         </div>
 
@@ -134,13 +138,13 @@
                 <div class="content-area">
                     <div class="section-header">
                         <h2>红色逻辑挑战</h2>
-                        <p class="section-desc">在复杂的逻辑迷宫中，寻找正确的道路</p>
+                        <p class="section-desc">在复杂的逻辑迷宫中，寻找正确的道路。</p>
                     </div>
 
                     <div class="game-container">
                         <div class="game-header">
                             <div class="score-board">得分: <span id="score">0</span></div>
-                            <div class="level-indicator">当前关卡: <span id="levelName">基础篇</span></div>
+                            <div class="level-indicator">当前关卡: <span id="levelName">基础</span></div>
                         </div>
 
                         <div class="question-card" id="questionCard">
@@ -166,17 +170,17 @@
                     </div>
                     <div class="concept-content">
                         <h4>逻辑等价 (Equivalence)</h4>
-                        <p>若 $A \leftrightarrow B$ 是永真式，则称 A 与 B 逻辑等价，记作 $A \Leftrightarrow B$。这意味着两者真值表完全相同。</p>
+                        <p>若 $A \leftrightarrow B$ 是永真式，则 A 与 B 逻辑等价，记作 $A \Leftrightarrow B$。这意味着两者真值表完全相同。</p>
 
                         <h4>逻辑蕴含 (Implication)</h4>
-                        <p>若 $A \rightarrow B$ 是永真式，则称 A 逻辑蕴含 B，记作 $A \Rightarrow B$。这意味着当 A 为真时，B 必然为真。</p>
+                        <p>若 $A \rightarrow B$ 是永真式，则 A 逻辑蕴含 B，记作 $A \Rightarrow B$。这意味着 A 为真时，B 必然为真。</p>
                     </div>
                 </div>
 
                 <div class="panel-section">
                     <div class="panel-header">
                         <span class="panel-icon">💡</span>
-                        <h3>思政启示</h3>
+                        <h3>价值启示</h3>
                     </div>
                     <div class="insight-content">
                         <h4>🤝 知行合一</h4>
@@ -189,28 +193,75 @@
             </aside>
         </main>
     </div>
-
-    <script src="compatibility_equivalence.js"></script>
+<script>
+    (function () {
+        var sidebar = document.querySelector('main.main-stage > .sidebar');
+        var header = document.querySelector('.main-header');
+        if (sidebar && header && !header.contains(sidebar)) {
+            sidebar.classList.add('left-info-panel');
+            header.appendChild(sidebar);
+        }
+    })();
+</script>
+<script src="compatibility_equivalence.js"></script>
 
 <!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
+<footer class="page-footer">
+    <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队<br>
+        版权所有 · 项目总负责人：谢鑫</p>
 </footer>
-
+    <script>
+        window.SECTION_META = {
+          "layers": [
+            {
+              "name": "逻辑等价",
+              "concepts": "A⇔B / 真值表相同 / 等值式",
+              "task": "判定两公式是否逻辑等价。",
+              "page": "compatibility_equivalence-basic.html"
+            },
+            {
+              "name": "逻辑蕴含与等值演算",
+              "concepts": "A⇒B / A→B重言 / 化简",
+              "task": "用等值演算化简、验证蕴含。",
+              "page": "compatibility_equivalence.html"
+            },
+            {
+              "name": "查询优化与一致性",
+              "concepts": "条件改写 / 知识库一致性",
+              "task": "迁移到查询优化与矛盾检测。",
+              "page": "compatibility_equivalence-extend.html"
+            }
+          ],
+          "chapter": "第5章 命题逻辑",
+          "section": "5.4 命题公式之间的关系 · 进阶层",
+          "title": "公式之间的关系",
+          "grounding": "本节主题：逻辑等价 A⇔B（真值表相同，如德摩根、分配、蕴含等值式）、逻辑蕴含 A⇒B（A真则B真）、一致（可同真）与矛盾。等值演算用已知等值式化简公式。这些关系是推理与化简的依据。本页定位为进阶层：用等值演算化简、验证蕴含。",
+          "steps": [
+            {"name":"情境引入","desc":"两条表述是『说的同一回事』还是『一个推出另一个』？"},
+            {"name":"对象抽取","desc":"把『等价/蕴含/一致』抽象为公式间的逻辑关系。"},
+            {"name":"结构建模","desc":"用真值表或等值式判定等价与蕴含。"},
+            {"name":"推理求解","desc":"用等值演算化简公式、验证蕴含。"},
+            {"name":"程序验证","desc":"用本页交互比较公式，判定其关系。"},
+            {"name":"迁移反思","desc":"迁移到查询优化、定理证明、知识一致性。"}
+          ],
+          "ideology": {
+            "title": "一致性 · 言行如一",
+            "text": "逻辑一致要求诸命题可同真而不自相矛盾，正如言行如一、表里如一——做人做事不能自我打架。逻辑蕴含体现『由前提到结论』的必然，启示我们立论要有据、推理要严密，方能以理服人。",
+            "dims": ["诚信", "逻辑严谨", "辩证思维"],
+            "quote": "言必信，行必果——逻辑的一致性，正是言行不自相矛盾的数学要求。"
+          },
+          "reflect": [
+            "逻辑等价 A⇔B 与逻辑蕴含 A⇒B 有何区别？等价是双向蕴含吗？",
+            "A⇒B 当且仅当 A→B 是重言式——为什么可以这样转化？",
+            "一组命题『一致』为什么不等于它们『都为真』？"
+          ],
+          "transfer": [
+            "数据库查询优化用逻辑等价把条件改写成更高效的等价形式。",
+            {"t":"知识库一致性","d":"专家系统的规则若逻辑矛盾会推出任意结论，如何检测并消除矛盾？"}
+          ]
+        };
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 

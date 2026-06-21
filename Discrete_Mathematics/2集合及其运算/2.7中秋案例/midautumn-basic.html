@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中秋集合论 · 基础层 — 文化要素集合化</title>
+  <meta name="description" content="2.7 中秋案例 基础层：把中秋文化要素抽象为集合，判定归属">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(139,0,0,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}.kg-step-head strong{color:var(--red);font-size:.95rem;}.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.86rem;}.kg-step span{display:block;font-size:.76rem;color:var(--muted);margin-top:3px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.84rem;color:#7a3216;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
+.qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.88rem;color:#5b4136;line-height:1.95;}
+.qres b{color:var(--red);}.qres .mem{display:inline-block;font-family:"JetBrains Mono",monospace;font-weight:800;padding:1px 9px;border-radius:8px;margin:2px;}
+.qres .yes{background:rgba(47,125,87,.15);color:#1c7a6e;}.qres .no{background:rgba(116,55,31,.08);color:var(--muted);}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 8px;}
+.kg-box{flex:1;min-height:420px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,250,239,.7));padding:6px;display:flex;align-items:center;}
+.venn{width:100%;height:auto;display:block;}
+.vc{stroke-width:2.5;transition:.3s;}
+.vc.A{fill:rgba(214,59,29,.10);stroke:rgba(214,59,29,.5);}
+.vc.B{fill:rgba(197,138,31,.10);stroke:rgba(197,138,31,.55);}
+.vc.C{fill:rgba(47,125,87,.10);stroke:rgba(47,125,87,.5);}
+.vc.dim{opacity:.18;}
+.vlabel{font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:18px;font-weight:700;}
+.echip rect{transition:.25s;}
+.echip text{font-family:"Noto Serif SC",serif;font-size:12px;font-weight:700;fill:#5b4136;}
+.echip.lit rect{fill:#d63b1d;stroke:#8b0000;}.echip.lit text{fill:#fff;}
+.echip.dim{opacity:.3;}
+.chipset{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.echipbtn{padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);cursor:pointer;font:inherit;font-size:.8rem;color:#5b4136;font-weight:700;transition:.15s;}
+.echipbtn.on{background:var(--red);color:#fff;border-color:var(--red);}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:13px 15px;margin-top:12px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}.insight-box p{margin:0;font-size:13.5px;line-height:1.7;color:#4e362d;}
+.badges{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px;}.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">基础层</span></h1>
+        <p class="subtitle">中秋集合论 · 文化要素集合化</p>
+      </div>
+      <p class="intro">把中秋意象抽象为元素，按主题归入集合 A 赏月 / B 月饼 / C 灯笼，用 ∈ 判定确定的归属。</p>
+
+      <div class="value-panel">
+        <h3>精神追求 · 文化自信</h3>
+        <p>集合化是文化数字化的第一步——把纷繁意象有序归类，让古老智慧在数字时代可检索、可分析。</p>
+        <div class="dim-list"><span>文化自信</span><span>审美素养</span></div>
+      </div>
+
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步建模互动</strong><span>点一步，看反馈、公式项和文氏图同步高亮</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-guide="list"><b>1 列举元素</b><span>e ∈ U：中秋意象</span></button>
+          <button class="kg-step" type="button" data-guide="group"><b>2 归入集合</b><span>A 赏月 / B 月饼 / C 灯笼</span></button>
+          <button class="kg-step" type="button" data-guide="member"><b>3 判定归属</b><span>e ∈ A？确定性</span></button>
+        </div>
+        <div class="kg-feedback" id="kgFeedback">先把中秋的习俗与意象列举为元素，构成全集 U。</div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-token="e">e ∈ U</span>
+          <span class="kg-token" data-token="set">A / B / C</span>
+          <span class="kg-token" data-token="mem">归属 ∈</span>
+        </div>
+      </div>
+
+      <div class="control-group" style="border:none;background:none;padding:0;">
+        <label style="display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:6px;">点元素判定归属</label>
+        <div class="chipset" id="chipset"></div>
+      </div>
+
+      <div class="qres" id="qres">点元素查看它属于哪些集合（∈ A / B / C）。</div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>把中秋意象元素归入赏月 / 月饼 / 灯笼三个集合，并用 ∈ 判定每个元素的归属。</span>
+        <div class="visual-badge">元素 + 集合</div>
+      </section>
+      <h2 class="pane-title">中秋文化集合（文氏图）</h2>
+      <p class="pane-sub">A 赏月（红）· B 月饼（金）· C 灯笼（绿）。元素落在哪个区域，就属于对应的集合（可同属多个）。</p>
+      <div class="kg-box"><svg class="venn" id="venn" viewBox="0 0 500 440" preserveAspectRatio="xMidYMid meet"></svg></div>
+      <div class="insight-box">
+        <div class="insight-title">🌕 集合化是文化数字化的第一步</div>
+        <p>每个意象是一个<b>元素</b>，每个主题是一个<b>集合</b>。归类要满足<b>确定性</b>：一个元素是否属于某集合必须明确（∈ 或 ∉）。有了清晰的集合，才能进一步做并、交、差分析（进阶层）。</p>
+        <div class="badges"><span class="badge">文化自信</span><span class="badge">审美素养</span></div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
+
+  <script>
+    window.SECTION_META = {
+      "chapter": "第2章 集合及其运算", "section": "2.7 中秋案例 · 基础层", "title": "文化要素集合化",
+      "grounding": "本页（基础层）主题：把中秋文化意象抽象为元素，按主题归入集合 A 赏月 / B 月饼 / C 灯笼，用 ∈ 判定确定的归属。集合化是文化数字化的第一步；有了清晰集合才能做并交差（进阶层）。",
+      "steps": [
+        {"name": "情境引入", "desc": "中秋意象纷繁，如何用集合把它们有序组织？"},
+        {"name": "对象抽取", "desc": "把习俗/意象抽象为元素，把主题抽象为集合。"},
+        {"name": "结构建模", "desc": "按主题把元素归入 A/B/C 三个集合。"},
+        {"name": "推理求解", "desc": "用 ∈ 判定每个元素属于哪些集合（确定性）。"},
+        {"name": "程序验证", "desc": "点元素查看其归属，验证分类清晰。"},
+        {"name": "迁移反思", "desc": "并交差分析（进阶层）、节日数字化（拓展层）。"}
+      ],
+      "ideology": {"title": "精神追求 · 文化自信", "text": "中秋承载团圆、思乡、家国一体的精神追求。用集合论梳理传统文化，是以现代工具传承中华优秀传统文化的实践——让古老智慧在数字时代焕新，坚定文化自信，涵养审美情趣与家国情怀。", "dims": ["文化自信", "家国情怀", "审美素养"], "quote": "但愿人长久，千里共婵娟——团圆的『交集』，正是中华民族共同的精神原乡。"},
+      "reflect": ["把文化意象抽象为元素时，如何保证分类的确定性？", "为什么『团圆』可以同时属于赏月、月饼、灯笼三个集合？"],
+      "transfer": ["用并交差分析共性与差异（进阶层）；多节日意象图谱与文化检索（拓展层）。"],
+      "layers": [
+        {"name": "文化要素集合化", "concepts": "意象/习俗归类 / 确定性分类", "task": "把中秋文化要素抽象为集合。", "page": "midautumn-basic.html"},
+        {"name": "用运算分析关联", "concepts": "交=共性 / 并=汇总 / 划分=主题", "task": "用集合运算分析文化要素关系。", "page": "midautumn.html"},
+        {"name": "传统节日数字化", "concepts": "节日意象图谱 / 文化检索", "task": "迁移到传统文化的数字化组织。", "page": "midautumn-extend.html"}
+      ]
+    };
+  </script>
+
+  <script>
+    var $=function(id){return document.getElementById(id);};
+    var ELEMS=[
+      {n:'明月',s:['A']},{n:'诗词',s:['A']},{n:'思乡',s:['A']},
+      {n:'桂花酒',s:['A','B']},{n:'嫦娥',s:['A','C']},{n:'团圆',s:['A','B','C']},
+      {n:'月饼',s:['B']},{n:'分享',s:['B']},{n:'童趣',s:['B','C']},
+      {n:'灯笼',s:['C']},{n:'光明',s:['C']}
+    ];
+    var REGION={A:[250,96],B:[122,312],C:[378,312],AB:[182,214],AC:[318,214],BC:[250,326],ABC:[250,246]};
+    function regionKey(s){return s.slice().sort().join('');}
+    function layout(){
+      var groups={};ELEMS.forEach(function(e){var k=regionKey(e.s);(groups[k]=groups[k]||[]).push(e);});
+      Object.keys(groups).forEach(function(k){var arr=groups[k],c=REGION[k];arr.forEach(function(e,i){var off=(i-(arr.length-1)/2);e.x=c[0]+off*46;e.y=c[1]+(i%2?10:-2);});});
+    }
+    var sel=null,guide='list';
+    function draw(){
+      var dimCircles=(guide==='member'&&sel)?true:false;
+      var selSets=sel?ELEMS.filter(function(e){return e.n===sel;})[0].s:[];
+      var svg='';
+      // circles
+      ['A','B','C'].forEach(function(L){
+        var cx=L==='A'?250:L==='B'?175:325,cy=L==='A'?150:275,dim=(guide==='member'&&sel&&selSets.indexOf(L)<0);
+        svg+='<circle class="vc '+L+(dim?' dim':'')+'" cx="'+cx+'" cy="'+cy+'" r="115"/>';
+      });
+      svg+='<text class="vlabel" x="250" y="58" text-anchor="middle" fill="#d63b1d">A 赏月</text>';
+      svg+='<text class="vlabel" x="92" y="300" text-anchor="middle" fill="#8a5d0b">B 月饼</text>';
+      svg+='<text class="vlabel" x="408" y="300" text-anchor="middle" fill="#2f7d57">C 灯笼</text>';
+      // element chips
+      var showAll=(guide!=='member');
+      ELEMS.forEach(function(e){
+        var w=e.n.length*15+12;
+        var lit=(guide==='member'&&sel===e.n);
+        var dim=(guide==='member'&&sel&&sel!==e.n);
+        svg+='<g class="echip'+(lit?' lit':'')+(dim?' dim':'')+'" data-n="'+e.n+'" style="cursor:pointer"><rect x="'+(e.x-w/2)+'" y="'+(e.y-12)+'" width="'+w+'" height="24" rx="12" fill="rgba(255,255,255,.92)" stroke="'+(lit?'#8b0000':'rgba(116,55,31,.3)')+'" stroke-width="'+(lit?2.5:1.5)+'"/><text x="'+e.x+'" y="'+(e.y+4)+'" text-anchor="middle">'+e.n+'</text></g>';
+      });
+      $('venn').innerHTML=svg;
+      $('venn').querySelectorAll('.echip').forEach(function(g){g.onclick=function(){guide='member';sel=g.dataset.n;syncGuide();draw();info();renderChips();};});
+    }
+    function info(){
+      if(!sel){$('qres').innerHTML='点元素查看它属于哪些集合（∈ A / B / C）。';return;}
+      var e=ELEMS.filter(function(x){return x.n===sel;})[0];
+      var html='<b>'+sel+'</b> 的归属：<br>';
+      ['A','B','C'].forEach(function(L){var nm={A:'A 赏月',B:'B 月饼',C:'C 灯笼'}[L];var inS=e.s.indexOf(L)>=0;html+='<span class="mem '+(inS?'yes':'no')+'">'+sel+' '+(inS?'∈':'∉')+' '+nm+'</span> ';});
+      html+='<div style="margin-top:8px;font-size:.78rem;opacity:.8">该元素同属 <b>'+e.s.length+'</b> 个集合。归属是<b>确定</b>的：要么 ∈，要么 ∉，不含糊。</div>';
+      $('qres').innerHTML=html;
+    }
+    function renderChips(){
+      $('chipset').innerHTML=ELEMS.map(function(e){return '<span class="echipbtn'+(sel===e.n?' on':'')+'" data-n="'+e.n+'">'+e.n+'</span>';}).join('');
+      $('chipset').querySelectorAll('.echipbtn').forEach(function(b){b.onclick=function(){guide='member';sel=b.dataset.n;syncGuide();draw();info();renderChips();};});
+    }
+    function syncGuide(){
+      document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.guide===guide);});
+      document.querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',(guide==='list'&&t.dataset.token==='e')||(guide==='group'&&t.dataset.token==='set')||(guide==='member'&&t.dataset.token==='mem'));});
+    }
+    function setGuide(g){
+      guide=g;syncGuide();
+      if(g==='list'){sel=null;$('kgFeedback').innerHTML='把中秋的习俗与意象（明月、月饼、灯笼、团圆…）列举为<b>元素</b>，它们构成全集 <b>U</b>。';$('qres').innerHTML='全集 U 已列出。下一步按主题把元素归入集合 A/B/C。';}
+      else if(g==='group'){sel=null;$('kgFeedback').innerHTML='按主题归类：赏月类→<b>A</b>，月饼类→<b>B</b>，灯笼类→<b>C</b>。落在重叠区域的元素同属多个集合（如『团圆』同属三者）。';$('qres').innerHTML='元素已按主题归入 A/B/C。落在交叠处的元素同时属于多个集合。下一步点元素判定其归属。';}
+      else{if(!sel)sel='团圆';$('kgFeedback').innerHTML='用 <b>∈</b> 判定归属：点任意元素，查看它属于哪些集合。归属必须<b>确定</b>（∈ 或 ∉）——这是集合『确定性』的要求。';info();}
+      draw();renderChips();
+    }
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setGuide(b.dataset.guide);};});
+    layout();setGuide('list');
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

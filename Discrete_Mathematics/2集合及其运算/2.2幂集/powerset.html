@@ -8,11 +8,13 @@
     <meta name="description" content="离散数学课程 - 红色数理 - 幂集">
 
     <link rel="stylesheet" href="powerset.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
         rel="stylesheet">
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
@@ -98,7 +100,7 @@
                 </div>
 
                 <div class="control-group">
-                    <label>思政解读</label>
+                    <label>价值解读</label>
                     <div class="info-panel">
                         <h3 id="szTitle">系统治理</h3>
                         <p id="szDesc">幂集象征着国家治理体系的丰富性。每一个子集代表一种特定的力量组合（工作专班），通过统筹兼顾，可以形成全方位、多层次的治理效能。</p>
@@ -143,19 +145,104 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "chapter": "第2章 集合及其运算",
+      "section": "2.2 幂集 · 进阶层",
+      "title": "幂集规模 2ⁿ",
+      "grounding": "本节主题：幂集 P(A) 是 A 的所有子集构成的集合。若 |A|=n，则 |P(A)|=2^n（每个元素『取或不取』两种选择，正是乘法原理）。幂集中必含 ∅ 与 A 自身。子集与二进制串一一对应。幂集体现了从『元素』到『子集』的层次跃迁。 本页定位为进阶层：在原有页面基础上继续承担本节核心推理与综合运用。",
+      "steps": [
+            {
+                  "name": "情境引入",
+                  "desc": "一个团队有 n 项职能，能组建出多少种不同的工作组合？"
+            },
+            {
+                  "name": "对象抽取",
+                  "desc": "把『每种组合』抽象为一个子集，把全体组合抽象为幂集。"
+            },
+            {
+                  "name": "结构建模",
+                  "desc": "用『每元素取/不取』的二选一建模，导出 |P(A)|=2^n。"
+            },
+            {
+                  "name": "推理求解",
+                  "desc": "枚举子集、用二进制编码子集、计算幂集规模。"
+            },
+            {
+                  "name": "程序验证",
+                  "desc": "用本页交互生成幂集，观察规模随 n 指数增长。"
+            },
+            {
+                  "name": "迁移反思",
+                  "desc": "迁移到特征向量、组合爆炸、状态空间。"
+            }
+      ],
+      "ideology": {
+            "title": "系统治理 · 见微知著",
+            "text": "幂集把一个集合的『所有可能子集』纳入统一视野，体现系统治理中『统揽全局、不漏一隅』的整体观。2^n 的指数增长则警示我们：复杂系统的可能性空间极其庞大，唯有抓住主要矛盾、分层施策，方能驾驭复杂。",
+            "dims": [
+                  "系统观念",
+                  "全局意识",
+                  "科学精神"
+            ],
+            "quote": "致广大而尽精微——幂集让我们既看到整体的恢弘，也看到每个子集的细节。"
+      },
+      "reflect": [
+            "为什么 |P(A)|=2^n？请用『每个元素两种选择』的乘法原理解释。",
+            "幂集中一定包含 ∅ 和 A 本身吗？为什么？",
+            "子集与 n 位二进制串一一对应，这种编码对算法有什么用？"
+      ],
+      "transfer": [
+            "机器学习中『特征是否选用』构成 2^n 种特征子集，特征选择正是在幂集中搜索。",
+            {
+                  "t": "状态空间爆炸",
+                  "d": "n 个开关有 2^n 种状态，为什么穷举常常不可行？这与算法复杂度有何关系？"
+            },
+            {
+                  "t": "位运算实现",
+                  "d": "用一个整数的二进制位表示子集，交并补对应位运算——效率从何而来？"
+            }
+      ],
+      "layers": [
+            {
+                  "name": "子集枚举",
+                  "concepts": "子集 / 含 ∅ 与自身",
+                  "task": "列出一个小集合的全部子集。",
+                  "page": "powerset-basic.html"
+            },
+            {
+                  "name": "幂集规模 2ⁿ",
+                  "concepts": "每元取或不取 / 二进制编码子集",
+                  "task": "理解并推导 |P(A)|=2ⁿ。",
+                  "page": "powerset.html"
+            },
+            {
+                  "name": "状态空间与特征选择",
+                  "concepts": "组合爆炸 / 位运算 / 特征子集",
+                  "task": "迁移到状态空间与机器学习特征选择。",
+                  "page": "powerset-extend.html"
+            }
+      ]
+};
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 

@@ -156,6 +156,7 @@ color: var(--text-primary);
     flex-grow: 1;
     position: relative;
     overflow: hidden;
+    min-height: 360px;
 }
 
 .network-svg {
@@ -164,7 +165,8 @@ color: var(--text-primary);
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 5;
+    z-index: 30;
+    overflow: visible;
 }
 
 .nodes-layer {
@@ -174,9 +176,68 @@ color: var(--text-primary);
     width: 100%;
     height: 100%;
     z-index: 10;
+    display: none;
 }
 
 .entity-node {
+    cursor: pointer;
+}
+
+.entity-node rect {
+    fill: #fff;
+    stroke-width: 2;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.12));
+    transition: fill 0.2s ease, stroke 0.2s ease, filter 0.2s ease;
+}
+
+.entity-node text {
+    font-size: 13px;
+    font-weight: 700;
+    text-anchor: middle;
+    dominant-baseline: central;
+    pointer-events: none;
+    user-select: none;
+}
+
+.entity-node.resident rect {
+    stroke: var(--resident-color);
+}
+
+.entity-node.resident text {
+    fill: var(--resident-color);
+}
+
+.entity-node.activity rect {
+    stroke: var(--activity-color);
+}
+
+.entity-node.activity text {
+    fill: var(--activity-color);
+}
+
+.entity-node.organizer rect {
+    stroke: var(--organizer-color);
+}
+
+.entity-node.organizer text {
+    fill: var(--organizer-color);
+}
+
+.entity-node:hover rect {
+    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.18));
+}
+
+.entity-node.highlighted rect {
+    fill: var(--accent-gold);
+    stroke: var(--accent-gold);
+    filter: drop-shadow(0 0 12px rgba(197, 160, 89, 0.45));
+}
+
+.entity-node.highlighted text {
+    fill: #fff;
+}
+
+.nodes-layer .entity-node {
     position: absolute;
     padding: 10px 16px;
     background: #fff;
@@ -191,32 +252,43 @@ color: var(--text-primary);
     min-width: 80px;
 }
 
-.entity-node:hover {
+.nodes-layer .entity-node:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
-.entity-node.resident {
+.nodes-layer .entity-node.resident {
     border-color: var(--resident-color);
     color: var(--resident-color);
 }
 
-.entity-node.activity {
+.nodes-layer .entity-node.activity {
     border-color: var(--activity-color);
     color: var(--activity-color);
 }
 
-.entity-node.organizer {
+.nodes-layer .entity-node.organizer {
     border-color: var(--organizer-color);
     color: var(--organizer-color);
 }
 
-.entity-node.highlighted {
+.nodes-layer .entity-node.highlighted {
     background: var(--accent-gold);
     color: white;
     border-color: var(--accent-gold);
     box-shadow: 0 0 20px rgba(197, 160, 89, 0.5);
     transform: scale(1.1);
+}
+
+.network-svg .entity-node {
+    position: static;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    min-width: 0;
+    transform-box: fill-box;
+    transform-origin: center;
 }
 
 .network-edge {

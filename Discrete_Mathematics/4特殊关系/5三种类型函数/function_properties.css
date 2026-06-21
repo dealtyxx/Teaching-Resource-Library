@@ -71,6 +71,12 @@ color: var(--text-primary);
     align-items: center;
     border-bottom: 1px solid var(--glass-border);
     background: rgba(255, 255, 255, 0.6);
+    gap: 18px;
+}
+
+.header-content {
+    min-width: 0;
+    flex: 1 1 auto;
 }
 
 .header-content h1 {
@@ -95,6 +101,8 @@ color: var(--text-primary);
     display: flex;
     gap: 16px;
     align-items: center;
+    min-width: 0;
+    flex: 0 1 auto;
 }
 
 .mode-nav {
@@ -105,6 +113,8 @@ color: var(--text-primary);
     padding: 4px;
     border-radius: 12px;
     border: 1px solid rgba(0, 0, 0, 0.08);
+    max-width: min(58vw, 560px);
+    overflow: hidden;
 }
 
 .nav-btn {
@@ -121,6 +131,11 @@ color: var(--text-primary);
     opacity: 0.7;
     font-family: var(--font-family);
     font-weight: 600;
+    min-width: 0;
+    flex: 1 1 0;
+    white-space: normal;
+    line-height: 1.2;
+    text-align: center;
 }
 
 .nav-btn:hover {
@@ -146,18 +161,33 @@ color: var(--text-primary);
 }
 
 .apple-btn {
-    padding: 10px;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    padding: 0;
     border-radius: 10px;
     border: 1px solid rgba(0, 0, 0, 0.1);
     background: #fff;
     cursor: pointer;
     transition: all 0.2s;
     color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
 }
 
 .apple-btn:hover {
     background: #f5f5f5;
     transform: scale(1.05);
+}
+
+.btn-icon {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 1.35rem;
+    line-height: 1;
+    color: var(--service-orange);
 }
 
 /* Main Stage */
@@ -180,10 +210,11 @@ color: var(--text-primary);
     border-radius: 20px;
     padding: 40px;
     border: 1px solid rgba(0, 0, 0, 0.05);
+    min-height: 360px;
 }
 
 .set-column {
-    width: 250px;
+    width: clamp(210px, 24%, 300px);
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -284,8 +315,10 @@ color: var(--text-primary);
 }
 
 .connections-svg {
+    display: block;
     width: 100%;
     height: 100%;
+    overflow: visible;
 }
 
 .connection-line {
@@ -297,6 +330,8 @@ color: var(--text-primary);
     transition: all 0.3s;
     cursor: pointer;
     pointer-events: stroke;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
 }
 
 .connection-line:hover {
@@ -307,9 +342,9 @@ color: var(--text-primary);
 /* Bottom Panel */
 .bottom-panel {
     display: grid;
-    grid-template-columns: 300px 1fr;
+    grid-template-columns: minmax(260px, 0.75fr) minmax(320px, 1.25fr) minmax(280px, 0.9fr);
     gap: 20px;
-    height: 120px;
+    min-height: 128px;
 }
 
 .status-bar,
@@ -384,10 +419,9 @@ color: var(--text-primary);
 
 /* Concept Overlay */
 .concept-overlay {
-    position: absolute;
-    top: 100px;
-    right: 40px;
-    width: 240px;
+    position: static;
+    width: auto;
+    min-width: 0;
     background: rgba(255, 255, 255, 0.95);
     padding: 16px;
     border-radius: 12px;
@@ -395,6 +429,8 @@ color: var(--text-primary);
     border-left: 4px solid var(--service-orange);
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
+    align-self: stretch;
+    overflow: auto;
 }
 
 .concept-overlay h4 {
@@ -417,4 +453,124 @@ color: var(--text-primary);
     font-size: 0.85rem;
     color: var(--text-secondary);
     line-height: 1.4;
+}
+
+.app-container > .concept-overlay {
+    display: none;
+}
+
+.app-container[data-dm-app] > .main-header .header-content {
+    flex: 0 0 auto !important;
+}
+
+.app-container[data-dm-app] > .main-header #dm-ideo-page {
+    order: 1;
+    margin-top: 0 !important;
+}
+
+.app-container[data-dm-app] > .main-header .header-controls {
+    order: 2;
+    width: 100%;
+    gap: 10px !important;
+    align-items: stretch !important;
+}
+
+.app-container[data-dm-app] > .main-header .mode-nav {
+    width: 100%;
+    max-width: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    padding: 6px;
+    overflow: visible;
+}
+
+.app-container[data-dm-app] > .main-header .nav-btn {
+    width: 100%;
+    min-height: 42px;
+    flex: 0 0 auto;
+    justify-content: center;
+    padding: 8px 12px;
+}
+
+.app-container[data-dm-app] > .main-header .apple-btn {
+    width: 100% !important;
+    min-height: 42px;
+    height: 42px;
+    flex: 0 0 42px !important;
+}
+
+@media (max-width: 1280px) {
+    .main-header {
+        align-items: flex-start;
+        padding: 1rem 1.4rem;
+    }
+
+    .mode-nav {
+        max-width: 520px;
+    }
+
+    .nav-btn {
+        padding: 8px 10px;
+        font-size: 0.92rem;
+    }
+
+    .main-stage {
+        padding: 16px;
+        gap: 14px;
+    }
+
+    .mapping-container {
+        padding: 28px 26px;
+    }
+
+    .bottom-panel {
+        grid-template-columns: minmax(220px, 0.8fr) minmax(280px, 1.2fr);
+        gap: 14px;
+    }
+
+    .bottom-panel .concept-overlay {
+        grid-column: 1 / -1;
+        max-height: 132px;
+    }
+}
+
+@media (max-width: 980px) {
+    body {
+        overflow: auto;
+        align-items: flex-start;
+    }
+
+    .app-container {
+        height: auto;
+        min-height: 90vh;
+        margin: 64px auto 96px;
+    }
+
+    .main-header {
+        flex-direction: column;
+    }
+
+    .header-controls,
+    .mode-nav {
+        width: 100%;
+        max-width: none;
+    }
+
+    .main-stage {
+        overflow: visible;
+    }
+
+    .mapping-container {
+        min-height: 560px;
+    }
+
+    .bottom-panel {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+
+    .concept-overlay {
+        max-height: none;
+    }
 }

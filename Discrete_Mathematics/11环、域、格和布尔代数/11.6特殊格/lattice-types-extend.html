@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第11章 环、域、格和布尔代数 - 方案优选格沙盘</title>
+  <meta name="description" content="11.6 特殊格 - 方案优选格沙盘">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+
+:root {
+  --ink: #251713;
+  --muted: #6c5a52;
+  --paper: #fff8ec;
+  --card: rgba(255, 253, 246, 0.92);
+  --line: rgba(116, 55, 31, 0.18);
+  --red: #b42318;
+  --red-2: #de5b3d;
+  --gold: #c58a1f;
+  --green: #2f7d57;
+  --blue: #2f5f9f;
+  --shadow: 0 18px 50px rgba(69, 31, 15, 0.14);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: "Noto Serif SC", "Microsoft YaHei", serif;
+  background:
+    radial-gradient(circle at 16% 12%, rgba(222, 91, 61, 0.18), transparent 28%),
+    radial-gradient(circle at 82% 8%, rgba(47, 95, 159, 0.14), transparent 26%),
+    linear-gradient(135deg, #fff7e6 0%, #f8ead3 45%, #f3dfc7 100%);
+  overflow: hidden;
+}
+.home-link {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 10000;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.5);
+  background: rgba(37, 23, 19, 0.82);
+  color: #fff;
+  text-decoration: none;
+  font-size: 13px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  backdrop-filter: blur(10px);
+}
+.app-container {
+  width: min(1440px, calc(100vw - 32px));
+  height: calc(100vh - 166px);
+  min-height: 640px;
+  margin: 74px auto 0;
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  gap: 18px;
+}
+.side-panel,
+.glass-pane {
+  border: 1px solid var(--line);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+}
+.side-panel {
+    display: flex;
+  flex-direction: column;
+border-radius: 8px;
+  padding: 20px;
+  overflow: auto;
+}
+.glass-pane {
+  border-radius: 8px;
+  padding: 18px;
+  overflow: auto;
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(180, 35, 24, 0.22);
+  color: var(--red);
+  background: rgba(180, 35, 24, 0.08);
+  font-size: 12px;
+  font-weight: 700;
+}
+h1 {
+  margin: 14px 0 8px;
+  font-size: 30px;
+  line-height: 1.18;
+  letter-spacing: 0;
+}
+.sidebar-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+  order: 1;
+}
+.side-panel > * {
+  order: 5;
+}
+.side-panel > .sidebar-header {
+  order: 1;
+}
+.window-controls {
+  height: 1.1em;
+  line-height: 1.1;
+}
+.sidebar-header.no-controls .window-controls {
+  display: none;
+}
+.sidebar-header h1 {
+  margin: 0;
+  font-family: "Ma Shan Zheng", "Noto Serif SC", cursive;
+  font-size: var(--sidebar-title-size, 1.8rem);
+  font-weight: 400;
+  line-height: 1.3;
+  color: #d63b1d;
+  letter-spacing: 0;
+}
+.sidebar-header h1 .highlight {
+  color: #ffb400;
+  font-weight: 700;
+}
+.sidebar-header .subtitle {
+  margin: -5px 0 0;
+  color: #64748b;
+  font-size: 0.96rem;
+  font-style: normal;
+  line-height: 1.6;
+}
+.intro {
+    order: 2;
+  margin: 0 0 16px;
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 15px;
+}
+.side-panel > #dm-ideo-page,
+.side-panel > .value-panel {
+  order: 3;
+}
+.side-panel > #controls,
+.side-panel > .controls-wrapper {
+  order: 4;
+}
+.mission-card,
+.control-group,
+.value-panel,
+.result-card {
+  border-radius: 8px;
+  border: 1px solid rgba(116, 55, 31, 0.16);
+  background: rgba(255,255,255,0.66);
+}
+.mission-card {
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.mission-card b { color: var(--red); }
+.mission-card span {
+  color: var(--muted);
+  line-height: 1.6;
+}
+.visual-badge {
+  white-space: nowrap;
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(47,95,159,0.1);
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 700;
+}
+.value-panel {
+  padding: 14px;
+  margin: 14px 0;
+  border-left: 4px solid var(--red);
+}
+.value-panel h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  color: var(--red);
+}
+.value-panel p {
+  margin: 0;
+  line-height: 1.7;
+  color: #563c31;
+  font-size: 14px;
+}
+.dim-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.dim-list span {
+  border-radius: 999px;
+  background: rgba(197, 138, 31, 0.13);
+  color: #8a5d0b;
+  padding: 4px 9px;
+  font-size: 12px;
+  font-weight: 700;
+}
+#controls {
+  display: grid;
+  gap: 10px;
+}
+.control-group {
+  padding: 12px;
+}
+.control-group label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #4e362d;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.control-group small {
+  color: var(--muted);
+  font-weight: 400;
+}
+select,
+input[type="range"] {
+  width: 100%;
+}
+select {
+  min-height: 38px;
+  border-radius: 8px;
+  border: 1px solid rgba(116,55,31,0.22);
+  background: #fffaf2;
+  color: var(--ink);
+  padding: 0 10px;
+  font: inherit;
+}
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--red);
+}
+.switch-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.logic-board {
+  min-height: 360px;
+  border-radius: 8px;
+  border: 1px solid rgba(116,55,31,0.16);
+  background:
+    linear-gradient(90deg, rgba(116,55,31,0.06) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(116,55,31,0.06) 1px, transparent 1px),
+    rgba(255,255,255,0.56);
+  background-size: 28px 28px;
+  padding: 18px;
+  overflow: hidden;
+}
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.node-card,
+.gate-card,
+.table-wrap,
+.proof-card,
+.meter-card {
+  border-radius: 8px;
+  border: 1px solid rgba(116,55,31,0.18);
+  background: rgba(255,255,255,0.84);
+  padding: 14px;
+  box-shadow: 0 8px 22px rgba(69,31,15,0.08);
+}
+.node-card strong,
+.gate-card strong,
+.proof-card strong,
+.meter-card strong {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+.truth-on { border-color: rgba(47,125,87,0.5); background: rgba(47,125,87,0.12); }
+.truth-off { border-color: rgba(180,35,24,0.4); background: rgba(180,35,24,0.09); }
+.truth-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  height: 34px;
+  border-radius: 999px;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 800;
+  color: #fff;
+  background: var(--green);
+}
+.truth-chip.false { background: var(--red); }
+.gate-symbol {
+  display: grid;
+  place-items: center;
+  min-height: 112px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(180,35,24,0.12), rgba(47,95,159,0.13));
+  font-size: 42px;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 800;
+  color: var(--red);
+}
+.formula-line {
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 800;
+  color: #2d211d;
+}
+.stack {
+  display: grid;
+  gap: 10px;
+}
+.flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.flow .node-card { min-height: 112px; }
+.arrow {
+  color: var(--gold);
+  font-weight: 800;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-size: 13px;
+}
+th, td {
+  border-bottom: 1px solid rgba(116,55,31,0.14);
+  padding: 8px 7px;
+  text-align: center;
+}
+th {
+  background: rgba(180,35,24,0.08);
+  color: var(--red);
+}
+tr.hot td { background: rgba(47,125,87,0.1); }
+tr.warn td { background: rgba(180,35,24,0.08); }
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.pill {
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: #53362c;
+  background: rgba(197,138,31,0.14);
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 700;
+}
+.result-card {
+  margin-top: 14px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 12px;
+  align-items: stretch;
+}
+#formulaText,
+#resultValue,
+#resultExtra {
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(255,250,242,0.86);
+  line-height: 1.7;
+}
+#formulaText {
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 800;
+  color: var(--blue);
+}
+#resultValue {
+  font-weight: 800;
+  color: var(--red);
+}
+#resultExtra {
+  grid-column: 1 / -1;
+  color: #5e4338;
+}
+.footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9998;
+  min-height: 72px;
+  padding: 14px 10px;
+  text-align: center;
+  color: inherit;
+    opacity: 0.72;
+  background: transparent;
+  box-shadow: none;
+  font-size: 13px;
+  line-height: 1.7;
+}
+@media (max-width: 920px) {
+  body { overflow: auto; }
+  .app-container {
+    width: min(100vw - 22px, 720px);
+    height: auto;
+    min-height: 0;
+    grid-template-columns: 1fr;
+    margin-bottom: 96px;
+  }
+  .side-panel, .glass-pane { max-height: none; }
+  .viz-grid, .flow, .result-card { grid-template-columns: 1fr; }
+  #resultExtra { grid-column: auto; }
+  .mission-card { grid-template-columns: 1fr; }
+}
+
+.logic-board {
+  display: grid;
+  grid-template-rows: 318px auto;
+  gap: 12px;
+  min-height: 0;
+}
+.graph-canvas {
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+  border-radius: 8px;
+  display: block;
+  background:
+    linear-gradient(90deg, rgba(116,55,31,0.05) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(116,55,31,0.05) 1px, transparent 1px),
+    rgba(255,255,255,0.58);
+  background-size: 28px 28px;
+}
+#vizText {
+  display: grid;
+  gap: 8px;
+}
+.graph-summary {
+  border-radius: 8px;
+  border: 1px solid rgba(116,55,31,0.16);
+  background: rgba(255,255,255,0.78);
+  padding: 12px;
+  color: #5e4338;
+  line-height: 1.65;
+}
+.matrix-grid {
+  display: inline-grid;
+  gap: 2px;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.82);
+  border: 1px solid rgba(116,55,31,0.18);
+}
+.matrix-cell {
+  min-width: 28px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  background: rgba(47,95,159,0.08);
+  color: #253447;
+  font-weight: 800;
+}
+.matrix-cell.hot {
+  background: rgba(180,35,24,0.14);
+  color: var(--red);
+}
+@media (max-width: 920px) {
+  .logic-board { grid-template-rows: 300px auto; }
+  .graph-canvas { min-height: 280px; }
+}
+
+  .math-table { width: 100%; border-collapse: collapse; margin-top: 10px; overflow: hidden; border-radius: 8px; }
+  .math-table th, .math-table td { border: 1px solid rgba(151, 64, 45, .16); padding: 6px 8px; text-align: center; }
+  .math-table th { background: rgba(213, 73, 43, .08); color: #a33120; }
+  .math-table td.hot { background: rgba(213, 73, 43, .13); color: #971f15; font-weight: 800; }
+  .truth-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 8px; margin-top: 10px; }
+  .truth-grid span { border: 1px solid rgba(151, 64, 45, .16); border-radius: 8px; padding: 8px; background: rgba(255,255,255,.72); }
+  .truth-grid b { color: #b42318; }
+  .meter { height: 9px; border-radius: 999px; background: rgba(42,82,152,.12); overflow: hidden; margin-top: 6px; }
+  .meter i { display: block; height: 100%; background: linear-gradient(90deg,#2f7d57,#d33a24); border-radius: inherit; }
+
+  </style>
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header" style="--sidebar-title-size: 1.8rem;">
+        <div class="window-controls">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+        </div>
+        <h1>红色数理 <span class="highlight">拓展层</span></h1>
+        <p class="subtitle">特殊格分类器</p>
+      </div>
+      <p class="intro">把特殊格迁移到方案选择，比较约束越多时是否还能找到补方案。</p>
+
+      <div class="value-panel">
+        <h3>优中选优 · 守正臻美</h3>
+        <p>从一般格到分配格、有补格再到布尔格，是『优中选优、不断臻于完善』的过程，每加一条良好性质，结构便更趋完美实用。这启示我们：精益求精、追求卓越，在坚实基础上层层提升，方能成就经得起检验的『最优结构』。</p>
+        <div class="dim-list"><span>精益求精</span><span>辩证思维</span><span>系统观念</span></div>
+      </div>
+
+      <div id="controls"></div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>用结构品质服务科学决策，做到择优、稳妥、可解释。</span>
+        <div class="visual-badge">方案格 + 补元</div>
+      </section>
+
+      <section class="logic-board" id="vizArea">
+        <canvas id="graphCanvas" class="graph-canvas"></canvas>
+        <div id="vizText"></div>
+      </section>
+
+      <section class="result-card">
+        <div id="formulaText">等待交互</div>
+        <div id="resultValue">等待判定</div>
+        <div id="resultExtra">价值观察：从一般格到分配格、有补格再到布尔格，是『优中选优、不断臻于完善』的过程，每加一条良好性质，结构便更趋完美实用。这启示我们：精益求精、追求卓越，在坚实基础上层层提升，方能成就经得起检验的『最优结构』。</div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+    <div>版权所有 · 项目总负责人：谢鑫</div>
+  </footer>
+
+  <script>
+    window.SECTION_META = {
+      "layers": [
+            {
+                  "name": "有界格",
+                  "concepts": "最大元 1 / 最小元 0",
+                  "task": "认识有界格。",
+                  "page": "lattice-types-basic.html"
+            },
+            {
+                  "name": "分配格与有补格",
+                  "concepts": "分配律 / 补元 / 钻石·五角格",
+                  "task": "判定分配性与有补性。",
+                  "page": "lattice-types.html"
+            },
+            {
+                  "name": "布尔格",
+                  "concepts": "有补分配格 / 幂集格",
+                  "task": "迁移到布尔格与集合代数。",
+                  "page": "lattice-types-extend.html"
+            }
+      ],
+      "chapter": "第11章 环、域、格和布尔代数",
+      "section": "11.6 特殊格",
+      "title": "特殊格",
+      "grounding": "本节主题：特殊格——有界格（有最大元1、最小元0）、分配格（∨对∧分配，反之亦然）、有补格（每元有补元）、模格。布尔格=有补分配格。分配律与有补性是通向布尔代数的关键阶梯。",
+      "steps": [
+            {
+                  "name": "情境引入",
+                  "desc": "什么样的『好格』能成为布尔代数（数字逻辑的基础）？"
+            },
+            {
+                  "name": "对象抽取",
+                  "desc": "把有界、分配、有补等良好性质抽象为特殊格类型。"
+            },
+            {
+                  "name": "结构建模",
+                  "desc": "用分配律、有补性给格分类，逼近布尔格。"
+            },
+            {
+                  "name": "推理求解",
+                  "desc": "判定格是否分配/有补，识别布尔格。"
+            },
+            {
+                  "name": "程序验证",
+                  "desc": "用本页交互检验分配律与补元，分类格。"
+            },
+            {
+                  "name": "迁移反思",
+                  "desc": "迁移到布尔代数、逻辑电路、集合代数。"
+            }
+      ],
+      "ideology": {
+            "title": "优中选优 · 守正臻美",
+            "text": "从一般格到分配格、有补格再到布尔格，是『优中选优、不断臻于完善』的过程，每加一条良好性质，结构便更趋完美实用。这启示我们：精益求精、追求卓越，在坚实基础上层层提升，方能成就经得起检验的『最优结构』。",
+            "dims": [
+                  "精益求精",
+                  "辩证思维",
+                  "系统观念"
+            ],
+            "quote": "止于至善——从普通格到布尔格的层层升华，正是优中选优、臻于完善的追求。"
+      },
+      "reflect": [
+            "分配格与非分配格的区别是什么？最小的非分配格（钻石格、五角格）长什么样？",
+            "有界格中『补元』唯一吗？在什么条件下唯一（分配格）？",
+            "为什么『有补分配格』恰好就是布尔格？它离布尔代数还差什么？"
+      ],
+      "transfer": [
+            "幂集格是典型布尔格（∪∩补），它直通集合代数与命题逻辑。",
+            {
+                  "t": "判定与化简",
+                  "d": "分配律使逻辑/集合表达式可化简，编译器与电路如何受益？"
+            }
+      ]
+};
+  </script>
+  <script>
+    const PROFILE = {
+  "title": "方案优选格沙盘",
+  "subtitle": "把特殊格迁移到方案选择，比较约束越多时是否还能找到补方案。",
+  "family": "special_lattice",
+  "layerLabel": "拓展层",
+  "mission": "用结构品质服务科学决策，做到择优、稳妥、可解释。",
+  "visual": "方案格 + 补元",
+  "params": {
+    "mode": "choice"
+  }
+};
+  </script>
+  <script>
+
+(function () {
+  "use strict";
+
+  const meta = window.SECTION_META || {};
+  const ideology = meta.ideology || {};
+  const controls = document.getElementById("controls");
+  const canvas = document.getElementById("graphCanvas");
+  const ctx = canvas.getContext("2d");
+  const vizText = document.getElementById("vizText");
+  const formulaText = document.getElementById("formulaText");
+  const resultValue = document.getElementById("resultValue");
+  const resultExtra = document.getElementById("resultExtra");
+  const red = "#b42318", green = "#2f7d57", blue = "#2c5c9a", amber = "#f0a202", ink = "#3d2b25";
+
+  function esc(v) { return String(v == null ? "" : v).replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch])); }
+  function mod(a, n) { return ((a % n) + n) % n; }
+  function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { const t = a % b; a = b; b = t; } return a || 1; }
+  function uniq(arr) { return [...new Set(arr)]; }
+  function range(n) { return Array.from({ length: n }, (_, i) => i); }
+  function chip(ok, text) { return '<span class="truth-chip' + (ok ? "" : " false") + '">' + esc(text || (ok ? "成立" : "不成立")) + '</span>'; }
+  function option(value, text, selected) { return '<option value="' + esc(value) + '"' + (value === selected ? " selected" : "") + '>' + esc(text) + '</option>'; }
+  function control(label, body, small) { return '<div class="control-group"><label><span>' + esc(label) + '</span>' + (small ? '<small>' + esc(small) + '</small>' : '') + '</label>' + body + '</div>'; }
+  function selectControl(id, label, items, selected, small) { return control(label, '<select id="' + id + '">' + items.map(it => option(it[0], it[1], selected)).join("") + '</select>', small); }
+  function rangeControl(id, label, value, min, max, step, small) { return control(label, '<input type="range" id="' + id + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + value + '">', small); }
+  function checkControl(id, label, checked, small) { return control(label, '<div class="switch-row"><span>' + esc(small || "切换") + '</span><input type="checkbox" id="' + id + '"' + (checked ? " checked" : "") + '></div>'); }
+  function val(id) { const el = document.getElementById(id); if (!el) return ""; if (el.type === "checkbox") return !!el.checked; if (el.type === "range") return Number(el.value); return el.value; }
+  function note(html) { vizText.innerHTML = '<div class="graph-summary">' + html + '</div>'; }
+  function setResult(formula, result, extra) {
+    formulaText.textContent = formula;
+    resultValue.innerHTML = result;
+    const dims = (ideology.dims || []).join(" · ");
+    resultExtra.innerHTML = '<b>价值观察：</b>' + esc(ideology.text || "用抽象结构理解秩序、协同、可靠与创新。")
+      + (dims ? '<div class="pill-row"><span class="pill">' + esc(dims) + '</span></div>' : "")
+      + (extra ? '<p>' + esc(extra) + '</p>' : "");
+  }
+  function resizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.max(520, Math.floor(rect.width * dpr));
+    canvas.height = Math.max(320, Math.floor(rect.height * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function size() { return { w: canvas.clientWidth || 820, h: canvas.clientHeight || 350 }; }
+  function clear() { const { w, h } = size(); ctx.clearRect(0, 0, w, h); }
+  function positions(n, layout) {
+    const { w, h } = size(), cx = w / 2, cy = h / 2;
+    if (layout === "bipartite") {
+      const l = Math.ceil(n / 2), r = n - l;
+      return range(n).map(i => {
+        const side = i < l ? 0 : 1, idx = side ? i - l : i, cnt = side ? r : l;
+        return { x: side ? w * .72 : w * .28, y: 58 + idx * (h - 116) / Math.max(1, cnt - 1) };
+      });
+    }
+    if (layout === "grid") {
+      const cols = Math.ceil(Math.sqrt(n));
+      return range(n).map(i => ({ x: 90 + (i % cols) * (w - 180) / Math.max(1, cols - 1), y: 60 + Math.floor(i / cols) * 84 }));
+    }
+    if (layout === "lattice") {
+      const rows = [[0], [1,2], [3,4,5], [6,7,8,9], [10,11,12]].filter(row => row.some(i => i < n));
+      const out = [];
+      rows.forEach((row, r) => row.forEach((id, j) => { if (id < n) out[id] = { x: (j + 1) * w / (row.length + 1), y: 45 + r * (h - 88) / Math.max(1, rows.length - 1) }; }));
+      return range(n).map(i => out[i] || { x: cx, y: cy });
+    }
+    const rad = Math.min(w, h) * .34;
+    return range(n).map(i => { const a = -Math.PI / 2 + i * 2 * Math.PI / n; return { x: cx + Math.cos(a) * rad, y: cy + Math.sin(a) * rad }; });
+  }
+  function drawNetwork(labels, edges, opts) {
+    resizeCanvas(); clear();
+    opts = opts || {};
+    const pos = opts.positions || positions(labels.length, opts.layout || "circle");
+    const hot = new Set(opts.hot || []);
+    ctx.lineCap = "round";
+    edges.forEach((e, i) => {
+      const a = pos[e.u], b = pos[e.v];
+      if (!a || !b) return;
+      const isHot = hot.has(i) || e.hot;
+      ctx.strokeStyle = isHot ? red : "rgba(44,92,154,.52)";
+      ctx.lineWidth = isHot ? 4 : 2;
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      if (e.label != null) {
+        ctx.fillStyle = ink; ctx.font = "700 12px JetBrains Mono, sans-serif";
+        ctx.fillText(String(e.label), (a.x + b.x) / 2 + 5, (a.y + b.y) / 2 - 5);
+      }
+    });
+    labels.forEach((label, i) => {
+      const p = pos[i], isHot = opts.hotNodes && opts.hotNodes.includes(i);
+      ctx.beginPath(); ctx.arc(p.x, p.y, isHot ? 22 : 19, 0, Math.PI * 2);
+      ctx.fillStyle = (opts.colors && opts.colors[i]) || (isHot ? red : green);
+      ctx.fill(); ctx.strokeStyle = "rgba(255,255,255,.92)"; ctx.lineWidth = 3; ctx.stroke();
+      ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.font = "800 13px JetBrains Mono, sans-serif"; ctx.fillText(String(label), p.x, p.y);
+    });
+    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  }
+  function drawOperationMachine(n, a, b, out, label, ok) {
+    resizeCanvas(); clear();
+    const { w, h } = size();
+    const labels = range(n).map(i => String(i));
+    const pos = positions(n, "circle");
+    labels.forEach((label, i) => {
+      const p = pos[i], hot = i === a || i === b || i === out;
+      ctx.beginPath(); ctx.arc(p.x, p.y, hot ? 22 : 18, 0, Math.PI * 2);
+      ctx.fillStyle = i === out ? red : hot ? amber : green; ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,.9)"; ctx.lineWidth = 3; ctx.stroke();
+      ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "800 13px JetBrains Mono"; ctx.fillText(label, p.x, p.y);
+    });
+    ctx.fillStyle = ok ? "rgba(47,125,87,.95)" : "rgba(180,35,24,.95)";
+    roundRect(w * .38, h * .38, w * .24, h * .2, 14, true);
+    ctx.fillStyle = "#fff"; ctx.font = "800 18px Noto Serif SC, serif"; ctx.fillText(label, w * .5, h * .45);
+    ctx.font = "800 14px JetBrains Mono"; ctx.fillText(a + " ∘ " + b + " = " + out, w * .5, h * .53);
+    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  }
+  function roundRect(x, y, w, h, r, fill) {
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h); ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r); ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
+    if (fill) ctx.fill(); else ctx.stroke();
+  }
+  function opValue(op, a, b, n) {
+    if (op === "add") return mod(a + b, n);
+    if (op === "mul") return mod(a * b, n);
+    if (op === "max") return Math.max(a, b);
+    if (op === "min") return Math.min(a, b);
+    if (op === "xor") return (a ^ b) % n;
+    if (op === "broken") return a + b;
+    return mod(a + b, n);
+  }
+  function tableHtml(n, op, hotA, hotB) {
+    let s = '<table class="math-table"><tr><th>∘</th>' + range(n).map(i => '<th>' + i + '</th>').join("") + '</tr>';
+    for (const a of range(n)) {
+      s += '<tr><th>' + a + '</th>';
+      for (const b of range(n)) {
+        const hot = a === hotA && b === hotB ? ' class="hot"' : '';
+        s += '<td' + hot + '>' + opValue(op, a, b, n) + '</td>';
+      }
+      s += '</tr>';
+    }
+    return s + '</table>';
+  }
+  function allTriples(n, pred) {
+    for (const a of range(n)) for (const b of range(n)) for (const c of range(n)) if (!pred(a,b,c)) return [a,b,c];
+    return null;
+  }
+  function lawStatus(op, n) {
+    const closure = op !== "broken";
+    const comm = range(n).every(a => range(n).every(b => opValue(op,a,b,n) === opValue(op,b,a,n)));
+    const assocBad = allTriples(n, (a,b,c) => opValue(op, opValue(op,a,b,n), c, n) === opValue(op, a, opValue(op,b,c,n), n));
+    const idemp = range(n).every(a => opValue(op,a,a,n) === a);
+    return { closure, comm, assoc: !assocBad, assocBad, idemp };
+  }
+  function drawLadder(items, active) {
+    resizeCanvas(); clear();
+    const { w, h } = size();
+    const x0 = w * .16, x1 = w * .84, gap = (h - 86) / Math.max(1, items.length - 1);
+    items.forEach((it, i) => {
+      const y = 44 + i * gap, on = i <= active;
+      ctx.strokeStyle = on ? red : "rgba(44,92,154,.28)"; ctx.lineWidth = on ? 4 : 2;
+      if (i > 0) { ctx.beginPath(); ctx.moveTo(w/2, y - gap + 22); ctx.lineTo(w/2, y - 22); ctx.stroke(); }
+      ctx.fillStyle = on ? "rgba(180,35,24,.92)" : "rgba(47,125,87,.88)";
+      roundRect(x0, y - 22, x1 - x0, 44, 14, true);
+      ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "800 15px Noto Serif SC"; ctx.fillText(it, w/2, y);
+    });
+    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  }
+  function drawBars(items) {
+    resizeCanvas(); clear();
+    const { w, h } = size();
+    items.forEach((it, i) => {
+      const y = 54 + i * 56, bw = (w - 190) * Math.max(0, Math.min(1, it.value));
+      ctx.fillStyle = "rgba(44,92,154,.12)"; roundRect(120, y, w - 190, 18, 9, true);
+      ctx.fillStyle = it.color || red; roundRect(120, y, bw, 18, 9, true);
+      ctx.fillStyle = ink; ctx.font = "700 14px Noto Serif SC"; ctx.fillText(it.name, 36, y + 14);
+      ctx.font = "700 12px JetBrains Mono"; ctx.fillText(Math.round(it.value * 100) + "%", w - 58, y + 14);
+    });
+  }
+  function drawPattern(mode, colors) {
+    resizeCanvas(); clear();
+    const { w, h } = size();
+    const cols = 12, rows = 7, cell = Math.min((w - 120) / cols, (h - 70) / rows);
+    const x0 = (w - cols * cell) / 2, y0 = (h - rows * cell) / 2;
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      let k = (r + c) % colors;
+      if (mode === "flip") k = (r + Math.abs(cols - 1 - c)) % colors;
+      if (mode === "rotate") k = (r * c + c) % colors;
+      ctx.fillStyle = [red, green, blue, amber][k % 4];
+      ctx.fillRect(x0 + c * cell, y0 + r * cell, cell - 2, cell - 2);
+    }
+  }
+  function divisors(n) { return range(n).slice(1).filter(d => n % d === 0); }
+  function latticeEdges(vals) {
+    const es = [];
+    vals.forEach((a, i) => vals.forEach((b, j) => {
+      if (a < b && b % a === 0 && !vals.some(c => c !== a && c !== b && c % a === 0 && b % c === 0)) es.push({ u: i, v: j });
+    }));
+    return es;
+  }
+  function powmod(a, e, n) { let r = 1; for (let i = 0; i < e; i++) r = mod(r * a, n); return r; }
+
+  function setupOperation() {
+    const mode = PROFILE.params.mode;
+    controls.innerHTML =
+      selectControl("op", "运算规则", [["add","加法 mod n"],["mul","乘法 mod n"],["max","取最大"],["broken","越界加法"]], mode === "framework" ? "mul" : "add", "二元运算")
+      + rangeControl("n", "集合大小 n", mode === "framework" ? 6 : 5, 3, 8, 1, "有限集合")
+      + rangeControl("a", "元素 a", 1, 0, 7, 1, "左输入")
+      + rangeControl("b", "元素 b", 2, 0, 7, 1, "右输入");
+    renderOperation();
+  }
+  function renderOperation() {
+    const n = val("n"), a = val("a") % n, b = val("b") % n, op = val("op"), out = opValue(op, a, b, n);
+    const ok = out >= 0 && out < n;
+    drawOperationMachine(n, a, b, ok ? out : n - 1, op === "add" ? "+ mod n" : op === "mul" ? "× mod n" : op === "max" ? "max" : "raw +", ok);
+    note('<b>运算表：</b>当前 ' + a + ' ∘ ' + b + ' = ' + out + (ok ? '，结果仍在集合中。' : '，结果越界，封闭性失败。') + tableHtml(n, op, a, b));
+    setResult("S={0,...," + (n-1) + "}, " + a + "∘" + b + "=" + out, chip(ok, ok ? "封闭" : "不封闭"), "抽象不是脱离现实，而是把共同规则提炼成可检查的结构。");
+  }
+
+  function setupLaws() {
+    controls.innerHTML =
+      selectControl("op", "运算", [["add","加法 mod n"],["mul","乘法 mod n"],["max","取最大"],["broken","越界加法"]], PROFILE.params.mode === "govern" ? "max" : "add", "规则")
+      + rangeControl("n", "集合大小 n", 5, 3, 8, 1, "枚举规模")
+      + selectControl("focus", "关注定律", [["assoc","结合律"],["comm","交换律"],["idemp","幂等律"]], "assoc", "检验项");
+    renderLaws();
+  }
+  function renderLaws() {
+    const n = val("n"), op = val("op"), st = lawStatus(op, n), focus = val("focus");
+    drawBars([
+      { name: "封闭", value: st.closure ? 1 : .25, color: st.closure ? green : red },
+      { name: "结合", value: st.assoc ? 1 : .45, color: st.assoc ? green : red },
+      { name: "交换", value: st.comm ? 1 : .55, color: st.comm ? green : red },
+      { name: "幂等", value: st.idemp ? 1 : .35, color: st.idemp ? green : red },
+    ]);
+    const bad = st.assocBad ? "；结合律反例 (" + st.assocBad.join(",") + ")" : "";
+    note('<b>定律观察：</b>' + ['封闭', '结合', '交换', '幂等'].map((x,i)=>x + '=' + [st.closure,st.assoc,st.comm,st.idemp][i]).join('，') + bad + tableHtml(n, op, 1, 2));
+    const ok = focus === "assoc" ? st.assoc : focus === "comm" ? st.comm : st.idemp;
+    setResult("law(" + focus + ")=" + ok, chip(ok, ok ? "规则稳定" : "发现反例"), "规则之治需要可验证、可追溯；一个反例就能提示制度或模型需要修正。");
+  }
+
+  function setupElements() {
+    controls.innerHTML =
+      selectControl("op", "运算", [["add","加法 mod n"],["mul","乘法 mod n"],["max","取最大"]], "add", "结构")
+      + rangeControl("n", "模数 n", 6, 3, 12, 1, "集合大小")
+      + rangeControl("a", "考察元素 a", 2, 0, 11, 1, "元素");
+    renderElements();
+  }
+  function renderElements() {
+    const n = val("n"), a = val("a") % n, op = val("op");
+    const identity = op === "add" ? 0 : op === "mul" ? 1 % n : n - 1;
+    const inverse = op === "add" ? mod(-a, n) : op === "mul" && gcd(a, n) === 1 ? range(n).find(x => mod(a*x,n) === 1) : null;
+    drawNetwork(range(n).map(String), range(n).map(i => ({u:i, v:opValue(op, i, identity, n), hot:i===a})), { layout:"circle", hotNodes:[a, identity].concat(inverse == null ? [] : [inverse]) });
+    note('<b>特殊元素：</b>单位元 e=' + identity + '；当前 a=' + a + '；' + (inverse == null ? '当前元素没有逆元。' : '逆元 a⁻¹=' + inverse + '。'));
+    setResult("e=" + identity + ", inv(" + a + ")=" + (inverse == null ? "无" : inverse), chip(inverse != null || op !== "mul", inverse == null ? "不可逆" : "可恢复"), "抓住基准、识别逆向恢复路径，系统遇到偏差时才有纠偏能力。");
+  }
+
+  function setupTypes() {
+    controls.innerHTML =
+      selectControl("target", "目标结构", [["magma","广群/原群"],["semigroup","半群"],["monoid","独异点"],["group","群"],["ring","环"],["boolean","布尔代数"]], PROFILE.params.mode === "atlas" ? "ring" : "group", "类型")
+      + rangeControl("ready", "已满足条件数", PROFILE.params.mode === "atlas" ? 4 : 3, 0, 5, 1, "逐级点亮");
+    renderTypes();
+  }
+  function renderTypes() {
+    const target = val("target"), ready = val("ready");
+    const ladder = target === "ring" ? ["加法群", "乘法半群", "分配律", "有单位", "无零因子", "域"] :
+      target === "boolean" ? ["格", "有界", "有补", "分配", "0/1 运算", "布尔代数"] :
+      ["封闭", "结合", "单位元", "逆元", "交换可选", "应用迁移"];
+    drawLadder(ladder, ready);
+    note('<b>结构谱系：</b>' + ladder.map((x,i)=> (i<=ready?'✓ ':'○ ') + x).join(" ｜ "));
+    setResult(target + " 条件进度=" + (ready+1) + "/" + ladder.length, chip(ready >= Math.min(3, ladder.length-1), ready >= 3 ? "结构成型" : "继续补条件"), "循序渐进不是慢，而是让每一步条件都扎实可复核。");
+  }
+
+  function setupSubProduct() {
+    const product = PROFILE.params.mode === "product";
+    controls.innerHTML =
+      rangeControl("n", "母结构 Z_n", product ? 5 : 6, 3, 9, 1, "全集")
+      + rangeControl("k", product ? "第二结构规模" : "候选子集步长", product ? 4 : 2, 1, 8, 1, product ? "积结构" : "闭合候选")
+      + checkControl("show", product ? "显示并行运算" : "只看闭合集", product, "切换视图");
+    renderSubProduct();
+  }
+  function renderSubProduct() {
+    const n = val("n"), k = val("k"), product = val("show") || PROFILE.params.mode === "product";
+    if (product) {
+      const nodes = []; for (let a=0;a<Math.min(n,4);a++) for (let b=0;b<Math.min(k,4);b++) nodes.push("(" + a + "," + b + ")");
+      drawNetwork(nodes, range(nodes.length-1).map(i=>({u:i,v:i+1,hot:i%3===0})), { layout:"grid", hotNodes:[0, Math.min(nodes.length-1,5)] });
+      note('<b>积代数：</b>(a,b) ∘ (c,d) = (a+c mod ' + n + ', b+d mod ' + k + ')，两个局部规则并行组成整体。');
+      setResult("|A×B|=" + (n*k), chip(true, "系统集成"), "由分到合的关键，是让每个局部规则在整体中仍然清楚。");
+    } else {
+      const subset = range(n).filter(x => x % k === 0);
+      const closed = subset.every(a => subset.every(b => subset.includes(mod(a+b,n))));
+      drawNetwork(range(n).map(String), subset.map((x,i)=>({u:x,v:subset[(i+1)%subset.length],hot:true})), { layout:"circle", hotNodes:subset });
+      note('<b>子代数候选：</b>H={' + subset.join(",") + '}；对加法 mod n ' + (closed ? '闭合。' : '不闭合。'));
+      setResult("H closed=" + closed, chip(closed, closed ? "子代数" : "需调整"), "局部自洽才能参与整体协同，局部失稳会传导到系统。");
+    }
+  }
+
+  function setupMorphism() {
+    controls.innerHTML =
+      rangeControl("n", "源结构 Z_n", 6, 3, 10, 1, "源")
+      + rangeControl("m", "目标结构 Z_m", PROFILE.params.mode === "iso" ? 6 : 4, 3, 10, 1, "目标")
+      + rangeControl("k", "映射系数 k", PROFILE.params.mode === "compress" ? 2 : 1, 0, 9, 1, "f(x)=kx mod m");
+    renderMorphism();
+  }
+  function renderMorphism() {
+    const n = val("n"), m = val("m"), k = val("k"), map = range(n).map(x => mod(k*x, m));
+    const hom = range(n).every(a => range(n).every(b => map[mod(a+b,n)] === mod(map[a]+map[b], m)));
+    const injective = uniq(map).length === n, surj = uniq(map).length === m;
+    const labels = range(n).map(x=>"a"+x).concat(range(m).map(x=>"b"+x));
+    const edges = map.map((y,x)=>({u:x, v:n+y, hot:x<4}));
+    drawNetwork(labels, edges, { layout:"bipartite", hotNodes:[0,n+map[0]] });
+    note('<b>映射类型：</b>f(x)=' + k + 'x mod ' + m + '；保加法=' + hom + '；单射=' + injective + '；满射=' + surj + '。');
+    setResult("hom=" + hom + ", inj=" + injective + ", surj=" + surj, chip(hom && (PROFILE.params.mode !== "iso" || (injective && surj)), hom ? "保结构" : "不保结构"), "结构桥梁贵在既能连通，又不扭曲关键关系。");
+  }
+
+  function setupGroup() {
+    controls.innerHTML =
+      selectControl("op", "群候选", [["add","Z_n 加法"],["mul","Z_n 乘法"],["units","U(n) 乘法单位群"]], PROFILE.params.mode === "symmetry" ? "units" : "add", "运算")
+      + rangeControl("n", "模数 n", 7, 3, 12, 1, "规模")
+      + rangeControl("a", "元素 a", 2, 0, 11, 1, "检查逆元");
+    renderGroup();
+  }
+  function renderGroup() {
+    const n = val("n"), op = val("op"), a = val("a") % n;
+    const set = op === "units" ? range(n).filter(x => gcd(x,n)===1) : range(n);
+    const closed = op !== "mul" || n <= 3;
+    const inv = op === "add" ? mod(-a,n) : gcd(a,n)===1 ? range(n).find(x => mod(a*x,n)===1) : null;
+    drawNetwork(set.map(String), set.map((x,i)=>({u:i,v:(i+1)%set.length,hot:x===a})), { layout:"circle", hotNodes:set.indexOf(a)>=0?[set.indexOf(a)]:[] });
+    note('<b>四公理：</b>集合 {' + set.join(",") + '}；封闭=' + closed + '；单位元=' + (op==="add"?0:1) + '；a 的逆元=' + (inv == null ? "无" : inv) + '。');
+    setResult("|G|=" + set.length + ", inv(" + a + ")=" + (inv == null ? "无" : inv), chip(closed && inv != null, closed && inv != null ? "群性通过" : "仍缺条件"), "可逆纠错意味着每一步行动都能追溯、恢复和校正。");
+  }
+
+  function setupSubgroup() {
+    controls.innerHTML = rangeControl("n", "群 Z_n", 12, 4, 18, 1, "群阶") + rangeControl("g", "生成元 g", 3, 1, 17, 1, "生成轨道");
+    renderSubgroup();
+  }
+  function renderSubgroup() {
+    const n = val("n"), g = val("g") % n; let cur = 0, orbit = [];
+    do { orbit.push(cur); cur = mod(cur + g, n); } while (cur !== 0 && orbit.length <= n + 1);
+    drawNetwork(range(n).map(String), orbit.map((x,i)=>({u:x,v:orbit[(i+1)%orbit.length],hot:true})), { layout:"circle", hotNodes:orbit });
+    note('<b>生成子群：</b>⟨' + g + '⟩={' + orbit.join(",") + '}，阶=' + orbit.length + '，' + n + '/' + orbit.length + '=' + (n/orbit.length).toFixed(2) + '。');
+    setResult("|⟨g⟩|=" + orbit.length + ", divides=" + (n % orbit.length === 0), chip(n % orbit.length === 0, "拉格朗日"), "稳定小单元的规模必须与整体结构协调，组织演化也要固本强基。");
+  }
+
+  function setupGroupHom() { setupMorphism(); }
+  function renderGroupHom() { renderMorphism(); }
+
+  function setupCyclic() {
+    controls.innerHTML = rangeControl("n", "循环群阶 n", 10, 4, 18, 1, "群阶") + rangeControl("g", "候选生成元 g", 3, 1, 17, 1, "生成元");
+    renderCyclic();
+  }
+  function renderCyclic() {
+    const n = val("n"), g = val("g") % n; let cur=0, orbit=[];
+    do { orbit.push(cur); cur = mod(cur + g, n); } while(cur !== 0 && orbit.length <= n+1);
+    drawNetwork(range(n).map(String), orbit.map((x,i)=>({u:x,v:orbit[(i+1)%orbit.length],hot:true})), { layout:"circle", hotNodes:orbit });
+    const gen = orbit.length === n;
+    note('<b>循环轨道：</b>0 → ' + orbit.slice(1).join(" → ") + (orbit.length>1 ? " → 0" : "") + '；覆盖 ' + orbit.length + '/' + n + '。');
+    setResult("ord(" + g + ")=" + orbit.length, chip(gen, gen ? "生成全群" : "生成子群"), "以一带全不是靠口号，而是要看生成元是否真正覆盖整体。");
+  }
+
+  function setupPermutation() {
+    controls.innerHTML = selectControl("perm", "置换", [["cycle","(1234)"],["swap","(12)(34)"],["mix","(132)"]], "cycle", "重排规则") + rangeControl("pow", "作用次数", 1, 1, 8, 1, "幂次");
+    renderPermutation();
+  }
+  function renderPermutation() {
+    const p = val("perm"), pow = val("pow"), base = p === "swap" ? [1,0,3,2] : p === "mix" ? [2,0,1,3] : [1,2,3,0];
+    let map = range(4); for(let t=0;t<pow;t++) map = map.map(x => base[x]);
+    const labels = ["1","2","3","4"].concat(["1'","2'","3'","4'"]);
+    drawNetwork(labels, map.map((y,x)=>({u:x,v:4+y,hot:true,label:""})), { layout:"bipartite", hotNodes:[0,4+map[0]] });
+    note('<b>置换作用：</b>' + map.map((y,x)=>(x+1)+"→"+(y+1)).join("，") + '。置换幂表示连续调度。');
+    setResult("π^" + pow + "=" + map.map(x=>x+1).join(""), chip(true, "可逆重排"), "统筹调度的关键是重排有规则、过程可追踪、结果可复原。");
+  }
+
+  function setupCoset() {
+    controls.innerHTML = rangeControl("n", "群 Z_n", 12, 6, 18, 1, "群阶") + rangeControl("step", "子群步长", 3, 1, 9, 1, "H=⟨step⟩") + rangeControl("a", "代表元 a", 2, 0, 17, 1, "陪集");
+    renderCoset();
+  }
+  function renderCoset() {
+    const n = val("n"), step = val("step"), a = val("a") % n; let h=[], cur=0;
+    do { h.push(cur); cur=mod(cur+step,n); } while(cur!==0 && h.length<=n+1);
+    const cos = h.map(x=>mod(a+x,n));
+    const labels = range(n).map(String);
+    drawNetwork(labels, range(n).map(i=>({u:i,v:(i+1)%n,hot:cos.includes(i)})), { layout:"circle", hotNodes:cos });
+    note('<b>陪集：</b>H={' + h.join(",") + '}；a+H={' + cos.join(",") + '}；每块大小=' + h.length + '。');
+    setResult("|G|=" + n + ", |H|=" + h.length + ", index=" + (n/h.length).toFixed(1), chip(n % h.length === 0, "不重不漏"), "分工清楚、覆盖完整，才能团结协作而不重复消耗。");
+  }
+
+  function setupNormal() {
+    controls.innerHTML = selectControl("model", "群模型", [["zn","Z_n"],["s3a","S3 中 A3"],["s3b","S3 中非正规子群"]], "zn", "正规性") + rangeControl("n", "Z_n 阶", 8, 4, 14, 1, "仅 Z_n");
+    renderNormal();
+  }
+  function renderNormal() {
+    const model = val("model"), normal = model !== "s3b", labels = normal ? ["H","aH","bH","cH"] : ["H","aH","Ha","bH","Hb"];
+    drawNetwork(labels, labels.map((_,i)=>({u:i,v:(i+1)%labels.length,hot:normal})), { layout:"circle", hotNodes:normal ? [0,1,2,3] : [1,2] });
+    note('<b>正规观察：</b>' + (normal ? '左陪集=右陪集，可以形成商群。' : '某些左陪集与右陪集不同，不能直接做商群。'));
+    setResult("normal=" + normal, chip(normal, normal ? "可商化" : "不正规"), "和谐统一不是抹平差异，而是在不同方向上仍保持共同结构。");
+  }
+
+  function setupCrypto() {
+    const mode = PROFILE.params.mode;
+    if (mode.startsWith("key")) {
+      controls.innerHTML = rangeControl("p","素数模 p",11,5,23,1,"公开参数") + rangeControl("g","生成元 g",2,2,10,1,"底数") + rangeControl("x","私钥 x",3,1,12,1,"秘密");
+    } else if (mode.startsWith("beidou")) {
+      controls.innerHTML = rangeControl("data","数据符号",5,2,10,1,"信息") + rangeControl("check","冗余符号",3,1,8,1,"校验") + rangeControl("err","误码数",1,0,6,1,"扰动");
+    } else {
+      controls.innerHTML = rangeControl("space","密钥空间",6,3,10,1,"安全规模") + rangeControl("try","攻击尝试",2,0,9,1,"尝试次数");
+    }
+    renderCrypto();
+  }
+  function renderCrypto() {
+    const mode = PROFILE.params.mode;
+    if (mode.startsWith("key")) {
+      const p=val("p"), g=val("g")%p, x=val("x"), pub=powmod(g,x,p);
+      drawNetwork(range(p).map(String), range(Math.min(p,12)).map(i=>({u:i,v:mod(i+g,p),hot:i<x})), { layout:"circle", hotNodes:[1,pub].filter(v=>v<p) });
+      note('<b>密钥生成：</b>公开 p=' + p + ', g=' + g + '；私钥 x=' + x + '；公钥 g^x mod p=' + pub + '。');
+      setResult("public=" + pub, chip(gcd(g,p)===1, "参数可用"), "核心参数越可靠，自主安全的地基越稳。");
+    } else if (mode.startsWith("beidou")) {
+      const data=val("data"), check=val("check"), err=val("err"), cap=Math.floor(check/2), ok=err<=cap;
+      drawBars([{name:"数据",value:data/(data+check),color:blue},{name:"冗余",value:check/(data+check),color:green},{name:"误码",value:err/Math.max(1,check),color:ok?amber:red}]);
+      note('<b>纠错边界：</b>冗余符号 ' + check + ' 个，约可纠正 ' + cap + ' 个错误；当前误码=' + err + '。');
+      setResult("err≤⌊r/2⌋ : " + err + "≤" + cap, chip(ok, ok ? "可纠错" : "超出能力"), "可靠传输背后是冗余设计和自主可控的数学工程。");
+    } else {
+      const space=val("space"), tries=val("try"), total=space*space*space, safe=tries < space;
+      drawBars([{name:"密钥空间",value:Math.min(1,total/1000),color:green},{name:"攻击尝试",value:tries/space,color:safe?amber:red},{name:"安全余量",value:Math.max(0,1-tries/space),color:blue}]);
+      note('<b>攻防评估：</b>密钥空间约 ' + total + '，攻击尝试强度=' + tries + '/' + space + '。');
+      setResult("security=" + Math.round(Math.max(0,1-tries/space)*100) + "%", chip(safe, safe ? "仍有余量" : "需要加固"), "安全建设要承认攻防辩证，更要坚持底线思维。");
+    }
+  }
+
+  function setupRing() {
+    controls.innerHTML = rangeControl("n","环 Z_n", PROFILE.params.mode === "field" ? 7 : 6, 2, 15, 1, "模数") + rangeControl("a","元素 a",2,0,14,1,"元素");
+    renderRing();
+  }
+  function renderRing() {
+    const n=val("n"), a=val("a")%n, zeroDiv=range(n).filter(x=>x!==0 && range(n).some(y=>y!==0 && mod(x*y,n)===0)), field=zeroDiv.length===0 && n>1;
+    drawNetwork(range(n).map(String), range(n).map(i=>({u:i,v:mod(i+a,n),hot:i===a})), { layout:"circle", hotNodes:[0,1%n,a] });
+    note('<b>环观察：</b>Z_' + n + ' 中零因子 {' + zeroDiv.join(",") + '}；' + (field ? '无零因子，有限整环可看作域。' : '存在零因子或非域结构。'));
+    setResult("zeroDivisors=" + zeroDiv.length + ", field=" + field, chip(PROFILE.params.mode === "field" ? field : true, field ? "域" : "环"), "双运算协调，提醒我们复杂系统也要兼顾多种规则的共生。");
+  }
+
+  function setupIdeal() {
+    controls.innerHTML = rangeControl("n","环 Z_n",12,4,20,1,"整体") + rangeControl("d","生成元 d",3,1,12,1,"理想生成");
+    renderIdeal();
+  }
+  function renderIdeal() {
+    const n=val("n"), d=val("d"), ideal=uniq(range(n).map(k=>mod(k*d,n))).sort((a,b)=>a-b), q=n/ideal.length;
+    drawNetwork(range(n).map(String), ideal.map((x,i)=>({u:x,v:ideal[(i+1)%ideal.length],hot:true})), { layout:"circle", hotNodes:ideal });
+    note('<b>理想：</b>⟨' + d + '⟩={' + ideal.join(",") + '}；商环约分成 ' + q.toFixed(1) + ' 个等价类。');
+    setResult("|I|=" + ideal.length + ", |R/I|≈" + q.toFixed(1), chip(n % ideal.length === 0, "可分层"), "局部服从全局，不是失去局部，而是让局部在整体结构中有位置。");
+  }
+
+  function setupRingHom() { setupMorphism(); }
+  function renderRingHom() { renderMorphism(); }
+
+  function setupLattice() {
+    controls.innerHTML = selectControl("n","整除格", [["6","D(6)"],["12","D(12)"],["18","D(18)"],["30","D(30)"]], PROFILE.params.mode === "govern" ? "30" : "12", "元素为因子") + rangeControl("a","元素 a",2,1,30,1,"meet/join") + rangeControl("b","元素 b",3,1,30,1,"meet/join");
+    renderLattice();
+  }
+  function renderLattice() {
+    const n=Number(val("n")), vals=divisors(n), a=vals.includes(val("a"))?val("a"):vals[1]||1, b=vals.includes(val("b"))?val("b"):vals[2]||n;
+    const meet=gcd(a,b), join=a*b/gcd(a,b);
+    drawNetwork(vals.map(String), latticeEdges(vals), { layout:"lattice", hotNodes:[vals.indexOf(a), vals.indexOf(b), vals.indexOf(meet), vals.indexOf(join)].filter(i=>i>=0) });
+    note('<b>格运算：</b>a=' + a + ', b=' + b + '；meet=gcd=' + meet + '；join=lcm=' + join + '。');
+    setResult("a∧b=" + meet + ", a∨b=" + join, chip(vals.includes(meet)&&vals.includes(join), "上下界存在"), "统筹有序，就是在复杂关系中找到共同基础和共同目标。");
+  }
+
+  function setupSublattice() {
+    controls.innerHTML = selectControl("n","母格", [["12","D(12)"],["18","D(18)"],["30","D(30)"]], "12", "整除格") + rangeControl("step","候选筛选步长",2,1,6,1,"子集") + checkControl("hom","显示映射桥", PROFILE.params.mode === "hom", "格同态");
+    renderSublattice();
+  }
+  function renderSublattice() {
+    const n=Number(val("n")), vals=divisors(n), step=val("step"), subset=vals.filter((_,i)=>i%step===0 || i===vals.length-1), hom=val("hom");
+    const closed=subset.every(a=>subset.every(b=>subset.includes(gcd(a,b)) && subset.includes(a*b/gcd(a,b))));
+    drawNetwork(vals.map(String), latticeEdges(vals), { layout:"lattice", hotNodes:subset.map(x=>vals.indexOf(x)) });
+    note('<b>' + (hom?'格同态视图':'子格候选') + '：</b>S={' + subset.join(",") + '}；meet/join 闭合=' + closed + '。');
+    setResult("sublattice=" + closed, chip(closed, closed ? "闭合" : "不闭合"), "局部自洽要经得起共同上界和共同下界的双重检验。");
+  }
+
+  function setupSpecialLattice() {
+    controls.innerHTML = selectControl("type","格类型", [["chain","链"],["diamond","菱形 M3"],["boolean","布尔格 B3"],["pentagon","五边形 N5"]], PROFILE.params.mode === "choice" ? "boolean" : "diamond", "结构") + rangeControl("constraint","约束强度",2,0,4,1,"方案条件");
+    renderSpecialLattice();
+  }
+  function renderSpecialLattice() {
+    const type=val("type"), c=val("constraint"), labels= type==="boolean" ? ["0","a","b","c","ab","ac","bc","1"] : type==="chain" ? ["0","x","y","1"] : ["0","a","b","c","1"];
+    const edges = labels.length===4 ? [{u:0,v:1},{u:1,v:2},{u:2,v:3}] : labels.length===8 ? [{u:0,v:1},{u:0,v:2},{u:0,v:3},{u:1,v:4},{u:1,v:5},{u:2,v:4},{u:2,v:6},{u:3,v:5},{u:3,v:6},{u:4,v:7},{u:5,v:7},{u:6,v:7}] : [{u:0,v:1},{u:0,v:2},{u:0,v:3},{u:1,v:4},{u:2,v:4},{u:3,v:4}];
+    const distributive = type === "chain" || type === "boolean", complemented = type === "boolean";
+    drawNetwork(labels, edges, { layout:"lattice", hotNodes:range(Math.min(labels.length,c+2)) });
+    note('<b>特殊格：</b>分配=' + distributive + '；有补=' + complemented + '；约束强度=' + c + '。');
+    setResult("distributive=" + distributive + ", complemented=" + complemented, chip(distributive || complemented, "性质良好"), "优中选优要把标准亮出来，让选择可解释、可比较。");
+  }
+
+  function setupBoolean() {
+    controls.innerHTML = checkControl("p","命题 p",true,"输入") + checkControl("q","命题 q",false,"输入") + checkControl("r","命题 r",true,"输入") + selectControl("expr","表达式", [["and","p∧q"],["or","p∨q"],["xor","p⊕q"],["simp","(p∧q)∨(p∧¬q)"]], PROFILE.params.mode === "opt" ? "simp" : "and", "逻辑式");
+    renderBoolean();
+  }
+  function renderBoolean() {
+    const p=val("p"), q=val("q"), r=val("r"), expr=val("expr");
+    const out = expr==="and" ? p&&q : expr==="or" ? p||q : expr==="xor" ? !!(p!==q) : p;
+    drawNetwork(["p","q","r","¬q","∧","∨","out"], [{u:0,v:4,hot:p},{u:1,v:4,hot:q},{u:0,v:5,hot:p},{u:3,v:5,hot:!q},{u:4,v:6,hot:out},{u:5,v:6,hot:out}], { layout:"grid", hotNodes:out?[6]:[] });
+    note('<b>布尔计算：</b>p=' + p + '，q=' + q + '，r=' + r + '；表达式 ' + expr + ' 输出=' + out + '。');
+    setResult("F=" + out, chip(out, out ? "输出 1" : "输出 0"), "0/1 判断越基础，越要清楚可靠，因为它支撑着数字系统的每一次决策。");
+  }
+
+  function setupCode() {
+    controls.innerHTML = rangeControl("m1","消息位 m1",1,0,1,1,"0/1") + rangeControl("m2","消息位 m2",0,0,1,1,"0/1") + rangeControl("err","错误位置",0,0,6,1,"0 表示无错");
+    renderCode();
+  }
+  function renderCode() {
+    const m1=val("m1"), m2=val("m2"), err=val("err"), code=[m1,m2,(m1+m2)%2,m1,m2,(m1+m2)%2];
+    if(err>0 && err<=code.length) code[err-1]=1-code[err-1];
+    const syndrome = err===0 ? 0 : err;
+    drawNetwork(code.map(String), range(code.length-1).map(i=>({u:i,v:i+1,hot:i===err-1})), { layout:"grid", hotNodes:err?[err-1]:[] });
+    note('<b>线性码：</b>码字=' + code.join("") + '；综合症=' + syndrome + '；' + (syndrome ? '提示第 ' + syndrome + ' 位异常。' : '未检测到错误。'));
+    setResult("syndrome=" + syndrome, chip(true, syndrome ? "定位错误" : "传输正常"), "可靠传输靠的是事前设计冗余、事中检测异常、事后快速纠偏。");
+  }
+
+  function setupEncrypt() {
+    controls.innerHTML = rangeControl("m","明文 m",3,0,12,1,"数据") + rangeControl("k","密钥 k",5,1,12,1,"加密偏移") + rangeControl("x","协作输入 x",4,0,12,1,"另一方");
+    renderEncrypt();
+  }
+  function renderEncrypt() {
+    const n=13, m=val("m")%n, k=val("k")%n, x=val("x")%n, c=mod(m+k,n), cx=mod(x+k,n), hom=mod((c+cx)-k,n), plain=mod(m+x,n);
+    drawNetwork(["m","x","Enc(m)","Enc(x)","密文加","Dec"], [{u:0,v:2,hot:true},{u:1,v:3,hot:true},{u:2,v:4,hot:true},{u:3,v:4,hot:true},{u:4,v:5,hot:hom===plain}], { layout:"grid", hotNodes:[2,3,5] });
+    note('<b>同态演示：</b>Enc(m)=' + c + '，Enc(x)=' + cx + '；密文计算后解密=' + hom + '，明文先加=' + plain + '。');
+    setResult("Dec(Enc(m)+Enc(x))=" + hom, chip(hom===plain, "同态一致"), "隐私为民的技术底线，是让数据能服务公共价值，同时不暴露个人原文。");
+  }
+
+  function setupFCA() {
+    controls.innerHTML = rangeControl("objs","对象数",4,2,5,1,"服务对象") + rangeControl("attrs","属性数",3,2,5,1,"属性") + rangeControl("threshold","属性阈值",2,1,5,1,"概念条件");
+    renderFCA();
+  }
+  function renderFCA() {
+    const o=val("objs"), a=val("attrs"), t=Math.min(val("threshold"), a), concepts=Math.max(2, o + a - t);
+    const labels=range(concepts).map(i=>"C"+i), edges=range(concepts-1).map(i=>({u:i,v:i+1,hot:i<t}));
+    drawNetwork(labels, edges, { layout:"lattice", hotNodes:range(Math.min(concepts,t+1)) });
+    note('<b>形式概念：</b>' + o + ' 个对象、' + a + ' 个属性，阈值=' + t + '，生成约 ' + concepts + ' 个概念节点。');
+    setResult("concepts≈" + concepts, chip(true, "知识成形"), "数据赋能不是堆数据，而是把对象与属性组织成可解释的知识结构。");
+  }
+
+  function setupCircuit() {
+    controls.innerHTML = checkControl("p","输入 A",true,"信号") + checkControl("q","输入 B",false,"信号") + selectControl("expr","电路", [["nand","NAND 通用门"],["sum","半加器"],["simp","化简电路"]], PROFILE.params.mode === "chip" ? "simp" : "nand", "逻辑设计");
+    renderCircuit();
+  }
+  function renderCircuit() {
+    const p=val("p"), q=val("q"), expr=val("expr"), out=expr==="nand" ? !(p&&q) : expr==="sum" ? (p!==q) : p;
+    const gates = expr==="simp" ? 2 : expr==="sum" ? 5 : 1;
+    drawNetwork(["A","B","门1","门2","OUT"], [{u:0,v:2,hot:p},{u:1,v:2,hot:q},{u:2,v:3,hot:true},{u:3,v:4,hot:out}], { layout:"grid", hotNodes:out?[4]:[] });
+    note('<b>电路表达：</b>输出=' + out + '；估计门数=' + gates + '；化简可降低面积与延迟。');
+    setResult("gates=" + gates + ", out=" + Number(out), chip(true, "电路稳定"), "精益设计把数学化简转化为芯片效率，也是自主创新的细节功夫。");
+  }
+
+  function setupCase() {
+    const mode=PROFILE.params.mode;
+    if(mode.startsWith("brocade")) {
+      controls.innerHTML = selectControl("sym","纹样运算", [["shift","平移"],["flip","翻转"],["rotate","旋转"]], mode.endsWith("ext")?"rotate":"shift", "对称") + rangeControl("colors","色阶",3,2,4,1,"数字纹样");
+    } else if(mode.startsWith("labor")) {
+      controls.innerHTML = rangeControl("att","劳动态度",80,40,100,1,"态度") + rangeControl("skill","技能实践",75,40,100,1,"技能") + rangeControl("team","协作服务",70,40,100,1,"协作");
+    } else if(mode.startsWith("resource")) {
+      controls.innerHTML = rangeControl("need","需求户数",6,2,10,1,"需求") + rangeControl("cap","资源容量",5,2,10,1,"容量") + rangeControl("fair","轮换公平",70,20,100,1,"公平");
+    } else if(mode.startsWith("manufacture")) {
+      controls.innerHTML = rangeControl("steps","工序数",5,3,8,1,"流程") + rangeControl("auto","自动化",65,10,100,1,"效率") + rangeControl("quality","质检强度",80,20,100,1,"质量");
+    } else {
+      controls.innerHTML = rangeControl("tags","文化标签",5,2,8,1,"编码") + rangeControl("links","相似关系",4,1,10,1,"知识边") + rangeControl("open","共享程度",70,20,100,1,"开放");
+    }
+    renderCase();
+  }
+  function renderCase() {
+    const mode=PROFILE.params.mode;
+    if(mode.startsWith("brocade")) {
+      const sym=val("sym"), colors=val("colors"); drawPattern(sym, colors);
+      note('<b>织锦纹样：</b>运算=' + sym + '，色阶=' + colors + '；纹样变换后仍保持整体风格。');
+      setResult("pattern closed=true", chip(true, "守艺传薪"), "数字活化的要义，是既守住纹样结构，又打开新的表达空间。");
+    } else if(mode.startsWith("labor")) {
+      const att=val("att"), skill=val("skill"), team=val("team"), score=Math.round(att*.35+skill*.4+team*.25);
+      drawBars([{name:"态度",value:att/100,color:green},{name:"技能",value:skill/100,color:blue},{name:"协作",value:team/100,color:amber},{name:"综合",value:score/100,color:red}]);
+      note('<b>劳动评价：</b>综合分=' + score + '，不是单看分数，而是看态度、技能与协作共同成长。');
+      setResult("score=" + score, chip(score>=70, "五育协同"), "崇尚劳动要落到真实实践和综合成长。");
+    } else if(mode.startsWith("resource")) {
+      const need=val("need"), cap=val("cap"), fair=val("fair"), sat=Math.min(100, Math.round(cap/need*70 + fair*.3));
+      drawBars([{name:"容量匹配",value:Math.min(1,cap/need),color:blue},{name:"轮换公平",value:fair/100,color:green},{name:"满意度",value:sat/100,color:red}]);
+      note('<b>共享资源：</b>需求=' + need + '，容量=' + cap + '，满意度估计=' + sat + '%。');
+      setResult("satisfaction=" + sat + "%", chip(sat>=70, sat>=70?"分配较稳":"需要优化"), "共建共享要兼顾公平和效率，让有限资源发挥更大公共价值。");
+    } else if(mode.startsWith("manufacture")) {
+      const steps=val("steps"), auto=val("auto"), quality=val("quality"), good=Math.round((auto*.45+quality*.55) - Math.max(0,steps-5)*3);
+      drawNetwork(range(steps).map(i=>"工"+(i+1)), range(steps-1).map(i=>({u:i,v:i+1,hot:i<Math.floor(steps*quality/100)})), { layout:"grid", hotNodes:[0,steps-1] });
+      note('<b>制造流程：</b>' + steps + ' 道工序，自动化=' + auto + '%，质检=' + quality + '%，良品率估计=' + good + '%。');
+      setResult("yield≈" + good + "%", chip(good>=75, good>=75?"精益稳定":"继续优化"), "制造强国靠的是每一道工序的精益求精。");
+    } else {
+      const tags=val("tags"), links=val("links"), open=val("open"), nodes=tags+2;
+      drawNetwork(range(nodes).map(i=>"文"+i), range(Math.min(links,nodes*(nodes-1)/2)).map(i=>({u:i%nodes,v:(i*2+1)%nodes,hot:i<links/2})), { layout:"circle", hotNodes:[0,1] });
+      note('<b>文化数字化：</b>标签=' + tags + '，知识边=' + links + '，共享程度=' + open + '%。');
+      setResult("knowledge links=" + links, chip(open>=60, "数字活化"), "文化自信需要可保存、可检索、可传播的数字根脉。");
+    }
+  }
+
+  function render() {
+    const f = PROFILE.family;
+    if (f === "operation") renderOperation(); else if (f === "laws") renderLaws(); else if (f === "elements") renderElements(); else if (f === "types") renderTypes();
+    else if (f === "subproduct") renderSubProduct(); else if (f === "morphism") renderMorphism(); else if (f === "group") renderGroup(); else if (f === "subgroup") renderSubgroup();
+    else if (f === "grouphom") renderGroupHom(); else if (f === "cyclic") renderCyclic(); else if (f === "permutation") renderPermutation(); else if (f === "coset") renderCoset();
+    else if (f === "normal") renderNormal(); else if (f === "crypto") renderCrypto(); else if (f === "ring") renderRing(); else if (f === "ideal") renderIdeal();
+    else if (f === "ringhom") renderRingHom(); else if (f === "lattice") renderLattice(); else if (f === "sublattice") renderSublattice(); else if (f === "special_lattice") renderSpecialLattice();
+    else if (f === "boolean") renderBoolean(); else if (f === "code") renderCode(); else if (f === "encrypt") renderEncrypt(); else if (f === "fca") renderFCA(); else if (f === "circuit") renderCircuit();
+    else if (f === "case") renderCase();
+  }
+  function init() {
+    const f = PROFILE.family;
+    if (f === "operation") setupOperation(); else if (f === "laws") setupLaws(); else if (f === "elements") setupElements(); else if (f === "types") setupTypes();
+    else if (f === "subproduct") setupSubProduct(); else if (f === "morphism") setupMorphism(); else if (f === "group") setupGroup(); else if (f === "subgroup") setupSubgroup();
+    else if (f === "grouphom") setupGroupHom(); else if (f === "cyclic") setupCyclic(); else if (f === "permutation") setupPermutation(); else if (f === "coset") setupCoset();
+    else if (f === "normal") setupNormal(); else if (f === "crypto") setupCrypto(); else if (f === "ring") setupRing(); else if (f === "ideal") setupIdeal();
+    else if (f === "ringhom") setupRingHom(); else if (f === "lattice") setupLattice(); else if (f === "sublattice") setupSublattice(); else if (f === "special_lattice") setupSpecialLattice();
+    else if (f === "boolean") setupBoolean(); else if (f === "code") setupCode(); else if (f === "encrypt") setupEncrypt(); else if (f === "fca") setupFCA(); else if (f === "circuit") setupCircuit();
+    else if (f === "case") setupCase();
+    controls.addEventListener("input", render);
+    controls.addEventListener("change", render);
+  }
+  window.addEventListener("resize", render);
+  init();
+})();
+
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

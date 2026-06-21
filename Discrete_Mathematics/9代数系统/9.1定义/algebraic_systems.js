@@ -237,7 +237,7 @@ const CASES = [
             }
         ],
         description: '社会主义市场经济体系',
-        philosophy: '环结构<A,+,×>是代数系统的高级形式,完美对应经济体系。"+"代表规模扩张(外延),"×"代表效率提升(内涵)。分配律a×(b+c)=a×b+a×c揭示了"先做大蛋糕,再分好蛋糕"的逻辑。环的加法交换律说明生产和消费可以相互转化;乘法分配律说明技术进步(乘法)对各环节均有效。这是马克思政治经济学的数学表达,体现了生产力和生产关系的辩证统一。',
+        philosophy: '环结构<A,+,×>是代数系统的高级形式,完美对应经济体系。"+"代表规模扩张(外延),"×"代表效率提升(内涵)。分配律a×(b+c)=a×b+a×c揭示了"先做大蛋糕,再分好蛋糕"的逻辑。环的加法交换律说明生产和消费可以相互转化;乘法分配律说明技术进步(乘法)对各环节均有效。这是马克价值引领治经济学的数学表达,体现了生产力和生产关系的辩证统一。',
         properties: {
             closure: true,
             associative: true,
@@ -483,7 +483,7 @@ function loadCase(index) {
     // 生成运算表
     generateOperationTable(caseData);
 
-    // 更新思政内涵
+    // 更新价值内涵
     document.getElementById('philosophyPanel').innerHTML =
         `<p style="font-size: 0.85rem; line-height: 1.6;">${caseData.philosophy}</p>`;
 

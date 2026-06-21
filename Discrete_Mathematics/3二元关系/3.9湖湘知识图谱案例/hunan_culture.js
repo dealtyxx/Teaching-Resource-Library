@@ -8,6 +8,7 @@ const compositionBtn = document.getElementById('compositionBtn');
 const graphSvg = document.getElementById('graphSvg');
 const nodesLayer = document.getElementById('nodesLayer');
 const resultsContainer = document.getElementById('resultsContainer');
+const kgStepFeedback = document.getElementById('kgStepFeedback');
 
 // Knowledge Graph Data
 const PEOPLE = [
@@ -59,6 +60,7 @@ let selectedType = null;
 let highlightedNodes = new Set();
 let highlightedEdges = new Set();
 let nodePositions = {};
+let activeGuide = 'author';
 
 // Layout
 function calculateLayout() {
@@ -276,16 +278,20 @@ function updateHighlights() {
         const id = node.id.replace('node-', '');
         if (highlightedNodes.has(id)) {
             node.classList.add('highlighted');
+            node.classList.remove('dimmed');
         } else {
             node.classList.remove('highlighted');
+            node.classList.toggle('dimmed', highlightedNodes.size > 0);
         }
     });
 
     document.querySelectorAll('.graph-edge').forEach(edge => {
         if (highlightedEdges.has(edge.dataset.edgeId)) {
             edge.classList.add('highlighted');
+            edge.classList.remove('dimmed');
         } else {
             edge.classList.remove('highlighted');
+            edge.classList.toggle('dimmed', highlightedEdges.size > 0);
         }
     });
 }
@@ -319,6 +325,58 @@ function displayResults(data) {
     resultsContainer.innerHTML = html;
 }
 
+function setGuideUI(step, feedback) {
+    activeGuide = step;
+    document.querySelectorAll('.kg-step').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.guide === step);
+    });
+    document.querySelectorAll('.query-card').forEach(card => card.classList.remove('active'));
+    document.querySelectorAll('.card-formula').forEach(formula => formula.classList.remove('active'));
+    const cardIndex = step === 'author' ? 0 : step === 'work' ? 1 : 2;
+    const cards = document.querySelectorAll('.query-card');
+    if (cards[cardIndex]) {
+        cards[cardIndex].classList.add('active');
+        const formula = cards[cardIndex].querySelector('.card-formula');
+        if (formula) formula.classList.add('active');
+    }
+    if (kgStepFeedback) kgStepFeedback.textContent = feedback;
+}
+
+function runGuideStep(step) {
+    if (step === 'author') {
+        selectedEntity = 'p1';
+        selectedType = 'people';
+        clearHighlights();
+        document.querySelectorAll('.entity-node').forEach(n => n.classList.remove('selected'));
+        const node = document.getElementById('node-p1');
+        if (node) node.classList.add('selected');
+        compositionBtn.style.display = 'flex';
+        queryAuthorships('p1');
+        setGuideUI('author', '第 1 步：高亮 R_authorship，图谱显示“毛泽东 → 沁园春·长沙”的创作边。');
+        return;
+    }
+    if (step === 'work') {
+        selectedEntity = 'w1';
+        selectedType = 'works';
+        clearHighlights();
+        document.querySelectorAll('.entity-node').forEach(n => n.classList.remove('selected'));
+        const node = document.getElementById('node-w1');
+        if (node) node.classList.add('selected');
+        compositionBtn.style.display = 'none';
+        queryDescriptions('w1');
+        setGuideUI('work', '第 2 步：高亮 R_description，图谱显示“沁园春·长沙 → 橘子洲 / 湘江”的描述边。');
+        return;
+    }
+    selectedEntity = 'p1';
+    selectedType = 'people';
+    document.querySelectorAll('.entity-node').forEach(n => n.classList.remove('selected'));
+    const node = document.getElementById('node-p1');
+    if (node) node.classList.add('selected');
+    compositionBtn.style.display = 'flex';
+    queryComposition();
+    setGuideUI('compose', '第 3 步：关系合成 R_authorship ∘ R_description，把人物经作品连接到景点。');
+}
+
 function showMessage(msg) {
     resultsContainer.innerHTML = `
         <div class="empty-state">
@@ -330,6 +388,10 @@ function showMessage(msg) {
 
 // Event Listeners
 compositionBtn.addEventListener('click', queryComposition);
+
+document.querySelectorAll('.kg-step').forEach(btn => {
+    btn.addEventListener('click', () => runGuideStep(btn.dataset.guide));
+});
 
 resetBtn.addEventListener('click', () => {
     selectedEntity = null;
@@ -343,11 +405,99 @@ resetBtn.addEventListener('click', () => {
 });
 
 window.addEventListener('resize', () => {
+    compactAdvancedFrame();
     calculateLayout();
     renderGraph();
 });
 
+function compactAdvancedFrame() {
+    const app = document.querySelector('.app-container');
+    const header = document.querySelector('.main-header');
+    const stage = document.querySelector('.main-stage');
+    if (!app || !header || !stage) return;
+
+    const graphPanel = stage.querySelector('.graph-panel');
+    const queryPanel = stage.querySelector('.query-panel');
+    const graphBox = stage.querySelector('.graph-container');
+    const footer = document.querySelector('footer');
+    const narrow = window.innerWidth <= 900;
+    const set = (el, prop, value) => {
+        if (!el) return;
+        if (el.style.getPropertyValue(prop) !== value || el.style.getPropertyPriority(prop) !== 'important') {
+            el.style.setProperty(prop, value, 'important');
+        }
+    };
+
+    set(document.body, 'height', 'auto');
+    set(document.body, 'min-height', '100vh');
+    set(document.body, 'overflow', 'auto');
+    set(document.body, 'align-items', 'flex-start');
+    set(document.body, 'gap', '0');
+    set(footer, 'position', 'static');
+    set(footer, 'width', '100%');
+    set(footer, 'margin', '0 auto');
+    set(footer, 'padding', '4px 10px 10px');
+
+    set(app, 'display', 'grid');
+    set(app, 'grid-template-columns', narrow ? '1fr' : '390px minmax(0, 1fr)');
+    set(app, 'grid-template-areas', narrow ? '"side" "main"' : '"side main"');
+    set(app, 'grid-template-rows', narrow ? 'auto auto' : 'auto');
+    set(app, 'align-items', 'start');
+    set(app, 'height', 'auto');
+    set(app, 'min-height', '0');
+    set(app, 'overflow', 'visible');
+    set(app, 'margin', '18px auto 0');
+
+    set(header, 'grid-area', 'side');
+    set(header, 'align-self', 'start');
+    set(header, 'height', 'auto');
+    set(header, 'min-height', '0');
+    set(header, 'width', narrow ? '100%' : '390px');
+    set(header, 'display', 'block');
+    set(header, 'line-height', '1.78');
+    set(header, 'max-height', 'none');
+    set(header, 'overflow', 'visible');
+
+    set(stage, 'grid-area', 'main');
+    set(stage, 'display', 'grid');
+    set(stage, 'grid-template-columns', narrow ? '1fr' : 'minmax(520px, 1.12fr) minmax(360px, .88fr)');
+    set(stage, 'gap', '14px');
+    set(stage, 'align-items', 'stretch');
+    set(stage, 'height', 'auto');
+    set(stage, 'min-height', '0');
+    set(stage, 'width', '100%');
+    set(stage, 'overflow', 'visible');
+    set(stage, 'padding', '0');
+
+    [graphPanel, queryPanel].forEach(panel => {
+        set(panel, 'min-height', narrow ? 'auto' : '640px');
+        set(panel, 'height', 'auto');
+        set(panel, 'overflow', panel === queryPanel ? 'visible' : 'hidden');
+    });
+    set(graphBox, 'min-height', narrow ? '430px' : '510px');
+    set(graphBox, 'height', narrow ? '430px' : '510px');
+}
+
+function scheduleAdvancedFrameFix() {
+    [0, 80, 240, 600, 1200].forEach(delay => {
+        setTimeout(() => {
+            compactAdvancedFrame();
+            calculateLayout();
+            renderGraph();
+            updateHighlights();
+        }, delay);
+    });
+}
+
+window.addEventListener('load', scheduleAdvancedFrameFix);
+const advancedFrameObserver = document.querySelector('.app-container');
+if (advancedFrameObserver) {
+    new MutationObserver(compactAdvancedFrame).observe(advancedFrameObserver, { attributes: true, attributeFilter: ['style'] });
+}
+
 // Init
+compactAdvancedFrame();
 calculateLayout();
 renderGraph();
 showMessage('点击节点开始探索湖湘文化');
+runGuideStep('author');

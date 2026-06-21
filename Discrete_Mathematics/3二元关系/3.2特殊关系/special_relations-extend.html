@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>特殊关系 · 拓展层 — 性质对照与特例验证</title>
+    <meta name="description" content="离散数学 3.2 拓展层：自建关系实时检验五性质 + 空/全/恒等关系性质对照">
+    <link rel="stylesheet" href="special_relations.css">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <style>
+        .dm-t-field { margin: 8px 0; }
+        .dm-t-field .lab { display: flex; justify-content: space-between; font-size: .82rem; color: #8b0000; margin-bottom: 5px; }
+        .dm-t-field .v { font-weight: 700; color: #d63b1d; font-family: 'Courier New', monospace; }
+        .dm-t-field input[type=range] { width: 100%; accent-color: #d63b1d; }
+        .dm-t-btn { width: 100%; padding: 9px; border: none; border-radius: 10px; cursor: pointer; font-family: inherit; font-weight: 600; color: #fff; background: linear-gradient(135deg, #d63b1d, #b8321a); margin-top: 6px; }
+        .dm-t-btn.ghost { background: #fff; color: #d63b1d; border: 1px solid #d63b1d; }
+        .dm-t-info { background: rgba(255,255,255,.6); border: 1px solid rgba(214,59,29,.14); border-radius: 10px; padding: 12px; font-size: .84rem; line-height: 1.7; color: #8b0000; }
+        .dm-t-info b { color: #d63b1d; }
+        .dm-t-wrap { display: flex; flex-wrap: wrap; gap: 1.6rem; justify-content: center; align-items: flex-start; width: 100%; }
+        .dm-t-card { background: rgba(255,255,255,.6); border: 1px solid rgba(214,59,29,.18); border-radius: 14px; padding: 16px 18px; }
+        .dm-t-card h3 { color: #d63b1d; font-size: .96rem; margin-bottom: 10px; font-weight: 700; text-align: center; }
+        .mtx { display: inline-grid; gap: 5px; }
+        .mcell { width: 32px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-family: 'Courier New', monospace; font-size: .74rem; }
+        .mcell.hdr { background: #d63b1d; color: #fff; font-weight: 700; }
+        .mcell.corner { background: transparent; }
+        .mcell.b0 { background: rgba(214,59,29,.06); color: #c9a; cursor: pointer; }
+        .mcell.b1 { background: #d63b1d; color: #fff; font-weight: 700; cursor: pointer; }
+        .mcell:hover { outline: 2px solid #ffb400; }
+        .props { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+        .prop { display: flex; align-items: center; gap: 8px; font-size: .84rem; color: #8b0000; }
+        .lt { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: .7rem; font-weight: 700; }
+        .lt.y { background: #27c93f; } .lt.n { background: #c0392b; }
+        table.cmp { border-collapse: collapse; font-size: .78rem; }
+        table.cmp th, table.cmp td { border: 1px solid rgba(214,59,29,.18); padding: 5px 8px; text-align: center; font-family: 'Courier New', monospace; }
+        table.cmp th { background: #d63b1d; color: #fff; }
+        table.cmp td.name { background: rgba(214,59,29,.06); color: #8b0000; font-weight: 700; }
+        table.cmp td.y { color: #27c93f; font-weight: 700; } table.cmp td.n { color: #c0392b; }
+    
+        .value-panel {
+            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
+            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
+            box-shadow: var(--shadow-sm);
+        }
+        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
+        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
+        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+        .value-dims span {
+            padding: 3px 8px; border-radius: 999px; color: #8b0000;
+            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
+            font-size: .74rem; font-weight: 700;
+        }
+        .value-quote {
+            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
+            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
+        }
+        .value-inline {
+            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
+            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
+            color: var(--text-primary); line-height: 1.5;
+        }
+    </style>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+
+<body>
+    <a href="../../index.html" title="返回课程主页" style="position:fixed;top:14px;left:14px;z-index:9999;display:flex;align-items:center;gap:6px;background:rgba(30,30,40,0.82);color:#fff;padding:7px 14px 7px 10px;border-radius:20px;font-size:13px;font-family:'Noto Serif SC',serif;text-decoration:none;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.15);box-shadow:0 2px 12px rgba(0,0,0,0.35);transition:background .2s;" onmouseover="this.style.background='rgba(214,59,29,0.88)'" onmouseout="this.style.background='rgba(30,30,40,0.82)'">🏠 <span>课程主页</span></a>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+                <h1>特殊关系 <span class="highlight">拓展层</span></h1>
+                <p class="subtitle">●●● 性质对照 · 特例验证 · 基准</p>
+            </div>
+            <div class="controls-wrapper">
+                
+                
+                
+                
+                <div class="control-group value-consistency-group">
+                    <label>价值映射（与进阶层一致）</label>
+                    <div class="value-panel" data-value-source="SECTION_META.ideology">
+                        <h3>把握基准 · 守正辨极</h3>
+                        <p>空关系与全关系是两个极端，恒等关系是中正的基准——认识事物常需先把握其边界与原点。正如治理既要防『一盘散沙』（空），也要防『一刀切齐』（全），在恒等的『守正』与适度联系之间求得平衡，体现执两用中的辩证智慧。</p>
+                        <div class="value-dims"><span>辩证思维</span><span>执中守正</span><span>科学精神</span></div>
+                            <div class="value-quote">执其两端，用其中于民——理解了空、全、恒等三种极端，才能在它们之间稳健建模。</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>集合 A 元素个数</label>
+                    <div class="dm-t-field"><div class="lab"><span>|A|</span><span class="v" id="nVal">4</span></div><input type="range" id="nRange" min="2" max="5" value="4"></div>
+                </div>
+                <div class="control-group">
+                    <label>自建关系 R（点矩阵切换）</label>
+                    <button class="dm-t-btn" id="idBtn">设为恒等关系 Iₐ</button>
+                    <button class="dm-t-btn ghost" id="clearBtn">清空</button>
+                </div>
+                <div class="control-group">
+                    <label>说明</label>
+                    <div class="dm-t-info">恒等关系 Iₐ 同时满足全部性质，是关系合成的<b>单位元</b>，常用作算法的<b>特例验证基准</b>：用 ∅、A×A、Iₐ 检验你的关系运算实现是否正确。</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="visualization-area" id="vizArea">
+                    <div class="dm-t-wrap">
+                        <div class="dm-t-card">
+                            <h3>① 自建关系 R（点格切换 0/1）</h3>
+                            <div class="mtx" id="mtx"></div>
+                        </div>
+                        <div class="dm-t-card">
+                            <h3>② R 的五性质（实时）</h3>
+                            <div class="props" id="props"></div>
+                        </div>
+                        <div class="dm-t-card">
+                            <h3>③ 特殊关系性质对照</h3>
+                            <table class="cmp" id="cmp"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer style="position:fixed;bottom:0;left:0;width:100%;background: transparent;color: inherit;
+    opacity: 0.72;padding:15px 10px;text-align:center;box-shadow: none;z-index:9999;">
+        <p style="font-size:0.9rem;line-height:1.6;margin:0;opacity:0.95;">© 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>版权所有 ｜ 项目总负责人：谢鑫</p>
+    </footer>
+
+    <script>
+        var $ = function (id) { return document.getElementById(id); };
+        var n = 4, R = {};
+        function key(i, j) { return i + '_' + j; }
+        function has(rel, i, j) { return !!rel[key(i, j)]; }
+        function checkProps(rel) {
+            var refl = true, irr = true, sym = true, anti = true, trans = true;
+            for (var i = 1; i <= n; i++) { if (!has(rel, i, i)) refl = false; if (has(rel, i, i)) irr = false; }
+            for (var a = 1; a <= n; a++) for (var b = 1; b <= n; b++) {
+                if (has(rel, a, b) && !has(rel, b, a)) sym = false;
+                if (has(rel, a, b) && has(rel, b, a) && a !== b) anti = false;
+                if (has(rel, a, b)) for (var c = 1; c <= n; c++) if (has(rel, b, c) && !has(rel, a, c)) trans = false;
+            }
+            return { 自反: refl, 反自反: irr, 对称: sym, 反对称: anti, 传递: trans };
+        }
+        function lt(v) { return '<span class="lt ' + (v ? 'y' : 'n') + '">' + (v ? '✓' : '✗') + '</span>'; }
+        function renderMtx() {
+            var g = $('mtx'); g.style.gridTemplateColumns = 'repeat(' + (n + 1) + ', auto)';
+            var html = '<div class="mcell corner"></div>';
+            for (var j = 1; j <= n; j++) html += '<div class="mcell hdr">' + j + '</div>';
+            for (var i = 1; i <= n; i++) { html += '<div class="mcell hdr">' + i + '</div>'; for (var j2 = 1; j2 <= n; j2++) { var on = has(R, i, j2); html += '<div class="mcell ' + (on ? 'b1' : 'b0') + '" data-i="' + i + '" data-j="' + j2 + '">' + (on ? 1 : 0) + '</div>'; } }
+            g.innerHTML = html;
+            [].forEach.call(g.querySelectorAll('.mcell[data-i]'), function (c) { c.onclick = function () { var k = key(+c.dataset.i, +c.dataset.j); if (R[k]) delete R[k]; else R[k] = 1; renderMtx(); renderProps(); }; });
+        }
+        function renderProps() {
+            var p = checkProps(R), html = '';
+            for (var k in p) html += '<div class="prop">' + lt(p[k]) + ' ' + k + '</div>';
+            $('props').innerHTML = html;
+        }
+        function buildRel(kind) { var r = {}; for (var i = 1; i <= n; i++) for (var j = 1; j <= n; j++) { if (kind === 'full') r[key(i, j)] = 1; else if (kind === 'id' && i === j) r[key(i, j)] = 1; } return r; }
+        function renderCmp() {
+            var names = [['∅ 空', {}], ['A×A 全', buildRel('full')], ['Iₐ 恒等', buildRel('id')]];
+            var cols = ['自反', '反自反', '对称', '反对称', '传递'];
+            var html = '<tr><th>关系</th>' + cols.map(function (c) { return '<th>' + c + '</th>'; }).join('') + '</tr>';
+            names.forEach(function (nm) { var p = checkProps(nm[1]); html += '<tr><td class="name">' + nm[0] + '</td>' + cols.map(function (c) { return '<td class="' + (p[c] ? 'y' : 'n') + '">' + (p[c] ? '✓' : '✗') + '</td>'; }).join('') + '</tr>'; });
+            $('cmp').innerHTML = html;
+        }
+        function renderAll() { n = +$('nRange').value; $('nVal').textContent = n; Object.keys(R).forEach(function (k) { var p = k.split('_'); if (+p[0] > n || +p[1] > n) delete R[k]; }); renderMtx(); renderProps(); renderCmp(); }
+        $('nRange').oninput = renderAll;
+        $('idBtn').onclick = function () { R = buildRel('id'); renderMtx(); renderProps(); };
+        $('clearBtn').onclick = function () { R = {}; renderMtx(); renderProps(); };
+        R = buildRel('id'); renderAll();
+    </script>
+
+    <!-- ===== 共享升级框架：学习助手 + 三阶导航 ===== -->
+    <script>
+    window.SECTION_META = {
+        layers: [
+            { "name": "空关系与全关系", "concepts": "∅ / A×A / 极端联系", "task": "认识关系世界的两个边界。", "page": "special_relations-basic.html" },
+            { "name": "恒等关系", "concepts": "Iₐ / 自反·对称·传递", "task": "理解恒等关系作为基准与单位元。", "page": "special_relations.html" },
+            { "name": "基准与对照", "concepts": "单位阵 / 自环 / 特例验证", "task": "用特殊关系做算法的特例校验。", "page": "special_relations-extend.html" }
+        ],
+        chapter: "第3章 二元关系",
+        section: "3.2 特殊关系 · 拓展层",
+        title: "性质对照与特例验证",
+        grounding: "本页（拓展层）主题：用空/全/恒等关系作为『基准与对照』。恒等关系 Iₐ 同时满足自反·反对称·对称·传递（是等价关系，也是关系合成的单位元）；全关系 A×A 自反·对称·传递但 n≥2 时不反对称；空关系平凡满足对称·反对称·传递。它们是检验关系运算实现是否正确的特例基准。可自建关系实时检验五性质（自反/反自反/对称/反对称/传递）。",
+        steps: [
+            { name: "情境引入", desc: "写了一个判断『关系性质』的程序，怎么验证它对不对？用特例！" },
+            { name: "对象抽取", desc: "把五条性质抽象为对矩阵/有序对的逻辑判定。" },
+            { name: "结构建模", desc: "用 ∅、A×A、Iₐ 作为已知性质的特例基准。" },
+            { name: "推理求解", desc: "自建关系，实时看五性质灯；对照三种特殊关系的性质表。" },
+            { name: "程序验证", desc: "验证恒等=全性质、全关系 n≥2 不反对称等结论。" },
+            { name: "迁移反思", desc: "迁移到单元测试的『边界/特例』思想与关系合成单位元。" }
+        ],
+        ideology: {
+        "title": "把握基准 · 守正辨极",
+        "text": "空关系与全关系是两个极端，恒等关系是中正的基准——认识事物常需先把握其边界与原点。正如治理既要防『一盘散沙』（空），也要防『一刀切齐』（全），在恒等的『守正』与适度联系之间求得平衡，体现执两用中的辩证智慧。",
+        "dims": [
+                "辩证思维",
+                "执中守正",
+                "科学精神"
+        ],
+        "quote": "执其两端，用其中于民——理解了空、全、恒等三种极端，才能在它们之间稳健建模。"
+},
+        reflect: ["全关系 A×A 在 |A|≥2 时为何不反对称？|A|=1 时呢？", "为什么恒等关系是关系合成的单位元（R∘I=I∘R=R）？"],
+        transfer: ["用空/全/恒等作特例验证算法，正是软件测试的『边界用例』思想。"]
+    };
+    </script>
+    
+    <script data-dm-ideology-bridge="1">
+    (function () {
+        function esc(s) {
+            return String(s || '').replace(/[&<>"']/g, function (c) {
+                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+            });
+        }
+        function noteHtml() {
+            var ideology = (window.SECTION_META && window.SECTION_META.ideology) || {};
+            var title = ideology.title || '价值引领';
+            var text = ideology.text || '本层延续进阶层的价值主线，在操作中体会数学结构与价值判断的一致性。';
+            return '<span class="value-inline" data-ideology-inline="1"><strong>价值观察：</strong>本层沿用进阶层“'
+                + esc(title) + '”主线。' + esc(text) + '</span>';
+        }
+        function appendIdeologyNote() {
+            if (document.querySelector('[data-ideology-inline="1"]')) return;
+            var resultExtra = document.getElementById('resultExtra');
+            if (resultExtra) {
+                resultExtra.insertAdjacentHTML('beforeend', noteHtml());
+                return;
+            }
+            var anchor = document.querySelector('.result-panel, #eqOut, #note, .visualization-area');
+            if (!anchor) return;
+            if (anchor.id === 'eqOut' || anchor.id === 'note') anchor.insertAdjacentHTML('afterend', noteHtml());
+            else anchor.insertAdjacentHTML('beforeend', noteHtml());
+        }
+        function wrapSetResult() {
+            var original = window.setResult;
+            if (typeof original !== 'function' || original.__ideologyWrapped) return;
+            window.setResult = function () {
+                var ret = original.apply(this, arguments);
+                appendIdeologyNote();
+                return ret;
+            };
+            window.setResult.__ideologyWrapped = true;
+        }
+        function boot() {
+            wrapSetResult();
+            appendIdeologyNote();
+            ['input', 'change', 'click'].forEach(function (eventName) {
+                document.addEventListener(eventName, function () {
+                    setTimeout(appendIdeologyNote, 0);
+                }, true);
+            });
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+        else boot();
+    })();
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+
+</html>

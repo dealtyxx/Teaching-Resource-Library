@@ -14,16 +14,19 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet">
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6" defer></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>
         MathJax = {
             tex: {
                 inlineMath: [['$', '$'], ['\\(', '\\)']],
                 displayMath: [['$$', '$$'], ['\\[', '\\]']]
             }
+        ,
+            startup: { typeset: true }
         };
     </script>
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
 </head>
 
 <body>
@@ -46,11 +49,11 @@
     <div class="app-container">
         <header class="main-header">
             <div class="header-content">
-                <h1>红色数理 <span class="highlight">文化遗产地理信息系统</span></h1>
-                <p class="subtitle">Cultural Heritage GIS: Coordinate Transformations for Protection</p>
+                <h1>红色数理 <span class="highlight">进阶层</span></h1>
+                <p class="subtitle">地理信息关系图谱 · 文化遗产地理信息系统</p>
             </div>
             <div class="header-badge">
-                <span class="icon">🏛️</span>
+                <span class="icon">🏛</span>
                 <span>守护中华文明</span>
             </div>
         </header>
@@ -59,7 +62,7 @@
             <div class="visualization-area">
                 <div class="canvas-wrapper">
                     <div class="coordinate-system left-system">
-                        <h3>原始坐标系 (Original)</h3>
+                        <h3>原始坐标 (Original)</h3>
                         <canvas id="originalCanvas"></canvas>
                         <div class="system-info">
                             <span>历史记录坐标</span>
@@ -67,20 +70,20 @@
                     </div>
 
                     <div class="transform-indicator">
-                        <div class="transform-arrow">→</div>
+                        <div class="transform-arrow"></div>
                         <div class="transform-label">
                             <strong>坐标变换</strong>
                             <p>旋转 + 缩放</p>
                         </div>
-                        <div class="transform-arrow reverse">←</div>
+                        <div class="transform-arrow reverse"></div>
                         <div class="inverse-label">
-                            <strong>逆变换</strong>
+                            <strong>逆变</strong>
                             <p>恢复原始</p>
                         </div>
                     </div>
 
                     <div class="coordinate-system right-system">
-                        <h3>变换坐标系 (Transformed)</h3>
+                        <h3>变换坐标 (Transformed)</h3>
                         <canvas id="transformedCanvas"></canvas>
                         <div class="system-info">
                             <span>现代地图坐标</span>
@@ -124,8 +127,8 @@
             <aside class="sidebar">
                 <div class="panel-section">
                     <div class="panel-header">
-                        <span class="panel-icon">🏛️</span>
-                        <h3>文化遗产点</h3>
+                        <span class="panel-icon">🏛</span>
+                        <h3>文化遗产</h3>
                     </div>
                     <div class="heritage-list" id="heritageList">
                         <!-- Dynamically populated -->
@@ -159,17 +162,17 @@
                 <div class="panel-section insight-panel">
                     <div class="panel-header">
                         <span class="panel-icon">💡</span>
-                        <h3>思政启示</h3>
+                        <h3>价值启示</h3>
                     </div>
                     <div class="insight-content">
                         <h4>🏮 文化自信：守护遗产</h4>
                         <p>从长城到故宫，从敦煌到兵马俑，每一处文化遗产都承载着中华文明的记忆。精确的坐标记录是保护工作的基础。</p>
 
                         <h4>🔬 科技创新：现代手段</h4>
-                        <p>运用现代GIS技术，将古代遗址坐标与现代地图系统对接，实现历史与现代的完美融合，让文物保护更加精准高效。</p>
+                        <p>运用现代 GIS 技术，将古代遗址坐标与现代地图系统对接，实现历史与现代的融合，让文物保护更加精准高效。</p>
 
                         <h4>📜 历史传承：薪火相传</h4>
-                        <p>通过逆变换恢复原始坐标，我们可以追溯历史，对比研究，确保每一次修复和保护都尊重历史原貌。</p>
+                        <p>通过逆变换恢复原始坐标，我们可以追溯历史、对比研究，确保每一次修复和保护都尊重历史原貌。</p>
                     </div>
                 </div>
 
@@ -200,29 +203,102 @@
             </aside>
         </main>
     </div>
-
-    <script src="heritage_gis.js"></script>
+    <script>
+        (function () {
+            var sidebar = document.querySelector('main.main-stage > .sidebar');
+            var header = document.querySelector('.main-header');
+            if (sidebar && header && !header.contains(sidebar)) {
+                sidebar.classList.add('left-info-panel');
+                header.appendChild(sidebar);
+            }
+        })();
+    </script>
+<script src="heritage_gis.js"></script>
 
 <!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
+<footer class="page-footer">
+    <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队<br>
+        版权所有 · 项目总负责人：谢鑫</p>
 </footer>
-
+    <script>
+    window.SECTION_META = {
+      "layers": [
+        {
+          "name": "坐标映射=函数",
+          "concepts": "地名→坐标 / 投影变换",
+          "task": "把 GIS 定位抽象为函数映射。",
+          "page": "heritage_gis-basic.html"
+        },
+        {
+          "name": "复合与可逆变换",
+          "concepts": "多重坐标变换复合 / 双射可逆",
+          "task": "用复合表达多重变换、用双射保证可逆。",
+          "page": "heritage_gis.html"
+        },
+        {
+          "name": "配准与数字孪生",
+          "concepts": "图像配准 / 数字孪生 / 精确映射",
+          "task": "迁移到影像配准与数字孪生。",
+          "page": "heritage_gis-extend.html"
+        }
+      ],
+      "chapter": "第4章 特殊关系与函数",
+      "section": "4.12 地理信息处理系统案例 · 进阶层",
+      "title": "复合与可逆变换",
+      "grounding": "本节主题：用函数刻画地理信息系统中的映射。坐标变换是函数，地名到坐标是函数，图层叠加是函数复合。用双射保证坐标可逆变换，把函数与映射落到文化遗产的数字化定位与管理。本页定位为进阶层：承接原页面的核心推理、综合辨析和课程资源主线。",
+      "steps": [
+        {
+          "name": "情境引入",
+          "desc": "把文化遗产标到地图上、再换个投影显示，背后是怎样的函数变换？"
+        },
+        {
+          "name": "对象抽取",
+          "desc": "把坐标变换、地名定位抽象为函数。"
+        },
+        {
+          "name": "结构建模",
+          "desc": "用函数复合表达多重坐标变换，用双射保证可逆。"
+        },
+        {
+          "name": "推理求解",
+          "desc": "计算投影变换与其逆，验证定位一致性。"
+        },
+        {
+          "name": "程序验证",
+          "desc": "用本页交互定位遗产点，体验坐标映射。"
+        },
+        {
+          "name": "迁移反思",
+          "desc": "迁移到地图投影、图像配准、数字孪生。"
+        }
+      ],
+      "ideology": {
+        "title": "守护根脉 · 数字赋能",
+        "text": "用 GIS 为文化遗产精准定位、建档管理，是以数字技术守护中华文明根脉的实践。函数的精确映射确保每处遗产都被准确标定、可追溯、可保护，体现科技赋能文化传承、坚定文化自信的时代担当。",
+        "dims": [
+          "文化自信",
+          "科技赋能",
+          "责任担当"
+        ],
+        "quote": "保护文物功在当代、利在千秋。精确的坐标映射，让每一处文化根脉都被妥善标定与守护。"
+      },
+      "reflect": [
+        "坐标投影变换要求双射可逆，否则会发生什么？",
+        "多重坐标变换是函数复合，为什么变换顺序不能随意交换？",
+        "地名到坐标的映射若非单值，会带来什么定位歧义？"
+      ],
+      "transfer": [
+        "图像配准把不同来源影像对齐，本质是寻找坐标间的双射变换。",
+        {
+          "t": "数字孪生",
+          "d": "把现实空间映射为数字模型，函数的精确映射如何保证孪生的可信？"
+        }
+      ]
+    };
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 
 </html>
+

@@ -1,0 +1,1361 @@
+/* =============================================================================
+ * discrete-ui.css —— 离散数学课程资源库 · 共享升级框架样式
+ * -----------------------------------------------------------------------------
+ * 设计语言：红金玻璃拟态（red-gold glassmorphism），复用全站设计令牌。
+ * 作用域隔离：所有类名以 dm- 前缀、注入 DOM 统一挂在 #dm-assist-root，
+ *            绝不覆盖各小节原有样式，保证 126 节零破坏。
+ * 用途：由 ai-tutor.js 自动注入的「学习助手」悬浮坞 + 面包屑 + 配置弹窗。
+ * © 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队 · 负责人：谢鑫
+ * ========================================================================== */
+
+/* 三阶页注入的「价值引领」面板：仅加间距，卡片样式复用各节原生 .info-panel（与进阶层一致） */
+#dm-ideo-page { margin-top: 6px; }
+/* 统一价值引领样式：隐藏一切静态 .value-panel 价值引领块（含其外层 control-group 与各种包裹类变体），
+   改由共享框架注入「进阶层同款 .info-panel」价值引领，确保全站唯一且一致。 */
+.ideology-consistency-group,
+.value-consistency-group,
+.control-group:has(.value-panel) { display: none !important; }
+
+/* ===== 跨页导航平滑过渡：消除层间切换的白屏闪烁（http/https 环境生效，如 GitHub Pages） ===== */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .26s; }
+/* 页面内三阶卡淡入，避免 JS 注入瞬间的硬闪 */
+#dm-page-layers { animation: dm-pl-fade .3s ease both; }
+@keyframes dm-pl-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ===== 全站统一字体与第一章同款红金玻璃外壳令牌 ===== */
+:root {
+  --dm-font-cn: 'Noto Serif SC', 'Microsoft YaHei', 'PingFang SC', serif;
+  --dm-font-title: 'Ma Shan Zheng', 'Noto Serif SC', cursive;
+  --dm-font-en: 'Noto Serif SC', Georgia, serif;
+  --dm-shell-bg:
+    radial-gradient(circle at 15% 20%, rgba(255, 180, 0, 0.18) 0 110px, transparent 112px),
+    radial-gradient(circle at 85% 80%, rgba(214, 59, 29, 0.13) 0 85px, transparent 87px),
+    repeating-linear-gradient(90deg, rgba(255, 180, 0, 0.10) 0 1px, transparent 1px 48px),
+    repeating-linear-gradient(0deg, rgba(214, 59, 29, 0.07) 0 1px, transparent 1px 48px),
+    linear-gradient(160deg, #fffdf5 0%, #fffaec 55%, #fff7e0 100%);
+}
+
+body:has(.app-container) {
+  font-family: var(--dm-font-cn);
+  letter-spacing: 0;
+}
+
+:where(.app-container, .sidebar, .main-header, .visualizer-stage, .glass-pane,
+  .control-group, .info-panel, .result-panel, button, input, select, textarea) {
+  font-family: var(--dm-font-cn);
+  letter-spacing: 0;
+}
+
+:where(.sidebar h1, .main-header h1, .hero-title, .page-title, .app-title) {
+  font-family: var(--dm-font-title);
+  letter-spacing: 0;
+}
+
+:where(.subtitle, .en, [lang="en"], .dm-en) {
+  font-family: var(--dm-font-en);
+  letter-spacing: 0;
+}
+
+.dm-math-script,
+:where(.formula-text, .dm-tier-name, .dm-tier-concepts, .dm-tier-sub, .dm-tier-task, .dm-panel, .info-panel, .sidebar, .visualizer-stage) :where(sup, sub) {
+  font-size: 0.72em;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+sup.dm-math-script,
+:where(.formula-text, .dm-tier-name, .dm-tier-concepts, .dm-tier-sub, .dm-tier-task, .dm-panel, .info-panel, .sidebar, .visualizer-stage) sup {
+  top: -0.5em;
+}
+
+sub.dm-math-script,
+:where(.formula-text, .dm-tier-name, .dm-tier-concepts, .dm-tier-sub, .dm-tier-task, .dm-panel, .info-panel, .sidebar, .visualizer-stage) sub {
+  bottom: -0.25em;
+}
+
+#dm-assist-root {
+  --dm-red: #D63B1D;
+  --dm-red-dark: #B8321A;
+  --dm-gold: #FFB400;
+  --dm-text: #2C1810;
+  --dm-text-2: #6B4A38;
+  --dm-muted: #9B7A68;
+  --dm-glass: rgba(255, 255, 255, 0.72);
+  --dm-glass-2: rgba(255, 255, 255, 0.55);
+  --dm-border: rgba(214, 59, 29, 0.18);
+  --dm-ok: #1F9D55;
+  --dm-no: #C0392B;
+  --dm-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --dm-shadow: 0 12px 40px rgba(214, 59, 29, 0.22);
+  --dm-shadow-sm: 0 2px 10px rgba(214, 59, 29, 0.14);
+  font-family: 'Noto Serif SC', 'Microsoft YaHei', serif;
+}
+#dm-assist-root *, #dm-assist-root *::before, #dm-assist-root *::after { box-sizing: border-box; }
+
+/* ===================== 面包屑（顶部居中小药丸） ===================== */
+#dm-crumb {
+  position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+  z-index: 9990; display: flex; align-items: center; gap: 8px;
+  max-width: min(70vw, 720px);
+  background: rgba(255, 255, 255, 0.78); backdrop-filter: blur(10px);
+  border: 1px solid var(--dm-border); border-radius: 22px;
+  padding: 6px 16px; box-shadow: var(--dm-shadow-sm);
+  font-size: 13px; color: var(--dm-text-2); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+#dm-crumb .dm-cb-ch { color: var(--dm-muted); }
+#dm-crumb .dm-cb-sep { color: var(--dm-gold); font-weight: 700; }
+#dm-crumb .dm-cb-sec { color: var(--dm-red); font-weight: 700; }
+@media (max-width: 720px) { #dm-crumb { display: none; } }
+
+/* ===================== 悬浮启动按钮 ===================== */
+#dm-launcher {
+  position: fixed; right: 22px; bottom: 70px; z-index: 9992;
+  display: flex; align-items: center; gap: 9px;
+  padding: 11px 20px 11px 16px; border: none; cursor: pointer;
+  border-radius: 30px; color: #fff; font-size: 14px; font-weight: 700;
+  font-family: inherit; letter-spacing: .5px;
+  background: linear-gradient(135deg, var(--dm-red), var(--dm-red-dark));
+  box-shadow: var(--dm-shadow);
+  transition: transform .2s, box-shadow .2s, opacity .2s;
+}
+#dm-launcher:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 16px 48px rgba(214, 59, 29, 0.34); }
+#dm-launcher .dm-l-spark { font-size: 17px; filter: drop-shadow(0 0 6px rgba(255,180,0,.8)); animation: dm-pulse 2.4s ease-in-out infinite; }
+#dm-launcher.dm-hidden { opacity: 0; pointer-events: none; transform: translateY(20px) scale(.8); }
+@keyframes dm-pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.18); opacity: .82; } }
+
+/* ===================== 主面板（悬浮坞） ===================== */
+#dm-panel {
+  position: fixed; right: 22px; bottom: 70px; z-index: 9993;
+  width: 390px; max-width: calc(100vw - 28px);
+  height: min(620px, calc(100vh - 130px));
+  display: flex; flex-direction: column;
+  background: var(--dm-glass); backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid var(--dm-border); border-radius: 20px;
+  box-shadow: var(--dm-shadow); overflow: hidden;
+  transform-origin: bottom right;
+  transition: opacity .22s ease, transform .22s ease;
+}
+#dm-panel.dm-hidden { opacity: 0; pointer-events: none; transform: translateY(16px) scale(.94); }
+
+.dm-panel-head {
+  flex-shrink: 0; padding: 14px 16px 12px; color: #fff;
+  background: linear-gradient(135deg, var(--dm-red), var(--dm-red-dark));
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.dm-panel-head .dm-ph-title { font-size: 15px; font-weight: 900; letter-spacing: .5px; display: flex; align-items: center; gap: 7px; }
+.dm-panel-head .dm-ph-sub { font-size: 11px; opacity: .85; margin-top: 2px; font-family: var(--dm-mono); }
+.dm-ph-actions { display: flex; gap: 6px; }
+.dm-icon-btn {
+  width: 28px; height: 28px; border-radius: 8px; border: 1px solid rgba(255,255,255,.25);
+  background: rgba(255,255,255,.12); color: #fff; cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center; transition: background .18s;
+}
+.dm-icon-btn:hover { background: rgba(255,255,255,.28); }
+
+/* 选项卡 */
+.dm-tabs { flex-shrink: 0; display: flex; gap: 2px; padding: 8px 8px 0; background: rgba(255,255,255,.32); }
+.dm-tab {
+  flex: 1; padding: 8px 4px; border: none; cursor: pointer; font-family: inherit;
+  font-size: 12px; font-weight: 700; color: var(--dm-text-2);
+  background: transparent; border-radius: 10px 10px 0 0; transition: all .18s;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.dm-tab .dm-tab-ic { font-size: 15px; }
+.dm-tab:hover { color: var(--dm-red); background: rgba(255,255,255,.4); }
+.dm-tab.active { color: var(--dm-red); background: var(--dm-glass); box-shadow: 0 -2px 8px rgba(214,59,29,.08); }
+
+.dm-tab-body { flex: 1; overflow-y: auto; padding: 14px 16px 18px; }
+.dm-tab-body::-webkit-scrollbar { width: 7px; }
+.dm-tab-body::-webkit-scrollbar-thumb { background: rgba(214,59,29,.25); border-radius: 4px; }
+.dm-pane { display: none; animation: dm-fade .25s ease; }
+.dm-pane.active { display: block; }
+@keyframes dm-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ===================== AI 助教面板 ===================== */
+.dm-ai-statusbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  margin-bottom: 10px; font-size: 11px;
+}
+.dm-ai-status { padding: 2px 9px; border-radius: 10px; font-weight: 700; }
+.dm-ai-status.online { background: rgba(31,157,85,.15); color: var(--dm-ok); }
+.dm-ai-status.offline { background: rgba(192,57,43,.12); color: var(--dm-no); }
+.dm-key-btn {
+  border: 1px solid var(--dm-border); background: rgba(255,255,255,.7); color: var(--dm-text);
+  border-radius: 9px; padding: 4px 10px; cursor: pointer; font-family: inherit; font-size: 11px; font-weight: 700;
+  transition: all .18s;
+}
+.dm-key-btn:hover { border-color: var(--dm-red); color: var(--dm-red); }
+
+.dm-ai-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 12px; }
+.dm-ai-btn {
+  font-size: 12.5px; padding: 9px 6px; border-radius: 11px; cursor: pointer; font-family: inherit;
+  background: rgba(255,255,255,.72); border: 1px solid var(--dm-border); color: var(--dm-text);
+  transition: all .18s; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.dm-ai-btn:hover { background: var(--dm-red); color: #fff; border-color: var(--dm-red); transform: translateY(-1px); }
+.dm-ai-btn:disabled { opacity: .5; cursor: wait; }
+
+.dm-ai-output {
+  background: rgba(255,255,255,.66); border: 1px solid var(--dm-border); border-radius: 12px;
+  padding: 13px 14px; font-size: 13.5px; line-height: 1.72; color: var(--dm-text); min-height: 90px;
+}
+.dm-ai-output .dm-placeholder { color: var(--dm-muted); }
+.dm-ai-output .dm-role-tag { display: inline-block; font-size: 11px; font-weight: 700; color: var(--dm-text); background: var(--dm-gold); padding: 2px 10px; border-radius: 9px; margin-bottom: 8px; }
+.dm-ai-output .dm-loading { color: var(--dm-red); display: flex; align-items: center; gap: 8px; }
+.dm-ai-output .dm-spin { width: 14px; height: 14px; border: 2px solid rgba(214,59,29,.25); border-top-color: var(--dm-red); border-radius: 50%; animation: dm-rot .7s linear infinite; }
+@keyframes dm-rot { to { transform: rotate(360deg); } }
+.dm-ai-output p { margin: 6px 0; }
+.dm-ai-output ul, .dm-ai-output ol { margin: 6px 0 6px 18px; }
+.dm-ai-output li { margin: 4px 0; }
+.dm-ai-output b { color: var(--dm-red-dark); }
+.dm-ai-output code { font-family: var(--dm-mono); background: rgba(214,59,29,.08); padding: 1px 5px; border-radius: 5px; font-size: .92em; }
+.dm-ai-meta { font-size: 10.5px; color: var(--dm-muted); margin-top: 8px; font-family: var(--dm-mono); }
+.dm-ai-tip { font-size: 11px; color: var(--dm-muted); margin-top: 10px; line-height: 1.55; padding-top: 8px; border-top: 1px dashed var(--dm-border); }
+
+/* ===================== 六步流程面板 ===================== */
+.dm-section-h { font-size: 12px; font-weight: 700; color: var(--dm-red); text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px; }
+.dm-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.dm-step {
+  display: flex; gap: 11px; padding: 10px 11px; border-radius: 12px; cursor: pointer;
+  background: rgba(255,255,255,.55); border: 1px solid transparent; transition: all .18s;
+}
+.dm-step:hover { border-color: var(--dm-border); background: rgba(255,255,255,.78); }
+.dm-step.active { border-color: var(--dm-red); background: linear-gradient(135deg, rgba(214,59,29,.08), rgba(255,180,0,.09)); box-shadow: var(--dm-shadow-sm); }
+.dm-step-num {
+  width: 24px; height: 24px; flex-shrink: 0; border-radius: 50%; font-family: var(--dm-mono);
+  font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  background: rgba(214,59,29,.12); color: var(--dm-red);
+}
+.dm-step.active .dm-step-num { background: var(--dm-red); color: #fff; }
+.dm-step-body .dm-step-name { font-weight: 700; font-size: 13.5px; color: var(--dm-text); }
+.dm-step-body .dm-step-desc { font-size: 12px; color: var(--dm-text-2); line-height: 1.55; margin-top: 2px; }
+
+/* ===================== 价值引领面板 ===================== */
+.dm-ideo-card {
+  background: linear-gradient(135deg, rgba(214,59,29,.07), rgba(255,180,0,.09));
+  border: 1px solid var(--dm-gold); border-radius: 14px; padding: 15px 16px;
+}
+.dm-ideo-card .dm-ideo-title { font-size: 15px; font-weight: 900; color: var(--dm-red-dark); display: flex; align-items: center; gap: 7px; }
+.dm-ideo-card .dm-ideo-text { font-size: 13.5px; line-height: 1.8; color: var(--dm-text); margin: 9px 0 0; }
+.dm-ideo-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.dm-ideo-chip { font-size: 11.5px; background: rgba(214,59,29,.1); color: var(--dm-red); padding: 3px 11px; border-radius: 10px; font-weight: 700; }
+.dm-ideo-quote { margin-top: 12px; padding: 10px 13px; border-left: 3px solid var(--dm-gold); background: rgba(255,255,255,.5); border-radius: 0 10px 10px 0; font-size: 12.5px; line-height: 1.7; color: var(--dm-text-2); font-style: italic; }
+
+/* ===================== 反思 / 迁移面板 ===================== */
+.dm-reflect-list { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.dm-reflect-list li { padding: 10px 13px; background: rgba(255,255,255,.58); border-left: 3px solid var(--dm-red); border-radius: 0 10px 10px 0; font-size: 13px; line-height: 1.65; color: var(--dm-text); }
+.dm-transfer-grid { display: grid; grid-template-columns: 1fr; gap: 9px; }
+.dm-transfer-card { padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,.62); border: 1px solid var(--dm-border); transition: all .2s; }
+.dm-transfer-card:hover { transform: translateY(-2px); box-shadow: var(--dm-shadow-sm); border-color: var(--dm-gold); }
+.dm-transfer-card .dm-tc-t { font-weight: 700; font-size: 13px; color: var(--dm-red-dark); display: flex; align-items: center; gap: 6px; }
+.dm-transfer-card .dm-tc-d { font-size: 12.5px; color: var(--dm-text-2); line-height: 1.6; margin-top: 4px; }
+
+/* ===================== 配置弹窗（BYO-key） ===================== */
+#dm-modal-mask {
+  position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center;
+  background: rgba(44, 24, 16, 0.5); backdrop-filter: blur(4px); padding: 20px;
+  transition: opacity .2s;
+}
+#dm-modal-mask.dm-hidden { display: none !important; opacity: 0; pointer-events: none; }
+.dm-modal {
+  width: 480px; max-width: 100%; max-height: 90vh; overflow-y: auto;
+  background: linear-gradient(160deg, #FFF8F4, #FFEEE6);
+  border: 1px solid var(--dm-border); border-radius: 20px; box-shadow: var(--dm-shadow);
+}
+.dm-modal-head { padding: 20px 24px 14px; border-bottom: 1px solid var(--dm-border); }
+.dm-modal-head h3 { font-size: 18px; font-weight: 900; color: var(--dm-red-dark); display: flex; align-items: center; gap: 9px; margin: 0; }
+.dm-modal-head p { font-size: 12.5px; color: var(--dm-text-2); margin: 7px 0 0; line-height: 1.6; }
+.dm-modal-body { padding: 18px 24px 22px; }
+.dm-steps-guide { margin: 0 0 16px; padding: 0; list-style: none; counter-reset: dm-g; }
+.dm-steps-guide li {
+  position: relative; padding: 7px 0 7px 30px; font-size: 13px; color: var(--dm-text); line-height: 1.6; counter-increment: dm-g;
+}
+.dm-steps-guide li::before {
+  content: counter(dm-g); position: absolute; left: 0; top: 6px; width: 20px; height: 20px;
+  background: var(--dm-red); color: #fff; border-radius: 50%; font-size: 11px; font-weight: 700; font-family: var(--dm-mono);
+  display: flex; align-items: center; justify-content: center;
+}
+.dm-steps-guide a { color: var(--dm-red); font-weight: 700; text-decoration: none; border-bottom: 1px dashed var(--dm-red); }
+.dm-steps-guide a:hover { color: var(--dm-red-dark); }
+.dm-field-label { font-size: 12.5px; font-weight: 700; color: var(--dm-text); margin-bottom: 6px; display: block; }
+.dm-key-input-row { display: flex; gap: 8px; }
+.dm-key-input {
+  flex: 1; padding: 11px 13px; border-radius: 11px; border: 1.5px solid var(--dm-border);
+  font-family: var(--dm-mono); font-size: 13px; color: var(--dm-text); background: #fff;
+  transition: border-color .18s;
+}
+.dm-key-input:focus { outline: none; border-color: var(--dm-red); }
+.dm-modal .dm-btn {
+  padding: 11px 18px; border-radius: 11px; border: none; cursor: pointer; font-family: inherit;
+  font-size: 13.5px; font-weight: 700; background: var(--dm-red); color: #fff; transition: all .18s; white-space: nowrap;
+}
+.dm-modal .dm-btn:hover { background: var(--dm-red-dark); }
+.dm-modal .dm-btn.ghost { background: rgba(255,255,255,.8); color: var(--dm-text); border: 1px solid var(--dm-border); }
+.dm-modal .dm-btn.ghost:hover { border-color: var(--dm-red); color: var(--dm-red); }
+.dm-modal-actions { display: flex; gap: 9px; margin-top: 14px; flex-wrap: wrap; }
+.dm-modal-note {
+  margin-top: 16px; padding: 12px 14px; border-radius: 12px; background: rgba(31,157,85,.08);
+  border: 1px solid rgba(31,157,85,.22); font-size: 12px; line-height: 1.65; color: var(--dm-text-2);
+}
+.dm-modal-note b { color: var(--dm-ok); }
+.dm-test-result { margin-top: 12px; font-size: 12.5px; font-weight: 700; min-height: 18px; }
+.dm-test-result.ok { color: var(--dm-ok); }
+.dm-test-result.err { color: var(--dm-no); }
+.dm-test-result.wait { color: var(--dm-red); }
+
+@media (max-width: 480px) {
+  #dm-panel { right: 8px; left: 8px; width: auto; bottom: 64px; }
+  #dm-launcher { right: 12px; bottom: 64px; }
+}
+
+/* ===================== 增强：自由提问输入 ===================== */
+.dm-ask-row { display: flex; gap: 7px; margin-bottom: 12px; }
+.dm-ask-input {
+  flex: 1; padding: 9px 12px; border-radius: 11px; border: 1.5px solid var(--dm-border);
+  font-family: inherit; font-size: 13px; color: var(--dm-text); background: rgba(255,255,255,.8);
+  transition: border-color .18s;
+}
+.dm-ask-input:focus { outline: none; border-color: var(--dm-red); }
+.dm-ask-send {
+  flex-shrink: 0; padding: 0 15px; border: none; border-radius: 11px; cursor: pointer;
+  background: linear-gradient(135deg, var(--dm-red), var(--dm-red-dark)); color: #fff;
+  font-family: inherit; font-size: 13px; font-weight: 700; transition: filter .18s;
+}
+.dm-ask-send:hover { filter: brightness(1.08); }
+.dm-ask-send:disabled { opacity: .5; cursor: wait; }
+.dm-ai-divider { display: flex; align-items: center; gap: 8px; margin: 0 0 11px; color: var(--dm-muted); font-size: 11px; }
+.dm-ai-divider::before, .dm-ai-divider::after { content: ''; flex: 1; height: 1px; background: var(--dm-border); }
+
+/* ===================== 增强：输出动作（复制/重答）+ 流式光标 ===================== */
+.dm-out-actions { display: flex; gap: 7px; margin-top: 10px; }
+.dm-out-btn {
+  font-size: 11.5px; padding: 4px 11px; border-radius: 9px; cursor: pointer; font-family: inherit;
+  background: rgba(255,255,255,.75); border: 1px solid var(--dm-border); color: var(--dm-text-2); transition: all .16s;
+}
+.dm-out-btn:hover { border-color: var(--dm-red); color: var(--dm-red); }
+.dm-stream-cursor { display: inline-block; width: 7px; height: 1.05em; vertical-align: text-bottom;
+  background: var(--dm-red); border-radius: 1px; margin-left: 2px; animation: dm-blink 1s steps(2) infinite; }
+@keyframes dm-blink { 0%,50% { opacity: 1; } 50.01%,100% { opacity: 0; } }
+
+/* ===================== 增强：六步进度条 + 完成态 ===================== */
+.dm-progress { margin: 0 0 12px; }
+.dm-progress-bar { height: 7px; border-radius: 5px; background: rgba(214,59,29,.12); overflow: hidden; }
+.dm-progress-fill { height: 100%; width: 0; border-radius: 5px;
+  background: linear-gradient(90deg, var(--dm-gold), var(--dm-red)); transition: width .4s ease; }
+.dm-progress-txt { font-size: 11px; color: var(--dm-muted); margin-top: 5px; display: flex; justify-content: space-between; }
+.dm-step { position: relative; }
+.dm-step-check {
+  flex-shrink: 0; width: 22px; height: 22px; border-radius: 7px; border: 1.5px solid var(--dm-border);
+  background: rgba(255,255,255,.7); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: transparent; transition: all .16s; margin-left: auto; align-self: center;
+}
+.dm-step-check:hover { border-color: var(--dm-red); }
+.dm-step.done .dm-step-check { background: var(--dm-ok); border-color: var(--dm-ok); color: #fff; }
+.dm-step.done .dm-step-num { background: var(--dm-ok); color: #fff; }
+.dm-step.done .dm-step-name { color: var(--dm-muted); text-decoration: line-through; text-decoration-color: rgba(155,122,104,.5); }
+
+/* ===================== 增强：首次引导气泡 ===================== */
+#dm-onboard {
+  position: fixed; right: 24px; bottom: 120px; z-index: 9991; max-width: 250px;
+  background: linear-gradient(135deg, var(--dm-red), var(--dm-red-dark)); color: #fff;
+  padding: 13px 15px 14px; border-radius: 16px 16px 4px 16px; box-shadow: var(--dm-shadow);
+  font-size: 13px; line-height: 1.6; animation: dm-onboard-in .4s ease both;
+}
+#dm-onboard.dm-hidden { display: none; }
+#dm-onboard .dm-ob-title { font-weight: 900; font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+#dm-onboard .dm-ob-close { position: absolute; top: 8px; right: 10px; cursor: pointer; opacity: .8; font-size: 13px; }
+#dm-onboard .dm-ob-close:hover { opacity: 1; }
+#dm-onboard::after { content: ''; position: absolute; right: 24px; bottom: -9px; width: 16px; height: 16px;
+  background: var(--dm-red-dark); transform: rotate(45deg); border-radius: 0 0 4px 0; }
+@keyframes dm-onboard-in { from { opacity: 0; transform: translateY(12px) scale(.92); } to { opacity: 1; transform: none; } }
+@media (max-width: 480px) { #dm-onboard { right: 12px; bottom: 116px; } }
+
+/* AI 输出里的标题（自由提问回答可能含 ###） */
+.dm-ai-output h3, .dm-ai-output h4 { font-size: 13.5px; color: var(--dm-red-dark); margin: 10px 0 4px; }
+
+/* ===================== 增强：六维能力雷达 ===================== */
+.dm-tabs.dm-tabs-5 .dm-tab { padding: 8px 2px; }
+.dm-tabs.dm-tabs-5 .dm-tab span:last-child { font-size: 11px; }
+#dm-radar-canvas { display: block; margin: 2px auto 6px; max-width: 100%; }
+.dm-radar-score {
+  text-align: center; font-size: 13px; color: var(--dm-text-2); margin: 2px 0 10px;
+}
+.dm-radar-score b { font-size: 22px; color: var(--dm-red); font-family: var(--dm-mono); vertical-align: -1px; }
+.dm-radar-level { display: inline-block; margin-left: 6px; font-size: 11px; font-weight: 700; color: var(--dm-text);
+  background: var(--dm-gold); padding: 2px 9px; border-radius: 9px; }
+.dm-radar-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: 12px; color: var(--dm-text-2); margin-bottom: 12px; }
+.dm-radar-legend span { display: flex; justify-content: space-between; padding: 3px 8px; background: rgba(255,255,255,.55); border-radius: 7px; }
+.dm-radar-legend b { color: var(--dm-red); font-family: var(--dm-mono); }
+
+/* ===================== 增强：AI 多轮对话（聊天界面） ===================== */
+.dm-tab-body { position: relative; }
+.dm-pane[data-pane="ai"].active { display: flex; flex-direction: column; position: absolute; inset: 0; padding: 14px 16px; }
+.dm-ai-top { flex-shrink: 0; }
+.dm-statusbar-right { display: flex; gap: 6px; }
+.dm-newchat-btn { border: 1px solid var(--dm-border); background: rgba(255,255,255,.7); color: var(--dm-text-2); border-radius: 9px; padding: 4px 10px; cursor: pointer; font-family: inherit; font-size: 11px; font-weight: 700; transition: all .16s; }
+.dm-newchat-btn:hover { border-color: var(--dm-red); color: var(--dm-red); }
+.dm-ai-roles-label { font-size: 11px; color: var(--dm-muted); margin: 10px 0 6px; }
+.dm-ai-transcript { flex: 1; overflow-y: auto; margin: 10px -2px 0; padding: 2px 4px 4px; display: flex; flex-direction: column; gap: 11px; }
+.dm-ai-transcript::-webkit-scrollbar { width: 6px; }
+.dm-ai-transcript::-webkit-scrollbar-thumb { background: rgba(214,59,29,.25); border-radius: 4px; }
+.dm-ai-welcome { color: var(--dm-muted); font-size: 13px; line-height: 1.8; text-align: center; padding: 16px 8px; margin: auto 0; }
+.dm-ai-welcome b { color: var(--dm-text-2); }
+.dm-msg { max-width: 93%; display: flex; flex-direction: column; }
+.dm-msg-user { align-self: flex-end; align-items: flex-end; }
+.dm-msg-user .dm-msg-body { background: linear-gradient(135deg, var(--dm-red), var(--dm-red-dark)); color: #fff; border-radius: 14px 14px 4px 14px; padding: 9px 13px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+.dm-msg-assistant { align-self: flex-start; }
+.dm-msg-tag { font-size: 11px; font-weight: 700; color: var(--dm-text); background: var(--dm-gold); padding: 1px 9px; border-radius: 8px; align-self: flex-start; margin-bottom: 4px; }
+.dm-msg-assistant .dm-msg-body { background: rgba(255,255,255,.76); border: 1px solid var(--dm-border); border-radius: 4px 14px 14px 14px; padding: 11px 13px; font-size: 13.5px; line-height: 1.72; color: var(--dm-text); }
+.dm-msg-body p { margin: 5px 0; } .dm-msg-body p:first-child { margin-top: 0; } .dm-msg-body p:last-child { margin-bottom: 0; }
+.dm-msg-body ul, .dm-msg-body ol { margin: 5px 0 5px 18px; } .dm-msg-body li { margin: 3px 0; }
+.dm-msg-body b { color: var(--dm-red-dark); }
+.dm-msg-body code { font-family: var(--dm-mono); background: rgba(214,59,29,.08); padding: 1px 5px; border-radius: 5px; font-size: .92em; }
+.dm-msg-body h3, .dm-msg-body h4 { font-size: 13.5px; color: var(--dm-red-dark); margin: 8px 0 3px; }
+.dm-msg-copy { font-size: 11px; color: var(--dm-muted); cursor: pointer; margin-top: 5px; align-self: flex-start; user-select: none; }
+.dm-msg-copy:hover { color: var(--dm-red); }
+.dm-ai-inputbar { flex-shrink: 0; display: flex; gap: 7px; margin-top: 10px; padding-top: 11px; border-top: 1px solid var(--dm-border); }
+
+/* ===================== 三阶层次化（基础/进阶/拓展） ===================== */
+.dm-ladder { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+.dm-tier { border-radius: 14px; padding: 13px 15px; border: 1.5px solid var(--dm-border); position: relative; transition: transform .18s, box-shadow .18s; }
+.dm-tier:hover { transform: translateY(-2px); box-shadow: var(--dm-shadow-sm); }
+.dm-tier-1 { background: linear-gradient(135deg, rgba(255,180,0,.10), rgba(255,255,255,.55)); border-color: rgba(255,180,0,.5); }
+.dm-tier-2 { background: linear-gradient(135deg, rgba(214,59,29,.09), rgba(255,180,0,.10)); border-color: rgba(214,59,29,.3); }
+.dm-tier-3 { background: linear-gradient(135deg, rgba(214,59,29,.16), rgba(184,50,26,.12)); border-color: var(--dm-red); }
+.dm-tier-head { display: flex; align-items: center; justify-content: space-between; }
+.dm-tier-tag { font-size: 12px; font-weight: 900; color: #fff; padding: 2px 11px; border-radius: 9px; letter-spacing: .5px; }
+.dm-tier-1 .dm-tier-tag { background: var(--dm-gold); color: var(--dm-text); }
+.dm-tier-2 .dm-tier-tag { background: linear-gradient(135deg, var(--dm-gold), var(--dm-red)); }
+.dm-tier-3 .dm-tier-tag { background: var(--dm-red); }
+.dm-tier-dots { font-size: 13px; letter-spacing: 2px; color: var(--dm-red); }
+.dm-tier-name { font-size: 15px; font-weight: 900; color: var(--dm-text); margin: 7px 0 2px; }
+.dm-tier-concepts { font-size: 12px; color: var(--dm-red-dark); font-weight: 700; }
+.dm-tier-sub { font-size: 11px; color: var(--dm-muted); margin-top: 3px; }
+.dm-tier-task { font-size: 12.5px; color: var(--dm-text-2); line-height: 1.6; margin: 8px 0 10px; }
+.dm-tier-btn {
+  width: 100%; padding: 8px; border: none; border-radius: 10px; cursor: pointer; font-family: inherit;
+  font-size: 12.5px; font-weight: 700; color: #fff; transition: filter .18s;
+  background: linear-gradient(135deg, var(--dm-red), var(--dm-red-dark));
+}
+.dm-tier-1 .dm-tier-btn { background: linear-gradient(135deg, var(--dm-gold), #e8920a); color: var(--dm-text); }
+.dm-tier-btn:hover { filter: brightness(1.08); }
+a.dm-tier-btn { display: block; text-align: center; text-decoration: none; box-sizing: border-box; }
+.dm-tier-btn-cur { background: rgba(31, 157, 85, 0.85) !important; color: #fff !important; cursor: default; opacity: .95; }
+.dm-tier-current { outline: 2px solid var(--dm-ok); outline-offset: 1px; }
+.dm-tier-cur-badge { font-size: 10px; font-weight: 700; color: #fff; background: var(--dm-ok); padding: 1px 7px; border-radius: 7px; margin-left: 6px; }
+
+/* ===================== 三阶层次：直接嵌入页面主区（非悬浮） ===================== */
+#dm-page-layers.dm-page-layers {
+  /* 自带设计令牌（位于 #dm-assist-root 之外，需独立声明变量） */
+  --dm-red: #D63B1D; --dm-red-dark: #B8321A; --dm-gold: #FFB400;
+  --dm-text: #2C1810; --dm-text-2: #6B4A38; --dm-muted: #9B7A68;
+  --dm-border: rgba(214, 59, 29, 0.18); --dm-ok: #1F9D55;
+  --dm-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --dm-shadow-sm: 0 2px 10px rgba(214, 59, 29, 0.14);
+  font-family: 'Noto Serif SC', 'Microsoft YaHei', serif;
+  box-sizing: border-box; display: block; width: 100%;
+  background: linear-gradient(135deg, rgba(255, 245, 240, 0.92), rgba(255, 232, 224, 0.78));
+  border: 1.5px solid var(--dm-border); border-radius: 16px;
+  padding: 14px 16px; margin: 0 0 16px; box-shadow: var(--dm-shadow-sm);
+}
+#dm-page-layers * { box-sizing: border-box; }
+#dm-page-layers .dm-pl-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+#dm-page-layers .dm-pl-title { font-size: 15px; font-weight: 900; color: var(--dm-red-dark); }
+#dm-page-layers .dm-pl-sub { font-size: 12px; color: var(--dm-muted); }
+#dm-page-layers .dm-pl-toggle {
+  border: 1px solid var(--dm-border); background: rgba(255, 255, 255, 0.7); color: var(--dm-text-2);
+  border-radius: 9px; padding: 4px 12px; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 700; transition: all .16s;
+}
+#dm-page-layers .dm-pl-toggle:hover { border-color: var(--dm-red); color: var(--dm-red); }
+#dm-page-layers .dm-ladder { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 0; }
+#dm-page-layers.dm-collapsed .dm-ladder { display: none; }
+#dm-page-layers .dm-tier { margin: 0; }
+@media (max-width: 920px) { #dm-page-layers .dm-ladder { grid-template-columns: 1fr; } }
+/* 若三阶带意外落入某个网格容器内，强制跨满整行（兜底，非网格项时此声明被忽略） */
+#dm-page-layers { grid-column: 1 / -1; align-self: start !important; }
+
+/* ===================== 「应用式」案例页对齐第1章前两节的「侧栏外壳」版式 =====================
+   原结构为「顶部页头 .main-header + 主网格 <main>」的单屏应用；为与 3.1/3.2（以及第1章
+   counting/pigeonhole）的侧栏式外壳保持一致，这里用 CSS Grid 把既有 DOM 重排为：
+     ┌─────────┬──────────────┐
+     │         │  三阶带 band  │
+     │  侧栏    ├──────────────┤
+     │ (页头)   │   主内容 main │
+     │         ├──────────────┤
+     │         │  insight脚注  │
+     └─────────┴──────────────┘
+   页头（标题+操作按钮）变为左侧栏，三阶带置于右侧内容区顶部，整页保持单屏、不滚动。
+   仅作用于 ai-tutor.js 标记的 data-dm-app 容器，不影响原生侧栏式教学页。 */
+.app-container[data-dm-app] {
+  display: grid !important;
+  grid-template-columns: 340px minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas: "side band" "side main" "side foot";
+  width: min(90vw, 1400px); height: auto; min-height: 0;
+  margin: 0 auto; overflow: visible;
+  background: rgba(255, 252, 245, 0.90);
+  -webkit-backdrop-filter: blur(20px) saturate(120%);
+  backdrop-filter: blur(20px) saturate(120%);
+  border-radius: 24px;
+  border: 1px solid var(--glass-border, rgba(214, 59, 29, 0.2));
+  box-shadow: 0 20px 40px rgba(139, 0, 0, 0.15);
+}
+
+body:has(.app-container[data-dm-app]) {
+  min-height: 0;
+  display: flex; align-items: center; justify-content: center;
+  overflow: auto;
+  background-color: #fffbf0;
+  background-image: var(--dm-shell-bg);
+  background-position: center;
+  background-repeat: no-repeat;
+}
+/* 页头 → 左侧栏（竖向堆叠：标题在上、操作控件在下） */
+.app-container[data-dm-app] > .main-header {
+  grid-area: side; align-self: stretch;
+  display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start;
+  gap: 1.1rem; width: auto; height: 100%; min-width: 0;
+  padding: 1.5rem; overflow-y: auto;
+  border-right: 1px solid var(--glass-border, rgba(214, 59, 29, 0.18));
+  border-bottom: none;
+  background: var(--sidebar-bg, rgba(255, 248, 240, 0.9));
+}
+.app-container[data-dm-app] > .main-header > * { width: 100%; min-width: 0; }
+/* 页头内的操作按钮组：竖向铺满侧栏宽度 */
+.app-container[data-dm-app] > .main-header .header-controls,
+.app-container[data-dm-app] > .main-header .closure-buttons {
+  display: flex; flex-direction: column; align-items: stretch; gap: 0.6rem;
+}
+.app-container[data-dm-app] > .main-header .header-controls .apple-btn,
+.app-container[data-dm-app] > .main-header .closure-buttons .apple-btn { width: 100%; justify-content: center; }
+/* 三阶带 → 右侧内容区顶部 */
+.app-container[data-dm-app] > #dm-page-layers {
+  grid-area: band; margin: 14px 16px 4px; padding: 10px 14px;
+}
+.app-container[data-dm-app] > #dm-page-layers .dm-pl-head { margin-bottom: 7px; }
+.app-container[data-dm-app] > #dm-page-layers .dm-ladder { gap: 10px; }
+/* 主内容（原主网格）→ 右侧主区，占满剩余高度并可收缩 */
+.app-container[data-dm-app] > main {
+  grid-area: main; min-height: 0; min-width: 0; margin: 0 8px;
+}
+/* 部分页的 insight 脚注 → 右侧底部 */
+.app-container[data-dm-app] > .insight-footer { grid-area: foot; min-height: 0; }
+@media (max-width: 860px) {
+  .app-container[data-dm-app] { grid-template-columns: 1fr; grid-template-areas: "side" "band" "main" "foot"; }
+  .app-container[data-dm-app] > .main-header { height: auto; border-right: none; border-bottom: 1px solid var(--glass-border, rgba(214, 59, 29, 0.18)); }
+}
+
+/* ===================== 标准「侧栏外壳」自带布局（与各节 CSS 解耦） =====================
+   基础层/拓展层（及 3.1/3.2 等侧栏式进阶页）的外壳结构为：
+     .app-container > aside.sidebar + main.visualizer-stage > .glass-pane
+   但它们 link 的是各节自身的 CSS，而部分节（3.3/3.5/3.6/3.7… 应用式）的
+   .app-container 是 flex-direction:column，会把侧栏与主区「竖向堆叠」成一长条。
+   这里凡含 aside.sidebar 的容器一律强制横向侧栏外壳，并自带侧栏/主区/玻璃面板样式，
+   保证所有侧栏式页面版式统一、不再受各节 CSS 影响。 */
+.app-container:has(> aside.sidebar) {
+  display: flex; flex-direction: row;
+  width: min(90vw, 1400px); height: auto; min-height: 0;
+  margin: 0 auto; overflow: visible;
+  background: rgba(255, 252, 245, 0.90);
+  -webkit-backdrop-filter: blur(20px) saturate(120%);
+  backdrop-filter: blur(20px) saturate(120%);
+  border-radius: 24px;
+  border: 1px solid var(--glass-border, rgba(214, 59, 29, 0.2));
+  box-shadow: 0 20px 40px rgba(139, 0, 0, 0.15);
+}
+.app-container:has(> aside.sidebar) > .sidebar {
+  width: 340px; flex-shrink: 0; align-self: stretch;
+  display: flex; flex-direction: column; gap: 1.1rem;
+  padding: 1.5rem; overflow-y: auto;
+  background: var(--sidebar-bg, rgba(255, 248, 240, 0.9));
+  border-right: 1px solid var(--glass-border, rgba(214, 59, 29, 0.2));
+}
+.app-container:has(> aside.sidebar) > .visualizer-stage {
+  flex: 1 1 0; min-width: 0; align-self: stretch;
+  display: flex; padding: 1.6rem;
+  background: rgba(255, 255, 255, 0.05);
+}
+.app-container:has(> aside.sidebar) > .visualizer-stage > .glass-pane {
+  width: 100%; height: 100%;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 16px; box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.5);
+  padding: 1.4rem 1.6rem; overflow: auto; position: relative;
+}
+
+.app-container[data-dm-side-shell] {
+  display: grid !important;
+  grid-template-columns: 340px minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas: "side band" "side main" "side foot";
+}
+.app-container[data-dm-side-shell] > aside.sidebar { grid-area: side; }
+.app-container[data-dm-side-shell] > #dm-page-layers {
+  grid-area: band;
+  margin: 14px 16px 4px;
+  padding: 10px 14px;
+}
+.app-container[data-dm-side-shell] > #dm-page-layers .dm-pl-head { margin-bottom: 7px; }
+.app-container[data-dm-side-shell] > #dm-page-layers .dm-ladder { gap: 10px; }
+.app-container[data-dm-side-shell] > .visualizer-stage {
+  grid-area: main;
+  min-height: 0;
+  height: auto;
+}
+.app-container[data-dm-side-shell] > .insight-footer { grid-area: foot; }
+.dm-generated-sidebar > :where(header, .app-header, .main-header, .dashboard-header) {
+  position: static !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 0 1rem !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  text-align: left !important;
+}
+.dm-generated-sidebar :where(.header-content, .header-title) {
+  width: 100%;
+  text-align: left;
+}
+.dm-generated-sidebar :where(h1, .page-title) {
+  font-size: 1.6rem;
+  line-height: 1.25;
+  margin: 0 0 0.55rem;
+}
+.dm-generated-sidebar :where(.header-subtitle, .subtitle, .intro) {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--text-secondary, #6B4A38);
+}
+.dm-generated-sidebar :where(.control-panel, .side-panel, .left-panel, .panel) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.app-container[data-dm-app],
+.app-container[data-dm-side-shell] {
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas: "side main" "side foot";
+}
+.app-container[data-dm-app] > main > #dm-page-layers,
+.app-container[data-dm-app] > .visualizer-stage > #dm-page-layers,
+.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+}
+.app-container[data-dm-side-shell] > .glass-pane.visualizer-stage {
+  display: block !important;
+}
+.app-container[data-dm-side-shell] > .glass-pane.visualizer-stage > #dm-page-layers {
+  width: 100%;
+  box-sizing: border-box;
+}
+.dashboard-container .visualizer-container {
+  position: relative;
+}
+.dashboard-container .visualizer-container > #dm-page-layers {
+  position: absolute;
+  z-index: 30;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  width: auto;
+  margin: 0;
+  padding: 8px 10px;
+  max-height: none;
+}
+.dashboard-container .visualizer-container > #dm-page-layers .dm-pl-head {
+  margin-bottom: 8px;
+}
+.dashboard-container .visualizer-container > #dm-page-layers .dm-pl-sub,
+.dashboard-container .visualizer-container > #dm-page-layers .dm-tier-concepts,
+.dashboard-container .visualizer-container > #dm-page-layers .dm-tier-sub,
+.dashboard-container .visualizer-container > #dm-page-layers .dm-tier-task {
+  display: none;
+}
+.dashboard-container .visualizer-container > #dm-page-layers .dm-ladder {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.dashboard-container .visualizer-container > #dm-page-layers .dm-tier {
+  min-height: 0;
+  padding: 9px 10px;
+}
+.dashboard-container .visualizer-container > #dm-page-layers .dm-tier-name {
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+.dashboard-container .visualizer-container > #dm-page-layers .dm-tier-btn {
+  margin-top: 8px;
+  padding: 7px 9px;
+}
+:where(.visualizer-stage, .main-stage, .main-content, .comparison-stage, .triad-stage, .content-area, .matrix-panel.glass-pane, .verification-panel.glass-pane):has(> #dm-page-layers) {
+  flex-wrap: wrap;
+  align-content: flex-start;
+}
+:where(.visualizer-stage, .main-stage, .main-content, .comparison-stage, .triad-stage, .content-area, .matrix-panel.glass-pane, .verification-panel.glass-pane):has(> #dm-page-layers) > #dm-page-layers {
+  flex: 0 0 auto;
+  align-self: stretch;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+body:has(.app-container > aside.sidebar) {
+  min-height: 0;
+  display: flex !important; align-items: flex-start; justify-content: flex-start !important;
+  padding-top: 56px !important;
+  overflow: auto;
+  background-color: #fffbf0;
+  background-image: var(--dm-shell-bg);
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+@media (max-width: 1024px) {
+  body:has(.app-container > aside.sidebar) {
+    align-items: flex-start;
+    overflow: auto;
+  }
+  .app-container:has(> aside.sidebar) {
+    flex-direction: column;
+    width: 95vw; height: auto; min-height: 0;
+    margin: 16px auto 0;
+  }
+  .app-container:has(> aside.sidebar) > .sidebar {
+    width: 100%; max-height: none;
+    border-right: none;
+    border-bottom: 1px solid var(--glass-border, rgba(214, 59, 29, 0.2));
+  }
+  .app-container:has(> aside.sidebar) > .visualizer-stage {
+    min-height: 520px;
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 860px) {
+  body:has(.app-container[data-dm-app]),
+  body:has(.app-container[data-dm-side-shell]) {
+    display: block;
+    min-height: 0;
+    overflow: auto !important;
+    background-color: #fffbf0;
+    background-image: var(--dm-shell-bg);
+  }
+  .app-container[data-dm-app],
+  .app-container[data-dm-side-shell] {
+    width: min(95vw, 520px) !important;
+    height: auto !important;
+    min-height: 0;
+    margin: 16px auto 0;
+    overflow: visible !important;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    grid-template-areas: "side" "main" "foot";
+  }
+  .app-container[data-dm-app] > .main-header,
+  .app-container[data-dm-side-shell] > .sidebar {
+    min-height: 0;
+    overflow: visible;
+    border-right: none;
+    border-bottom: 1px solid var(--glass-border, rgba(214, 59, 29, 0.2));
+  }
+  .app-container[data-dm-app] > #dm-page-layers,
+  .app-container[data-dm-side-shell] > #dm-page-layers {
+    width: auto;
+    margin: 12px 10px 4px;
+  }
+  .app-container[data-dm-app] > main,
+  .app-container[data-dm-side-shell] > .visualizer-stage {
+    margin: 0 10px;
+    min-height: 520px;
+  }
+  .dashboard-container .visualizer-container > #dm-page-layers {
+    position: fixed;
+    top: 88px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-height: 48vh;
+    overflow: auto;
+  }
+  .dashboard-container .visualizer-container > #dm-page-layers .dm-ladder {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== 整页纵向滚动：与屏幕自适配(zoom)配合，确保任意分辨率下内容都能看全。
+   把原本固定 85vh、overflow:hidden 的“桌面 App”改为可随内容增高、由整页滚动呈现；
+   不改动可视化舞台内部结构（子元素随弹性高度自动拉伸）。 ===== */
+html { overflow-x: hidden; overflow-y: auto; }
+
+body:has(.app-container) {
+  box-sizing: border-box;
+  display: flex !important;
+  flex-direction: column !important;   /* 主体与版权页脚竖向堆叠 */
+  align-items: center;                 /* 主体水平居中 */
+  justify-content: flex-start !important; /* 内容从顶部排列，避免底部留白 */
+  height: auto !important;
+  min-height: 0;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  padding-bottom: 0 !important;
+}
+/* 主体容器：去掉底部外边距，保留各页自定义的顶部外边距（如新式页面的 74px）*/
+body:has(.app-container) > .app-container { margin-bottom: 0 !important; flex: 0 0 auto; }
+/* 版权页脚：随内容排在末尾、紧贴主题内容，不再固定浮在视口底部 */
+body:has(.app-container) > footer {
+  position: static !important;
+  width: 100% !important;
+  flex: 0 0 auto;
+  margin: 0 !important;
+}
+
+.app-container:has(> aside.sidebar),
+.app-container:has(> .sidebar),
+.app-container[data-dm-app],
+.app-container[data-dm-side-shell] {
+  height: auto !important;
+  min-height: 0;
+  max-height: none !important;
+}
+
+/* 侧栏（控件 / 价值引领面板 / 结果较多时最易被裁切）改为随内容增高、由整页滚动呈现 */
+.app-container:has(> aside.sidebar) > aside.sidebar,
+.app-container:has(> .sidebar) > .sidebar,
+.app-container[data-dm-side-shell] > .sidebar {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+
+/* ===== 全站统一标题（字体+配色），与进阶层一致：「红色数理」红色 + 高亮金色 + 书法标题体。
+   用 h1:has(.highlight) 兜住各种外层结构（.sidebar-header / .header-content 等都生效）。
+   颜色用固定值，避免各页 --accent-* 取值不同导致不一致。 ===== */
+h1:has(.highlight),
+.sidebar-header h1,
+.sidebar h1,
+.header-content h1 {
+  font-family: 'Ma Shan Zheng', 'Noto Serif SC', cursive !important;
+  color: #D63B1D !important;
+}
+h1 .highlight {
+  color: #FFB400 !important;
+  font-weight: 700;
+}
+
+/* ===== 统一标题区「主标题 ↔ 副标题」间距，与参考页 (3.1 relations.html) 一致：
+   标题区竖排、gap 1rem，副标题上移 5px 紧贴主标题（约 11px），全站标题观感统一。===== */
+.sidebar-header,
+.header-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1rem !important;
+}
+.sidebar-header > h1,
+.header-content > h1 { margin: 0 !important; }
+.sidebar-header > .subtitle,
+.header-content > .subtitle { margin-top: -5px !important; margin-bottom: 0 !important; }
+
+/* ===== 全站版权页脚统一：与前几章一致，透明融入页面背景，避免红色横条割裂视图。 ===== */
+body:has(.app-container) > footer:not(.insight-footer),
+body:has(.app-container) > footer.site-footer {
+  background: transparent !important;
+  color: inherit !important;
+  opacity: 0.72 !important;
+  padding: 15px 10px !important;
+  text-align: center !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+body:has(.app-container) > footer:not(.insight-footer) p,
+body:has(.app-container) > footer.site-footer p {
+  font-size: 0.9rem !important;
+  line-height: 1.6 !important;
+  margin: 0 !important;
+  opacity: 0.95 !important;
+}
+
+h1[data-dm-layer-title],
+[data-dm-layer-title-sub] {
+  overflow-wrap: anywhere;
+}
+
+/* ===== 7.6 advanced-layer board layout, shared by all layers ===== */
+body:has(.app-container[data-dm-side-shell]),
+body:has(.app-container[data-dm-app]) {
+  display: block !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+  overflow-x: hidden !important;
+  padding-top: 50px !important;
+  background-color: #fffbf0 !important;
+  background-image: var(--dm-shell-bg) !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+.app-container[data-dm-side-shell],
+.app-container[data-dm-app] {
+  width: min(94vw, 1760px) !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: 390px minmax(0, 1fr) !important;
+  grid-template-areas: "side main" !important;
+  grid-template-rows: auto !important;
+  gap: 12px !important;
+  align-items: start !important;
+  overflow: visible !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.app-container[data-dm-side-shell]:has(> .insight-footer),
+.app-container[data-dm-app]:has(> .insight-footer) {
+  grid-template-areas: "side main" "side foot" !important;
+  grid-template-rows: auto auto !important;
+}
+
+.app-container[data-dm-side-shell] > .sidebar,
+.app-container[data-dm-app] > :where(header, .app-header, .main-header, .dashboard-header) {
+  grid-area: side !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: auto !important;
+  max-height: none !important;
+  margin: 0 0 16px !important;
+  padding: 20px !important;
+  align-self: start !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+.app-container[data-dm-side-shell] > .visualizer-stage,
+.app-container[data-dm-app] > :where(main, .main-stage, .comparison-stage, .triad-stage, .main-content, .dashboard-main) {
+  grid-area: main !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 0 16px !important;
+  padding: 14px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: auto auto !important;
+  gap: 12px !important;
+  align-items: start !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers,
+.app-container[data-dm-side-shell] > .visualizer-stage > .glass-pane > #dm-page-layers,
+.app-container[data-dm-side-shell] > .visualizer-stage.glass-pane > #dm-page-layers,
+.app-container[data-dm-app] > :where(main, .main-stage, .comparison-stage, .triad-stage, .main-content, .dashboard-main) > #dm-page-layers {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin: 0 0 12px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.app-container[data-dm-side-shell] > .visualizer-stage > .glass-pane,
+.app-container[data-dm-side-shell] > .visualizer-stage.glass-pane {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.app-container[data-dm-side-shell] .glass-pane {
+  padding: 0 !important;
+  overflow: visible !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.app-container[data-dm-side-shell] :where(#dm-page-layers) .dm-ladder,
+.app-container[data-dm-app] :where(#dm-page-layers) .dm-ladder {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.app-container[data-dm-side-shell] :where(#dm-page-layers) .dm-tier,
+.app-container[data-dm-app] :where(#dm-page-layers) .dm-tier {
+  min-width: 0 !important;
+  padding: 12px 14px !important;
+}
+
+.app-container[data-dm-side-shell] :where(#dm-page-layers) :where(.dm-tier-name, .dm-tier-concepts, .dm-tier-sub, .dm-tier-task),
+.app-container[data-dm-app] :where(#dm-page-layers) :where(.dm-tier-name, .dm-tier-concepts, .dm-tier-sub, .dm-tier-task) {
+  min-width: 0 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.app-container[data-dm-side-shell] .concepts-overview,
+.app-container[data-dm-app] .concepts-overview {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.app-container[data-dm-side-shell] .section,
+.app-container[data-dm-app] .section {
+  padding: 14px !important;
+}
+
+.app-container[data-dm-side-shell] > .insight-footer,
+.app-container[data-dm-app] > .insight-footer {
+  grid-area: foot !important;
+  min-width: 0 !important;
+}
+
+@media (max-width: 1000px) {
+  .app-container[data-dm-side-shell],
+  .app-container[data-dm-app] {
+    width: min(94vw, 760px) !important;
+    grid-template-columns: 1fr !important;
+    grid-template-areas: "side" "main" !important;
+    margin: 0 auto !important;
+  }
+
+  .app-container[data-dm-side-shell]:has(> .insight-footer),
+  .app-container[data-dm-app]:has(> .insight-footer) {
+    grid-template-areas: "side" "main" "foot" !important;
+  }
+
+  .app-container[data-dm-side-shell] :where(#dm-page-layers) .dm-ladder,
+  .app-container[data-dm-app] :where(#dm-page-layers) .dm-ladder,
+  .app-container[data-dm-side-shell] .concepts-overview,
+  .app-container[data-dm-app] .concepts-overview {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+body .app-container.app-container[data-dm-side-shell],
+body .app-container.app-container[data-dm-app] {
+  grid-template-columns: 390px minmax(0, 1fr) !important;
+}
+
+body .app-container.app-container[data-dm-side-shell] > .sidebar,
+body .app-container.app-container[data-dm-app] > :where(header, .app-header, .main-header, .dashboard-header) {
+  width: auto !important;
+  max-width: none !important;
+}
+
+@media (max-width: 1000px) {
+  body .app-container.app-container[data-dm-side-shell],
+  body .app-container.app-container[data-dm-app] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+body:has(.app-container[data-dm-side-shell]),
+body:has(.app-container[data-dm-app]) {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  min-height: 0 !important;
+}
+
+body:has(.app-container[data-dm-side-shell]) > .app-container,
+body:has(.app-container[data-dm-app]) > .app-container {
+  align-self: center !important;
+  flex: 0 0 auto !important;
+}
+
+body:has(.app-container[data-dm-side-shell]) > footer:not(.insight-footer),
+body:has(.app-container[data-dm-side-shell]) > footer.site-footer,
+body:has(.app-container[data-dm-app]) > footer:not(.insight-footer),
+body:has(.app-container[data-dm-app]) > footer.site-footer {
+  margin-top: 0 !important;
+}
+
+/* ===== 侧栏式页面：顶部对齐 + app-container 撑满可用高度，彻底消除底部留白 ===== */
+body:has(.app-container > aside.sidebar) > .app-container {
+  margin-top: 0 !important;
+  flex: 0 0 auto !important;
+}
+
+/* ===== 统一双栏外框：左右等高，整体框住内容，版权置于外框下方 ===== */
+body:has(.app-container[data-dm-side-shell]),
+body:has(.app-container[data-dm-app]) {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  min-height: 0 !important;
+  padding-top: 50px !important;
+  padding-bottom: 0 !important;
+}
+
+body:has(.app-container[data-dm-side-shell]) > .app-container,
+body:has(.app-container[data-dm-app]) > .app-container {
+  width: min(94vw, 1760px) !important;
+  max-width: none !important;
+  display: grid !important;
+  grid-template-columns: 390px minmax(0, 1fr) !important;
+  grid-template-areas: "side main" !important;
+  grid-template-rows: auto !important;
+  align-items: stretch !important;
+  gap: 12px !important;
+  box-sizing: border-box !important;
+  margin: 0 auto !important;
+  padding: 12px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  background: rgba(255, 252, 245, 0.92) !important;
+  border: 1px solid rgba(214, 59, 29, 0.16) !important;
+  border-radius: 22px !important;
+  box-shadow: 0 18px 40px rgba(139, 0, 0, 0.10) !important;
+}
+
+body:has(.app-container[data-dm-side-shell]) > .app-container:has(> .insight-footer),
+body:has(.app-container[data-dm-app]) > .app-container:has(> .insight-footer) {
+  grid-template-areas: "side main" "side foot" !important;
+  grid-template-rows: auto auto !important;
+}
+
+.app-container[data-dm-side-shell] > .sidebar,
+.app-container[data-dm-app] > :where(header, .app-header, .main-header, .dashboard-header),
+.app-container[data-dm-side-shell] > .visualizer-stage,
+.app-container[data-dm-app] > :where(main, .main-stage, .comparison-stage, .triad-stage, .main-content, .dashboard-main) {
+  align-self: stretch !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.app-container[data-dm-side-shell] > .sidebar,
+.app-container[data-dm-app] > :where(header, .app-header, .main-header, .dashboard-header) {
+  grid-area: side !important;
+}
+
+.app-container[data-dm-side-shell] > .visualizer-stage,
+.app-container[data-dm-app] > :where(main, .main-stage, .comparison-stage, .triad-stage, .main-content, .dashboard-main) {
+  grid-area: main !important;
+  overflow: visible !important;
+}
+
+body:has(.app-container[data-dm-side-shell]) > footer:not(.insight-footer),
+body:has(.app-container[data-dm-side-shell]) > footer.site-footer,
+body:has(.app-container[data-dm-app]) > footer:not(.insight-footer),
+body:has(.app-container[data-dm-app]) > footer.site-footer {
+  width: 100% !important;
+  flex: 0 0 auto !important;
+  margin: 12px 0 0 !important;
+}
+
+@media (max-width: 1000px) {
+  body:has(.app-container[data-dm-side-shell]) > .app-container,
+  body:has(.app-container[data-dm-app]) > .app-container {
+    width: min(94vw, 760px) !important;
+    grid-template-columns: 1fr !important;
+    grid-template-areas: "side" "main" !important;
+    padding: 10px !important;
+  }
+
+  body:has(.app-container[data-dm-side-shell]) > .app-container:has(> .insight-footer),
+  body:has(.app-container[data-dm-app]) > .app-container:has(> .insight-footer) {
+    grid-template-areas: "side" "main" "foot" !important;
+  }
+}
+
+/* ===== 最终外框模型：外框填满剩余高度，版权在页面底部，避免页脚后裸露留白 ===== */
+body:has(.app-container[data-dm-side-shell]),
+body:has(.app-container[data-dm-app]),
+body:has(.app-container > aside.sidebar) {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  box-sizing: border-box !important;
+  min-height: 100vh !important;
+}
+
+body:has(.app-container[data-dm-side-shell]) > .app-container,
+body:has(.app-container[data-dm-app]) > .app-container,
+body:has(.app-container > aside.sidebar) > .app-container:has(> aside.sidebar) {
+  flex: 1 0 auto !important;
+  align-self: center !important;
+  display: grid !important;
+  grid-template-columns: 390px minmax(0, 1fr) !important;
+  grid-template-areas: "side main" !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+  align-items: stretch !important;
+  width: min(94vw, 1760px) !important;
+  max-width: none !important;
+  height: auto !important;
+  min-height: calc(100vh - 88px) !important;
+  margin: 0 auto !important;
+  padding: 12px !important;
+  gap: 12px !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  background: rgba(255, 252, 245, 0.92) !important;
+  border: 1px solid rgba(214, 59, 29, 0.16) !important;
+  border-radius: 22px !important;
+  box-shadow: 0 18px 40px rgba(139, 0, 0, 0.10) !important;
+}
+
+body:has(.app-container[data-dm-side-shell]) > .app-container:has(> .insight-footer),
+body:has(.app-container[data-dm-app]) > .app-container:has(> .insight-footer),
+body:has(.app-container > aside.sidebar) > .app-container:has(> aside.sidebar):has(> .insight-footer) {
+  grid-template-areas: "side main" "side foot" !important;
+  grid-template-rows: minmax(0, 1fr) auto !important;
+}
+
+body:has(.app-container[data-dm-side-shell]) > .app-container > .sidebar,
+body:has(.app-container[data-dm-app]) > .app-container > :where(header, .app-header, .main-header, .dashboard-header),
+body:has(.app-container > aside.sidebar) > .app-container:has(> aside.sidebar) > aside.sidebar,
+body:has(.app-container[data-dm-side-shell]) > .app-container > :where(main, .visualizer-stage, .main-stage, .comparison-stage, .triad-stage, .main-content, .dashboard-main),
+body:has(.app-container[data-dm-app]) > .app-container > :where(main, .main-stage, .comparison-stage, .triad-stage, .main-content, .dashboard-main),
+body:has(.app-container > aside.sidebar) > .app-container:has(> aside.sidebar) > .visualizer-stage {
+  align-self: stretch !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+body:has(.app-container[data-dm-side-shell]) > .app-container > :where(main, .visualizer-stage, .main-stage, .comparison-stage, .triad-stage, .main-content, .dashboard-main),
+body:has(.app-container[data-dm-app]) > .app-container > :where(main, .main-stage, .comparison-stage, .triad-stage, .main-content, .dashboard-main),
+body:has(.app-container > aside.sidebar) > .app-container:has(> aside.sidebar) > .visualizer-stage {
+  overflow: visible !important;
+}
+
+.app-container[data-dm-side-shell] > .visualizer-stage:has(> #dm-page-layers) {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+}
+
+.app-container:has(> aside.sidebar) > .visualizer-stage:has(> #dm-page-layers),
+.app-container:has(> .sidebar) > .visualizer-stage:has(> #dm-page-layers),
+.app-container > main.visualizer-stage:has(> #dm-page-layers),
+.app-container > .visualizer-stage:has(> #dm-page-layers) {
+  display: flex !important;
+  flex-direction: column !important;
+  flex-wrap: nowrap !important;
+  align-items: stretch !important;
+  min-width: 0 !important;
+}
+
+.app-container[data-dm-side-shell] > .visualizer-stage:has(> #dm-page-layers) > .glass-pane {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  width: 100% !important;
+}
+
+.app-container:has(> aside.sidebar) > .visualizer-stage:has(> #dm-page-layers) > .glass-pane,
+.app-container:has(> .sidebar) > .visualizer-stage:has(> #dm-page-layers) > .glass-pane,
+.app-container > main.visualizer-stage:has(> #dm-page-layers) > .glass-pane,
+.app-container > .visualizer-stage:has(> #dm-page-layers) > .glass-pane {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.app-container > main.split-stage.visualizer-stage:has(> #dm-page-layers),
+.app-container > .split-stage.visualizer-stage:has(> #dm-page-layers),
+.app-container:has(> aside.sidebar) > main.split-stage.visualizer-stage:has(> #dm-page-layers),
+.app-container:has(> aside.sidebar) > .split-stage.visualizer-stage:has(> #dm-page-layers),
+.app-container:has(> .sidebar) > main.split-stage.visualizer-stage:has(> #dm-page-layers),
+.app-container:has(> .sidebar) > .split-stage.visualizer-stage:has(> #dm-page-layers) {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: auto minmax(260px, 1fr) minmax(220px, .8fr) !important;
+  align-content: stretch !important;
+  align-items: stretch !important;
+  gap: 2px !important;
+  overflow: visible !important;
+  min-width: 0 !important;
+}
+
+.app-container > main.split-stage.visualizer-stage:has(> #dm-page-layers) > #dm-page-layers,
+.app-container > .split-stage.visualizer-stage:has(> #dm-page-layers) > #dm-page-layers,
+.app-container:has(> aside.sidebar) > main.split-stage.visualizer-stage:has(> #dm-page-layers) > #dm-page-layers,
+.app-container:has(> aside.sidebar) > .split-stage.visualizer-stage:has(> #dm-page-layers) > #dm-page-layers,
+.app-container:has(> .sidebar) > main.split-stage.visualizer-stage:has(> #dm-page-layers) > #dm-page-layers,
+.app-container:has(> .sidebar) > .split-stage.visualizer-stage:has(> #dm-page-layers) > #dm-page-layers {
+  grid-row: 1 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.app-container > main.split-stage.visualizer-stage:has(> #dm-page-layers) > .graph-panel,
+.app-container > .split-stage.visualizer-stage:has(> #dm-page-layers) > .graph-panel,
+.app-container:has(> aside.sidebar) > main.split-stage.visualizer-stage:has(> #dm-page-layers) > .graph-panel,
+.app-container:has(> aside.sidebar) > .split-stage.visualizer-stage:has(> #dm-page-layers) > .graph-panel,
+.app-container:has(> .sidebar) > main.split-stage.visualizer-stage:has(> #dm-page-layers) > .graph-panel,
+.app-container:has(> .sidebar) > .split-stage.visualizer-stage:has(> #dm-page-layers) > .graph-panel {
+  grid-row: 2 !important;
+  min-height: 260px !important;
+  min-width: 0 !important;
+}
+
+.app-container > main.split-stage.visualizer-stage:has(> #dm-page-layers) > .matrix-panel,
+.app-container > .split-stage.visualizer-stage:has(> #dm-page-layers) > .matrix-panel,
+.app-container:has(> aside.sidebar) > main.split-stage.visualizer-stage:has(> #dm-page-layers) > .matrix-panel,
+.app-container:has(> aside.sidebar) > .split-stage.visualizer-stage:has(> #dm-page-layers) > .matrix-panel,
+.app-container:has(> .sidebar) > main.split-stage.visualizer-stage:has(> #dm-page-layers) > .matrix-panel,
+.app-container:has(> .sidebar) > .split-stage.visualizer-stage:has(> #dm-page-layers) > .matrix-panel {
+  grid-row: 3 !important;
+  min-height: 220px !important;
+  min-width: 0 !important;
+}
+
+body:has(.app-container[data-dm-side-shell]) > footer:not(.insight-footer),
+body:has(.app-container[data-dm-side-shell]) > footer.site-footer,
+body:has(.app-container[data-dm-app]) > footer:not(.insight-footer),
+body:has(.app-container[data-dm-app]) > footer.site-footer,
+body:has(.app-container > aside.sidebar) > footer:not(.insight-footer),
+body:has(.app-container > aside.sidebar) > footer.site-footer {
+  width: 100% !important;
+  flex: 0 0 auto !important;
+  margin: 12px 0 0 !important;
+}
+
+@media (max-width: 1000px) {
+  body:has(.app-container[data-dm-side-shell]) > .app-container,
+  body:has(.app-container[data-dm-app]) > .app-container,
+  body:has(.app-container > aside.sidebar) > .app-container:has(> aside.sidebar) {
+    width: min(94vw, 760px) !important;
+    grid-template-columns: 1fr !important;
+    grid-template-areas: "side" "main" !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+  }
+
+  body:has(.app-container[data-dm-side-shell]) > .app-container:has(> .insight-footer),
+  body:has(.app-container[data-dm-app]) > .app-container:has(> .insight-footer),
+  body:has(.app-container > aside.sidebar) > .app-container:has(> aside.sidebar):has(> .insight-footer) {
+    grid-template-areas: "side" "main" "foot" !important;
+    grid-template-rows: auto minmax(0, 1fr) auto !important;
+  }
+}

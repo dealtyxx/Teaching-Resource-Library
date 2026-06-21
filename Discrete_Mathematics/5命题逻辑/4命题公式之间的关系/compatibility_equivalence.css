@@ -460,3 +460,246 @@ color: var(--text-dark);
     line-height: 1.6;
     margin-bottom: 12px;
 }
+
+/* Shared course shell: move the right rail left and keep the relation workspace complete. */
+.app-container[data-dm-app] {
+    width: min(96vw, 1800px) !important;
+    height: calc(100vh - 96px) !important;
+    min-height: 640px !important;
+    display: grid !important;
+    grid-template-columns: 360px minmax(0, 1fr);
+    grid-template-areas: "side main";
+    gap: 0;
+    background: rgba(255, 255, 255, 0.76) !important;
+    border: 1px solid rgba(214, 59, 29, 0.22) !important;
+    box-shadow: 0 18px 54px rgba(214, 59, 29, 0.15) !important;
+    color: var(--text-dark) !important;
+}
+
+.app-container[data-dm-app] > .main-header {
+    grid-area: side;
+    width: 360px;
+    min-width: 360px;
+    height: 100%;
+    min-height: 0;
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 18px;
+    padding: 24px;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(255, 247, 238, 0.96), rgba(255, 235, 229, 0.92)) !important;
+    border-right: 1px solid rgba(214, 59, 29, 0.16);
+    box-shadow: none !important;
+    color: var(--text-dark) !important;
+}
+
+.app-container[data-dm-app] > .main-header .header-content h1 {
+    margin: 0 0 8px;
+    font-family: var(--font-title);
+    font-size: 2.1rem;
+    line-height: 1.2;
+    font-weight: 400;
+    color: #d63b1d !important;
+    letter-spacing: 0;
+}
+
+.app-container[data-dm-app] > .main-header .highlight {
+    margin-left: 4px;
+    color: #ffb400 !important;
+}
+
+.app-container[data-dm-app] > .main-header .subtitle {
+    color: #64748b !important;
+    font-style: normal;
+    opacity: 1;
+    line-height: 1.6;
+}
+
+.app-container[data-dm-app] > .main-header .header-tabs {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0;
+    background: transparent !important;
+    border-radius: 0;
+}
+
+.app-container[data-dm-app] > .main-header .tab-btn {
+    width: 100%;
+    min-height: 46px;
+    border-radius: 12px;
+    border: 1px solid rgba(214, 59, 29, 0.16) !important;
+    background: rgba(255, 255, 255, 0.86) !important;
+    color: var(--text-dark) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.app-container[data-dm-app] > .main-header .tab-btn.active {
+    background: var(--primary-red) !important;
+    color: #fff !important;
+    border-color: var(--primary-red) !important;
+}
+
+.app-container[data-dm-app] > main.main-stage {
+    grid-area: main;
+    min-width: 0;
+    min-height: 0;
+    height: auto;
+    margin: 12px 12px 16px 0;
+    padding: 16px;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 10px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(214, 59, 29, 0.14);
+    border-radius: 20px;
+}
+
+.app-container[data-dm-app] > main.main-stage > #dm-page-layers {
+    grid-row: 1;
+    width: 100%;
+    max-width: 100%;
+}
+
+.app-container[data-dm-app] > main.main-stage > #dm-page-layers .dm-ladder {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.app-container[data-dm-app] > main.main-stage > .tab-content {
+    grid-row: 2;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto;
+    border-radius: 16px;
+    padding: 0 !important;
+}
+
+.app-container[data-dm-app] > main.main-stage > .tab-content.active {
+    display: block;
+}
+
+.app-container[data-dm-app] .content-area {
+    min-height: 100%;
+    padding: 22px;
+    border-radius: 16px;
+    overflow: visible;
+}
+
+.app-container[data-dm-app] .comparator-container {
+    max-width: 1040px;
+}
+
+.app-container[data-dm-app] .formula-input-area {
+    gap: 18px;
+}
+
+.app-container[data-dm-app] .result-panel,
+.app-container[data-dm-app] .game-container {
+    max-width: 100%;
+}
+
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel {
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    padding: 0 4px 0 0 !important;
+    background: transparent !important;
+    border-left: 0 !important;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+}
+
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel #dm-ideo-page,
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel .panel-section {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+}
+
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel .panel-section {
+    margin-bottom: 0 !important;
+    padding: 14px !important;
+    border: 1px solid rgba(214, 59, 29, 0.12) !important;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.86) !important;
+    color: var(--text-dark) !important;
+    box-shadow: 0 8px 22px rgba(214, 59, 29, 0.08);
+}
+
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel .panel-header {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+}
+
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel .panel-header h3 {
+    color: var(--primary-red);
+}
+
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel .concept-content p,
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel .insight-content p {
+    color: #64748b;
+}
+
+.app-container[data-dm-app] > .main-header > .sidebar.left-info-panel #dm-ideo-page .info-panel {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+}
+
+@media (max-width: 980px) {
+    body {
+        height: auto;
+        min-height: 100vh;
+        overflow: auto;
+        align-items: flex-start;
+        padding: 70px 0 96px;
+    }
+
+    .app-container[data-dm-app] {
+        width: min(94vw, 720px) !important;
+        height: auto !important;
+        min-height: 0 !important;
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "side"
+            "main";
+    }
+
+    .app-container[data-dm-app] > .main-header {
+        width: 100%;
+        min-width: 0;
+        height: auto;
+        overflow: visible;
+    }
+
+    .app-container[data-dm-app] > main.main-stage {
+        margin: 0 12px 16px;
+        overflow: visible;
+    }
+
+    .app-container[data-dm-app] .formula-input-area,
+    .app-container[data-dm-app] > main.main-stage > #dm-page-layers .dm-ladder {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .app-container[data-dm-app] .comparison-icon {
+        justify-self: center;
+    }
+
+    .app-container[data-dm-app] .options-grid {
+        grid-template-columns: 1fr;
+    }
+}

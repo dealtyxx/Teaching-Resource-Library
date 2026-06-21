@@ -10,9 +10,9 @@ const statusBar = document.getElementById('statusBar');
 const statusMessage = document.getElementById('statusMessage');
 const statusIcon = document.querySelector('.status-icon');
 const insightText = document.getElementById('insightText');
-const conceptName = document.getElementById('conceptName');
-const conceptMath = document.getElementById('conceptMath');
-const conceptDesc = document.getElementById('conceptDesc');
+let conceptName = document.getElementById('conceptName');
+let conceptMath = document.getElementById('conceptMath');
+let conceptDesc = document.getElementById('conceptDesc');
 const navBtns = document.querySelectorAll('.nav-btn');
 const resetBtn = document.getElementById('resetBtn');
 
@@ -38,12 +38,33 @@ let selectedSource = null;
 
 // Initialization
 function init() {
+    mountConceptCard();
     setupNav();
     renderNodes();
     updateMode('injective');
 
     // Add resize listener to redraw lines
     window.addEventListener('resize', renderConnections);
+}
+
+function mountConceptCard() {
+    const bottomPanel = document.querySelector('.bottom-panel');
+    const oldOverlay = document.querySelector('.app-container > .concept-overlay');
+    const card = document.createElement('div');
+
+    card.className = 'concept-overlay';
+    card.innerHTML = `
+        <h4 id="conceptNameLive">鍗曞皠 (Injective)</h4>
+        <div class="math-def" id="conceptMathLive">f(x1) = f(x2) => x1 = x2</div>
+        <p class="concept-desc" id="conceptDescLive">涓嶅悓鐨勮緭鍏ュ繀椤诲搴斾笉鍚岀殑杈撳嚭銆傚湪鏈嶅姟涓紝杩欐剰鍛崇潃"涓撲汉涓撹矗"锛岄伩鍏嶈亴鑳戒氦鍙夊啿绐併€?</p>
+    `;
+
+    bottomPanel.appendChild(card);
+    if (oldOverlay) oldOverlay.setAttribute('aria-hidden', 'true');
+
+    conceptName = document.getElementById('conceptNameLive');
+    conceptMath = document.getElementById('conceptMathLive');
+    conceptDesc = document.getElementById('conceptDescLive');
 }
 
 function setupNav() {
@@ -153,6 +174,11 @@ function renderConnections() {
     }
 
     const svgRect = connectionsSvg.getBoundingClientRect();
+    const width = Math.max(360, Math.round(svgRect.width || connectionsSvg.clientWidth || 720));
+    const height = Math.max(280, Math.round(svgRect.height || connectionsSvg.clientHeight || 420));
+
+    connectionsSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    connectionsSvg.setAttribute('preserveAspectRatio', 'none');
 
     mappings.forEach((targetId, sourceId) => {
         const sourceEl = domainNodes.querySelector(`[data-id="${sourceId}"]`);
@@ -162,16 +188,14 @@ function renderConnections() {
             const sRect = sourceEl.getBoundingClientRect();
             const tRect = targetEl.getBoundingClientRect();
 
-            const x1 = sRect.right - svgRect.left;
-            const y1 = sRect.top - svgRect.top + sRect.height / 2;
-            const x2 = tRect.left - svgRect.left;
-            const y2 = tRect.top - svgRect.top + tRect.height / 2;
+            const x1 = clamp(sRect.right - svgRect.left + 8, 12, width - 12);
+            const y1 = clamp(sRect.top - svgRect.top + sRect.height / 2, 12, height - 12);
+            const x2 = clamp(tRect.left - svgRect.left - 12, 12, width - 12);
+            const y2 = clamp(tRect.top - svgRect.top + tRect.height / 2, 12, height - 12);
+            const dx = Math.max(80, Math.abs(x2 - x1) * 0.45);
 
-            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            line.setAttribute('x1', x1);
-            line.setAttribute('y1', y1);
-            line.setAttribute('x2', x2);
-            line.setAttribute('y2', y2);
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            line.setAttribute('d', `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`);
             line.setAttribute('class', 'connection-line');
 
             // Allow removing connection by clicking line
@@ -185,6 +209,10 @@ function renderConnections() {
             connectionsSvg.appendChild(line);
         }
     });
+}
+
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
 }
 
 function checkStatus() {

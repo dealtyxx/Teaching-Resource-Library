@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>湖湘知识图谱 · 拓展层 — 智能问答与多跳推理</title>
+  <meta name="description" content="离散数学 3.9 拓展层：用关系合成在知识图谱上做多跳推理与智能问答">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{
+  --ink:#251713; --muted:#6c5a52; --paper:#fff8ec; --card:rgba(255,253,246,0.92);
+  --line:rgba(116,55,31,0.18); --red:#b42318; --red-2:#de5b3d; --gold:#c58a1f;
+  --green:#2f7d57; --blue:#2f5f9f; --amber:#f0a202;
+  --shadow:0 18px 50px rgba(69,31,15,0.14);
+}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;
+  background:radial-gradient(circle at 16% 12%, rgba(222,91,61,.18), transparent 28%),radial-gradient(circle at 82% 8%, rgba(47,95,159,.14), transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}
+.dot.red{background:#ff5f56;} .dot.yellow{background:#ffbd2e;} .dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}
+.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.control-group{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
+.control-group>label{display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:8px;}
+.preset{display:flex;flex-wrap:wrap;gap:6px;}
+.preset .b{padding:6px 11px;border-radius:999px;cursor:pointer;font-size:.78rem;border:1px solid var(--line);color:#8b0000;background:rgba(255,255,255,.55);font-weight:700;transition:.2s;}
+.preset .b:hover{background:#d63b1d;color:#fff;border-color:#d63b1d;}
+.pick-row{display:flex;align-items:center;gap:8px;font-size:.82rem;color:#8b0000;margin:6px 0;}
+.pick-row>span{flex-shrink:0;font-weight:700;}
+.pick-row select{flex:1;min-height:34px;padding:4px 8px;border-radius:8px;border:1px solid var(--line);font-family:inherit;color:#8b0000;background:#fffaf2;}
+.actbtn{margin-top:8px;width:100%;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#d63b1d,#b8321a);color:#fff;font:inherit;font-weight:700;cursor:pointer;font-size:.88rem;box-shadow:0 6px 16px rgba(180,35,24,.22);}
+.actbtn:hover{background:linear-gradient(135deg,#b8321a,#8d1a12);}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(139,0,0,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}
+.kg-step-head strong{color:var(--red);font-size:.95rem;}
+.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.86rem;}
+.kg-step span{display:block;font-size:.76rem;color:var(--muted);margin-top:3px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.84rem;color:#7a3216;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);} .mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}
+.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 12px;}
+.kg-box{position:relative;height:520px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,250,239,.7));overflow:hidden;}
+.kg-box svg.kg,.kg-box .nodes{position:absolute;left:50%;top:50%;width:700px;height:540px;transform:translate(-50%,-50%);}
+.entity-node{position:absolute;width:112px;height:46px;display:flex;align-items:center;justify-content:center;border-radius:10px;border:2px solid var(--line);background:rgba(255,255,255,.98);font-size:.84rem;font-weight:700;cursor:pointer;white-space:nowrap;box-shadow:0 4px 10px rgba(69,31,15,.1);transition:.25s;z-index:12;}
+.entity-node.people{border-color:#d63b1d;color:#d63b1d;}
+.entity-node.works{border-color:#2a9d8f;color:#2a9d8f;}
+.entity-node.locations{border-color:#c58a1f;color:#8a5d0b;}
+.entity-node.selected,.entity-node.highlighted{background:rgba(255,248,232,.98);color:#8b0000;border-color:#8b0000;box-shadow:0 0 0 4px rgba(139,0,0,.16),0 8px 18px rgba(139,0,0,.16);}
+.entity-node.dimmed{opacity:.4;}
+.graph-edge{stroke-width:2.2;opacity:.45;fill:none;stroke-linecap:round;transition:.3s;}
+.graph-edge.highlighted{stroke-width:3.8;opacity:1;}
+.chain{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;margin-top:14px;font-size:.9rem;color:#8b0000;line-height:1.9;min-height:120px;}
+.chain .step{display:block;margin:3px 0;}
+.chain .rel{display:inline-block;font-size:.72rem;padding:1px 9px;border-radius:10px;background:#d63b1d;color:#fff;margin:0 4px;}
+.chain .ans{font-weight:800;color:#d63b1d;}
+.chain .node{display:inline-block;padding:1px 7px;border-radius:8px;background:rgba(214,59,29,.1);margin:2px;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){
+  body{overflow:auto;}
+  .app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}
+  .side-panel,.glass-pane{max-height:none;overflow:visible;}
+}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">拓展层</span></h1>
+        <p class="subtitle">湖湘知识图谱 · 智能问答 · 多跳推理</p>
+      </div>
+      <p class="intro">智能问答 = 关系合成：把自然语言问题翻译成沿有向边的多跳遍历，逆向一段即用逆关系 R⁻¹。</p>
+
+      <div class="value-panel">
+        <h3>赓续血脉 · 文化自信</h3>
+        <p>把湖湘精神谱系建成可推理、可问答的知识图谱，让先贤思想「看得见、问得到、传得开」。</p>
+        <div class="dim-list"><span>文化自信</span><span>湖湘精神</span><span>守正创新</span></div>
+      </div>
+
+      <div class="control-group">
+        <label>常见问题（一键设链）</label>
+        <div class="preset" id="preset">
+          <span class="b" data-p="tongxiang">谁和TA同乡？</span>
+          <span class="b" data-p="chuancheng">思想传两代？</span>
+          <span class="b" data-p="shicheng">TA的学生？</span>
+          <span class="b" data-p="zhushu">TA著述了？</span>
+        </div>
+      </div>
+      <div class="control-group">
+        <label>起点实体 & 推理链（关系合成，最多 3 跳）</label>
+        <div class="pick-row"><span>从：</span><select id="start"></select></div>
+        <div class="pick-row"><span>① </span><select id="s0"></select></div>
+        <div class="pick-row"><span>② </span><select id="s1"></select></div>
+        <div class="pick-row"><span>③ </span><select id="s2"></select></div>
+        <button class="actbtn" id="run">▶ 推理</button>
+      </div>
+
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步问答互动</strong><span>点一步，看推理链、答案集合和图谱路径同步变化</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-guide="start"><b>1 选起点</b><span>{v0}：问题中的实体</span></button>
+          <button class="kg-step" type="button" data-guide="chain"><b>2 设关系链</b><span>R₁ ∘ R₂：多跳查询</span></button>
+          <button class="kg-step" type="button" data-guide="answer"><b>3 看答案</b><span>Ans：可达实体集合</span></button>
+        </div>
+        <div class="kg-feedback" id="kgFeedback">先把自然语言问题中的主体识别为起点实体 v0，例如“王夫之”。</div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-token="S">{v0} = 起点实体</span>
+          <span class="kg-token" data-token="R">R₁ ∘ R₂ = 关系合成</span>
+          <span class="kg-token" data-token="A">Ans = 可达实体集合</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>选问题或设关系链，点「推理」，看多跳遍历的红色路径与答案集合在图谱上同步高亮。</span>
+        <div class="visual-badge">关系合成 + 多跳遍历</div>
+      </section>
+      <h2 class="pane-title">推理路径（图谱高亮）</h2>
+      <p class="pane-sub">问答不是全文匹配，而是从一个实体出发、沿关系合成 R₁ ∘ R₂ ∘ … 多跳遍历得到可达实体集合。</p>
+      <div class="kg-box" id="kgGraph">
+        <svg id="kg" class="kg" viewBox="0 0 700 540" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="nodes" id="nodesLayer"></div>
+      </div>
+      <div class="chain" id="chain">选择起点与推理链，点「推理」查看多跳结果。</div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+    <div>版权所有 · 项目总负责人：谢鑫</div>
+  </footer>
+
+  <script>
+    window.SECTION_META = {
+        layers: [
+            { "name": "实体与关系", "concepts": "人物/事件节点 / 师承·同乡为边", "task": "把文化要素构建为带类型的关系图。", "page": "hunan_culture-basic.html" },
+            { "name": "多跳推理", "concepts": "关系合成 / 师承的师承 / 路径", "task": "用合成做多跳关联推理。", "page": "hunan_culture.html" },
+            { "name": "知识图谱智能问答", "concepts": "关系合成 / 多跳查询 / 文化数字化", "task": "迁移到知识图谱问答与文化传播。", "page": "hunan_culture-extend.html" }
+        ],
+        chapter: "第3章 二元关系", section: "3.9 湖湘知识图谱案例 · 拓展层", title: "智能问答与多跳推理",
+        grounding: "本页（拓展层）主题：知识图谱智能问答的本质是关系合成。把『谁和TA同乡（籍贯∘籍贯⁻¹）』『思想传两代（影响∘影响）』等自然语言问题，翻译为沿有向边的多跳遍历，逆向一段即用逆关系 R⁻¹。这正是把第3.4节关系运算（逆、合成）落到真实文化数字化场景。",
+        steps: [
+            { name: "情境引入", desc: "『王夫之的思想又通过谁影响了毛泽东？』如何让机器自动回答？" },
+            { name: "对象抽取", desc: "把问题拆解为起点实体 + 一串关系（含方向）。" },
+            { name: "结构建模", desc: "答案 = 起点经关系合成 R₁∘R₂∘… 后的可达集。" },
+            { name: "推理求解", desc: "设链→逐跳遍历→高亮路径与答案集合。" },
+            { name: "程序验证", desc: "逆向走一段=用逆关系 R⁻¹，与第3.4节一致。" },
+            { name: "迁移反思", desc: "迁移到通用知识图谱问答、文化传播与推荐。" }
+        ],
+        ideology: { title: "赓续血脉 · 文化自信", text: "把湖湘精神谱系建成可推理、可问答的知识图谱，让先贤的思想传承『看得见、问得到、传得开』。以数字技术赓续中华文脉，正是坚定文化自信、推动中华优秀传统文化创造性转化的青年担当。", dims: ["文化自信", "湖湘精神", "守正创新"] },
+        reflect: ["『师承的师承』为什么写成 师承∘师承？合成顺序能交换吗？", "逆向遍历一段，对应数学上的什么运算？"],
+        transfer: ["关系合成是知识图谱问答的数学内核——同一套方法支撑搜索、推荐与智能客服。"]
+    };
+  </script>
+
+  <script>
+    var $=function(id){return document.getElementById(id);};
+    var NODES=[
+        {id:1,n:'王夫之',t:'p'},{id:2,n:'魏源',t:'p'},{id:3,n:'曾国藩',t:'p'},{id:4,n:'左宗棠',t:'p'},
+        {id:5,n:'谭嗣同',t:'p'},{id:6,n:'杨昌济',t:'p'},{id:7,n:'毛泽东',t:'p'},{id:8,n:'蔡和森',t:'p'},
+        {id:9,n:'《海国图志》',t:'w'},{id:10,n:'湖南',t:'P'}
+    ];
+    var EDGES=[
+        {a:6,b:7,r:'师承'},{a:6,b:8,r:'师承'},
+        {a:1,b:3,r:'影响'},{a:1,b:5,r:'影响'},{a:2,b:5,r:'影响'},{a:5,b:7,r:'影响'},
+        {a:2,b:9,r:'著述'},
+        {a:1,b:10,r:'籍贯'},{a:2,b:10,r:'籍贯'},{a:3,b:10,r:'籍贯'},{a:4,b:10,r:'籍贯'},{a:5,b:10,r:'籍贯'},{a:6,b:10,r:'籍贯'},{a:7,b:10,r:'籍贯'},{a:8,b:10,r:'籍贯'}
+    ];
+    var STEP_OPTS=[['','—'],['师承|fwd','师承→(学生)'],['师承|bwd','师承←(老师)'],['影响|fwd','影响→(被影响者)'],['影响|bwd','影响←(影响源)'],['著述|fwd','著述→(作品)'],['籍贯|fwd','籍贯→(籍贯地)'],['籍贯|bwd','籍贯←(同籍者)']];
+    var RC={'师承':'#d63b1d','影响':'#e8a317','著述':'#2a9d8f','籍贯':'#7a7a8c'};
+    var pos={},guide='start';
+    function layout(){pos={1:[350,58],2:[548,116],3:[625,260],4:[548,410],5:[350,470],6:[165,410],7:[78,260],8:[188,116],9:[90,58],10:[350,270]};}
+    function nodeClass(nd){return nd.t==='p'?'people':(nd.t==='w'?'works':'locations');}
+    function nameOf(id){return NODES.filter(function(x){return x.id===id;})[0].n;}
+    var NODE_W=112,NODE_H=46;
+    function edgePath(e){
+        var p1=pos[e.a],p2=pos[e.b],dx=p2[0]-p1[0],dy=p2[1]-p1[1],len=Math.sqrt(dx*dx+dy*dy)||1;
+        var ux=dx/len,uy=dy/len;
+        function border(p,sign){var ax=Math.abs(ux),ay=Math.abs(uy),tx=ax?NODE_W/2/ax:1e6,ty=ay?NODE_H/2/ay:1e6,t=Math.min(tx,ty);return [p[0]+sign*ux*t,p[1]+sign*uy*t];}
+        var s=border(p1,1),t=border(p2,-1);
+        return 'M '+s[0].toFixed(1)+' '+s[1].toFixed(1)+' L '+t[0].toFixed(1)+' '+t[1].toFixed(1);
+    }
+    function fill(){
+        var s=$('start');NODES.forEach(function(nd){var o=document.createElement('option');o.value=nd.id;o.textContent=nd.n;s.appendChild(o);});s.value=1;
+        ['s0','s1','s2'].forEach(function(id){var sel=$(id);STEP_OPTS.forEach(function(op){var o=document.createElement('option');o.value=op[0];o.textContent=op[1];sel.appendChild(o);});});
+    }
+    function getChain(){var c=[];['s0','s1','s2'].forEach(function(id){var v=$(id).value;if(v){var p=v.split('|');c.push({r:p[0],dir:p[1]});}});return c;}
+    function run(){
+        var start=+$('start').value,chain=getChain();
+        var frontier=[start],levels=[[start]],used=[],allNodes={};allNodes[start]=1;
+        chain.forEach(function(st){
+            var next={};
+            frontier.forEach(function(u){EDGES.forEach(function(e){if(e.r!==st.r)return;if(st.dir==='fwd'&&e.a===u){next[e.b]=1;used.push(e);}if(st.dir==='bwd'&&e.b===u){next[e.a]=1;used.push(e);}});});
+            frontier=Object.keys(next).map(Number);levels.push(frontier);frontier.forEach(function(x){allNodes[x]=1;});
+        });
+        draw(allNodes,used);
+        var html='<span class="step"><b>'+nameOf(start)+'</b></span>';
+        if(!chain.length){html+='<span class="step" style="opacity:.7">（未设推理链）</span>';}
+        chain.forEach(function(st,i){
+            var label=st.r+(st.dir==='bwd'?'⁻¹':'');var lv=levels[i+1];
+            html+='<span class="step">↓ <span class="rel">'+label+'</span></span>';
+            html+='<span class="step">'+(lv.length?lv.map(function(x){return '<span class="node">'+nameOf(x)+'</span>';}).join(''):'<span style="opacity:.6">（空）</span>')+'</span>';
+        });
+        var ans=levels[levels.length-1];
+        html+='<hr style="border:none;border-top:1px dashed rgba(214,59,29,.3);margin:8px 0"><div>答案：<span class="ans">'+(ans.length?ans.map(nameOf).join('、'):'无')+'</span></div>';
+        html+='<div style="margin-top:8px;font-size:.76rem;opacity:.8">这条链就是关系合成 '+(chain.length?chain.map(function(s){return s.r+(s.dir==='bwd'?'⁻¹':'');}).join(' ∘ '):'(恒等)')+'——知识图谱问答=有向多跳遍历。</div>';
+        $('chain').innerHTML=html;
+    }
+    function draw(hot,used){
+        hot=hot||{};used=used||[];
+        var usedKey={};used.forEach(function(e){usedKey[e.a+'-'+e.b+'-'+e.r]=1;});
+        var svg='<defs><marker id="arrow-normal" markerWidth="12" markerHeight="10" refX="12" refY="5" orient="auto"><polygon points="0 0,12 5,0 10" fill="#aaa"/></marker><marker id="arrow-highlight" markerWidth="12" markerHeight="10" refX="12" refY="5" orient="auto"><polygon points="0 0,12 5,0 10" fill="#c5a059"/></marker></defs>';
+        EDGES.forEach(function(e){
+            var on=usedKey[e.a+'-'+e.b+'-'+e.r];
+            svg+='<path class="graph-edge'+(on?' highlighted':'')+'" d="'+edgePath(e)+'" style="stroke:'+(on?'#c5a059':RC[e.r])+'" marker-end="url(#'+(on?'arrow-highlight':'arrow-normal')+')"/>';
+        });
+        $('kg').innerHTML=svg;
+        var layer=$('nodesLayer'); if(!layer)return; layer.innerHTML='';
+        NODES.forEach(function(nd){
+            var p=pos[nd.id],on=!!hot[nd.id],keepVisible=guide==='start'||guide==='chain'||on;
+            var node=document.createElement('div');
+            node.className='entity-node '+nodeClass(nd)+(on?' selected highlighted':'')+(!keepVisible?' dimmed':'');
+            node.id='kg-node-'+nd.id; node.textContent=nd.n; node.dataset.id=nd.id;
+            node.style.left=(p[0]-56)+'px'; node.style.top=(p[1]-23)+'px';
+            node.onclick=function(){guide='start';syncGuideUI();$('start').value=nd.id;draw({}, []);var h={};h[nd.id]=1;draw(h,[]);$('kgFeedback').innerHTML='已选择起点实体 <b>'+nd.n+'</b>，请继续设置关系链。';$('chain').innerHTML='<span class="step"><b>'+nd.n+'</b></span><span class="step" style="opacity:.72">等待设置关系链 R₁ ∘ R₂。</span>';};
+            layer.appendChild(node);
+        });
+    }
+    var PRESETS={tongxiang:['籍贯|fwd','籍贯|bwd',''],chuancheng:['影响|fwd','影响|fwd',''],shicheng:['师承|fwd','',''],zhushu:['著述|fwd','','']};
+    function syncGuideUI(){
+        document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.guide===guide);});
+        document.querySelectorAll('.kg-token').forEach(function(t){
+            t.classList.toggle('on',(guide==='start'&&t.dataset.token==='S')||(guide==='chain'&&t.dataset.token==='R')||(guide==='answer'&&t.dataset.token==='A'));
+        });
+    }
+    function setGuide(g){
+        guide=g;syncGuideUI();
+        if(g==='start'){
+            $('start').value=1;['s0','s1','s2'].forEach(function(id){$(id).value='';});
+            var h={1:1};draw(h,[]);
+            $('kgFeedback').innerHTML='从问题中抽取起点实体 <b>{v0}</b>。图谱先只高亮“王夫之”，说明问答不是全文匹配，而是从一个实体出发。';
+            $('chain').innerHTML='<span class="step"><b>'+nameOf(1)+'</b></span><span class="step" style="opacity:.72">等待设置关系链 R₁ ∘ R₂。</span>';
+        }else if(g==='chain'){
+            $('start').value=1;$('s0').value='影响|fwd';$('s1').value='影响|fwd';$('s2').value='';
+            $('kgFeedback').innerHTML='把“思想传两代”翻译为 <b>影响 ∘ 影响</b>。关系链一旦确定，图谱会按箭头逐跳展开。';
+            run();
+        }else{
+            $('start').value=1;$('s0').value='影响|fwd';$('s1').value='影响|fwd';$('s2').value='';
+            $('kgFeedback').innerHTML='答案集合 <b>Ans</b> 是沿关系合成后最终可达的实体；红色路径就是机器给出答案的推理证据。';
+            run();
+        }
+    }
+    $('preset').querySelectorAll('.b').forEach(function(b){b.onclick=function(){var p=PRESETS[b.dataset.p];['s0','s1','s2'].forEach(function(id,i){$(id).value=p[i];});if(b.dataset.p==='chuancheng')$('start').value=1;if(b.dataset.p==='shicheng')$('start').value=6;if(b.dataset.p==='zhushu')$('start').value=2;guide='answer';syncGuideUI();$('kgFeedback').innerHTML='常见问题已自动翻译成起点实体与关系链，图中红色路径展示问答证据。';run();};});
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setGuide(b.dataset.guide);};});
+    $('run').onclick=function(){guide='answer';syncGuideUI();$('kgFeedback').innerHTML='手动设置的关系链已完成遍历，答案集合和高亮路径同步更新。';run();};
+    layout();fill();setGuide('start');
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

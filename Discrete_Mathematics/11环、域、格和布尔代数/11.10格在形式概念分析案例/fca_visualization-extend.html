@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>形式概念分析 · 拓展层 — 知识发现</title>
+  <meta name="description" content="11.10 形式概念分析 拓展层：蕴含规则挖掘、概念推荐与智慧政务知识发现">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1500px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.tab-nav{display:flex;flex-direction:column;gap:6px;}
+.tab-btn{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);color:#5b4136;cursor:pointer;font:inherit;font-weight:700;font-size:14px;transition:all .2s;text-align:left;}
+.tab-btn:hover{background:rgba(180,35,24,.08);color:var(--red);}
+.tab-btn.active{background:var(--red);color:#fff;border-color:var(--red);box-shadow:0 6px 16px rgba(180,35,24,.25);}
+.tab-btn .ico{font-size:18px;}
+.sidebar-dyn{display:grid;gap:10px;}
+.ctrl-box{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
+.ctrl-box>label{display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:8px;}
+.attrchips{display:flex;gap:6px;flex-wrap:wrap;}
+.attrchip{padding:6px 10px;border-radius:8px;border:1.5px solid var(--line);background:rgba(255,255,255,.7);color:#5b4136;font-weight:700;font-size:.8rem;cursor:pointer;transition:.12s;}
+.attrchip.on{background:var(--gold);color:#3d2b25;border-color:var(--gold);}
+.rulebtns{display:flex;flex-direction:column;gap:6px;}
+.rulebtn{padding:7px 10px;border-radius:8px;border:1.5px solid var(--line);background:rgba(255,255,255,.7);cursor:pointer;font:inherit;font-weight:700;font-size:.8rem;color:#5b4136;text-align:left;transition:.12s;}
+.rulebtn.on{background:var(--red);color:#fff;border-color:var(--red);}
+.kg-feedback{padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.83rem;color:#7a3216;line-height:1.75;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.72rem;color:#a05a5a;font-weight:700;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;}
+.qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.86rem;color:#5b4136;line-height:1.85;}
+.qres b{color:var(--red);}.qres .formula{font-family:"JetBrains Mono",monospace;font-weight:800;color:var(--red);}
+.qres .tag{display:inline-block;padding:2px 9px;border-radius:11px;margin:2px;font-size:.77rem;font-weight:700;}
+.qres .have{background:rgba(47,125,87,.15);color:#1c6b48;}.qres .rec{background:rgba(214,59,29,.16);color:var(--red);}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.tab-content{display:none;flex-direction:column;flex:1;}.tab-content.active{display:flex;animation:fade .3s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 8px;}
+.fctx{border-collapse:collapse;width:100%;font-size:12px;margin-bottom:8px;}
+.fctx th,.fctx td{border:1px solid var(--line);padding:5px 4px;text-align:center;}
+.fctx thead th{background:rgba(47,95,159,.08);color:var(--blue);font-weight:800;}
+.fctx thead th.lhs{background:var(--gold);color:#3d2b25;}.fctx thead th.rhs{box-shadow:inset 0 -4px 0 var(--red);}
+.fctx .objname{text-align:left;font-weight:700;color:#4e362d;background:rgba(255,255,255,.5);}
+.fctx tr.hitrow td{background:rgba(47,125,87,.10);}
+.fctx td.cellhit{color:var(--green);font-weight:900;}
+.svgbox{flex:1;min-height:300px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(255,250,239,.7));padding:6px;display:flex;align-items:center;}
+.viz{width:100%;height:auto;display:block;}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:13px 15px;margin-top:12px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}.insight-box p{margin:0;font-size:13.5px;line-height:1.7;color:#4e362d;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">拓展层</span></h1>
+        <p class="subtitle">形式概念分析 · 知识发现</p>
+      </div>
+      <p class="intro">从概念格走向知识发现：挖掘<b>属性蕴含规则</b>、按规则做<b>概念推荐</b>（短板补齐）、用<b>洞察看板</b>支撑智慧政务的科学决策。</p>
+
+      <div class="value-panel">
+        <h3>智慧治理 · 数据赋能</h3>
+        <p>以数学方法把数据转化为知识、把知识转化为治理效能——这正是数字政府、智慧政务建设中数据赋能、便民利民的价值追求。</p>
+        <div class="dim-list"><span>智慧治理</span><span>数据赋能</span><span>系统观念</span></div>
+      </div>
+
+      <nav class="tab-nav" id="tabNav">
+        <button class="tab-btn active" data-tab="tab1"><span class="ico">⇒</span><span>蕴含规则挖掘</span></button>
+        <button class="tab-btn" data-tab="tab2"><span class="ico">🎯</span><span>概念推荐 · 短板补齐</span></button>
+        <button class="tab-btn" data-tab="tab3"><span class="ico">📊</span><span>智慧政务洞察看板</span></button>
+      </nav>
+
+      <div class="sidebar-dyn" id="sidebarDyn"></div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>挖掘服务属性的蕴含规则、为平台推荐应补齐的能力、用洞察看板发现普及短板。</span>
+        <div class="visual-badge">知识发现 · FCA</div>
+      </section>
+
+      <!-- Tab1 -->
+      <div class="tab-content active" id="tab1">
+        <h2 class="pane-title">属性蕴含规则挖掘</h2>
+        <p class="pane-sub">规则『A ⇒ B』：凡具备 A 的平台都具备 B（置信 100%）。点左侧规则，矩阵中 A 列（金）、B 列（红下划线）、满足平台（绿行）同步高亮。</p>
+        <div id="matrix1"></div>
+        <div class="insight-box">
+          <div class="insight-title">⇒ 从数据自动读出规律</div>
+          <p>蕴含规则是概念格的『副产品』：无需人工设定，FCA 自动发现『有 A 必有 B』的强规律。例如『数据安全 ⇒ 全程网办』提示——注重安全的平台往往已实现全程网办。这类规律支撑政务服务的标准制定与短板治理。</p>
+        </div>
+      </div>
+
+      <!-- Tab2 -->
+      <div class="tab-content" id="tab2">
+        <h2 class="pane-title">概念推荐 · 短板补齐</h2>
+        <p class="pane-sub">勾选某平台当前具备的属性，系统按蕴含规则求<b>闭包</b>，推荐应补齐的能力（绿=已有，红=建议补齐）。</p>
+        <div class="svgbox" id="vbox2"><svg class="viz" id="viz2" viewBox="0 0 720 320" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <div class="insight-box">
+          <div class="insight-title">🎯 用规则推荐，补齐治理短板</div>
+          <p>把一个平台已有属性做<b>闭包</b>，就得到它『按规律本应具备』的全部能力；闭包中尚缺的属性，正是<b>建议补齐的短板</b>。这把抽象的格论变成可执行的治理建议——数据赋能、精准施策。</p>
+        </div>
+      </div>
+
+      <!-- Tab3 -->
+      <div class="tab-content" id="tab3">
+        <h2 class="pane-title">智慧政务洞察看板</h2>
+        <p class="pane-sub">属性普及率（哪些能力已普及、哪些是短板）与概念规模一览，支撑数据驱动的科学决策。</p>
+        <div class="svgbox" id="vbox3" style="min-height:320px"><svg class="viz" id="viz3" viewBox="0 0 720 360" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <div class="insight-box">
+          <div class="insight-title">📊 用数据说话、用数据决策</div>
+          <p>看板把『对象–属性』数据汇成普及率与概念结构：普及率高的属性是<b>底线能力</b>，普及率低的是<b>共性短板</b>，应优先攻坚。FCA 让零散政务数据自动转化为可解释、可决策的知识，落地为便民利民的治理效能。</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
+
+  <script>
+    window.SECTION_META = {
+      "chapter": "第11章 环、域、格和布尔代数", "section": "11.10 格在形式概念分析案例 · 拓展层", "title": "知识发现",
+      "grounding": "本页（拓展层）主题：从概念格走向知识发现。挖掘属性蕴含规则（A⇒B，置信100%）、用闭包为平台做概念推荐与短板补齐、用属性普及率与概念规模看板支撑智慧政务的数据驱动决策。FCA 把对象-属性数据自动转化为可解释、可决策的知识。",
+      "steps": [
+        {"name": "情境引入", "desc": "如何从政务数据中自动发现规律并支撑决策？"},
+        {"name": "对象抽取", "desc": "把平台-能力抽象为形式背景与概念格。"},
+        {"name": "结构建模", "desc": "用蕴含规则、闭包推荐、普及率刻画知识。"},
+        {"name": "推理求解", "desc": "挖掘规则、求闭包推荐、统计普及短板。"},
+        {"name": "程序验证", "desc": "点规则、勾属性求推荐、看洞察看板。"},
+        {"name": "迁移反思", "desc": "迁移到知识图谱、推荐系统、领域本体与智慧政务。"}
+      ],
+      "ideology": {"title": "智慧政务 · 数据赋能", "text": "形式概念分析用格结构从政务数据中自动梳理概念层级、发现规律，助力科学决策与精细治理。以数学方法把数据转化为知识、把知识转化为治理效能，体现数字政府、智慧政务建设中数据赋能、便民利民的价值追求。", "dims": ["智慧治理", "数据赋能", "系统观念"], "quote": "用数据说话、用数据决策——概念格把零散数据梳理成清晰的知识层级，赋能智慧政务。"},
+      "reflect": ["蕴含规则为何能由概念格自动读出且置信100%？", "用闭包做推荐与人工设定规则相比有何优势？", "属性普及率看板如何帮助识别共性短板、优先攻坚？"],
+      "transfer": ["FCA 用于知识图谱构建、推荐系统、领域本体；智慧政务的标准制定与短板治理。"],
+      "layers": [
+        {"name": "形式概念", "concepts": "外延·内涵 / 对偶偏序", "task": "理解(外延,内涵)构成的概念。", "page": "fca_visualization-basic.html"},
+        {"name": "概念格", "concepts": "上下确界 / 一般-特殊层级 / 蕴含规则", "task": "构造概念格、挖掘知识结构。", "page": "fca_visualization.html"},
+        {"name": "知识发现", "concepts": "本体 / 推荐 / 智慧政务", "task": "迁移到知识图谱与智慧政务。", "page": "fca_visualization-extend.html"}
+      ]
+    };
+  </script>
+
+  <script>
+  (function(){
+    "use strict";
+    var $=function(id){return document.getElementById(id);};
+    var ATTRS=['响应迅速','流程简便','数据安全','服务贴心','全程网办'];
+    var OBJS=[{n:'一网通办',a:[0,1,2,3,4]},{n:'掌上政务',a:[0,1,3,4]},{n:'政务热线',a:[0,3]},{n:'安全中心',a:[0,2,4]},{n:'自助终端',a:[0,1,4]},{n:'惠企平台',a:[0,3,4]}];
+    var ALL=[0,1,2,3,4];
+    function intent(X){if(!X.length)return ALL.slice();return ALL.filter(function(at){return X.every(function(oi){return OBJS[oi].a.indexOf(at)>=0;});});}
+    function extentY(Y){var e=[];OBJS.forEach(function(o,i){if(Y.every(function(j){return o.a.indexOf(j)>=0;}))e.push(i);});return e;}
+    function closure(Y){return intent(extentY(Y));}
+    // single-attr implications
+    var IMPL=[];ALL.forEach(function(at){var cl=closure([at]);var rhs=cl.filter(function(x){return x!==at;});if(rhs.length)IMPL.push({lhs:at,rhs:rhs,ext:extentY([at])});});
+    // concepts count
+    var CONC=(function(){var seen={},c=[];for(var m=0;m<32;m++){var Y=[];for(var i=0;i<5;i++)if(m&(1<<i))Y.push(i);var k=closure(Y).join(',');if(!seen[k]){seen[k]=1;c.push(k);}}return c.length;})();
+    var C_HAVE='#2f7d57',C_REC='#d63b1d';
+    function txt(x,y,t,c,s,w){return '<text x="'+x+'" y="'+y+'" text-anchor="middle" font-family="Noto Serif SC,serif" font-size="'+(s||13)+'" font-weight="'+(w||'700')+'" fill="'+(c||'#4e362d')+'">'+t+'</text>';}
+
+    // ===== Tab1 =====
+    var rsel=0;
+    function buildMatrix1(){
+      var r=IMPL[rsel];var lhs=r.lhs,rhs=r.rhs,ext=r.ext;
+      var html='<table class="fctx"><thead><tr><th class="objname">平台 \\ 能力</th>';
+      ATTRS.forEach(function(at,j){var c='';if(j===lhs)c='lhs';else if(rhs.indexOf(j)>=0)c='rhs';html+='<th class="'+c+'">'+at+'</th>';});
+      html+='</tr></thead><tbody>';
+      OBJS.forEach(function(o,i){var isE=ext.indexOf(i)>=0;html+='<tr class="'+(isE?'hitrow':'')+'"><td class="objname">'+o.n+'</td>';
+        ATTRS.forEach(function(at,j){var hit=o.a.indexOf(j)>=0;html+='<td class="'+(hit?'cellhit':'')+'">'+(hit?'●':'·')+'</td>';});html+='</tr>';});
+      html+='</tbody></table>';$('matrix1').innerHTML=html;
+      $('t1res').innerHTML='<span class="formula">'+ATTRS[lhs]+' ⇒ '+rhs.map(function(x){return ATTRS[x];}).join(' ∧ ')+'</span><br>满足『'+ATTRS[lhs]+'』的平台（'+ext.length+' 个）：'+ext.map(function(i){return '<span class="tag have">'+OBJS[i].n+'</span>';}).join('')+'　它们<b>无一例外</b>都具备右侧能力。';
+    }
+
+    // ===== Tab2 =====
+    var sel2=[1]; // 流程简便
+    function renderTab2(){
+      var cl=closure(sel2);var rec=cl.filter(function(x){return sel2.indexOf(x)<0;});
+      var svg='',bw=120,gap=14,n=ATTRS.length,x0=(720-(n*bw+(n-1)*gap))/2;
+      svg+=txt(360,34,'平台已有能力 → 闭包补全 → 推荐短板','#b42318',15,'800');
+      ATTRS.forEach(function(at,j){var x=x0+j*(bw+gap);var has=sel2.indexOf(j)>=0,isRec=rec.indexOf(j)>=0;
+        var fill=has?'rgba(47,125,87,.85)':(isRec?'rgba(214,59,29,.16)':'rgba(255,255,255,.9)');
+        var stroke=has?'#2f7d57':(isRec?'#d63b1d':'rgba(116,90,60,.4)');
+        svg+='<rect x="'+x+'" y="90" width="'+bw+'" height="70" rx="9" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+(has||isRec?2.8:1.6)+'"/>';
+        svg+=txt(x+bw/2,124,at,has?'#fff':(isRec?'#b42318':'#5b4136'),13,'800');
+        svg+=txt(x+bw/2,148,has?'已有 ✓':(isRec?'建议补齐':'—'),has?'#eafff2':(isRec?'#b42318':'#9a8b80'),11,'700');});
+      svg+=txt(360,210,rec.length?('按蕴含规则，建议补齐：'+rec.map(function(x){return ATTRS[x];}).join('、')):'已是闭合概念，无需补齐 ✓',rec.length?'#b42318':'#2f7d57',14,'800');
+      svg+=txt(360,250,'闭包 = (已选能力)″ ：把『按规律本应具备』的能力补全','#6c5a52',12,'600');
+      $('viz2').innerHTML=svg;
+      var selN=sel2.map(function(i){return ATTRS[i];}),recN=rec.map(function(i){return ATTRS[i];});
+      $('t2res').innerHTML='<span class="formula">闭包({'+selN.join(',')+'}) = {'+cl.map(function(i){return ATTRS[i];}).join(',')+'}</span><br>已有：'+selN.map(function(n){return '<span class="tag have">'+n+'</span>';}).join('')+'<br>建议补齐：'+(recN.length?recN.map(function(n){return '<span class="tag rec">'+n+'</span>';}).join(''):'<span class="ok" style="color:#2f7d57;font-weight:800">无（已闭合）</span>');
+    }
+
+    // ===== Tab3 =====
+    function renderTab3(){
+      var svg='',n=ATTRS.length,bw=80,gap=30,x0=70,baseY=250,maxH=160;
+      svg+=txt(360,34,'各项能力普及率（具备该能力的平台占比）','#b42318',15,'800');
+      var prev=ATTRS.map(function(at,j){return extentY([j]).length;});
+      ATTRS.forEach(function(at,j){var cnt=prev[j],rate=cnt/OBJS.length,h=Math.max(12,rate*maxH),x=x0+j*(bw+gap),y=baseY-h;
+        var low=rate<0.5;
+        svg+='<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+h+'" rx="6" fill="'+(low?'rgba(214,59,29,.7)':'rgba(47,125,87,.7)')+'" stroke="'+(low?'#8b0000':'#2f7d57')+'" stroke-width="1.6"/>';
+        svg+=txt(x+bw/2,y-9,Math.round(rate*100)+'%',low?'#b42318':'#2f7d57',13,'800');
+        svg+=txt(x+bw/2,baseY+20,at,'#4e362d',12,'800');
+        svg+=txt(x+bw/2,baseY+38,cnt+'/'+OBJS.length,'#6c5a52',11,'600');
+        if(low)svg+=txt(x+bw/2,baseY+56,'短板','#b42318',11,'800');});
+      svg+=txt(360,330,'共生成 '+CONC+' 个形式概念　·　红色为普及率<50% 的共性短板，应优先攻坚','#6c5a52',12.5,'700');
+      $('viz3').innerHTML=svg;
+    }
+
+    // ===== tabs =====
+    $('tabNav').querySelectorAll('.tab-btn').forEach(function(b){b.addEventListener('click',function(){switchTab(b.dataset.tab);});});
+    function switchTab(id){$('tabNav').querySelectorAll('.tab-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tab===id);});document.querySelectorAll('.tab-content').forEach(function(c){c.classList.toggle('active',c.id===id);});updateSidebar(id);}
+    function updateSidebar(id){
+      var sd=$('sidebarDyn');
+      if(id==='tab1'){
+        sd.innerHTML='<div class="ctrl-box"><label>点选蕴含规则（共 '+IMPL.length+' 条）</label><div class="rulebtns" id="rb"></div></div>'+
+          '<div class="kg-feedback">规则 A⇒B：凡具备 A 的平台都具备 B。点规则看矩阵高亮。『响应迅速』为普适能力（所有平台都有）。</div>'+
+          '<div class="kg-formula-row"><span class="kg-token on">A ⇒ B</span><span class="kg-token on">置信 100%</span></div>'+
+          '<div class="qres" id="t1res"></div>';
+        $('rb').innerHTML=IMPL.map(function(r,i){return '<button class="rulebtn'+(i===rsel?' on':'')+'" data-i="'+i+'">'+ATTRS[r.lhs]+' ⇒ '+r.rhs.map(function(x){return ATTRS[x];}).join('∧')+'</button>';}).join('');
+        $('rb').querySelectorAll('.rulebtn').forEach(function(b){b.onclick=function(){rsel=+b.dataset.i;$('rb').querySelectorAll('.rulebtn').forEach(function(x,j){x.classList.toggle('on',j===rsel);});buildMatrix1();};});
+        buildMatrix1();
+      } else if(id==='tab2'){
+        sd.innerHTML='<div class="ctrl-box"><label>勾选平台当前具备的能力</label><div class="attrchips" id="ac2"></div></div>'+
+          '<div class="kg-feedback">求所选能力的闭包：把『按蕴含规则本应具备』的能力补全，缺的即建议补齐的短板。</div>'+
+          '<div class="kg-formula-row"><span class="kg-token on">闭包 (Y)″</span><span class="kg-token on">短板补齐</span></div>'+
+          '<div class="qres" id="t2res"></div>';
+        $('ac2').innerHTML=ATTRS.map(function(at,j){return '<span class="attrchip'+(sel2.indexOf(j)>=0?' on':'')+'" data-j="'+j+'">'+at+'</span>';}).join('');
+        $('ac2').querySelectorAll('.attrchip').forEach(function(c){c.onclick=function(){var j=+c.dataset.j,k=sel2.indexOf(j);if(k>=0)sel2.splice(k,1);else sel2.push(j);c.classList.toggle('on');renderTab2();};});
+        renderTab2();
+      } else {
+        sd.innerHTML='<div class="ctrl-box"><label>洞察看板</label><div style="font-size:12.5px;color:#6c5a52;line-height:1.7">右侧柱状图为各能力在 '+OBJS.length+' 个政务平台中的普及率。绿色=已普及的底线能力，红色=普及率<50% 的共性短板。</div></div>'+
+          '<div class="kg-feedback">普及率高=底线能力，低=共性短板应优先攻坚。FCA 把数据汇成可决策的知识。</div>'+
+          '<div class="kg-formula-row"><span class="kg-token on">普及率</span><span class="kg-token on">短板攻坚</span><span class="kg-token on">'+CONC+' 概念</span></div>';
+        renderTab3();
+      }
+    }
+    updateSidebar('tab1');
+  })();
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

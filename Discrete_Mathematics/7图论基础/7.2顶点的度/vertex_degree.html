@@ -13,6 +13,9 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="vertex_degree.css" data-page-fix="1">
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
@@ -35,8 +38,8 @@
     <div class="app-container">
         <header class="main-header">
             <div class="header-content">
-                <h1>红色数理 <span class="highlight">顶点的度</span></h1>
-                <p class="subtitle">Vertex Degree: Measuring Contribution and Influence</p>
+                <h1>红色数理 <span class="highlight">进阶层</span></h1>
+                <p class="subtitle">顶点度数雷达 · 顶点的度</p>
             </div>
             <div class="connection-badge">
                 <span class="badge-icon">🤝</span>
@@ -80,7 +83,7 @@
                 <div class="panel-section">
                     <div class="panel-header">
                         <span class="panel-icon">🚩</span>
-                        <h3>思政启示</h3>
+                        <h3>价值启示</h3>
                     </div>
                     <div class="ideology-content" id="ideologyContent">
                         <!-- Ideology content will be injected by JS -->
@@ -158,6 +161,23 @@
         </main>
     </div>
 
+    <script>
+        (function () {
+            var header = document.querySelector('.main-header');
+            var leftPanel = document.querySelector('main.main-stage > .left-panel');
+            var anchor = header && (header.querySelector('.connection-badge') || header.querySelector('.header-content'));
+            if (leftPanel && header && anchor) {
+                var prioritySections = Array.prototype.slice.call(leftPanel.querySelectorAll(':scope > .panel-section')).filter(function (section) {
+                    var title = section.querySelector('.panel-header h3');
+                    return title && /核心概念|价值启示|互动操作/.test(title.textContent);
+                });
+                prioritySections.reverse().forEach(function (section) {
+                    section.classList.add('left-priority-panel');
+                    anchor.insertAdjacentElement('afterend', section);
+                });
+            }
+        })();
+    </script>
     <script src="vertex_degree.js"></script>
 
 <!-- 固定底部版权信息 -->
@@ -166,19 +186,100 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "layers": [
+            {
+                  "name": "顶点的度",
+                  "concepts": "deg(v)=关联边数 / 出·入度",
+                  "task": "计算顶点的度。",
+                  "page": "vertex_degree-basic.html"
+            },
+            {
+                  "name": "握手定理",
+                  "concepts": "Σdeg=2|E| / 奇度顶点偶数个",
+                  "task": "用握手定理推算边数、判可图化。",
+                  "page": "vertex_degree.html"
+            },
+            {
+                  "name": "中心性与无标度",
+                  "concepts": "度中心性 / 枢纽 / 幂律分布",
+                  "task": "迁移到网络影响力与鲁棒性。",
+                  "page": "vertex_degree-extend.html"
+            }
+      ],
+      "chapter": "第7章 图论基础",
+      "section": "7.2 顶点的度 · 进阶层",
+      "title": "顶点的度",
+      "grounding": "本节主题：顶点的度 deg(v)=关联边数（自环计2）；握手定理 Σdeg(v)=2|E|，推论：奇度顶点个数为偶。有向图分出度/入度，Σ出度=Σ入度=|E|。度数刻画顶点的『连接强度/影响力』。",
+      "steps": [
+            {
+                  "name": "情境引入",
+                  "desc": "网络中谁是『关键人物』？如何量化一个节点的影响力？"
+            },
+            {
+                  "name": "对象抽取",
+                  "desc": "把『连接多少』抽象为顶点的度。"
+            },
+            {
+                  "name": "结构建模",
+                  "desc": "用度数与握手定理刻画图的整体约束。"
+            },
+            {
+                  "name": "推理求解",
+                  "desc": "用握手定理计算边数、判断度序列可实现性。"
+            },
+            {
+                  "name": "程序验证",
+                  "desc": "用本页交互统计度数，验证握手定理。"
+            },
+            {
+                  "name": "迁移反思",
+                  "desc": "迁移到中心性、网络枢纽、度分布。"
+            }
+      ],
+      "ideology": {
+            "title": "贡献与影响 · 担当作为",
+            "text": "顶点的度衡量其连接与影响，启示我们：一个人对集体的价值，在于他承担了多少联系、传递了多少正能量。握手定理『奇度顶点成对出现』，则隐喻责任与协作的平衡——多一分担当，网络就多一分坚韧。",
+            "dims": [
+                  "责任担当",
+                  "奉献精神",
+                  "系统观念"
+            ],
+            "quote": "我将无我，不负人民——度数越高，连接越多，意味着越大的担当与影响。"
+      },
+      "reflect": [
+            "握手定理 Σdeg(v)=2|E| 为什么成立？每条边对度数和贡献几次？",
+            "为什么任何图中『奇度顶点』的个数必为偶数？",
+            "给定一个度序列，如何判断是否存在对应的简单图（可图化）？"
+      ],
+      "transfer": [
+            "社交网络的『度中心性』用度数衡量影响力，是网络分析的基本指标。",
+            {
+                  "t": "无标度网络",
+                  "d": "互联网的度分布呈幂律（少数枢纽高度连接），这带来什么鲁棒性与脆弱性？"
+            }
+      ]
+};
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 

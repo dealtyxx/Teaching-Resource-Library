@@ -53,7 +53,7 @@ const HOMOMORPHISM_DEFINITIONS = {
 };
 
 // ============================================
-// 思政案例数据
+// 价值引领案例数据
 // ============================================
 const CASES = [
     {
@@ -406,7 +406,7 @@ function showHierarchy() {
 
         <div style="margin-top: 1rem; padding: 1rem; background: linear-gradient(135deg, rgba(214, 59, 29, 0.1), rgba(255, 180, 0, 0.1)); border-radius: 8px; border: 2px solid var(--accent-red);">
             <div style="font-size: 0.85rem; line-height: 1.8; color: var(--text-secondary);">
-                <p style="margin-bottom: 0.5rem;"><strong style="color: var(--accent-red);">思政启示：</strong></p>
+                <p style="margin-bottom: 0.5rem;"><strong style="color: var(--accent-red);">价值启示：</strong></p>
                 <p style="margin-bottom: 0.3rem;">同态→同构：从一般到特殊，从形式相似到本质相同</p>
                 <p style="margin-bottom: 0.3rem;">同态→自同态：从外部变换到内部演化，自我革命</p>
                 <p>自同构：最高形式，既保持本质又实现变革</p>
@@ -481,7 +481,7 @@ function loadCase(index) {
     updateDefinitionPanel(currentType);
     updateCasesList(currentType);
 
-    // 更新思政内涵
+    // 更新价值内涵
     document.getElementById('philosophyPanel').innerHTML =
         `<p style="font-size: 0.85rem; line-height: 1.6;">${caseData.philosophy}</p>`;
 

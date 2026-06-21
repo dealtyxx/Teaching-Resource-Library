@@ -14,8 +14,9 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet">
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6" defer></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
 </head>
 
 <body>
@@ -38,8 +39,8 @@
     <div class="app-container">
         <header class="main-header">
             <div class="header-content">
-                <h1>红色数理 <span class="highlight">图的运算</span></h1>
-                <p class="subtitle">Graph Operations: The Dialectics of Change</p>
+                <h1>红色数理 <span class="highlight">进阶层</span></h1>
+                <p class="subtitle">图运算工作台 · 图的运算</p>
             </div>
             <div class="ideology-badge">
                 <span class="badge-icon">🔄</span>
@@ -132,6 +133,19 @@
         </main>
     </div>
 
+    <script>
+        (function () {
+            var header = document.querySelector('.main-header');
+            var leftPanel = document.querySelector('main.main-stage > .left-panel');
+            var anchor = header && (header.querySelector('.ideology-badge') || header.querySelector('.header-content'));
+            if (leftPanel && header && anchor) {
+                Array.prototype.slice.call(leftPanel.querySelectorAll(':scope > .panel-section')).reverse().forEach(function (section) {
+                    section.classList.add('left-priority-panel');
+                    anchor.insertAdjacentElement('afterend', section);
+                });
+            }
+        }());
+    </script>
     <script src="graph_operations.js"></script>
 
 <!-- 固定底部版权信息 -->
@@ -140,19 +154,100 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "layers": [
+            {
+                  "name": "图的集合运算",
+                  "concepts": "并 / 交 / 差 / 补",
+                  "task": "对图施加基本集合运算。",
+                  "page": "graph_operations-basic.html"
+            },
+            {
+                  "name": "删点删边与积",
+                  "concepts": "删点·删边 / 收缩 / 联合·笛卡尔积",
+                  "task": "由小图构造大图、分解分析。",
+                  "page": "graph_operations.html"
+            },
+            {
+                  "name": "鲁棒性与模块化",
+                  "concepts": "网络容错 / 模块拼装",
+                  "task": "迁移到鲁棒性分析与模块化设计。",
+                  "page": "graph_operations-extend.html"
+            }
+      ],
+      "chapter": "第7章 图论基础",
+      "section": "7.5 图的运算 · 进阶层",
+      "title": "图的运算",
+      "grounding": "本节主题：图的运算——并、交、差、补、删点/删边、收缩、联合、笛卡尔积等。运算用于由简单图构造复杂图，或把复杂图分解分析。删点删边常用于连通性与鲁棒性分析。",
+      "steps": [
+            {
+                  "name": "情境引入",
+                  "desc": "如何由小网络拼出大网络、或拆解大网络来分析？"
+            },
+            {
+                  "name": "对象抽取",
+                  "desc": "把网络的合并、裁剪抽象为图运算。"
+            },
+            {
+                  "name": "结构建模",
+                  "desc": "用并/交/差/补/删点删边等运算变换图。"
+            },
+            {
+                  "name": "推理求解",
+                  "desc": "计算运算结果，分析对连通性/度的影响。"
+            },
+            {
+                  "name": "程序验证",
+                  "desc": "用本页交互对图施加运算，观察结构变化。"
+            },
+            {
+                  "name": "迁移反思",
+                  "desc": "迁移到网络鲁棒性、容错设计、模块化。"
+            }
+      ],
+      "ideology": {
+            "title": "变革的辩证法 · 守正创新",
+            "text": "图的运算是『破与立』的辩证统一——删去冗余、添加联结、整合资源，正如改革中『有破有立、破立并举』。分析删点删边对连通性的冲击，启示我们既要锐意变革，也要守住网络韧性的底线，于变局中开新局。",
+            "dims": [
+                  "辩证思维",
+                  "改革创新",
+                  "底线思维"
+            ],
+            "quote": "明者因时而变，知者随事而制——图的运算正是因势而变、整合重构的数学手段。"
+      },
+      "reflect": [
+            "删去一个度数很高的顶点，对图的连通性可能造成什么影响？",
+            "图的笛卡尔积如何由两个小图构造规模更大的规则网络？",
+            "哪些运算会破坏二部性、哪些会保持？"
+      ],
+      "transfer": [
+            "网络鲁棒性分析靠『删点删边』模拟攻击与故障，评估关键节点。",
+            {
+                  "t": "模块化设计",
+                  "d": "用图的联合/积把模块拼装成系统，如何兼顾解耦与连通？"
+            }
+      ]
+};
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 

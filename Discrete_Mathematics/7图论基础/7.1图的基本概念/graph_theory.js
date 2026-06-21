@@ -153,6 +153,13 @@ let edges = [];
 let selectedNode = null;
 let currentType = 'undirected';
 let nodeIdCounter = 0;
+let canvasResizeObserver = null;
+let isExampleGraph = false;
+
+const NODE_RADIUS = 18;
+const NODE_HIT_RADIUS = 22;
+const EDGE_WIDTH = 1.7;
+const ARROW_LENGTH = 11;
 
 // ===== Initialize =====
 function init() {
@@ -162,6 +169,12 @@ function init() {
     // Set canvas size
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
+    if ('ResizeObserver' in window) {
+        canvasResizeObserver = new ResizeObserver(() => {
+            resizeCanvas();
+        });
+        canvasResizeObserver.observe(canvas.parentElement);
+    }
 
     // Setup event listeners
     setupEventListeners();
@@ -172,8 +185,34 @@ function init() {
 
 function resizeCanvas() {
     const container = canvas.parentElement;
-    const width = container.clientWidth;
-    const height = container.clientHeight;
+    const rect = container.getBoundingClientRect();
+    const width = Math.max(1, Math.round(rect.width));
+    const height = Math.max(1, Math.round(rect.height));
+    const oldWidth = canvas.width || width;
+    const oldHeight = canvas.height || height;
+
+    if (canvas.width === width && canvas.height === height) {
+        drawGraph();
+        return;
+    }
+
+    // Generated examples should be laid out fresh for the current canvas,
+    // otherwise late layout changes can squeeze the circle into an ellipse.
+    if (nodes.length && isExampleGraph) {
+        canvas.width = width;
+        canvas.height = height;
+        generateExampleGraph();
+        return;
+    }
+
+    if (nodes.length && oldWidth > 1 && oldHeight > 1) {
+        const scaleX = width / oldWidth;
+        const scaleY = height / oldHeight;
+        nodes.forEach(node => {
+            node.x *= scaleX;
+            node.y *= scaleY;
+        });
+    }
 
     // Set canvas size via DOM properties (not CSS)
     canvas.width = width;
@@ -266,7 +305,7 @@ function handleCanvasClick(e) {
     const clickedNode = nodes.find(n => {
         const dx = x - n.x;
         const dy = y - n.y;
-        return Math.sqrt(dx * dx + dy * dy) < 20;
+        return Math.sqrt(dx * dx + dy * dy) < NODE_HIT_RADIUS;
     });
 
     if (clickedNode) {
@@ -283,6 +322,7 @@ function handleCanvasClick(e) {
         }
     } else {
         // Add new node at click position
+        isExampleGraph = false;
         addNode(x, y);
         if (selectedNode) {
             selectedNode.selected = false;
@@ -332,14 +372,17 @@ function addEdge(from, to, isDirected = null, offset = 0) {
 }
 
 function addRandomNode() {
-    const x = Math.random() * (canvas.width - 100) + 50;
-    const y = Math.random() * (canvas.height - 100) + 50;
+    isExampleGraph = false;
+    const margin = NODE_RADIUS + 32;
+    const x = Math.random() * (canvas.width - margin * 2) + margin;
+    const y = Math.random() * (canvas.height - margin * 2) + margin;
     addNode(x, y);
     drawGraph();
     updateStats();
 }
 
 function addRandomEdge() {
+    isExampleGraph = false;
     if (nodes.length < 2) return;
     const from = nodes[Math.floor(Math.random() * nodes.length)];
     const to = nodes[Math.floor(Math.random() * nodes.length)];
@@ -351,6 +394,7 @@ function addRandomEdge() {
 }
 
 function clearGraph() {
+    isExampleGraph = false;
     nodes = [];
     edges = [];
     selectedNode = null;
@@ -364,7 +408,8 @@ function generateExampleGraph() {
 
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const radius = Math.min(canvas.width, canvas.height) / 3;
+    const minSide = Math.min(canvas.width, canvas.height);
+    const radius = Math.max(92, Math.min(minSide * 0.38, minSide / 2 - NODE_RADIUS - 28));
 
     if (currentType === 'null') {
         // Just add isolated nodes
@@ -385,13 +430,13 @@ function generateExampleGraph() {
 
         // Add multiple edges between some pairs
         addEdge(nodes[0], nodes[1], false, 0);
-        addEdge(nodes[0], nodes[1], false, 20);  // Offset for visibility
+        addEdge(nodes[0], nodes[1], false, 16);  // Offset for visibility
         addEdge(nodes[1], nodes[2], false, 0);
-        addEdge(nodes[1], nodes[2], false, 20);
-        addEdge(nodes[1], nodes[2], false, -20); // Three edges
+        addEdge(nodes[1], nodes[2], false, 16);
+        addEdge(nodes[1], nodes[2], false, -16); // Three edges
         addEdge(nodes[2], nodes[3], false, 0);
         addEdge(nodes[3], nodes[0], false, 0);
-        addEdge(nodes[3], nodes[0], false, 20);
+        addEdge(nodes[3], nodes[0], false, 16);
     } else if (currentType === 'mixed') {
         // Add nodes for mixed graph
         const numNodes = 5;
@@ -425,11 +470,13 @@ function generateExampleGraph() {
         }
     }
 
+    isExampleGraph = true;
     drawGraph();
     updateStats();
 }
 
 function generateRandomGraph() {
+    isExampleGraph = false;
     clearGraph();
 
     const numNodes = 4 + Math.floor(Math.random() * 4);
@@ -451,6 +498,8 @@ function drawGraph() {
     if (!ctx) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
 
     // Draw edges
     edges.forEach(edge => {
@@ -463,16 +512,32 @@ function drawGraph() {
     });
 }
 
+function getTrimmedEndpoints(from, to, inset = NODE_RADIUS + 1) {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const len = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+    const ux = dx / len;
+    const uy = dy / len;
+    return {
+        startX: from.x + ux * inset,
+        startY: from.y + uy * inset,
+        endX: to.x - ux * inset,
+        endY: to.y - uy * inset
+    };
+}
+
 function drawEdge(from, to, weight, directed, offset = 0) {
+    const endpoints = getTrimmedEndpoints(from, to);
+
     // Calculate control point for curved edge if offset exists
     if (offset !== 0) {
         // Draw curved edge
-        const midX = (from.x + to.x) / 2;
-        const midY = (from.y + to.y) / 2;
+        const midX = (endpoints.startX + endpoints.endX) / 2;
+        const midY = (endpoints.startY + endpoints.endY) / 2;
 
         // Calculate perpendicular offset
-        const dx = to.x - from.x;
-        const dy = to.y - from.y;
+        const dx = endpoints.endX - endpoints.startX;
+        const dy = endpoints.endY - endpoints.startY;
         const len = Math.sqrt(dx * dx + dy * dy);
         const perpX = -dy / len * offset;
         const perpY = dx / len * offset;
@@ -481,10 +546,10 @@ function drawEdge(from, to, weight, directed, offset = 0) {
         const cpY = midY + perpY;
 
         ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.quadraticCurveTo(cpX, cpY, to.x, to.y);
-        ctx.strokeStyle = '#1890ff';
-        ctx.lineWidth = 2;
+        ctx.moveTo(endpoints.startX, endpoints.startY);
+        ctx.quadraticCurveTo(cpX, cpY, endpoints.endX, endpoints.endY);
+        ctx.strokeStyle = '#1683ee';
+        ctx.lineWidth = EDGE_WIDTH;
         ctx.stroke();
 
         // Draw arrow for directed edges on curved line
@@ -500,20 +565,19 @@ function drawEdge(from, to, weight, directed, offset = 0) {
             const curve2Y = (1 - t2) * (1 - t2) * from.y + 2 * (1 - t2) * t2 * cpY + t2 * t2 * to.y;
             const angle = Math.atan2(curve2Y - curveY, curve2X - curveX);
 
-            const arrowLength = 15;
             ctx.beginPath();
             ctx.moveTo(curveX, curveY);
             ctx.lineTo(
-                curveX - arrowLength * Math.cos(angle - Math.PI / 6),
-                curveY - arrowLength * Math.sin(angle - Math.PI / 6)
+                curveX - ARROW_LENGTH * Math.cos(angle - Math.PI / 6),
+                curveY - ARROW_LENGTH * Math.sin(angle - Math.PI / 6)
             );
             ctx.moveTo(curveX, curveY);
             ctx.lineTo(
-                curveX - arrowLength * Math.cos(angle + Math.PI / 6),
-                curveY - arrowLength * Math.sin(angle + Math.PI / 6)
+                curveX - ARROW_LENGTH * Math.cos(angle + Math.PI / 6),
+                curveY - ARROW_LENGTH * Math.sin(angle + Math.PI / 6)
             );
-            ctx.strokeStyle = '#1890ff';
-            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#1683ee';
+            ctx.lineWidth = EDGE_WIDTH;
             ctx.stroke();
         }
 
@@ -522,7 +586,7 @@ function drawEdge(from, to, weight, directed, offset = 0) {
             ctx.fillStyle = 'white';
             ctx.fillRect(cpX - 12, cpY - 10, 24, 20);
             ctx.fillStyle = '#722ed1';
-            ctx.font = 'bold 14px Arial';
+            ctx.font = 'bold 12px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(weight, cpX, cpY);
@@ -530,33 +594,32 @@ function drawEdge(from, to, weight, directed, offset = 0) {
     } else {
         // Draw straight edge
         ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(to.x, to.y);
-        ctx.strokeStyle = '#1890ff';
-        ctx.lineWidth = 2;
+        ctx.moveTo(endpoints.startX, endpoints.startY);
+        ctx.lineTo(endpoints.endX, endpoints.endY);
+        ctx.strokeStyle = '#1683ee';
+        ctx.lineWidth = EDGE_WIDTH;
         ctx.stroke();
 
         // Draw arrow for directed edges
         if (directed) {
             const angle = Math.atan2(to.y - from.y, to.x - from.x);
-            const arrowLength = 15;
 
-            const endX = to.x - 25 * Math.cos(angle);
-            const endY = to.y - 25 * Math.sin(angle);
+            const endX = endpoints.endX;
+            const endY = endpoints.endY;
 
             ctx.beginPath();
             ctx.moveTo(endX, endY);
             ctx.lineTo(
-                endX - arrowLength * Math.cos(angle - Math.PI / 6),
-                endY - arrowLength * Math.sin(angle - Math.PI / 6)
+                endX - ARROW_LENGTH * Math.cos(angle - Math.PI / 6),
+                endY - ARROW_LENGTH * Math.sin(angle - Math.PI / 6)
             );
             ctx.moveTo(endX, endY);
             ctx.lineTo(
-                endX - arrowLength * Math.cos(angle + Math.PI / 6),
-                endY - arrowLength * Math.sin(angle + Math.PI / 6)
+                endX - ARROW_LENGTH * Math.cos(angle + Math.PI / 6),
+                endY - ARROW_LENGTH * Math.sin(angle + Math.PI / 6)
             );
-            ctx.strokeStyle = '#1890ff';
-            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#1683ee';
+            ctx.lineWidth = EDGE_WIDTH;
             ctx.stroke();
         }
 
@@ -567,7 +630,7 @@ function drawEdge(from, to, weight, directed, offset = 0) {
             ctx.fillStyle = 'white';
             ctx.fillRect(midX - 12, midY - 10, 24, 20);
             ctx.fillStyle = '#722ed1';
-            ctx.font = 'bold 14px Arial';
+            ctx.font = 'bold 12px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(weight, midX, midY);
@@ -577,15 +640,15 @@ function drawEdge(from, to, weight, directed, offset = 0) {
 
 function drawNode(node) {
     // Draw shadow
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
-    ctx.shadowBlur = 5;
-    ctx.shadowOffsetX = 2;
+    ctx.shadowColor = 'rgba(22, 131, 238, 0.16)';
+    ctx.shadowBlur = 7;
+    ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 2;
 
     // Draw circle
     ctx.beginPath();
-    ctx.arc(node.x, node.y, 25, 0, 2 * Math.PI);
-    ctx.fillStyle = node.selected ? '#ff6b6b' : '#e6f7ff';
+    ctx.arc(node.x, node.y, NODE_RADIUS, 0, 2 * Math.PI);
+    ctx.fillStyle = node.selected ? '#ff6b6b' : '#f2f8ff';
     ctx.fill();
 
     // Reset shadow
@@ -595,13 +658,13 @@ function drawNode(node) {
     ctx.shadowOffsetY = 0;
 
     // Draw border
-    ctx.strokeStyle = node.selected ? '#ff0000' : '#1890ff';
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = node.selected ? '#e03131' : '#1683ee';
+    ctx.lineWidth = 2.2;
     ctx.stroke();
 
     // Draw label
     ctx.fillStyle = node.selected ? '#ffffff' : '#2c3e50';
-    ctx.font = 'bold 18px Arial';
+    ctx.font = 'bold 15px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(node.label, node.x, node.y);

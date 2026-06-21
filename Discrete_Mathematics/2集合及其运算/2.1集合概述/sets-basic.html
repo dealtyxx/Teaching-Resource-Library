@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>集合与元素 · 基础层 - 离散数学课程资源库</title>
+    <meta name="description" content="第2章 集合及其运算 2.1 集合概述 基础层互动可视化页面">
+    <link rel="stylesheet" href="sets.css">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body.interactive-layer-page { padding-bottom: 64px; }
+        .interactive-layer-page .app-container { max-width: 1420px; }
+        .apple-select, .apple-input {
+            width: 100%; padding: 10px 12px; border-radius: 10px;
+            border: 1px solid rgba(214,59,29,.22); background: rgba(255,255,255,.88);
+            color: var(--text-primary); font-family: var(--font-family); font-size: .9rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .slider-container { display: flex; flex-direction: column; gap: 7px; }
+        .slider-label { font-size: .82rem; color: var(--text-secondary); }
+        input[type=range] { width: 100%; accent-color: var(--accent-red); }
+        .check-row {
+            display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+            border-radius: 10px; background: rgba(255,255,255,.62);
+            border: 1px solid rgba(214,59,29,.12); text-transform: none;
+            letter-spacing: 0; cursor: pointer;
+        }
+        .layer-badge {
+            display: inline-flex; width: fit-content; align-items: center; gap: 6px;
+            padding: 4px 12px; border-radius: 999px;
+            background: linear-gradient(135deg, rgba(255,180,0,.18), rgba(214,59,29,.12));
+            border: 1px solid rgba(214,59,29,.18); color: var(--accent-red);
+            font-size: .78rem; font-weight: 700;
+        }
+        .stage-header { text-align: center; margin-bottom: 1rem; }
+        .stage-header h2 {
+            font-family: var(--font-title); color: var(--accent-red); font-size: 1.85rem;
+            font-weight: 400; letter-spacing: .04em; margin: 0 0 .35rem;
+        }
+        .stage-header p { color: var(--text-secondary); font-size: .92rem; line-height: 1.6; margin: 0 auto; max-width: 780px; }
+        .visualization-area {
+            flex: 1; width: 100%; min-height: 0; display: flex; flex-direction: column;
+            align-items: stretch; justify-content: flex-start; gap: 12px; overflow-y: auto; overflow-x: hidden;
+            padding: 2px 4px 12px;
+        }
+        .mission-card {
+            position: relative; overflow: hidden; display: grid; grid-template-columns: 1fr minmax(120px, 180px);
+            gap: 12px; align-items: center; padding: 12px 14px; border-radius: 16px;
+            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.16), rgba(39,201,63,.08));
+            border: 1px solid rgba(214,59,29,.18); box-shadow: var(--shadow-sm);
+            flex: 0 0 auto; min-height: 68px;
+        }
+        .mission-card::before {
+            content: ""; position: absolute; inset: -60% auto auto -20%; width: 46%; height: 220%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent);
+            transform: rotate(18deg); animation: sweepLight 4.8s ease-in-out infinite;
+        }
+        .mission-title { position: relative; color: var(--accent-red); font-weight: 800; margin-bottom: 4px; }
+        .mission-text { position: relative; color: var(--text-primary); font-size: .9rem; line-height: 1.5; }
+        .energy-meter { position: relative; display: grid; gap: 6px; }
+        .energy-label { display: flex; justify-content: space-between; color: var(--text-secondary); font-size: .78rem; }
+        .energy-track { height: 10px; border-radius: 999px; background: rgba(139,0,0,.08); overflow: hidden; border: 1px solid rgba(214,59,29,.14); }
+        .energy-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent-red), var(--accent-gold), #27c93f); animation: breatheWidth 2.4s ease-in-out infinite; }
+        .viz-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(74px, 1fr)); gap: 8px; width: 100%; }
+        .subset-grid { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; width: 100%; }
+        .viz-card, .viz-panel, .set-block, .record-card, .metric-card {
+            background: rgba(255,255,255,.78); border: 1px solid rgba(214,59,29,.16);
+            border-radius: 14px; box-shadow: var(--shadow-sm); padding: 13px 15px;
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+        }
+        .viz-card:hover, .viz-panel:hover, .set-block:hover, .record-card:hover, .metric-card:hover,
+        .truth-table td:hover,
+        .num-cell:hover, .flow-node:hover, .route-step:hover {
+            transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: rgba(214,59,29,.32);
+        }
+        .picked {
+            outline: 2px solid var(--accent-gold); box-shadow: 0 0 0 5px rgba(255,180,0,.17), var(--shadow-md) !important;
+            transform: translateY(-2px) scale(1.02);
+        }
+        .viz-card strong, .viz-panel strong, .set-block strong, .record-card strong, .metric-card strong { color: var(--accent-red); }
+        .set-block h4, .metric-card h4 {
+            margin: 0 0 8px; color: var(--accent-red); font-size: .98rem;
+        }
+        .pill {
+            display: inline-flex; align-items: center; justify-content: center; margin: 3px;
+            padding: 5px 10px; border-radius: 999px; background: rgba(255,180,0,.18);
+            color: #7a3d12; font-size: .78rem; font-weight: 700; border: 1px solid rgba(255,180,0,.2);
+        }
+        .pill.hot { background: var(--accent-red); color: #fff; border-color: var(--accent-red); }
+        .pill.good { background: #27c93f; color: #fff; border-color: #1f9d55; }
+        .pill.muted { background: #f0e8e2; color: #9b7a68; border-color: rgba(155,122,104,.2); }
+        .num-cell {
+            min-height: 48px; display: flex; align-items: center; justify-content: center;
+            border-radius: 10px; border: 1px solid rgba(214,59,29,.14);
+            background: rgba(255,255,255,.82); color: var(--text-primary);
+            font-family: Consolas, "Courier New", monospace; font-weight: 700; text-align: center;
+            line-height: 1.3; transition: transform .18s, box-shadow .18s;
+        }
+        .num-cell.hot { background: linear-gradient(135deg, var(--accent-red), #b32b12); color: #fff; border-color: var(--accent-red); }
+        .num-cell.good { background: linear-gradient(135deg, #27c93f, #1f9d55); color: #fff; border-color: #1f9d55; }
+        .num-cell.muted { background: #f0e8e2; color: #9b7a68; }
+        .flow-row { display: flex; align-items: stretch; justify-content: center; gap: 10px; flex-wrap: wrap; width: 100%; }
+        .flow-node {
+            min-width: 130px; flex: 1 1 130px; max-width: 220px; border-radius: 14px; padding: 13px;
+            background: linear-gradient(135deg, rgba(214,59,29,.08), rgba(255,180,0,.12));
+            border: 1px solid rgba(214,59,29,.16); text-align: center;
+        }
+        .flow-node b { color: var(--accent-red); display: block; margin-bottom: 6px; }
+        .flow-node span { color: var(--text-secondary); font-size: .82rem; line-height: 1.45; }
+        .two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .three-col { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+        .bar-wrap { display: grid; gap: 8px; }
+        .bar { min-height: 26px; border-radius: 999px; background: rgba(214,59,29,.1); overflow: hidden; border: 1px solid rgba(214,59,29,.15); }
+        .bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent-red), var(--accent-gold)); min-width: 8px; }
+        .truth-table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: 12px; background: rgba(255,255,255,.78); }
+        .truth-table th, .truth-table td { border: 1px solid rgba(214,59,29,.14); padding: 8px 10px; text-align: center; font-size: .86rem; }
+        .truth-table th { color: var(--accent-red); background: rgba(255,180,0,.12); }
+        .truth-ok { color: #1f9d55; font-weight: 800; }
+        .route-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; justify-content: center; }
+        .route-step { padding: 10px 12px; border-radius: 12px; background: #fff; border: 1px solid rgba(214,59,29,.16); box-shadow: var(--shadow-sm); color: var(--text-primary); font-weight: 700; }
+        .route-arrow { color: var(--accent-red); font-weight: 800; }
+        .orbit-map {
+            position: relative; min-height: 260px; border-radius: 18px; overflow: hidden;
+            background:
+                radial-gradient(circle at center, rgba(255,180,0,.18) 0 78px, transparent 80px),
+                radial-gradient(circle at center, transparent 0 118px, rgba(214,59,29,.09) 120px, transparent 122px),
+                linear-gradient(135deg, rgba(255,255,255,.8), rgba(255,248,238,.75));
+            border: 1px solid rgba(214,59,29,.16); box-shadow: inset 0 0 24px rgba(255,255,255,.8);
+            flex: 0 0 auto;
+        }
+        .orbit-center {
+            position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+            width: 104px; height: 104px; border-radius: 50%; display: grid; place-items: center;
+            color: #fff; font-weight: 800; text-align: center; background: linear-gradient(135deg, var(--accent-red), #b32b12);
+            box-shadow: 0 12px 30px rgba(214,59,29,.22);
+        }
+        .orbit-node {
+            position: absolute; transform: translate(-50%,-50%); padding: 8px 10px; border-radius: 999px;
+            background: #fff; border: 1px solid rgba(214,59,29,.18); box-shadow: var(--shadow-sm);
+            color: var(--text-primary); font-weight: 700; animation: nodeFloat 3.6s ease-in-out infinite;
+        }
+        .orbit-node.hot { background: var(--accent-red); color: #fff; }
+        .venn-lab {
+            width: min(100%, 520px); align-self: center; border-radius: 18px;
+            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16); box-shadow: var(--shadow-sm);
+            flex: 0 0 auto;
+        }
+        .stack-visual { display: grid; gap: 10px; flex: 0 0 auto; }
+        .stack-row { display: grid; grid-template-columns: 92px 1fr 56px; gap: 8px; align-items: center; color: var(--text-secondary); font-size: .86rem; }
+        .stack-bar { height: 28px; border-radius: 999px; background: rgba(139,0,0,.08); overflow: hidden; border: 1px solid rgba(214,59,29,.14); }
+        .stack-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent-red), var(--accent-gold)); min-width: 8px; transition: width .25s ease; }
+        .path-map {
+            position: relative; min-height: 210px; border-radius: 18px; padding: 22px;
+            background: linear-gradient(135deg, rgba(255,255,255,.82), rgba(255,245,229,.72));
+            border: 1px solid rgba(214,59,29,.16); overflow: hidden;
+            flex: 0 0 auto;
+        }
+        .path-map::before { content:""; position:absolute; left:38px; right:38px; top:50%; border-top:3px dashed rgba(214,59,29,.28); }
+        .path-node {
+            position: relative; display: inline-flex; align-items:center; justify-content:center;
+            min-width: 76px; min-height: 48px; margin: 12px 10px; padding: 8px 12px; border-radius: 16px;
+            background:#fff; border:1px solid rgba(214,59,29,.2); color:var(--text-primary); font-weight:800;
+            box-shadow: var(--shadow-sm); animation: nodeFloat 3.2s ease-in-out infinite;
+        }
+        .skill-radar {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 10px;
+            padding: 12px; border-radius: 18px; background: radial-gradient(circle at center, rgba(255,180,0,.18), rgba(255,255,255,.72));
+            border: 1px solid rgba(214,59,29,.16);
+            flex: 0 0 auto;
+        }
+        .skill-dot {
+            min-height: 70px; display: grid; place-items: center; text-align: center; border-radius: 50%;
+            background: #fff; border: 1px solid rgba(214,59,29,.18); color: var(--text-secondary);
+            font-weight: 800; box-shadow: var(--shadow-sm);
+        }
+        .skill-dot.hot { background: linear-gradient(135deg, var(--accent-red), #b32b12); color: #fff; }
+        .sparkle {
+            position: fixed; z-index: 10000; pointer-events: none; width: 9px; height: 9px; border-radius: 50%;
+            background: var(--accent-gold); box-shadow: 0 0 0 6px rgba(255,180,0,.18);
+            animation: sparkFly .62s ease-out forwards;
+        }
+        .result-panel { min-height: 112px; }
+        .formula-display { word-break: break-word; line-height: 1.5; }
+        .result-display { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+        .result-label { color: var(--text-secondary); font-size: .78rem; }
+        .result-value { color: var(--accent-red); font-size: 1.15rem; font-weight: 800; }
+        .political-text { font-size: .82rem; color: var(--text-secondary); line-height: 1.55; margin-top: 8px; }
+        .value-panel {
+            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
+            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
+            box-shadow: var(--shadow-sm);
+        }
+        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
+        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
+        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+        .value-dims span {
+            padding: 3px 8px; border-radius: 999px; color: #8b0000;
+            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
+            font-size: .74rem; font-weight: 700;
+        }
+        .value-quote {
+            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
+            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
+        }
+        .value-inline {
+            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
+            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
+            color: var(--text-primary);
+        }
+        .mission-value { position: relative; margin-top: 5px; color: #8b0000; font-size: .82rem; line-height: 1.45; }
+        .legend, .legend-panel { z-index: 5; }
+        .legend-title { color: var(--accent-red); font-weight: 800; margin-bottom: 6px; }
+        .legend ul { margin: 0; padding-left: 1.1rem; }
+        .legend li { color: var(--text-secondary); font-size: .83rem; line-height: 1.6; }
+        .layer-links { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: .25rem; }
+        .layer-link {
+            display: inline-flex; align-items: center; justify-content: center; padding: 8px 14px;
+            border-radius: 11px; text-decoration: none; background: linear-gradient(135deg, var(--accent-red), #b32b12);
+            color: #fff; font-size: .85rem; font-weight: 700; box-shadow: var(--shadow-sm);
+        }
+        .layer-link.secondary { background: #fff; color: var(--accent-red); border: 1px solid rgba(214,59,29,.3); }
+        @keyframes sweepLight { 0%, 46% { left: -40%; opacity: 0; } 58% { opacity: 1; } 100% { left: 130%; opacity: 0; } }
+        @keyframes breatheWidth { 0%, 100% { filter: saturate(1); } 50% { filter: saturate(1.35) brightness(1.05); } }
+        @keyframes nodeFloat { 0%, 100% { translate: 0 0; } 50% { translate: 0 -4px; } }
+        @keyframes sparkFly { from { transform: translate(-50%,-50%) scale(1); opacity: 1; } to { transform: translate(-50%,-88px) scale(.2); opacity: 0; } }
+        @media (max-width: 900px) {
+            body.interactive-layer-page { overflow: auto; height: auto; align-items: flex-start; padding-bottom: 90px; }
+            .interactive-layer-page .app-container { width: 96vw; height: auto; min-height: 94vh; flex-direction: column; margin: 18px auto 90px; }
+            .interactive-layer-page .sidebar { width: 100%; max-height: none; }
+            .interactive-layer-page .visualizer-stage { min-height: 620px; padding: 1rem; }
+            .two-col, .three-col { grid-template-columns: 1fr; }
+            .mission-card { grid-template-columns: 1fr; }
+            .stage-header h2 { font-size: 1.45rem; }
+        }
+    </style>
+
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+
+<body class="interactive-layer-page">
+    <a href="../../index.html" title="返回课程主页" style="
+        position:fixed;top:14px;left:14px;z-index:9999;
+        display:flex;align-items:center;gap:6px;
+        background:rgba(30,30,40,0.82);color:#fff;
+        padding:7px 14px 7px 10px;border-radius:20px;
+        font-size:13px;font-family:'Noto Serif SC',serif;
+        text-decoration:none;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+        border:1px solid rgba(255,255,255,0.15);
+        box-shadow:0 2px 12px rgba(0,0,0,0.35);
+        transition:background .2s;
+    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
+       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
+        <span>首页</span>
+    </a>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>集合的概念与表示 <span class="highlight">基础层</span></h1>
+                <p class="subtitle">确定/互异/无序 / ∈·∉ / 列举·描述法</p>
+                <span class="layer-badge">低门槛 · 强互动</span>
+            </div>
+
+            <div class="controls-wrapper">
+
+                <div class="control-group">
+                    <label>谓词 P(x)</label>
+                    <select id="ruleSelect" class="apple-select">
+                        <option value="even">x 是偶数</option>
+                        <option value="red">x 带有红色精神标签</option>
+                        <option value="culture">x 属于文化元素</option>
+                        <option value="tech">x 属于科技元素</option>
+                    </select>
+                    <div class="slider-container"><span class="slider-label">候选对象数：<span id="itemCountVal">12</span></span><input type="range" id="itemCountRange" min="8" max="18" value="12"></div>
+                </div>
+                <div class="control-group">
+                    <label>本层原理</label>
+                    <div class="info-panel">
+                        <h3>集合成员判定实验</h3>
+                        <p>选择一个清晰谓词 P(x)，观察哪些对象属于集合 A={x | P(x)}。</p>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>价值映射（与进阶层一致）</label>
+                    <div class="value-panel">
+                        <h3>统一战线 · 求同存异</h3>
+                        <p>集合把多样的个体凝聚为一个整体，『并』象征最广泛的团结——把不同群体团结在共同目标周围，形成最广泛的统一战线。集合的『确定性』要求标准清晰、不含糊，正是实事求是、立场坚定的体现。</p>
+                        <div class="value-dims"><span>家国情怀</span><span>团结观念</span><span>辩证思维</span></div>
+                        <div class="value-quote">团结就是力量——把可团结的力量都纳入同一个『集合』，事业才有最广泛的基础。</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>即时结果</label>
+                    <div class="result-panel">
+                        <div class="formula-display"><span id="formulaText">等待计算</span></div>
+                        <div class="result-display">
+                            <span class="result-label">结论</span>
+                            <span class="result-value" id="resultValue">--</span>
+                        </div>
+                        <p id="resultExtra" class="political-text"></p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="stage-header">
+                    <h2>集合与元素</h2>
+                    <p>用集合语言精确描述一类对象。</p>
+                </div>
+                <div class="visualization-area" id="vizArea"></div>
+                <div class="legend" id="legendPanel"></div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="site-footer" style="
+        position: fixed; bottom: 0; left: 0; width: 100%;
+        background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+        color: white; padding: 15px 10px; text-align: center;
+        box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25); z-index: 9999;">
+        <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+            © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
+            版权所有 ｜ 项目总负责人：谢鑫
+        </p>
+    </footer>
+
+
+    <script>
+    const KIND = "set_builder";
+    const MID_PAGE = "sets.html";
+    const OTHER_PAGE = "sets-extend.html";
+    const OTHER_TEXT = "进入拓展层";
+    const IDEOLOGY = {
+        "title": "统一战线 · 求同存异",
+        "text": "集合把多样的个体凝聚为一个整体，『并』象征最广泛的团结——把不同群体团结在共同目标周围，形成最广泛的统一战线。集合的『确定性』要求标准清晰、不含糊，正是实事求是、立场坚定的体现。",
+        "dims": [
+                "家国情怀",
+                "团结观念",
+                "辩证思维"
+        ],
+        "quote": "团结就是力量——把可团结的力量都纳入同一个『集合』，事业才有最广泛的基础。"
+};
+    IDEOLOGY.title = IDEOLOGY.title || '价值引领';
+    const $ = id => document.getElementById(id);
+    const arr = s => [...s].sort((a,b) => String(a).localeCompare(String(b), 'zh-Hans-CN'));
+    const makeSet = xs => new Set(xs);
+    const union = (...sets) => makeSet(sets.flatMap(s => [...s]));
+    const inter = (a,b) => makeSet([...a].filter(x => b.has(x)));
+    const diff = (a,b) => makeSet([...a].filter(x => !b.has(x)));
+    const same = (a,b) => a.size === b.size && [...a].every(x => b.has(x));
+    const setText = s => s.size ? '{' + arr(s).join(', ') + '}' : '∅';
+    const pill = (text, cls='') => '<span class="pill '+cls+'">'+escapeHtml(text)+'</span>';
+    const cell = (text, cls='') => '<div class="num-cell '+cls+'">'+text+'</div>';
+    function escapeHtml(x){ return String(x).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    function syncLabels(){
+      document.querySelectorAll('input[type=range]').forEach(r => {
+        const id = r.id.replace('Range','Val');
+        if($(id)) $(id).textContent = r.value;
+      });
+    }
+    function setResult(formula, value, extra){
+      $('formulaText').innerHTML = formula;
+      $('resultValue').textContent = value;
+      const valueLine = politicalObservation();
+      $('resultExtra').innerHTML = (extra || '') + '<span class="value-inline"><strong>价值观察：</strong>' + valueLine + '</span>';
+    }
+    function legend(title, items){
+      $('legendPanel').innerHTML = '<div class="legend-title">'+title+'</div><ul>'+items.map(x => '<li>'+x+'</li>').join('')+'</ul>';
+    }
+    function links(){
+      return '<div class="layer-links"><a class="layer-link secondary" href="'+MID_PAGE+'">回到进阶层</a><a class="layer-link" href="'+OTHER_PAGE+'">'+OTHER_TEXT+'</a></div>';
+    }
+    const MISSION_BANK = {
+      set_builder: '先换一个谓词，再点选一个元素，判断它为什么属于或不属于集合。',
+      data_type: '切换工程视角，观察同一批对象怎样被不同规则重新组织成结果集。',
+      subset_enum: '拖动 n，让子集数翻倍；再用二进制编号找出被高亮的子集。',
+      feature_space: '把特征数调大，感受状态空间增长；再收紧 k 看搜索空间如何缩小。',
+      venn_ops: '连续切换并、交、差、补，盯住同一个元素的归属如何改变。',
+      sql_filter: '把 UNION 改成 INTERSECT 或 EXCEPT，观察查询结果为什么突然变少。',
+      law_verify: '选择一条定律，对照左右两端，找出为什么它们逐元素一致。',
+      boolean_truth: '逐行看真值表：只要左右两端每一行都一样，等式就没有反例。',
+      partition_cover: '切换三种方案，判断它是划分、只是覆盖，还是存在遗漏。',
+      cluster_shard: '调整分片数和策略，比较均衡性与业务聚类之间的取舍。',
+      inclusion_two: '先看简单相加，再看重叠被多算了几次，最后读出准确并集。',
+      inclusion_three: '提高重叠强度，追踪三重交集为什么要最后加回来。',
+      culture_sets: '切换文化主题集合，思考分类标准是否足够清晰。',
+      culture_graph: '比较不同节日，找共同内核，也保留中秋自己的辨识度。',
+      garden_sets: '切换功能区，观察同一园林如何被不同功能集合重新解释。',
+      route_plan: '换一条游线，比较它覆盖的功能并集是否更符合游览目标。',
+      service_sets: '切换服务项，找出受益居民与仍未覆盖的服务缺口。',
+      service_opt: '改变预算，观察每新增一个项目能多覆盖多少居民。',
+      skill_sets: '勾选不同成员，试着让短板集合变空，同时避免技能过度重叠。',
+      team_cover: '限制成员数，用贪心选择覆盖尽可能多的目标技能。'
+    };
+    const VALUE_OBSERVATION = {
+      set_builder: '用清晰标准判定归属，呼应“'+IDEOLOGY.title+'”中实事求是、标准明确的价值要求。',
+      data_type: '把对象按规则组织成集合，延续“'+IDEOLOGY.title+'”所强调的系统组织与精准表达。',
+      subset_enum: '从局部选择看到整体可能性，和“'+IDEOLOGY.title+'”中的全局意识保持同一主线。',
+      feature_space: '面对指数级复杂性时先分层约束，呼应“'+IDEOLOGY.title+'”中的系统观念与科学精神。',
+      venn_ops: '并集看团结，交集看共识，差集看差异，统一服务于“'+IDEOLOGY.title+'”的价值主线。',
+      sql_filter: '查询结果必须可追溯、可去重，延续“'+IDEOLOGY.title+'”中严谨治理与精准判断的要求。',
+      law_verify: '规则一致才可公平推理，和“'+IDEOLOGY.title+'”中的规则意识保持一致。',
+      boolean_truth: '逐行验证、不留反例，体现“'+IDEOLOGY.title+'”所强调的严谨、守正与规则之治。',
+      partition_cover: '不重不漏对应责任清晰，直接承接“'+IDEOLOGY.title+'”中的治理智慧。',
+      cluster_shard: '划分既要覆盖全体又要均衡负责，延续“'+IDEOLOGY.title+'”的系统治理思路。',
+      inclusion_two: '把重叠的账算清楚，正是“'+IDEOLOGY.title+'”中精准核算、求真务实的数学表达。',
+      inclusion_three: '奇加偶减避免多算漏算，承接“'+IDEOLOGY.title+'”中的实事求是与科学统计。',
+      culture_sets: '用集合组织文化元素，服务“'+IDEOLOGY.title+'”中传承优秀传统文化的主线。',
+      culture_graph: '在交集中看共同文化内核，在差集中保留特色，延续“'+IDEOLOGY.title+'”的文化表达。',
+      garden_sets: '用分类理解空间秩序，呼应“'+IDEOLOGY.title+'”中的匠心营造与文化自信。',
+      route_plan: '路线覆盖强调整体体验与功能协同，承接“'+IDEOLOGY.title+'”的空间组织思想。',
+      service_sets: '找出覆盖与缺口，直接服务“'+IDEOLOGY.title+'”中以人民为中心的精准服务。',
+      service_opt: '预算有限时优先补短板，体现“'+IDEOLOGY.title+'”中的责任担当与资源优化。',
+      skill_sets: '并集汇聚众长、差集补齐短板，和“'+IDEOLOGY.title+'”中的协同攻关一致。',
+      team_cover: '用最少成员覆盖关键技能，呼应“'+IDEOLOGY.title+'”中的优势互补与自立自强。'
+    };
+    function politicalObservation(){
+      return VALUE_OBSERVATION[KIND] || ('本页互动统一服务于“'+IDEOLOGY.title+'”这一进阶层价值主线。');
+    }
+    function missionCard(){
+      const controls = document.querySelectorAll('input,select').length;
+      const richness = Math.min(100, 42 + controls * 8);
+      return '<div class="mission-card"><div><div class="mission-title">本页挑战</div><div class="mission-text">'+MISSION_BANK[KIND]+'</div><div class="mission-value">价值主线：'+IDEOLOGY.title+'。基础层、拓展层与进阶层保持同一价值表达。</div></div><div class="energy-meter"><div class="energy-label"><span>互动热度</span><strong>'+richness+'%</strong></div><div class="energy-track"><div class="energy-fill" style="width:'+richness+'%"></div></div></div></div>';
+    }
+    function enhanceStage(){
+      const viz = $('vizArea');
+      if(!viz) return;
+      viz.dataset.kind = KIND;
+      viz.insertAdjacentHTML('afterbegin', missionCard());
+      requestAnimationFrame(() => {
+        viz.querySelectorAll('.viz-card,.viz-panel,.set-block,.record-card,.metric-card,.num-cell,.flow-node,.route-step,.path-node,.skill-dot,.orbit-node,.truth-table td')
+          .forEach((el, i) => { el.style.animationDelay = (i * 0.025).toFixed(3) + 's'; });
+      });
+    }
+    function spawnSpark(x, y){
+      for(let i=0;i<4;i++){
+        const s = document.createElement('span');
+        s.className = 'sparkle';
+        s.style.left = (x + (i-1.5)*8) + 'px';
+        s.style.top = (y + (i%2)*4) + 'px';
+        s.style.background = i % 2 ? 'var(--accent-red)' : 'var(--accent-gold)';
+        document.body.appendChild(s);
+        setTimeout(() => s.remove(), 700);
+      }
+    }
+    function orbitHtml(center, nodes, hotSet){
+      const radius = 88;
+      return '<div class="orbit-map"><div class="orbit-center">'+center+'</div>' + nodes.map((n,i) => {
+        const angle = -90 + i * 360 / Math.max(1, nodes.length);
+        const x = 50 + Math.cos(angle*Math.PI/180) * radius / 2.6;
+        const y = 50 + Math.sin(angle*Math.PI/180) * radius / 2.6;
+        return '<span class="orbit-node '+(hotSet && hotSet.has(n)?'hot':'')+'" style="left:'+x+'%;top:'+y+'%">'+escapeHtml(n)+'</span>';
+      }).join('') + '</div>';
+    }
+    function comb(n,k){
+      if(k < 0 || k > n) return 0;
+      k = Math.min(k, n-k);
+      let r = 1;
+      for(let i=1;i<=k;i++) r = r * (n-k+i) / i;
+      return Math.round(r);
+    }
+
+    const baseUniverse = [
+      {name:'2', tags:['number','even']}, {name:'3', tags:['number']}, {name:'4', tags:['number','even']},
+      {name:'红船', tags:['red','culture']}, {name:'月饼', tags:['culture']}, {name:'桂花', tags:['culture']},
+      {name:'AI模型', tags:['tech']}, {name:'数据库', tags:['tech']}, {name:'志愿者', tags:['people','red']},
+      {name:'社区网格', tags:['people','red']}, {name:'5', tags:['number']}, {name:'8', tags:['number','even']},
+      {name:'数字孪生', tags:['tech']}, {name:'诗词', tags:['culture']}, {name:'青年突击队', tags:['red','people']},
+      {name:'传感器', tags:['tech']}, {name:'12', tags:['number','even']}, {name:'灯谜', tags:['culture']}
+    ];
+
+    function renderSetBuilder(){
+      syncLabels();
+      const rule = $('ruleSelect').value;
+      const count = +$('itemCountRange').value;
+      const items = baseUniverse.slice(0, count);
+      const tests = {
+        even: x => x.tags.includes('even'),
+        red: x => x.tags.includes('red'),
+        culture: x => x.tags.includes('culture'),
+        tech: x => x.tags.includes('tech')
+      };
+      const labels = {
+        even: 'P(x)：x 是偶数',
+        red: 'P(x)：x 带有红色精神标签',
+        culture: 'P(x)：x 属于文化元素',
+        tech: 'P(x)：x 属于科技元素'
+      };
+      const yes = items.filter(tests[rule]).map(x => x.name);
+      const no = items.filter(x => !tests[rule](x)).map(x => x.name);
+      $('vizArea').innerHTML =
+        orbitHtml('A={x|P(x)}', items.map(x=>x.name), makeSet(yes)) +
+        '<div class="two-col"><div class="set-block"><h4>A 内元素：x ∈ A</h4>'+yes.map(x=>pill(x,'hot')).join('')+'</div>' +
+        '<div class="set-block"><h4>A 外元素：x ∉ A</h4>'+no.map(x=>pill(x,'muted')).join('')+'</div></div>' +
+        '<div class="viz-panel"><strong>候选全集 U：</strong>'+items.map(x=>pill(x.name)).join('')+'</div>' + links();
+      setResult('A = {x ∈ U | '+labels[rule].replace('P(x)：','')+'}', 'A = '+setText(makeSet(yes)), '集合的确定性来自清晰谓词；互异性来自每个对象只记录一次。');
+    }
+
+    function renderDataType(){
+      const view = $('dataView').value, filter = $('dataFilter').value;
+      const records = [
+        {name:'居民台账', tags:['people','data','public']}, {name:'志愿服务表', tags:['people','red','public']},
+        {name:'int 类型值', tags:['number','type']}, {name:'float 类型值', tags:['number','type']},
+        {name:'中秋意象库', tags:['culture','data']}, {name:'红色文化资源', tags:['culture','red','data']},
+        {name:'AI 训练样本', tags:['tech','data']}, {name:'社区活动记录', tags:['people','culture','public']}
+      ];
+      const rules = {
+        people: r => r.tags.includes('people') || r.tags.includes('public'),
+        number: r => r.tags.includes('number') || r.tags.includes('type'),
+        culture: r => r.tags.includes('culture')
+      };
+      const names = {database:'数据库表', type:'类型系统', tag:'标签系统'};
+      const hits = records.filter(rules[filter]);
+      $('vizArea').innerHTML = '<div class="card-grid">'+records.map(r => {
+        const hot = rules[filter](r);
+        return '<div class="record-card"><strong>'+r.name+'</strong><div>'+r.tags.map(t=>pill(t, hot?'hot':'')).join('')+'</div></div>';
+      }).join('')+'</div>'+links();
+      setResult(names[view]+' 中的筛选集合', hits.length+' 条记录', '结果集 = '+setText(makeSet(hits.map(x=>x.name)))+'。类型、表、标签都可被看成满足某个条件的对象集合。');
+      legend('工程迁移图例', ['数据库 SELECT 产生满足条件的记录集合', '类型可视为所有合法值的集合', '标签检索本质是对对象集合做筛选']);
+    }
+
+    function renderSubsetEnum(){
+      syncLabels();
+      const n = +$('nRange').value;
+      const maxMask = (1 << n) - 1;
+      let mask = Math.min(+$('maskRange').value, maxMask);
+      $('maskVal').textContent = mask;
+      const names = ['a','b','c','d','e'].slice(0,n);
+      let cards = '';
+      for(let m=0;m<=maxMask;m++){
+        const subset = names.filter((_,i) => m & (1<<i));
+        cards += cell((subset.length ? '{'+subset.join(',')+'}' : '∅')+'<br><small>'+m.toString(2).padStart(n,'0')+'</small>', m===mask?'hot':'');
+      }
+      const chosen = names.filter((_,i) => mask & (1<<i));
+      $('vizArea').innerHTML = '<div class="viz-grid subset-grid">'+cards+'</div>'+links();
+      $('vizArea').innerHTML = orbitHtml('二进制<br>'+mask.toString(2).padStart(n,'0'), names, makeSet(chosen)) + $('vizArea').innerHTML;
+      setResult('|P(A)| = 2^'+n, String(1<<n), '高亮子集编号 '+mask+' 对应二进制 '+mask.toString(2).padStart(n,'0')+'，即 '+(chosen.length?'{'+chosen.join(', ')+'}':'∅')+'。');
+      legend('幂集图例', ['每一位 1 表示取该元素，0 表示不取', '空集和全集都在幂集中', 'n 每增加 1，子集数翻倍']);
+    }
+
+    function renderFeatureSpace(){
+      syncLabels();
+      const n = +$('featureRange').value;
+      const k = Math.min(+$('budgetRange').value, n);
+      $('budgetVal').textContent = k;
+      let limited = 0;
+      for(let i=0;i<=k;i++) limited += comb(n,i);
+      const features = Array.from({length: Math.min(n, 12)}, (_,i) => 'f'+(i+1));
+      const sampleMasks = [0, 1, Math.min((1<<Math.min(n,12))-1, 5), Math.min((1<<Math.min(n,12))-1, 21)];
+      $('vizArea').innerHTML =
+        '<div class="three-col"><div class="metric-card"><h4>全部状态</h4><strong>'+Math.pow(2,n).toLocaleString()+'</strong><p>每个特征取或不取。</p></div>' +
+        '<div class="metric-card"><h4>最多选 '+k+' 项</h4><strong>'+limited.toLocaleString()+'</strong><p>限制搜索空间。</p></div>' +
+        '<div class="metric-card"><h4>特征集合</h4>'+features.map(x=>pill(x)).join('')+'</div></div>' +
+        '<div class="viz-grid subset-grid">'+sampleMasks.map(m => cell(features.filter((_,i)=>m&(1<<i)).join(', ') || '∅', 'good')).join('')+'</div>'+links();
+      setResult('状态空间 = 2^n，受限空间 = Σ C(n,i), i≤k', limited.toLocaleString()+' / '+Math.pow(2,n).toLocaleString(), '幂集思想解释了为什么特征选择、开关状态和组合优化会迅速变复杂。');
+      legend('状态空间图例', ['n 个二选一决策形成 2^n 个状态', '限制最多选 k 项可显著缩小搜索', '位编码让子集枚举可程序化']);
+    }
+
+    const U = makeSet(['1','2','3','4','5','6','7','8']);
+    const A = makeSet(['1','2','3','5','8']);
+    const B = makeSet(['2','4','5','6','8']);
+    const C = makeSet(['1','4','6','7']);
+    function opResult(op){
+      const map = {
+        union: union(A,B),
+        intersection: inter(A,B),
+        diffAB: diff(A,B),
+        diffBA: diff(B,A),
+        compA: diff(U,A),
+        xor: union(diff(A,B), diff(B,A))
+      };
+      return map[op];
+    }
+    function renderVennOps(){
+      const op = $('opSelect').value;
+      const result = opResult(op);
+      const labels = {union:'A ∪ B', intersection:'A ∩ B', diffAB:'A − B', diffBA:'B − A', compA:'∁A', xor:'A ⊕ B'};
+      const showA = ['union','diffAB','xor'].includes(op);
+      const showB = ['union','diffBA','xor'].includes(op);
+      const showI = ['union','intersection'].includes(op);
+      const showU = op === 'compA';
+      const venn =
+        '<svg class="venn-lab" viewBox="0 0 520 250" role="img" aria-label="集合运算文氏图">' +
+        '<rect x="10" y="14" width="500" height="220" rx="18" fill="'+(showU?'rgba(214,59,29,.15)':'rgba(255,255,255,.45)')+'" stroke="rgba(214,59,29,.18)"/>' +
+        '<circle cx="205" cy="126" r="86" fill="'+(showA?'rgba(214,59,29,.35)':'rgba(214,59,29,.08)')+'" stroke="rgba(214,59,29,.55)" stroke-width="3"/>' +
+        '<circle cx="315" cy="126" r="86" fill="'+(showB?'rgba(39,201,63,.26)':'rgba(39,201,63,.08)')+'" stroke="rgba(39,201,63,.48)" stroke-width="3"/>' +
+        '<ellipse cx="260" cy="126" rx="31" ry="78" fill="'+(showI?'rgba(255,180,0,.72)':'rgba(255,255,255,.22)')+'"/>' +
+        '<text x="170" y="48" fill="#8b0000" font-weight="800">A</text><text x="345" y="48" fill="#1f7a39" font-weight="800">B</text>' +
+        '<text x="260" y="226" text-anchor="middle" fill="#d63b1d" font-size="18" font-weight="800">'+labels[op]+'</text></svg>';
+      $('vizArea').innerHTML =
+        venn +
+        '<div class="three-col"><div class="set-block"><h4>A</h4>'+arr(A).map(x=>pill(x,'hot')).join('')+'</div>' +
+        '<div class="set-block"><h4>B</h4>'+arr(B).map(x=>pill(x,'good')).join('')+'</div>' +
+        '<div class="set-block"><h4>U</h4>'+arr(U).map(x=>pill(x)).join('')+'</div></div>' +
+        '<div class="viz-grid">'+arr(U).map(x => cell(x, result.has(x)?'hot':(A.has(x)||B.has(x)?'':'muted'))).join('')+'</div>'+links();
+      setResult(labels[op], labels[op]+' = '+setText(result), '补集必须依赖全集 U；差集有方向性；对称差表示只属于其中之一。');
+      legend('集合运算图例', ['红色格子是当前运算结果', 'A 与 B 固定，切换运算观察区域变化', '逐元素判定是集合运算最稳妥的方法']);
+    }
+
+    function renderSqlFilter(){
+      const records = [
+        {id:'R1', title:'AI助教', tags:['ai','data']}, {id:'R2', title:'红色文化图谱', tags:['culture','red','data']},
+        {id:'R3', title:'社区调研', tags:['public','field']}, {id:'R4', title:'智慧养老', tags:['ai','public','data']},
+        {id:'R5', title:'红色研学路线', tags:['red','field','culture']}, {id:'R6', title:'数据治理台账', tags:['public','data']},
+        {id:'R7', title:'文化检索系统', tags:['culture','ai','data']}, {id:'R8', title:'志愿服务档案', tags:['red','public','field']}
+      ];
+      const lf = $('leftFilter').value, rf = $('rightFilter').value, op = $('sqlOp').value;
+      const L = makeSet(records.filter(r => r.tags.includes(lf)).map(r => r.id));
+      const R = makeSet(records.filter(r => r.tags.includes(rf)).map(r => r.id));
+      const result = op === 'UNION' ? union(L,R) : op === 'INTERSECT' ? inter(L,R) : diff(L,R);
+      $('vizArea').innerHTML = '<div class="card-grid">'+records.map(r => {
+        const hot = result.has(r.id);
+        return '<div class="record-card"><strong>'+r.id+' '+r.title+'</strong><div>'+r.tags.map(t=>pill(t, hot?'hot':'')).join('')+'</div></div>';
+      }).join('')+'</div>'+links();
+      setResult('SELECT left '+op+' SELECT right', result.size+' 条结果', '左集合='+setText(L)+'，右集合='+setText(R)+'，结果='+setText(result)+'。');
+      legend('SQL 迁移图例', ['UNION 对应并集', 'INTERSECT 对应交集', 'EXCEPT 对应差集，方向不可交换']);
+    }
+
+    function renderLawVerify(){
+      const law = $('lawSelect').value;
+      let left, right, formula;
+      if(law==='commUnion'){ left=union(A,B); right=union(B,A); formula='A∪B = B∪A'; }
+      if(law==='commInter'){ left=inter(A,B); right=inter(B,A); formula='A∩B = B∩A'; }
+      if(law==='assocUnion'){ left=union(union(A,B),C); right=union(A,union(B,C)); formula='(A∪B)∪C = A∪(B∪C)'; }
+      if(law==='idempotent'){ left=union(A,A); right=A; formula='A∪A = A'; }
+      $('vizArea').innerHTML =
+        '<div class="three-col"><div class="set-block"><h4>A</h4>'+arr(A).map(x=>pill(x)).join('')+'</div><div class="set-block"><h4>B</h4>'+arr(B).map(x=>pill(x)).join('')+'</div><div class="set-block"><h4>C</h4>'+arr(C).map(x=>pill(x)).join('')+'</div></div>' +
+        '<div class="two-col"><div class="set-block"><h4>左端</h4>'+arr(left).map(x=>pill(x,'hot')).join('')+'</div><div class="set-block"><h4>右端</h4>'+arr(right).map(x=>pill(x,'good')).join('')+'</div></div>'+links();
+      setResult(formula, same(left,right)?'两端相等':'需要检查', '集合等式可通过验证任意元素在两端的归属一致来证明。');
+      legend('运算律图例', ['左端和右端结果相同即验证成立', '交换律体现顺序不影响结果', '结合律体现分组不影响整体']);
+    }
+
+    function renderBooleanTruth(){
+      const law = $('truthLaw').value;
+      const rows = [];
+      for(const a of [0,1]) for(const b of [0,1]) for(const c of (law==='dist'?[0,1]:[0])){
+        let l, r, formula;
+        if(law==='dmUnion'){ l=!(a||b); r=(!a)&&(!b); formula='¬(A∨B)=¬A∧¬B'; }
+        if(law==='dmInter'){ l=!(a&&b); r=(!a)||(!b); formula='¬(A∧B)=¬A∨¬B'; }
+        if(law==='dist'){ l=a&&(b||c); r=(a&&b)||(a&&c); formula='A∧(B∨C)=(A∧B)∨(A∧C)'; }
+        rows.push({a,b,c,l:+l,r:+r, ok:l===r, formula});
+      }
+      const formula = rows[0].formula;
+      $('vizArea').innerHTML =
+        '<table class="truth-table"><thead><tr><th>A</th><th>B</th><th>C</th><th>左端</th><th>右端</th><th>一致</th></tr></thead><tbody>' +
+        rows.map(x => '<tr><td>'+x.a+'</td><td>'+x.b+'</td><td>'+(law==='dist'?x.c:'-')+'</td><td>'+x.l+'</td><td>'+x.r+'</td><td class="truth-ok">'+(x.ok?'是':'否')+'</td></tr>').join('') +
+        '</tbody></table>'+links();
+      setResult(formula, rows.every(x=>x.ok)?'恒等成立':'存在反例', '集合成员资格 ∈ 可转写为命题真假，集合定律和逻辑等值式因此同构。');
+      legend('布尔代数图例', ['1 表示元素属于集合或命题为真', '0 表示不属于或为假', '真值表逐行相同即恒等']);
+    }
+
+    function renderPartitionCover(){
+      const sc = $('partitionScenario').value;
+      const universe = ['东区','南区','西区','北区','中心','湖畔'];
+      const plans = {
+        partition: [['东区','南区'], ['西区','北区'], ['中心','湖畔']],
+        overlap: [['东区','南区','中心'], ['中心','湖畔'], ['西区','北区']],
+        gap: [['东区','南区'], ['西区'], ['湖畔']]
+      };
+      const blocks = plans[sc];
+      const covered = makeSet(blocks.flat());
+      const overlapCount = {};
+      blocks.flat().forEach(x => overlapCount[x] = (overlapCount[x]||0)+1);
+      const hasOverlap = Object.values(overlapCount).some(v => v>1);
+      const isCover = universe.every(x => covered.has(x));
+      const isPartition = isCover && !hasOverlap && blocks.every(b => b.length>0);
+      $('vizArea').innerHTML =
+        '<div class="viz-panel"><strong>全集 U：</strong>'+universe.map(x=>pill(x, covered.has(x)?'':'muted')).join('')+'</div>' +
+        '<div class="three-col">'+blocks.map((b,i)=>'<div class="set-block"><h4>子集 S'+(i+1)+'</h4>'+b.map(x=>pill(x, overlapCount[x]>1?'hot':'good')).join('')+'</div>').join('')+'</div>'+links();
+      setResult('划分 = 覆盖 + 两两不交', isPartition?'这是划分':(isCover?'只是覆盖':'不是覆盖'), '覆盖全集：'+(isCover?'是':'否')+'；存在重叠：'+(hasOverlap?'是':'否')+'。');
+      legend('划分检查图例', ['覆盖要求所有元素至少出现一次', '划分还要求任意两个子集不相交', '红色元素表示被重复分配']);
+    }
+
+    function renderClusterShard(){
+      syncLabels();
+      const k = +$('shardRange').value, strategy = $('shardStrategy').value;
+      const items = Array.from({length:12}, (_,i)=>({id:'D'+(i+1), topic:['文化','服务','科技'][i%3]}));
+      const shards = Array.from({length:k},()=>[]);
+      items.forEach((it,i)=>{
+        let idx = strategy==='mod' ? i%k : strategy==='range' ? Math.min(k-1, Math.floor(i/(12/k))) : ['文化','服务','科技'].indexOf(it.topic)%k;
+        shards[idx].push(it);
+      });
+      const loads = shards.map(s=>s.length);
+      const balanced = Math.max(...loads)-Math.min(...loads) <= 1;
+      $('vizArea').innerHTML =
+        '<div class="three-col">'+shards.map((s,i)=>'<div class="set-block"><h4>分片 '+(i+1)+'（'+s.length+'）</h4>'+s.map(x=>pill(x.id+' '+x.topic, 'good')).join('')+'</div>').join('')+'</div>'+links();
+      setResult('U = S1 ∪ S2 ∪ ... ∪ Sk，且 Si∩Sj=∅', balanced?'负载较均衡':'负载需优化', '每条数据只进入一个分片，因此是不重不漏的划分；负载差='+ (Math.max(...loads)-Math.min(...loads)) +'。');
+      legend('分片迁移图例', ['分布式系统需要数据划分不重不漏', '取模策略通常更均衡', '按主题聚类更利于业务但可能不均衡']);
+    }
+
+    function renderInclusionTwo(){
+      syncLabels();
+      const a = +$('aRange').value, b = +$('bRange').value;
+      const i = Math.min(+$('iRange').value, a, b);
+      $('iVal').textContent = i;
+      const u = a + b - i;
+      const naive = a + b;
+      $('vizArea').innerHTML =
+        '<svg class="venn-lab" viewBox="0 0 520 250" role="img" aria-label="两集合容斥可视化"><rect x="10" y="14" width="500" height="220" rx="18" fill="rgba(255,255,255,.48)" stroke="rgba(214,59,29,.18)"/><circle cx="215" cy="126" r="'+Math.max(58, Math.min(96, a+28))+'" fill="rgba(214,59,29,.28)" stroke="#d63b1d" stroke-width="3"/><circle cx="305" cy="126" r="'+Math.max(58, Math.min(96, b+28))+'" fill="rgba(39,201,63,.22)" stroke="#27c93f" stroke-width="3"/><ellipse cx="260" cy="126" rx="'+Math.max(8, Math.min(42, i*2.2))+'" ry="78" fill="rgba(255,180,0,.66)"/><text x="165" y="64" fill="#8b0000" font-weight="800">|A|='+a+'</text><text x="326" y="64" fill="#1f7a39" font-weight="800">|B|='+b+'</text><text x="260" y="132" text-anchor="middle" fill="#8b0000" font-weight="800">交 '+i+'</text></svg>' +
+        '<div class="stack-visual"><div class="stack-row"><span>简单相加</span><div class="stack-bar"><span style="width:'+Math.min(100,naive)+'%"></span></div><strong>'+naive+'</strong></div><div class="stack-row"><span>扣除重叠</span><div class="stack-bar"><span style="width:'+Math.min(100,i*2)+'%"></span></div><strong>−'+i+'</strong></div><div class="stack-row"><span>准确并集</span><div class="stack-bar"><span style="width:'+Math.min(100,u)+'%"></span></div><strong>'+u+'</strong></div></div>' +
+        '<div class="flow-row"><div class="flow-node"><b>简单相加</b><span>'+naive+'</span></div><div class="flow-node"><b>减去重叠</b><span>− '+i+'</span></div><div class="flow-node"><b>准确并集</b><span>'+u+'</span></div></div>'+links();
+      setResult('|A∪B| = |A| + |B| − |A∩B|', String(u), '若直接相加会把交集中的对象算两次，所以必须减一次。');
+      legend('容斥图例', ['A 与 B 的重叠被加了两次', '减去一次后每个对象恰好计数一次', '重叠越大，修正越明显']);
+    }
+
+    function renderInclusionThree(){
+      syncLabels();
+      const a=+$('aRange').value, b=+$('bRange').value, c=+$('cRange').value, o=+$('overlapRange').value;
+      const ab=Math.min(o+6,a,b), ac=Math.min(Math.max(0,o-2)+4,a,c), bc=Math.min(o+3,b,c), abc=Math.min(Math.floor(o/2),ab,ac,bc);
+      const u=a+b+c-ab-ac-bc+abc;
+      $('vizArea').innerHTML =
+        '<div class="three-col"><div class="metric-card"><h4>一阶相加</h4><strong>'+(a+b+c)+'</strong><p>|A|+|B|+|C|</p></div>' +
+        '<div class="metric-card"><h4>二阶扣除</h4><strong>− '+(ab+ac+bc)+'</strong><p>|AB|+|AC|+|BC|</p></div>' +
+        '<div class="metric-card"><h4>三阶加回</h4><strong>+ '+abc+'</strong><p>|ABC|</p></div></div>' +
+        '<div class="flow-row"><div class="flow-node"><b>|A|</b><span>'+a+'</span></div><div class="flow-node"><b>|B|</b><span>'+b+'</span></div><div class="flow-node"><b>|C|</b><span>'+c+'</span></div><div class="flow-node"><b>|A∪B∪C|</b><span>'+u+'</span></div></div>'+links();
+      setResult('|A∪B∪C|=|A|+|B|+|C|−|AB|−|AC|−|BC|+|ABC|', String(u), '三重交集先被加三次、又被减三次，最后需要再加回一次。');
+      legend('奇加偶减图例', ['单集合交集加', '两两交集减', '三重交集加回', '一般容斥按交集阶数奇加偶减']);
+    }
+
+    function renderCultureSets(){
+      const focus = $('cultureFocus').value;
+      const sets = {
+        image: ['明月','桂花','玉兔','灯火','团圆'],
+        custom: ['赏月','吃月饼','祭月','猜灯谜','家宴'],
+        poem: ['思乡','团圆','家国','时序','祝愿']
+      };
+      const desc = {image:'意象集合', custom:'习俗集合', poem:'诗词主题集合'};
+      const result = makeSet(sets[focus]);
+      $('vizArea').innerHTML =
+        '<div class="three-col">'+Object.keys(sets).map(k=>'<div class="set-block"><h4>'+desc[k]+'</h4>'+sets[k].map(x=>pill(x,k===focus?'hot':'')).join('')+'</div>').join('')+'</div>'+links();
+      setResult(desc[focus]+' = '+setText(result), result.size+' 个元素', '分类标准清晰，文化元素才能被稳定检索、组织与传承。');
+      legend('文化集合图例', ['每个主题是一组文化元素', '不同集合可继续做并、交、差分析', '集合化是文化数字化的第一步']);
+    }
+
+    function renderCultureGraph(){
+      const f = $('festivalSelect').value;
+      const mid = makeSet(['月亮','团圆','家宴','思乡','桂花','月饼']);
+      const other = {
+        spring: makeSet(['团圆','家宴','春联','守岁','红包','灯火']),
+        dragon: makeSet(['粽子','龙舟','家国','纪念','香囊','祈福']),
+        double: makeSet(['登高','敬老','菊花','祈福','思亲','家国'])
+      }[f];
+      const names = {spring:'春节', dragon:'端午', double:'重阳'};
+      const common = inter(mid, other), unique = diff(mid, other), merged = union(mid, other);
+      $('vizArea').innerHTML =
+        '<div class="three-col"><div class="set-block"><h4>中秋 ∩ '+names[f]+'</h4>'+arr(common).map(x=>pill(x,'hot')).join('')+'</div>' +
+        '<div class="set-block"><h4>中秋独有线索</h4>'+arr(unique).map(x=>pill(x,'good')).join('')+'</div>' +
+        '<div class="set-block"><h4>数字索引并集</h4>'+arr(merged).map(x=>pill(x)).join('')+'</div></div>'+links();
+      setResult('文化索引 = 中秋 ∪ '+names[f], merged.size+' 个检索词', '交集揭示共同文化内核，差集保留节日辨识度。');
+      legend('数字化迁移图例', ['交集用于发现共同主题', '差集用于形成节日特色标签', '并集用于扩展检索入口']);
+    }
+
+    function renderGardenSets(){
+      const zone = $('gardenZone').value;
+      const zones = {
+        view: ['亭','廊','假山','远借山色','花窗'],
+        walk: ['曲桥','游廊','汀步','回环小径','洞门'],
+        rest: ['茶亭','水榭','石凳','开敞平台'],
+        water: ['池塘','溪流','荷花','倒影','驳岸']
+      };
+      const titles = {view:'观景集合', walk:'行游集合', rest:'停驻集合', water:'水景集合'};
+      $('vizArea').innerHTML =
+        '<div class="card-grid">'+Object.keys(zones).map(k=>'<div class="set-block"><h4>'+titles[k]+'</h4>'+zones[k].map(x=>pill(x,k===zone?'hot':'')).join('')+'</div>').join('')+'</div>'+links();
+      setResult(titles[zone]+' = '+setText(makeSet(zones[zone])), zones[zone].length+' 个要素', '园林空间可按功能划分为多个集合，交叠处往往形成丰富的游览体验。');
+      legend('园林集合图例', ['景点要素可按功能归类', '功能区划分帮助规划游线', '共享要素构成空间衔接']);
+    }
+
+    function renderRoutePlan(){
+      const pref = $('routePref').value;
+      const routes = {
+        culture: ['入口','碑廊','古亭','诗墙','水榭'],
+        water: ['入口','曲桥','荷塘','水榭','临湖台'],
+        short: ['入口','花窗','中心亭','出口']
+      };
+      const tags = {
+        '入口':['服务'], '碑廊':['文化'], '古亭':['文化','观景'], '诗墙':['文化'], '水榭':['观景','水景'],
+        '曲桥':['行游','水景'], '荷塘':['水景'], '临湖台':['观景'], '花窗':['观景'], '中心亭':['休憩'], '出口':['服务']
+      };
+      const route = routes[pref];
+      const covered = makeSet(route.flatMap(x => tags[x] || []));
+      $('vizArea').innerHTML =
+        '<div class="path-map"><div class="route-line">'+route.map((x,i)=>'<span class="path-node" style="animation-delay:'+(i*.12)+'s">'+x+'</span>').join('')+'</div></div>' +
+        '<div class="viz-panel"><strong>覆盖功能：</strong>'+arr(covered).map(x=>pill(x,'hot')).join('')+'</div>'+links();
+      setResult('路线覆盖 = 节点功能标签的并集', covered.size+' 类功能', '路径规划可看作在路线节点集合上求功能覆盖，并进一步连接到图论最短路。');
+      legend('游线规划图例', ['节点是景点，标签是功能集合', '路线覆盖等于沿线标签并集', '偏好不同，得到的覆盖重点也不同']);
+    }
+
+    const residents = [
+      {id:'R1', s:['elder','medical']}, {id:'R2', s:['child']}, {id:'R3', s:['disabled','medical']},
+      {id:'R4', s:['elder']}, {id:'R5', s:['child','medical']}, {id:'R6', s:[]},
+      {id:'R7', s:['disabled']}, {id:'R8', s:['elder','disabled']}, {id:'R9', s:['medical']}, {id:'R10', s:[]}
+    ];
+    const serviceNames = {elder:'养老服务', child:'托幼服务', disabled:'助残服务', medical:'健康服务'};
+    function renderServiceSets(){
+      const service = $('serviceSelect').value;
+      const hit = makeSet(residents.filter(r=>r.s.includes(service)).map(r=>r.id));
+      const allCovered = makeSet(residents.filter(r=>r.s.length).map(r=>r.id));
+      const gap = diff(makeSet(residents.map(r=>r.id)), allCovered);
+      $('vizArea').innerHTML =
+        '<div class="viz-grid">'+residents.map(r=>cell(r.id+'<br><small>'+r.s.map(x=>serviceNames[x].slice(0,2)).join('/')+'</small>', hit.has(r.id)?'hot':(r.s.length?'good':'muted'))).join('')+'</div>' +
+        '<div class="two-col"><div class="set-block"><h4>'+serviceNames[service]+'</h4>'+arr(hit).map(x=>pill(x,'hot')).join('')+'</div><div class="set-block"><h4>服务缺口</h4>'+arr(gap).map(x=>pill(x,'muted')).join('')+'</div></div>'+links();
+      setResult(serviceNames[service]+'受益居民集', hit.size+' 人', '用并集看总覆盖，用差集找缺口，用交集识别多项服务共享人群。');
+      legend('社区服务图例', ['红色居民属于当前服务集合', '绿色居民已被其他服务覆盖', '灰色居民是未覆盖缺口']);
+    }
+
+    function renderServiceOpt(){
+      syncLabels();
+      const budget = +$('budgetRange').value, priority = $('prioritySelect').value;
+      const services = {
+        elder: makeSet(['R1','R4','R8','R10']),
+        child: makeSet(['R2','R5','R6']),
+        disabled: makeSet(['R3','R7','R8','R10']),
+        medical: makeSet(['R1','R3','R5','R9'])
+      };
+      let uncovered = makeSet(residents.map(r=>r.id));
+      let chosen = [];
+      for(let step=0; step<budget; step++){
+        let best=null, bestGain=-1;
+        Object.keys(services).filter(s=>!chosen.includes(s)).forEach(s=>{
+          let gain = inter(services[s], uncovered).size;
+          if(priority===s) gain += 1.5;
+          if(priority==='gap') gain += [...services[s]].filter(id=>['R6','R10'].includes(id)).length;
+          if(gain > bestGain){ best=s; bestGain=gain; }
+        });
+        if(best){ chosen.push(best); uncovered = diff(uncovered, services[best]); }
+      }
+      const covered = union(...chosen.map(s=>services[s]));
+      $('vizArea').innerHTML =
+        '<div class="flow-row">'+chosen.map(s=>'<div class="flow-node"><b>'+serviceNames[s]+'</b><span>'+setText(services[s])+'</span></div>').join('')+'</div>' +
+        '<div class="two-col"><div class="set-block"><h4>覆盖居民</h4>'+arr(covered).map(x=>pill(x,'hot')).join('')+'</div><div class="set-block"><h4>剩余缺口</h4>'+arr(uncovered).map(x=>pill(x,'muted')).join('')+'</div></div>'+links();
+      setResult('贪心选择：每步选新增覆盖最多的服务', covered.size+' / '+residents.length+' 人', '预算有限时，集合覆盖思想帮助把资源投向新增覆盖最多的项目。');
+      legend('资源配置图例', ['每个服务是一个居民集合', '并集代表已覆盖人群', '贪心法不保证最优，但可快速得到好方案']);
+    }
+
+    const members = {
+      '算法': ['建模','算法','论文'],
+      '硬件': ['传感器','嵌入式','测试'],
+      '数据': ['采集','清洗','可视化'],
+      '产品': ['需求','交互','汇报'],
+      '安全': ['加密','风控','合规']
+    };
+    const requiredSkills = makeSet(['建模','算法','传感器','采集','可视化','交互','合规']);
+    function renderSkillSets(){
+      const chosen = [...document.querySelectorAll('.memberCheck:checked')].map(x=>x.value);
+      const skillSets = chosen.map(m => makeSet(members[m]));
+      const total = skillSets.length ? union(...skillSets) : makeSet([]);
+      const overlap = makeSet([...total].filter(s => skillSets.filter(t=>t.has(s)).length > 1));
+      const missing = diff(requiredSkills, total);
+      $('vizArea').innerHTML =
+        '<div class="card-grid">'+Object.keys(members).map(m=>'<div class="set-block"><h4>'+m+'同学</h4>'+members[m].map(x=>pill(x, chosen.includes(m)?'hot':'')).join('')+'</div>').join('')+'</div>' +
+        '<div class="three-col"><div class="set-block"><h4>技能并集</h4>'+arr(total).map(x=>pill(x,'hot')).join('')+'</div><div class="set-block"><h4>重叠技能</h4>'+arr(overlap).map(x=>pill(x,'good')).join('')+'</div><div class="set-block"><h4>短板</h4>'+arr(missing).map(x=>pill(x,'muted')).join('')+'</div></div>'+links();
+      setResult('团队能力 = 成员技能集的并集', total.size+' 项技能', '交集太大说明同质化较强；差集指出攻关任务仍缺的能力。');
+      legend('团队集合图例', ['勾选成员得到技能并集', '重叠技能体现协作冗余', '短板集合用于补齐关键能力']);
+    }
+
+    function renderTeamCover(){
+      syncLabels();
+      const limit = +$('teamSizeRange').value, target = $('targetSelect').value;
+      const targets = target==='core'
+        ? makeSet(['建模','算法','传感器','采集','合规'])
+        : makeSet(['建模','算法','传感器','采集','可视化','交互','合规','汇报']);
+      let uncovered = makeSet(targets), chosen = [], available = Object.keys(members);
+      for(let i=0;i<limit && uncovered.size;i++){
+        let best=null, gain=-1;
+        available.filter(m=>!chosen.includes(m)).forEach(m => {
+          const g = inter(makeSet(members[m]), uncovered).size;
+          if(g > gain){ gain=g; best=m; }
+        });
+        if(best==null || gain===0) break;
+        chosen.push(best);
+        uncovered = diff(uncovered, makeSet(members[best]));
+      }
+      const covered = diff(targets, uncovered);
+      $('vizArea').innerHTML =
+        '<div class="skill-radar">'+arr(targets).map(s=>'<div class="skill-dot '+(covered.has(s)?'hot':'')+'">'+s+'</div>').join('')+'</div>' +
+        '<div class="flow-row">'+chosen.map(m=>'<div class="flow-node"><b>'+m+'同学</b><span>'+members[m].join('、')+'</span></div>').join('')+'</div>' +
+        '<div class="three-col"><div class="set-block"><h4>目标技能</h4>'+arr(targets).map(x=>pill(x)).join('')+'</div><div class="set-block"><h4>已覆盖</h4>'+arr(covered).map(x=>pill(x,'hot')).join('')+'</div><div class="set-block"><h4>未覆盖</h4>'+arr(uncovered).map(x=>pill(x,'muted')).join('')+'</div></div>'+links();
+      setResult('集合覆盖：用少量成员覆盖目标技能', covered.size+' / '+targets.size+' 项', '每一步选择新增技能最多的成员，是集合覆盖问题的贪心近似。');
+      legend('创新协作图例', ['成员技能是子集，目标技能是全集', '团队能力取并集', '集合覆盖思想服务协同攻关与人才配置']);
+    }
+
+    function render(){
+      syncLabels();
+      ({
+        set_builder:renderSetBuilder, data_type:renderDataType,
+        subset_enum:renderSubsetEnum, feature_space:renderFeatureSpace,
+        venn_ops:renderVennOps, sql_filter:renderSqlFilter,
+        law_verify:renderLawVerify, boolean_truth:renderBooleanTruth,
+        partition_cover:renderPartitionCover, cluster_shard:renderClusterShard,
+        inclusion_two:renderInclusionTwo, inclusion_three:renderInclusionThree,
+        culture_sets:renderCultureSets, culture_graph:renderCultureGraph,
+        garden_sets:renderGardenSets, route_plan:renderRoutePlan,
+        service_sets:renderServiceSets, service_opt:renderServiceOpt,
+        skill_sets:renderSkillSets, team_cover:renderTeamCover
+      })[KIND]();
+      enhanceStage();
+    }
+
+    document.querySelectorAll('input,select').forEach(el => {
+      el.addEventListener('input', render);
+      el.addEventListener('change', render);
+    });
+    $('vizArea').addEventListener('click', e => {
+      const target = e.target.closest('.pill,.num-cell,.record-card,.set-block,.flow-node,.route-step,.path-node,.skill-dot,.orbit-node,.truth-table td');
+      if(!target || target.closest('.layer-links')) return;
+      target.classList.toggle('picked');
+      spawnSpark(e.clientX, e.clientY);
+      const picked = $('vizArea').querySelectorAll('.picked').length;
+      if(picked) $('resultExtra').innerHTML += '<br>已点选 '+picked+' 个对象；试着用集合符号说出它们共同满足的条件。';
+    });
+    render();
+    </script>
+
+
+    <script>
+    window.SECTION_META = {
+    "chapter": "第2章 集合及其运算",
+    "section": "2.1 集合概述 · 基础层",
+    "title": "集合与元素",
+    "grounding": "本节主题：集合是确定的、互异的、无序的对象之全体。元素与集合的关系用 ∈/∉；表示法有列举法、描述法（{x | P(x)}）；常见数集 N、Z、Q、R；空集 ∅ 是任何集合的子集；集合相等当且仅当互为子集（外延公理）。注意『确定性』『互异性』『无序性』三特征。 本页定位为基础层：通过可操作的互动模型建立集合概念、符号与结果的直观对应。",
+    "steps": [
+        {
+            "name": "情境引入",
+            "desc": "把工人、农民、知识分子等群体『归类』，如何用数学语言精确描述？"
+        },
+        {
+            "name": "对象抽取",
+            "desc": "辨认哪些对象构成集合，确认其确定、互异、无序。"
+        },
+        {
+            "name": "结构建模",
+            "desc": "用列举法/描述法表示集合，用 ∈、⊆、= 刻画关系。"
+        },
+        {
+            "name": "推理求解",
+            "desc": "判定元素归属、子集关系与集合相等。"
+        },
+        {
+            "name": "程序验证",
+            "desc": "用本页交互拖拽元素构建集合，观察归属与表示。"
+        },
+        {
+            "name": "迁移反思",
+            "desc": "迁移到数据库、分类、类型系统中的集合思想。"
+        }
+    ],
+    "ideology": {
+        "title": "统一战线 · 求同存异",
+        "text": "集合把多样的个体凝聚为一个整体，『并』象征最广泛的团结——把不同群体团结在共同目标周围，形成最广泛的统一战线。集合的『确定性』要求标准清晰、不含糊，正是实事求是、立场坚定的体现。",
+        "dims": [
+                "家国情怀",
+                "团结观念",
+                "辩证思维"
+        ],
+        "quote": "团结就是力量——把可团结的力量都纳入同一个『集合』，事业才有最广泛的基础。"
+},
+    "reflect": [
+        "集合的『互异性』为何重要？{1,1,2} 和 {1,2} 是同一个集合吗？",
+        "空集 ∅ 是任何集合的子集，这个约定带来什么便利？",
+        "用描述法定义集合时，谓词 P(x) 不清晰会导致什么问题（如罗素悖论的影子）？"
+    ],
+    "transfer": [
+        "数据库的『表』本质是元组的集合，SQL 的 DISTINCT 正对应集合的互异性。",
+        {
+            "t": "类型即集合",
+            "d": "编程语言里一个类型可看作一个值的集合，子类型对应子集——这种类比有何启发？"
+        },
+        {
+            "t": "标签与分类",
+            "d": "把人群按属性打标签归类，和用描述法定义集合是同一种思维吗？"
+        }
+    ],
+    "layers": [
+        {
+            "name": "集合与元素",
+            "concepts": "确定/互异/无序 / ∈·∉ / 列举·描述法",
+            "task": "用集合语言精确描述一类对象。",
+            "page": "sets-basic.html"
+        },
+        {
+            "name": "子集与集合相等",
+            "concepts": "⊆ / 外延公理 / 空集",
+            "task": "判定子集关系与两集合相等。",
+            "page": "sets.html"
+        },
+        {
+            "name": "集合即数据与类型",
+            "concepts": "数据库表 / 类型系统 / 标签分类",
+            "task": "把集合思想迁移到数据与编程。",
+            "page": "sets-extend.html"
+        }
+    ]
+};
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+
+</html>

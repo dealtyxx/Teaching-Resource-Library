@@ -41,24 +41,34 @@ function init() {
 function setupCanvas() {
     function resize() {
         const container = canvas.parentElement;
-        const rect = container.getBoundingClientRect();
+        const styles = getComputedStyle(container);
+        const padX = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight);
+        const padY = parseFloat(styles.paddingTop) + parseFloat(styles.paddingBottom);
+        const width = Math.max(260, container.clientWidth - padX);
+        const height = Math.max(220, container.clientHeight - padY);
 
         // Set display size
-        canvas.style.width = (rect.width - 40) + 'px';
-        canvas.style.height = (rect.height - 40) + 'px';
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
 
         // Set actual size in memory (scaled for retina displays)
         const scale = window.devicePixelRatio || 1;
-        canvas.width = Math.floor((rect.width - 40) * scale);
-        canvas.height = Math.floor((rect.height - 40) * scale);
+        canvas.width = Math.floor(width * scale);
+        canvas.height = Math.floor(height * scale);
 
         // Normalize coordinate system
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.scale(scale, scale);
 
         drawGraph();
     }
     resize();
     window.addEventListener('resize', resize);
+    if (window.ResizeObserver) {
+        new ResizeObserver(resize).observe(canvas.parentElement);
+    }
+    setTimeout(resize, 300);
+    setTimeout(resize, 1200);
 }
 
 function setupControls() {
@@ -152,7 +162,7 @@ function updateVisualization() {
 
     // Trigger MathJax
     if (window.MathJax) {
-        MathJax.typesetPromise();
+        window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise();
     }
 }
 

@@ -522,12 +522,19 @@ function analyzeEmergency() {
 }
 
 document.getElementById('optMfgBtn').addEventListener('click', () => {
-    // Add random shortcut
-    const u = Math.floor(Math.random() * NODE_COUNT);
-    const v = Math.floor(Math.random() * NODE_COUNT);
-    if (u !== v && !edges.some(e => (e.u === u && e.v === v) || (e.u === v && e.u === u))) {
+    const candidates = [];
+    for (let u = 0; u < NODE_COUNT; u++) {
+        for (let v = u + 1; v < NODE_COUNT; v++) {
+            const exists = edges.some(e => (e.u === u && e.v === v) || (e.u === v && e.v === u));
+            if (!exists) candidates.push([u, v]);
+        }
+    }
+
+    if (candidates.length) {
+        const [u, v] = candidates[Math.floor(Math.random() * candidates.length)];
         addEdge(u, v);
         renderGraph();
+        updateStats();
         addLog(`优化成功：新增 N${u} -> N${v} 高效物流通道`);
         metricValue.textContent = "99%";
     } else {

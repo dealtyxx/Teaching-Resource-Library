@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>官职层级偏序识别 · 基础层 — 等级=偏序</title>
+  <meta name="description" content="第四章 特殊关系 4.10 官职排序 基础层：用偏序刻画官阶等级">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{
+  --ink:#251713; --muted:#6c5a52; --paper:#fff8ec; --card:rgba(255,253,246,0.92);
+  --line:rgba(116,55,31,0.18); --red:#b42318; --red-2:#de5b3d; --gold:#c58a1f;
+  --green:#2f7d57; --blue:#2f5f9f; --amber:#f0a202;
+  --shadow:0 18px 50px rgba(69,31,15,0.14);
+}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;
+  background:radial-gradient(circle at 16% 12%, rgba(222,91,61,.18), transparent 28%),radial-gradient(circle at 82% 8%, rgba(47,95,159,.14), transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}
+.dot.red{background:#ff5f56;} .dot.yellow{background:#ffbd2e;} .dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}
+.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(139,0,0,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}
+.kg-step-head strong{color:var(--red);font-size:.95rem;}
+.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.86rem;}
+.kg-step span{display:block;font-size:.76rem;color:var(--muted);margin-top:3px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.84rem;color:#7a3216;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
+.qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.88rem;color:#5b4136;line-height:1.9;}
+.qres b{color:var(--red);} .qres .rel{display:inline-block;font-family:"JetBrains Mono",monospace;font-weight:800;color:var(--red);}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);} .mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}
+.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 12px;}
+.kg-box{flex:1;min-height:420px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,250,239,.7));padding:10px;display:flex;align-items:center;}
+.lg{width:100%;height:auto;display:block;}
+.lg text{font-family:"Noto Serif SC",serif;font-weight:700;}
+.leg{display:flex;gap:16px;justify-content:center;font-size:.78rem;color:#8b0000;margin-top:10px;}
+.leg i{display:inline-block;width:14px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){
+  body{overflow:auto;}
+  .app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}
+  .side-panel,.glass-pane{max-height:none;overflow:visible;}
+}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">基础层</span></h1>
+        <p class="subtitle">官职层级偏序识别 · 等级=偏序</p>
+      </div>
+      <p class="intro">把官职抽象为偏序元素：有的有明确上下级（可比），有的平级、不同系统（不可比）。</p>
+
+      <div class="value-panel">
+        <h3>传统智慧 · 层级有序</h3>
+        <p>清晰的层级偏序，是古今组织高效运转的共同基石——『明分职，序事业』，权责分明、令行禁止。</p>
+        <div class="dim-list"><span>文化自信</span><span>制度智慧</span></div>
+      </div>
+
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步建模互动</strong><span>点一步，看反馈、公式项和官阶图同步高亮</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-guide="entities"><b>1 抽取元素</b><span>官职 = 偏序集元素</span></button>
+          <button class="kg-step" type="button" data-guide="compare"><b>2 比可比性</b><span>a ≤ b 还是 a ∥ b</span></button>
+          <button class="kg-step" type="button" data-guide="trans"><b>3 看传递律</b><span>a≤b ∧ b≤c ⟹ a≤c</span></button>
+        </div>
+        <div class="kg-feedback" id="kgFeedback">先把官职抽象为偏序集的元素。点图中任意两个官职可比较它们的等级关系。</div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-token="le">≤ 偏序</span>
+          <span class="kg-token" data-token="cmp">可比 / 不可比 ∥</span>
+          <span class="kg-token" data-token="tr">传递律</span>
+        </div>
+      </div>
+
+      <div class="qres" id="qres">点击图中任意<b>两个</b>官职，判定它们的偏序关系（≤ / ≥ / 平级不可比）。</div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>点击两个官职，看它们是『可比』（有上下级）还是『不可比』（平级不同系统）。</span>
+        <div class="visual-badge">官阶 Hasse 图</div>
+      </section>
+      <h2 class="pane-title">官阶哈斯图（自下而上 = 由低到高）</h2>
+      <p class="pane-sub">连线表示直接上下级（覆盖关系）。沿线向上可达即『≤』；既不可上达又不可下达即『平级不可比』。</p>
+      <div class="kg-box"><svg id="lg" class="lg" viewBox="0 0 460 360" preserveAspectRatio="xMidYMid meet"></svg></div>
+      <div class="leg"><span><i style="background:#2a9d8f"></i>行政系统</span><span><i style="background:#2f5f9f"></i>监察系统</span><span><i style="background:#d63b1d"></i>选中</span></div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+    <div>版权所有 · 项目总负责人：谢鑫</div>
+  </footer>
+
+  <script>
+    window.SECTION_META = {"layers": [{"name": "等级=偏序", "concepts": "职位节点 / 上下级偏序 / 可比·平级", "task": "用偏序刻画官阶等级。", "page": "official_hierarchy-basic.html"}, {"name": "哈斯图与极值", "concepts": "哈斯图 / 极大元=顶层 / 上界=共同上级", "task": "用哈斯图找顶层与共同上级。", "page": "official_hierarchy.html"}, {"name": "权限与调度", "concepts": "RBAC角色继承 / 拓扑排序调度", "task": "迁移到权限模型与任务调度。", "page": "official_hierarchy-extend.html"}],
+      "chapter": "第4章 特殊关系与函数", "section": "4.10 官职排序案例 · 基础层", "title": "等级=偏序",
+      "grounding": "本页（基础层）主题：把官职抽象为偏序集元素，上下级为偏序关系（可比），平级不同系统为不可比。用自反、反对称、传递三性质刻画等级体系。",
+      "steps": [
+        {"name": "情境引入", "desc": "古代九品官制、现代组织架构，如何用偏序刻画其层级？"},
+        {"name": "对象抽取", "desc": "把职位抽象为元素，把『上下级』抽象为偏序。"},
+        {"name": "结构建模", "desc": "用哈斯图展示等级，用可比/不可比刻画条块关系。"},
+        {"name": "推理求解", "desc": "比较任两官职：可比（≤）或平级不可比。"},
+        {"name": "程序验证", "desc": "沿覆盖边向上可达即 ≤；传递律保证一致。"},
+        {"name": "迁移反思", "desc": "找顶层与共同上级（进阶层），迁移到权限与调度（拓展层）。"}
+      ],
+      "ideology": {"title": "传统智慧 · 层级有序", "text": "古代官制以严密的等级与考核维系治理，蕴含『权责分明、令行禁止』的制度智慧。用偏序与哈斯图解读这份历史经验，既增进文化自信，也为现代组织治理提供层级有序、统分结合的启示。", "dims": ["文化自信", "制度智慧", "系统观念"], "quote": "明分职，序事业——清晰的层级偏序，是古今组织高效运转的共同基石。"},
+      "reflect": ["组织中『平级不可比』如何用偏序而非全序刻画？", "传递律为什么保证了等级体系的一致性？"],
+      "transfer": ["哈斯图找顶层与共同上级（进阶层）；RBAC权限继承与拓扑排序（拓展层）。"]
+    };
+  </script>
+
+  <script>
+    var $=function(id){return document.getElementById(id);};
+    var NODES={
+      '县令':{x:120,y:310,sys:'admin',grade:'正七品'},
+      '太守':{x:120,y:225,sys:'admin',grade:'正四品'},
+      '尚书':{x:120,y:140,sys:'admin',grade:'正二品'},
+      '御史':{x:330,y:140,sys:'censor',grade:'正三品'},
+      '丞相':{x:225,y:55,sys:'admin',grade:'正一品'}
+    };
+    var COVER=[['县令','太守'],['太守','尚书'],['尚书','丞相'],['御史','丞相']];
+    var sel=[],guide='entities';
+    function color(id){return NODES[id].sys==='censor'?'#2f5f9f':'#2a9d8f';}
+    function leq(a,b){ // a ≤ b : b 在 a 之上可达
+      if(a===b)return true;var seen={},q=[a];
+      while(q.length){var u=q.shift();for(var i=0;i<COVER.length;i++){if(COVER[i][0]===u){var v=COVER[i][1];if(v===b)return true;if(!seen[v]){seen[v]=1;q.push(v);}}}}
+      return false;
+    }
+    function relation(a,b){ if(a===b)return {sym:a+' = '+b,txt:'同一官职，自反 a ≤ a。'}; if(leq(a,b))return {sym:a+' ≤ '+b,txt:'<b>可比</b>：'+a+' 是 '+b+' 的下级，沿覆盖边可向上到达。'}; if(leq(b,a))return {sym:b+' ≤ '+a,txt:'<b>可比</b>：'+b+' 是 '+a+' 的下级。'}; return {sym:a+' ∥ '+b,txt:'<b>平级不可比</b>：'+a+' 与 '+b+' 分属不同系统、互不上下级（偏序不是全序）。'}; }
+    function chainHot(){ // 县令→太守→尚书 传递演示边
+      return {'县令>太守':1,'太守>尚书':1};
+    }
+    function draw(){
+      var hotN={},hotE={};
+      if(guide==='compare'||guide==='entities'){ sel.forEach(function(id){hotN[id]=1;}); }
+      if(guide==='trans'){ ['县令','太守','尚书'].forEach(function(id){hotN[id]=1;}); var c=chainHot();for(var k in c)hotE[k]=1; }
+      else if(sel.length===2 && leq(sel[0],sel[1])||sel.length===2&&leq(sel[1],sel[0])){
+        var a=sel[0],b=sel[1],lo=leq(a,b)?a:b,hi=leq(a,b)?b:a;
+        // highlight path lo→hi
+        var path=findPath(lo,hi);for(var i=0;i<path.length-1;i++)hotE[path[i]+'>'+path[i+1]]=1;
+      }
+      var svg='';
+      COVER.forEach(function(e){var on=hotE[e[0]+'>'+e[1]];var p1=NODES[e[0]],p2=NODES[e[1]];svg+='<line x1="'+p1.x+'" y1="'+(p1.y-18)+'" x2="'+p2.x+'" y2="'+(p2.y+18)+'" stroke="'+(on?'#d63b1d':'#c2b2a8')+'" stroke-width="'+(on?3.5:1.6)+'" opacity="'+(on?1:0.7)+'"/>';});
+      Object.keys(NODES).forEach(function(id){var p=NODES[id];var isSel=sel.indexOf(id)>=0;var isHot=hotN[id];var stroke=isSel?'#d63b1d':(isHot?'#c5a059':'#fff');var sw=(isSel||isHot)?3.6:2;
+        svg+='<g style="cursor:pointer" data-id="'+id+'"><rect x="'+(p.x-44)+'" y="'+(p.y-19)+'" width="88" height="38" rx="9" fill="'+color(id)+'" stroke="'+stroke+'" stroke-width="'+sw+'"/><text x="'+p.x+'" y="'+(p.y-2)+'" text-anchor="middle" fill="#fff" font-size="15">'+id+'</text><text x="'+p.x+'" y="'+(p.y+12)+'" text-anchor="middle" fill="rgba(255,255,255,.85)" font-size="9">'+p.grade+'</text></g>';
+      });
+      $('lg').innerHTML=svg;
+      $('lg').querySelectorAll('[data-id]').forEach(function(g){g.onclick=function(){pick(g.dataset.id);};});
+    }
+    function findPath(a,b){var prev={},q=[a],seen={};seen[a]=1;while(q.length){var u=q.shift();if(u===b)break;COVER.forEach(function(e){if(e[0]===u&&!seen[e[1]]){seen[e[1]]=1;prev[e[1]]=u;q.push(e[1]);}});}var path=[b],c=b;while(c!==a&&prev[c]!==undefined){c=prev[c];path.unshift(c);}return path[0]===a?path:[];}
+    function pick(id){
+      if(guide!=='compare'){guide='compare';syncGuide();}
+      var i=sel.indexOf(id);
+      if(i>=0)sel.splice(i,1); else { if(sel.length>=2)sel=[]; sel.push(id); }
+      if(sel.length===2){var r=relation(sel[0],sel[1]);$('qres').innerHTML='已选 <b>'+sel[0]+'</b> 与 <b>'+sel[1]+'</b>：<br><span class="rel">'+r.sym+'</span><br>'+r.txt;}
+      else if(sel.length===1)$('qres').innerHTML='已选 <b>'+sel[0]+'</b>，再点一个官职进行比较。';
+      else $('qres').innerHTML='点击图中任意<b>两个</b>官职，判定它们的偏序关系（≤ / ≥ / 平级不可比）。';
+      draw();
+    }
+    function syncGuide(){
+      document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.guide===guide);});
+      document.querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',(guide==='entities'&&t.dataset.token==='le')||(guide==='compare'&&(t.dataset.token==='le'||t.dataset.token==='cmp'))||(guide==='trans'&&t.dataset.token==='tr'));});
+    }
+    function setGuide(g){
+      guide=g;syncGuide();
+      if(g==='entities'){sel=[];$('kgFeedback').innerHTML='把官职抽象为<b>偏序集</b>的元素。绿=行政系统，蓝=监察系统。每个元素都满足自反 <b>a ≤ a</b>。';$('qres').innerHTML='点击图中任意<b>两个</b>官职，判定它们的偏序关系（≤ / ≥ / 平级不可比）。';}
+      else if(g==='compare'){sel=['尚书','御史'];$('kgFeedback').innerHTML='判断两官职是否<b>可比</b>：沿覆盖边能上下到达即 ≤；否则平级<b>不可比 ∥</b>。例如尚书与御史分属不同系统，<b>不可比</b>。';var r=relation('尚书','御史');$('qres').innerHTML='已选 <b>尚书</b> 与 <b>御史</b>：<br><span class="rel">'+r.sym+'</span><br>'+r.txt;}
+      else{sel=['县令','尚书'];$('kgFeedback').innerHTML='<b>传递律</b>：县令 ≤ 太守，太守 ≤ 尚书 ⟹ 县令 ≤ 尚书。高亮的链条说明等级可逐级传递、体系一致。';$('qres').innerHTML='<span class="rel">县令 ≤ 太守 ≤ 尚书 ⟹ 县令 ≤ 尚书</span><br>等级关系沿覆盖边<b>传递</b>，无需直接连线也能确定上下级。';}
+      draw();
+    }
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setGuide(b.dataset.guide);};});
+    setGuide('entities');
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

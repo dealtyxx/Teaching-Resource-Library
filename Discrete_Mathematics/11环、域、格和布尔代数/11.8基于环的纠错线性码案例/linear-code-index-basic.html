@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>纠错线性码 · 基础层 — 线性码=向量空间</title>
+  <meta name="description" content="11.8 纠错线性码 基础层：把线性码建模为有限域上的向量空间">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1500px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(139,0,0,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}.kg-step-head strong{color:var(--red);font-size:.95rem;}.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.86rem;}.kg-step span{display:block;font-size:.76rem;color:var(--muted);margin-top:3px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.84rem;color:#7a3216;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
+.ctrl-box{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
+.ctrl-box>label{display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:8px;}
+.bitchips{display:flex;gap:7px;flex-wrap:wrap;}
+.bitchip{width:40px;height:40px;border-radius:8px;border:2px solid var(--blue);background:#fff;color:var(--blue);font-family:"JetBrains Mono",monospace;font-weight:800;font-size:1.1rem;cursor:pointer;transition:.15s;}
+.bitchip.one{background:var(--blue);color:#fff;}
+.cwbtns{display:flex;flex-wrap:wrap;gap:6px;}
+.cwbtn{padding:6px 10px;border-radius:8px;border:1.5px solid var(--line);background:rgba(255,255,255,.7);cursor:pointer;font-family:"JetBrains Mono",monospace;font-weight:700;font-size:.85rem;color:#5b4136;transition:.15s;}
+.cwbtn.a{border-color:var(--blue);background:var(--blue);color:#fff;}.cwbtn.b{border-color:var(--gold);background:var(--gold);color:#3d2b25;}
+.qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.88rem;color:#5b4136;line-height:1.9;}
+.qres b{color:var(--red);}.qres .formula{font-family:"JetBrains Mono",monospace;font-weight:800;color:var(--red);}
+.qres .ok{color:var(--green);font-weight:800;}.qres .bad{color:var(--red);font-weight:800;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 8px;}
+.svgbox{flex:1;min-height:430px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(255,250,239,.7));padding:6px;display:flex;align-items:center;}
+.viz{width:100%;height:auto;display:block;}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:13px 15px;margin-top:12px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}.insight-box p{margin:0;font-size:13.5px;line-height:1.7;color:#4e362d;}
+.badges{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px;}.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">基础层</span></h1>
+        <p class="subtitle">纠错线性码 · 线性码=向量空间</p>
+      </div>
+      <p class="intro">从最简单的 (3,2) 偶校验码入手：用生成矩阵 G 编码，理解码字集合在有限域 F₂ 上构成<b>向量空间</b>（对加法封闭），并用校验位检测错误。</p>
+
+      <div class="value-panel">
+        <h3>可靠传输 · 理论强基</h3>
+        <p>线性码的『线性』源于向量空间结构——这正是环与有限域为通信纠错奠定的数学根基。</p>
+        <div class="dim-list"><span>科学精神</span><span>自立自强</span></div>
+      </div>
+
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步建模互动</strong><span>点一步，看反馈、公式项与位图同步高亮</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-guide="encode"><b>1 线性编码</b><span>c = u·G，加 1 位校验</span></button>
+          <button class="kg-step" type="button" data-guide="space"><b>2 向量空间</b><span>码字对加法 ⊕ 封闭</span></button>
+          <button class="kg-step" type="button" data-guide="check"><b>3 校验检测</b><span>综合征 s=0 正常 / s=1 有错</span></button>
+        </div>
+        <div class="kg-feedback" id="kgFeedback"></div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-token="enc">c = u·G</span>
+          <span class="kg-token" data-token="closed">⊕ 封闭</span>
+          <span class="kg-token" data-token="syn">s = 校验</span>
+        </div>
+      </div>
+
+      <div class="ctrl-box" id="ctrlBox"></div>
+      <div class="qres" id="qres"></div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>用 (3,2) 线性码体验编码、向量空间的加法封闭，以及用校验位检测错误。</span>
+        <div class="visual-badge">位图 · F₂ 向量</div>
+      </section>
+      <h2 class="pane-title">(3,2) 偶校验线性码</h2>
+      <p class="pane-sub">蓝色=信息位，绿色=校验位，红色=出错位。G = [I₂ | P]，校验位 p = u₁ ⊕ u₂。</p>
+      <div class="svgbox"><svg class="viz" id="viz" viewBox="0 0 720 440" preserveAspectRatio="xMidYMid meet"></svg></div>
+      <div class="insight-box">
+        <div class="insight-title">📡 线性码 = 有限域上的向量空间</div>
+        <p>全部码字构成 F₂ 上的<b>向量空间</b>：含零码字、对加法 ⊕ <b>封闭</b>（任两码字之和仍是码字）——这正是『线性』的含义，也是加法子群。线性结构让编码 c=u·G 与校验都化为矩阵运算。本例 d=2，只能<b>检测</b> 1 位错误；要<b>定位纠正</b>需更大的最小距离（进阶层）。</p>
+        <div class="badges"><span class="badge">科学精神</span><span class="badge">自立自强</span><span class="badge">系统观念</span></div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
+
+  <script>
+    window.SECTION_META = {
+      "chapter": "第11章 环、域、格和布尔代数", "section": "11.8 基于环的纠错线性码案例 · 基础层", "title": "线性码=向量空间",
+      "grounding": "本页（基础层）主题：用最简单的 (3,2) 偶校验线性码，把线性码建模为有限域 F₂ 上的向量空间——用生成矩阵 G 编码 c=u·G，理解码字集合含零、对加法 ⊕ 封闭（加法子群=向量空间），并用校验位（综合征）检测错误。d=2 仅能检测 1 位错误。",
+      "steps": [
+        {"name": "情境引入", "desc": "如何用最少的冗余位让接收方发现传输出错？"},
+        {"name": "对象抽取", "desc": "把信息与码字抽象为 F₂ 上的向量。"},
+        {"name": "结构建模", "desc": "用生成矩阵 G 编码，码字集合构成向量空间。"},
+        {"name": "推理求解", "desc": "验证加法封闭（线性），用综合征检测错误。"},
+        {"name": "程序验证", "desc": "改信息位、选码字相加、注错，观察位图与综合征。"},
+        {"name": "迁移反思", "desc": "更大最小距离→定位纠错（进阶层）、循环码与RS（拓展层）。"}
+      ],
+      "ideology": {"title": "可靠传输 · 自主可控", "text": "纠错码保障数据在噪声信道中可靠传输，是通信、存储、航天的隐形守护者，其背后是环与有限域的深厚数学。从最简单的线性码理解向量空间结构，是掌握编码核心技术、实现自主可控、建设网络强国的第一步。", "dims": ["自立自强", "科学精神", "系统观念"], "quote": "于无声处听惊雷——纠错码在比特的细微处守护可靠，背后是环论的深厚根基。"},
+      "reflect": ["为什么线性码的码字集合构成向量空间（对加法封闭）？这带来什么编码便利？", "(3,2) 码 d=2 为何只能检测、不能纠正 1 位错误？"],
+      "transfer": ["增大最小距离实现定位纠错（进阶层 Hamming 码）；循环码、CRC、RS 码（拓展层）。"],
+      "layers": [
+        {"name": "线性码=向量空间", "concepts": "码字加法子群 / 有限域", "task": "把线性码建模为向量空间。", "page": "linear-code-index-basic.html"},
+        {"name": "生成校验与综合征", "concepts": "G / H / 最小距离 / 纠错", "task": "编码、求综合征、定位纠错。", "page": "linear-code-index.html"},
+        {"name": "CRC 与 RS 码", "concepts": "循环码 / 多项式环 / 码率权衡", "task": "迁移到 CRC、BCH、RS 码。", "page": "linear-code-index-extend.html"}
+      ]
+    };
+  </script>
+
+  <script>
+    var $=function(id){return document.getElementById(id);};
+    var C_INFO='#2f5f9f',C_PAR='#2f7d57',C_ERR='#d63b1d',C_DIM='#9a8b80';
+    function enc(u){return [u[0],u[1],u[0]^u[1]];}
+    var CW=[[0,0],[0,1],[1,0],[1,1]].map(function(u){return {u:u,c:enc(u)};});
+    function syndrome(r){return r[0]^r[1]^r[2];}
+    var guide='encode',u=[1,0],cwA=1,cwB=2,errPos=-1;
+    // SVG bit-box
+    function box(x,y,v,color,opts){opts=opts||{};var s=opts.s||40;var out='<rect x="'+x+'" y="'+y+'" width="'+s+'" height="'+s+'" rx="7" fill="'+(opts.fill||'#fff')+'" stroke="'+color+'" stroke-width="'+(opts.bold?3.4:2.2)+'"/>';out+='<text x="'+(x+s/2)+'" y="'+(y+s/2+6)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="18" font-weight="800" fill="'+color+'">'+v+'</text>';return out;}
+    function txt(x,y,t,color,size,w){return '<text x="'+x+'" y="'+y+'" text-anchor="middle" font-family="Noto Serif SC,serif" font-size="'+(size||14)+'" font-weight="'+(w||'700')+'" fill="'+(color||'#4e362d')+'">'+t+'</text>';}
+    function row(x,y,bits,colors){var s='';bits.forEach(function(b,i){s+=box(x+i*52,y,b,colors[i]);});return s;}
+    function draw(){
+      var svg='';
+      if(guide==='encode'){
+        var c=enc(u);
+        svg+=txt(360,46,'线性编码　c = u · G　(mod 2)','#d63b1d',19,'800');
+        svg+=txt(150,135,'信息 u','#2f5f9f',14);
+        svg+=row(230,112,u,[C_INFO,C_INFO]);
+        svg+=txt(420,138,'×  G','#b42318',20,'800');
+        svg+=txt(150,250,'码字 c','#4e362d',14);
+        svg+=row(230,228,c,[C_INFO,C_INFO,C_PAR]);
+        svg+=txt(230+0*52+20,300,'u₁','#2f5f9f',12);svg+=txt(230+1*52+20,300,'u₂','#2f5f9f',12);svg+=txt(230+2*52+20,300,'p','#2f7d57',12);
+        svg+=txt(360,360,'校验位 p = u₁ ⊕ u₂ = '+u[0]+' ⊕ '+u[1]+' = '+c[2],'#2f7d57',16,'800');
+        svg+=txt(360,395,'G = [ I₂ | P ]：前 2 位原样保留（信息位），第 3 位是冗余校验位。','#6c5a52',12.5,'400');
+      } else if(guide==='space'){
+        svg+=txt(360,42,'码字集合 C 对加法 ⊕ 封闭 → 向量空间','#d63b1d',18,'800');
+        var ya=80;
+        CW.forEach(function(o,i){
+          var hl=(i===cwA||i===cwB);
+          var col=i===cwA?C_INFO:(i===cwB?C_PAR:C_DIM);
+          svg+=txt(95,ya+i*60+27,'c'+i,col,14,'800');
+          svg+=row(150,ya+i*60,o.c,[col,col,col]);
+          if(hl)svg+=txt(380,ya+i*60+27,i===cwA?'← 选中 A':'← 选中 B',col,12,'700');
+        });
+        var ra=CW[cwA].c,rb=CW[cwB].c,rr=[ra[0]^rb[0],ra[1]^rb[1],ra[2]^rb[2]];
+        var match=-1;CW.forEach(function(o,i){if(o.c[0]===rr[0]&&o.c[1]===rr[1]&&o.c[2]===rr[2])match=i;});
+        svg+=txt(360,ya+4*60+24,'c'+cwA+' ⊕ c'+cwB+' =','#b42318',15,'800');
+        svg+=row(300,ya+4*60+34,rr,[C_ERR,C_ERR,C_ERR]);
+        svg+=txt(360,ya+4*60+118,'结果 = c'+match+' ∈ C　✓ 仍是码字（封闭）','#2f7d57',15,'800');
+      } else {
+        var base=CW[1].c.slice();var r=base.slice();if(errPos>=0)r[errPos]^=1;var s=syndrome(r);
+        svg+=txt(360,46,'综合征检测　s = r₁ ⊕ r₂ ⊕ r₃','#d63b1d',18,'800');
+        svg+=txt(150,150,'发送 c','#2f5f9f',14);
+        svg+=row(250,128,base,[C_INFO,C_INFO,C_PAR]);
+        svg+=txt(150,250,'接收 r','#4e362d',14);
+        svg+=row(250,228,r,[errPos===0?C_ERR:C_INFO,errPos===1?C_ERR:C_INFO,errPos===2?C_ERR:C_PAR]);
+        if(errPos>=0)svg+=txt(250+errPos*52+20,222,'✗','#d63b1d',20,'800');
+        svg+='<rect x="300" y="318" width="120" height="46" rx="9" fill="'+(s?'rgba(214,59,29,.12)':'rgba(47,125,87,.12)')+'" stroke="'+(s?C_ERR:C_PAR)+'" stroke-width="2.4"/>';
+        svg+=txt(360,348,'s = '+s,s?C_ERR:C_PAR,20,'800');
+        svg+=txt(360,398, s ? '检测到错误（奇偶不符）— 但 d=2 无法定位是哪一位' : '校验通过，未检测到错误', s?C_ERR:C_PAR, 13, '700');
+      }
+      $('viz').innerHTML=svg;
+    }
+    function info(){
+      if(guide==='encode'){var c=enc(u);$('qres').innerHTML='<span class="formula">u = '+u.join('')+' → c = '+c.join('')+'</span><br>校验位 p = u₁⊕u₂ = <b>'+c[2]+'</b>。码字总是<b>偶重量</b>（含校验后 1 的个数为偶）。';}
+      else if(guide==='space'){var ra=CW[cwA].c,rb=CW[cwB].c,rr=[ra[0]^rb[0],ra[1]^rb[1],ra[2]^rb[2]];var match=-1;CW.forEach(function(o,i){if(o.c.join('')===rr.join(''))match=i;});$('qres').innerHTML='<span class="formula">c'+cwA+' ⊕ c'+cwB+' = '+rr.join('')+' = c'+match+'</span><br>两码字之和<b>仍是码字</b> → 对加法<b class="ok">封闭</b>；又含零码字 c0=000 → 构成<b>加法子群 / 向量空间</b>。';}
+      else{var base=CW[1].c.slice();var r=base.slice();if(errPos>=0)r[errPos]^=1;var s=syndrome(r);$('qres').innerHTML='<span class="formula">r = '+r.join('')+'，s = '+s+'</span><br>'+(s?'<span class="bad">s=1：检测到 1 位错误</span>（但单校验位只能检测、不能定位）。':'<span class="ok">s=0：传输无误</span>，未检测到错误。');}
+    }
+    function renderCtrl(){
+      if(guide==='encode'){$('ctrlBox').innerHTML='<label>① 点位翻转信息位 u（2 位）</label><div class="bitchips" id="uchips"></div>';
+        $('uchips').innerHTML=u.map(function(b,i){return '<button class="bitchip'+(b?' one':'')+'" data-i="'+i+'">'+b+'</button>';}).join('');
+        $('uchips').querySelectorAll('.bitchip').forEach(function(b){b.onclick=function(){u[+b.dataset.i]^=1;draw();info();renderCtrl();};});
+      } else if(guide==='space'){$('ctrlBox').innerHTML='<label>② 选两个码字相加（验证封闭）</label><div style="font-size:12px;color:#6c5a52;margin-bottom:6px">A：</div><div class="cwbtns" id="cwa"></div><div style="font-size:12px;color:#6c5a52;margin:8px 0 6px">B：</div><div class="cwbtns" id="cwb"></div>';
+        $('cwa').innerHTML=CW.map(function(o,i){return '<button class="cwbtn'+(i===cwA?' a':'')+'" data-i="'+i+'">c'+i+'='+o.c.join('')+'</button>';}).join('');
+        $('cwb').innerHTML=CW.map(function(o,i){return '<button class="cwbtn'+(i===cwB?' b':'')+'" data-i="'+i+'">c'+i+'='+o.c.join('')+'</button>';}).join('');
+        $('cwa').querySelectorAll('.cwbtn').forEach(function(b){b.onclick=function(){cwA=+b.dataset.i;draw();info();renderCtrl();};});
+        $('cwb').querySelectorAll('.cwbtn').forEach(function(b){b.onclick=function(){cwB=+b.dataset.i;draw();info();renderCtrl();};});
+      } else {$('ctrlBox').innerHTML='<label>③ 点位注入错误（在接收 r 上翻转一位）</label><div class="cwbtns" id="errbtns"></div>';
+        var labels=['翻转第1位','翻转第2位','翻转第3位','无错误'];
+        $('errbtns').innerHTML=labels.map(function(t,i){var v=i<3?i:-1;return '<button class="cwbtn'+(errPos===v?' a':'')+'" data-p="'+v+'">'+t+'</button>';}).join('');
+        $('errbtns').querySelectorAll('.cwbtn').forEach(function(b){b.onclick=function(){errPos=+b.dataset.p;draw();info();renderCtrl();};});
+      }
+    }
+    function syncGuide(){
+      document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.guide===guide);});
+      document.querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',(guide==='encode'&&t.dataset.token==='enc')||(guide==='space'&&t.dataset.token==='closed')||(guide==='check'&&t.dataset.token==='syn'));});
+    }
+    function setGuide(g){
+      guide=g;syncGuide();
+      if(g==='encode')$('kgFeedback').innerHTML='<b>线性编码</b>：信息 u 乘生成矩阵 G 得码字 c。前 2 位是信息位，第 3 位是校验位 p=u₁⊕u₂。点位翻转 u 看码字变化。';
+      else if(g==='space')$('kgFeedback').innerHTML='<b>向量空间</b>：任选两个码字做 ⊕，结果仍是码字（封闭）；又含零码字 → 码字集合是加法子群、F₂ 上的向量空间，这就是『线性』。';
+      else $('kgFeedback').innerHTML='<b>校验检测</b>：综合征 s = r₁⊕r₂⊕r₃。s=0 传输无误；s=1 检测到错误。d=2 的码只能检测、不能定位纠正。';
+      renderCtrl();draw();info();
+    }
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setGuide(b.dataset.guide);};});
+    setGuide('encode');
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

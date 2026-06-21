@@ -12,6 +12,7 @@ let canvas, ctx;
 let currentMode = 'subgraph';
 let graph = { nodes: [], edges: [] };
 let secondaryGraph = null; // For Union mode
+let canvasResizeObserver = null;
 let selectedNodes = new Set();
 let selectedEdges = new Set();
 let isDragging = false;
@@ -76,6 +77,10 @@ function init() {
 
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
+    if ('ResizeObserver' in window) {
+        canvasResizeObserver = new ResizeObserver(() => resizeCanvas());
+        canvasResizeObserver.observe(canvas.parentElement);
+    }
 
     setupNavigation();
     setupInteraction();
@@ -84,8 +89,11 @@ function init() {
 
 function resizeCanvas() {
     const container = canvas.parentElement;
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
+    const width = Math.max(1, Math.round(container.clientWidth));
+    const height = Math.max(1, Math.round(container.clientHeight));
+    if (canvas.width === width && canvas.height === height && currentMode) return;
+    canvas.width = width;
+    canvas.height = height;
     if (currentMode) draw();
 }
 

@@ -8,7 +8,7 @@
     <title>红色数理 - 服务的逻辑</title>
     <meta name="description" content="离散数学课程 - 红色数理 - 服务的逻辑">
 
-    <link rel="stylesheet" href="function_properties.css">
+    <link rel="stylesheet" href="function_properties.css?v=layout-fix-20260617">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -19,10 +19,13 @@
             tex: {
                 inlineMath: [['$', '$'], ['\\(', '\\)']],
                 displayMath: [['$$', '$$'], ['\\[', '\\]']]
-            }
+            },
+            startup: { typeset: true }
         };
     </script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
 </head>
 
 <body>
@@ -45,8 +48,8 @@
     <div class="app-container">
         <header class="main-header">
             <div class="header-content">
-                <h1>红色数理 <span class="highlight">服务的逻辑</span></h1>
-                <p class="subtitle">The Logic of Service: Injection, Surjection, & Bijection</p>
+                <h1>红色数理 <span class="highlight">进阶层</span></h1>
+                <p class="subtitle">单射、满射、双射雷达 · 服务的逻辑</p>
             </div>
             <div class="header-controls">
                 <nav class="mode-nav">
@@ -63,8 +66,8 @@
                         <span>双射 (Bijection)</span>
                     </button>
                 </nav>
-                <button id="resetBtn" class="apple-btn secondary-btn">
-                    <span class="btn-icon">🔄</span>
+                <button id="resetBtn" class="apple-btn secondary-btn" aria-label="重置映射" title="重置映射">
+                    <span class="btn-icon" aria-hidden="true">↻</span>
                 </button>
             </div>
         </header>
@@ -85,9 +88,9 @@
                 <div class="connections-layer">
                     <svg class="connections-svg" id="connectionsSvg">
                         <defs>
-                            <marker id="arrow-head" markerWidth="10" markerHeight="7" refX="28" refY="3.5"
-                                orient="auto">
-                                <polygon points="0 0, 10 3.5, 0 7" fill="#e17055" />
+                            <marker id="arrow-head" markerWidth="12" markerHeight="8" refX="12" refY="4"
+                                orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 12 8">
+                                <polygon points="0 0, 12 4, 0 8" fill="#e17055" />
                             </marker>
                         </defs>
                     </svg>
@@ -117,7 +120,7 @@
                 <div class="insight-box">
                     <div class="insight-header">
                         <span class="insight-icon" id="insightIcon">💡</span>
-                        <h4 id="insightTitle">思政启示</h4>
+                        <h4 id="insightTitle">价值启示</h4>
                     </div>
                     <p id="insightText">
                         公共服务体系建设需要科学的逻辑。单射意味着职责分明，满射意味着全面覆盖。
@@ -134,7 +137,7 @@
         </div>
     </div>
 
-    <script src="function_properties.js"></script>
+    <script src="function_properties.js?v=layout-fix-20260617"></script>
 
 <!-- 固定底部版权信息 -->
 <footer style="
@@ -142,19 +145,100 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "layers": [
+            {
+                  "name": "单射·满射",
+                  "concepts": "一对一 / 映上 / 不重·不漏",
+                  "task": "判定单射与满射。",
+                  "page": "function_properties-basic.html"
+            },
+            {
+                  "name": "双射与可逆",
+                  "concepts": "既单又满 / 一一对应 / 可逆",
+                  "task": "理解只有双射才可逆。",
+                  "page": "function_properties.html"
+            },
+            {
+                  "name": "编码与基数",
+                  "concepts": "可逆加密 / 哈希非单射 / 等势",
+                  "task": "迁移到编码解码与基数比较。",
+                  "page": "function_properties-extend.html"
+            }
+      ],
+      "chapter": "第4章 特殊关系与函数",
+      "section": "4.5 三种类型函数 · 进阶层 · 进阶层",
+      "title": "双射与可逆",
+      "grounding": "本节主题：单射（一对一，f(a₁)=f(a₂)⇒a₁=a₂）、满射（映上，f(A)=B）、双射（既单又满，建立一一对应）。双射可逆，是基数比较与编码/解码的基础。鸽巢原理：有限集间单射要求 |A|≤|B|，满射要求 |A|≥|B|。 本页定位为进阶层：承接原页面的核心推理、综合辨析和课程资源主线。 本页定位为进阶层：承接原页面的核心推理、综合辨析和课程资源主线。",
+      "steps": [
+            {
+                  "name": "情境引入",
+                  "desc": "『一人一岗不重不漏』要求怎样的对应？这正是双射。"
+            },
+            {
+                  "name": "对象抽取",
+                  "desc": "把『不重(单)、不漏(满)、一一对应(双)』抽象为三类函数。"
+            },
+            {
+                  "name": "结构建模",
+                  "desc": "用单射/满射/双射的定义建立判据。"
+            },
+            {
+                  "name": "推理求解",
+                  "desc": "判定函数类型，分析可逆性与基数约束。"
+            },
+            {
+                  "name": "程序验证",
+                  "desc": "用本页交互调整映射，自动判定三类性质。"
+            },
+            {
+                  "name": "迁移反思",
+                  "desc": "迁移到编码解码、加密、基数比较。"
+            }
+      ],
+      "ideology": {
+            "title": "服务的逻辑 · 不重不漏",
+            "text": "满射意味着『服务全覆盖、不漏一人』，单射意味着『资源不重复、不浪费』，双射则是『精准对接、人岗相宜』。三类函数为公共服务的『全覆盖、零冗余、精准化』提供了精确的数学标尺。",
+            "dims": [
+                  "公平正义",
+                  "精准治理",
+                  "辩证思维"
+            ],
+            "quote": "一个都不能少——满射保证全覆盖，单射保证不重复，双射成就精准对接。"
+      },
+      "reflect": [
+            "为什么只有双射才有逆函数？单射或满射单独够吗？",
+            "有限集 A、B 间存在双射的充要条件是什么（与基数的关系）？",
+            "用鸽巢原理说明：|A|>|B| 时为何不可能有单射？"
+      ],
+      "transfer": [
+            "可逆加密本质是明文到密文的双射，保证解密唯一；哈希则是有意的非单射。",
+            {
+                  "t": "基数比较",
+                  "d": "两集合等势当且仅当存在双射——本节如何通向『无限集合』的基数？"
+            }
+      ]
+};
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 

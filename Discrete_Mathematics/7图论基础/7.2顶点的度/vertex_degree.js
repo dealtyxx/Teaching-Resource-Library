@@ -65,6 +65,13 @@ let edges = [];
 let currentConcept = 'maxmin';
 let nodeIdCounter = 0;
 let selectedNode = null;
+let canvasResizeObserver = null;
+let isExampleGraph = false;
+
+const NODE_RADIUS = 18;
+const NODE_HIT_RADIUS = 22;
+const EDGE_WIDTH = 1.7;
+const ARROW_LENGTH = 11;
 
 // ===== Initialize =====
 function init() {
@@ -73,6 +80,12 @@ function init() {
 
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
+    if ('ResizeObserver' in window) {
+        canvasResizeObserver = new ResizeObserver(() => {
+            resizeCanvas();
+        });
+        canvasResizeObserver.observe(canvas.parentElement);
+    }
 
     setupEventListeners();
     loadConcept('maxmin');
@@ -80,8 +93,35 @@ function init() {
 
 function resizeCanvas() {
     const container = canvas.parentElement;
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
+    const rect = container.getBoundingClientRect();
+    const width = Math.max(1, Math.round(rect.width));
+    const height = Math.max(1, Math.round(rect.height));
+    const oldWidth = canvas.width || width;
+    const oldHeight = canvas.height || height;
+
+    if (canvas.width === width && canvas.height === height) {
+        drawGraph();
+        return;
+    }
+
+    if (nodes.length && isExampleGraph) {
+        canvas.width = width;
+        canvas.height = height;
+        generateExampleGraph();
+        return;
+    }
+
+    if (nodes.length && oldWidth > 1 && oldHeight > 1) {
+        const scaleX = width / oldWidth;
+        const scaleY = height / oldHeight;
+        nodes.forEach(node => {
+            node.x *= scaleX;
+            node.y *= scaleY;
+        });
+    }
+
+    canvas.width = width;
+    canvas.height = height;
     drawGraph();
 }
 
@@ -161,14 +201,17 @@ function addEdge(from, to) {
 }
 
 function addRandomNode() {
-    const x = Math.random() * (canvas.width - 100) + 50;
-    const y = Math.random() * (canvas.height - 100) + 50;
+    isExampleGraph = false;
+    const margin = NODE_RADIUS + 32;
+    const x = Math.random() * (canvas.width - margin * 2) + margin;
+    const y = Math.random() * (canvas.height - margin * 2) + margin;
     addNode(x, y);
     drawGraph();
     updateAnalysis();
 }
 
 function addRandomEdge() {
+    isExampleGraph = false;
     if (nodes.length < 2) return;
     const from = nodes[Math.floor(Math.random() * nodes.length)];
     const to = nodes[Math.floor(Math.random() * nodes.length)];
@@ -180,6 +223,7 @@ function addRandomEdge() {
 }
 
 function clearGraph() {
+    isExampleGraph = false;
     nodes = [];
     edges = [];
     nodeIdCounter = 0;
@@ -189,6 +233,7 @@ function clearGraph() {
 }
 
 function generateRandomGraph() {
+    isExampleGraph = false;
     clearGraph();
     const numNodes = 5 + Math.floor(Math.random() * 3);
     for (let i = 0; i < numNodes; i++) addRandomNode();
@@ -201,7 +246,8 @@ function generateExampleGraph() {
     clearGraph();
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const radius = 120;
+    const minSide = Math.min(canvas.width, canvas.height);
+    const radius = Math.max(92, Math.min(minSide * 0.38, minSide / 2 - NODE_RADIUS - 28));
     const numNodes = 5;
 
     for (let i = 0; i < numNodes; i++) {
@@ -213,6 +259,7 @@ function generateExampleGraph() {
     const pairs = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 0], [0, 2], [0, 3]];
     pairs.forEach(p => addEdge(nodes[p[0]], nodes[p[1]]));
 
+    isExampleGraph = true;
     drawGraph();
     updateAnalysis();
 }
@@ -225,7 +272,7 @@ function handleCanvasClick(e) {
     const clickedNode = nodes.find(n => {
         const dx = x - n.x;
         const dy = y - n.y;
-        return Math.sqrt(dx * dx + dy * dy) < 25;
+        return Math.sqrt(dx * dx + dy * dy) < NODE_HIT_RADIUS;
     });
 
     if (clickedNode) {
@@ -241,6 +288,7 @@ function handleCanvasClick(e) {
             selectedNode = null;
         }
     } else {
+        isExampleGraph = false;
         addNode(x, y);
         if (selectedNode) {
             selectedNode.selected = false;
@@ -335,6 +383,8 @@ function updateAnalysis() {
 function drawGraph() {
     if (!ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
 
     const isDirected = CONCEPTS[currentConcept].isDirected;
 
@@ -349,40 +399,54 @@ function drawGraph() {
     });
 }
 
+function getTrimmedEndpoints(from, to, inset = NODE_RADIUS + 1) {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const len = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+    const ux = dx / len;
+    const uy = dy / len;
+    return {
+        startX: from.x + ux * inset,
+        startY: from.y + uy * inset,
+        endX: to.x - ux * inset,
+        endY: to.y - uy * inset
+    };
+}
+
 function drawEdge(from, to, directed) {
+    const endpoints = getTrimmedEndpoints(from, to);
     ctx.beginPath();
-    ctx.moveTo(from.x, from.y);
-    ctx.lineTo(to.x, to.y);
-    ctx.strokeStyle = '#1890ff';
-    ctx.lineWidth = 2;
+    ctx.moveTo(endpoints.startX, endpoints.startY);
+    ctx.lineTo(endpoints.endX, endpoints.endY);
+    ctx.strokeStyle = '#1683ee';
+    ctx.lineWidth = EDGE_WIDTH;
     ctx.stroke();
 
     if (directed) {
         const angle = Math.atan2(to.y - from.y, to.x - from.x);
-        const endX = to.x - 25 * Math.cos(angle);
-        const endY = to.y - 25 * Math.sin(angle);
-        const arrowLen = 15;
+        const endX = endpoints.endX;
+        const endY = endpoints.endY;
 
         ctx.beginPath();
         ctx.moveTo(endX, endY);
-        ctx.lineTo(endX - arrowLen * Math.cos(angle - Math.PI / 6), endY - arrowLen * Math.sin(angle - Math.PI / 6));
-        ctx.lineTo(endX - arrowLen * Math.cos(angle + Math.PI / 6), endY - arrowLen * Math.sin(angle + Math.PI / 6));
-        ctx.fillStyle = '#1890ff';
+        ctx.lineTo(endX - ARROW_LENGTH * Math.cos(angle - Math.PI / 6), endY - ARROW_LENGTH * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(endX - ARROW_LENGTH * Math.cos(angle + Math.PI / 6), endY - ARROW_LENGTH * Math.sin(angle + Math.PI / 6));
+        ctx.fillStyle = '#1683ee';
         ctx.fill();
     }
 }
 
 function drawNode(node) {
     // Shadow
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 5;
-    ctx.shadowOffsetX = 2;
+    ctx.shadowColor = 'rgba(22, 131, 238, 0.16)';
+    ctx.shadowBlur = 7;
+    ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 2;
 
     // Circle
     ctx.beginPath();
-    ctx.arc(node.x, node.y, 25, 0, 2 * Math.PI);
-    ctx.fillStyle = node.selected ? '#ff6b6b' : '#e6f7ff';
+    ctx.arc(node.x, node.y, NODE_RADIUS, 0, 2 * Math.PI);
+    ctx.fillStyle = node.selected ? '#ff6b6b' : '#f2f8ff';
     ctx.fill();
 
     // Reset shadow
@@ -392,13 +456,13 @@ function drawNode(node) {
     ctx.shadowOffsetY = 0;
 
     // Border
-    ctx.strokeStyle = node.selected ? '#ff0000' : '#1890ff';
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = node.selected ? '#e03131' : '#1683ee';
+    ctx.lineWidth = 2.2;
     ctx.stroke();
 
     // Label
     ctx.fillStyle = node.selected ? '#fff' : '#2c3e50';
-    ctx.font = 'bold 16px Arial';
+    ctx.font = 'bold 15px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(node.label, node.x, node.y);
@@ -413,6 +477,6 @@ function drawNode(node) {
     }
 
     ctx.fillStyle = '#722ed1';
-    ctx.font = '12px Arial';
-    ctx.fillText(badgeText, node.x, node.y + 38);
+    ctx.font = '11px Arial';
+    ctx.fillText(badgeText, node.x, node.y + 31);
 }

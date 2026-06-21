@@ -40,18 +40,28 @@ function setupCanvas() {
     function resize() {
         const container = canvas.parentElement;
         const rect = container.getBoundingClientRect();
+        const width = Math.max(1, rect.width || container.clientWidth || 800);
+        const height = Math.max(1, rect.height || container.clientHeight || 420);
 
         const dpr = window.devicePixelRatio || 1;
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
-        canvas.style.width = rect.width + 'px';
-        canvas.style.height = rect.height + 'px';
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
 
-        ctx.scale(dpr, dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
     resize();
     window.addEventListener('resize', resize);
+    requestAnimationFrame(() => {
+        resize();
+        draw();
+    });
+    setTimeout(() => {
+        resize();
+        draw();
+    }, 120);
 }
 
 function generateStars(count) {

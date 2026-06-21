@@ -1,155 +1,209 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>红色数理 - 园林集合论</title>
-    <meta name="description" content="离散数学课程 - 红色数理 - 园林集合论">
-
-    <link rel="stylesheet" href="garden.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
-        rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>红色数理 - 园林集合论 · 进阶层</title>
+  <meta name="description" content="2.8 园林景观案例 进阶层：用集合运算组织功能分区与游线">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1500px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#2f7d57;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--green);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--green);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(47,125,87,.13);color:#1c6b48;padding:3px 9px;font-size:12px;font-weight:700;}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(47,125,87,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}.kg-step-head strong{color:var(--green);font-size:.95rem;}.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#1c6b48;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--green);transform:translateY(-2px);box-shadow:0 8px 20px rgba(47,125,87,.12);}
+.kg-step b{display:block;color:var(--green);font-size:.86rem;}.kg-step span{display:block;font-size:.76rem;color:var(--muted);margin-top:3px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(47,125,87,.3);background:rgba(47,125,87,.08);font-size:.84rem;color:#2c5a45;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#7d8a7d;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#2f7d57,#1c5f40);color:#fff;box-shadow:0 8px 18px rgba(47,125,87,.18);}
+.selrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;font-size:13px;color:#2c5a45;font-weight:700;}
+.fsel{min-height:34px;border-radius:8px;border:1px solid rgba(116,55,31,.22);background:#fffaf2;color:var(--ink);padding:0 10px;font:inherit;font-weight:700;}
+.qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.88rem;color:#5b4136;line-height:1.9;}
+.qres b{color:var(--green);}.qres .formula{font-family:"JetBrains Mono",monospace;font-weight:800;color:var(--green);font-size:1rem;}
+.qres .tag{display:inline-block;padding:2px 9px;border-radius:11px;margin:2px;font-size:.78rem;background:rgba(47,125,87,.15);color:#1c6b48;font-weight:700;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--green);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--green);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 8px;}
+.netbox{flex:1;min-height:430px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(247,253,247,.95),rgba(238,248,239,.8));background-image:linear-gradient(rgba(47,125,87,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(47,125,87,.05) 1px,transparent 1px);background-size:30px 30px;padding:6px;display:flex;align-items:center;position:relative;}
+.net{width:100%;height:auto;display:block;}
+.edge{stroke:rgba(116,90,60,.28);stroke-width:3;stroke-linecap:round;transition:.3s;}
+.edge.lit{stroke:#2f7d57;stroke-width:5;}
+.nlabel{font-family:"Noto Serif SC",serif;font-size:13px;font-weight:700;fill:#3d2b25;}
+.nodeg{cursor:default;}
+.maplegend{display:flex;gap:13px;justify-content:center;flex-wrap:wrap;font-size:.78rem;color:#3d2b25;margin-top:8px;}
+.maplegend i{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+.insight-box{border-radius:8px;border-left:4px solid var(--green);background:linear-gradient(135deg,rgba(47,125,87,.06),rgba(197,138,31,.05));padding:13px 15px;margin-top:12px;}
+.insight-title{font-weight:700;color:var(--green);margin-bottom:6px;}.insight-box p{margin:0;font-size:13.5px;line-height:1.7;color:#3a4a40;}
+.badges{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px;}.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
-
 <body>
-    <!-- 返回主页浮动按钮 (auto-injected) -->
-    <a href="../../index.html" title="返回课程主页" style="
-        position:fixed;top:14px;left:14px;z-index:9999;
-        display:flex;align-items:center;gap:6px;
-        background:rgba(30,30,40,0.82);color:#fff;
-        padding:7px 14px 7px 10px;border-radius:20px;
-        font-size:13px;font-family:'Noto Serif SC',serif;
-        text-decoration:none;backdrop-filter:blur(8px);
-        border:1px solid rgba(255,255,255,0.15);
-        box-shadow:0 2px 12px rgba(0,0,0,0.35);
-        transition:background .2s;
-    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
-       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
-        🏠 <span>课程主页</span>
-    </a>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>园林集合论 <span class="highlight">进阶层</span></h1>
+        <p class="subtitle">分区与游线 · 用运算组织空间</p>
+      </div>
+      <p class="intro">用集合运算分析功能分区与游线：交 ∩=共享衔接、差 −=特色专属、∩≥2=跨界共生。</p>
 
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="window-controls">
-                    <span class="dot red"></span>
-                    <span class="dot yellow"></span>
-                    <span class="dot green"></span>
-                </div>
-                <h1>红色数理 <span class="highlight">园林集合论</span></h1>
-                <p class="subtitle">Philosophy in the Garden</p>
-            </div>
+      <div class="value-panel">
+        <h3>天人合一 · 和而不同</h3>
+        <p>园林『虽由人作，宛自天开』。多功能景点是空间的衔接，独有景点成就特色——和而不同，浑然天成。</p>
+        <div class="dim-list"><span>文化自信</span><span>审美素养</span><span>工匠精神</span></div>
+      </div>
 
-            <div class="controls-wrapper">
-                <div class="control-group">
-                    <label>植物图谱 (Flora)</label>
-                    <div class="legend-grid">
-                        <div class="legend-item" data-set="A">
-                            <span class="icon">🌺</span>
-                            <span>A 花卉</span>
-                        </div>
-                        <div class="legend-item" data-set="B">
-                            <span class="icon">🌲</span>
-                            <span>B 树木</span>
-                        </div>
-                        <div class="legend-item" data-set="C">
-                            <span class="icon">🎋</span>
-                            <span>C 竹类</span>
-                        </div>
-                        <div class="legend-item" data-set="D">
-                            <span class="icon">🪷</span>
-                            <span>D 水生</span>
-                        </div>
-                    </div>
-                </div>
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步运算互动（寻美任务）</strong><span>点一步，看反馈、公式项与地图节点/游线同步高亮</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-guide="inter"><b>1 德馨流芳（交 ∩）</b><span>A 赏景 ∩ B 休憩：共享景点</span></button>
+          <button class="kg-step" type="button" data-guide="diff"><b>2 幽篁独坐（差 −）</b><span>C 文化 − 其他：独有景点</span></button>
+          <button class="kg-step" type="button" data-guide="link"><b>3 和而不同（∩≥2）</b><span>跨界共生：衔接节点</span></button>
+        </div>
+        <div class="selrow" id="selRow"></div>
+        <div class="kg-feedback" id="kgFeedback"></div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-token="cap">∩ 交=共享</span>
+          <span class="kg-token" data-token="diff">− 差=特色</span>
+          <span class="kg-token" data-token="link">∩≥2 衔接</span>
+        </div>
+      </div>
 
-                <div class="control-group">
-                    <label>寻美任务 (Aesthetic Quests)</label>
-                    <div class="mission-controls">
-                        <button class="apple-btn mission-btn" data-mission="1" aria-label="任务 1: 德馨流芳 既是花又是树 (A ∩ B)">
-                            <span class="btn-icon">🌸</span>
-                            <div class="btn-text">
-                                <span>任务 1: 德馨流芳</span>
-                                <span class="btn-sub">既是花又是树 (A ∩ B)</span>
-                            </div>
-                        </button>
-                        <button class="apple-btn mission-btn" data-mission="2" aria-label="任务 2: 幽篁独坐 独有的竹类 (C - Others)">
-                            <span class="btn-icon">🎋</span>
-                            <div class="btn-text">
-                                <span>任务 2: 幽篁独坐</span>
-                                <span class="btn-sub">独有的竹类 (C - Others)</span>
-                            </div>
-                        </button>
-                        <button class="apple-btn mission-btn" data-mission="3" aria-label="任务 3: 和而不同 跨界共生 (Intersection ≥ 2)">
-                            <span class="btn-icon">☯️</span>
-                            <div class="btn-text">
-                                <span>任务 3: 和而不同</span>
-                                <span class="btn-sub">跨界共生 (Intersection ≥ 2)</span>
-                            </div>
-                        </button>
-                    </div>
-                </div>
+      <div class="qres" id="qres"></div>
+    </aside>
 
-                <div class="control-group">
-                    <label>意境解读 (Poetry)</label>
-                    <div class="insight-card">
-                        <h3 id="insightTitle">游园初探</h3>
-                        <p id="insightText">园林之美，在于草木寄情。请点击上方任务，探寻植物分类背后的哲学意蕴。</p>
-                    </div>
-                </div>
-            </div>
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>点三步寻美任务，用交/差运算分析园林功能分区与游线衔接，看地图节点与连线同步高亮。</span>
+        <div class="visual-badge">交 ∩ · 差 − · 衔接</div>
+      </section>
+      <h2 class="pane-title">哲思园 · 分区与游线网络</h2>
+      <p class="pane-sub">节点=景点（色块=所属功能集合），连线=游线。选运算，结果景点与其间游线将高亮，并在左侧列出。</p>
+      <div class="netbox"><svg class="net" id="net" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid meet"></svg></div>
+      <div class="maplegend"><span><i style="background:#d63b1d"></i>A 赏景</span><span><i style="background:#c58a1f"></i>B 休憩</span><span><i style="background:#2f5f9f"></i>C 文化</span><span><i style="background:#2f7d57"></i>D 亲水</span></div>
+      <div class="insight-box">
+        <div class="insight-title">☯️ 和而不同 · 跨界共生</div>
+        <p>交集 = 多功能共享的<b>衔接景点</b>（移步换景的转折点）；差集 = 某功能<b>独有</b>的特色景点（如『独坐幽篁』的纯文化空间）。一座好园林，既有衔接的圆融，又有特色的鲜明——这正是『和而不同』的空间智慧。</p>
+        <div class="badges"><span class="badge">文化自信</span><span class="badge">审美素养</span><span class="badge">工匠精神</span></div>
+      </div>
+    </main>
+  </div>
 
-            <div class="actions-footer">
-                <button id="resetBtn" class="apple-btn secondary-btn" aria-label="重置游园">重置游园</button>
-            </div>
-        </aside>
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
 
-        <main class="visualizer-stage">
-            <div class="glass-pane">
-                <div class="stage-header">
-                    <h2 id="stageTitle">哲思园全景</h2>
-                    <p id="stageSubtitle">天人合一 · 移步换景</p>
-                </div>
+  <script>
+    window.SECTION_META = {
+      "chapter": "第2章 集合及其运算", "section": "2.8 园林景观案例 · 进阶层", "title": "分区与游线",
+      "grounding": "本节主题：用集合运算分析古典园林的造景要素。本页（进阶层）把景点抽象为网络节点（带功能集合标签），用交 ∩（共享衔接景点）、差 −（某功能独有的特色景点）、∩≥2（跨界共生的衔接节点）组织功能分区与游线，体会集合作为分类与组织工具在空间规划中的作用。",
+      "steps": [
+        {"name": "情境引入", "desc": "如何用集合规划『一步一景』的最佳游线？"},
+        {"name": "对象抽取", "desc": "把景点/功能区抽象为集合元素与子集。"},
+        {"name": "结构建模", "desc": "用划分做功能分区，用并交刻画共享与衔接。"},
+        {"name": "推理求解", "desc": "用交析共享、差析特色、∩≥2 找衔接节点。"},
+        {"name": "程序验证", "desc": "用本页交互完成寻美任务，验证分区与游线。"},
+        {"name": "迁移反思", "desc": "迁移到参观动线、路径优化与城市规划（拓展层）。"}
+      ],
+      "ideology": {"title": "天人合一 · 匠心营造", "text": "中国古典园林『虽由人作，宛自天开』，以有限空间营造无限意境，体现天人合一的东方智慧。用集合论分析造园，是以理性工具理解传统美学的尝试——科学与人文交融，既传承匠心，又坚定文化自信。", "dims": ["文化自信", "审美素养", "工匠精神"], "quote": "一峰则太华千寻，一勺则江湖万里——园林的以小见大，与集合的层次之美异曲同工。"},
+      "reflect": ["把园林功能区划分为『不重不漏』的子集，对游线设计有什么帮助？", "景点之间的『交集』（共享空间）在体验设计中扮演什么角色？", "用差集提取『特色专属』空间，对意境营造有何意义？"],
+      "transfer": ["城市公园、博物馆的参观动线设计，同样可用划分与路径集合优化；把景点连成图求最优游线，本案例如何通向第7章图论（拓展层）？"],
+      "layers": [
+        {"name": "景点与功能集合", "concepts": "景点/功能区元素", "task": "把园林造景要素抽象为集合。", "page": "garden-basic.html"},
+        {"name": "分区与游线", "concepts": "功能分区划分 / 并交衔接", "task": "用划分与运算组织功能区与游线。", "page": "garden.html"},
+        {"name": "路径与空间规划", "concepts": "参观动线 / 路径图论 / 数字孪生", "task": "迁移到城市规划与路径优化。", "page": "garden-extend.html"}
+      ]
+    };
+  </script>
 
-                <div class="garden-map" id="gardenMap">
-                    <!-- Zones -->
-                    <div class="zone zone-a" title="百花圃 (A)"></div>
-                    <div class="zone zone-b" title="松风岭 (B)"></div>
-                    <div class="zone zone-c" title="修竹苑 (C)"></div>
-                    <div class="zone zone-d" title="映日池 (D)"></div>
-
-                    <!-- Plants will be injected here by JS -->
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <script src="garden.js"></script>
-
-<!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
-</footer>
-
-
+  <script>
+    var $=function(id){return document.getElementById(id);};
+    var FCOLOR={A:'#d63b1d',B:'#c58a1f',C:'#2f5f9f',D:'#2f7d57'},FNAME={A:'赏景',B:'休憩',C:'文化',D:'亲水'};
+    var NODES=[
+      {id:'mdt',n:'牡丹亭',s:['A','B'],x:150,y:110},{id:'js',n:'假山叠石',s:['A'],x:340,y:80},
+      {id:'sfx',n:'松风轩',s:['B'],x:560,y:100},{id:'ydm',n:'月洞门',s:['A','C'],x:760,y:150},
+      {id:'zyl',n:'竹影廊',s:['A','C'],x:230,y:310},{id:'tkb',n:'题刻壁',s:['C'],x:480,y:290},
+      {id:'cl',n:'茶寮',s:['B'],x:700,y:330},{id:'qsls',n:'曲水流觞',s:['C','D'],x:180,y:480},
+      {id:'hfx',n:'荷风榭',s:['B','D'],x:450,y:490},{id:'lc',n:'莲池',s:['D'],x:710,y:510}
+    ];
+    var EDGES=[['mdt','js'],['js','sfx'],['sfx','ydm'],['mdt','zyl'],['js','tkb'],['sfx','cl'],['ydm','cl'],['zyl','tkb'],['tkb','hfx'],['zyl','qsls'],['qsls','hfx'],['hfx','lc'],['cl','lc'],['tkb','cl']];
+    var nmap={};NODES.forEach(function(n){nmap[n.id]=n;});
+    function inS(n,L){return n.s.indexOf(L)>=0;}
+    var guide='inter',f1='A',f2='B',fd='C';
+    function compute(){
+      if(guide==='inter')return NODES.filter(function(n){return inS(n,f1)&&inS(n,f2);});
+      if(guide==='diff')return NODES.filter(function(n){return n.s.length===1&&inS(n,fd);});
+      return NODES.filter(function(n){return n.s.length>=2;});
+    }
+    function wedges(n,r,faded){
+      var fs=n.s,k=fs.length,out='';
+      for(var i=0;i<k;i++){var a0=-Math.PI/2+i*2*Math.PI/k,a1=-Math.PI/2+(i+1)*2*Math.PI/k;var op=faded?0.16:0.92;
+        if(k===1){out+='<circle cx="'+n.x+'" cy="'+n.y+'" r="'+r+'" fill="'+FCOLOR[fs[0]]+'" opacity="'+op+'"/>';}
+        else{var x0=n.x+r*Math.cos(a0),y0=n.y+r*Math.sin(a0),x1=n.x+r*Math.cos(a1),y1=n.y+r*Math.sin(a1);out+='<path d="M'+n.x+' '+n.y+' L'+x0.toFixed(1)+' '+y0.toFixed(1)+' A'+r+' '+r+' 0 0 1 '+x1.toFixed(1)+' '+y1.toFixed(1)+' Z" fill="'+FCOLOR[fs[i]]+'" opacity="'+op+'"/>';}}
+      return out;
+    }
+    function draw(){
+      var res=compute();var hl={};res.forEach(function(n){hl[n.id]=1;});var r=24,svg='';
+      EDGES.forEach(function(e){var a=nmap[e[0]],b=nmap[e[1]];var lit=hl[e[0]]&&hl[e[1]];svg+='<line class="edge'+(lit?' lit':'')+'" x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'"/>';});
+      NODES.forEach(function(n){var on=hl[n.id],faded=!on;
+        svg+='<g class="nodeg" opacity="'+(faded?0.4:1)+'"><circle cx="'+n.x+'" cy="'+n.y+'" r="'+r+'" fill="rgba(255,255,255,.95)"/>'+wedges(n,r,faded)+'<circle cx="'+n.x+'" cy="'+n.y+'" r="'+r+'" fill="none" stroke="'+(on?'#1c5f40':'rgba(116,90,60,.4)')+'" stroke-width="'+(on?3.6:1.6)+'"/><text class="nlabel" x="'+n.x+'" y="'+(n.y+r+16)+'" text-anchor="middle">'+n.n+'</text></g>';});
+      $('net').innerHTML=svg;
+    }
+    function info(){
+      var res=compute(),names=res.map(function(n){return n.n;});
+      var data;
+      if(guide==='inter')data={f:f1+' ∩ '+f2,t:'德馨流芳 · 共享衔接',d:'同时具备『'+FNAME[f1]+'』与『'+FNAME[f2]+'』两种功能的景点。交集是移步换景的衔接转折，体现景以怡情、亭以养性的圆融。'};
+      else if(guide==='diff')data={f:fd+' − 其他（仅 '+fd+'）',t:'幽篁独坐 · 特色专属',d:'只具备『'+FNAME[fd]+'』单一功能、不与其他功能共享的景点。差集成就园林的特色空间，如『独坐幽篁里，弹琴复长啸』的纯净意境。'};
+      else data={f:'∩≥2（多功能）',t:'和而不同 · 跨界共生',d:'同属两种及以上功能的景点，是空间的衔接节点。多元功能在一处共生，正是『和而不同』的造园智慧。'};
+      $('qres').innerHTML='<span class="formula">'+data.f+'</span><br><b>'+data.t+'</b><br>结果（'+names.length+' 个景点）：'+(names.length?names.map(function(n){return '<span class="tag">'+n+'</span>';}).join(''):'<span style="opacity:.6">空集 ∅</span>')+'<br><span style="font-size:.8rem;opacity:.85">'+data.d+'</span>';
+    }
+    function renderSel(){
+      var opt=function(cur){return ['A','B','C','D'].map(function(L){return '<option value="'+L+'"'+(cur===L?' selected':'')+'>'+L+' '+FNAME[L]+'</option>';}).join('');};
+      if(guide==='inter')$('selRow').innerHTML='选两种功能求交：<select class="fsel" id="s1">'+opt(f1)+'</select> ∩ <select class="fsel" id="s2">'+opt(f2)+'</select>';
+      else if(guide==='diff')$('selRow').innerHTML='选一种功能求特色：<select class="fsel" id="sd">'+opt(fd)+'</select> − 其他';
+      else $('selRow').innerHTML='<span style="opacity:.75;font-weight:400">高亮全部多功能（衔接）景点</span>';
+      var s1=$('s1');if(s1)s1.onchange=function(e){f1=e.target.value;refresh();};
+      var s2=$('s2');if(s2)s2.onchange=function(e){f2=e.target.value;refresh();};
+      var sd=$('sd');if(sd)sd.onchange=function(e){fd=e.target.value;refresh();};
+    }
+    function syncGuide(){
+      document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.guide===guide);});
+      document.querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',(guide==='inter'&&t.dataset.token==='cap')||(guide==='diff'&&t.dataset.token==='diff')||(guide==='link'&&t.dataset.token==='link'));});
+    }
+    function refresh(){
+      if(guide==='inter')$('kgFeedback').innerHTML='<b>交集 '+f1+'∩'+f2+'</b> = 同属『'+FNAME[f1]+'』与『'+FNAME[f2]+'』的景点（地图高亮，其间游线变绿）：共享衔接的转折点。';
+      else if(guide==='diff')$('kgFeedback').innerHTML='<b>差集 '+fd+'−其他</b> = 只具备『'+FNAME[fd]+'』单一功能的景点：园林的特色专属空间。';
+      else $('kgFeedback').innerHTML='<b>∩≥2</b> = 同属两种及以上功能的<b>衔接节点</b>：跨界共生、和而不同。';
+      draw();info();
+    }
+    function setGuide(g){guide=g;syncGuide();renderSel();refresh();}
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setGuide(b.dataset.guide);};});
+    setGuide('inter');
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
 </body>
-
 </html>

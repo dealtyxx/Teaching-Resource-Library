@@ -49,58 +49,80 @@ let nodePositions = {};
 let highlightedNodes = new Set();
 let highlightedEdges = new Set();
 
+const NODE_WIDTH = 96;
+const NODE_HEIGHT = 42;
+
 // Layout
 function calculateLayout() {
-    const container = document.querySelector('.network-panel');
-    const width = container.clientWidth;
-    const height = container.clientHeight - 100;
+    const container = document.getElementById('networkContainer');
+    const rect = container.getBoundingClientRect();
+    const width = Math.max(320, Math.round(rect.width || container.clientWidth || 720));
+    const height = Math.max(340, Math.round(rect.height || container.clientHeight || 520));
+    const padX = NODE_WIDTH / 2 + 24;
+    const padY = NODE_HEIGHT / 2 + 24;
+    const columnX = [
+        padX,
+        width / 2,
+        width - padX
+    ];
 
-    const colGap = width / 4;
-    const startX = colGap;
+    networkSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    networkSvg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 
     // Residents (left column)
     RESIDENTS.forEach((r, i) => {
-        const y = height / (RESIDENTS.length + 1) * (i + 1) + 30;
-        nodePositions[r.id] = { x: startX, y, type: 'resident', data: r };
+        const y = padY + (height - padY * 2) / (RESIDENTS.length - 1) * i;
+        nodePositions[r.id] = { x: columnX[0], y, type: 'resident', data: r };
     });
 
     // Activities (middle column)
     ACTIVITIES.forEach((a, i) => {
-        const y = height / (ACTIVITIES.length + 1) * (i + 1) + 30;
-        nodePositions[a.id] = { x: startX + colGap, y, type: 'activity', data: a };
+        const y = padY + (height - padY * 2) / (ACTIVITIES.length - 1) * i;
+        nodePositions[a.id] = { x: columnX[1], y, type: 'activity', data: a };
     });
 
     // Organizers (right column)
     ORGANIZERS.forEach((o, i) => {
-        const y = height / (ORGANIZERS.length + 1) * (i + 1) + 30;
-        nodePositions[o.id] = { x: startX + colGap * 2, y, type: 'organizer', data: o };
+        const y = padY + (height - padY * 2) / (ORGANIZERS.length - 1) * i;
+        nodePositions[o.id] = { x: columnX[2], y, type: 'organizer', data: o };
     });
 }
 
 // Rendering
 function renderNetwork() {
-    renderNodes();
     renderEdges();
+    renderNodes();
+    updateHighlights();
 }
 
 function renderNodes() {
     nodesLayer.innerHTML = '';
 
     Object.entries(nodePositions).forEach(([id, pos]) => {
-        const node = document.createElement('div');
-        node.className = `entity-node ${pos.type}`;
+        const node = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        node.setAttribute('class', `entity-node ${pos.type}`);
+        node.setAttribute('transform', `translate(${pos.x} ${pos.y})`);
         node.id = `node-${id}`;
 
         let label = pos.data.name;
         if (pos.data.icon) label = `${pos.data.icon} ${label}`;
 
-        node.textContent = label;
-        node.style.left = `${pos.x - 40}px`;
-        node.style.top = `${pos.y - 20}px`;
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', -NODE_WIDTH / 2);
+        rect.setAttribute('y', -NODE_HEIGHT / 2);
+        rect.setAttribute('width', NODE_WIDTH);
+        rect.setAttribute('height', NODE_HEIGHT);
+        rect.setAttribute('rx', 10);
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.textContent = label;
+
+        node.appendChild(rect);
+        node.appendChild(text);
 
         node.addEventListener('click', () => handleNodeClick(id, pos.type));
 
-        nodesLayer.appendChild(node);
+        networkSvg.appendChild(node);
     });
 }
 
@@ -127,13 +149,51 @@ function renderEdges() {
 function createEdge(fromId, toId) {
     const from = nodePositions[fromId];
     const to = nodePositions[toId];
+    if (!from || !to) return document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+    const points = edgeEndpoints(from, to);
+    const dx = points.end.x - points.start.x;
+    const dy = points.end.y - points.start.y;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    const midX = (points.start.x + points.end.x) / 2;
+    const midY = (points.start.y + points.end.y) / 2;
+    const curve = 12;
+    const controlX = midX + (-dy / dist) * curve;
+    const controlY = midY + (dx / dist) * curve;
 
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    const d = `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
+    const d = `M ${points.start.x} ${points.start.y} Q ${controlX} ${controlY} ${points.end.x} ${points.end.y}`;
     path.setAttribute('d', d);
     path.setAttribute('class', 'network-edge');
 
     return path;
+}
+
+function edgeEndpoints(from, to) {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    const ux = dx / dist;
+    const uy = dy / dist;
+    const fromOffset = rectBoundaryOffset(ux, uy) + 3;
+    const toOffset = rectBoundaryOffset(ux, uy) + 5;
+
+    return {
+        start: {
+            x: from.x + ux * fromOffset,
+            y: from.y + uy * fromOffset
+        },
+        end: {
+            x: to.x - ux * toOffset,
+            y: to.y - uy * toOffset
+        }
+    };
+}
+
+function rectBoundaryOffset(ux, uy) {
+    const xOffset = Math.abs(ux) > 0.001 ? (NODE_WIDTH / 2) / Math.abs(ux) : Infinity;
+    const yOffset = Math.abs(uy) > 0.001 ? (NODE_HEIGHT / 2) / Math.abs(uy) : Infinity;
+    return Math.min(xOffset, yOffset);
 }
 
 // Query Logic

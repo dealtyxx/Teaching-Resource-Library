@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>计数原理 · 拓展层 — 概率与密码空间可视化</title>
+    <meta name="description" content="离散数学 1.1.1 拓展层：把计数迁移到古典概率、口令空间与组合爆炸的互动可视化">
+    <link rel="stylesheet" href="counting.css">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="../chapter1-compact.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <style>
+        /* 仅为本层独有控件补充，沿用 counting.css 设计令牌，保证完全一致 */
+        .num-row { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--text-primary); margin: 4px 0; }
+        .num-row input { width: 80px; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--accent-red); font-family: 'Courier New', monospace; color: var(--text-primary); }
+        .ext-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; width: 100%; max-width: 780px; }
+        @media (max-width: 1024px) { .ext-grid { grid-template-columns: 1fr; } }
+        .ext-card { background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(214, 59, 29, 0.18); border-radius: 14px; padding: 18px 20px; box-shadow: var(--shadow-sm); }
+        .ext-card h3 { color: var(--accent-red); font-size: 1.05rem; margin-bottom: 10px; font-weight: 700; }
+        .big { font-size: 1.9rem; font-weight: 700; color: var(--accent-red); font-family: 'Courier New', monospace; word-break: break-all; line-height: 1.2; }
+        .sub2 { font-size: 0.78rem; color: var(--text-secondary); margin-top: 5px; line-height: 1.6; }
+        .crack { margin-top: 12px; padding: 10px 12px; border-radius: 10px; font-size: 0.82rem; line-height: 1.6; }
+        .crack.weak { background: rgba(214, 59, 29, 0.12); color: #9c2b1e; }
+        .crack.mid { background: rgba(255, 180, 0, 0.18); color: #8a5a00; }
+        .crack.strong { background: rgba(39, 201, 63, 0.16); color: #176b2c; }
+        .bar-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 0.76rem; }
+        .bar-row .lbl { width: 46px; color: var(--text-secondary); font-family: 'Courier New', monospace; }
+        .bar-track { flex: 1; background: rgba(214, 59, 29, 0.08); border-radius: 6px; height: 18px; overflow: hidden; }
+        .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent-gold), var(--accent-red)); border-radius: 6px; transition: width 0.4s; }
+        .bar-row .v { width: 84px; text-align: right; font-family: 'Courier New', monospace; color: var(--accent-hover); font-size: 0.72rem; }
+        .mulexpr { font-family: 'Courier New', monospace; font-size: 0.82rem; color: var(--text-primary); margin-top: 4px; word-break: break-all; }
+    
+        .value-panel {
+            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
+            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
+            box-shadow: var(--shadow-sm);
+        }
+        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
+        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
+        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+        .value-dims span {
+            padding: 3px 8px; border-radius: 999px; color: #8b0000;
+            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
+            font-size: .74rem; font-weight: 700;
+        }
+        .value-quote {
+            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
+            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
+        }
+        .value-inline {
+            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
+            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
+            color: var(--text-primary); line-height: 1.5;
+        }
+
+        /* 修复：让内容自然流动，图例不再绝对定位浮在内容之上（避免与注入的“价值观察”说明重叠） */
+        .glass-pane {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        .glass-pane .visualization-area {
+            height: auto;
+            min-height: 0;
+            flex: 0 0 auto;
+            justify-content: flex-start;
+            padding-bottom: 0;
+        }
+        .glass-pane .legend {
+            position: static;
+            max-width: 100%;
+            margin: 8px auto 0;
+        }
+    </style>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+
+<body>
+    <!-- 返回主页浮动按钮 (auto-injected) -->
+    <a href="../../index.html" title="返回课程主页" style="
+        position:fixed;top:14px;left:14px;z-index:9999;
+        display:flex;align-items:center;gap:6px;
+        background:rgba(30,30,40,0.82);color:#fff;
+        padding:7px 14px 7px 10px;border-radius:20px;
+        font-size:13px;font-family:'Noto Serif SC',serif;
+        text-decoration:none;backdrop-filter:blur(8px);
+        border:1px solid rgba(255,255,255,0.15);
+        box-shadow:0 2px 12px rgba(0,0,0,0.35);
+        transition:background .2s;
+    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
+       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
+        🏠 <span>课程主页</span>
+    </a>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>计数原理 <span class="highlight">拓展层</span></h1>
+                <p class="subtitle">●●● 概率 · 密码空间 · 组合爆炸</p>
+            </div>
+
+            <div class="controls-wrapper">
+                
+                
+                
+                
+                <div class="control-group value-consistency-group">
+                    <label>价值映射（与进阶层一致）</label>
+                    <div class="value-panel" data-value-source="SECTION_META.ideology">
+                        <h3>多元一体 · 求同存异</h3>
+                        <p>加法法则包容并列的多元路径，乘法法则刻画协同递进的系统工程——正如中国式现代化既尊重道路的多样选择，又强调各环节协同发力。计数的『不重不漏』，也是一种实事求是、严谨周密的治理智慧。</p>
+                        <div class="value-dims"><span>辩证思维</span><span>系统观念</span><span>家国情怀</span></div>
+                            <div class="value-quote">团结一切可以团结的力量——把每一种可能都数清、用好，正是统一战线的数学注脚。</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>口令长度</label>
+                    <div class="param-item">
+                        <div class="param-label">位数 L<span class="value" id="lenVal">8</span></div>
+                        <input type="range" id="lenRange" min="1" max="16" value="8">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>字符集（每位可选）</label>
+                    <select id="charset" class="apple-select">
+                        <option value="0">纯数字 0-9（10 种）</option>
+                        <option value="1" selected>+ 小写字母（36 种）</option>
+                        <option value="2">+ 大写字母（62 种）</option>
+                        <option value="3">+ 符号（94 种）</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>攻击者算力（每秒猜测次数）</label>
+                    <div class="param-item">
+                        <div class="param-label">每秒可猜<span class="value" id="rateVal">10<sup>9</sup></span></div>
+                        <input type="range" id="rateRange" min="3" max="15" value="9">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>古典概率小算盘</label>
+                    <div class="info-panel">
+                        <div class="num-row">有利结果 <input id="fav" type="number" value="1" min="0"></div>
+                        <div class="num-row">总结果数 <input id="tot" type="number" value="10" min="1"></div>
+                        <div class="num-row" style="font-weight:700">概率 P = <span style="color:var(--accent-red)" id="prob">0.1000</span></div>
+                        <p class="political-text">分子分母都是计数问题。</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="visualization-area" id="vizArea">
+                    <div class="category-title">计数 → 概率与密码空间</div>
+                    <div class="ext-grid">
+                        <div class="ext-card">
+                            <h3>🔐 口令空间</h3>
+                            <div class="big" id="space">—</div>
+                            <div class="sub2" id="spaceExp"></div>
+                            <div class="crack" id="crack"></div>
+                            <div class="sub2" style="margin-top:10px;color:var(--accent-red);font-weight:700">乘法法则</div>
+                            <div class="mulexpr" id="mulExpr"></div>
+                        </div>
+                        <div class="ext-card">
+                            <h3>📈 组合爆炸（指数增长）</h3>
+                            <div id="bars"></div>
+                            <div class="sub2" style="margin-top:10px">每多一位，空间按字符集大小<b style="color:var(--accent-red)">成倍</b>放大——这就是「暴力枚举不可行」的根源，也是安全的来源。</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="legend" id="legendPanel">
+                    <div class="legend-title">口令空间 = 字符集<sup>位数</sup></div>
+                    <div class="legend-content">
+                        <div class="legend-item">位数↑ → 空间指数级放大</div>
+                        <div class="legend-item">字符集↑ → 底数变大</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 固定底部版权信息 -->
+    <footer style="
+        position: fixed; bottom: 0; left: 0; width: 100%;
+        background: transparent;
+        color: inherit;
+    opacity: 0.72; padding: 15px 10px; text-align: center;
+        box-shadow: none; z-index: 9999;">
+        <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+            © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
+            版权所有 ｜ 项目总负责人：谢鑫
+        </p>
+    </footer>
+
+    <script>
+        var $ = function (id) { return document.getElementById(id); };
+        var SIZES = [10, 36, 62, 94];
+        function sup(e) { return '<sup>' + e + '</sup>'; }
+        function fmtBig(x) {
+            var s = x.toString();
+            if (s.length <= 6) return s;
+            var exp = s.length - 1, mant = s[0] + '.' + s.slice(1, 3);
+            return mant + ' × 10' + sup(exp);
+        }
+        function humanTime(seconds) {
+            if (seconds < 1) return '不到 1 秒';
+            if (seconds > 3.15e16) { var yrs = seconds / 31536000, e = Math.floor(Math.log10(yrs)); return (yrs / Math.pow(10, e)).toFixed(2) + ' × 10' + sup(e) + ' 年（远超宇宙年龄）'; }
+            var units = [['年', 31536000], ['天', 86400], ['小时', 3600], ['分', 60], ['秒', 1]];
+            for (var i = 0; i < units.length; i++) if (seconds >= units[i][1]) return (seconds / units[i][1]).toFixed(1) + ' ' + units[i][0];
+            return '不到 1 秒';
+        }
+        function render() {
+            var L = +$('lenRange').value, base = SIZES[+$('charset').value];
+            var space = 1n; for (var i = 0; i < L; i++) space *= BigInt(base);
+            $('space').innerHTML = fmtBig(space);
+            $('spaceExp').innerHTML = base + sup(L) + ' = ' + space.toString().length + ' 位十进制数';
+            $('mulExpr').innerHTML = Array(L + 1).join(base + '×').slice(0, -1) + ' = ' + base + sup(L) + '（' + L + ' 位，每位 ' + base + ' 种）';
+            var rate = Math.pow(10, +$('rateRange').value);
+            var logSecs = L * Math.log10(base) - Math.log10(rate) - Math.log10(2);
+            var secs = Math.pow(10, logSecs);
+            var ct = $('crack');
+            ct.innerHTML = '⚡ 平均破解时间 ≈ <b>' + humanTime(secs) + '</b>（按 10' + sup($('rateRange').value) + ' 次/秒）';
+            ct.className = 'crack ' + (logSecs < 2 ? 'weak' : logSecs < 8 ? 'mid' : 'strong');
+            var html = '', maxLog = (L + 2) * Math.log10(base);
+            for (var l = Math.max(1, L - 2); l <= L + 2; l++) {
+                var w = Math.max(3, (l * Math.log10(base) / maxLog) * 100);
+                var cur = l === L ? 'style="outline:2px solid var(--accent-red);outline-offset:1px;border-radius:6px"' : '';
+                html += '<div class="bar-row"><span class="lbl">L=' + l + '</span><div class="bar-track" ' + cur + '><div class="bar-fill" style="width:' + w + '%"></div></div><span class="v">' + base + sup(l) + '</span></div>';
+            }
+            $('bars').innerHTML = html;
+        }
+        function renderProb() { var f = Math.max(0, +$('fav').value || 0), t = Math.max(1, +$('tot').value || 1); $('prob').textContent = (f / t).toFixed(4); }
+        $('lenRange').oninput = function () { $('lenVal').textContent = this.value; render(); };
+        $('rateRange').oninput = function () { $('rateVal').innerHTML = '10' + sup(this.value); render(); };
+        $('charset').onchange = render;
+        $('fav').oninput = renderProb; $('tot').oninput = renderProb;
+        render(); renderProb();
+    </script>
+
+    <!-- ===== 共享升级框架：学习助手 + 三阶导航 ===== -->
+    <script>
+    window.SECTION_META = {
+        layers: [
+            { "name": "加法与乘法法则", "concepts": "分类相加 / 分步相乘", "task": "辨清『分类』与『分步』，数清简单事件方案数。", "page": "counting-basic.html" },
+            { "name": "排列与组合（综合）", "concepts": "P(n,k) / C(n,k) / 有序vs无序", "task": "会用排列组合公式，避免重复与遗漏。", "page": "counting.html" },
+            { "name": "计数 → 概率与密码空间", "concepts": "古典概率 / 口令强度 / 组合爆炸", "task": "把计数迁移到概率、密码空间与复杂度。", "page": "counting-extend.html" }
+        ],
+        chapter: "第1章 计数基础与数论基础",
+        section: "1.1.1 基本概念 · 拓展层",
+        title: "计数 → 概率与密码空间",
+        grounding: "本页（拓展层）主题：把计数迁移到真实工程。① 古典概率 P=有利结果数/总结果数，分子分母都是计数；② 口令空间 = base^L（每位 base 种选择的乘法法则连乘），随位数指数增长（组合爆炸），决定暴力破解可行性与口令强度。",
+        steps: [
+            { name: "情境引入", desc: "为什么 8 位纯数字口令几秒被破、加上大小写符号就要天文时间？" },
+            { name: "对象抽取", desc: "把每位的可选字符抽象为乘法法则的『步骤选项』。" },
+            { name: "结构建模", desc: "口令空间 = 字符集大小^位数；古典概率 = 有利/总。" },
+            { name: "推理求解", desc: "调整位数、字符集、算力，计算空间与平均破解时间。" },
+            { name: "程序验证", desc: "用增长条形图直观感受『每多一位成倍放大』的组合爆炸。" },
+            { name: "迁移反思", desc: "理解安全来自计数的『不可行枚举』，迁移到 RSA 等密码体系。" }
+        ],
+        ideology: {
+        "title": "多元一体 · 求同存异",
+        "text": "加法法则包容并列的多元路径，乘法法则刻画协同递进的系统工程——正如中国式现代化既尊重道路的多样选择，又强调各环节协同发力。计数的『不重不漏』，也是一种实事求是、严谨周密的治理智慧。",
+        "dims": [
+                "辩证思维",
+                "系统观念",
+                "家国情怀"
+        ],
+        "quote": "团结一切可以团结的力量——把每一种可能都数清、用好，正是统一战线的数学注脚。"
+},
+        reflect: ["为什么口令空间是 base^L 而不是 base×L？", "把『枚举不可行』变成『可行』需要降低哪个量级？这对密码设计意味着什么？"],
+        transfer: ["RSA 的安全也建立在『某些计数/分解在算力下不可行』——本层如何为第 1.3.4 节 RSA 埋下伏笔？"]
+    };
+    </script>
+    
+    <script data-dm-ideology-bridge="1">
+    (function () {
+        function esc(s) {
+            return String(s || '').replace(/[&<>"']/g, function (c) {
+                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+            });
+        }
+        function noteHtml() {
+            var ideology = (window.SECTION_META && window.SECTION_META.ideology) || {};
+            var title = ideology.title || '价值引领';
+            var text = ideology.text || '本层延续进阶层的价值主线，在操作中体会数学结构与价值判断的一致性。';
+            return '<span class="value-inline" data-ideology-inline="1"><strong>价值观察：</strong>本层沿用进阶层“'
+                + esc(title) + '”主线。' + esc(text) + '</span>';
+        }
+        function appendIdeologyNote() {
+            if (document.querySelector('[data-ideology-inline="1"]')) return;
+            var resultExtra = document.getElementById('resultExtra');
+            if (resultExtra) {
+                resultExtra.insertAdjacentHTML('beforeend', noteHtml());
+                return;
+            }
+            var anchor = document.querySelector('.result-panel, #eqOut, #note, .visualization-area');
+            if (!anchor) return;
+            if (anchor.id === 'eqOut' || anchor.id === 'note') anchor.insertAdjacentHTML('afterend', noteHtml());
+            else anchor.insertAdjacentHTML('beforeend', noteHtml());
+        }
+        function wrapSetResult() {
+            var original = window.setResult;
+            if (typeof original !== 'function' || original.__ideologyWrapped) return;
+            window.setResult = function () {
+                var ret = original.apply(this, arguments);
+                appendIdeologyNote();
+                return ret;
+            };
+            window.setResult.__ideologyWrapped = true;
+        }
+        function boot() {
+            wrapSetResult();
+            appendIdeologyNote();
+            ['input', 'change', 'click'].forEach(function (eventName) {
+                document.addEventListener(eventName, function () {
+                    setTimeout(appendIdeologyNote, 0);
+                }, true);
+            });
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+        else boot();
+    })();
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+
+</html>

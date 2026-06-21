@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关系闭包 · 基础层 — 自反闭包与对称闭包</title>
+    <meta name="description" content="离散数学 3.6 基础层：自反闭包 r(R)=R∪I 与对称闭包 s(R)=R∪R⁻¹ 的最小补全可视化">
+    <link rel="stylesheet" href="closures.css">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <style>
+        .dm-t-field { margin: 8px 0; }
+        .dm-t-field .lab { display: flex; justify-content: space-between; font-size: .82rem; color: #8b0000; margin-bottom: 5px; }
+        .dm-t-field .v { font-weight: 700; color: #d63b1d; font-family: 'Courier New', monospace; }
+        .dm-t-field input[type=range] { width: 100%; accent-color: #d63b1d; }
+        .dm-t-seg { display: flex; flex-direction: column; gap: 7px; }
+        .dm-t-seg button { padding: 9px; border-radius: 9px; border: 1.5px solid rgba(214,59,29,.25); background: #fff; cursor: pointer; font-family: inherit; font-weight: 600; color: #8b0000; transition: all .18s; }
+        .dm-t-seg button.active { background: linear-gradient(135deg, #d63b1d, #b8321a); color: #fff; border-color: #d63b1d; }
+        .dm-t-btn { width: 100%; padding: 9px; border: none; border-radius: 10px; cursor: pointer; font-family: inherit; font-weight: 600; color: #fff; background: linear-gradient(135deg, #d63b1d, #b8321a); margin-top: 6px; }
+        .dm-t-btn.ghost { background: #fff; color: #d63b1d; border: 1px solid #d63b1d; }
+        .dm-t-info { background: rgba(255,255,255,.6); border: 1px solid rgba(214,59,29,.14); border-radius: 10px; padding: 12px; font-size: .84rem; line-height: 1.7; color: #8b0000; }
+        .dm-t-info b { color: #d63b1d; }
+        .dm-t-wrap { display: flex; flex-wrap: wrap; gap: 1.6rem; justify-content: center; align-items: flex-start; width: 100%; }
+        .dm-t-card { background: rgba(255,255,255,.6); border: 1px solid rgba(214,59,29,.18); border-radius: 14px; padding: 16px 18px; }
+        .dm-t-card h3 { color: #d63b1d; font-size: .94rem; margin-bottom: 10px; font-weight: 700; text-align: center; }
+        .mtx { display: inline-grid; gap: 5px; }
+        .mcell { width: 32px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-family: 'Courier New', monospace; font-size: .74rem; }
+        .mcell.hdr { background: #d63b1d; color: #fff; font-weight: 700; }
+        .mcell.corner { background: transparent; }
+        .mcell.b0 { background: rgba(214,59,29,.06); color: #c9a; cursor: pointer; }
+        .mcell.b1 { background: #d63b1d; color: #fff; font-weight: 700; cursor: pointer; }
+        .mcell.add { background: #ffb400; color: #5a3d00; font-weight: 700; }
+        .mcell:hover { outline: 2px solid #27c93f; }
+        .dm-t-note { font-size: .84rem; color: #8b0000; max-width: 320px; line-height: 1.7; }
+        .dm-t-note b { color: #d63b1d; } .dm-t-note .gold { color: #b8860b; }
+    </style>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+
+<body>
+    <a href="../../index.html" title="返回课程主页" style="position:fixed;top:14px;left:14px;z-index:9999;display:flex;align-items:center;gap:6px;background:rgba(30,30,40,0.82);color:#fff;padding:7px 14px 7px 10px;border-radius:20px;font-size:13px;font-family:'Noto Serif SC',serif;text-decoration:none;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.15);box-shadow:0 2px 12px rgba(0,0,0,0.35);transition:background .2s;" onmouseover="this.style.background='rgba(214,59,29,0.88)'" onmouseout="this.style.background='rgba(30,30,40,0.82)'">🏠 <span>课程主页</span></a>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+                <h1>红色数理 <span class="highlight">基础层</span></h1>
+                <p class="subtitle">关系闭包 · 自反闭包 · 对称闭包 · 最小补全</p>
+            </div>
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>求哪种闭包</label>
+                    <div class="dm-t-seg" id="seg">
+                        <button data-k="r" class="active">自反闭包 r(R) = R ∪ I</button>
+                        <button data-k="s">对称闭包 s(R) = R ∪ R⁻¹</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>集合元素数 n</label>
+                    <div class="dm-t-field"><div class="lab"><span>n</span><span class="v" id="nVal">4</span></div><input type="range" id="nRange" min="2" max="6" value="4"></div>
+                </div>
+                <div class="control-group">
+                    <label>操作</label>
+                    <button class="dm-t-btn" id="randBtn">🎲 随机关系</button>
+                    <button class="dm-t-btn ghost" id="clearBtn">清空</button>
+                </div>
+                <div class="control-group">
+                    <label>原理说明</label>
+                    <div class="dm-t-info"><b>闭包</b>=在原关系基础上，<b>最小地</b>添加有序对，使其具备某性质。<br>自反闭包补<b>对角线</b>，对称闭包补<b>镜像对</b>——金色格即新增的最少有序对。</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="visualization-area" id="vizArea">
+                    <div class="dm-t-wrap">
+                        <div class="dm-t-card"><h3>原关系 R（点格切换）</h3><div class="mtx" id="mtxR"></div></div>
+                        <div class="dm-t-card"><h3>闭包结果（金色=新增）</h3><div class="mtx" id="mtxC"></div></div>
+                        <div class="dm-t-card"><h3>说明</h3><div class="dm-t-note" id="note"></div></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer style="position:fixed;bottom:0;left:0;width:100%;background: transparent;color: inherit;
+    opacity: 0.72;padding:15px 10px;text-align:center;box-shadow: none;z-index:9999;">
+        <p style="font-size:0.9rem;line-height:1.6;margin:0;opacity:0.95;">© 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>版权所有 ｜ 项目总负责人：谢鑫</p>
+    </footer>
+
+    <script>
+        var $ = function (id) { return document.getElementById(id); };
+        var n = 4, R = {}, kind = 'r';
+        function key(i, j) { return i + '_' + j; }
+        function grid(id, set, addset) {
+            var g = $(id); g.style.gridTemplateColumns = 'repeat(' + (n + 1) + ', auto)';
+            var html = '<div class="mcell corner"></div>';
+            for (var j = 1; j <= n; j++) html += '<div class="mcell hdr">' + j + '</div>';
+            for (var i = 1; i <= n; i++) { html += '<div class="mcell hdr">' + i + '</div>'; for (var j2 = 1; j2 <= n; j2++) { var k = key(i, j2); var on = set[k]; var cls = on ? (addset && addset[k] ? 'add' : 'b1') : 'b0'; html += '<div class="mcell ' + cls + '" data-i="' + i + '" data-j="' + j2 + '">' + (on ? 1 : 0) + '</div>'; } }
+            g.innerHTML = html;
+            return g;
+        }
+        function render() {
+            n = +$('nRange').value; $('nVal').textContent = n;
+            Object.keys(R).forEach(function (k) { var p = k.split('_'); if (+p[0] > n || +p[1] > n) delete R[k]; });
+            var gR = grid('mtxR', R, null);
+            [].forEach.call(gR.querySelectorAll('.mcell[data-i]'), function (c) { c.onclick = function () { var k = key(+c.dataset.i, +c.dataset.j); if (R[k]) delete R[k]; else R[k] = 1; render(); }; });
+            // closure
+            var C = {}, add = {}; for (var k in R) C[k] = 1;
+            if (kind === 'r') { for (var i = 1; i <= n; i++) { var d = key(i, i); if (!C[d]) { add[d] = 1; } C[d] = 1; } }
+            else { for (var a = 1; a <= n; a++) for (var b = 1; b <= n; b++) if (R[key(a, b)] && !C[key(b, a)]) { add[key(b, a)] = 1; C[key(b, a)] = 1; } }
+            grid('mtxC', C, add);
+            var nAdd = Object.keys(add).length, nR = Object.keys(R).length;
+            if (kind === 'r') $('note').innerHTML = '<b>自反闭包 r(R)=R∪I</b>：补上对角线缺失的 <span class="gold">' + nAdd + '</span> 个 (a,a)。<br>|R|=' + nR + ' → |r(R)|=' + (nR + nAdd) + '。这是使 R 自反的<b>最小</b>添加——多一个都不必、少一个则不自反。';
+            else $('note').innerHTML = '<b>对称闭包 s(R)=R∪R⁻¹</b>：为每个单向 (a,b) 补上反向 <span class="gold">' + nAdd + '</span> 个 (b,a)。<br>|R|=' + nR + ' → |s(R)|=' + (nR + nAdd) + '。这是使 R 对称的<b>最小</b>添加。';
+        }
+        [].forEach.call($('seg').querySelectorAll('button'), function (b) { b.onclick = function () { kind = b.dataset.k; [].forEach.call($('seg').querySelectorAll('button'), function (x) { x.classList.remove('active'); }); b.classList.add('active'); render(); }; });
+        $('nRange').oninput = render;
+        $('randBtn').onclick = function () { R = {}; for (var i = 1; i <= n; i++) for (var j = 1; j <= n; j++) if (Math.random() < 0.3) R[key(i, j)] = 1; render(); };
+        $('clearBtn').onclick = function () { R = {}; render(); };
+        $('randBtn').onclick();
+    </script>
+
+    <!-- ===== 共享升级框架：学习助手 + 三阶导航 ===== -->
+    <script>
+    window.SECTION_META = {
+        layers: [
+            { "name": "自反闭包与对称闭包", "concepts": "r(R)=R∪I / s(R)=R∪R⁻¹ / 最小添加", "task": "理解『最小补全使其具备某性质』。", "page": "closures-basic.html" },
+            { "name": "传递闭包", "concepts": "t(R)=R∪R²∪… / Warshall O(n³)", "task": "会求传递闭包并理解最小性。", "page": "closures.html" },
+            { "name": "三闭包对照与可达应用", "concepts": "r/s/t 对照 / 可达性 / 祖先·递归查询", "task": "迁移到可达、族谱与数据库递归。", "page": "closures-extend.html" }
+        ],
+        chapter: "第3章 二元关系",
+        section: "3.6 二元关系的闭包 · 基础层",
+        title: "自反闭包与对称闭包",
+        grounding: "本页（基础层）主题：闭包是『最小地添加有序对使其具备某性质』。自反闭包 r(R)=R∪I_A（补全对角线缺失的 (a,a)）；对称闭包 s(R)=R∪R⁻¹（为每个单向对补上反向）。关键是『最小性』——多一个都不必、少一个则不具备该性质。金色格直观显示新增的最少有序对。",
+        steps: [
+            { name: "情境引入", desc: "已知部分联系，如何最小地补全成『自反』或『对称』？" },
+            { name: "对象抽取", desc: "把『最小补全』抽象为闭包运算。" },
+            { name: "结构建模", desc: "r(R)=R∪I（补对角线）；s(R)=R∪R⁻¹（补镜像）。" },
+            { name: "推理求解", desc: "自建 R，求自反/对称闭包，看新增了哪些对。" },
+            { name: "程序验证", desc: "金色格=最小新增；验证『最小性』。" },
+            { name: "迁移反思", desc: "传递闭包（进阶层）更复杂，需 Warshall。" }
+        ],
+        ideology: { title: "完善网络 · 恰如其分", text: "闭包的『最小性』提醒我们：补全联系要恰如其分、不画蛇添足——既不遗漏应然，也不臆造虚假联系。", dims: ["辩证思维", "实事求是"] },
+        reflect: ["为什么闭包强调『最小』？多加了有序对还算闭包吗？", "自反闭包只动对角线、对称闭包只动镜像——为什么？"],
+        transfer: ["传递闭包是三种闭包里最复杂的——进阶层用 Warshall 求解。"]
+    };
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+
+</html>

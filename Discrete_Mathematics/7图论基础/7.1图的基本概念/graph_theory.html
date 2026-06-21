@@ -13,6 +13,9 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="graph_theory.css" data-page-fix="1">
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
@@ -35,8 +38,8 @@
     <div class="app-container">
         <header class="main-header">
             <div class="header-content">
-                <h1>红色数理 <span class="highlight">图的基本概念</span></h1>
-                <p class="subtitle">Graph Theory: Connecting You and Me, Building Harmonious Networks</p>
+                <h1>红色数理 <span class="highlight">进阶层</span></h1>
+                <p class="subtitle">图模型搭建器 · 图的基本概念</p>
             </div>
             <div class="connection-badge">
                 <span class="badge-icon">🤝</span>
@@ -87,7 +90,7 @@
                 <div class="panel-section">
                     <div class="panel-header">
                         <span class="panel-icon">🚩</span>
-                        <h3>思政启示</h3>
+                        <h3>价值启示</h3>
                     </div>
                     <div class="ideology-content" id="ideologyContent">
                         <h4>🤝 团结协作的网络</h4>
@@ -167,6 +170,23 @@
         </main>
     </div>
 
+    <script>
+        (function () {
+            var header = document.querySelector('.main-header');
+            var leftPanel = document.querySelector('main.main-stage > .left-panel');
+            var anchor = header && (header.querySelector('.connection-badge') || header.querySelector('.header-content'));
+            if (leftPanel && header && anchor) {
+                var prioritySections = Array.prototype.slice.call(leftPanel.querySelectorAll(':scope > .panel-section')).filter(function (section) {
+                    var title = section.querySelector('.panel-header h3');
+                    return title && /图的分类|价值启示|互动操作/.test(title.textContent);
+                });
+                prioritySections.reverse().forEach(function (section) {
+                    section.classList.add('left-priority-panel');
+                    anchor.insertAdjacentElement('afterend', section);
+                });
+            }
+        })();
+    </script>
     <script src="graph_theory.js"></script>
 
 <!-- 固定底部版权信息 -->
@@ -175,19 +195,100 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "layers": [
+            {
+                  "name": "图 G=(V,E)",
+                  "concepts": "顶点 / 边 / 有向·无向",
+                  "task": "用图统一刻画对象与联系。",
+                  "page": "graph_theory-basic.html"
+            },
+            {
+                  "name": "关联与相邻",
+                  "concepts": "简单/多重 / 自环 / 平行边",
+                  "task": "辨识图的基本要素。",
+                  "page": "graph_theory.html"
+            },
+            {
+                  "name": "图即关系",
+                  "concepts": "社交网 / 交通网 / 知识图谱",
+                  "task": "迁移到各类真实网络。",
+                  "page": "graph_theory-extend.html"
+            }
+      ],
+      "chapter": "第7章 图论基础",
+      "section": "7.1 图的基本概念 · 进阶层",
+      "title": "图的基本概念",
+      "grounding": "本节主题：图 G=(V,E)，V 顶点集、E 边集。区分无向图/有向图、简单图/多重图、自环、平行边；边的端点与关联、相邻。图把『对象+联系』统一建模，是二元关系的几何化。",
+      "steps": [
+            {
+                  "name": "情境引入",
+                  "desc": "人际网络、交通网、互联网——如何用统一模型刻画这些『网络』？"
+            },
+            {
+                  "name": "对象抽取",
+                  "desc": "把对象抽象为顶点，把联系抽象为边。"
+            },
+            {
+                  "name": "结构建模",
+                  "desc": "用 G=(V,E) 建模，区分有向/无向、简单/多重。"
+            },
+            {
+                  "name": "推理求解",
+                  "desc": "辨识关联、相邻、自环、平行边等基本要素。"
+            },
+            {
+                  "name": "程序验证",
+                  "desc": "用本页交互绘制图，观察顶点与边的关系。"
+            },
+            {
+                  "name": "迁移反思",
+                  "desc": "迁移到社交网络、交通网、知识图谱。"
+            }
+      ],
+      "ideology": {
+            "title": "连接你我 · 构建和谐网络",
+            "text": "图论把世界看作『顶点与联系』的网络，与唯物辩证法『普遍联系』的观点高度契合。每个人都是网络中的节点，连接你我、守望相助，方能构建和谐共同体——个体的价值，正在与他人、与社会的联系中实现。",
+            "dims": [
+                  "联系观点",
+                  "系统观念",
+                  "共同体意识"
+            ],
+            "quote": "一花独放不是春——图论提醒我们，价值与力量都生长于节点之间的连接。"
+      },
+      "reflect": [
+            "无向图与有向图的本质区别是什么？分别适合刻画哪类联系？",
+            "图与二元关系是什么关系？有向图的边集与关系有何对应？",
+            "简单图与多重图的区分，对算法设计有何影响？"
+      ],
+      "transfer": [
+            "社交网络、网页超链接、地铁线路图都是图的现实化身。",
+            {
+                  "t": "二元关系几何化",
+                  "d": "第3章的关系图正是有向图，本章把关系『画出来』并系统研究。"
+            }
+      ]
+};
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 

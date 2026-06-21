@@ -1,210 +1,196 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>红色数理 - 中秋集合论</title>
-    <meta name="description" content="离散数学课程 - 红色数理 - 中秋集合论">
-
-    <link rel="stylesheet" href="midautumn.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
-        rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>红色数理 - 中秋集合论 · 进阶层</title>
+  <meta name="description" content="2.7 中秋案例 进阶层：用集合运算分析文化要素关系">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(139,0,0,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}.kg-step-head strong{color:var(--red);font-size:.95rem;}.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.86rem;}.kg-step span{display:block;font-size:.76rem;color:var(--muted);margin-top:3px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.84rem;color:#7a3216;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
+.qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.88rem;color:#5b4136;line-height:1.9;}
+.qres b{color:var(--red);}.qres .formula{font-family:"JetBrains Mono",monospace;font-weight:800;color:var(--red);font-size:1rem;}
+.qres .tag{display:inline-block;padding:2px 9px;border-radius:11px;margin:2px;font-size:.78rem;background:rgba(214,59,29,.14);color:var(--red);font-weight:700;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 8px;}
+.kg-box{flex:1;min-height:430px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,250,239,.7));padding:6px;display:flex;align-items:center;}
+.venn{width:100%;height:auto;display:block;}
+.vc{stroke-width:2.5;transition:.3s;}
+.vc.A{fill:rgba(214,59,29,.10);stroke:rgba(214,59,29,.5);}
+.vc.B{fill:rgba(197,138,31,.10);stroke:rgba(197,138,31,.55);}
+.vc.C{fill:rgba(47,125,87,.10);stroke:rgba(47,125,87,.5);}
+.vc.lit.A{fill:rgba(214,59,29,.24);}.vc.lit.B{fill:rgba(197,138,31,.26);}.vc.lit.C{fill:rgba(47,125,87,.24);}
+.vc.dim{opacity:.16;}
+.vlabel{font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:18px;font-weight:700;}
+.echip text{font-family:"Noto Serif SC",serif;font-size:12px;font-weight:700;fill:#5b4136;}
+.echip.lit rect{fill:#d63b1d;stroke:#8b0000;}.echip.lit text{fill:#fff;}
+.echip.dim{opacity:.28;}
+.leg{display:flex;gap:14px;justify-content:center;font-size:.78rem;color:#8b0000;margin-top:8px;}.leg i{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:13px 15px;margin-top:12px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}.insight-box p{margin:0;font-size:13.5px;line-height:1.7;color:#4e362d;}
+.badges{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px;}.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
-
 <body>
-    <!-- 返回主页浮动按钮 (auto-injected) -->
-    <a href="../../index.html" title="返回课程主页" style="
-        position:fixed;top:14px;left:14px;z-index:9999;
-        display:flex;align-items:center;gap:6px;
-        background:rgba(30,30,40,0.82);color:#fff;
-        padding:7px 14px 7px 10px;border-radius:20px;
-        font-size:13px;font-family:'Noto Serif SC',serif;
-        text-decoration:none;backdrop-filter:blur(8px);
-        border:1px solid rgba(255,255,255,0.15);
-        box-shadow:0 2px 12px rgba(0,0,0,0.35);
-        transition:background .2s;
-    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
-       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
-        🏠 <span>课程主页</span>
-    </a>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">进阶层</span></h1>
+        <p class="subtitle">中秋集合论 · 用运算分析关联</p>
+      </div>
+      <p class="intro">用集合的并 ∪、交 ∩、补 ᶜ 分析中秋文化要素：交=共性、并=汇总、差/补=特色。</p>
 
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="window-controls">
-                    <span class="dot red"></span>
-                    <span class="dot yellow"></span>
-                    <span class="dot green"></span>
-                </div>
-                <h1>红色数理 <span class="highlight">中秋集合论</span></h1>
-                <p class="subtitle">Cultural Confidence & Set Theory</p>
-            </div>
+      <div class="value-panel">
+        <h3>精神追求 · 文化自信</h3>
+        <p>但愿人长久，千里共婵娟——团圆的『交集』正是中华民族共同的精神原乡，是文化自信的生动体现。</p>
+        <div class="dim-list"><span>文化自信</span><span>家国情怀</span><span>审美素养</span></div>
+      </div>
 
-            <div class="controls-wrapper">
-                <div class="control-group">
-                    <label>文化活动 (Activities)</label>
-                    <div class="legend-list">
-                        <div class="legend-item" data-set="A">
-                            <span class="icon">🌕</span>
-                            <div class="legend-info">
-                                <span class="legend-name">集合 A: 赏月 (Moon Gazing)</span>
-                                <span class="legend-desc">精神追求 · 审美观照</span>
-                            </div>
-                        </div>
-                        <div class="legend-item" data-set="B">
-                            <span class="icon">🥮</span>
-                            <div class="legend-info">
-                                <span class="legend-name">集合 B: 吃月饼 (Mooncakes)</span>
-                                <span class="legend-desc">物质分享 · 团圆甜蜜</span>
-                            </div>
-                        </div>
-                        <div class="legend-item" data-set="C">
-                            <span class="icon">🏮</span>
-                            <div class="legend-info">
-                                <span class="legend-name">集合 C: 提灯笼 (Lanterns)</span>
-                                <span class="legend-desc">照亮前程 · 传承薪火</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步运算互动</strong><span>点一步，看反馈、公式项和文氏图区域同步高亮</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-guide="inter"><b>1 交 ∩（共性）</b><span>A ∩ B：赏月且吃月饼</span></button>
+          <button class="kg-step" type="button" data-guide="union"><b>2 并 ∪（汇总）</b><span>A ∪ B ∪ C：参与任一活动</span></button>
+          <button class="kg-step" type="button" data-guide="diff"><b>3 补/差（特色）</b><span>A ∩ Bᶜ ∩ Cᶜ：唯独赏月</span></button>
+        </div>
+        <div class="kg-feedback" id="kgFeedback">交集 A∩B = 同属赏月与月饼的元素，揭示精神与物质的统一。</div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-token="cap">∩ 交=共性</span>
+          <span class="kg-token" data-token="cup">∪ 并=汇总</span>
+          <span class="kg-token" data-token="diff">ᶜ 补/差=特色</span>
+        </div>
+      </div>
 
-                <div class="control-group">
-                    <label>探索任务 (Missions)</label>
-                    <div class="mission-controls">
-                        <button class="apple-btn mission-btn" data-mission="1" aria-label="问题 1: 赏月且吃月饼 A ∩ B">
-                            <span class="btn-icon">✨</span>
-                            <div class="btn-text">
-                                <span>问题 1: 赏月且吃月饼</span>
-                                <span class="btn-sub">A ∩ B</span>
-                            </div>
-                        </button>
-                        <button class="apple-btn mission-btn" data-mission="2" aria-label="问题 2: 参与任一活动 A ∪ B ∪ C">
-                            <span class="btn-icon">🌏</span>
-                            <div class="btn-text">
-                                <span>问题 2: 参与任一活动</span>
-                                <span class="btn-sub">A ∪ B ∪ C</span>
-                            </div>
-                        </button>
-                        <button class="apple-btn mission-btn" data-mission="3" aria-label="问题 3: 唯独赏月 A ∩ Bᶜ ∩ Cᶜ">
-                            <span class="btn-icon">🧘</span>
-                            <div class="btn-text">
-                                <span>问题 3: 唯独赏月</span>
-                                <span class="btn-sub">A ∩ Bᶜ ∩ Cᶜ</span>
-                            </div>
-                        </button>
-                    </div>
-                </div>
+      <div class="qres" id="qres"></div>
+    </aside>
 
-                <div class="control-group">
-                    <label>思政解读 (Insight)</label>
-                    <div class="insight-card">
-                        <h3 id="insightTitle">请选择一个任务</h3>
-                        <p id="insightText">点击上方按钮，探索集合运算背后的文化内涵。</p>
-                    </div>
-                </div>
-            </div>
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>点三步，用交/并/补运算分析中秋文化要素，看文氏图区域与元素同步高亮。</span>
+        <div class="visual-badge">并 ∪ · 交 ∩ · 补 ᶜ</div>
+      </section>
+      <h2 class="pane-title">中秋文化图谱 · 集合运算</h2>
+      <p class="pane-sub">A 赏月（红）· B 月饼（金）· C 灯笼（绿）。选运算，结果区域的元素将高亮，并在左侧列出。</p>
+      <div class="kg-box"><svg class="venn" id="venn" viewBox="0 0 500 440" preserveAspectRatio="xMidYMid meet"></svg></div>
+      <div class="leg"><span><i style="background:#d63b1d"></i>A 赏月</span><span><i style="background:#c58a1f"></i>B 月饼</span><span><i style="background:#2f7d57"></i>C 灯笼</span></div>
+      <div class="insight-box">
+        <div class="insight-title">🌕 三集之交 = 共同精神原乡</div>
+        <p>赏月、月饼、灯笼三个集合的交集 A∩B∩C = <b>团圆</b>——无论习俗如何不同，团圆始终是中秋（乃至中华节日）的共同内核。集合运算让文化的『共性、汇总、特色』变得可计算、可分析。</p>
+        <div class="badges"><span class="badge">文化自信</span><span class="badge">家国情怀</span><span class="badge">审美素养</span></div>
+      </div>
+    </main>
+  </div>
 
-            <div class="actions-footer">
-                <button id="resetBtn" class="apple-btn secondary-btn" aria-label="重置视图">重置视图</button>
-            </div>
-        </aside>
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
 
-        <main class="visualizer-stage">
-            <div class="glass-pane">
-                <div class="stage-header">
-                    <h2 id="stageTitle">中秋文化图谱</h2>
-                    <p id="stageSubtitle">传承传统节日 · 坚定文化自信</p>
-                </div>
+  <script>
+    window.SECTION_META = {
+      "chapter": "第2章 集合及其运算", "section": "2.7 中秋案例 · 进阶层", "title": "用运算分析关联",
+      "grounding": "本节主题：用集合的并交差分析中秋传统文化场景。本页（进阶层）把习俗意象归类为集合 A 赏月/B 月饼/C 灯笼，用 A∩B（共性）、A∪B∪C（汇总）、A∩Bᶜ∩Cᶜ（特色）分析关联，并强调三集之交 A∩B∩C=团圆 是共同精神内核。",
+      "steps": [
+        {"name": "情境引入", "desc": "中秋习俗纷繁，如何用集合运算分析它们的关联？"},
+        {"name": "对象抽取", "desc": "把习俗/意象抽象为元素，把主题抽象为集合。"},
+        {"name": "结构建模", "desc": "用并交差与划分刻画文化要素之间的关联与归类。"},
+        {"name": "推理求解", "desc": "用交析共性、并析汇总、补/差析特色。"},
+        {"name": "程序验证", "desc": "用本页交互完成运算，验证集合分析结论。"},
+        {"name": "迁移反思", "desc": "迁移到多节日意象图谱与文化检索（拓展层）。"}
+      ],
+      "ideology": {"title": "精神追求 · 文化自信", "text": "中秋承载团圆、思乡、家国一体的精神追求。用集合论梳理传统文化，既是数学应用，也是以现代工具传承中华优秀传统文化的实践——让古老智慧在数字时代焕新，坚定文化自信，涵养审美情趣与家国情怀。", "dims": ["文化自信", "家国情怀", "审美素养"], "quote": "但愿人长久，千里共婵娟——团圆的『交集』，正是中华民族共同的精神原乡。"},
+      "reflect": ["不同节日习俗的『交集』揭示了中华文化怎样的共同内核？", "用补/差运算提取『节日特色』，对文化标签化有何意义？", "用数学语言描述文化，会不会损失韵味？"],
+      "transfer": ["把集合分析迁移到春节、端午，构建『传统节日意象关系图』（拓展层）；博物馆藏品按主题集合归类检索。"],
+      "layers": [
+        {"name": "文化要素集合化", "concepts": "意象/习俗归类 / 确定性分类", "task": "把中秋文化要素抽象为集合。", "page": "midautumn-basic.html"},
+        {"name": "用运算分析关联", "concepts": "交=共性 / 并=汇总 / 划分=主题", "task": "用集合运算分析文化要素关系。", "page": "midautumn.html"},
+        {"name": "传统节日数字化", "concepts": "节日意象图谱 / 文化检索", "task": "迁移到传统文化的数字化组织。", "page": "midautumn-extend.html"}
+      ]
+    };
+  </script>
 
-                <div class="venn-container">
-                    <div class="venn-stage" id="vennStage">
-                        <!-- SVG Venn Diagram -->
-                        <svg width="500" height="400" viewBox="0 0 500 400">
-                            <defs>
-                                <filter id="glow">
-                                    <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
-                                    <feMerge>
-                                        <feMergeNode in="coloredBlur" />
-                                        <feMergeNode in="SourceGraphic" />
-                                    </feMerge>
-                                </filter>
-                                <!-- Clip paths for each circle -->
-                                <clipPath id="mcClipA"><circle cx="250" cy="140" r="110"/></clipPath>
-                                <clipPath id="mcClipB"><circle cx="170" cy="260" r="110"/></clipPath>
-                                <clipPath id="mcClipC"><circle cx="330" cy="260" r="110"/></clipPath>
-                                <!-- Masks: each circle minus the other two -->
-                                <mask id="mcMaskAonly">
-                                    <rect width="500" height="400" fill="white"/>
-                                    <circle cx="170" cy="260" r="110" fill="black"/>
-                                    <circle cx="330" cy="260" r="110" fill="black"/>
-                                </mask>
-                            </defs>
-
-                            <!-- Base circles (always visible) -->
-                            <circle id="circleA" cx="250" cy="140" r="110" class="venn-circle" />
-                            <circle id="circleB" cx="170" cy="260" r="110" class="venn-circle" />
-                            <circle id="circleC" cx="330" cy="260" r="110" class="venn-circle" />
-
-                            <!-- Highlight overlays (controlled by JS) -->
-                            <!-- A ∩ B region: circle B clipped to circle A -->
-                            <circle id="hlAB" cx="170" cy="260" r="110"
-                                    fill="rgba(255,180,0,0.55)" clip-path="url(#mcClipA)"
-                                    style="opacity:0;transition:opacity 0.4s ease;pointer-events:none"/>
-                            <!-- A-only region: circle A masked to exclude B and C -->
-                            <circle id="hlAonly" cx="250" cy="140" r="110"
-                                    fill="rgba(255,95,86,0.40)" mask="url(#mcMaskAonly)"
-                                    style="opacity:0;transition:opacity 0.4s ease;pointer-events:none"/>
-                            <!-- Full highlights for union mode -->
-                            <circle id="hlFullA" cx="250" cy="140" r="110"
-                                    fill="rgba(255,95,86,0.28)"
-                                    style="opacity:0;transition:opacity 0.4s ease;pointer-events:none"/>
-                            <circle id="hlFullB" cx="170" cy="260" r="110"
-                                    fill="rgba(255,189,46,0.28)"
-                                    style="opacity:0;transition:opacity 0.4s ease;pointer-events:none"/>
-                            <circle id="hlFullC" cx="330" cy="260" r="110"
-                                    fill="rgba(255,149,0,0.28)"
-                                    style="opacity:0;transition:opacity 0.4s ease;pointer-events:none"/>
-
-                            <!-- Labels -->
-                            <text x="250" y="80" class="venn-label">A 赏月</text>
-                            <text x="120" y="300" class="venn-label">B 月饼</text>
-                            <text x="380" y="300" class="venn-label">C 灯笼</text>
-                        </svg>
-
-                        <!-- Particles Layer -->
-                        <div id="particlesLayer"></div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <script src="midautumn.js"></script>
-
-<!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
-</footer>
-
-
+  <script>
+    var $=function(id){return document.getElementById(id);};
+    var ELEMS=[
+      {n:'明月',s:['A']},{n:'诗词',s:['A']},{n:'思乡',s:['A']},
+      {n:'桂花酒',s:['A','B']},{n:'嫦娥',s:['A','C']},{n:'团圆',s:['A','B','C']},
+      {n:'月饼',s:['B']},{n:'分享',s:['B']},{n:'童趣',s:['B','C']},
+      {n:'灯笼',s:['C']},{n:'光明',s:['C']}
+    ];
+    var REGION={A:[250,96],B:[122,312],C:[378,312],AB:[182,214],AC:[318,214],BC:[250,326],ABC:[250,246]};
+    function rk(s){return s.slice().sort().join('');}
+    function layout(){var g={};ELEMS.forEach(function(e){var k=rk(e.s);(g[k]=g[k]||[]).push(e);});Object.keys(g).forEach(function(k){var a=g[k],c=REGION[k];a.forEach(function(e,i){var o=(i-(a.length-1)/2);e.x=c[0]+o*46;e.y=c[1]+(i%2?10:-2);});});}
+    function inSet(e,L){return e.s.indexOf(L)>=0;}
+    var guide='inter';
+    function compute(g){
+      if(g==='inter')return {set:ELEMS.filter(function(e){return inSet(e,'A')&&inSet(e,'B');}),lit:['A','B'],dim:[]};
+      if(g==='union')return {set:ELEMS.slice(),lit:['A','B','C'],dim:[]};
+      return {set:ELEMS.filter(function(e){return inSet(e,'A')&&!inSet(e,'B')&&!inSet(e,'C');}),lit:['A'],dim:['B','C']};
+    }
+    function draw(){
+      var r=compute(guide);var litSet={};r.set.forEach(function(e){litSet[e.n]=1;});
+      var svg='';
+      ['A','B','C'].forEach(function(L){var cx=L==='A'?250:L==='B'?175:325,cy=L==='A'?150:275;var cls='vc '+L+(r.lit.indexOf(L)>=0?' lit':'')+(r.dim.indexOf(L)>=0?' dim':'');svg+='<circle class="'+cls+'" cx="'+cx+'" cy="'+cy+'" r="115"/>';});
+      svg+='<text class="vlabel" x="250" y="58" text-anchor="middle" fill="#d63b1d">A 赏月</text><text class="vlabel" x="92" y="300" text-anchor="middle" fill="#8a5d0b">B 月饼</text><text class="vlabel" x="408" y="300" text-anchor="middle" fill="#2f7d57">C 灯笼</text>';
+      ELEMS.forEach(function(e){var w=e.n.length*15+12;var lit=litSet[e.n];var dim=!lit;svg+='<g class="echip'+(lit?' lit':'')+(dim?' dim':'')+'"><rect x="'+(e.x-w/2)+'" y="'+(e.y-12)+'" width="'+w+'" height="24" rx="12" fill="rgba(255,255,255,.92)" stroke="'+(lit?'#8b0000':'rgba(116,55,31,.3)')+'" stroke-width="'+(lit?2.5:1.5)+'"/><text x="'+e.x+'" y="'+(e.y+4)+'" text-anchor="middle">'+e.n+'</text></g>';});
+      $('venn').innerHTML=svg;
+    }
+    function info(){
+      var r=compute(guide),names=r.set.map(function(e){return e.n;});
+      var data={
+        inter:{f:'A ∩ B',t:'精神与物质的统一',d:'既赏月（精神追求）又吃月饼（物质分享）。交集象征中华文化中精神生活与世俗幸福的完美融合。'},
+        union:{f:'A ∪ B ∪ C',t:'最广泛的文化参与',d:'参与任一活动的人群。赏月、吃饼、提灯都是对中秋文化的传承，展现中华文明的凝聚力与包容性。'},
+        diff:{f:'A ∩ Bᶜ ∩ Cᶜ',t:'纯粹的审美观照',d:'只赏月、不吃饼也不提灯。补/差运算提取出『清风明月本无价』的高雅情趣，正是中秋的精神特色。'}
+      }[guide];
+      $('qres').innerHTML='<span class="formula">'+data.f+'</span><br><b>'+data.t+'</b><br>结果（'+names.length+' 个元素）：'+(names.length?names.map(function(n){return '<span class="tag">'+n+'</span>';}).join(''):'<span style="opacity:.6">空集 ∅</span>')+'<br><span style="font-size:.8rem;opacity:.85">'+data.d+'</span>';
+    }
+    function syncGuide(){
+      document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.guide===guide);});
+      document.querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',(guide==='inter'&&t.dataset.token==='cap')||(guide==='union'&&t.dataset.token==='cup')||(guide==='diff'&&t.dataset.token==='diff'));});
+    }
+    function setGuide(g){
+      guide=g;syncGuide();
+      if(g==='inter')$('kgFeedback').innerHTML='<b>交集 A∩B</b> = 同属『赏月』与『月饼』两集合的元素（金红重叠区高亮）：精神追求与物质团圆的统一。';
+      else if(g==='union')$('kgFeedback').innerHTML='<b>并集 A∪B∪C</b> = 属于任一集合的全部元素（三圈全亮）：最广泛的中秋文化参与，体现凝聚力与包容性。';
+      else $('kgFeedback').innerHTML='<b>A∩Bᶜ∩Cᶜ</b>（补/差）= 只在 A、不在 B 与 C 的元素（仅 A 独占区高亮，B/C 变淡）：纯粹的审美观照，中秋的精神特色。';
+      draw();info();
+    }
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setGuide(b.dataset.guide);};});
+    layout();setGuide('inter');
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
 </body>
-
 </html>

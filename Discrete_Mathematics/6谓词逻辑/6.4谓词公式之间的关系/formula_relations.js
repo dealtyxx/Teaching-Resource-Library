@@ -22,7 +22,7 @@ const verificationResult = document.getElementById('verificationResult');
 const relationChain = document.getElementById('relationChain');
 const philosophyInterpretation = document.getElementById('philosophyInterpretation');
 
-// 思政主题案例库
+// 价值主题案例库
 const CASES = [
     {
         type: 'equivalence',
@@ -436,7 +436,7 @@ async function renderRelationChain(caseData) {
 async function renderPhilosophy(caseData) {
     philosophyInterpretation.innerHTML = '';
 
-    statusText.textContent = '正在生成思政解读...';
+    statusText.textContent = '正在生成价值解读...';
     await sleep(getDelay());
 
     const philBox = document.createElement('div');

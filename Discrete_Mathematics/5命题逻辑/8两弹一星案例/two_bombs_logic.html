@@ -1,239 +1,327 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>红色数理 - 两弹一星：科技强国的逻辑必然性</title>
-    <meta name="description" content="离散数学课程 - 红色数理 - 两弹一星：科技强国的逻辑必然性">
-
-    <link rel="stylesheet" href="two_bombs_logic.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
-        rel="stylesheet">
-    <script>
-        MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                displayMath: [['$$', '$$'], ['\\[', '\\]']]
-            }
-        };
-    </script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第5章 命题逻辑 - 两弹一星的逻辑必然</title>
+  <meta name="description" content="5.8 两弹一星案例 - 进阶层 · 逻辑必然性论证">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{
+  --ink:#251713; --muted:#6c5a52; --paper:#fff8ec; --card:rgba(255,253,246,0.92);
+  --line:rgba(116,55,31,0.18); --red:#b42318; --red-2:#de5b3d; --gold:#c58a1f;
+  --green:#2f7d57; --blue:#2f5f9f; --amber:#f0a202;
+  --shadow:0 18px 50px rgba(69,31,15,0.14);
+}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;
+  background:radial-gradient(circle at 16% 12%, rgba(222,91,61,.18), transparent 28%),radial-gradient(circle at 82% 8%, rgba(47,95,159,.14), transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:14px;overflow:auto;}
+.glass-pane{padding:22px;overflow:auto;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}
+.dot.red{background:#ff5f56;} .dot.yellow{background:#ffbd2e;} .dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}
+.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.sym-box{border-radius:10px;border:1px solid var(--line);background:rgba(255,253,246,.7);padding:12px 14px;}
+.sym-box h3{margin:0 0 8px;font-size:14px;color:var(--blue);}
+.sym-grid{display:grid;gap:5px;font-size:12.5px;color:#5b4136;line-height:1.5;}
+.sym-grid code{font-family:"JetBrains Mono",monospace;color:var(--red);font-weight:700;}
+.premise-list{display:grid;gap:6px;}
+.premise-item{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:8px 10px;font-size:12.5px;}
+.premise-item .pf{font-family:"JetBrains Mono",monospace;color:var(--red);font-weight:700;}
+.premise-item .pd{color:var(--muted);font-size:11.5px;margin-top:2px;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);} .mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}
+.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 12px;}
+.chain-wrap{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.88),rgba(255,250,239,.7));padding:8px;}
+.chain-svg{width:100%;height:auto;display:block;}
+.cnode{fill:#fff;stroke:var(--line);stroke-width:2;transition:.4s;}
+.cnode.lit{fill:rgba(47,125,87,.85);stroke:var(--green);stroke-width:3;}
+.cnode.ms.lit{fill:rgba(214,59,29,.9);stroke:var(--red);}
+.cnode.goal.lit{fill:rgba(197,138,31,.92);stroke:var(--gold);}
+.cedge{stroke:rgba(116,55,31,.3);stroke-width:2.4;transition:.4s;fill:none;}
+.cedge.lit{stroke:var(--gold);stroke-width:3.6;}
+.ctext{font-family:"Noto Serif SC",serif;font-weight:800;fill:#fff;}
+.clabel{font-size:11.5px;fill:var(--muted);font-weight:700;}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;}
+.ctrl-btn{padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.72);cursor:pointer;font:inherit;font-weight:700;font-size:13px;color:#5b4136;transition:.2s;}
+.ctrl-btn:hover{border-color:var(--red);color:var(--red);}
+.ctrl-btn.primary{background:var(--red);color:#fff;border-color:var(--red);}
+.ctrl-btn.primary:hover{background:#8d1a12;color:#fff;}
+.ctrl-btn:disabled{opacity:.45;cursor:not-allowed;}
+.progress-wrap{display:flex;align-items:center;gap:12px;margin:8px 0 4px;}
+.progress-track{flex:1;height:10px;border-radius:999px;background:rgba(180,35,24,.12);overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--gold));width:0;transition:width .4s;}
+.progress-text{font-size:12.5px;color:var(--muted);font-weight:700;font-family:"JetBrains Mono",monospace;white-space:nowrap;}
+.feedback{margin-top:10px;padding:11px 13px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);color:#7a3216;font-size:.9rem;line-height:1.7;}
+.token-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;}
+.token{padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.8rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.token.on{background:linear-gradient(135deg,var(--red),#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(180,35,24,.18);}
+.panel-card{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:16px;margin:12px 0;}
+.panel-card h3{margin:0 0 10px;color:var(--red);font-size:1rem;}
+table.proof{width:100%;border-collapse:collapse;font-size:13px;}
+table.proof th{background:rgba(180,35,24,.08);color:var(--red);padding:8px;text-align:left;}
+table.proof td{padding:7px 8px;border-bottom:1px solid var(--line);}
+table.proof td.f{font-family:"JetBrains Mono",monospace;font-weight:700;color:var(--ink);}
+table.proof tr:last-child td{background:rgba(47,125,87,.08);}
+.ms-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.ms-chip{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-size:12.5px;font-weight:700;color:var(--muted);transition:.3s;}
+.ms-chip.done{background:rgba(47,125,87,.14);color:var(--green);border-color:rgba(47,125,87,.4);}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:14px 16px;margin-top:16px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}
+.insight-box p{margin:0;font-size:14px;line-height:1.7;color:#4e362d;}
+.badges{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;}
+.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){
+  body{overflow:auto;}
+  .app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}
+  .side-panel,.glass-pane{max-height:none;overflow:visible;}
+}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
-
 <body>
-    <!-- 返回主页浮动按钮 (auto-injected) -->
-    <a href="../../index.html" title="返回课程主页" style="
-        position:fixed;top:14px;left:14px;z-index:9999;
-        display:flex;align-items:center;gap:6px;
-        background:rgba(30,30,40,0.82);color:#fff;
-        padding:7px 14px 7px 10px;border-radius:20px;
-        font-size:13px;font-family:'Noto Serif SC',serif;
-        text-decoration:none;backdrop-filter:blur(8px);
-        border:1px solid rgba(255,255,255,0.15);
-        box-shadow:0 2px 12px rgba(0,0,0,0.35);
-        transition:background .2s;
-    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
-       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
-        🏠 <span>课程主页</span>
-    </a>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">进阶层</span></h1>
+        <p class="subtitle">两弹一星 · 逻辑必然性论证</p>
+      </div>
+      <p class="intro">从人才、设备、经费三项前提出发，用 MP / ∧I 一步步证明「原子弹 ∧ 氢弹 ∧ 卫星」的必然成功。</p>
 
-    <div class="app-container">
-        <header class="main-header">
-            <div class="header-content">
-                <h1>红色数理 <span class="highlight">两弹一星：科技强国的逻辑必然性</span></h1>
-                <p class="subtitle">Two Bombs One Satellite: The Logical Path to Becoming a Technological Power</p>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-                <span class="progress-text" id="progressText">进度: 0/13</span>
-            </div>
-        </header>
+      <div class="value-panel">
+        <h3>科技强国 · 自立自强</h3>
+        <p>严密推理每一步都有依据：在人才、设备、经费保障下，「两弹一星」的成功是科学发展的逻辑必然。</p>
+        <div class="dim-list"><span>两弹一星精神</span><span>自立自强</span><span>大力协同</span></div>
+      </div>
 
-        <main class="main-stage">
-            <!-- Left Sidebar: Toolbox -->
-            <aside class="toolbox">
-                <div class="panel-section">
-                    <div class="panel-header">
-                        <span class="panel-icon">📋</span>
-                        <h3>前提条件</h3>
-                    </div>
-                    <div class="premise-list" id="premiseList">
-                        <!-- Premises will be injected by JS -->
-                    </div>
-                </div>
+      <div class="panel-card" style="margin:0;">
+        <h3>📋 前提条件</h3>
+        <div class="premise-list" id="premiseList"></div>
+      </div>
 
-                <div class="panel-section">
-                    <div class="panel-header">
-                        <span class="panel-icon">🔧</span>
-                        <h3>推理规则</h3>
-                    </div>
-                    <div class="rules-list">
-                        <div class="rule-item">
-                            <strong>MP (假言推理)</strong>
-                            <p>$A \to B, A \Rightarrow B$</p>
-                        </div>
-                        <div class="rule-item">
-                            <strong>∧I (合取引入)</strong>
-                            <p>$A, B \Rightarrow A \land B$</p>
-                        </div>
-                        <div class="rule-item">
-                            <strong>∧E (合取消去)</strong>
-                            <p>$A \land B \Rightarrow A$ (或 $B$)</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="panel-section legend">
-                    <div class="panel-header">
-                        <span class="panel-icon">🔤</span>
-                        <h3>符号说明</h3>
-                    </div>
-                    <div class="symbol-list">
-                        <div class="symbol-item"><strong>P:</strong> 科研人员培养</div>
-                        <div class="symbol-item"><strong>E:</strong> 科研设备建设</div>
-                        <div class="symbol-item"><strong>F:</strong> 科研经费投入</div>
-                        <div class="symbol-item"><strong>A:</strong> 🚀 原子弹研发</div>
-                        <div class="symbol-item"><strong>H:</strong> 💣 氢弹研发</div>
-                        <div class="symbol-item"><strong>S:</strong> 🛰️ 人造卫星研发</div>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- Center: Proof Area -->
-            <div class="proof-workspace">
-                <div class="workspace-header">
-                    <h2>推理证明过程</h2>
-                    <div class="workspace-controls">
-                        <button id="hintBtn" class="control-btn" aria-label="提示">💡 提示</button>
-                        <button id="resetBtn" class="control-btn" aria-label="重置">🔄 重置</button>
-                    </div>
-                </div>
-
-                <div class="proof-table-container">
-                    <table class="proof-table">
-                        <thead>
-                            <tr>
-                                <th>步骤</th>
-                                <th>公式</th>
-                                <th>理由</th>
-                            </tr>
-                        </thead>
-                        <tbody id="proofTableBody">
-                            <!-- Proof steps will be injected by JS -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="action-panel" id="actionPanel">
-                    <div class="action-prompt">
-                        <p id="actionPrompt">选择一个或两个已有步骤，然后点击"下一步"开始推理</p>
-                    </div>
-                    <div class="action-buttons">
-                        <button id="nextStepBtn" class="action-btn primary" aria-label="下一步推理">下一步推理</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Sidebar: Ideology Panel -->
-            <aside class="sidebar">
-                <div class="panel-section">
-                    <div class="panel-header">
-                        <span class="panel-icon">🚩</span>
-                        <h3>思政启示</h3>
-                    </div>
-                    <div class="ideology-content" id="ideologyContent">
-                        <h4>🌟 两弹一星精神</h4>
-                        <p>热爱祖国、无私奉献，自力更生、艰苦奋斗，大力协同、勇于登攀。</p>
-                        <p>通过严密的逻辑推理，我们将证明：在满足人才、设备、经费三个条件下，实现"两弹一星"是科学发展的必然结果。</p>
-                    </div>
-                </div>
-
-                <div class="panel-section">
-                    <div class="panel-header">
-                        <span class="panel-icon">🎯</span>
-                        <h3>任务目标</h3>
-                    </div>
-                    <div class="goal-content">
-                        <p><strong>证明目标：</strong></p>
-                        <p class="goal-formula">$$ A \land H \land S $$</p>
-                        <p>即证明可以同时完成原子弹、氢弹和人造卫星三大项目。</p>
-                    </div>
-                </div>
-
-                <div class="panel-section achievements">
-                    <div class="panel-header">
-                        <span class="panel-icon">🏆</span>
-                        <h3>成就进度</h3>
-                    </div>
-                    <div class="achievement-list">
-                        <div class="achievement-item" id="achAtomic">
-                            <span class="achievement-icon">🚀</span>
-                            <span class="achievement-name">原子弹研发</span>
-                            <span class="achievement-status">🔒</span>
-                        </div>
-                        <div class="achievement-item" id="achHydrogen">
-                            <span class="achievement-icon">💣</span>
-                            <span class="achievement-name">氢弹研发</span>
-                            <span class="achievement-status">🔒</span>
-                        </div>
-                        <div class="achievement-item" id="achSatellite">
-                            <span class="achievement-icon">🛰️</span>
-                            <span class="achievement-name">人造卫星</span>
-                            <span class="achievement-status">🔒</span>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-        </main>
-    </div>
-
-    <!-- Success Modal -->
-    <div id="successModal" class="modal hidden">
-        <div class="modal-content">
-            <h2>🎉 祖国万岁！两弹一星梦想成真！</h2>
-            <div class="success-icons">
-                <span class="success-icon">🚀</span>
-                <span class="success-icon">💣</span>
-                <span class="success-icon">🛰️</span>
-            </div>
-            <p class="success-message">
-                通过严密的逻辑推理，我们证明了在人才、设备、经费三个条件保障下，
-                "两弹一星"的成功是科学发展的必然结果！
-            </p>
-            <p class="spirit-quote">
-                "自力更生、艰苦奋斗、大力协同、勇于登攀" —— 两弹一星精神永放光芒
-            </p>
-            <button id="closeModalBtn" class="action-btn primary" aria-label="查看完整证明">查看完整证明</button>
+      <div class="sym-box">
+        <h3>推理规则 & 符号</h3>
+        <div class="sym-grid">
+          <div><code>MP</code>　假言推理：A→B, A ⟹ B</div>
+          <div><code>∧I</code>　合取引入：A, B ⟹ A∧B</div>
+          <div style="margin-top:4px;"><code>P</code>人才　<code>E</code>设备　<code>F</code>经费</div>
+          <div><code>A</code>原子弹　<code>H</code>氢弹　<code>S</code>卫星　目标 <code>A∧H∧S</code></div>
         </div>
-    </div>
+      </div>
+    </aside>
 
-    <script src="two_bombs_logic.js"></script>
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>点「下一步」逐步构建证明，看推理链高亮、公式项点亮、成就达成。</span>
+        <div class="visual-badge">自然演绎 + 成就链</div>
+      </section>
+      <h2 class="pane-title">🧠 逻辑推理过程：证明 A ∧ H ∧ S</h2>
+      <p class="pane-sub">每点一步，新增一行证明、依赖链对应节点高亮、当前公式项点亮，并给出反馈。</p>
 
-<!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
-</footer>
+      <div class="chain-wrap">
+        <svg class="chain-svg" viewBox="0 0 660 270" id="chainSvg">
+          <path class="cedge" id="pA" d="M55 55 L210 90"/>
+          <path class="cedge" id="fA" d="M55 225 L210 90"/>
+          <path class="cedge" id="aH" d="M210 90 L370 90"/>
+          <path class="cedge" id="eH" d="M55 140 L370 90"/>
+          <path class="cedge" id="fH" d="M55 225 L370 90"/>
+          <path class="cedge" id="hS" d="M370 90 L530 90"/>
+          <path class="cedge" id="fS" d="M55 225 L530 90"/>
+          <path class="cedge" id="aG" d="M210 90 L370 222"/>
+          <path class="cedge" id="hG" d="M370 90 L370 222"/>
+          <path class="cedge" id="sG" d="M530 90 L370 222"/>
+          <circle class="cnode" id="nP" cx="55" cy="55" r="26"/>
+          <circle class="cnode" id="nE" cx="55" cy="140" r="26"/>
+          <circle class="cnode" id="nF" cx="55" cy="225" r="26"/>
+          <circle class="cnode ms" id="nA" cx="210" cy="90" r="32"/>
+          <circle class="cnode ms" id="nH" cx="370" cy="90" r="32"/>
+          <circle class="cnode ms" id="nS" cx="530" cy="90" r="32"/>
+          <circle class="cnode goal" id="nG" cx="370" cy="222" r="36"/>
+          <text class="ctext" x="55" y="60" text-anchor="middle" font-size="14">P</text>
+          <text class="ctext" x="55" y="145" text-anchor="middle" font-size="14">E</text>
+          <text class="ctext" x="55" y="230" text-anchor="middle" font-size="14">F</text>
+          <text class="ctext" x="210" y="95" text-anchor="middle" font-size="15">A</text>
+          <text class="ctext" x="370" y="95" text-anchor="middle" font-size="15">H</text>
+          <text class="ctext" x="530" y="95" text-anchor="middle" font-size="15">S</text>
+          <text class="ctext" x="370" y="220" text-anchor="middle" font-size="12">A∧H∧S</text>
+          <text class="clabel" x="55" y="95" text-anchor="middle">人才</text>
+          <text class="clabel" x="100" y="158" text-anchor="middle">设备</text>
+          <text class="clabel" x="55" y="262" text-anchor="middle">经费</text>
+          <text class="clabel" x="210" y="138" text-anchor="middle">原子弹</text>
+          <text class="clabel" x="455" y="138" text-anchor="middle">氢弹</text>
+          <text class="clabel" x="560" y="138" text-anchor="middle">卫星</text>
+          <text class="clabel" x="370" y="266" text-anchor="middle">两弹一星</text>
+        </svg>
+      </div>
 
+      <div class="controls">
+        <button class="ctrl-btn primary" id="nextBtn">▶ 下一步</button>
+        <button class="ctrl-btn" id="hintBtn">💡 提示</button>
+        <button class="ctrl-btn" id="resetBtn">🔄 重置</button>
+      </div>
+      <div class="progress-wrap"><div class="progress-track"><div class="progress-fill" id="progFill"></div></div><span class="progress-text" id="progText">0 / 13</span></div>
+      <div class="feedback" id="feedback">点击「下一步」开始引入前提，逐步构建证明。</div>
+      <div class="token-row" id="tokenRow">
+        <span class="token" data-t="P">P</span><span class="token" data-t="E">E</span><span class="token" data-t="F">F</span>
+        <span class="token" data-t="A">A</span><span class="token" data-t="H">H</span><span class="token" data-t="S">S</span>
+        <span class="token" data-t="G">A∧H∧S</span>
+      </div>
 
+      <div class="panel-card">
+        <h3>📜 证明步骤</h3>
+        <table class="proof"><thead><tr><th style="width:48px;">步骤</th><th>公式</th><th style="width:180px;">理由</th></tr></thead><tbody id="proofBody"></tbody></table>
+        <div class="ms-row" id="msRow">
+          <span class="ms-chip" id="msA">🚀 原子弹 A</span>
+          <span class="ms-chip" id="msH">💣 氢弹 H</span>
+          <span class="ms-chip" id="msS">🛰 卫星 S</span>
+        </div>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">⚖️ 逻辑必然性论证</div>
+        <p>每一步只用 MP（假言推理）与 ∧I（合取引入），结论 A∧H∧S 在前提下是<b>必然</b>成立的——这就是有效推理。逆否地看：若想要 A∧H∧S 而缺少人才/设备/经费，则无法达成。这正是「自力更生、大力协同」的逻辑根据。</p>
+        <div class="badges"><span class="badge">两弹一星精神</span><span class="badge">自立自强</span><span class="badge">大力协同</span></div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+    <div>版权所有 · 项目总负责人：谢鑫</div>
+  </footer>
+
+  <script>
+    window.SECTION_META = {
+      "layers": [
+        { "name": "关键判断符号化", "concepts": "命题变元 / 蕴含", "task": "把战略判断抽象为命题。", "page": "two_bombs_logic-basic.html" },
+        { "name": "逻辑必然性论证", "concepts": "蕴含链 / 有效推理 / 逆否命题", "task": "用有效推理证明结论的必然性。", "page": "two_bombs_logic.html" },
+        { "name": "战略论证迁移", "concepts": "种业·芯片自主 / 政策论证", "task": "迁移到当代战略与政策论证。", "page": "two_bombs_logic-extend.html" }
+      ],
+      "chapter": "第5章 命题逻辑",
+      "section": "5.8 两弹一星案例 · 进阶层",
+      "title": "命题逻辑应用 · 两弹一星的逻辑必然",
+      "grounding": "本节主题：用命题逻辑分析『两弹一星』决策的逻辑结构——把『自主研发』『国家安全』『科技自立』等抽象为命题，用蕴含与推理刻画『唯有自力更生才能保障安全』的必然性。本页定位为进阶层：用有效推理证明战略结论的逻辑必然性。",
+      "steps": [
+        {"name":"情境引入","desc":"为什么说独立自主搞『两弹一星』是历史的逻辑必然？"},
+        {"name":"对象抽取","desc":"把关键判断抽象为命题变元，识别其逻辑联系。"},
+        {"name":"结构建模","desc":"用蕴含链建模『前提→必然结论』的战略论证。"},
+        {"name":"推理求解","desc":"用有效推理证明结论在前提下的必然性。"},
+        {"name":"程序验证","desc":"用本页交互搭建推理链，检验逻辑有效。"},
+        {"name":"迁移反思","desc":"迁移到战略决策论证、政策合理性分析。"}
+      ],
+      "ideology": {
+        "title": "科技强国 · 自立自强",
+        "text": "『两弹一星』凝聚着老一辈科学家热爱祖国、无私奉献、自力更生、艰苦奋斗的精神。用逻辑揭示其『自主才能安全』的必然性，让青年理解关键核心技术必须自主可控。",
+        "dims": ["两弹一星精神", "自立自强", "家国情怀"],
+        "quote": "自主创新的战略选择，有其不容辩驳的逻辑必然。"
+      },
+      "reflect": [
+        "『唯有自主研发才能保障安全』可符号化为什么蕴含式？",
+        "战略论证中如何区分充分条件与必要条件？",
+        "逻辑必然与历史偶然如何统一？"
+      ],
+      "transfer": [
+        "把同样的逻辑分析迁移到『种业安全』『芯片自主』等当代命题。",
+        {"t":"政策论证","d":"用命题逻辑梳理一项政策的前提与结论，检验其论证是否严密。"}
+      ]
+    };
+  </script>
+
+  <script>
+  (function(){
+    "use strict";
+    var $=function(id){return document.getElementById(id);};
+    var PREMISES=[
+      { f:'P ∧ F → A', d:'若有人才和经费，则能研发原子弹' },
+      { f:'A ∧ E ∧ F → H', d:'若有原子弹经验、设备和经费，则能研发氢弹' },
+      { f:'H ∧ F → S', d:'若有氢弹和经费，则能研发卫星' },
+      { f:'P', d:'已知：科研人员得到培养' },
+      { f:'E', d:'已知：科研设备已建设' },
+      { f:'F', d:'已知：有足够的科研经费' }
+    ];
+    var SEQ=[
+      { f:'P', r:'前提', tok:'P' },
+      { f:'F', r:'前提', tok:'F' },
+      { f:'P ∧ F', r:'合取引入 ∧I (1)(2)' },
+      { f:'P ∧ F → A', r:'前提' },
+      { f:'A', r:'假言推理 MP (3)(4)', tok:'A', ms:'A' },
+      { f:'E', r:'前提', tok:'E' },
+      { f:'A ∧ E ∧ F', r:'合取引入 ∧I (2)(5)(6)' },
+      { f:'A ∧ E ∧ F → H', r:'前提' },
+      { f:'H', r:'假言推理 MP (7)(8)', tok:'H', ms:'H' },
+      { f:'H ∧ F', r:'合取引入 ∧I (2)(9)' },
+      { f:'H ∧ F → S', r:'前提' },
+      { f:'S', r:'假言推理 MP (10)(11)', tok:'S', ms:'S' },
+      { f:'A ∧ H ∧ S', r:'合取引入 ∧I (5)(9)(12)', tok:'G' }
+    ];
+    var HINTS=[
+      '引入前提 P（科研人员培养）。','引入前提 F（科研经费投入）。',
+      '用合取引入 ∧I，把 P 和 F 合成 P∧F。','引入前提 P∧F→A（有人才和经费就能研发原子弹）。',
+      '🚀 用假言推理 MP，从 P∧F 与 P∧F→A 推出 A（原子弹研发成功）！','引入前提 E（科研设备建设）。',
+      '用合取引入 ∧I，把 A、E、F 合成 A∧E∧F。','引入前提 A∧E∧F→H。',
+      '💣 用假言推理 MP，推出 H（氢弹研发成功）！','用合取引入 ∧I，把 H 和 F 合成 H∧F。',
+      '引入前提 H∧F→S。','🛰 用假言推理 MP，推出 S（人造卫星研制成功）！',
+      '🏆 用合取引入 ∧I，把 A、H、S 合成 A∧H∧S，证明完成！'
+    ];
+    var TOKMAP={P:'nP',E:'nE',F:'nF',A:'nA',H:'nH',S:'nS',G:'nG'};
+    var EDGEMAP={A:['pA','fA'],H:['aH','eH','fH'],S:['hS','fS'],G:['aG','hG','sG']};
+    var step=0;
+
+    $('premiseList').innerHTML=PREMISES.map(function(p){return '<div class="premise-item"><div class="pf">'+p.f+'</div><div class="pd">'+p.d+'</div></div>';}).join('');
+
+    function next(){
+      if(step>=SEQ.length)return;
+      var s=SEQ[step]; step++;
+      var tr=document.createElement('tr'); tr.innerHTML='<td>('+step+')</td><td class="f">'+s.f+'</td><td>'+s.r+'</td>';
+      $('proofBody').appendChild(tr);
+      if(s.tok){
+        var t=$('tokenRow').querySelector('.token[data-t="'+s.tok+'"]'); if(t)t.classList.add('on');
+        var nid=TOKMAP[s.tok]; if(nid){ var nd=$(nid); nd.setAttribute('class',nd.getAttribute('class')+' lit'); }
+        if(EDGEMAP[s.tok]) EDGEMAP[s.tok].forEach(function(e){ var ed=$(e); ed.setAttribute('class','cedge lit'); });
+      }
+      if(s.ms) $('ms'+s.ms).classList.add('done');
+      $('progFill').style.width=(step/SEQ.length*100)+'%';
+      $('progText').textContent=step+' / '+SEQ.length;
+      $('feedback').innerHTML=HINTS[step-1];
+      $('nextBtn').disabled=step>=SEQ.length;
+      if(step>=SEQ.length){ $('nextBtn').textContent='✓ 证明完成'; setTimeout(function(){$('feedback').innerHTML='🎉 证明完成！人才 + 设备 + 经费 ⟹ 原子弹 ∧ 氢弹 ∧ 卫星 必然成功。每一步都可解释、可追溯——这就是有效推理的力量。';},300); }
+    }
+    function reset(){
+      step=0; $('proofBody').innerHTML='';
+      $('tokenRow').querySelectorAll('.token').forEach(function(t){t.classList.remove('on');});
+      ['nP','nE','nF','nA','nH','nS','nG'].forEach(function(n){ $(n).setAttribute('class',$(n).getAttribute('class').replace(/ lit/g,'')); });
+      ['pA','fA','aH','eH','fH','hS','fS','aG','hG','sG'].forEach(function(e){ $(e).setAttribute('class','cedge'); });
+      ['msA','msH','msS'].forEach(function(m){$(m).classList.remove('done');});
+      $('progFill').style.width='0%'; $('progText').textContent='0 / '+SEQ.length;
+      $('feedback').innerHTML='点击「下一步」开始引入前提，逐步构建证明。';
+      $('nextBtn').disabled=false; $('nextBtn').textContent='▶ 下一步';
+    }
+    $('nextBtn').onclick=next;
+    $('hintBtn').onclick=function(){ alert('💡 提示：\n\n'+(step<HINTS.length?HINTS[step]:'证明已完成。')); };
+    $('resetBtn').onclick=reset;
+  })();
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
 </body>
-
 </html>

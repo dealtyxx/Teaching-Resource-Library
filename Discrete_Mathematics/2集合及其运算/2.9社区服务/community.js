@@ -29,7 +29,7 @@ let difficultyLevel = 50;
 // Initialization
 function init() {
     generateResidents();
-    updateUI();
+    analyzeData();
 }
 
 // Simulation Logic

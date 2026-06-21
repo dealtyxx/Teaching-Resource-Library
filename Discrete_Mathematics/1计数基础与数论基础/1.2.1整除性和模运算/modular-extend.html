@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数论基础 · 拓展层 — 模运算时钟与幂循环</title>
+    <meta name="description" content="离散数学 1.2.1 拓展层：模运算时钟（周而复始）与幂循环周期的互动可视化">
+    <link rel="stylesheet" href="modular.css">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="../chapter1-compact.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <style>
+        .dm-t-field { margin: 8px 0; }
+        .dm-t-field .lab { display: flex; justify-content: space-between; font-size: .82rem; color: #8b0000; margin-bottom: 5px; }
+        .dm-t-field .v { font-weight: 700; color: #d63b1d; font-family: 'Courier New', monospace; }
+        .dm-t-field input[type=range] { width: 100%; accent-color: #d63b1d; }
+        .dm-t-wrap { display: flex; flex-wrap: wrap; gap: 1.6rem; justify-content: center; align-items: flex-start; width: 100%; }
+        .dm-t-card { background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(214, 59, 29, 0.18); border-radius: 14px; padding: 16px 18px; min-width: 280px; }
+        .dm-t-card h3 { color: #d63b1d; font-size: 1rem; margin-bottom: 10px; font-weight: 700; }
+        .clock { display: block; margin: 0 auto; }
+        .clock .pos { fill: rgba(214,59,29,0.08); stroke: rgba(214,59,29,0.25); }
+        .clock .pos.hit { fill: #d63b1d; }
+        .clock text { font-family: 'Courier New', monospace; font-size: 12px; fill: #8b0000; }
+        .clock text.hit { fill: #fff; font-weight: 700; }
+        .dm-t-eq { font-family: 'Courier New', monospace; font-size: 1.05rem; color: #8b0000; text-align: center; margin-top: 8px; }
+        .dm-t-eq b { color: #d63b1d; }
+        .pow-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+        .pc { font-family: 'Courier New', monospace; font-size: .78rem; padding: 4px 8px; border-radius: 7px; background: rgba(214,59,29,.08); color: #8b0000; }
+        .pc.cyc { background: #ffb400; color: #5a3d00; font-weight: 700; }
+        .pc.one { background: #27c93f; color: #fff; font-weight: 700; }
+        .sub2 { font-size: .78rem; color: #a05a5a; line-height: 1.65; margin-top: 8px; }
+        .sub2 b { color: #d63b1d; }
+    
+        .value-panel {
+            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
+            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
+            box-shadow: var(--shadow-sm);
+        }
+        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
+        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
+        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+        .value-dims span {
+            padding: 3px 8px; border-radius: 999px; color: #8b0000;
+            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
+            font-size: .74rem; font-weight: 700;
+        }
+        .value-quote {
+            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
+            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
+        }
+        .value-inline {
+            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
+            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
+            color: var(--text-primary); line-height: 1.5;
+        }
+    </style>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+
+<body>
+    <a href="../../index.html" title="返回课程主页" style="position:fixed;top:14px;left:14px;z-index:9999;display:flex;align-items:center;gap:6px;background:rgba(30,30,40,0.82);color:#fff;padding:7px 14px 7px 10px;border-radius:20px;font-size:13px;font-family:'Noto Serif SC',serif;text-decoration:none;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.15);box-shadow:0 2px 12px rgba(0,0,0,0.35);transition:background .2s;" onmouseover="this.style.background='rgba(214,59,29,0.88)'" onmouseout="this.style.background='rgba(30,30,40,0.82)'">🏠 <span>课程主页</span></a>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+                <h1>数论基础 <span class="highlight">拓展层</span></h1>
+                <p class="subtitle">●●● 模运算时钟 · 幂循环 · 工程迁移</p>
+            </div>
+            <div class="controls-wrapper">
+                
+                
+                
+                
+                <div class="control-group value-consistency-group">
+                    <label>价值映射（与进阶层一致）</label>
+                    <div class="value-panel" data-value-source="SECTION_META.ideology">
+                        <h3>周而复始 · 守正循环</h3>
+                        <p>模运算把无限的整数收束进有限的剩余类，正如周期与节律之于自然和社会——日月轮转、四季更替、制度循环往复又螺旋上升。在『取模』的约束中保持运算的严整与封闭，恰似在规矩之内行稳致远。</p>
+                        <div class="value-dims"><span>规则意识</span><span>辩证思维</span><span>严谨求实</span></div>
+                            <div class="value-quote">不以规矩，不能成方圆——模运算正是在『余数』的规矩里，保证了计算的可靠与可循环。</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>模数 m（时钟刻度）</label>
+                    <div class="dm-t-field"><div class="lab"><span>m</span><span class="v" id="mVal">12</span></div><input type="range" id="mRange" min="3" max="16" value="12"></div>
+                </div>
+                <div class="control-group">
+                    <label>从 0 出发走的步数</label>
+                    <div class="dm-t-field"><div class="lab"><span>步数</span><span class="v" id="kVal">17</span></div><input type="range" id="kRange" min="0" max="60" value="17"></div>
+                </div>
+                <div class="control-group">
+                    <label>幂循环：底数 g</label>
+                    <div class="dm-t-field"><div class="lab"><span>g</span><span class="v" id="gVal">2</span></div><input type="range" id="gRange" min="2" max="9" value="2"></div>
+                </div>
+                <div class="control-group">
+                    <label>原理说明</label>
+                    <div class="info-panel">
+                        <h3>周而复始</h3>
+                        <p>模运算把整数绕成一个「时钟」：走 k 步落在 <b>k mod m</b>。幂 g、g²、g³… mod m 也会进入<b>循环</b>。</p>
+                        <p class="political-text">周期与节律——这正是欧拉定理 a^φ(m)≡1 的几何直觉。</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="visualization-area" id="vizArea">
+                    <div class="dm-t-wrap">
+                        <div class="dm-t-card">
+                            <h3>🕐 模运算时钟</h3>
+                            <svg id="clock" class="clock" width="260" height="260" viewBox="0 0 260 260"></svg>
+                            <div class="dm-t-eq" id="clockEq"></div>
+                        </div>
+                        <div class="dm-t-card">
+                            <h3>🔁 幂循环（g^k mod m）</h3>
+                            <div class="pow-chips" id="powChips"></div>
+                            <div class="sub2" id="powText"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer style="position:fixed;bottom:0;left:0;width:100%;background: transparent;color: inherit;
+    opacity: 0.72;padding:15px 10px;text-align:center;box-shadow: none;z-index:9999;">
+        <p style="font-size:0.9rem;line-height:1.6;margin:0;opacity:0.95;">© 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>版权所有 ｜ 项目总负责人：谢鑫</p>
+    </footer>
+
+    <script>
+        var $ = function (id) { return document.getElementById(id); };
+        function renderClock() {
+            var m = +$('mRange').value, k = +$('kRange').value;
+            $('mVal').textContent = m; $('kVal').textContent = k;
+            var landing = k % m, laps = Math.floor(k / m);
+            var cx = 130, cy = 130, R = 96, svg = '';
+            for (var i = 0; i < m; i++) {
+                var ang = -Math.PI / 2 + i * 2 * Math.PI / m;
+                var x = cx + R * Math.cos(ang), y = cy + R * Math.sin(ang);
+                var hit = i === landing;
+                svg += '<circle class="pos' + (hit ? ' hit' : '') + '" cx="' + x + '" cy="' + y + '" r="16"/>';
+                svg += '<text class="' + (hit ? 'hit' : '') + '" x="' + x + '" y="' + (y + 4) + '" text-anchor="middle">' + i + '</text>';
+            }
+            $('clock').innerHTML = svg;
+            $('clockEq').innerHTML = '走 ' + k + ' 步 = 绕 <b>' + laps + '</b> 圈 + 落在 <b>' + landing + '</b> ｜ ' + k + ' mod ' + m + ' = <b>' + landing + '</b>';
+        }
+        function renderPow() {
+            var g = +$('gRange').value, m = +$('mRange').value;
+            $('gVal').textContent = g;
+            var seq = [], seen = {}, cycleStart = -1, val = 1;
+            for (var e = 1; e <= 24; e++) {
+                val = (val * g) % m;
+                if (seen[val] !== undefined && cycleStart < 0) cycleStart = seen[val];
+                seen[val] = e; seq.push(val);
+                if (cycleStart >= 0 && e - cycleStart >= 1 && val === seq[cycleStart - 1]) { } // continue a bit
+                if (seq.length >= 12 && cycleStart >= 0) break;
+            }
+            var html = seq.map(function (v, i) {
+                var cls = v === 1 ? 'pc one' : 'pc';
+                return '<span class="' + cls + '">g<sup>' + (i + 1) + '</sup>=' + v + '</span>';
+            }).join('');
+            $('powChips').innerHTML = html;
+            var firstOne = seq.indexOf(1);
+            var txt = 'g=' + g + ', m=' + m + '：序列 ' + seq.slice(0, 10).join(', ') + (seq.length > 10 ? '…' : '');
+            if (firstOne >= 0) txt += '<br>🟢 在第 <b>' + (firstOne + 1) + '</b> 次幂回到 <b>1</b> —— 出现周期！这正是欧拉/费马定理 a^φ(m)≡1 的雏形。';
+            else txt += '<br>未在前若干次回到 1（g 与 m 不互素时可能如此）。';
+            $('powText').innerHTML = txt;
+        }
+        function render() { renderClock(); renderPow(); }
+        $('mRange').oninput = render; $('kRange').oninput = renderClock; $('gRange').oninput = renderPow;
+        render();
+    </script>
+
+    <!-- ===== 共享升级框架：学习助手 + 三阶导航 ===== -->
+    <script>
+    window.SECTION_META = {
+        layers: [
+            { "name": "整除与带余除法", "concepts": "a|b / b=aq+r 唯一", "task": "理解整除与余数的唯一性及其含义。", "page": "modular-basic.html" },
+            { "name": "模运算与同余", "concepts": "剩余类 / (a·b)mod m / 先取模再算", "task": "会做模加减乘，高效求大数余数。", "page": "modular.html" },
+            { "name": "模运算工程化", "concepts": "时钟模运算 / 快速幂 / 模指数", "task": "迁移到校验、散列与密码学模幂。", "page": "modular-extend.html" }
+        ],
+        chapter: "第1章 计数基础与数论基础",
+        section: "1.2.1 整除性和模运算 · 拓展层",
+        title: "模运算时钟与幂循环",
+        grounding: "本页（拓展层）主题：模运算的『周而复始』与幂的周期性。① 模运算时钟：从 0 走 k 步落在 k mod m，绕圈即取模；② 幂循环：g, g², g³ … mod m 必进入循环，且与 m 互素时会回到 1（出现周期）——这是欧拉定理 a^φ(m)≡1、快速幂、模指数与密码学的几何直觉与基础。",
+        steps: [
+            { name: "情境引入", desc: "时钟为什么是 12 进制循环？走很多步落在哪？" },
+            { name: "对象抽取", desc: "把『绕圈』抽象为对 m 取模，把『反复相乘』抽象为幂。" },
+            { name: "结构建模", desc: "k mod m 的几何 = 时钟落点；g^k mod m 的周期 = 幂循环。" },
+            { name: "推理求解", desc: "调整 m、步数、底数，观察落点与幂循环周期。" },
+            { name: "程序验证", desc: "用时钟与幂序列验证周期性与回到 1 的现象。" },
+            { name: "迁移反思", desc: "迁移到快速幂、模指数、欧拉定理与密码学。" }
+        ],
+        ideology: {
+        "title": "周而复始 · 守正循环",
+        "text": "模运算把无限的整数收束进有限的剩余类，正如周期与节律之于自然和社会——日月轮转、四季更替、制度循环往复又螺旋上升。在『取模』的约束中保持运算的严整与封闭，恰似在规矩之内行稳致远。",
+        "dims": [
+                "规则意识",
+                "辩证思维",
+                "严谨求实"
+        ],
+        "quote": "不以规矩，不能成方圆——模运算正是在『余数』的规矩里，保证了计算的可靠与可循环。"
+},
+        reflect: ["为什么 g^k mod m 一定会进入循环？（提示：剩余类有限）", "g 与 m 互素时幂会回到 1——这与欧拉定理有何关系？"],
+        transfer: ["快速幂把 7^100 mod 13 变得轻而易举；幂循环直通 1.2.4 欧拉/费马定理。"]
+    };
+    </script>
+    
+    <script data-dm-ideology-bridge="1">
+    (function () {
+        function esc(s) {
+            return String(s || '').replace(/[&<>"']/g, function (c) {
+                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+            });
+        }
+        function noteHtml() {
+            var ideology = (window.SECTION_META && window.SECTION_META.ideology) || {};
+            var title = ideology.title || '价值引领';
+            var text = ideology.text || '本层延续进阶层的价值主线，在操作中体会数学结构与价值判断的一致性。';
+            return '<span class="value-inline" data-ideology-inline="1"><strong>价值观察：</strong>本层沿用进阶层“'
+                + esc(title) + '”主线。' + esc(text) + '</span>';
+        }
+        function appendIdeologyNote() {
+            if (document.querySelector('[data-ideology-inline="1"]')) return;
+            var resultExtra = document.getElementById('resultExtra');
+            if (resultExtra) {
+                resultExtra.insertAdjacentHTML('beforeend', noteHtml());
+                return;
+            }
+            var anchor = document.querySelector('.result-panel, #eqOut, #note, .visualization-area');
+            if (!anchor) return;
+            if (anchor.id === 'eqOut' || anchor.id === 'note') anchor.insertAdjacentHTML('afterend', noteHtml());
+            else anchor.insertAdjacentHTML('beforeend', noteHtml());
+        }
+        function wrapSetResult() {
+            var original = window.setResult;
+            if (typeof original !== 'function' || original.__ideologyWrapped) return;
+            window.setResult = function () {
+                var ret = original.apply(this, arguments);
+                appendIdeologyNote();
+                return ret;
+            };
+            window.setResult.__ideologyWrapped = true;
+        }
+        function boot() {
+            wrapSetResult();
+            appendIdeologyNote();
+            ['input', 'change', 'click'].forEach(function (eventName) {
+                document.addEventListener(eventName, function () {
+                    setTimeout(appendIdeologyNote, 0);
+                }, true);
+            });
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+        else boot();
+    })();
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+
+</html>

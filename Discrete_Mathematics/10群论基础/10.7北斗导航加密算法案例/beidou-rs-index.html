@@ -1,204 +1,234 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>北斗导航Reed-Solomon纠错码</title>
-    <meta name="description" content="离散数学课程 - 北斗导航Reed-Solomon纠错码">
-
-    <link rel="stylesheet" href="beidou-rs-style.css">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
-        rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>北斗导航纠错码 · 进阶层 — 综合征纠错</title>
+  <meta name="description" content="10.7 北斗导航加密算法案例 进阶层：汉明码综合征纠错">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.control-group{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
+.control-group>label{display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:8px;}
+.dbtns{display:flex;gap:8px;flex-wrap:wrap;}
+.dbtn{width:46px;height:42px;border-radius:8px;border:1px solid var(--green);background:rgba(47,125,87,.1);color:var(--green);font:inherit;font-weight:800;font-family:"JetBrains Mono",monospace;font-size:1.1rem;cursor:pointer;transition:.15s;}
+.dbtn.one{background:var(--green);color:#fff;}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(139,0,0,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}.kg-step-head strong{color:var(--red);font-size:.95rem;}.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.86rem;}.kg-step span{display:block;font-size:.76rem;color:var(--muted);margin-top:3px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.84rem;color:#7a3216;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
+.result-card{border-radius:10px;border:2px solid var(--gold);background:linear-gradient(135deg,rgba(214,59,29,.1),rgba(197,138,31,.12));padding:14px;text-align:center;}
+.result-card .rt{font-weight:700;color:var(--red);font-size:13px;}
+.result-card .rv{font-family:"JetBrains Mono",monospace;font-weight:800;font-size:1.4rem;color:var(--red);margin:6px 0;}
+.result-card .rl{display:inline-block;padding:4px 16px;border-radius:999px;font-weight:700;font-size:.85rem;}
+.result-card .rl.ok{background:rgba(47,125,87,.16);color:var(--green);}.result-card .rl.bad{background:rgba(180,35,24,.14);color:var(--red);}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 14px;}
+.panel-card{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:16px;margin:10px 0;}
+.panel-card h3{margin:0 0 12px;color:var(--red);font-size:1rem;}
+.bits{display:flex;gap:9px;flex-wrap:wrap;justify-content:center;margin:8px 0 26px;}
+.bit{width:48px;height:56px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:"JetBrains Mono",monospace;font-weight:800;font-size:1.4rem;border:2px solid var(--line);background:rgba(255,255,255,.75);cursor:pointer;transition:.2s;position:relative;}
+.bit .lbl{position:absolute;bottom:-20px;font-size:.62rem;font-weight:700;color:var(--muted);white-space:nowrap;}
+.bit.data{border-color:var(--green);color:var(--green);}
+.bit.parity{border-color:var(--gold);color:#8a5d0b;background:rgba(197,138,31,.12);}
+.bit.err{border-color:var(--red);background:rgba(180,35,24,.16);color:var(--red);box-shadow:0 0 0 4px rgba(180,35,24,.12);}
+.bit.fixed{border-color:var(--green);background:rgba(47,125,87,.18);color:var(--green);box-shadow:0 0 0 4px rgba(47,125,87,.16);}
+.synd-box{display:flex;gap:18px;justify-content:center;align-items:center;flex-wrap:wrap;font-family:"JetBrains Mono",monospace;}
+.synd-cell{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.synd-cell .s{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2rem;border:2px solid var(--blue);color:var(--blue);background:rgba(47,95,159,.08);}
+.synd-cell .s.hot{background:var(--red);color:#fff;border-color:var(--red);}
+.synd-cell small{font-size:.66rem;color:var(--muted);}
+.synd-eq{font-size:.78rem;color:#5b4136;text-align:center;margin-top:10px;line-height:1.9;}
+.synd-eq b{color:var(--blue);}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:13px 15px;margin-top:12px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}.insight-box p{margin:0;font-size:13.5px;line-height:1.7;color:#4e362d;}
+.badges{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px;}.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
-
 <body>
-    <!-- 返回主页浮动按钮 (auto-injected) -->
-    <a href="../../index.html" title="返回课程主页" style="
-        position:fixed;top:14px;left:14px;z-index:9999;
-        display:flex;align-items:center;gap:6px;
-        background:rgba(30,30,40,0.82);color:#fff;
-        padding:7px 14px 7px 10px;border-radius:20px;
-        font-size:13px;font-family:'Noto Serif SC',serif;
-        text-decoration:none;backdrop-filter:blur(8px);
-        border:1px solid rgba(255,255,255,0.15);
-        box-shadow:0 2px 12px rgba(0,0,0,0.35);
-        transition:background .2s;
-    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
-       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
-        🏠 <span>课程主页</span>
-    </a>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">进阶层</span></h1>
+        <p class="subtitle">北斗纠错码 · 综合征纠错</p>
+      </div>
+      <p class="intro">汉明码 (7,4)：编码是群同态，综合征 s 把收码分到不同陪集，陪集首给出错误位置并纠正。</p>
 
-    <div class="app-container">
-        <!-- 头部 -->
-        <header class="app-header">
-            <div class="header-content">
-                <h1>🛰️ 北斗导航 Reed-Solomon 纠错码系统</h1>
-                <p class="header-subtitle">BeiDou Navigation - Error Correction Technology</p>
-            </div>
-        </header>
+      <div class="value-panel">
+        <h3>北斗组网 · 自主可控</h3>
+        <p>综合征相同的收码属于同一陪集；陪集首译码精准定位并纠正错误。把关键核心技术握在自己手中，是国之重器的底气。</p>
+        <div class="dim-list"><span>自立自强</span><span>总体国家安全观</span><span>科学精神</span></div>
+      </div>
 
-        <!-- 主要内容区 -->
-        <div class="main-content">
-            <!-- 左侧控制面板 -->
-            <aside class="control-panel">
-                <div class="panel-section">
-                    <h3>📊 系统参数</h3>
-                    <div class="param-row">
-                        <label>消息长度:</label>
-                        <select id="messageLengthSelect">
-                            <option value="4">4字节</option>
-                            <option value="6" selected>6字节</option>
-                            <option value="8">8字节</option>
-                        </select>
-                    </div>
-                    <div class="param-row">
-                        <label>纠错能力:</label>
-                        <select id="errorCapacitySelect">
-                            <option value="2">2错误</option>
-                            <option value="3" selected>3错误</option>
-                            <option value="4">4错误</option>
-                        </select>
-                    </div>
-                    <div class="param-info">
-                        <div>码字长度: <strong id="codewordLengthDisplay">12</strong> 字节</div>
-                        <div>校验位: <strong id="parityLengthDisplay">6</strong> 字节</div>
-                    </div>
-                </div>
+      <div class="control-group">
+        <label>数据位 d₁ d₂ d₃ d₄（点击切换 0/1）</label>
+        <div class="dbtns" id="dbtns"></div>
+      </div>
 
-                <div class="panel-section highlight-section">
-                    <h3>📝 步骤1: 输入消息</h3>
-                    <input type="text" id="messageInput" class="message-input" placeholder="输入消息 (例如: BEIDOU)"
-                        maxlength="8">
-                    <div class="message-bytes" id="messageBytesDisplay">等待输入...</div>
-                    <button id="encodeBtn" class="btn btn-primary btn-large" aria-label="编码消息">🔐 编码消息</button>
-                </div>
-
-                <div class="panel-section">
-                    <h3>💥 步骤2: 注入错误</h3>
-                    <div class="error-control">
-                        <label>错误数量: <span id="errorCountDisplay">2</span></label>
-                        <input type="range" id="errorCountSlider" min="0" max="3" value="2">
-                    </div>
-                    <button id="injectErrorBtn" class="btn btn-danger" aria-label="注入错误">💥 注入错误</button>
-                </div>
-
-                <div class="panel-section">
-                    <h3>🔧 步骤3: 解码纠错</h3>
-                    <button id="decodeBtn" class="btn btn-success" disabled aria-label="解码并纠错">🛠️ 解码并纠错</button>
-                </div>
-
-                <div class="panel-section stats-section">
-                    <h3>📈 统计信息</h3>
-                    <div class="stat-grid">
-                        <div class="stat-item">
-                            <span>编码次数</span>
-                            <strong id="encodeCountDisplay">0</strong>
-                        </div>
-                        <div class="stat-item success">
-                            <span>纠错成功</span>
-                            <strong id="successCountDisplay">0</strong>
-                        </div>
-                        <div class="stat-item">
-                            <span>纠错失败</span>
-                            <strong id="failCountDisplay">0</strong>
-                        </div>
-                        <div class="stat-item">
-                            <span>成功率</span>
-                            <strong id="successRateDisplay">--%</strong>
-                        </div>
-                    </div>
-                </div>
-
-                <button id="resetBtn" class="btn btn-reset" aria-label="重置系统">🔄 重置系统</button>
-            </aside>
-
-            <!-- 右侧可视化区域 -->
-            <main class="visualization-area">
-                <!-- 卫星场景 -->
-                <div class="satellite-container">
-                    <svg id="satelliteSvg" width="100%" height="200">
-                        <defs>
-                            <linearGradient id="spaceGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" style="stop-color:#001a33" />
-                                <stop offset="100%" style="stop-color:#003366" />
-                            </linearGradient>
-                            <filter id="glow">
-                                <feGaussianBlur stdDeviation="2" />
-                            </filter>
-                        </defs>
-                        <rect width="100%" height="100%" fill="url(#spaceGradient)" />
-                        <g id="satelliteGroup"></g>
-                        <g id="transmissionGroup"></g>
-                    </svg>
-                </div>
-
-                <!-- 数据流展示 -->
-                <div class="data-flow">
-                    <div class="data-stage">
-                        <h4>1️⃣ 原始消息</h4>
-                        <div class="byte-container" id="originalMessageDisplay">
-                            <div class="empty-hint">等待输入消息...</div>
-                        </div>
-                    </div>
-                    <div class="data-stage">
-                        <h4>2️⃣ 编码后码字</h4>
-                        <div class="byte-container" id="encodedCodewordDisplay">
-                            <div class="empty-hint">等待编码...</div>
-                        </div>
-                    </div>
-                    <div class="data-stage">
-                        <h4>3️⃣ 传输（含错误）</h4>
-                        <div class="byte-container" id="receivedDataDisplay">
-                            <div class="empty-hint">等待传输...</div>
-                        </div>
-                    </div>
-                    <div class="data-stage">
-                        <h4>4️⃣ 解码恢复</h4>
-                        <div class="byte-container" id="decodedMessageDisplay">
-                            <div class="empty-hint">等待解码...</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 处理过程 -->
-                <div class="process-log" id="processBox" style="display: none;">
-                    <h4 id="processTitle">处理过程</h4>
-                    <div id="stepList" class="process-steps"></div>
-                </div>
-
-                <!-- 思政内容 -->
-                <div class="ideology-box">
-                    <h4>💡 科技自强 · 自主创新</h4>
-                    <p>北斗卫星导航系统是中国自主研发的全球导航系统，打破了对GPS的依赖。Reed-Solomon纠错码技术确保了卫星通信的可靠性，即使在信号衰减、干扰的环境下，也能准确传输数据。这体现了中国在高科技领域的自主创新能力和科技自强精神。
-                    </p>
-                </div>
-            </main>
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步纠错互动</strong><span>点一步，看反馈、公式项和码字位同步高亮</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-guide="encode"><b>1 编码（群同态）</b><span>4 数据 → 7 位码字（+3 校验）</span></button>
+          <button class="kg-step" type="button" data-guide="inject"><b>2 注入 1 位错误</b><span>信道翻转一位</span></button>
+          <button class="kg-step" type="button" data-guide="decode"><b>3 综合征定位纠错</b><span>s = H·rᵀ → 陪集首</span></button>
         </div>
-    </div>
-    <script src="beidou-rs-script.js"></script>
+        <div class="kg-feedback" id="kgFeedback">编码：用校验矩阵 H 计算 3 个校验位，4 位数据映射为 7 位汉明码字。</div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-token="G">编码=群同态</span>
+          <span class="kg-token" data-token="s">s = H·rᵀ</span>
+          <span class="kg-token" data-token="coset">陪集首译码</span>
+        </div>
+      </div>
 
-<!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
-</footer>
+      <div class="result-card">
+        <div class="rt" id="rTitle">综合征定位</div>
+        <div class="rv" id="rVal">s = 000</div>
+        <div class="rl ok" id="rLabel">无错</div>
+      </div>
+    </aside>
 
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>设数据 → 编码为 7 位汉明码字 → 注入 1 位错误 → 用综合征精确定位并纠正。</span>
+        <div class="visual-badge">汉明码 + 综合征</div>
+      </section>
+      <h2 class="pane-title">汉明码 (7,4) 综合征纠错</h2>
+      <p class="pane-sub">位置 1·2·4 为校验位（金），3·5·6·7 为数据位（绿）。综合征 s = 校验失败位置的二进制 = 错误位号。</p>
+      <div class="panel-card">
+        <h3>码字（7 位）</h3>
+        <div class="bits" id="bits"></div>
+      </div>
+      <div class="panel-card">
+        <h3>综合征 s = H · rᵀ（错误位置的二进制）</h3>
+        <div class="synd-box" id="syndBox"></div>
+        <div class="synd-eq" id="syndEq"></div>
+      </div>
+      <div class="insight-box">
+        <div class="insight-title">🛰️ 综合征=陪集，陪集首=错误图样</div>
+        <p>编码把 4 位数据同态地映入 7 位码字群。收码减去最近码字落在某个陪集，综合征 s 正是该陪集的标签；陪集首（最小错误图样）给出错误位置。这套群论译码，让北斗在噪声信道上也能精准纠错。</p>
+        <div class="badges"><span class="badge">自立自强</span><span class="badge">科学精神</span><span class="badge">自主可控</span></div>
+      </div>
+    </main>
+  </div>
 
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
+
+  <script>
+    window.SECTION_META = {
+      "layers": [
+        {"name": "线性码=群", "concepts": "码字群 / 向量空间", "task": "把纠错码建模为群结构。", "page": "beidou-rs-index-basic.html"},
+        {"name": "综合征纠错", "concepts": "同态编码 / 陪集首译码", "task": "算综合征、定位并纠正错误。", "page": "beidou-rs-index.html"},
+        {"name": "二维码与深空通信", "concepts": "RS 码 / 突发纠错 / 汉明界", "task": "迁移到二维码、存储与深空纠错。", "page": "beidou-rs-index-extend.html"}
+      ],
+      "chapter": "第10章 群论基础", "section": "10.7 北斗导航加密算法案例 · 进阶层", "title": "群论应用 · 北斗 Reed-Solomon 纠错码",
+      "grounding": "本节主题：用群/有限域刻画纠错码。本页（进阶层）用汉明码 (7,4) 演示综合征纠错：编码是群同态，综合征 s=H·rᵀ 把收码分到陪集，陪集首给出错误位置并纠正 1 个错误。",
+      "steps": [
+        {"name": "情境引入", "desc": "北斗短报文在噪声信道上如何既发现错误又自动纠正？"},
+        {"name": "对象抽取", "desc": "把码字抽象为群/向量空间元素，错误抽象为陪集偏移。"},
+        {"name": "结构建模", "desc": "用群同态编码、综合征与陪集首译码建模纠错。"},
+        {"name": "推理求解", "desc": "计算综合征 s=H·rᵀ，定位并纠正 1 个错误。"},
+        {"name": "程序验证", "desc": "用本页交互编码/注错/纠错，验证综合征译码。"},
+        {"name": "迁移反思", "desc": "迁移到 RS 纠多错、二维码、深空通信（拓展层）。"}
+      ],
+      "ideology": {"title": "北斗组网 · 自主可控", "text": "北斗卫星导航系统是我国自主建设、独立运行的国之重器。RS 纠错码保障其通信可靠，背后是群论与有限域的深厚根基。把核心算法掌握在自己手中，正是关键核心技术自主可控、建设航天强国与网络强国的生动实践。", "dims": ["自立自强", "总体国家安全观", "科学精神"], "quote": "中国的北斗、世界的北斗——可靠纠错的背后，是把关键核心技术牢牢握在自己手中的底气。"},
+      "reflect": ["为什么纠错码要建立在群/有限域结构上？群结构带来什么便利（如陪集译码）？", "综合征相同的收码属于同一个陪集——这与10.5陪集如何呼应？", "汉明码 (7,4) 为何只能纠 1 个错误？"],
+      "transfer": ["二维码、CD/DVD、深空探测、RAID 都用纠错码；RS 码纠多错与突发错（拓展层）。", {"t": "纠错与冗余权衡", "d": "纠错能力越强冗余越多，如何权衡码率与可靠性（汉明界）？"}]
+    };
+  </script>
+
+  <script>
+    var $=function(id){return document.getElementById(id);};
+    // position 1..7 -> array idx 0..6 ; parity at pos 1,2,4 (idx 0,1,3); data at pos 3,5,6,7 (idx 2,4,5,6)
+    var data=[1,0,1,1],guide='encode',errPos=-1; // d1..d4
+    function encode(){
+      var d1=data[0],d2=data[1],d3=data[2],d4=data[3];
+      var p1=d1^d2^d4,p2=d1^d3^d4,p3=d2^d3^d4;
+      return [p1,p2,d1,p3,d2,d3,d4]; // idx0..6 = pos1..7
+    }
+    function received(){var c=encode();if(errPos>=0&&guide!=='encode')c[errPos]^=1;return c;}
+    function syndrome(r){
+      var s1=r[0]^r[2]^r[4]^r[6]; // pos 1,3,5,7
+      var s2=r[1]^r[2]^r[5]^r[6]; // pos 2,3,6,7
+      var s3=r[3]^r[4]^r[5]^r[6]; // pos 4,5,6,7
+      return {s1:s1,s2:s2,s3:s3,posn:s1+s2*2+s3*4};
+    }
+    function render(){
+      var c=encode(),r=received(),syn=syndrome(r);
+      var ptype=['parity','parity','data','parity','data','data','data'];
+      var labels=['p₁(1)','p₂(2)','d₁(3)','p₃(4)','d₂(5)','d₃(6)','d₄(7)'];
+      var fixedIdx=(guide==='decode'&&syn.posn>=1&&syn.posn<=7)?(syn.posn-1):-1;
+      var html='';
+      r.forEach(function(b,i){
+        var cls='bit '+ptype[i];
+        if(errPos===i&&guide==='inject')cls+=' err';
+        else if(guide==='decode'&&i===fixedIdx)cls+=' fixed';
+        else if(guide==='decode'&&errPos===i)cls+=' fixed';
+        html+='<div class="'+cls+'">'+(guide==='decode'&&i===fixedIdx?c[i]:b)+'<span class="lbl">'+labels[i]+'</span></div>';
+      });
+      $('bits').innerHTML=html;
+      // syndrome cells
+      var hot=(guide==='decode');
+      $('syndBox').innerHTML=
+        '<div class="synd-cell"><div class="s'+(hot&&syn.s3?' hot':'')+'">'+syn.s3+'</div><small>s₃</small></div>'+
+        '<div class="synd-cell"><div class="s'+(hot&&syn.s2?' hot':'')+'">'+syn.s2+'</div><small>s₂</small></div>'+
+        '<div class="synd-cell"><div class="s'+(hot&&syn.s1?' hot':'')+'">'+syn.s1+'</div><small>s₁</small></div>'+
+        '<div style="font-size:1.2rem;color:var(--muted)">=</div>'+
+        '<div class="synd-cell"><div class="s'+(hot&&syn.posn?' hot':'')+'" style="width:auto;padding:0 12px">'+syn.posn+'</div><small>错误位号</small></div>';
+      $('syndEq').innerHTML='s₁=r₁⊕r₃⊕r₅⊕r₇　s₂=r₂⊕r₃⊕r₆⊕r₇　s₃=r₄⊕r₅⊕r₆⊕r₇<br>综合征 (s₃s₂s₁)₂ = <b>'+syn.posn+'</b>'+(syn.posn?'（第 '+syn.posn+' 位出错）':'（无错）');
+      // result card
+      if(guide==='encode'){$('rTitle').textContent='编码完成';$('rVal').textContent='码字 '+c.join('');$('rLabel').className='rl ok';$('rLabel').textContent='s = 000（合法码字）';}
+      else if(guide==='inject'){$('rTitle').textContent='已注入错误';$('rVal').textContent='第 '+(errPos+1)+' 位翻转';$('rLabel').className='rl bad';$('rLabel').textContent='等待纠错';}
+      else{var ok=(syn.posn===errPos+1)||(errPos<0&&syn.posn===0);$('rTitle').textContent='综合征定位';$('rVal').textContent='s = '+syn.s1+''+syn.s2+''+syn.s3+' → 第'+syn.posn+'位';$('rLabel').className='rl ok';$('rLabel').textContent=syn.posn?'✓ 已定位并纠正第 '+syn.posn+' 位':'无错';}
+      // data buttons
+      $('dbtns').innerHTML=data.map(function(b,i){return '<button class="dbtn'+(b?' one':'')+'" data-d="'+i+'">'+b+'</button>';}).join('');
+      $('dbtns').querySelectorAll('.dbtn').forEach(function(el){el.onclick=function(){data[+el.dataset.d]^=1;errPos=-1;if(guide!=='encode'){guide='encode';syncGuide();}render();};});
+    }
+    function syncGuide(){
+      document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.guide===guide);});
+      document.querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',(guide==='encode'&&t.dataset.token==='G')||(guide==='decode'&&(t.dataset.token==='s'||t.dataset.token==='coset')));});
+    }
+    function setGuide(g){
+      guide=g;syncGuide();
+      if(g==='encode'){errPos=-1;$('kgFeedback').innerHTML='编码：4 位数据经<b>群同态</b>映入 7 位汉明码字，校验位 p₁=d₁⊕d₂⊕d₄ 等，使合法码字综合征恒为 0。';}
+      else if(g==='inject'){errPos=Math.floor(Math.random()*7);$('kgFeedback').innerHTML='注入错误：信道翻转第 <b>'+(errPos+1)+'</b> 位（红色高亮）。收码偏离码字群，落入某个<b>陪集</b>。';}
+      else{if(errPos<0)errPos=Math.floor(Math.random()*7);$('kgFeedback').innerHTML='译码：综合征 <b>s = H·rᵀ</b> 是陪集标签，其二进制值正是<b>错误位号</b>。据此翻回该位即纠正（绿色高亮）。';}
+      render();
+    }
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setGuide(b.dataset.guide);};});
+    setGuide('encode');
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
 </body>
-
 </html>

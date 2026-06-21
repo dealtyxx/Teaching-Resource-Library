@@ -1,5 +1,5 @@
 /**
- * 计数原理可视化 - 思政教育版
+ * 计数原理可视化 - 价值引领版
  */
 
 // DOM 元素
@@ -144,6 +144,9 @@ function init() {
     updateParameterControls();
     attachEventListeners();
     calculate();
+    setTimeout(() => {
+        if (!vizArea.children.length) visualize();
+    }, 120);
 }
 
 // 更新原理说明

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>环同态加密 · 拓展层 — 全同态与隐私计算</title>
+  <meta name="description" content="11.9 环同态加密 拓展层：全同态加密、噪声累积与隐私计算">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1500px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.tab-nav{display:flex;flex-direction:column;gap:6px;}
+.tab-btn{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);color:#5b4136;cursor:pointer;font:inherit;font-weight:700;font-size:14px;transition:all .2s;text-align:left;}
+.tab-btn:hover{background:rgba(180,35,24,.08);color:var(--red);}
+.tab-btn.active{background:var(--red);color:#fff;border-color:var(--red);box-shadow:0 6px 16px rgba(180,35,24,.25);}
+.tab-btn .ico{font-size:18px;}
+.sidebar-dyn{display:grid;gap:10px;}
+.ctrl-box{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
+.ctrl-box>label{display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:8px;}
+.selrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:13px;color:#4e362d;font-weight:700;}
+.selrow input[type=range]{width:120px;}
+.cwbtns{display:flex;flex-wrap:wrap;gap:6px;}
+.cwbtn{padding:7px 11px;border-radius:8px;border:1.5px solid var(--line);background:rgba(255,255,255,.7);cursor:pointer;font:inherit;font-weight:700;font-size:.82rem;color:#5b4136;transition:.15s;}
+.cwbtn.add{border-color:var(--green);}.cwbtn.mul{border-color:var(--red);}.cwbtn.boot{border-color:var(--blue);background:rgba(47,95,159,.1);}
+.kg-feedback{padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.83rem;color:#7a3216;line-height:1.75;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.72rem;color:#a05a5a;font-weight:700;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;}
+.qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.86rem;color:#5b4136;line-height:1.85;}
+.qres b{color:var(--red);}.qres .formula{font-family:"JetBrains Mono",monospace;font-weight:800;color:var(--red);}
+.qres .ok{color:var(--green);font-weight:800;}.qres .bad{color:var(--red);font-weight:800;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.tab-content{display:none;flex-direction:column;flex:1;}.tab-content.active{display:flex;animation:fade .3s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 8px;}
+.svgbox{flex:1;min-height:330px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(255,250,239,.7));padding:6px;display:flex;align-items:center;}
+.viz{width:100%;height:auto;display:block;}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:13px 15px;margin-top:12px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}.insight-box p{margin:0;font-size:13.5px;line-height:1.7;color:#4e362d;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">拓展层</span></h1>
+        <p class="subtitle">环同态加密 · 全同态与隐私计算</p>
+      </div>
+      <p class="intro">从部分同态走向全同态：密文相乘=明文相加（Paillier 思想）、全同态的噪声累积难题，以及『数据可用不可见』的隐私计算应用。</p>
+
+      <div class="value-panel">
+        <h3>数据安全 · 人民立场</h3>
+        <p>同态加密让数据在云端『可用不可见』——既让数据服务公共价值，又不暴露任何个人原文。</p>
+        <div class="dim-list"><span>数据安全</span><span>人民立场</span><span>科技向善</span></div>
+      </div>
+
+      <nav class="tab-nav" id="tabNav">
+        <button class="tab-btn active" data-tab="tab1"><span class="ico">✖️</span><span>加法同态（Paillier）</span></button>
+        <button class="tab-btn" data-tab="tab2"><span class="ico">📈</span><span>全同态 · 噪声累积</span></button>
+        <button class="tab-btn" data-tab="tab3"><span class="ico">🤝</span><span>隐私计算 · 联邦求和</span></button>
+      </nav>
+
+      <div class="sidebar-dyn" id="sidebarDyn"></div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>体验密文相乘=明文相加、观察全同态的噪声增长、在云端对加密数据求和而不泄露原文。</span>
+        <div class="visual-badge">FHE · 隐私计算</div>
+      </section>
+
+      <!-- Tab1 -->
+      <div class="tab-content active" id="tab1">
+        <h2 class="pane-title">加法同态 · 密文相乘 = 明文相加</h2>
+        <p class="pane-sub">取 E(a)=gᵃ mod p（g=5, p=23）。密文相乘 E(a)·E(b)=g^(a+b)=E(a+b)，解密得 a+b。环 Z₂₃ 上标出密文位置。</p>
+        <div class="svgbox"><svg class="viz" id="viz1" viewBox="0 0 720 400" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <div class="insight-box">
+          <div class="insight-title">✖️ 乘在密文，加在明文</div>
+          <p>取指数映射 E(a)=gᵃ mod p，则 E(a)·E(b)=g^(a+b)=E(a+b)：<b>密文相乘对应明文相加</b>（Paillier、ElGamal 同此思想）。云端只需把密文相乘，就完成了对明文的求和，<b>全程不解密、不见原文</b>。这是『加法同态』最实用的形态。</p>
+        </div>
+      </div>
+
+      <!-- Tab2 -->
+      <div class="tab-content" id="tab2">
+        <h2 class="pane-title">全同态 FHE · 噪声累积</h2>
+        <p class="pane-sub">全同态密文携带『噪声』：加法使噪声相加、乘法使噪声相乘（增长快）。噪声超阈值则解密失败，需 bootstrapping 刷新。</p>
+        <div class="svgbox" style="min-height:300px"><svg class="viz" id="viz2" viewBox="0 0 720 360" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <div class="insight-box">
+          <div class="insight-title">📈 噪声：全同态的命门</div>
+          <p>Gentry 2009 首个全同态方案同时支持加与乘，但每次运算都<b>放大噪声</b>——乘法尤甚。噪声超过阈值，密文便无法正确解密。<b>Bootstrapping</b>（自举：用同态运算给密文『重新加密』以压低噪声）是实现任意深度计算的关键，也是 FHE 实用化的主要开销。</p>
+        </div>
+      </div>
+
+      <!-- Tab3 -->
+      <div class="tab-content" id="tab3">
+        <h2 class="pane-title">隐私计算 · 云端联邦求和</h2>
+        <p class="pane-sub">多方各自加密本地数据上传云端；云端把密文相乘得到『总和的密文』返回；只有持密钥者能解密总和。云端全程不见原文。</p>
+        <div class="svgbox" style="min-height:320px"><svg class="viz" id="viz3" viewBox="0 0 720 380" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <div class="insight-box">
+          <div class="insight-title">🤝 数据可用不可见 · 隐私为民</div>
+          <p>各方上传的是密文（云端看来是随机数），云端用同态运算算出<b>加密的总和/均值</b>再返回，解密后得到正确结果，而<b>任何单个数据的原文从未暴露</b>。这正是联邦学习、安全多方计算、医疗与金融数据协作的基石——让数据服务公共价值，同时守护个人隐私。</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
+
+  <script>
+    window.SECTION_META = {
+      "chapter": "第11章 环、域、格和布尔代数", "section": "11.9 环同态加密系统案例 · 拓展层", "title": "全同态与隐私计算",
+      "grounding": "本页（拓展层）主题：从部分同态走向全同态。用指数映射 E(a)=gᵃ mod p 演示『密文相乘=明文相加』（Paillier 思想）；用噪声模型说明全同态加密(FHE)同时支持加与乘但每次运算放大噪声、超阈值需 bootstrapping；并以云端联邦求和展示『数据可用不可见』的隐私计算应用。",
+      "steps": [
+        {"name": "情境引入", "desc": "如何让云端对加密数据完成求和/统计而不泄露原文？"},
+        {"name": "对象抽取", "desc": "把多方数据抽象为密文，把统计抽象为同态运算。"},
+        {"name": "结构建模", "desc": "密文相乘=明文相加；FHE 密文=明文+噪声。"},
+        {"name": "推理求解", "desc": "同态求和、分析噪声增长、判断可解密性。"},
+        {"name": "程序验证", "desc": "做密文相乘、累积噪声、云端联邦求和并解密。"},
+        {"name": "迁移反思", "desc": "迁移到联邦学习、安全多方计算、可信外包。"}
+      ],
+      "ideology": {"title": "数据安全 · 隐私为民", "text": "同态加密让数据可用不可见，在保护个人隐私的前提下释放数据价值，是发展与安全统筹兼顾、以人民为中心保护数据权益的前沿实践。其要义在于让数据服务公共价值的同时，不暴露任何个人原文。掌握这类核心密码技术，对维护数据主权、建设可信数字社会意义重大。", "dims": ["数据安全", "人民立场", "科技向善"], "quote": "让数据可用不可见——同态加密以保持运算之巧，守护隐私、释放价值。"},
+      "reflect": ["为什么指数映射能让『密文相乘』对应『明文相加』？", "全同态加密的噪声累积为何主要由乘法放大？bootstrapping 如何破解？", "云端联邦求和为何能既得到统计结果又不暴露个人数据？"],
+      "transfer": ["联邦学习的安全聚合、安全多方计算、医疗/金融隐私数据协作、可信外包计算。"],
+      "layers": [
+        {"name": "同态加密思想", "concepts": "加密=保运算的环同态", "task": "理解同态加密的核心思想。", "page": "homomorphic_encryption-basic.html"},
+        {"name": "加同态·乘同态", "concepts": "密文计算=明文计算", "task": "验证密文运算解密后等于明文运算。", "page": "homomorphic_encryption.html"},
+        {"name": "全同态与隐私计算", "concepts": "FHE / 噪声累积 / 联邦学习", "task": "迁移到隐私计算与安全外包。", "page": "homomorphic_encryption-extend.html"}
+      ]
+    };
+  </script>
+
+  <script>
+  (function(){
+    "use strict";
+    var $=function(id){return document.getElementById(id);};
+    function modpow(b,e,m){var r=1;b%=m;while(e>0){if(e&1)r=(r*b)%m;b=(b*b)%m;e>>=1;}return r;}
+    var P=23,G=5;
+    function E(a){return modpow(G,a,P);}
+    function dlog(y){for(var x=0;x<P-1;x++)if(modpow(G,x,P)===y)return x;return -1;}
+    function txt(x,y,t,color,size,w){return '<text x="'+x+'" y="'+y+'" text-anchor="middle" font-family="Noto Serif SC,serif" font-size="'+(size||13)+'" font-weight="'+(w||'700')+'" fill="'+(color||'#4e362d')+'">'+t+'</text>';}
+    function fbox(x,y,w,h,label,val,color){var s='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="9" fill="rgba(255,255,255,.95)" stroke="'+color+'" stroke-width="2.4"/>';s+='<text x="'+(x+w/2)+'" y="'+(y+20)+'" text-anchor="middle" font-family="Noto Serif SC,serif" font-size="12" font-weight="700" fill="'+color+'">'+label+'</text>';s+='<text x="'+(x+w/2)+'" y="'+(y+h-14)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="18" font-weight="800" fill="'+color+'">'+val+'</text>';return s;}
+
+    // ===== Tab1: additive homomorphism via exponent =====
+    var a1=4,b1=3;
+    function ringP(cx,cy,r){var arr=[];for(var i=0;i<P;i++){var ang=(-90+i*360/P)*Math.PI/180;arr.push({x:cx+r*Math.cos(ang),y:cy+r*Math.sin(ang)});}return arr;}
+    function renderTab1(){
+      var ea=E(a1),eb=E(b1),prod=(ea*eb)%P,eab=E((a1+b1));
+      var cx=235,cy=200,r=140,Pp=ringP(cx,cy,r),svg='';
+      svg+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(116,55,31,.18)" stroke-width="2"/>';
+      svg+=txt(cx,cy-r-14,'密文环 Z₂₃（密文 = 5ˣ mod 23）','#8b0000',13,'800');
+      var marks={};marks[ea]={c:'#d63b1d',l:'E(a)'};marks[eb]={c:'#c58a1f',l:'E(b)'};marks[prod]={c:'#2f7d57',l:'积'};
+      Pp.forEach(function(p,i){var mk=marks[i];var col=mk?mk.c:'rgba(116,90,60,.3)';var rr=mk?13:7;
+        svg+='<circle cx="'+p.x+'" cy="'+p.y+'" r="'+rr+'" fill="'+(mk?mk.c:'rgba(255,255,255,.85)')+'" stroke="'+col+'" stroke-width="'+(mk?2.4:1)+'"/>';
+        if(mk||i%2===0)svg+='<text x="'+p.x+'" y="'+(p.y+3.5)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" font-weight="800" fill="'+(mk?'#fff':'#a08b80')+'">'+i+'</text>';});
+      // flow boxes on right
+      svg+=fbox(470,70,200,56,'E(a)·E(b) mod 23',ea+'·'+eb+' = '+prod,'#2f7d57');
+      svg+=fbox(470,160,200,56,'= E(a+b) = 5^'+(a1+b1),''+eab,'#d63b1d');
+      svg+=txt(570,250,(prod===eab?'✓ 密文相乘 = 明文相加':'✗'),prod===eab?'#2f7d57':'#b42318',14,'800');
+      svg+=fbox(470,275,200,56,'解密 dlog → a+b',dlog(prod)+'  (= '+a1+'+'+b1+')','#2f5f9f');
+      $('viz1').innerHTML=svg;
+      $('t1res').innerHTML='<span class="formula">E('+a1+')·E('+b1+') = '+ea+'·'+eb+' mod 23 = '+prod+'</span><br>= E('+a1+'+'+b1+') = '+eab+' '+(prod===eab?'<span class="ok">✓</span>':'')+'，解密得 <b>'+dlog(prod)+'</b> = a+b。<b>密文相乘 → 明文相加</b>，云端无需解密即可求和。';
+    }
+
+    // ===== Tab2: noise =====
+    var noise=2,THRESH=32,ops=[];
+    function renderTab2(){
+      var svg='',x0=70,baseY=270,bw=46,gap=12;
+      svg+=txt(360,34,'噪声随运算增长（阈值 = '+THRESH+'）','#d63b1d',16,'800');
+      // threshold line
+      var thY=baseY-Math.min(THRESH,40)*5;
+      svg+='<line x1="50" y1="'+thY+'" x2="670" y2="'+thY+'" stroke="#b42318" stroke-width="2" stroke-dasharray="7,5"/>';
+      svg+=txt(625,thY-8,'阈值 '+THRESH,'#b42318',12,'800');
+      var hist=[2].concat(ops.map(function(o){return o.noise;}));
+      hist.forEach(function(nv,i){var h=Math.min(nv,42)*5,x=x0+i*(bw+gap),y=baseY-h;var over=nv>THRESH;
+        svg+='<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+h+'" rx="5" fill="'+(over?'rgba(214,59,29,.8)':'rgba(47,125,87,.6)')+'" stroke="'+(over?'#8b0000':'#2f7d57')+'" stroke-width="1.6"/>';
+        svg+=txt(x+bw/2,y-7,''+nv,over?'#b42318':'#2f7d57',12,'800');
+        var lab=i===0?'初始':ops[i-1].op;
+        svg+=txt(x+bw/2,baseY+18,lab,i===0?'#6c5a52':(ops[i-1].op.indexOf('×')>=0?'#b42318':'#2f7d57'),12,'800');});
+      var cur=hist[hist.length-1];
+      svg+=txt(360,baseY+48,cur>THRESH?'噪声超阈值 → 解密失败，需 bootstrapping 刷新':'当前噪声 '+cur+' ≤ 阈值，可正确解密',cur>THRESH?'#b42318':'#2f7d57',14,'800');
+      $('viz2').innerHTML=svg;
+      $('t2res').innerHTML='<span class="formula">当前噪声 = '+cur+' / '+THRESH+'</span><br>'+(cur>THRESH?'<span class="bad">已超阈值：解密会失败</span>，需 bootstrapping 把噪声压回低位。':'<span class="ok">仍可正确解密</span>。')+'乘法（×2）比加法（+2）放大噪声更快。';
+    }
+
+    // ===== Tab3: federated sum =====
+    var vals=[3,5,2,4];
+    function renderTab3(){
+      var ciph=vals.map(function(v){return E(v);});
+      var prod=ciph.reduce(function(a,c){return (a*c)%P;},1);
+      var sum=vals.reduce(function(a,v){return a+v;},0);
+      var dec=dlog(prod);
+      var svg='',n=vals.length,bw=120,gap=24,x0=(720-(n*bw+(n-1)*gap))/2;
+      svg+=txt(360,30,'各方本地加密上传（云端只见密文）','#8b0000',14,'800');
+      vals.forEach(function(v,i){var x=x0+i*(bw+gap);
+        svg+=fbox(x,55,bw,58,'第'+(i+1)+'方 明文='+v,'E='+ciph[i],'#2f5f9f');
+        svg+='<line x1="'+(x+bw/2)+'" y1="113" x2="360" y2="175" stroke="rgba(116,55,31,.3)" stroke-width="1.6"/>';});
+      svg+='<rect x="210" y="178" width="300" height="58" rx="10" fill="rgba(214,59,29,.08)" stroke="#b42318" stroke-width="2.4"/>';
+      svg+=txt(360,200,'☁ 云端同态求和：∏ E(vᵢ) mod 23','#b42318',13,'800');
+      svg+=txt(360,224,'= '+prod+'  （云端不解密、不见明文）','#b42318',13,'800');
+      svg+='<line x1="360" y1="236" x2="360" y2="282" stroke="rgba(116,55,31,.3)" stroke-width="1.6"/>';
+      svg+=fbox(250,285,220,62,'🔑 持钥方解密 dlog → 总和','Σ = '+dec+'  均值 '+(dec/n).toFixed(2),'#2f7d57');
+      svg+=txt(360,366,(dec===sum?'✓ 解密总和 '+dec+' = 真实总和 '+sum+'（个人原文从未暴露）':'✗'),dec===sum?'#2f7d57':'#b42318',13.5,'800');
+      $('viz3').innerHTML=svg;
+      $('t3res').innerHTML='<span class="formula">∏ E(vᵢ) = E(Σvᵢ)</span><br>云端把 '+n+' 个密文相乘得加密总和 '+prod+'，解密得 <b class="ok">Σ='+dec+'</b>（均值 '+(dec/n).toFixed(2)+'）。<b>云端全程不见任何个人原文</b>——数据可用不可见。';
+    }
+
+    // ===== tabs =====
+    $('tabNav').querySelectorAll('.tab-btn').forEach(function(b){b.addEventListener('click',function(){switchTab(b.dataset.tab);});});
+    function switchTab(id){$('tabNav').querySelectorAll('.tab-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tab===id);});document.querySelectorAll('.tab-content').forEach(function(c){c.classList.toggle('active',c.id===id);});updateSidebar(id);}
+    function updateSidebar(id){
+      var sd=$('sidebarDyn');
+      if(id==='tab1'){
+        sd.innerHTML='<div class="ctrl-box"><label>明文 a、b（密文相乘=明文相加）</label><div class="selrow">a = <b id="av" style="color:#d63b1d">'+a1+'</b><input type="range" min="0" max="8" value="'+a1+'" id="ra"></div><div class="selrow" style="margin-top:8px">b = <b id="bv" style="color:#c58a1f">'+b1+'</b><input type="range" min="0" max="8" value="'+b1+'" id="rb"></div></div>'+
+          '<div class="kg-feedback">E(a)=gᵃ mod p。密文相乘 E(a)·E(b)=g^(a+b)=E(a+b)，解密（离散对数）得 a+b。</div>'+
+          '<div class="kg-formula-row"><span class="kg-token on">E(a)=gᵃ mod p</span><span class="kg-token on">E(a)·E(b)=E(a+b)</span></div>'+
+          '<div class="qres" id="t1res"></div>';
+        $('ra').oninput=function(e){a1=+e.target.value;$('av').textContent=a1;renderTab1();};
+        $('rb').oninput=function(e){b1=+e.target.value;$('bv').textContent=b1;renderTab1();};
+        renderTab1();
+      } else if(id==='tab2'){
+        sd.innerHTML='<div class="ctrl-box"><label>对密文做运算（观察噪声）</label><div class="cwbtns">'+
+          '<button class="cwbtn add" id="opAdd">+ 加法（噪声+2）</button><button class="cwbtn mul" id="opMul">× 乘法（噪声×2）</button><button class="cwbtn boot" id="opBoot">⟳ Bootstrapping</button><button class="cwbtn" id="opReset">重置</button></div></div>'+
+          '<div class="kg-feedback">加法使噪声相加、乘法使噪声相乘。多做几次乘法，看噪声如何冲破阈值。</div>'+
+          '<div class="kg-formula-row"><span class="kg-token on">加:e₁+e₂</span><span class="kg-token on">乘:e₁·e₂</span><span class="kg-token on">bootstrapping</span></div>'+
+          '<div class="qres" id="t2res"></div>';
+        $('opAdd').onclick=function(){var cur=ops.length?ops[ops.length-1].noise:2;ops.push({op:'+2',noise:cur+2});renderTab2();};
+        $('opMul').onclick=function(){var cur=ops.length?ops[ops.length-1].noise:2;ops.push({op:'×2',noise:cur*2});renderTab2();};
+        $('opBoot').onclick=function(){ops.push({op:'⟳',noise:3});renderTab2();};
+        $('opReset').onclick=function(){ops=[];renderTab2();};
+        if(ops.length>8)ops=ops.slice(-8);
+        renderTab2();
+      } else {
+        sd.innerHTML='<div class="ctrl-box"><label>各方本地数据（加密上传求和）</label>'+
+          vals.map(function(v,i){return '<div class="selrow" style="margin-top:'+(i?8:0)+'px">第'+(i+1)+'方 = <b id="vv'+i+'" style="color:#2f5f9f">'+v+'</b><input type="range" min="0" max="5" value="'+v+'" data-i="'+i+'" class="vr"></div>';}).join('')+'</div>'+
+          '<div class="kg-feedback">云端把各方密文相乘 = 加密的总和；只有持钥方能解密。云端从不接触明文。</div>'+
+          '<div class="kg-formula-row"><span class="kg-token on">∏E(vᵢ)=E(Σvᵢ)</span><span class="kg-token on">可用不可见</span></div>'+
+          '<div class="qres" id="t3res"></div>';
+        sd.querySelectorAll('.vr').forEach(function(r){r.oninput=function(e){var i=+e.target.dataset.i;vals[i]=+e.target.value;$('vv'+i).textContent=vals[i];renderTab3();};});
+        renderTab3();
+      }
+    }
+    updateSidebar('tab1');
+  })();
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

@@ -8,11 +8,13 @@
     <meta name="description" content="离散数学课程 - 红色数理 - 思想的伟力">
 
     <link rel="stylesheet" href="power.css">
+    <link rel="stylesheet" href="../../../shared/discrete-ui.css" data-dm-ui="1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet">
+    <script src="../../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
@@ -69,12 +71,13 @@
                 <div class="graph-container" id="graphContainer">
                     <svg class="graph-svg" id="graphSvg">
                         <defs>
-                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="24" refY="3.5" orient="auto">
-                                <polygon points="0 0, 10 3.5, 0 7" fill="#d63b1d" />
+                            <marker id="arrowhead" markerWidth="12" markerHeight="8" refX="12" refY="4" orient="auto"
+                                markerUnits="userSpaceOnUse" viewBox="0 0 12 8">
+                                <polygon points="0 0, 12 4, 0 8" fill="#d63b1d" />
                             </marker>
-                            <marker id="arrowhead-gold" markerWidth="10" markerHeight="7" refX="24" refY="3.5"
-                                orient="auto">
-                                <polygon points="0 0, 10 3.5, 0 7" fill="#c5a059" />
+                            <marker id="arrowhead-gold" markerWidth="12" markerHeight="8" refX="12" refY="4"
+                                orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 12 8">
+                                <polygon points="0 0, 12 4, 0 8" fill="#c5a059" />
                             </marker>
                             <filter id="glow">
                                 <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
@@ -125,19 +128,86 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "ideologyPanel": true,
+      "layers": [
+        {"name": "逆运算基础", "concepts": "R⁻¹ / 方向反转 / 矩阵转置", "task": "基础层：先掌握关系求逆，理解有序对方向反转与矩阵转置。", "page": "../2）逆运算/inverse.html"},
+        {"name": "关系运算综合", "concepts": "R⁻¹ / R∘S / Rⁿ / 布尔矩阵", "task": "进阶层：在整体综合页中联动理解逆、复合与幂运算。", "page": "../1）整体综合/relation_ops.html"},
+        {"name": "幂运算与可达", "concepts": "Rⁿ / n 步可达 / 传递闭包", "task": "拓展层：研究关系幂、可达性与传递闭包等多步结构。", "page": "../4）幂运算/power.html"}
+      ],
+      "chapter": "第3章 二元关系",
+      "section": "3.4 二元关系的运算 · 幂运算",
+      "title": "关系的幂运算",
+      "grounding": "本节主题：关系幂 Rⁿ=R∘R∘…∘R（n 个 R 合成），R⁰=I_A，R¹=R。Rⁿ 表示『恰好 n 步可达』。由于 A 有限，幂序列最终进入循环。并 R∪R²∪…∪Rⁿ 表示『n 步内可达』；传递闭包是其极限。矩阵上为布尔矩阵幂。",
+      "steps": [
+        {
+          "name": "情境引入",
+          "desc": "在关系网络里，从某点出发走 n 步能到哪些点？"
+        },
+        {
+          "name": "对象抽取",
+          "desc": "把多步可达抽象为关系的高次幂。"
+        },
+        {
+          "name": "结构建模",
+          "desc": "用 Rⁿ 与布尔矩阵幂建模 n 步可达。"
+        },
+        {
+          "name": "推理求解",
+          "desc": "计算幂序列，观察其进入循环、求若干步可达。"
+        },
+        {
+          "name": "程序验证",
+          "desc": "用本页交互逐次求幂，观察可达范围扩张。"
+        },
+        {
+          "name": "迁移反思",
+          "desc": "迁移到传递闭包、可达性、马尔可夫链。"
+        }
+      ],
+      "ideology": {
+        "title": "积厚成势 · 久久为功",
+        "text": "关系的幂是『一步步联系的累积』，从局部可达走向全局贯通——正如事业发展需积厚成势、久久为功。量变到一定程度引起质变（网络由分散走向连通），这正是唯物辩证法量变质变规律的生动写照。",
+        "dims": [
+          "辩证思维",
+          "量变质变",
+          "持续奋斗"
+        ],
+        "quote": "积土成山，积水成渊——关系的幂次累积，终将分散的节点连成可达的整体。"
+      },
+      "reflect": [
+        "因为 A 有限，幂序列 R, R², R³… 为什么必然出现重复（进入循环）？",
+        "『恰好 n 步可达』(Rⁿ) 与『n 步内可达』(R∪…∪Rⁿ) 有何区别？",
+        "若 Rⁿ 不再产生新的有序对，能否断定传递闭包已经求完？"
+      ],
+      "transfer": [
+        "马尔可夫链的 n 步转移概率正是转移矩阵的 n 次幂——布尔幂的概率版本。",
+        {
+          "t": "传递闭包",
+          "d": "把所有正整数次幂取并即得传递闭包，Warshall 如何高效实现？"
+        }
+      ]
+    };
+    </script>
+    <script src="../../../shared/ai-tutor.js" defer></script>
 
 </body>
 

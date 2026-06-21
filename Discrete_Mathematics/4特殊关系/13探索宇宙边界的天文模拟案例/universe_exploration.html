@@ -14,16 +14,20 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet">
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6" defer></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>
         MathJax = {
             tex: {
                 inlineMath: [['$', '$'], ['\\(', '\\)']],
                 displayMath: [['$$', '$$'], ['\\[', '\\]']]
             }
+        ,
+            startup: { typeset: true }
         };
     </script>
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="universe_exploration.css" data-page-fix="1">
 </head>
 
 <body>
@@ -46,12 +50,12 @@
     <div class="app-container">
         <header class="main-header">
             <div class="header-content">
-                <h1><span class="china-space">中国航天</span> <span class="highlight">探索宇宙边界</span></h1>
-                <p class="subtitle">Exploring Universe Boundaries: Infinite Sets & Observable Cosmos</p>
+                <h1>红色数理 <span class="highlight">进阶层</span></h1>
+                <p class="subtitle">宇宙尺度关系演示 · 探索宇宙边界</p>
             </div>
             <div class="mission-badge">
                 <span class="badge-icon">🚀</span>
-                <span>中国梦 · 航天梦</span>
+                <span>中国航天 · 探索星空</span>
             </div>
         </header>
 
@@ -77,7 +81,7 @@
                         </div>
                         <div class="legend-item">
                             <div class="legend-icon mission"></div>
-                            <span>中国航天器</span>
+                            <span>中国航天</span>
                         </div>
                         <div class="legend-item">
                             <div class="legend-icon boundary"></div>
@@ -87,8 +91,8 @@
 
                     <div class="zoom-controls">
                         <button class="zoom-btn" id="zoomIn" aria-label="+">+</button>
-                        <button class="zoom-btn" id="zoomOut" aria-label="−">−</button>
-                        <button class="zoom-btn" id="resetView" aria-label="⊙">⊙</button>
+                        <button class="zoom-btn" id="zoomOut" aria-label="缩小">−</button>
+                        <button class="zoom-btn" id="resetView" aria-label="重置视图">⌂</button>
                     </div>
                 </div>
             </div>
@@ -105,12 +109,12 @@
                             <span class="stat-label">可见恒星</span>
                         </div>
                         <div class="stat-card">
-                            <span class="stat-number">∞</span>
+                            <span class="stat-number"></span>
                             <span class="stat-label">实际总数</span>
                         </div>
                         <div class="stat-card">
                             <span class="stat-number" id="missionCount">6</span>
-                            <span class="stat-label">航天器</span>
+                            <span class="stat-label">航天任务</span>
                         </div>
                         <div class="stat-card highlight">
                             <span class="stat-number" id="zoomLevel">1.0×</span>
@@ -137,7 +141,7 @@
                     <div class="math-content">
                         <h4>无限集合 (Infinite Set)</h4>
                         <p class="math-formula">$U = $ 宇宙中所有恒星的集合</p>
-                        <p class="formula-note">$|U| = \aleph_0$ 或更大</p>
+                        <p class="formula-note">$|U| = \aleph_0$ 或更高基数</p>
 
                         <h4>有限子集 (Finite Subset)</h4>
                         <p class="math-formula">$O \subset U$，可观测宇宙</p>
@@ -151,7 +155,7 @@
                 <div class="panel-section insight-panel">
                     <div class="panel-header">
                         <span class="panel-icon">💡</span>
-                        <h3>思政启示</h3>
+                        <h3>价值启示</h3>
                     </div>
                     <div class="insight-content">
                         <h4>🌌 宇宙梦想：无限可能</h4>
@@ -160,35 +164,82 @@
                         <h4>🛰️ 科技自信：航天强国</h4>
                         <p>嫦娥探月、天问探火、北斗导航，每一次突破都展现了中国科技的硬实力，证明了自主创新的力量。</p>
 
-                        <h4>⭐ 人民至上：太空福祉</h4>
+                        <h4>🌍 人民至上：太空福祉</h4>
                         <p>航天技术服务人民生活：通信、导航、气象预报。探索宇宙不仅是科学追求，更是为人民创造美好生活。</p>
                     </div>
                 </div>
             </aside>
         </main>
     </div>
-
-    <script src="universe_exploration.js"></script>
+<script>
+    (function () {
+        var sidebar = document.querySelector('main.main-stage > .sidebar');
+        var header = document.querySelector('.main-header');
+        if (sidebar && header && !header.contains(sidebar)) {
+            sidebar.classList.add('left-info-panel');
+            header.appendChild(sidebar);
+        }
+    })();
+</script>
+<script src="universe_exploration.js"></script>
 
 <!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
+<footer class="page-footer">
+    <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队<br>
+        版权所有 · 项目总负责人：谢鑫</p>
 </footer>
-
+    <script>
+    window.SECTION_META = {
+      "layers": [
+        {
+          "name": "尺度的无限层次",
+          "concepts": "可数vs连续 / 基数 / 离散化",
+          "task": "用无限与基数理解宇宙尺度。",
+          "page": "universe_exploration-basic.html"
+        },
+        {
+          "name": "演化=函数迭代",
+          "concepts": "时间演化复合 / 离散化误差",
+          "task": "用函数迭代刻画演化、分析误差。",
+          "page": "universe_exploration.html"
+        },
+        {
+          "name": "多尺度数值模拟",
+          "concepts": "数值模拟 / 多尺度建模 / 科学计算",
+          "task": "迁移到大规模科学计算。",
+          "page": "universe_exploration-extend.html"
+        }
+      ],
+      "chapter": "第4章 特殊关系与函数",
+      "section": "4.13 探索宇宙边界的天文模拟案例 · 进阶层",
+      "title": "演化=函数迭代",
+      "grounding": "本节主题：用无限集合与函数的思想理解宇宙模拟——尺度的无限层次（可数 vs 连续）、坐标与时间的函数映射、迭代演化是函数的反复复合。借天文情境体会无限、基数与函数在科学计算中的作用。本页定位为进阶层：承接核心推理、综合辨析和课程资源主线。",
+      "steps": [
+        {"name": "情境引入", "desc": "宇宙是否无限？如何用有限的计算去逼近无限的尺度？"},
+        {"name": "对象抽取", "desc": "把尺度层次抽象为基数，把演化抽象为函数迭代。"},
+        {"name": "结构建模", "desc": "用可数/连续刻画离散化，用函数复合刻画时间演化。"},
+        {"name": "推理求解", "desc": "分析离散化误差、迭代收敛与尺度跨越。"},
+        {"name": "程序验证", "desc": "用本页交互模拟尺度缩放与演化迭代。"},
+        {"name": "迁移反思", "desc": "迁移到数值模拟、多尺度建模、科学计算。"}
+      ],
+      "ideology": {
+        "title": "探索无垠 · 自立自强",
+        "text": "从『天问』到深空探测，中华民族对宇宙的求索从未止步。用无限与函数的数学理解宇宙模拟，既彰显仰望星空的科学精神，也激励青年勇攀科技高峰、把关键核心技术牢牢掌握在自己手中，为航天强国贡献力量。",
+        "dims": ["科学精神", "自立自强", "探索创新"],
+        "quote": "可上九天揽月——探索宇宙无垠，靠的是一代代人把无限的好奇化为严谨的计算与自主的技术。"
+      },
+      "reflect": [
+        "宇宙尺度可视为连续（不可数），而计算必须离散化——这之间的鸿沟如何弥合？",
+        "演化模拟是函数的反复复合，误差为何会随迭代累积？如何控制？",
+        "『有限计算逼近无限对象』体现了科学方法怎样的智慧？"
+      ],
+      "transfer": [
+        "气候、流体、星系演化等大规模数值模拟，都是函数迭代+离散化的工程。",
+        {"t": "多尺度建模", "d": "从微观到宏观跨越多个数量级，如何用分层函数映射统一处理？"}
+      ]
+    };
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 

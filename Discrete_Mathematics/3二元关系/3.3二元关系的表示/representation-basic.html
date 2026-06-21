@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关系表示 · 基础层 — 集合/矩阵/图三表示联动</title>
+    <meta name="description" content="离散数学 3.3 基础层：二元关系的集合、矩阵、有向图三种等价表示实时联动">
+    <link rel="stylesheet" href="representation.css">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <style>
+        .dm-t-field { margin: 8px 0; }
+        .dm-t-field .lab { display: flex; justify-content: space-between; font-size: .82rem; color: #8b0000; margin-bottom: 5px; }
+        .dm-t-field .v { font-weight: 700; color: #d63b1d; font-family: 'Courier New', monospace; }
+        .dm-t-field input[type=range] { width: 100%; accent-color: #d63b1d; }
+        .dm-t-btn { width: 100%; padding: 9px; border: none; border-radius: 10px; cursor: pointer; font-family: inherit; font-weight: 600; color: #fff; background: linear-gradient(135deg, #d63b1d, #b8321a); margin-top: 6px; }
+        .dm-t-btn.ghost { background: #fff; color: #d63b1d; border: 1px solid #d63b1d; }
+        .dm-t-info { background: rgba(255,255,255,.6); border: 1px solid rgba(214,59,29,.14); border-radius: 10px; padding: 12px; font-size: .84rem; line-height: 1.7; color: #8b0000; }
+        .dm-t-info b { color: #d63b1d; }
+        .dm-t-wrap { display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center; align-items: flex-start; width: 100%; }
+        .dm-t-card { background: rgba(255,255,255,.6); border: 1px solid rgba(214,59,29,.18); border-radius: 14px; padding: 15px 17px; }
+        .dm-t-card h3 { color: #d63b1d; font-size: .94rem; margin-bottom: 10px; font-weight: 700; text-align: center; }
+        .mtx { display: inline-grid; gap: 5px; }
+        .mcell { width: 32px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-family: 'Courier New', monospace; font-size: .74rem; }
+        .mcell.hdr { background: #d63b1d; color: #fff; font-weight: 700; }
+        .mcell.corner { background: transparent; }
+        .mcell.b0 { background: rgba(214,59,29,.06); color: #c9a; cursor: pointer; }
+        .mcell.b1 { background: #d63b1d; color: #fff; font-weight: 700; cursor: pointer; }
+        .mcell:hover { outline: 2px solid #ffb400; }
+        svg.cg text { font-family: 'Courier New', monospace; font-size: 12px; fill: #fff; }
+        .rset { font-family: 'Courier New', monospace; font-size: .82rem; color: #8b0000; line-height: 1.8; max-width: 220px; }
+        .rset b { color: #d63b1d; }
+    
+        .value-panel {
+            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
+            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
+            box-shadow: var(--shadow-sm);
+        }
+        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
+        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
+        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+        .value-dims span {
+            padding: 3px 8px; border-radius: 999px; color: #8b0000;
+            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
+            font-size: .74rem; font-weight: 700;
+        }
+        .value-quote {
+            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
+            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
+        }
+        .value-inline {
+            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
+            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
+            color: var(--text-primary); line-height: 1.5;
+        }
+    </style>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+
+<body>
+    <a href="../../index.html" title="返回课程主页" style="position:fixed;top:14px;left:14px;z-index:9999;display:flex;align-items:center;gap:6px;background:rgba(30,30,40,0.82);color:#fff;padding:7px 14px 7px 10px;border-radius:20px;font-size:13px;font-family:'Noto Serif SC',serif;text-decoration:none;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.15);box-shadow:0 2px 12px rgba(0,0,0,0.35);transition:background .2s;" onmouseover="this.style.background='rgba(214,59,29,0.88)'" onmouseout="this.style.background='rgba(30,30,40,0.82)'">🏠 <span>课程主页</span></a>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+                <h1>红色数理 <span class="highlight">基础层</span></h1>
+                <p class="subtitle">关系表示 · 集合 · 矩阵 · 图 三表示联动</p>
+            </div>
+            <div class="controls-wrapper">
+                
+                
+                
+                
+                <div class="control-group value-consistency-group">
+                    <label>价值映射（与进阶层一致）</label>
+                    <div class="value-panel" data-value-source="SECTION_META.ideology">
+                        <h3>一体多面 · 各取所长</h3>
+                        <p>同一个关系可用集合、矩阵、图三种形式表达，恰如同一事物可从不同角度认识——『横看成岭侧成峰』。善于在表示之间切换、各取所长，正是具体问题具体分析、灵活务实的方法论体现。</p>
+                        <div class="value-dims"><span>辩证思维</span><span>灵活务实</span><span>系统观念</span></div>
+                            <div class="value-quote">横看成岭侧成峰——三种表示是同一关系的不同侧面，切换视角方能事半功倍。</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>集合元素个数 n</label>
+                    <div class="dm-t-field"><div class="lab"><span>n</span><span class="v" id="nVal">4</span></div><input type="range" id="nRange" min="2" max="6" value="4"></div>
+                </div>
+                <div class="control-group">
+                    <label>操作</label>
+                    <button class="dm-t-btn" id="randBtn">🎲 随机关系</button>
+                    <button class="dm-t-btn ghost" id="clearBtn">清空</button>
+                </div>
+                <div class="control-group">
+                    <label>原理说明</label>
+                    <div class="dm-t-info">同一个二元关系有<b>三种等价表示</b>：<br>① <b>集合</b>（有序对列举）<br>② <b>关系矩阵</b>（0-1 方阵）<br>③ <b>关系图</b>（有向图）<br>点矩阵任一格，三者<b>同步</b>变化。</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="visualization-area" id="vizArea">
+                    <div class="dm-t-wrap">
+                        <div class="dm-t-card"><h3>② 关系矩阵（点格切换）</h3><div class="mtx" id="mtx"></div></div>
+                        <div class="dm-t-card"><h3>③ 关系图（有向）</h3><svg id="cg" class="cg" width="220" height="220" viewBox="0 0 220 220"></svg></div>
+                        <div class="dm-t-card"><h3>① 集合表示</h3><div class="rset" id="rset"></div></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer style="position:fixed;bottom:0;left:0;width:100%;background: transparent;color: inherit;
+    opacity: 0.72;padding:15px 10px;text-align:center;box-shadow: none;z-index:9999;">
+        <p style="font-size:0.9rem;line-height:1.6;margin:0;opacity:0.95;">© 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>版权所有 ｜ 项目总负责人：谢鑫</p>
+    </footer>
+
+    <script>
+        var $ = function (id) { return document.getElementById(id); };
+        var n = 4, R = {};
+        function key(i, j) { return i + '_' + j; }
+        function render() {
+            n = +$('nRange').value; $('nVal').textContent = n;
+            Object.keys(R).forEach(function (k) { var p = k.split('_'); if (+p[0] > n || +p[1] > n) delete R[k]; });
+            // matrix
+            var g = $('mtx'); g.style.gridTemplateColumns = 'repeat(' + (n + 1) + ', auto)';
+            var html = '<div class="mcell corner"></div>';
+            for (var j = 1; j <= n; j++) html += '<div class="mcell hdr">' + j + '</div>';
+            for (var i = 1; i <= n; i++) { html += '<div class="mcell hdr">' + i + '</div>'; for (var j2 = 1; j2 <= n; j2++) { var on = R[key(i, j2)]; html += '<div class="mcell ' + (on ? 'b1' : 'b0') + '" data-i="' + i + '" data-j="' + j2 + '">' + (on ? 1 : 0) + '</div>'; } }
+            g.innerHTML = html;
+            [].forEach.call(g.querySelectorAll('.mcell[data-i]'), function (c) { c.onclick = function () { var k = key(+c.dataset.i, +c.dataset.j); if (R[k]) delete R[k]; else R[k] = 1; render(); }; });
+            // graph
+            var cx = 110, cy = 110, RR = 76, pts = [], svg = '';
+            for (var k2 = 0; k2 < n; k2++) { var a = -Math.PI / 2 + k2 * 2 * Math.PI / n; pts.push([cx + RR * Math.cos(a), cy + RR * Math.sin(a)]); }
+            for (var i3 = 1; i3 <= n; i3++) for (var j3 = 1; j3 <= n; j3++) if (R[key(i3, j3)]) {
+                var p1 = pts[i3 - 1], p2 = pts[j3 - 1];
+                if (i3 === j3) svg += '<circle cx="' + p1[0] + '" cy="' + (p1[1] - 18) + '" r="8" fill="none" stroke="#ffb400" stroke-width="2"/>';
+                else { var dx = p2[0] - p1[0], dy = p2[1] - p1[1], L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L; var ex = p2[0] - ux * 14, ey = p2[1] - uy * 14; svg += '<line x1="' + (p1[0] + ux * 14) + '" y1="' + (p1[1] + uy * 14) + '" x2="' + ex + '" y2="' + ey + '" stroke="#d63b1d" stroke-width="1.6" opacity="0.6" marker-end="url(#ah)"/>'; }
+            }
+            var nodes = '';
+            for (var m = 0; m < n; m++) nodes += '<circle cx="' + pts[m][0] + '" cy="' + pts[m][1] + '" r="13" fill="#d63b1d"/><text x="' + pts[m][0] + '" y="' + (pts[m][1] + 4) + '" text-anchor="middle">' + (m + 1) + '</text>';
+            $('cg').innerHTML = '<defs><marker id="ah" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#d63b1d"/></marker></defs>' + svg + nodes;
+            // set
+            var ks = Object.keys(R).sort();
+            var pairs = ks.map(function (k) { var p = k.split('_'); return '(' + p[0] + ',' + p[1] + ')'; });
+            $('rset').innerHTML = 'R = {<br>' + (pairs.length ? '&nbsp;&nbsp;' + pairs.join(', ') : '') + '<br>}<br><br>|R| = <b>' + ks.length + '</b>';
+        }
+        $('nRange').oninput = render;
+        $('randBtn').onclick = function () { R = {}; for (var i = 1; i <= n; i++) for (var j = 1; j <= n; j++) if (Math.random() < 0.35) R[key(i, j)] = 1; render(); };
+        $('clearBtn').onclick = function () { R = {}; render(); };
+        $('randBtn').onclick();
+    </script>
+
+    <!-- ===== 共享升级框架：学习助手 + 三阶导航 ===== -->
+    <script>
+    window.SECTION_META = {
+        layers: [
+            { "name": "三种表示", "concepts": "集合 / 关系矩阵 / 关系图", "task": "在三种等价表示间互相转换。", "page": "representation-basic.html" },
+            { "name": "矩阵即计算", "concepts": "布尔矩阵 / 合成=布尔乘 / 通路", "task": "用矩阵做关系运算、用图找通路。", "page": "representation.html" },
+            { "name": "稀疏存储与加速", "concepts": "邻接矩阵·邻接表 / CSR / 存储权衡", "task": "迁移到稀疏存储与高性能计算。", "page": "representation-extend.html" }
+        ],
+        chapter: "第3章 二元关系",
+        section: "3.3 二元关系的表示 · 基础层",
+        title: "集合 / 矩阵 / 图 三种表示",
+        grounding: "本页（基础层）主题：二元关系的三种等价表示——集合（有序对列举）、关系矩阵 M_R（(i,j)元为1当且仅当 aᵢRaⱼ）、关系图（有向图，自环=对角）。三者一一对应、可互相转换；矩阵便于运算，图便于直观与路径分析。",
+        steps: [
+            { name: "情境引入", desc: "同一份联系数据，怎样的表示既好算又好看？" },
+            { name: "对象抽取", desc: "把关系分别抽象为集合、0-1 矩阵、有向图。" },
+            { name: "结构建模", desc: "建立三种表示的相互转换规则。" },
+            { name: "推理求解", desc: "点选/随机生成关系，观察三种表示同步变化。" },
+            { name: "程序验证", desc: "矩阵的 1、图的边、集合的有序对一一对应。" },
+            { name: "迁移反思", desc: "矩阵便于运算（进阶层），图便于路径，集合便于定义。" }
+        ],
+        ideology: {
+        "title": "一体多面 · 各取所长",
+        "text": "同一个关系可用集合、矩阵、图三种形式表达，恰如同一事物可从不同角度认识——『横看成岭侧成峰』。善于在表示之间切换、各取所长，正是具体问题具体分析、灵活务实的方法论体现。",
+        "dims": [
+                "辩证思维",
+                "灵活务实",
+                "系统观念"
+        ],
+        "quote": "横看成岭侧成峰——三种表示是同一关系的不同侧面，切换视角方能事半功倍。"
+},
+        reflect: ["关系矩阵与关系图各自的优势是什么？", "自环在矩阵里对应什么位置？在图里是什么？"],
+        transfer: ["矩阵表示便于做关系合成（布尔矩阵乘）——进阶层将据此计算。"]
+    };
+    </script>
+    
+    <script data-dm-ideology-bridge="1">
+    (function () {
+        function esc(s) {
+            return String(s || '').replace(/[&<>"']/g, function (c) {
+                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+            });
+        }
+        function noteHtml() {
+            var ideology = (window.SECTION_META && window.SECTION_META.ideology) || {};
+            var title = ideology.title || '价值引领';
+            var text = ideology.text || '本层延续进阶层的价值主线，在操作中体会数学结构与价值判断的一致性。';
+            return '<span class="value-inline" data-ideology-inline="1"><strong>价值观察：</strong>本层沿用进阶层“'
+                + esc(title) + '”主线。' + esc(text) + '</span>';
+        }
+        function appendIdeologyNote() {
+            if (document.querySelector('[data-ideology-inline="1"]')) return;
+            var resultExtra = document.getElementById('resultExtra');
+            if (resultExtra) {
+                resultExtra.insertAdjacentHTML('beforeend', noteHtml());
+                return;
+            }
+            var anchor = document.querySelector('.result-panel, #eqOut, #note, .visualization-area');
+            if (!anchor) return;
+            if (anchor.id === 'eqOut' || anchor.id === 'note') anchor.insertAdjacentHTML('afterend', noteHtml());
+            else anchor.insertAdjacentHTML('beforeend', noteHtml());
+        }
+        function wrapSetResult() {
+            var original = window.setResult;
+            if (typeof original !== 'function' || original.__ideologyWrapped) return;
+            window.setResult = function () {
+                var ret = original.apply(this, arguments);
+                appendIdeologyNote();
+                return ret;
+            };
+            window.setResult.__ideologyWrapped = true;
+        }
+        function boot() {
+            wrapSetResult();
+            appendIdeologyNote();
+            ['input', 'change', 'click'].forEach(function (eventName) {
+                document.addEventListener(eventName, function () {
+                    setTimeout(appendIdeologyNote, 0);
+                }, true);
+            });
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+        else boot();
+    })();
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+
+</html>

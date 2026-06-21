@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 let canvas, ctx;
 let currentType = 'n-order';
 let graph = { nodes: [], edges: [] };
+let canvasResizeObserver = null;
 let params = {
     n: 5,
     k: 2,
@@ -93,6 +94,10 @@ function init() {
 
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
+    if ('ResizeObserver' in window) {
+        canvasResizeObserver = new ResizeObserver(() => resizeCanvas());
+        canvasResizeObserver.observe(canvas.parentElement);
+    }
 
     setupNavigation();
     loadGraphType('n-order');
@@ -100,8 +105,11 @@ function init() {
 
 function resizeCanvas() {
     const container = canvas.parentElement;
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
+    const width = Math.max(1, Math.round(container.clientWidth));
+    const height = Math.max(1, Math.round(container.clientHeight));
+    if (canvas.width === width && canvas.height === height && currentType) return;
+    canvas.width = width;
+    canvas.height = height;
     if (currentType) generateGraph();
 }
 

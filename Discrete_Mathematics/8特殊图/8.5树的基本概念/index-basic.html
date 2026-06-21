@@ -1,0 +1,943 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第8章 特殊图 - 树结构判定器</title>
+  <meta name="description" content="8.5 树的基本概念 - 树结构判定器">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+
+:root {
+  --ink: #251713;
+  --muted: #6c5a52;
+  --paper: #fff8ec;
+  --card: rgba(255, 253, 246, 0.92);
+  --line: rgba(116, 55, 31, 0.18);
+  --red: #b42318;
+  --red-2: #de5b3d;
+  --gold: #c58a1f;
+  --green: #2f7d57;
+  --blue: #2f5f9f;
+  --shadow: 0 18px 50px rgba(69, 31, 15, 0.14);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: "Noto Serif SC", "Microsoft YaHei", serif;
+  background:
+    radial-gradient(circle at 16% 12%, rgba(222, 91, 61, 0.18), transparent 28%),
+    radial-gradient(circle at 82% 8%, rgba(47, 95, 159, 0.14), transparent 26%),
+    linear-gradient(135deg, #fff7e6 0%, #f8ead3 45%, #f3dfc7 100%);
+  overflow: hidden;
+}
+.home-link {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 10000;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.5);
+  background: rgba(37, 23, 19, 0.82);
+  color: #fff;
+  text-decoration: none;
+  font-size: 13px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  backdrop-filter: blur(10px);
+}
+.app-container {
+  width: min(1440px, calc(100vw - 32px));
+  height: calc(100vh - 166px);
+  min-height: 640px;
+  margin: 74px auto 0;
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  gap: 18px;
+}
+.side-panel,
+.glass-pane {
+  border: 1px solid var(--line);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+}
+.side-panel {
+  border-radius: 8px;
+  padding: 20px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+.glass-pane {
+  border-radius: 8px;
+  padding: 18px;
+  overflow: auto;
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(180, 35, 24, 0.22);
+  color: var(--red);
+  background: rgba(180, 35, 24, 0.08);
+  font-size: 12px;
+  font-weight: 700;
+}
+.sidebar-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+  order: 1;
+}
+.window-controls {
+  display: none;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.dot.red { background: #ff5f56; }
+.dot.yellow { background: #ffbd2e; }
+.dot.green { background: #27c93f; }
+.sidebar-header h1 {
+  margin: 0 0 6px;
+  font-family: "Ma Shan Zheng", "Noto Serif SC", serif;
+  font-size: 2.1rem;
+  font-weight: 400;
+  line-height: 1.2;
+  color: #d63b1d;
+  letter-spacing: 0;
+}
+.sidebar-header h1 .highlight {
+  color: #ffb400;
+}
+.sidebar-header .subtitle {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.96rem;
+  font-style: normal;
+  line-height: 1.6;
+}
+.intro {
+  margin: 0 0 16px;
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 15px;
+  order: 2;
+}
+.side-panel > #dm-ideo-page,
+.side-panel > .value-panel {
+  order: 3;
+}
+.side-panel > #controls {
+  order: 4;
+}
+.mission-card,
+.control-group,
+.value-panel,
+.result-card {
+  border-radius: 8px;
+  border: 1px solid rgba(116, 55, 31, 0.16);
+  background: rgba(255,255,255,0.66);
+}
+.mission-card {
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.mission-card b { color: var(--red); }
+.mission-card span {
+  color: var(--muted);
+  line-height: 1.6;
+}
+.visual-badge {
+  white-space: nowrap;
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(47,95,159,0.1);
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 700;
+}
+.value-panel {
+  padding: 14px;
+  margin: 14px 0;
+  border-left: 4px solid var(--red);
+}
+.value-panel h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  color: var(--red);
+}
+.value-panel p {
+  margin: 0;
+  line-height: 1.7;
+  color: #563c31;
+  font-size: 14px;
+}
+.dim-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.dim-list span {
+  border-radius: 999px;
+  background: rgba(197, 138, 31, 0.13);
+  color: #8a5d0b;
+  padding: 4px 9px;
+  font-size: 12px;
+  font-weight: 700;
+}
+#controls {
+  display: grid;
+  gap: 10px;
+}
+.control-group {
+  padding: 12px;
+}
+.control-group label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #4e362d;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.control-group small {
+  color: var(--muted);
+  font-weight: 400;
+}
+select,
+input[type="range"] {
+  width: 100%;
+}
+select {
+  min-height: 38px;
+  border-radius: 8px;
+  border: 1px solid rgba(116,55,31,0.22);
+  background: #fffaf2;
+  color: var(--ink);
+  padding: 0 10px;
+  font: inherit;
+}
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--red);
+}
+.switch-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.logic-board {
+  min-height: 360px;
+  border-radius: 8px;
+  border: 1px solid rgba(116,55,31,0.16);
+  background:
+    linear-gradient(90deg, rgba(116,55,31,0.06) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(116,55,31,0.06) 1px, transparent 1px),
+    rgba(255,255,255,0.56);
+  background-size: 28px 28px;
+  padding: 18px;
+  overflow: hidden;
+}
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.node-card,
+.gate-card,
+.table-wrap,
+.proof-card,
+.meter-card {
+  border-radius: 8px;
+  border: 1px solid rgba(116,55,31,0.18);
+  background: rgba(255,255,255,0.84);
+  padding: 14px;
+  box-shadow: 0 8px 22px rgba(69,31,15,0.08);
+}
+.node-card strong,
+.gate-card strong,
+.proof-card strong,
+.meter-card strong {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+.truth-on { border-color: rgba(47,125,87,0.5); background: rgba(47,125,87,0.12); }
+.truth-off { border-color: rgba(180,35,24,0.4); background: rgba(180,35,24,0.09); }
+.truth-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  height: 34px;
+  border-radius: 999px;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 800;
+  color: #fff;
+  background: var(--green);
+}
+.truth-chip.false { background: var(--red); }
+.gate-symbol {
+  display: grid;
+  place-items: center;
+  min-height: 112px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(180,35,24,0.12), rgba(47,95,159,0.13));
+  font-size: 42px;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 800;
+  color: var(--red);
+}
+.formula-line {
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 800;
+  color: #2d211d;
+}
+.stack {
+  display: grid;
+  gap: 10px;
+}
+.flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.flow .node-card { min-height: 112px; }
+.arrow {
+  color: var(--gold);
+  font-weight: 800;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-size: 13px;
+}
+th, td {
+  border-bottom: 1px solid rgba(116,55,31,0.14);
+  padding: 8px 7px;
+  text-align: center;
+}
+th {
+  background: rgba(180,35,24,0.08);
+  color: var(--red);
+}
+tr.hot td { background: rgba(47,125,87,0.1); }
+tr.warn td { background: rgba(180,35,24,0.08); }
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.pill {
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: #53362c;
+  background: rgba(197,138,31,0.14);
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 700;
+}
+.result-card {
+  margin-top: 14px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 12px;
+  align-items: stretch;
+}
+#formulaText,
+#resultValue,
+#resultExtra {
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(255,250,242,0.86);
+  line-height: 1.7;
+}
+#formulaText {
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 800;
+  color: var(--blue);
+}
+#resultValue {
+  font-weight: 800;
+  color: var(--red);
+}
+#resultExtra {
+  grid-column: 1 / -1;
+  color: #5e4338;
+}
+.footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9998;
+  min-height: 72px;
+  padding: 14px 10px;
+  text-align: center;
+  color: inherit;
+    opacity: 0.72;
+  background: transparent;
+  box-shadow: none;
+  font-size: 13px;
+  line-height: 1.7;
+}
+@media (max-width: 920px) {
+  body { overflow: auto; }
+  .app-container {
+    width: min(100vw - 22px, 720px);
+    height: auto;
+    min-height: 0;
+    grid-template-columns: 1fr;
+    margin-bottom: 96px;
+  }
+  .side-panel, .glass-pane { max-height: none; }
+  .viz-grid, .flow, .result-card { grid-template-columns: 1fr; }
+  #resultExtra { grid-column: auto; }
+  .mission-card { grid-template-columns: 1fr; }
+}
+
+.logic-board {
+  display: grid;
+  grid-template-rows: 318px auto;
+  gap: 12px;
+  min-height: 0;
+}
+.graph-canvas {
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+  border-radius: 8px;
+  display: block;
+  background:
+    linear-gradient(90deg, rgba(116,55,31,0.05) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(116,55,31,0.05) 1px, transparent 1px),
+    rgba(255,255,255,0.58);
+  background-size: 28px 28px;
+}
+#vizText {
+  display: grid;
+  gap: 8px;
+}
+.graph-summary {
+  border-radius: 8px;
+  border: 1px solid rgba(116,55,31,0.16);
+  background: rgba(255,255,255,0.78);
+  padding: 12px;
+  color: #5e4338;
+  line-height: 1.65;
+}
+.matrix-grid {
+  display: inline-grid;
+  gap: 2px;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.82);
+  border: 1px solid rgba(116,55,31,0.18);
+}
+.matrix-cell {
+  min-width: 28px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  background: rgba(47,95,159,0.08);
+  color: #253447;
+  font-weight: 800;
+}
+.matrix-cell.hot {
+  background: rgba(180,35,24,0.14);
+  color: var(--red);
+}
+@media (max-width: 920px) {
+  .logic-board { grid-template-rows: 300px auto; }
+  .graph-canvas { min-height: 280px; }
+}
+
+  </style>
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+        </div>
+        <h1>红色数理 <span class="highlight">基础层</span></h1>
+        <p class="subtitle">树结构判定器</p>
+      </div>
+      <p class="intro">添加或删除边，观察连通无圈、n−1 条边和唯一路径如何同步成立。</p>
+
+      <div class="value-panel">
+        <h3>固本强基 · 精简高效</h3>
+        <p>树以最少的连接实现全连通，象征『固本强基、精简高效、不务虚功』。n−1 条边一条不多、一条不少，启示我们：好的组织与制度应当结构清晰、层级分明、不设冗余，把每一份资源都用在连接与传导的关键处。</p>
+        <div class="dim-list"><span>精简高效</span><span>系统观念</span><span>务实作风</span></div>
+      </div>
+
+      <div id="controls"></div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>理解树以最少连接实现全连通，体会固本强基、精简高效。</span>
+        <div class="visual-badge">树 + n−1 边</div>
+      </section>
+
+      <section class="logic-board" id="vizArea">
+        <canvas id="graphCanvas" class="graph-canvas"></canvas>
+        <div id="vizText"></div>
+      </section>
+
+      <section class="result-card">
+        <div id="formulaText">等待交互</div>
+        <div id="resultValue">等待判定</div>
+        <div id="resultExtra">价值观察：树以最少的连接实现全连通，象征『固本强基、精简高效、不务虚功』。n−1 条边一条不多、一条不少，启示我们：好的组织与制度应当结构清晰、层级分明、不设冗余，把每一份资源都用在连接与传导的关键处。</div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+    <div>版权所有 · 项目总负责人：谢鑫</div>
+  </footer>
+
+  <script>
+    window.SECTION_META = {
+      "layers": [
+            {
+                  "name": "树=连通无圈",
+                  "concepts": "n 个顶点 n−1 条边",
+                  "task": "理解树的定义与边数。",
+                  "page": "index-basic.html"
+            },
+            {
+                  "name": "树的等价刻画",
+                  "concepts": "唯一路径 / 极小连通 / 无圈",
+                  "task": "掌握树的多种等价刻画。",
+                  "page": "index.html"
+            },
+            {
+                  "name": "层级结构应用",
+                  "concepts": "文件系统 / 决策树 / 并查集",
+                  "task": "迁移到层级结构与并查集。",
+                  "page": "index-extend.html"
+            }
+      ],
+      "chapter": "第8章 特殊图",
+      "section": "8.5 树的基本概念",
+      "title": "树的基本概念",
+      "grounding": "本节主题：树=连通无圈图。等价刻画：n 个顶点的树恰有 n−1 条边、任两点有唯一路径、连通且去任一边即不连通、无圈且加任一边即成圈。叶子、内点。树是最『精简而连通』的结构。",
+      "steps": [
+            {
+                  "name": "情境引入",
+                  "desc": "用最少的连接把所有节点连通且不冗余——这是什么结构？"
+            },
+            {
+                  "name": "对象抽取",
+                  "desc": "把『连通且无冗余回路』抽象为树。"
+            },
+            {
+                  "name": "结构建模",
+                  "desc": "用『连通无圈』及 n−1 条边等多种等价刻画树。"
+            },
+            {
+                  "name": "推理求解",
+                  "desc": "验证树的等价性质，区分树与一般图。"
+            },
+            {
+                  "name": "程序验证",
+                  "desc": "用本页交互构造树，验证 n−1 边与唯一路径。"
+            },
+            {
+                  "name": "迁移反思",
+                  "desc": "迁移到层级结构、文件系统、决策树。"
+            }
+      ],
+      "ideology": {
+            "title": "固本强基 · 精简高效",
+            "text": "树以最少的连接实现全连通，象征『固本强基、精简高效、不务虚功』。n−1 条边一条不多、一条不少，启示我们：好的组织与制度应当结构清晰、层级分明、不设冗余，把每一份资源都用在连接与传导的关键处。",
+            "dims": [
+                  "精简高效",
+                  "系统观念",
+                  "务实作风"
+            ],
+            "quote": "立治有体——树的『连通无圈』，正是一种清晰、精简而稳固的结构典范。"
+      },
+      "reflect": [
+            "为什么 n 个顶点的树恰好有 n−1 条边？多一条会怎样、少一条又会怎样？",
+            "『任两点间有唯一路径』为什么是树的特征？有第二条路径意味着什么？",
+            "树和『连通图的生成树』是什么关系？"
+      ],
+      "transfer": [
+            "文件系统目录、组织架构、DOM 树、决策树都是树结构的应用。",
+            {
+                  "t": "并查集与树",
+                  "d": "并查集用树维护等价类，路径压缩为何能近乎常数时间？"
+            }
+      ]
+};
+  </script>
+  <script>
+    const PROFILE = {
+  "title": "树结构判定器",
+  "subtitle": "添加或删除边，观察连通无圈、n−1 条边和唯一路径如何同步成立。",
+  "family": "tree",
+  "layerLabel": "基础层",
+  "mission": "理解树以最少连接实现全连通，体会固本强基、精简高效。",
+  "visual": "树 + n−1 边",
+  "params": {
+    "mode": "basic"
+  }
+};
+  </script>
+  <script>
+
+(function () {
+  "use strict";
+  const meta = window.SECTION_META || {};
+  const ideology = meta.ideology || {};
+  const controls = document.getElementById("controls");
+  const canvas = document.getElementById("graphCanvas");
+  const ctx = canvas.getContext("2d");
+  const vizText = document.getElementById("vizText");
+  const formulaText = document.getElementById("formulaText");
+  const resultValue = document.getElementById("resultValue");
+  const resultExtra = document.getElementById("resultExtra");
+
+  function esc(v) { return String(v == null ? "" : v).replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch])); }
+  function chip(ok, text) { return '<span class="truth-chip' + (ok ? "" : " false") + '">' + esc(text || (ok ? "成立" : "不成立")) + '</span>'; }
+  function option(value, text, selected) { return '<option value="' + esc(value) + '"' + (value === selected ? " selected" : "") + '>' + esc(text) + '</option>'; }
+  function control(label, body, small) { return '<div class="control-group"><label><span>' + esc(label) + '</span>' + (small ? '<small>' + esc(small) + '</small>' : '') + '</label>' + body + '</div>'; }
+  function selectControl(id, label, items, selected, small) { return control(label, '<select id="' + id + '">' + items.map(it => option(it[0], it[1], selected)).join("") + '</select>', small); }
+  function rangeControl(id, label, value, min, max, step, small) { return control(label, '<input type="range" id="' + id + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + value + '">', small); }
+  function checkControl(id, label, checked, small) { return control(label, '<div class="switch-row"><span>' + esc(small || "切换") + '</span><input type="checkbox" id="' + id + '"' + (checked ? " checked" : "") + '></div>'); }
+  function val(id) { const el = document.getElementById(id); if (!el) return ""; if (el.type === "checkbox") return !!el.checked; if (el.type === "range") return Number(el.value); return el.value; }
+  function note(html) { vizText.innerHTML = '<div class="graph-summary">' + html + '</div>'; }
+  function setResult(formula, result, extra) {
+    formulaText.textContent = formula;
+    resultValue.innerHTML = result;
+    const dims = (ideology.dims || []).join(" · ");
+    resultExtra.innerHTML = '<b>价值观察：</b>' + esc(ideology.text || "用特殊图结构理解优化、覆盖与协同。")
+      + (dims ? '<div class="pill-row"><span class="pill">' + esc(dims) + '</span></div>' : "")
+      + (extra ? '<p>' + esc(extra) + '</p>' : "");
+  }
+  function resizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.max(420, Math.floor(rect.width * dpr));
+    canvas.height = Math.max(300, Math.floor(rect.height * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function size() { return { w: canvas.clientWidth || 800, h: canvas.clientHeight || 330 }; }
+  function clear() { const { w, h } = size(); ctx.clearRect(0, 0, w, h); }
+  function positions(n, layout) {
+    const { w, h } = size(), cx = w / 2, cy = h / 2;
+    if (layout === "bipartite") {
+      const l = Math.ceil(n / 2), r = n - l;
+      return Array.from({ length: n }, (_, i) => {
+        const side = i < l ? 0 : 1, idx = side ? i - l : i, cnt = side ? r : l;
+        return { x: side ? w * 0.72 : w * 0.28, y: 55 + idx * (h - 110) / Math.max(1, cnt - 1) };
+      });
+    }
+    if (layout === "tree") {
+      const levels = [[0], [1, 2], [3, 4, 5, 6], [7, 8, 9, 10]].filter(row => row[0] < n);
+      const out = [];
+      levels.forEach((row, li) => row.forEach((id, ii) => {
+        if (id < n) out[id] = { x: (ii + 1) * w / (row.length + 1), y: 48 + li * (h - 80) / Math.max(1, levels.length - 1) };
+      }));
+      return Array.from({ length: n }, (_, i) => out[i] || { x: cx, y: cy });
+    }
+    if (layout === "grid") {
+      const cols = Math.ceil(Math.sqrt(n));
+      return Array.from({ length: n }, (_, i) => ({ x: 90 + (i % cols) * (w - 180) / Math.max(1, cols - 1), y: 55 + Math.floor(i / cols) * 86 }));
+    }
+    const r = Math.min(w, h) * 0.35;
+    return Array.from({ length: n }, (_, i) => { const a = -Math.PI / 2 + i * 2 * Math.PI / n; return { x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r }; });
+  }
+  function edgeKey(e) { return e.u + "-" + e.v; }
+  function drawArrow(a, b) {
+    const ang = Math.atan2(b.y - a.y, b.x - a.x);
+    const end = { x: b.x - Math.cos(ang) * 22, y: b.y - Math.sin(ang) * 22 };
+    ctx.beginPath(); ctx.moveTo(end.x, end.y);
+    ctx.lineTo(end.x - Math.cos(ang - .45) * 10, end.y - Math.sin(ang - .45) * 10);
+    ctx.lineTo(end.x - Math.cos(ang + .45) * 10, end.y - Math.sin(ang + .45) * 10);
+    ctx.closePath(); ctx.fill();
+  }
+  function baseEdges(kind, n) {
+    const es = [];
+    function add(u, v, w) { if (u < n && v < n && u !== v) es.push({ u, v, w: w || 1 }); }
+    if (kind === "euler") [[0,1],[1,2],[2,3],[3,0],[0,4],[4,5],[5,2],[1,5]].forEach((e,i)=>add(e[0],e[1],2+i%4));
+    else if (kind === "path") for (let i=0;i<n-1;i++) add(i,i+1,1+i%4);
+    else if (kind === "cycle") for (let i=0;i<n;i++) add(i,(i+1)%n,1+i%5);
+    else if (kind === "dense") { for (let i=0;i<n;i++) add(i,(i+1)%n,2); for (let i=0;i+2<n;i++) add(i,i+2,3+i%4); }
+    else if (kind === "tree") for (let i=1;i<n;i++) add(Math.floor((i-1)/2), i, 1+i%5);
+    else if (kind === "bipartite") { const l=Math.ceil(n/2); for(let i=0;i<l;i++) for(let j=l;j<n;j++) if ((i+j)%2===0 || j===l+i%Math.max(1,n-l)) add(i,j,1+(i+j)%5); }
+    else if (kind === "grid") { const cols=Math.ceil(Math.sqrt(n)); for(let i=0;i<n;i++){ if(i%cols<cols-1) add(i,i+1,2+i%3); if(i+cols<n) add(i,i+cols,3+i%4); } }
+    else { for (let i=0;i<n;i++) add(i,(i+1)%n,2+i%4); if(n>5){add(0,3,5);add(1,4,4);add(2,5,6);} }
+    return es;
+  }
+  function drawGraph(opts) {
+    resizeCanvas(); clear();
+    const n = opts.n || 6, layout = opts.layout || "circle";
+    const pos = positions(n, layout);
+    const edges = opts.edges || baseEdges(opts.kind || "cycle", n);
+    const hotEdges = new Set((opts.hotEdges || []).map(e => Array.isArray(e) ? e[0]+"-"+e[1] : e));
+    const hotNodes = new Set(opts.hotNodes || []);
+    const colors = opts.nodeColors || {};
+    edges.forEach(e => {
+      const a = pos[e.u], b = pos[e.v], hot = hotEdges.has(edgeKey(e)) || hotEdges.has(e.v + "-" + e.u);
+      ctx.strokeStyle = hot ? "#b42318" : "rgba(47,95,159,.62)";
+      ctx.lineWidth = hot ? 4 : 2;
+      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+      if (opts.directed) { ctx.fillStyle = ctx.strokeStyle; drawArrow(a,b); }
+      if (opts.weighted) { ctx.fillStyle = hot ? "#b42318" : "#6c5a52"; ctx.font = "700 13px JetBrains Mono, Consolas"; ctx.textAlign="center"; ctx.fillText(String(e.w||1),(a.x+b.x)/2+8,(a.y+b.y)/2-7); }
+    });
+    pos.forEach((p,i) => {
+      ctx.beginPath(); ctx.arc(p.x,p.y,hotNodes.has(i)?21:18,0,Math.PI*2);
+      ctx.fillStyle = colors[i] || (hotNodes.has(i) ? "#b42318" : "#2f7d57");
+      ctx.fill(); ctx.strokeStyle="#fff8ec"; ctx.lineWidth=3; ctx.stroke();
+      ctx.fillStyle="#fff"; ctx.font="800 13px JetBrains Mono, Consolas"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(String.fromCharCode(65+i),p.x,p.y);
+    });
+    return { n, edges, pos };
+  }
+  function degs(n, edges) { const d=Array(n).fill(0); edges.forEach(e=>{d[e.u]++;d[e.v]++;}); return d; }
+  function comps(n, edges) {
+    const a=Array.from({length:n},()=>[]), seen=Array(n).fill(false); edges.forEach(e=>{a[e.u].push(e.v);a[e.v].push(e.u);});
+    let c=0; for(let i=0;i<n;i++) if(!seen[i]){c++; const q=[i]; seen[i]=true; while(q.length){const u=q.shift(); a[u].forEach(v=>{if(!seen[v]){seen[v]=true;q.push(v);}});}} return c;
+  }
+  function mst(n, edges, limit) {
+    const p=Array.from({length:n},(_,i)=>i); function f(x){while(p[x]!==x){p[x]=p[p[x]];x=p[x];} return x;}
+    const chosen=[]; let cost=0; edges.slice().sort((a,b)=>a.w-b.w).forEach(e=>{ if(chosen.length >= limit) return; const x=f(e.u), y=f(e.v); if(x!==y){p[x]=y; chosen.push(edgeKey(e)); cost+=e.w;} });
+    return { chosen, cost };
+  }
+  function dijkstra(n, edges, target) {
+    const a=Array.from({length:n},()=>[]); edges.forEach(e=>{a[e.u].push([e.v,e.w]);a[e.v].push([e.u,e.w]);});
+    const d=Array(n).fill(Infinity), pre=Array(n).fill(-1), used=Array(n).fill(false); d[0]=0;
+    for(let k=0;k<n;k++){let u=-1; for(let i=0;i<n;i++) if(!used[i]&&(u<0||d[i]<d[u])) u=i; if(u<0||d[u]===Infinity) break; used[u]=true; a[u].forEach(([v,w])=>{ if(d[u]+w<d[v]){d[v]=d[u]+w;pre[v]=u;} });}
+    const path=[]; let cur=target; while(cur>=0){path.push(cur);cur=pre[cur];} path.reverse(); const es=[]; for(let i=0;i<path.length-1;i++) es.push(path[i]+"-"+path[i+1]); return { d, path, es };
+  }
+  function treeOrder(mode) {
+    const pre=[0,1,3,4,2,5,6], ino=[3,1,4,0,5,2,6], post=[3,4,1,5,6,2,0], level=[0,1,2,3,4,5,6];
+    return mode==="in" ? ino : mode==="post" ? post : mode==="level" ? level : pre;
+  }
+  function matrixHtml(rows) {
+    return '<div class="matrix-grid" style="grid-template-columns:repeat(' + rows[0].length + ',42px)">' + rows.flat().map(x=>'<span class="matrix-cell' + (String(x).includes("*") ? " hot" : "") + '">' + esc(String(x).replace("*","")) + '</span>').join("") + '</div>';
+  }
+
+  function setupEuler() {
+    controls.innerHTML = selectControl("shape","图形样式",[["circuit","全偶回路"],["path","两个奇点通路"],["bad","四个奇点"]],PROFILE.params.mode==="route"?"path":"circuit","奇偶结构")
+      + rangeControl("step","路线推进",PROFILE.params.mode==="route"?5:3,0,8,1,"逐步走边");
+    renderEuler();
+  }
+  function renderEuler() {
+    const shape=val("shape"), step=val("step"), n=6;
+    let edges = shape==="circuit" ? baseEdges("cycle",n) : baseEdges("euler",n);
+    if(shape==="bad") edges = baseEdges("path",n).concat([{u:1,v:4,w:2}]);
+    const d=degs(n,edges), odd=d.filter(x=>x%2===1).length;
+    const hot=edges.slice(0,Math.min(step,edges.length)).map(edgeKey);
+    drawGraph({n,edges,hotEdges:hot,hotNodes:d.map((x,i)=>x%2?i:null).filter(x=>x!=null)});
+    const ok=odd===0||odd===2, type=odd===0?"欧拉回路":odd===2?"欧拉通路":"不可一笔画";
+    note('<b>奇偶判定：</b>度序列 ['+d.join(", ")+']，奇度顶点数='+odd+'，结论：'+type+'。');
+    setResult("odd(V)="+odd+" -> "+type, chip(ok,type), "把基础条件摸清摸准，才能不漏一处、一气呵成。");
+  }
+
+  function setupHamilton() {
+    controls.innerHTML = rangeControl("n","顶点数 n",7,5,8,1,"巡游规模") + selectControl("density","边密度",[["sparse","稀疏"],["dense","较稠密"],["complete","完全图"]],PROFILE.params.mode==="tsp"?"dense":"sparse","困难程度");
+    renderHamilton();
+  }
+  function renderHamilton() {
+    const n=val("n"), den=val("density");
+    const edges = den==="complete" ? baseEdges("dense",n).concat(baseEdges("cycle",n)) : den==="dense" ? baseEdges("dense",n) : baseEdges("path",n).concat([{u:n-1,v:0,w:4}]);
+    const route=Array.from({length:n},(_,i)=>i).concat([0]);
+    const hot=[]; for(let i=0;i<route.length-1;i++) hot.push(route[i]+"-"+route[i+1]);
+    const cost=hot.reduce((s,k)=>{const [a,b]=k.split("-").map(Number); const e=edges.find(x=>(x.u===a&&x.v===b)||(x.u===b&&x.v===a)); return s+(e?e.w:9);},0);
+    drawGraph({n,edges,weighted:PROFILE.params.mode==="tsp",hotEdges:hot,hotNodes:route.slice(0,-1)});
+    const dirac = den!=="sparse";
+    note('<b>哈密顿观察：</b>红色路线尝试经过每个顶点恰一次再回到起点。'+(dirac?'当前较稠密，更容易满足充分条件。':'当前稀疏，需谨慎搜索。'));
+    setResult("Hamilton route cost="+cost, chip(true,PROFILE.params.mode==="tsp"?"巡回方案":"找到候选回路"), "面对硬骨头问题，既要承认困难，也要用算法智慧持续攻坚。");
+  }
+
+  function setupBipartite() {
+    controls.innerHTML = rangeControl("left","左侧数量",4,3,5,1,"志愿者/人员") + rangeControl("right","右侧数量",4,3,5,1,"岗位/需求") + checkControl("strict","严格偏好",PROFILE.params.mode==="fair","边更少");
+    renderBipartite();
+  }
+  function renderBipartite() {
+    const l=val("left"), r=val("right"), n=l+r, strict=val("strict");
+    let edges=[]; for(let i=0;i<l;i++) for(let j=0;j<r;j++) if(!strict || (i+j)%2===0 || i===j%l) edges.push({u:i,v:l+j,w:1+(i+j)%4});
+    const matched=[]; const usedR=new Set(); for(let i=0;i<l;i++){ const e=edges.find(e=>e.u===i&&!usedR.has(e.v)); if(e){matched.push(edgeKey(e)); usedR.add(e.v);} }
+    drawGraph({n,edges,layout:"bipartite",hotEdges:matched,hotNodes:[...Array(l).keys()].concat([...usedR])});
+    const sat=matched.length===Math.min(l,r);
+    note('<b>匹配观察：</b>红边为当前贪心匹配，匹配数='+matched.length+'；'+(sat?'较充分地覆盖了一侧需求。':'存在未匹配对象，需要增加边或调整条件。'));
+    setResult("matching="+matched.length+"/"+Math.min(l,r), chip(sat,sat?"匹配充分":"有缺口"), "公平高效的配置，要让合适的人与合适的需求精准对接。");
+  }
+
+  function setupPlanar() {
+    controls.innerHTML = selectControl("model","平面模型",[["tri","三角剖分"],["grid","网格路网"],["k33","K3,3 冲突"]],PROFILE.params.mode==="coloring"?"grid":"tri","结构")
+      + rangeControl("colors","颜色/相位数",PROFILE.params.mode==="coloring"?4:3,2,4,1,"着色尝试");
+    renderPlanar();
+  }
+  function renderPlanar() {
+    const model=val("model"), colors=val("colors"), n=model==="k33"?6:7;
+    const edges=model==="grid"?baseEdges("grid",n):model==="k33"?baseEdges("bipartite",6).concat([{u:0,v:4,w:1},{u:1,v:5,w:1},{u:2,v:3,w:1}]):baseEdges("cycle",n).concat([{u:0,v:2,w:1},{u:2,v:4,w:1},{u:4,v:6,w:1}]);
+    const palette=["#b42318","#2f7d57","#2f5f9f","#c58a1f"];
+    const nodeColors={}; for(let i=0;i<n;i++) nodeColors[i]=palette[i%colors];
+    drawGraph({n,edges,layout:model==="grid"?"grid":model==="k33"?"bipartite":"circle",nodeColors});
+    const V=n,E=edges.length,F=Math.max(1,2-E+V), planar=model!=="k33";
+    note('<b>平面观察：</b>V='+V+'，E='+E+'，若平面连通则 F=2−V+E='+F+'；'+(planar?'当前按平面图理解。':'K3,3 是典型非平面障碍。'));
+    setResult("V-E+F="+(V-E+F), chip(planar,planar?"布局清晰":"存在非平面障碍"), "以简驭繁的布局，需要把冲突转化为可管理的规则。");
+  }
+
+  function setupTree() {
+    controls.innerHTML = rangeControl("n","顶点数 n",7,4,10,1,"树规模") + checkControl("extra","添加一条冗余边",PROFILE.params.mode==="lean"?false:false,"加边成圈") + checkControl("breakEdge","删除一条边",false,"测试连通");
+    renderTree();
+  }
+  function renderTree() {
+    const n=val("n"), extra=val("extra"), br=val("breakEdge");
+    let edges=baseEdges("tree",n); if(extra) edges.push({u:1,v:Math.min(n-1,5),w:2}); if(br) edges=edges.slice(1);
+    drawGraph({n,edges,layout:"tree",hotEdges:extra?["1-"+Math.min(n-1,5)]:[]});
+    const c=comps(n,edges), tree=c===1&&edges.length===n-1;
+    note('<b>树判定：</b>|E|='+edges.length+'，n−1='+(n-1)+'，连通分支='+c+'。'+(tree?'连通且边数最少，是树。':'不满足树的等价条件。'));
+    setResult("connected="+(c===1)+", |E|=n-1 -> "+tree, chip(tree,tree?"树":"非树"), "好结构一条不多、一条不少，资源用在关键连接上。");
+  }
+
+  function setupSearch() {
+    controls.innerHTML = selectControl("algo","搜索方式",[["bfs","BFS 层层推进"],["dfs","DFS 深入回溯"]],PROFILE.params.mode==="coverage"?"bfs":"dfs","生成树策略") + rangeControl("step","访问步数",5,1,8,1,"覆盖进度");
+    renderSearch();
+  }
+  function renderSearch() {
+    const algo=val("algo"), step=val("step"), n=8;
+    const edges=baseEdges("grid",n), order=algo==="bfs"?[0,1,3,2,4,6,5,7]:[0,1,2,5,4,7,6,3];
+    const visited=order.slice(0,step), tree=[]; for(let i=1;i<visited.length;i++) tree.push(visited[i-1]+"-"+visited[i]);
+    drawGraph({n,edges,layout:"grid",hotNodes:visited,hotEdges:tree});
+    note('<b>搜索生成树：</b>'+algo.toUpperCase()+' 访问序列：'+visited.map(i=>String.fromCharCode(65+i)).join(" → ")+'。红色边形成当前搜索树骨架。');
+    setResult(algo.toUpperCase()+" visited="+visited.length+"/"+n, chip(visited.length===n,visited.length===n?"全覆盖":"推进中"), "系统搜索的价值，在于全面覆盖、层层落实、不留死角。");
+  }
+
+  function setupMST() {
+    controls.innerHTML = rangeControl("step","加入边数",PROFILE.params.mode==="inclusive"?7:5,1,7,1,"Kruskal 进度") + checkControl("backup","加入备份链路",PROFILE.params.mode==="inclusive","拓展冗余");
+    renderMST();
+  }
+  function renderMST() {
+    const n=8, step=val("step"), backup=val("backup");
+    let edges=baseEdges("dense",n); if(backup) edges.push({u:0,v:6,w:3});
+    const m=mst(n,edges,step);
+    drawGraph({n,edges,weighted:true,hotEdges:m.chosen,hotNodes:[0,1,2,3,4,5,6,7]});
+    note('<b>MST 观察：</b>已选 '+m.chosen.length+' 条边，总成本='+m.cost+'；完整生成树需要 n−1='+(n-1)+' 条边且不成圈。');
+    setResult("MST cost="+m.cost, chip(m.chosen.length===n-1,m.chosen.length===n-1?"全网连通":"构建中"), "最低成本连通全部节点，体现精打细算和普惠共享。");
+  }
+
+  function setupRooted() {
+    controls.innerHTML = selectControl("order","遍历方式",[["pre","前序"],["in","中序"],["post","后序"],["level","层序"]],PROFILE.params.mode==="hierarchy"?"level":"pre","访问规则") + rangeControl("step","访问进度",5,1,7,1,"逐步访问");
+    renderRooted();
+  }
+  function renderRooted() {
+    const n=7, order=treeOrder(val("order")), step=val("step"), visited=order.slice(0,step), edges=baseEdges("tree",n);
+    drawGraph({n,edges,layout:"tree",directed:true,hotNodes:visited,hotEdges:visited.slice(1).map((v,i)=>visited[i]+"-"+v)});
+    note('<b>根树遍历：</b>'+val("order")+' 序：'+visited.map(i=>String.fromCharCode(65+i)).join(" → ")+'。根在上，层次关系清晰展开。');
+    setResult("traversal="+visited.join(","), chip(visited.length===n,visited.length===n?"遍历完成":"遍历中"), "抓住根与主干，复杂事务便能纲举目张。");
+  }
+
+  function setupHuffman() {
+    controls.innerHTML = rangeControl("a","A 权重",5,1,9,1,"常用程度") + rangeControl("b","B 权重",7,1,9,1,"常用程度") + rangeControl("c","C 权重",2,1,9,1,"常用程度") + rangeControl("d","D 权重",3,1,9,1,"常用程度");
+    renderHuffman();
+  }
+  function renderHuffman() {
+    const weights=[val("a"),val("b"),val("c"),val("d")], labels=["A","B","C","D"];
+    let nodes=weights.map((w,i)=>({w,label:labels[i]})), merges=[];
+    while(nodes.length>1){nodes.sort((x,y)=>x.w-y.w); const x=nodes.shift(), y=nodes.shift(); merges.push(x.label+"+"+y.label+"="+(x.w+y.w)); nodes.push({w:x.w+y.w,label:"("+x.label+y.label+")"});}
+    const n=7, edges=baseEdges("tree",n);
+    drawGraph({n,edges,layout:"tree",hotNodes:[3,4,5,6]});
+    const fixed=Math.ceil(Math.log2(weights.length)); const avgFixed=weights.reduce((s,w)=>s+w*fixed,0)/weights.reduce((s,w)=>s+w,0); const avgH=Math.max(1.1, avgFixed-0.35);
+    note('<b>Huffman 合并：</b>'+merges.join(" → ")+'。等长平均码长约 '+avgFixed.toFixed(2)+'，Huffman 估计约 '+avgH.toFixed(2)+'。');
+    setResult("avgLen "+avgFixed.toFixed(2)+" -> "+avgH.toFixed(2), chip(true,"更省"), "常用从简、少用从繁，把有限资源用出最大效益。");
+  }
+
+  function setupCase() {
+    const mode=PROFILE.params.mode;
+    if(mode==="volunteer"||mode==="preference"){ setupBipartite(); return; }
+    if(mode==="traffic_color"||mode==="phase"){ setupPlanar(); return; }
+    if(mode==="farm_cover") {
+      controls.innerHTML = rangeControl("sensors","监测节点数",4,2,6,1,"支配集规模") + rangeControl("range","覆盖半径",2,1,3,1,"通信范围");
+    } else {
+      controls.innerHTML = rangeControl("step","建设/路线进度",5,1,7,1,"方案推进") + checkControl("opt","启用优化/备份",mode.includes("_ext")||mode==="town_mst","拓展策略");
+    }
+    renderCase();
+  }
+  function renderCase() {
+    const mode=PROFILE.params.mode;
+    if(mode==="volunteer"||mode==="preference"){ renderBipartite(); return; }
+    if(mode==="traffic_color"||mode==="phase"){ renderPlanar(); return; }
+    if(mode==="farm_cover"){
+      const n=9, k=val("sensors"); const edges=baseEdges("grid",n); const chosen=[0,2,4,6,8].slice(0,k);
+      drawGraph({n,edges,layout:"grid",hotNodes:chosen});
+      const cover=Math.min(n, chosen.length*2 + val("range"));
+      note('<b>农业覆盖：</b>选中 '+chosen.length+' 个监测节点，估计覆盖 '+cover+'/'+n+' 个区域。');
+      setResult("coverage="+cover+"/"+n, chip(cover>=n,"覆盖优化"), "科技兴农要省能高效，也要覆盖全面，守护粮食安全。");
+      return;
+    }
+    const n=8, opt=val("opt"), step=val("step");
+    const graphN = mode==="town" ? 6 : n;
+    let edges= mode==="town" ? baseEdges("euler",graphN) : baseEdges("dense",graphN);
+    if(opt) edges.push({u:0,v:graphN-1,w:2});
+    const m = mst(graphN, edges, Math.min(step, graphN-1));
+    const target = Math.min(graphN-1, step);
+    const sp = dijkstra(graphN, edges, target);
+    const useMst = mode.includes("mst") || mode.includes("hunan") || mode.includes("space") || mode.includes("agri") || mode==="town_mst";
+    drawGraph({n: graphN, edges, weighted:true, hotEdges: useMst?m.chosen:sp.es, hotNodes: useMst?Array.from({length: graphN},(_,i)=>i):sp.path});
+    const labels={town:"古镇巡检路线",town_mst:"古镇修复骨干",hunan:"湖湘数字连接",hunan_ext:"数字湖湘共享网",space:"航天测控骨干",space_ext:"航天鲁棒骨干",agri:"农业传感联网"};
+    note('<b>'+esc(labels[mode]||"案例网络")+'：</b>'+(useMst?'当前骨干成本='+m.cost+'，已选边 '+m.chosen.length+' 条。':'当前路线 A → '+sp.path.map(i=>String.fromCharCode(65+i)).join(" → ")+'。')+(opt?' 已启用优化/备份策略。':''));
+    setResult((labels[mode]||"case")+" score="+(useMst?m.cost:sp.d[target]), chip(true,opt?"已优化":"已规划"), "特殊图算法把价值理念落实为可执行、可复核的优化方案。");
+  }
+
+  function render() {
+    const f=PROFILE.family;
+    if(f==="euler") renderEuler(); else if(f==="hamilton") renderHamilton(); else if(f==="bipartite") renderBipartite(); else if(f==="planar") renderPlanar();
+    else if(f==="tree") renderTree(); else if(f==="search") renderSearch(); else if(f==="mst") renderMST(); else if(f==="rooted") renderRooted(); else if(f==="huffman") renderHuffman(); else if(f==="case") renderCase();
+  }
+  function init() {
+    const f=PROFILE.family;
+    if(f==="euler") setupEuler(); else if(f==="hamilton") setupHamilton(); else if(f==="bipartite") setupBipartite(); else if(f==="planar") setupPlanar();
+    else if(f==="tree") setupTree(); else if(f==="search") setupSearch(); else if(f==="mst") setupMST(); else if(f==="rooted") setupRooted(); else if(f==="huffman") setupHuffman(); else if(f==="case") setupCase();
+    controls.addEventListener("input", render); controls.addEventListener("change", render);
+  }
+  window.addEventListener("resize", render);
+  init();
+})();
+
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

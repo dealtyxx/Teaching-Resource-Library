@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>权限与调度 · 拓展层 — RBAC 与拓扑排序</title>
+  <meta name="description" content="第四章 特殊关系 4.10 官职排序 拓展层：偏序迁移到权限模型与任务调度">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{
+  --ink:#251713; --muted:#6c5a52; --paper:#fff8ec; --card:rgba(255,253,246,0.92);
+  --line:rgba(116,55,31,0.18); --red:#b42318; --red-2:#de5b3d; --gold:#c58a1f;
+  --green:#2f7d57; --blue:#2f5f9f; --amber:#f0a202;
+  --shadow:0 18px 50px rgba(69,31,15,0.14);
+}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;
+  background:radial-gradient(circle at 16% 12%, rgba(222,91,61,.18), transparent 28%),radial-gradient(circle at 82% 8%, rgba(47,95,159,.14), transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(320px,380px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}
+.dot.red{background:#ff5f56;} .dot.yellow{background:#ffbd2e;} .dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}
+.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.tab-nav{display:flex;flex-direction:column;gap:6px;}
+.tab-btn{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);color:#5b4136;cursor:pointer;font:inherit;font-weight:700;font-size:14px;transition:all .2s;text-align:left;}
+.tab-btn:hover{background:rgba(180,35,24,.08);color:var(--red);}
+.tab-btn.active{background:var(--red);color:#fff;border-color:var(--red);box-shadow:0 6px 16px rgba(180,35,24,.25);}
+.tab-btn .ico{font-size:18px;}
+.sidebar-dyn{display:grid;gap:10px;}
+.control-group{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
+.control-group>label{display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:8px;}
+.control-group select{width:100%;min-height:36px;border-radius:8px;border:1px solid rgba(116,55,31,.22);background:#fffaf2;color:var(--ink);padding:0 10px;font:inherit;}
+.mini-info{font-size:13px;color:#5b4136;line-height:1.7;}
+.mini-info strong{color:var(--red);}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:12px;}
+.kg-step-grid{display:grid;gap:7px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:9px;padding:9px 10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.84rem;}
+.kg-step span{display:block;font-size:.74rem;color:var(--muted);margin-top:2px;}
+.kg-feedback{margin-top:9px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.83rem;color:#7a3216;line-height:1.75;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px;}
+.kg-token{padding:4px 9px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.72rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;}
+.action-row{display:flex;gap:8px;}
+.action-btn{flex:1;padding:10px 12px;border-radius:8px;border:none;background:var(--red);color:#fff;font:inherit;font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(180,35,24,.25);transition:all .2s;}
+.action-btn:hover{background:#8d1a12;} .action-btn:disabled{opacity:.45;cursor:not-allowed;}
+.action-btn.ghost{flex:0 0 auto;background:rgba(255,255,255,.7);color:var(--red);border:1px solid var(--red);box-shadow:none;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);} .mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.tab-content{display:none;flex-direction:column;flex:1;} .tab-content.active{display:flex;animation:fade .3s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}
+.pane-sub{color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 10px;}
+.kg-box{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,250,239,.7));padding:10px;display:flex;align-items:center;}
+.lg{width:100%;height:auto;display:block;}
+.lg text{font-family:"Noto Serif SC",serif;font-weight:700;}
+.panel-card{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;margin-top:12px;}
+.panel-card h3{margin:0 0 8px;color:var(--red);font-size:.98rem;}
+.perm-list{display:flex;flex-wrap:wrap;gap:6px;}
+.perm{display:inline-block;padding:3px 11px;border-radius:12px;font-size:.8rem;font-weight:700;}
+.perm.own{background:#d63b1d;color:#fff;} .perm.inh{background:rgba(42,157,143,.18);color:#1c7a6e;}
+.order-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.order-chip{padding:5px 12px;border-radius:8px;background:rgba(47,125,87,.14);color:#1c7a6e;font-weight:700;font-size:.84rem;border:1px solid rgba(47,125,87,.3);}
+.order-arrow{color:var(--gold);font-weight:800;}
+.prop-card{border-radius:10px;border:1px solid var(--line);background:rgba(255,253,246,.7);padding:13px 15px;margin:9px 0;}
+.prop-card .ph{display:flex;align-items:center;gap:8px;font-weight:800;color:var(--green);margin-bottom:5px;}
+.prop-card .pf{font-family:"JetBrains Mono",monospace;font-size:.86rem;color:var(--blue);background:rgba(255,250,242,.8);padding:7px 9px;border-radius:6px;margin:5px 0;}
+.prop-card p{margin:4px 0 0;font-size:13px;color:#5b4136;line-height:1.6;}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:13px 15px;margin-top:12px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}
+.insight-box p{margin:0;font-size:13.5px;line-height:1.7;color:#4e362d;}
+.badges{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px;}
+.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){
+  body{overflow:auto;}
+  .app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}
+  .side-panel,.glass-pane{max-height:none;overflow:visible;}
+}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">拓展层</span></h1>
+        <p class="subtitle">权限与调度 · RBAC 与拓扑排序</p>
+      </div>
+      <p class="intro">把官阶偏序迁移到工程：RBAC 用偏序表达角色继承，拓扑排序为有依赖的任务排出可行执行序。</p>
+
+      <div class="value-panel">
+        <h3>制度智慧 · 系统观念</h3>
+        <p>『权责分明、令行禁止』的层级偏序，正是现代权限模型与工程调度的数学内核——统分结合、有序高效。</p>
+        <div class="dim-list"><span>制度智慧</span><span>系统观念</span><span>守正创新</span></div>
+      </div>
+
+      <nav class="tab-nav" id="tabNav">
+        <button class="tab-btn active" data-tab="tab1"><span class="ico">🔐</span><span>RBAC 角色继承</span></button>
+        <button class="tab-btn" data-tab="tab2"><span class="ico">🗂️</span><span>任务调度（拓扑排序）</span></button>
+        <button class="tab-btn" data-tab="tab3"><span class="ico">📐</span><span>偏序性质验证</span></button>
+      </nav>
+
+      <div class="sidebar-dyn" id="sidebarDyn"></div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>点一步、看反馈、看公式项与图同步高亮，验证偏序在权限模型与任务调度中的应用。</span>
+        <div class="visual-badge">RBAC + 拓扑排序</div>
+      </section>
+
+      <!-- Tab1 RBAC -->
+      <div class="tab-content active" id="tab1">
+        <h2 class="pane-title">🔐 RBAC 角色继承（偏序的上闭包）</h2>
+        <p class="pane-sub">高级角色继承所有下级角色的权限。选一个角色，其<b>有效权限 = 所有 ≤ 它的角色权限之并</b>（传递闭包）。</p>
+        <div class="kg-box"><svg id="roleSvg" class="lg" viewBox="0 0 460 360" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <div class="panel-card"><h3 id="permTitle">有效权限</h3><div class="perm-list" id="permList"></div></div>
+        <div class="insight-box"><div class="insight-title">🔐 有权必有责</div>
+          <p>角色继承用偏序的<b>传递性</b>表达：管理员 ≥ 编辑 ≥ 普通用户 ⟹ 管理员拥有它们的全部权限。权限随层级累积，也意味着责任随层级加重。</p></div>
+      </div>
+
+      <!-- Tab2 Topo -->
+      <div class="tab-content" id="tab2">
+        <h2 class="pane-title">🗂️ 任务调度 · 拓扑排序</h2>
+        <p class="pane-sub">有依赖的任务构成偏序（DAG）。点「下一步」每次排出一个『前置全部完成』的任务，得到可行执行序。</p>
+        <div class="kg-box"><svg id="taskSvg" class="lg" viewBox="0 0 640 320" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <div class="panel-card"><h3>执行顺序（拓扑序）</h3><div class="order-row" id="orderRow"><span class="mini-info">点「下一步」开始调度。</span></div></div>
+        <div class="insight-box"><div class="insight-title">🗂️ 令行禁止、有序高效</div>
+          <p>拓扑排序保证：任何任务都在其全部前置完成后才执行。偏序约束下仍可能有多种合法顺序——这正是工程管理『统筹兼顾、有序推进』的数学保证。</p></div>
+      </div>
+
+      <!-- Tab3 Properties -->
+      <div class="tab-content" id="tab3">
+        <h2 class="pane-title">📐 偏序关系三性质验证</h2>
+        <p class="pane-sub">以 RBAC 角色继承关系为例，逐条验证偏序（≤）必须满足的三条性质。</p>
+        <div class="prop-card"><div class="ph">✓ 自反性 Reflexive</div><div class="pf">∀a: a ≤ a</div><p>每个角色都继承自身的全部权限——管理员 ≤ 管理员，恒成立。</p></div>
+        <div class="prop-card"><div class="ph">✓ 反对称性 Antisymmetric</div><div class="pf">a ≤ b ∧ b ≤ a ⟹ a = b</div><p>角色继承图<b>无环</b>：若编辑 ≤ 管理员且管理员 ≤ 编辑，则两者必是同一角色——保证等级不会循环、权限边界清晰。</p></div>
+        <div class="prop-card"><div class="ph">✓ 传递性 Transitive</div><div class="pf">a ≤ b ∧ b ≤ c ⟹ a ≤ c</div><p>普通用户 ≤ 编辑 ≤ 管理员 ⟹ 普通用户 ≤ 管理员。权限沿层级逐级累积，这正是 RBAC『角色继承』与拓扑排序得以成立的根基。</p></div>
+        <div class="insight-box"><div class="insight-title">📐 三性质=偏序的根基</div>
+          <p>自反、反对称、传递缺一不可：少了反对称会出现『循环上级』，少了传递则继承与调度无法跨级推导。古代官制的森严等级，与现代系统的权限/调度，共享同一套偏序公理。</p>
+          <div class="badges"><span class="badge">文化自信</span><span class="badge">制度智慧</span><span class="badge">系统观念</span></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+    <div>版权所有 · 项目总负责人：谢鑫</div>
+  </footer>
+
+  <script>
+    window.SECTION_META = {"layers": [{"name": "等级=偏序", "concepts": "职位节点 / 上下级偏序 / 可比·平级", "task": "用偏序刻画官阶等级。", "page": "official_hierarchy-basic.html"}, {"name": "哈斯图与极值", "concepts": "哈斯图 / 极大元=顶层 / 上界=共同上级", "task": "用哈斯图找顶层与共同上级。", "page": "official_hierarchy.html"}, {"name": "权限与调度", "concepts": "RBAC角色继承 / 拓扑排序调度", "task": "迁移到权限模型与任务调度。", "page": "official_hierarchy-extend.html"}],
+      "chapter": "第4章 特殊关系与函数", "section": "4.10 官职排序案例 · 拓展层", "title": "权限与调度",
+      "grounding": "本页（拓展层）主题：把层级偏序迁移到工程实践——RBAC 角色继承用偏序的传递性表达高级角色对低级角色权限的继承（上闭包）；有依赖的任务构成偏序（DAG），拓扑排序给出尊重依赖的可行执行序。自反、反对称、传递三性质是其共同根基。",
+      "steps": [
+        {"name": "情境引入", "desc": "权限系统与工程调度，如何用同一套偏序刻画？"},
+        {"name": "对象抽取", "desc": "角色/任务为元素，继承/依赖为偏序关系。"},
+        {"name": "结构建模", "desc": "用偏序的传递性表达角色继承；用 DAG 表达任务依赖。"},
+        {"name": "推理求解", "desc": "求角色的有效权限（上闭包）；用拓扑排序求可行执行序。"},
+        {"name": "程序验证", "desc": "逐步运行，验证三性质与算法正确性。"},
+        {"name": "迁移反思", "desc": "迁移到操作系统权限、项目管理、编译依赖。"}
+      ],
+      "ideology": {"title": "传统智慧 · 层级有序", "text": "古代官制以严密的等级与考核维系治理，蕴含『权责分明、令行禁止』的制度智慧。把这份偏序智慧迁移到 RBAC 权限模型与拓扑排序调度，既见中华制度文明的现代回响，也彰显系统观念、统分结合的治理智慧。", "dims": ["文化自信", "制度智慧", "系统观念"], "quote": "明分职，序事业——清晰的层级偏序，是古今组织高效运转的共同基石。"},
+      "reflect": ["RBAC 角色继承为何要求关系无环（反对称）？", "同一组任务依赖，拓扑序为何可能不唯一？这对工程意味着什么？"],
+      "transfer": ["操作系统/数据库的 RBAC 用偏序表达角色继承；编译系统、项目管理用拓扑排序解析依赖。"]
+    };
+  </script>
+
+  <script>
+  (function(){
+    "use strict";
+    var $=function(id){return document.getElementById(id);};
+    var currentTab='tab1';
+
+    // ===== Tab1 RBAC =====
+    var ROLES={
+      '访客':{x:230,y:310,perm:'浏览公开内容'},
+      '普通用户':{x:230,y:225,perm:'发表评论'},
+      '编辑':{x:130,y:140,perm:'编辑内容'},
+      '审计员':{x:330,y:140,perm:'查看审计日志'},
+      '系统管理员':{x:230,y:55,perm:'系统配置'}
+    };
+    var RCOVER=[['访客','普通用户'],['普通用户','编辑'],['普通用户','审计员'],['编辑','系统管理员'],['审计员','系统管理员']];
+    var RALL=Object.keys(ROLES),selRole='系统管理员';
+    function rleq(a,b){if(a===b)return true;var seen={},q=[a];while(q.length){var u=q.shift();for(var i=0;i<RCOVER.length;i++){if(RCOVER[i][0]===u){var v=RCOVER[i][1];if(v===b)return true;if(!seen[v]){seen[v]=1;q.push(v);}}}}return false;}
+    function rcolor(id){return id==='系统管理员'?'#b42318':(id==='审计员'?'#2f5f9f':'#2a9d8f');}
+    function rfindPath(a,b){var prev={},q=[a],seen={};seen[a]=1;while(q.length){var u=q.shift();if(u===b)break;RCOVER.forEach(function(e){if(e[0]===u&&!seen[e[1]]){seen[e[1]]=1;prev[e[1]]=u;q.push(e[1]);}});}var p=[b],c=b;while(c!==a&&prev[c]!==undefined){c=prev[c];p.unshift(c);}return p[0]===a?p:[];}
+    function drawRoles(){
+      var R=selRole;var inh={};RALL.forEach(function(x){if(rleq(x,R))inh[x]=1;}); // x ≤ R
+      var hotE={};RALL.forEach(function(x){if(inh[x]&&x!==R){var p=rfindPath(x,R);for(var i=0;i<p.length-1;i++)hotE[p[i]+'>'+p[i+1]]=1;}});
+      var svg='';
+      RCOVER.forEach(function(e){var on=hotE[e[0]+'>'+e[1]];var p1=ROLES[e[0]],p2=ROLES[e[1]];svg+='<line x1="'+p1.x+'" y1="'+(p1.y-18)+'" x2="'+p2.x+'" y2="'+(p2.y+18)+'" stroke="'+(on?'#d63b1d':'#c2b2a8')+'" stroke-width="'+(on?3.4:1.6)+'" opacity="'+(on?1:0.65)+'"/>';});
+      RALL.forEach(function(id){var p=ROLES[id];var isSel=id===R,isInh=inh[id]&&!isSel;var stroke=isSel?'#d63b1d':(isInh?'#1c7a6e':'#fff');var sw=(isSel||isInh)?3.4:2;var op=inh[id]?1:0.4;
+        svg+='<g style="cursor:pointer" data-id="'+id+'"><rect x="'+(p.x-52)+'" y="'+(p.y-18)+'" width="104" height="36" rx="9" fill="'+rcolor(id)+'" stroke="'+stroke+'" stroke-width="'+sw+'" opacity="'+op+'"/><text x="'+p.x+'" y="'+(p.y+5)+'" text-anchor="middle" fill="#fff" font-size="13" opacity="'+op+'">'+id+'</text></g>';
+      });
+      $('roleSvg').innerHTML=svg;
+      $('roleSvg').querySelectorAll('[data-id]').forEach(function(g){g.onclick=function(){selRole=g.dataset.id;renderRBAC();};});
+    }
+    function renderRBAC(){
+      drawRoles();
+      var inh=RALL.filter(function(x){return rleq(x,selRole);});
+      $('permTitle').textContent=selRole+' 的有效权限（共 '+inh.length+' 项）';
+      $('permList').innerHTML=inh.map(function(x){return '<span class="perm '+(x===selRole?'own':'inh')+'">'+ROLES[x].perm+(x===selRole?'（本职）':'（继承自'+x+'）')+'</span>';}).join('');
+      var sd=$('sidebarDyn');var dyn=sd.querySelector('#roleInfo');if(dyn)dyn.innerHTML='当前角色：<strong>'+selRole+'</strong>，有效权限 <strong>'+inh.length+'</strong> 项。';
+    }
+
+    // ===== Tab2 Topo =====
+    var TASKS={
+      'T1 需求分析':{x:60,y:160},'T2 系统设计':{x:200,y:90},'T3 数据准备':{x:200,y:240},
+      'T7 文档':{x:340,y:50},'T4 编码开发':{x:340,y:165},'T5 测试':{x:480,y:165},'T6 上线':{x:600,y:165}
+    };
+    var DEPS=[['T1 需求分析','T2 系统设计'],['T1 需求分析','T3 数据准备'],['T2 系统设计','T4 编码开发'],['T3 数据准备','T4 编码开发'],['T2 系统设计','T7 文档'],['T4 编码开发','T5 测试'],['T5 测试','T6 上线']];
+    var TALL=Object.keys(TASKS),done=[],running=null;
+    function indeg(t){var d=0;DEPS.forEach(function(e){if(e[1]===t&&done.indexOf(e[0])<0)d++;});return d;}
+    function nextTask(){var avail=TALL.filter(function(t){return done.indexOf(t)<0&&indeg(t)===0;});avail.sort();return avail[0]||null;}
+    function drawTasks(){
+      var svg='';
+      DEPS.forEach(function(e){var p1=TASKS[e[0]],p2=TASKS[e[1]];var on=(done.indexOf(e[0])>=0&&(done.indexOf(e[1])>=0||e[1]===running));svg+='<line x1="'+(p1.x+50)+'" y1="'+p1.y+'" x2="'+(p2.x-50)+'" y2="'+p2.y+'" stroke="'+(on?'#1c7a6e':'#c2b2a8')+'" stroke-width="'+(on?3:1.5)+'" opacity="'+(on?1:0.6)+'" marker-end="url(#tar)"/>';});
+      var defs='<defs><marker id="tar" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0,9 3.5,0 7" fill="#bbb"/></marker></defs>';
+      TALL.forEach(function(t){var p=TASKS[t];var isDone=done.indexOf(t)>=0,isRun=t===running,isReady=!isDone&&indeg(t)===0;
+        var fill=isDone?'#2f7d57':(isReady?'#e8a317':'#bfae9f');var stroke=isRun?'#d63b1d':'#fff';var sw=isRun?3.6:2;
+        svg+='<g><rect x="'+(p.x-50)+'" y="'+(p.y-18)+'" width="100" height="36" rx="9" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+sw+'"/><text x="'+p.x+'" y="'+(p.y+5)+'" text-anchor="middle" fill="#fff" font-size="12">'+t+'</text></g>';
+      });
+      $('taskSvg').innerHTML=defs+svg;
+    }
+    function renderTopo(){
+      drawTasks();
+      $('orderRow').innerHTML=done.length?done.map(function(t,i){return '<span class="order-chip">'+(i+1)+'. '+t+'</span>'+(i<done.length-1?'<span class="order-arrow">→</span>':'');}).join(''):'<span class="mini-info">点「下一步」开始调度。</span>';
+      var sd=$('sidebarDyn');var nb=sd.querySelector('#nextBtn');if(nb)nb.disabled=(done.length>=TALL.length);
+    }
+    function stepTopo(){var t=nextTask();if(!t)return;running=t;drawTasks();setTimeout(function(){done.push(t);running=null;renderTopo();var fb=$('sidebarDyn').querySelector('#topoFb');if(fb){fb.innerHTML=done.length>=TALL.length?'✅ 全部 '+TALL.length+' 个任务已排出一个合法拓扑序。前置约束全程满足。':'排出 <b>'+t+'</b>（其前置任务已全部完成，入度为 0）。继续点「下一步」。';}},260);}
+
+    // ===== Tabs =====
+    $('tabNav').querySelectorAll('.tab-btn').forEach(function(b){b.addEventListener('click',function(){switchTab(b.dataset.tab);});});
+    function switchTab(id){currentTab=id;$('tabNav').querySelectorAll('.tab-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tab===id);});document.querySelectorAll('.tab-content').forEach(function(c){c.classList.toggle('active',c.id===id);});updateSidebar(id);}
+    function updateSidebar(id){
+      var sd=$('sidebarDyn');
+      if(id==='tab1'){
+        sd.innerHTML='<div class="control-group"><label>选择角色</label><select id="roleSel">'+RALL.map(function(r){return '<option value="'+r+'"'+(r===selRole?' selected':'')+'>'+r+'</option>';}).join('')+'</select></div>'+
+          '<div class="kg-step-lab"><div class="kg-step-grid"><button class="kg-step active" data-g="pick"><b>1 选角色</b><span>RBAC 偏序元素</span></button><button class="kg-step" data-g="inherit"><b>2 看继承链</b><span>传递闭包：x ≤ 角色</span></button></div><div class="kg-feedback" id="roleFb">高级角色继承所有下级角色权限——这是偏序传递性的工程化。</div><div class="kg-formula-row"><span class="kg-token on" data-t="le">x ≤ R</span><span class="kg-token" data-t="cl">上闭包 / 传递</span></div></div>'+
+          '<div class="control-group"><label>当前</label><div class="mini-info" id="roleInfo"></div></div>';
+        $('roleSel').addEventListener('change',function(e){selRole=e.target.value;renderRBAC();});
+        sd.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){sd.querySelectorAll('.kg-step').forEach(function(x){x.classList.toggle('active',x===b);});sd.querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',(b.dataset.g==='pick'&&t.dataset.t==='le')||(b.dataset.g==='inherit'&&t.dataset.t==='cl'));});$('roleFb').innerHTML=b.dataset.g==='pick'?'选一个角色作为偏序集元素。点图中节点或上方下拉均可。':'有效权限 = 所有 <b>x ≤ 当前角色</b> 的角色权限之并（绿色高亮的继承链）。这就是偏序的<b>上闭包</b>。';};});
+        renderRBAC();
+      } else if(id==='tab2'){
+        sd.innerHTML='<div class="kg-step-lab"><div class="kg-feedback" id="topoFb">点「下一步」每次排出一个入度为 0（前置全部完成）的任务。</div><div class="kg-formula-row"><span class="kg-token on">入度=0 → 可执行</span><span class="kg-token">拓扑序</span></div></div>'+
+          '<div class="control-group"><label>调度控制</label><div class="action-row"><button class="action-btn" id="nextBtn">▶ 下一步</button><button class="action-btn ghost" id="resetTopo">🔄</button></div></div>'+
+          '<div class="control-group"><label>说明</label><div class="mini-info">绿=已完成，黄=就绪（可执行），灰=被前置阻塞。拓扑序可能不唯一。</div></div>';
+        $('nextBtn').addEventListener('click',stepTopo);
+        $('resetTopo').addEventListener('click',function(){done=[];running=null;renderTopo();var fb=$('topoFb');if(fb)fb.innerHTML='点「下一步」每次排出一个入度为 0（前置全部完成）的任务。';});
+        renderTopo();
+      } else {
+        sd.innerHTML='<div class="control-group"><label>偏序公理</label><div class="mini-info">偏序（≤）= 满足<strong>自反、反对称、传递</strong>三性质的二元关系。RBAC 继承与任务依赖都建立在它之上。</div></div>'+
+          '<div class="control-group"><label>对照</label><div class="mini-info">官阶等级、角色继承、任务依赖——三者都是同一套偏序结构在不同场景的体现。</div></div>';
+      }
+    }
+    layoutInit();
+    function layoutInit(){updateSidebar('tab1');}
+  })();
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

@@ -13,6 +13,352 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=Orbitron:wght@400;700&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <style>
+        /* 本页局部修正：仅让左侧栏与中间可视化块融入全页浅色背景。 */
+        .app-container .sidebar {
+            background:
+                linear-gradient(180deg, rgba(255, 252, 245, 0.88), rgba(255, 248, 235, 0.82)) !important;
+            border-right: 1px solid rgba(214, 59, 29, 0.12) !important;
+            box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.58) !important;
+        }
+
+        .app-container .visualizer-stage {
+            background: transparent !important;
+        }
+
+        .app-container .glass-pane {
+            background:
+                radial-gradient(circle at 52% 42%, rgba(255, 180, 0, 0.05), transparent 42%),
+                rgba(255, 252, 245, 0.48) !important;
+            border: 1px solid rgba(214, 59, 29, 0.10) !important;
+            box-shadow: inset 0 0 26px rgba(255, 255, 255, 0.46) !important;
+        }
+
+        .app-container .stars-bg {
+            opacity: 0.08 !important;
+            filter: sepia(1) hue-rotate(335deg) saturate(0.8);
+        }
+
+        .sidebar h1,
+        .sidebar .highlight {
+            color: #d63b1d !important;
+            text-shadow: none !important;
+        }
+
+        .sidebar .subtitle,
+        .sidebar .stat-label,
+        .sidebar .edge-item,
+        .sidebar .info-box p {
+            color: #7f6f65 !important;
+        }
+
+        .sidebar label,
+        .sidebar #statusText,
+        .sidebar .info-box h3 {
+            color: #b8321a !important;
+        }
+
+        .sidebar .info-panel,
+        .sidebar .edge-list-container,
+        .sidebar .info-box {
+            background: rgba(255, 255, 255, 0.54) !important;
+            border-color: rgba(214, 59, 29, 0.12) !important;
+            box-shadow: 0 6px 18px rgba(214, 59, 29, 0.06) !important;
+        }
+
+        .sidebar .stat-item,
+        .sidebar .edge-item {
+            background: rgba(255, 252, 245, 0.68) !important;
+        }
+
+        .sidebar .edge-item.accepted,
+        .sidebar .edge-item.current,
+        .sidebar .edge-item.rejected {
+            color: inherit !important;
+        }
+
+        .graph-title,
+        .legend,
+        .node-popup {
+            background: rgba(255, 252, 245, 0.78) !important;
+            border-color: rgba(214, 59, 29, 0.14) !important;
+            box-shadow: 0 10px 26px rgba(214, 59, 29, 0.08) !important;
+        }
+
+        .graph-title h2 {
+            color: #d63b1d !important;
+            text-shadow: none !important;
+        }
+
+        .graph-title p,
+        .legend-item,
+        .node-popup p {
+            color: #7f6f65 !important;
+        }
+
+        /* Match the basic/extend layer visual language on this advanced page. */
+        body {
+            color: #342018 !important;
+            font-family: "Noto Serif SC", "Microsoft YaHei", serif !important;
+            background:
+                radial-gradient(circle at 16% 16%, rgba(255,180,0,0.16), transparent 26%),
+                radial-gradient(circle at 84% 80%, rgba(214,59,29,0.10), transparent 28%),
+                repeating-linear-gradient(90deg, rgba(255,180,0,0.08) 0 1px, transparent 1px 52px),
+                repeating-linear-gradient(0deg, rgba(214,59,29,0.06) 0 1px, transparent 1px 52px),
+                linear-gradient(160deg, #fffdf5 0%, #fffaec 58%, #fff7e0 100%) !important;
+        }
+
+        .app-container {
+            width: min(1500px, calc(100vw - 42px)) !important;
+            height: calc(100vh - 92px) !important;
+            max-width: none !important;
+            margin: 58px auto 34px !important;
+            background: transparent !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            gap: 18px !important;
+            overflow: visible !important;
+        }
+
+        .app-container .sidebar {
+            width: 370px !important;
+            padding: 18px !important;
+            gap: 14px !important;
+            border: 1px solid rgba(214, 59, 29, 0.16) !important;
+            border-radius: 8px !important;
+            background: rgba(255, 252, 245, 0.86) !important;
+            box-shadow: 0 18px 46px rgba(139, 0, 0, 0.12) !important;
+            backdrop-filter: blur(14px) !important;
+        }
+
+        .sidebar-header {
+            gap: 8px !important;
+        }
+
+        .window-controls {
+            margin-bottom: 4px !important;
+        }
+
+        .sidebar h1 {
+            margin: 4px 0 0 !important;
+            color: #d63b1d !important;
+            font-family: "Ma Shan Zheng", "Noto Serif SC", serif !important;
+            font-size: 2.18rem !important;
+            font-weight: 400 !important;
+            line-height: 1.12 !important;
+            text-transform: none !important;
+            letter-spacing: 0 !important;
+        }
+
+        .sidebar .subtitle {
+            margin: 0 !important;
+            color: #7f6f65 !important;
+            font-size: 0.92rem !important;
+            line-height: 1.55 !important;
+        }
+
+        .controls-wrapper {
+            gap: 14px !important;
+        }
+
+        .control-group {
+            gap: 8px !important;
+        }
+
+        .control-group > label {
+            color: #b8321a !important;
+            font-size: 0.82rem !important;
+            font-weight: 800 !important;
+            text-transform: none !important;
+            letter-spacing: 0 !important;
+        }
+
+        .apple-btn {
+            min-height: 40px !important;
+            border-radius: 8px !important;
+            border: 1px solid rgba(214, 59, 29, 0.18) !important;
+            font-family: "Noto Serif SC", "Microsoft YaHei", serif !important;
+            font-size: 0.92rem !important;
+            font-weight: 900 !important;
+            text-transform: none !important;
+            letter-spacing: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, #df3a1f, #bf2f18) !important;
+            color: #fff !important;
+            border-color: transparent !important;
+        }
+
+        .secondary-btn,
+        .danger-btn {
+            background: rgba(255, 252, 245, 0.72) !important;
+            color: #b8321a !important;
+            border-color: rgba(214, 59, 29, 0.22) !important;
+        }
+
+        .apple-btn:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 8px 18px rgba(214, 59, 29, 0.12) !important;
+        }
+
+        .apple-btn:disabled {
+            opacity: 0.55 !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            background: #d63b1d !important;
+            box-shadow: none !important;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            height: 4px !important;
+            background: rgba(52, 32, 24, 0.18) !important;
+        }
+
+        .sidebar .info-panel,
+        .sidebar .edge-list-container,
+        .sidebar .info-box {
+            border-radius: 8px !important;
+            background: rgba(255, 252, 245, 0.72) !important;
+            border: 1px solid rgba(214, 59, 29, 0.14) !important;
+            box-shadow: none !important;
+        }
+
+        .sidebar .info-panel {
+            padding: 12px !important;
+        }
+
+        #statusText {
+            color: #b8321a !important;
+            font-size: 0.88rem !important;
+            font-weight: 800 !important;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+
+        .sidebar .stat-item {
+            border: 1px solid rgba(214, 59, 29, 0.12) !important;
+            border-radius: 8px !important;
+            background: rgba(255, 255, 255, 0.46) !important;
+        }
+
+        .sidebar .stat-label {
+            color: #9a8176 !important;
+            font-size: 0.78rem !important;
+        }
+
+        .sidebar .stat-value {
+            color: #d63b1d !important;
+            font-family: "JetBrains Mono", monospace !important;
+            font-size: 1.08rem !important;
+        }
+
+        .sidebar .highlight-stat .stat-value {
+            color: #ff9d00 !important;
+        }
+
+        .edge-list-container {
+            max-height: 190px !important;
+        }
+
+        .sidebar .edge-item {
+            margin-bottom: 6px !important;
+            border-left: 3px solid transparent !important;
+            border-radius: 7px !important;
+            background: rgba(255, 255, 255, 0.42) !important;
+            color: #7f6f65 !important;
+            font-size: 0.82rem !important;
+        }
+
+        .sidebar .edge-item.accepted {
+            background: rgba(0, 216, 238, 0.14) !important;
+            border-left-color: #00d8ee !important;
+            color: #07849a !important;
+        }
+
+        .sidebar .edge-item.current {
+            background: rgba(255, 180, 0, 0.16) !important;
+            border-left-color: #ffb400 !important;
+            color: #9b6b00 !important;
+        }
+
+        .sidebar .edge-item.rejected {
+            background: rgba(214, 59, 29, 0.10) !important;
+            border-left-color: #d63b1d !important;
+            color: #b8321a !important;
+        }
+
+        .sidebar .info-box h3 {
+            color: #d63b1d !important;
+            font-family: "Noto Serif SC", "Microsoft YaHei", serif !important;
+            font-size: 0.96rem !important;
+            font-weight: 900 !important;
+        }
+
+        .sidebar .info-box p {
+            color: #7f6f65 !important;
+            font-size: 0.82rem !important;
+            line-height: 1.65 !important;
+        }
+
+        .app-container .visualizer-stage {
+            padding: 0 !important;
+        }
+
+        .app-container .glass-pane {
+            border-radius: 8px !important;
+            background:
+                radial-gradient(circle at 48% 42%, rgba(255, 180, 0, 0.05), transparent 45%),
+                rgba(255, 252, 245, 0.56) !important;
+            border: 1px solid rgba(214, 59, 29, 0.16) !important;
+            box-shadow: 0 18px 46px rgba(139, 0, 0, 0.12) !important;
+        }
+
+        .graph-title {
+            top: 20px !important;
+            left: 20px !important;
+            padding: 14px 18px !important;
+            border-radius: 8px !important;
+            background: rgba(255, 252, 245, 0.82) !important;
+            border: 1px solid rgba(214, 59, 29, 0.14) !important;
+            box-shadow: 0 12px 28px rgba(214, 59, 29, 0.08) !important;
+        }
+
+        .graph-title h2 {
+            margin: 0 !important;
+            color: #d63b1d !important;
+            font-family: "Noto Serif SC", "Microsoft YaHei", serif !important;
+            font-size: 1.45rem !important;
+            font-weight: 900 !important;
+            text-shadow: none !important;
+            letter-spacing: 0 !important;
+        }
+
+        .graph-title p {
+            margin: 4px 0 0 !important;
+            color: #7f6f65 !important;
+            font-size: 0.82rem !important;
+            font-family: "Noto Serif SC", "Microsoft YaHei", serif !important;
+        }
+
+        .legend {
+            top: 20px !important;
+            right: 20px !important;
+            border-radius: 8px !important;
+            background: rgba(255, 252, 245, 0.82) !important;
+            border: 1px solid rgba(214, 59, 29, 0.14) !important;
+            box-shadow: 0 12px 28px rgba(214, 59, 29, 0.08) !important;
+        }
+    </style>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
@@ -40,8 +386,8 @@
                     <span class="dot yellow"></span>
                     <span class="dot green"></span>
                 </div>
-                <h1>航天通信 <span class="highlight">网络优化</span></h1>
-                <p class="subtitle">Aerospace Communication Network Optimization</p>
+                <h1>红色数理 <span class="highlight">进阶层</span></h1>
+                <p class="subtitle">航天测控骨干树 · 网络优化</p>
             </div>
 
             <div class="controls-wrapper">
@@ -158,19 +504,100 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "layers": [
+            {
+                  "name": "测控通信网络",
+                  "concepts": "站·星节点 / 链路成本·时延边",
+                  "task": "把测控网抽象为带权图。",
+                  "page": "aerospace-mst-index-basic.html"
+            },
+            {
+                  "name": "MST 与最短路",
+                  "concepts": "省骨干 / 保时延 / 综合优化",
+                  "task": "在成本与时效间权衡优化网络。",
+                  "page": "aerospace-mst-index.html"
+            },
+            {
+                  "name": "卫星星座",
+                  "concepts": "动态拓扑 / 天地一体网",
+                  "task": "迁移到卫星组网与深空通信。",
+                  "page": "aerospace-mst-index-extend.html"
+            }
+      ],
+      "chapter": "第8章 特殊图",
+      "section": "8.12 航天通信网络案例",
+      "title": "特殊图应用 · 航天通信网络优化",
+      "grounding": "本节主题：用最小生成树/最短路径优化航天测控通信网络——把地面站、中继卫星、航天器抽象为顶点，链路成本/时延为边权，用 MST 构建最省骨干、用最短路径保障时效，体会图论在航天通信中的应用。",
+      "steps": [
+            {
+                  "name": "情境引入",
+                  "desc": "测控站、中继星、飞行器如何组网，既省成本又保时效？"
+            },
+            {
+                  "name": "对象抽取",
+                  "desc": "把站点/卫星抽象为顶点，把链路成本/时延抽象为边权。"
+            },
+            {
+                  "name": "结构建模",
+                  "desc": "用 MST 建骨干、用最短路径保时延，综合优化网络。"
+            },
+            {
+                  "name": "推理求解",
+                  "desc": "求最省骨干与最快链路，权衡成本与时效。"
+            },
+            {
+                  "name": "程序验证",
+                  "desc": "用本页交互优化通信网络，验证连通与时延。"
+            },
+            {
+                  "name": "迁移反思",
+                  "desc": "迁移到卫星星座、深空通信、天地一体网络。"
+            }
+      ],
+      "ideology": {
+            "title": "航天报国 · 自立自强",
+            "text": "从『东方红』到北斗、空间站，中国航天靠自力更生、协同攻关挺进太空。用图论优化测控通信网络，是把关键核心技术牢牢掌握在自己手中的实践，激励青年传承航天精神，为建设航天强国、探索星辰大海贡献力量。",
+            "dims": [
+                  "航天精神",
+                  "自立自强",
+                  "系统观念"
+            ],
+            "quote": "探索浩瀚宇宙是中华民族不懈追求——优化的通信网络，是航天器与祖国之间最可靠的纽带。"
+      },
+      "reflect": [
+            "航天通信既要『省成本』(MST) 又要『低时延』(最短路)，两者目标如何权衡？",
+            "链路会因轨道运动动态变化，静态 MST 如何适应动态拓扑？",
+            "深空通信时延极大、带宽极小，对网络优化提出了什么特殊挑战？"
+      ],
+      "transfer": [
+            "低轨卫星星座（如组网通信）的链路规划正是动态图优化。",
+            {
+                  "t": "天地一体化",
+                  "d": "卫星+地面融合网络如何用分层图模型统一调度？"
+            }
+      ]
+};
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 

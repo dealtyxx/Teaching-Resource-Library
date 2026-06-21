@@ -20,9 +20,14 @@
                 inlineMath: [['$', '$'], ['\\(', '\\)']],
                 displayMath: [['$$', '$$'], ['\\[', '\\]']]
             }
+        ,
+            startup: { typeset: true }
         };
     </script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="system_properties.css" data-page-fix="1">
 </head>
 
 <body>
@@ -45,8 +50,8 @@
     <div class="app-container">
         <header class="main-header">
             <div class="header-content">
-                <h1>红色数理 <span class="highlight">命题推理系统：真理大厦</span></h1>
-                <p class="subtitle">Propositional Inference System: The Architecture of Truth</p>
+                <h1>红色数理 <span class="highlight">进阶层</span></h1>
+                <p class="subtitle">推理系统性质仪表盘 · 命题推理系统：真理大厦</p>
             </div>
             <div class="header-tabs">
                 <button class="tab-btn active" data-tab="reliability" aria-label="可靠性 (Reliability)">可靠性 (Reliability)</button>
@@ -62,7 +67,7 @@
                 <div id="reliability" class="module-section active">
                     <div class="game-header">
                         <h3>🔥 真金不怕火炼 (Gold Test)</h3>
-                        <p>任务：检测并移除逻辑生产线上的"诡辩"处理器，确保输出的真理纯度。</p>
+                        <p>任务：检测并移除逻辑生产线上的“诡辩”处理器，确保输出的真理纯度</p>
                     </div>
                     <div class="game-area" id="reliabilityGame">
                         <!-- Injected by JS -->
@@ -73,7 +78,7 @@
                 <div id="consistency" class="module-section hidden">
                     <div class="game-header">
                         <h3>⚖️ 步调一致 (Unity of Will)</h3>
-                        <p>任务：系统检测到矛盾信号！切断导致冲突的"谣言"线路，恢复系统稳定。</p>
+                        <p>任务：系统检测到矛盾信号！切断导致冲突的"谣言"线路，恢复系统稳定</p>
                     </div>
                     <div class="game-area" id="consistencyGame">
                         <canvas id="consistencyCanvas"></canvas>
@@ -84,7 +89,7 @@
                 <div id="completeness" class="module-section hidden">
                     <div class="game-header">
                         <h3>🌉 全面覆盖 (Full Coverage)</h3>
-                        <p>任务：使用有限的逻辑规则，搭建通往所有"真理岛屿"的桥梁。</p>
+                        <p>任务：使用有限的逻辑规则，搭建通往所有“真理岛屿”的桥梁</p>
                     </div>
                     <div class="game-area" id="completenessGame">
                         <canvas id="completenessCanvas"></canvas>
@@ -95,7 +100,7 @@
                 <div id="godel" class="module-section hidden">
                     <div class="game-header">
                         <h3>🧗 永无止境 (Infinite Climbing)</h3>
-                        <p>任务：真理的高峰没有终点。当系统达到极限时，通过"实践创新"引入新公理。</p>
+                        <p>任务：真理的高峰没有终点。当系统达到极限时，通过"实践创新"引入新公理</p>
                     </div>
                     <div class="game-area" id="godelGame">
                         <div class="tower-container">
@@ -115,7 +120,7 @@
                 <div class="panel-section">
                     <div class="panel-header">
                         <span class="panel-icon">🚩</span>
-                        <h3>思政启示</h3>
+                        <h3>价值启示</h3>
                     </div>
                     <div class="insight-content" id="insightContent">
                         <!-- Dynamic content based on active tab -->
@@ -133,29 +138,77 @@
             </aside>
         </main>
     </div>
-
-    <script src="system_properties.js"></script>
+<script>
+    (function () {
+        var sidebar = document.querySelector('main.main-stage > .sidebar');
+        var header = document.querySelector('.main-header');
+        if (sidebar && header && !header.contains(sidebar)) {
+            sidebar.classList.add('left-info-panel');
+            header.appendChild(sidebar);
+        }
+    })();
+</script>
+<script src="system_properties.js"></script>
 
 <!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
+<footer class="page-footer">
+    <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队<br>
+        版权所有 · 项目总负责人：谢鑫</p>
 </footer>
-
+    <script>
+        window.SECTION_META = {
+          "layers": [
+            {
+              "name": "形式推理系统",
+              "concepts": "公理 / 规则 / 可证性",
+              "task": "搭建推理系统基本框架。",
+              "page": "system_properties-basic.html"
+            },
+            {
+              "name": "可靠性与完备性",
+              "concepts": "可靠 / 完备 / 一致",
+              "task": "理解系统元性质与意义。",
+              "page": "system_properties.html"
+            },
+            {
+              "name": "定理证明与模型论",
+              "concepts": "形式证明 / 模型 / 自动推理",
+              "task": "迁移到自动证明与形式验证。",
+              "page": "system_properties-extend.html"
+            }
+          ],
+          "chapter": "第5章 命题逻辑",
+          "section": "5.7 命题推理系统及性质 · 进阶层",
+          "title": "推理系统及其性质",
+          "grounding": "本节主题：形式推理系统由公理与推理规则构成（自然演绎/公理系统）。两大元性质：可靠性（可证⇒有效，不会证出假）、完备性（有效⇒可证，真的都能证）。命题逻辑既可靠又完备，是形式化方法的典范。本页定位为进阶层：理解系统元性质与意义。",
+          "steps": [
+            {"name":"情境引入","desc":"一套推理规则怎样保证『只推出真结论』，又『不漏掉真结论』？"},
+            {"name":"对象抽取","desc":"把公理、推理规则、可证性抽象成形式系统。"},
+            {"name":"结构建模","desc":"区分语义有效与语法可证，建立可靠/完备概念。"},
+            {"name":"推理求解","desc":"理解可靠性、完备性、一致性的关系。"},
+            {"name":"程序验证","desc":"用本页交互调节系统性质，观察状态变化。"},
+            {"name":"迁移反思","desc":"迁移到自动证明、形式验证、规则治理。"}
+          ],
+          "ideology": {
+            "title": "真理大厦 · 守正固本",
+            "text": "可靠性确保『决不把谬误当真理』，完备性确保『决不让真理被埋没』。一套严谨的规则体系，既要守住底线，也要覆盖应有对象。",
+            "dims": ["守正", "系统观念", "底线思维"],
+            "quote": "可靠性守住底线，完备性追求全面。"
+          },
+          "reflect": [
+            "可靠性与完备性分别从哪两个方向连接『可证』与『有效』？",
+            "一个系统若不一致，会出现什么后果？",
+            "形式系统的性质如何迁移到自动证明与形式验证？"
+          ],
+          "transfer": [
+            "自动定理证明将形式系统交给程序执行，是 AI 早期重要方向。",
+            {"t":"形式验证","d":"软件和硬件安全中，需要证明关键性质，也要审视规则本身是否可靠。"}
+          ]
+        };
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 
 </html>
+

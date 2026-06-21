@@ -13,6 +13,8 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
@@ -35,8 +37,8 @@
     <div class="app-container">
         <header class="main-header">
             <div class="header-content">
-                <h1>红色数理 <span class="highlight">进阶的秩序</span></h1>
-                <p class="subtitle">The Order of Progress: Total, Well, and Quasi Orders</p>
+                <h1>红色数理 <span class="highlight">进阶层</span></h1>
+                <p class="subtitle">全序、良序、拟序对比器 · 进阶的秩序</p>
             </div>
             <div class="header-controls">
                 <nav class="mode-nav">
@@ -44,8 +46,8 @@
                         <span class="icon">🏹</span>
                         <span>全序关系 (Total)</span>
                     </button>
-                    <button class="nav-btn" data-mode="well" aria-label="⭐ 良序关系 (Well)">
-                        <span class="icon">⭐</span>
+                    <button class="nav-btn" data-mode="well" aria-label="良序关系 (Well)">
+                        <span class="icon">🎯</span>
                         <span>良序关系 (Well)</span>
                     </button>
                     <button class="nav-btn" data-mode="quasi" aria-label="拟序关系 (Quasi)">
@@ -77,7 +79,7 @@
                     <div class="card-pool" id="cardPool">
                         <!-- Draggable Cards -->
                     </div>
-                    <div class="feedback-msg" id="totalFeedback">请将历史事件拖放到正确的时间节点上</div>
+                    <div class="feedback-msg" id="totalFeedback">请将历史事件拖放到正确的时间节点。</div>
                 </div>
 
                 <!-- Well Order: Priority Selection -->
@@ -125,12 +127,12 @@
                         集合中任意两个元素都可以比较大小。在历史观中，这代表了时间的一维性和不可逆性。
                     </p>
                     <div class="math-box" id="conceptMath">
-                        ∀x,y∈S, x≤y ∨ y≤x
+                        ∀x,y∈S, x≤y 或 y≤x
                     </div>
                 </div>
 
                 <div class="insight-card">
-                    <h4>💡 思政启示</h4>
+                    <h4>💡 价值启示</h4>
                     <p id="insightText">
                         历史的车轮滚滚向前。从站起来、富起来到强起来，中华民族的复兴之路是一条不可逆转的历史轨迹（全序）。我们要顺应历史大势，勇担时代使命。
                     </p>
@@ -147,19 +149,98 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
+    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">© 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
+        版权所有 ｜ 项目总负责人：谢鑫</p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+  "layers": [
+    {
+      "name": "全序（线序）",
+      "concepts": "偏序+任意可比 / 排队排名",
+      "task": "区分偏序与全序。",
+      "page": "order_relations-basic.html"
+    },
+    {
+      "name": "良序与拟序",
+      "concepts": "良序=有最小元 / 拟序=反自反+传递",
+      "task": "理解良序为归纳法提供根基。",
+      "page": "order_relations.html"
+    },
+    {
+      "name": "排序与归纳",
+      "concepts": "比较排序 / 数学归纳 / 递归终止",
+      "task": "迁移到排序算法与归纳证明。",
+      "page": "order_relations-extend.html"
+    }
+  ],
+  "chapter": "第4章 特殊关系与函数",
+  "section": "4.3 全序、良序和拟序 · 进阶层",
+  "title": "良序与拟序",
+  "grounding": "本节主题：全序（线序）=偏序且任意两元可比；良序=全序且任意非空子集有最小元（保证归纳/递归有据）；拟序=反自反+传递（严格序）。自然数的标准序是良序，是数学归纳法的根基。 本页定位为进阶层：承接原页面的核心推理、综合辨析和课程资源主线。 本页定位为基础层：以可操作的直观模型建立概念、性质和符号的第一连接。",
+  "steps": [
+    {
+      "name": "情境引入",
+      "desc": "排队、排名要求『人人可比』，归纳证明要求『有最小起点』——如何刻画？"
+    },
+    {
+      "name": "对象抽取",
+      "desc": "把『完全可比』『有最小元』抽象为全序、良序。"
+    },
+    {
+      "name": "结构建模",
+      "desc": "区分偏序/全序/良序/拟序的层层加强条件。"
+    },
+    {
+      "name": "推理求解",
+      "desc": "判定给定序的类型，理解良序与归纳的联系。"
+    },
+    {
+      "name": "程序验证",
+      "desc": "用本页交互检验可比性与最小元存在性。"
+    },
+    {
+      "name": "迁移反思",
+      "desc": "迁移到排序算法、数学归纳法、序数。"
+    }
+  ],
+  "ideology": {
+    "title": "进阶的秩序 · 行稳致远",
+    "text": "从偏序到全序再到良序，是秩序的层层升华——既要广泛可比、公平有序，又要有坚实的『起点』作为前进的根基。良序保证归纳有据，启示我们做事要打牢基础、循序渐进，方能行稳致远、积小胜为大胜。",
+    "dims": [
+      "秩序意识",
+      "循序渐进",
+      "辩证思维"
+    ],
+    "quote": "九层之台，起于累土——良序的『最小元』正是一切递推与归纳坚实的起点。"
+  },
+  "reflect": [
+    "良序比全序强在哪里？为什么良序是数学归纳法成立的保证？",
+    "整数集在标准序下是全序，但为什么不是良序？",
+    "拟序（严格序）与偏序只差『自反 vs 反自反』，它们如何相互转换？"
+  ],
+  "transfer": [
+    "比较排序要求元素全序可比，这是排序算法存在的前提。",
+    {
+      "t": "归纳与递归",
+      "d": "良序保证『无限下降不可能』，这正是递归终止与归纳证明的根基。"
+    }
+  ]
+};
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 

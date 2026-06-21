@@ -96,7 +96,7 @@ function updateConceptInfo(type) {
     conceptInfo.innerHTML = `
         <p><strong>${info.title}:</strong> ${info.description}</p>
         <p><strong>判定条件:</strong> ${info.condition}</p>
-        <p><strong>思政寓意:</strong> ${info.meaning}</p>
+        <p><strong>价值引领寓意:</strong> ${info.meaning}</p>
     `;
 }
 

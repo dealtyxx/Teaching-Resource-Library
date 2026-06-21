@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>社区共建者 · 基础层 — 互助关系建模</title>
+  <meta name="description" content="离散数学 3.7 社区案例 基础层：把社区联系抽象为二元关系">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(139,0,0,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}.kg-step-head strong{color:var(--red);font-size:.95rem;}.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.86rem;}.kg-step span{display:block;font-size:.76rem;color:var(--muted);margin-top:3px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.84rem;color:#7a3216;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
+.qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.88rem;color:#5b4136;line-height:1.9;}
+.qres b{color:var(--red);}.qres .rel{display:inline-block;font-size:.72rem;padding:1px 8px;border-radius:10px;background:rgba(214,59,29,.12);color:#d63b1d;margin:0 3px;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 12px;}
+.kg-box{flex:1;min-height:420px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,250,239,.7));padding:10px;display:flex;align-items:center;}
+.lg{width:100%;height:auto;display:block;}.lg text{font-family:"Noto Serif SC",serif;font-weight:700;}.lg .colhdr{fill:#8b0000;font-size:13px;}
+.leg{display:flex;gap:16px;justify-content:center;font-size:.78rem;color:#8b0000;margin-top:10px;}.leg i{display:inline-block;width:13px;height:13px;border-radius:4px;margin-right:5px;vertical-align:middle;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">基础层</span></h1>
+        <p class="subtitle">社区互助 · 互助关系建模</p>
+      </div>
+      <p class="intro">把社区里的居民、活动、组织者抽象为节点，把『参与』『组织』抽象为带类型的二元关系。</p>
+
+      <div class="value-panel">
+        <h3>邻里守望 · 共建共享</h3>
+        <p>远亲不如近邻——一张守望相助的关系网，把社区联结成有温度的共同体，体现以人民为中心。</p>
+        <div class="dim-list"><span>人民立场</span><span>共建共享</span></div>
+      </div>
+
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步建模互动</strong><span>点一步，看反馈、公式项和关系图同步高亮</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-guide="entities"><b>1 抽取实体</b><span>V：居民 / 活动 / 组织者</span></button>
+          <button class="kg-step" type="button" data-guide="typed"><b>2 标注关系</b><span>R₁ 参与 / R₂ 组织</span></button>
+          <button class="kg-step" type="button" data-guide="direct"><b>3 查直接关系</b><span>点节点看一步对应</span></button>
+        </div>
+        <div class="kg-feedback" id="kgFeedback">先把社区三类对象抽象为关系图的节点 V。</div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-token="V">V = 节点集合</span>
+          <span class="kg-token" data-token="R1">R₁ = 参与</span>
+          <span class="kg-token" data-token="R2">R₂ = 组织</span>
+        </div>
+      </div>
+
+      <div class="qres" id="qres">点击图中任一节点，查看它参与的全部直接关系（出边 + 入边）。</div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>点击居民/活动/组织者节点，看『谁参与了什么、谁组织了什么』的直接关系。</span>
+        <div class="visual-badge">实体节点 + 带类型边</div>
+      </section>
+      <h2 class="pane-title">社区活动关系网（居民 → 活动 → 组织者）</h2>
+      <p class="pane-sub">居民—活动是『参与』关系 R₁；活动—组织者是『组织』关系 R₂。点节点查看其直接对应。</p>
+      <div class="kg-box"><svg id="lg" class="lg" viewBox="0 0 460 360" preserveAspectRatio="xMidYMid meet"></svg></div>
+      <div class="leg"><span><i style="background:#2a9d8f"></i>居民</span><span><i style="background:#e8a317"></i>活动</span><span><i style="background:#d63b1d"></i>组织者</span></div>
+    </main>
+  </div>
+
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
+
+  <script>
+    window.SECTION_META = {
+      "layers": [
+        {"name": "互助关系建模", "concepts": "居民/组织节点 / 帮扶·互助为边", "task": "把社区联系抽象为二元关系。", "page": "community_service-basic.html"},
+        {"name": "性质与闭包分析", "concepts": "对称=互助 / 传递闭包=资源可达", "task": "用性质与闭包分析互助网络。", "page": "community_service.html"},
+        {"name": "孤立点与资源可达", "concepts": "孤立点识别 / 传递可达 / 精准关怀", "task": "迁移到精准关怀与匹配问题。", "page": "community_service-extend.html"}
+      ],
+      "chapter": "第3章 二元关系", "section": "3.7 社区案例 · 基础层", "title": "互助关系建模",
+      "grounding": "本页（基础层）主题：把社区中的居民、活动、组织者抽象为节点，把『参与』『组织』抽象为带类型的二元关系（有向边）。本层只看一步直接关系；把两步串起需要关系合成与逆（进阶层）。",
+      "steps": [
+        {"name": "情境引入", "desc": "社区里谁参与了哪些活动、谁组织了哪些活动？"},
+        {"name": "对象抽取", "desc": "居民/活动/组织者→节点，参与/组织→有向边。"},
+        {"name": "结构建模", "desc": "用『参与』『组织』两个二元关系刻画社区联系。"},
+        {"name": "推理求解", "desc": "点节点看其直接对应（出边/入边）。"},
+        {"name": "程序验证", "desc": "每条边都是明确的『主体 → 客体』对应。"},
+        {"name": "迁移反思", "desc": "用逆与合成做反查与影响力分析（进阶层）。"}
+      ],
+      "ideology": {"title": "邻里守望 · 共建共享", "text": "社区是社会治理的基本单元，结对帮扶与邻里互助织就守望相助的关系网。把社区联系抽象为可分析的二元关系，正是共建共治共享理念的起点，体现以人民为中心的温度。", "dims": ["人民立场", "共建共享", "责任担当"], "quote": "远亲不如近邻——一张守望相助的关系网，把社区联结成有温度的共同体。"},
+      "reflect": ["『参与』关系为什么是有向的？", "为什么一个居民可参与多个活动、一个活动可有多个参与者？"],
+      "transfer": ["用逆关系反查、用合成算影响力（进阶层）；孤立点识别与资源可达（拓展层）。"]
+    };
+  </script>
+
+  <script>
+    var $=function(id){return document.getElementById(id);};
+    var NODES={
+      r1:{n:'张三',t:'res',x:65,y:60},r2:{n:'李四',t:'res',x:65,y:140},r3:{n:'王五',t:'res',x:65,y:220},r4:{n:'赵六',t:'res',x:65,y:300},
+      a1:{n:'🌱环保',t:'act',x:230,y:90},a2:{n:'📚助学',t:'act',x:230,y:190},a3:{n:'🧓敬老',t:'act',x:230,y:290},
+      o1:{n:'王书记',t:'org',x:395,y:90},o2:{n:'李主任',t:'org',x:395,y:190},o3:{n:'张队长',t:'org',x:395,y:290}
+    };
+    var PART=[['r1','a1'],['r1','a2'],['r2','a1'],['r2','a3'],['r3','a2'],['r4','a3']];
+    var ACTV=[['a1','o1'],['a2','o2'],['a3','o3']];
+    var EDGES=PART.map(function(e){return {a:e[0],b:e[1],r:'参与'};}).concat(ACTV.map(function(e){return {a:e[0],b:e[1],r:'组织'};}));
+    var nameOf=function(id){return NODES[id].n;};
+    var colorOf=function(id){var t=NODES[id].t;return t==='res'?'#2a9d8f':(t==='act'?'#e8a317':'#d63b1d');};
+    var sel=null,guide='entities';
+    function neighbors(id){return EDGES.filter(function(e){return e.a===id||e.b===id;});}
+    function draw(){
+      var hotE={},hotN={};
+      if(guide==='typed'){EDGES.forEach(function(e){hotE[e.a+'>'+e.b]=1;});}
+      if(guide==='direct'&&sel){hotN[sel]=1;neighbors(sel).forEach(function(e){hotE[e.a+'>'+e.b]=1;hotN[e.a]=1;hotN[e.b]=1;});}
+      var svg='<defs><marker id="ar" markerWidth="9" markerHeight="7" refX="13" refY="3.5" orient="auto"><polygon points="0 0,9 3.5,0 7" fill="#bbb"/></marker><marker id="arh" markerWidth="9" markerHeight="7" refX="13" refY="3.5" orient="auto"><polygon points="0 0,9 3.5,0 7" fill="#d63b1d"/></marker></defs>';
+      svg+='<text class="colhdr" x="65" y="22" text-anchor="middle">居民</text><text class="colhdr" x="230" y="22" text-anchor="middle">活动</text><text class="colhdr" x="395" y="22" text-anchor="middle">组织者</text>';
+      EDGES.forEach(function(e){var on=hotE[e.a+'>'+e.b];var p1=NODES[e.a],p2=NODES[e.b];svg+='<line x1="'+(p1.x+46)+'" y1="'+p1.y+'" x2="'+(p2.x-46)+'" y2="'+p2.y+'" stroke="'+(on?'#d63b1d':'#c9b8b0')+'" stroke-width="'+(on?3:1.4)+'" opacity="'+((guide==='direct'&&sel&&!on)?0.13:0.72)+'" marker-end="url(#'+(on?'arh':'ar')+')"/>';});
+      Object.keys(NODES).forEach(function(id){var p=NODES[id];var isSel=sel===id&&guide==='direct';var isHot=hotN[id]&&!isSel;var stroke=isSel?'#8b0000':(isHot?'#c5a059':'#fff');var sw=(isSel||isHot)?3.4:2;
+        svg+='<g style="cursor:pointer" data-id="'+id+'"><rect x="'+(p.x-46)+'" y="'+(p.y-17)+'" width="92" height="34" rx="9" fill="'+colorOf(id)+'" stroke="'+stroke+'" stroke-width="'+sw+'"/><text x="'+p.x+'" y="'+(p.y+5)+'" text-anchor="middle" fill="#fff" font-size="13">'+nameOf(id)+'</text></g>';
+      });
+      $('lg').innerHTML=svg;
+      $('lg').querySelectorAll('[data-id]').forEach(function(g){g.onclick=function(){guide='direct';sel=g.dataset.id;syncGuide();draw();info();};});
+    }
+    function info(){
+      if(!sel){$('qres').innerHTML='点击图中任一节点，查看它参与的全部直接关系（出边 + 入边）。';return;}
+      var out=EDGES.filter(function(e){return e.a===sel;}),inc=EDGES.filter(function(e){return e.b===sel;});
+      var html='<b>'+nameOf(sel)+'</b> 的直接关系：<br>';
+      if(out.length){html+='<div style="margin-top:6px">出边：</div>';out.forEach(function(e){html+='· '+nameOf(sel)+'<span class="rel">'+e.r+'</span>'+nameOf(e.b)+'<br>';});}
+      if(inc.length){html+='<div style="margin-top:6px">入边：</div>';inc.forEach(function(e){html+='· '+nameOf(e.a)+'<span class="rel">'+e.r+'</span>'+nameOf(sel)+'<br>';});}
+      if(!out.length&&!inc.length)html+='（暂无直接关系）';
+      $('qres').innerHTML=html;
+    }
+    function syncGuide(){
+      document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.guide===guide);});
+      document.querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',(guide==='entities'&&t.dataset.token==='V')||(guide==='typed'&&(t.dataset.token==='R1'||t.dataset.token==='R2'))||(guide==='direct'&&(t.dataset.token==='R1'||t.dataset.token==='R2')));});
+    }
+    function setGuide(g){
+      guide=g;syncGuide();
+      if(g==='entities'){sel=null;$('kgFeedback').innerHTML='把居民、活动、组织者抽象为关系图的节点 <b>V</b>。绿=居民，黄=活动，红=组织者。';$('qres').innerHTML='当前是节点集 <b>V</b>。下一步给节点之间标注两类关系：参与、组织。';}
+      else if(g==='typed'){sel=null;$('kgFeedback').innerHTML='『居民→活动』是<b>参与</b>关系 R₁；『活动→组织者』是<b>组织</b>关系 R₂。两类有向边叠加在同一批节点上，就是社区关系网。';$('qres').innerHTML='所有关系边已高亮。这是<b>有向</b>的二元关系——下一步点任意节点看它的直接对应。';}
+      else{sel='a1';$('kgFeedback').innerHTML='点任意节点，查看它的<b>一步</b>直接关系（出边+入边）。例如环保活动：参与者有张三、李四，组织者是王书记。';info();}
+      draw();
+    }
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setGuide(b.dataset.guide);};});
+    setGuide('entities');
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

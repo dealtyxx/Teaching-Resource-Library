@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>寻根问祖 · 拓展层 — 最近公共祖先与近亲</title>
+  <meta name="description" content="离散数学 3.8 祖先案例 拓展层：用共同祖先与 LCA 做近亲判定">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.control-group{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
+.control-group>label{display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:8px;}
+.pick-row{display:flex;align-items:center;gap:8px;font-size:.82rem;color:#8b0000;margin:6px 0;}
+.pick-row>span{flex-shrink:0;font-weight:700;}
+.pick-row select{flex:1;min-height:34px;padding:4px 8px;border-radius:8px;border:1px solid var(--line);font-family:inherit;color:#8b0000;background:#fffaf2;}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(139,0,0,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}.kg-step-head strong{color:var(--red);font-size:.95rem;}.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.84rem;}.kg-step span{display:block;font-size:.74rem;color:var(--muted);margin-top:2px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.84rem;color:#7a3216;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
+.qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.86rem;color:#5b4136;line-height:1.9;}
+.qres b{color:var(--red);}.qres .tag{display:inline-block;padding:2px 9px;border-radius:11px;margin:2px;font-size:.78rem;}
+.qres .ta{background:rgba(47,95,159,.16);color:#274e7a;}.qres .tb{background:rgba(42,157,143,.18);color:#1c7a6e;}.qres .common{background:rgba(197,138,31,.22);color:#8a5d0b;}.qres .lca{background:#d63b1d;color:#fff;}
+.verdict{border-radius:10px;padding:10px 12px;margin-top:8px;font-weight:700;font-size:.9rem;}
+.verdict.close{background:rgba(180,35,24,.1);color:var(--red);border:1px solid rgba(180,35,24,.35);}
+.verdict.far{background:rgba(47,125,87,.12);color:var(--green);border:1px solid rgba(47,125,87,.35);}
+.verdict.none{background:rgba(116,55,31,.08);color:var(--muted);border:1px solid var(--line);}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 12px;}
+.kg-box{flex:1;min-height:440px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,250,239,.7));padding:10px;display:flex;align-items:center;}
+.lg{width:100%;height:auto;display:block;}.lg text{font-family:"Noto Serif SC",serif;font-weight:700;}
+.leg{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;font-size:.74rem;color:#8b0000;margin-top:10px;}.leg i{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">拓展层</span></h1>
+        <p class="subtitle">寻根问祖 · 最近公共祖先与近亲</p>
+      </div>
+      <p class="intro">求两人祖先集的交集得『共同祖先』，其中辈分最低者即<b>最近公共祖先 LCA</b>，据此判定亲疏远近。</p>
+
+      <div class="value-panel">
+        <h3>慎终追远 · 同根同源</h3>
+        <p>共同的祖先把家族联结为一体；最近公共祖先正是血脉相系、同根同源的见证，也是依赖分析与亲缘判定的数学内核。</p>
+        <div class="dim-list"><span>文化自信</span><span>家国情怀</span><span>守正创新</span></div>
+      </div>
+
+      <div class="control-group">
+        <label>选择两位家族成员</label>
+        <div class="pick-row"><span>成员 A</span><select id="selA"></select></div>
+        <div class="pick-row"><span>成员 B</span><select id="selB"></select></div>
+      </div>
+
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步亲缘分析</strong><span>点一步，看反馈、公式项和世系图同步高亮</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-guide="anc"><b>1 各自祖先</b><span>R⁺(A) 与 R⁺(B)</span></button>
+          <button class="kg-step" type="button" data-guide="common"><b>2 共同祖先</b><span>R⁺(A) ∩ R⁺(B)</span></button>
+          <button class="kg-step" type="button" data-guide="lca"><b>3 最近公共祖先</b><span>LCA + 亲疏判定</span></button>
+        </div>
+        <div class="kg-feedback" id="kgFeedback">先用传递闭包分别求 A、B 的全部祖先（蓝、绿高亮）。</div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-token="anc">R⁺(x) 祖先集</span>
+          <span class="kg-token" data-token="cap">∩ 共同祖先</span>
+          <span class="kg-token" data-token="lca">LCA 最近公共祖先</span>
+        </div>
+      </div>
+
+      <div class="qres" id="qres"></div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>选两位成员，求各自祖先、共同祖先与最近公共祖先 LCA，判定他们的亲疏关系。</span>
+        <div class="visual-badge">LCA + 近亲判定</div>
+      </section>
+      <h2 class="pane-title">家族世系图（四代传承）</h2>
+      <p class="pane-sub">蓝=A 的祖先，绿=B 的祖先，金=共同祖先，红=最近公共祖先 LCA。</p>
+      <div class="kg-box"><svg id="lg" class="lg" viewBox="0 0 580 440" preserveAspectRatio="xMidYMid meet"></svg></div>
+      <div class="leg"><span><i style="background:#2f5f9f"></i>A 祖先</span><span><i style="background:#2a9d8f"></i>B 祖先</span><span><i style="background:#c5a059"></i>共同祖先</span><span><i style="background:#d63b1d"></i>LCA / 选中</span></div>
+    </main>
+  </div>
+
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
+
+  <script>
+    window.SECTION_META = {
+      "layers": [
+        {"name": "亲子关系", "concepts": "父母-子女 / 直接关系", "task": "把家谱抽象为亲子关系。", "page": "ancestry-basic.html"},
+        {"name": "祖先=传递闭包", "concepts": "R⁺ / 可达集 / 无环", "task": "用传递闭包求全部祖先/后代。", "page": "ancestry.html"},
+        {"name": "最近公共祖先与近亲", "concepts": "LCA / 共同祖先 / 近亲判定", "task": "迁移到 LCA 与依赖分析。", "page": "ancestry-extend.html"}
+      ],
+      "chapter": "第3章 二元关系", "section": "3.8 祖先案例 · 拓展层", "title": "最近公共祖先与近亲",
+      "grounding": "本页（拓展层）主题：把传递闭包用于亲缘判定。两人的共同祖先=各自祖先集（传递闭包）的交集；最近公共祖先 LCA=共同祖先中辈分最低者；据 LCA 的辈分距离判定近亲/远亲。这正是族谱亲缘判定与依赖分析（最近公共依赖）的数学内核。",
+      "steps": [
+        {"name": "情境引入", "desc": "两人有无血缘？是近亲还是远亲？如何用数学判定？"},
+        {"name": "对象抽取", "desc": "把亲缘判定抽象为祖先集合的交与最值。"},
+        {"name": "结构建模", "desc": "共同祖先=R⁺(A)∩R⁺(B)；LCA=共同祖先中辈分最低者。"},
+        {"name": "推理求解", "desc": "求交集与 LCA，按辈分距离判定亲疏。"},
+        {"name": "程序验证", "desc": "更换成员，观察共同祖先、LCA 与判定结果的变化。"},
+        {"name": "迁移反思", "desc": "迁移到近亲婚配禁忌、依赖冲突的最近公共依赖。"}
+      ],
+      "ideology": {"title": "慎终追远 · 同根同源", "text": "共同的祖先把家族联结为一体，最近公共祖先是血脉相系、同根同源的见证。从家族到民族，中华儿女同根同源、命运与共——用数学梳理这份血脉谱系，正是坚定文化自信、赓续家国情怀的生动体现。", "dims": ["文化自信", "家国情怀", "守正创新"], "quote": "同根同源、血脉相连——最近公共祖先，是家族与民族一体的数学注脚。"},
+      "reflect": ["为什么共同祖先要用祖先集的交集？", "LCA 为何取共同祖先中辈分最低者？", "近亲判定的『辈分距离』如何用图上的什么量刻画？"],
+      "transfer": ["近亲婚配禁忌的亲缘判定；软件依赖冲突的『最近公共依赖』；组织汇报的最近共同上级。"]
+    };
+  </script>
+
+  <script>
+    var $=function(id){return document.getElementById(id);};
+    var FAM={
+      'g1-1':{n:'李建国',gen:1,x:150,y:55},'g1-2':{n:'王秀英',gen:1,x:300,y:55},
+      'g2-1':{n:'李卫东',gen:2,x:225,y:165},'g2-2':{n:'张春梅',gen:2,x:430,y:165},
+      'g3-1':{n:'李明',gen:3,x:330,y:275},'g3-2':{n:'刘芳',gen:3,x:500,y:275},
+      'g4-1':{n:'李思源',gen:4,x:380,y:385},'g4-2':{n:'李思远',gen:4,x:500,y:385}
+    };
+    var PARENTS={'g2-1':['g1-1','g1-2'],'g3-1':['g2-1','g2-2'],'g4-1':['g3-1','g3-2'],'g4-2':['g3-1','g3-2']};
+    var GC={1:'#c0392b',2:'#e8a317',3:'#2a9d8f',4:'#2f5f9f'};
+    var EDGES=[];Object.keys(PARENTS).forEach(function(c){PARENTS[c].forEach(function(p){EDGES.push([p,c]);});});
+    var IDS=Object.keys(FAM);
+    var nameOf=function(id){return FAM[id].n;};
+    var parentsOf=function(id){return PARENTS[id]||[];};
+    function ancestors(id){var seen={};(function dfs(x){parentsOf(x).forEach(function(p){if(!seen[p]){seen[p]=1;dfs(p);}});})(id);return Object.keys(seen);}
+    var A='g4-1',B='g4-2',guide='anc';
+    function analyze(){
+      var aA=ancestors(A),aB=ancestors(B);var setB={};aB.forEach(function(x){setB[x]=1;});
+      var common=aA.filter(function(x){return setB[x];});
+      var lca=[];if(common.length){var maxG=Math.max.apply(null,common.map(function(x){return FAM[x].gen;}));lca=common.filter(function(x){return FAM[x].gen===maxG;});}
+      var aIsAncB=aB.indexOf(A)>=0,bIsAncA=aA.indexOf(B)>=0;
+      return {aA:aA,aB:aB,common:common,lca:lca,aIsAncB:aIsAncB,bIsAncA:bIsAncA};
+    }
+    function draw(){
+      var R=analyze();var setA={};R.aA.forEach(function(x){setA[x]=1;});var setB={};R.aB.forEach(function(x){setB[x]=1;});
+      var commonSet={};R.common.forEach(function(x){commonSet[x]=1;});var lcaSet={};R.lca.forEach(function(x){lcaSet[x]=1;});
+      var hotE={};
+      if(guide==='anc'){[A,B].forEach(function(s){(function hl(x){parentsOf(x).forEach(function(p){hotE[p+'>'+x]=1;hl(p);});})(s);});}
+      else if(guide==='common'||guide==='lca'){R.common.forEach(function(c){ /* edges among common+to A/B handled lightly */ });[A,B].forEach(function(s){(function hl(x){parentsOf(x).forEach(function(p){if(commonSet[p]||p===x){}hotE[p+'>'+x]=1;hl(p);});})(s);});}
+      var svg='<defs><marker id="ar" markerWidth="8" markerHeight="6" refX="9" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#bbb"/></marker><marker id="arh" markerWidth="8" markerHeight="6" refX="9" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#c5a059"/></marker></defs>';
+      EDGES.forEach(function(e){var on=hotE[e[0]+'>'+e[1]];var p1=FAM[e[0]],p2=FAM[e[1]];svg+='<line x1="'+p1.x+'" y1="'+(p1.y+20)+'" x2="'+p2.x+'" y2="'+(p2.y-20)+'" stroke="'+(on?'#c5a059':'#c9b8b0')+'" stroke-width="'+(on?2.8:1.3)+'" opacity="'+(on?.95:0.55)+'" marker-end="url(#'+(on?'arh':'ar')+')"/>';});
+      IDS.forEach(function(id){var p=FAM[id];var isAB=(id===A||id===B);var fill;
+        if(isAB)fill='#d63b1d';
+        else if((guide==='lca')&&lcaSet[id])fill='#d63b1d';
+        else if((guide==='common'||guide==='lca')&&commonSet[id])fill='#c5a059';
+        else if(guide==='anc'&&setA[id]&&setB[id])fill='#c5a059';
+        else if(setA[id]&&(guide==='anc'))fill='#2f5f9f';
+        else if(setB[id]&&(guide==='anc'))fill='#2a9d8f';
+        else fill='#bfae9f';
+        var ring=(guide==='lca'&&lcaSet[id]);var stroke=isAB?'#8b0000':(ring?'#fff':'#fff');var sw=(isAB||ring)?3.4:2;
+        var dim=(guide==='common'||guide==='lca')&&!isAB&&!commonSet[id];
+        svg+='<g style="cursor:pointer" data-id="'+id+'"><rect x="'+(p.x-50)+'" y="'+(p.y-20)+'" width="100" height="40" rx="9" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+sw+'" opacity="'+(dim?0.4:1)+'"/><text x="'+p.x+'" y="'+(p.y+5)+'" text-anchor="middle" fill="#fff" font-size="14" opacity="'+(dim?0.5:1)+'">'+nameOf(id)+(id===A?' Ⓐ':id===B?' Ⓑ':'')+'</text></g>';
+        if(guide==='lca'&&lcaSet[id])svg+='<text x="'+p.x+'" y="'+(p.y-26)+'" text-anchor="middle" fill="#b42318" font-size="11">★LCA</text>';
+      });
+      $('lg').innerHTML=svg;
+      $('lg').querySelectorAll('[data-id]').forEach(function(g){g.onclick=function(){var id=g.dataset.id;if(id===A||id===B)return;if(slot===0){A=id;$('selA').value=id;}else{B=id;$('selB').value=id;}slot=1-slot;draw();info();};});
+    }
+    var slot=0;
+    function tags(arr,cls){return arr.length?arr.map(function(x){return '<span class="tag '+cls+'">'+nameOf(x)+'</span>';}).join(''):'<span style="opacity:.6">（无）</span>';}
+    function info(){
+      var R=analyze();
+      var html='<b>'+nameOf(A)+'</b>（A）与 <b>'+nameOf(B)+'</b>（B）：<br>';
+      html+='A 的祖先 R⁺(A)：'+tags(R.aA,'ta')+'<br>';
+      html+='B 的祖先 R⁺(B)：'+tags(R.aB,'tb')+'<br>';
+      html+='共同祖先 R⁺(A)∩R⁺(B)：'+tags(R.common,'common')+'<br>';
+      html+='最近公共祖先 LCA：'+(R.lca.length?R.lca.map(function(x){return '<span class="tag lca">'+nameOf(x)+'（第'+FAM[x].gen+'代）</span>';}).join(''):'<span style="opacity:.6">无</span>');
+      // verdict
+      var v,cls;
+      if(A===B){v='同一个人。';cls='none';}
+      else if(R.aIsAncB){v=nameOf(A)+' 是 '+nameOf(B)+' 的<b>直系长辈</b>（祖先）。';cls='close';}
+      else if(R.bIsAncA){v=nameOf(B)+' 是 '+nameOf(A)+' 的<b>直系长辈</b>（祖先）。';cls='close';}
+      else if(!R.lca.length){v='二人<b>无共同祖先</b>，无血缘关系（如两位婚入者）。';cls='none';}
+      else{var g0=FAM[R.lca[0]].gen;var dist=(FAM[A].gen-g0)+(FAM[B].gen-g0);
+        if(dist<=2){v='二人同辈、共享父母级祖先（LCA 距离 '+dist+'），属<b>近亲</b>（如兄弟姐妹）。';cls='close';}
+        else if(dist<=4){v='二人 LCA 距离 '+dist+'，属<b>近亲</b>（如堂/表亲）。';cls='close';}
+        else{v='二人 LCA 距离 '+dist+'，血缘较<b>远</b>。';cls='far';}
+      }
+      html+='<div class="verdict '+cls+'">亲缘判定：'+v+'</div>';
+      html+='<div style="margin-top:6px;font-size:.76rem;opacity:.8">共同祖先=两祖先集之<b>交</b>；LCA=共同祖先中<b>辈分最低</b>者；按 LCA 辈分距离判定亲疏，正是近亲判定与依赖分析的内核。</div>';
+      $('qres').innerHTML=html;
+    }
+    function syncGuide(){
+      document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.guide===guide);});
+      document.querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',(guide==='anc'&&t.dataset.token==='anc')||(guide==='common'&&(t.dataset.token==='anc'||t.dataset.token==='cap'))||(guide==='lca'&&(t.dataset.token==='cap'||t.dataset.token==='lca')));});
+    }
+    function setGuide(g){
+      guide=g;syncGuide();
+      if(g==='anc')$('kgFeedback').innerHTML='用传递闭包分别求 A、B 的全部祖先：<b>蓝</b>=只属 A，<b>绿</b>=只属 B，<b>金</b>=两者都是。';
+      else if(g==='common')$('kgFeedback').innerHTML='求两祖先集的<b>交集</b> R⁺(A)∩R⁺(B)，得到二人的<b>共同祖先</b>（金色高亮）。';
+      else $('kgFeedback').innerHTML='共同祖先中辈分<b>最低</b>者即<b>最近公共祖先 LCA</b>（红色★）。据 LCA 的辈分距离判定二人亲疏。';
+      draw();info();
+    }
+    function fill(){[['selA',A],['selB',B]].forEach(function(p){var s=$(p[0]);IDS.forEach(function(id){var o=document.createElement('option');o.value=id;o.textContent=nameOf(id);s.appendChild(o);});s.value=p[1];});
+      $('selA').onchange=function(){A=$('selA').value;draw();info();};$('selB').onchange=function(){B=$('selB').value;draw();info();};}
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setGuide(b.dataset.guide);};});
+    fill();setGuide('anc');
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

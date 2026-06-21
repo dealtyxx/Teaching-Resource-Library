@@ -33,6 +33,7 @@ let maxPower = 6; // Limit for demo
 let isAutoPlaying = false;
 let autoInterval = null;
 let nodePositions = {};
+let layoutFrame = null;
 
 // Config
 const NODE_RADIUS = 25;
@@ -40,18 +41,22 @@ const NODE_RADIUS = 25;
 // Initialization
 function init() {
     calculateLayout();
-    renderNodes();
     updateView();
 }
 
 // Layout (Circular)
 function calculateLayout() {
-    const container = document.querySelector('.graph-panel');
-    const width = container.clientWidth;
-    const height = container.clientHeight - 60;
+    const container = document.getElementById('graphContainer');
+    const rect = container.getBoundingClientRect();
+    const width = Math.max(260, Math.round(rect.width || container.clientWidth || 520));
+    const height = Math.max(300, Math.round(rect.height || container.clientHeight || 420));
     const centerX = width / 2;
     const centerY = height / 2;
-    const radius = Math.min(width, height) * 0.35;
+    const safePad = NODE_RADIUS + 24;
+    const radius = Math.max(42, (Math.min(width, height) / 2) - safePad);
+
+    graphSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    graphSvg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 
     NODES.forEach((val, idx) => {
         const angle = (idx / NODES.length) * 2 * Math.PI - Math.PI / 2;
@@ -107,13 +112,19 @@ function renderNodes() {
     nodesLayer.innerHTML = '';
     NODES.forEach(val => {
         const pos = nodePositions[val];
-        const el = document.createElement('div');
-        el.className = 'graph-node';
-        el.textContent = val;
-        el.style.left = `${pos.x - NODE_RADIUS}px`;
-        el.style.top = `${pos.y - NODE_RADIUS}px`;
-        el.id = `node-${val}`;
-        nodesLayer.appendChild(el);
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('class', 'svg-node');
+        g.setAttribute('transform', `translate(${pos.x} ${pos.y})`);
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('r', NODE_RADIUS);
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.textContent = val;
+
+        g.appendChild(circle);
+        g.appendChild(text);
+        graphSvg.appendChild(g);
     });
 }
 
@@ -162,6 +173,8 @@ function updateView() {
         }
     }
 
+    renderNodes();
+
     // 3. Render Matrix Grid
     renderMatrixGrid(matrix, prevMatrix);
 
@@ -182,21 +195,36 @@ function renderEdge(u, v, className, isCurved = false) {
     const end = nodePositions[v];
 
     let d;
-    if (isCurved) {
-        const midX = (start.x + end.x) / 2;
-        const midY = (start.y + end.y) / 2;
-        // Curve based on distance to avoid overlap?
-        // Simple curve towards center
+    if (u === v) {
+        const loopR = NODE_RADIUS + 16;
+        const sx = start.x + NODE_RADIUS * 0.4;
+        const sy = start.y - NODE_RADIUS * 0.9;
+        const ex = start.x + NODE_RADIUS * 0.9;
+        const ey = start.y - NODE_RADIUS * 0.35;
+        d = `M ${sx} ${sy} C ${start.x + loopR} ${start.y - loopR}, ${start.x - loopR} ${start.y - loopR}, ${ex} ${ey}`;
+    } else {
         const dx = end.x - start.x;
         const dy = end.y - start.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        const dist = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+        const ux = dx / dist;
+        const uy = dy / dist;
+        const sourceInset = NODE_RADIUS;
+        const targetInset = NODE_RADIUS;
+        const sx = start.x + ux * sourceInset;
+        const sy = start.y + uy * sourceInset;
+        const ex = end.x - ux * targetInset;
+        const ey = end.y - uy * targetInset;
 
-        // Perpendicular offset
-        const offset = 40 + (dist * 0.1);
-        // Direction?
-        d = `M ${start.x} ${start.y} Q ${midX} ${midY - offset} ${end.x} ${end.y}`;
-    } else {
-        d = `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
+        if (isCurved) {
+            const midX = (sx + ex) / 2;
+            const midY = (sy + ey) / 2;
+            const curve = 34 + dist * 0.08;
+            const cx = midX - uy * curve;
+            const cy = midY + ux * curve;
+            d = `M ${sx} ${sy} Q ${cx} ${cy} ${ex} ${ey}`;
+        } else {
+            d = `M ${sx} ${sy} L ${ex} ${ey}`;
+        }
     }
 
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -315,9 +343,25 @@ function stopAutoPlay() {
 }
 
 window.addEventListener('resize', () => {
-    calculateLayout();
-    updateView();
+    relayoutGraph();
 });
+
+function relayoutGraph() {
+    if (layoutFrame) cancelAnimationFrame(layoutFrame);
+    layoutFrame = requestAnimationFrame(() => {
+        calculateLayout();
+        updateView();
+        layoutFrame = null;
+    });
+}
+
+if ('ResizeObserver' in window) {
+    const graphObserver = new ResizeObserver(() => relayoutGraph());
+    graphObserver.observe(document.getElementById('graphContainer'));
+    graphObserver.observe(document.querySelector('.app-container'));
+}
 
 // Init
 init();
+setTimeout(relayoutGraph, 80);
+setTimeout(relayoutGraph, 320);

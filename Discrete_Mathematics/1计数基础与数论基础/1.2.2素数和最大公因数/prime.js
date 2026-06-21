@@ -1,5 +1,5 @@
 /**
- * 素数与最大公因数 - 思政可视化
+ * 素数与最大公因数 - 价值引领可视化
  * 主题：不可分割·求同存异
  */
 
@@ -34,7 +34,7 @@ let num1 = 48;
 let num2 = 36;
 let isAnimating = false;
 
-// 思政主题数据
+// 价值主题数据
 const themes = {
     prime: {
         core: {

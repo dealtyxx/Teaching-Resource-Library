@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中秋集合论 · 拓展层 — 传统节日数字化</title>
+  <meta name="description" content="2.7 中秋案例 拓展层：用集合运算做多节日意象图谱与文化检索">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.tab-nav{display:flex;flex-direction:column;gap:6px;}
+.tab-btn{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);color:#5b4136;cursor:pointer;font:inherit;font-weight:700;font-size:14px;transition:all .2s;text-align:left;}
+.tab-btn:hover{background:rgba(180,35,24,.08);color:var(--red);}
+.tab-btn.active{background:var(--red);color:#fff;border-color:var(--red);box-shadow:0 6px 16px rgba(180,35,24,.25);}
+.tab-btn .ico{font-size:18px;}
+.sidebar-dyn{display:grid;gap:10px;}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.86rem;}.kg-step span{display:block;font-size:.74rem;color:var(--muted);margin-top:2px;}
+.kg-feedback{padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.83rem;color:#7a3216;line-height:1.75;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;}
+.control-group{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
+.control-group>label{display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:8px;}
+.fest-toggles{display:flex;flex-wrap:wrap;gap:6px;}
+.ftog{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#5b4136;border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;background:rgba(255,255,255,.6);}
+.ftog input{accent-color:var(--red);}
+.fsel{width:100%;min-height:36px;border-radius:8px;border:1px solid rgba(116,55,31,.22);background:#fffaf2;color:var(--ink);padding:0 10px;font:inherit;}
+.qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.88rem;color:#5b4136;line-height:1.9;}
+.qres b{color:var(--red);}.qres .formula{font-family:"JetBrains Mono",monospace;font-weight:800;color:var(--red);}
+.qres .tag{display:inline-block;padding:2px 9px;border-radius:11px;margin:2px;font-size:.78rem;font-weight:700;}
+.qres .common{background:rgba(214,59,29,.16);color:var(--red);}.qres .uniq{background:rgba(47,125,87,.15);color:#1c7a6e;}.qres .pool{background:rgba(47,95,159,.14);color:#274e7a;}.qres .core{background:#d63b1d;color:#fff;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.tab-content{display:none;flex-direction:column;flex:1;}.tab-content.active{display:flex;animation:fade .3s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 8px;}
+.kg-box{flex:1;min-height:380px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,250,239,.7));padding:6px;display:flex;align-items:center;}
+.venn{width:100%;height:auto;display:block;}
+.vc{stroke-width:2.5;transition:.3s;}
+.vc.A{fill:rgba(214,59,29,.10);stroke:rgba(214,59,29,.5);}.vc.B{fill:rgba(197,138,31,.10);stroke:rgba(197,138,31,.55);}.vc.C{fill:rgba(47,125,87,.10);stroke:rgba(47,125,87,.5);}
+.vc.lit.A{fill:rgba(214,59,29,.24);}.vc.lit.B{fill:rgba(197,138,31,.26);}.vc.lit.C{fill:rgba(47,125,87,.24);}
+.vc.dim{opacity:.16;}
+.vlabel{font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:17px;font-weight:700;}
+.echip text{font-family:"Noto Serif SC",serif;font-size:11.5px;font-weight:700;fill:#5b4136;}
+.echip.lit rect{fill:#d63b1d;stroke:#8b0000;}.echip.lit text{fill:#fff;}.echip.core rect{fill:#b42318;stroke:#8b0000;}.echip.dim{opacity:.28;}
+.panel-card{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;margin:10px 0;}
+.panel-card h3{margin:0 0 10px;color:var(--red);font-size:.98rem;}
+.fest-row{display:grid;grid-template-columns:90px 1fr;gap:8px;align-items:start;margin:8px 0;font-size:13px;}
+.fest-row .fn{font-weight:800;color:var(--red);}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:13px 15px;margin-top:12px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}.insight-box p{margin:0;font-size:13.5px;line-height:1.7;color:#4e362d;}
+.badges{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px;}.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">拓展层</span></h1>
+        <p class="subtitle">中秋集合论 · 传统节日数字化</p>
+      </div>
+      <p class="intro">把中秋、春节、端午建成意象集合：交集=共同主题，差集=节日特色标签，并集=扩展检索入口。</p>
+
+      <div class="value-panel">
+        <h3>家国一体 · 文化自信</h3>
+        <p>三大节日意象的交集落到『家国』——无论习俗如何不同，家国情怀始终是中华节日共同的精神内核。</p>
+        <div class="dim-list"><span>文化自信</span><span>家国情怀</span><span>守正创新</span></div>
+      </div>
+
+      <nav class="tab-nav" id="tabNav">
+        <button class="tab-btn active" data-tab="tab1"><span class="ico">🏮</span><span>节日意象图谱</span></button>
+        <button class="tab-btn" data-tab="tab2"><span class="ico">🔍</span><span>文化检索沙盘</span></button>
+      </nav>
+
+      <div class="sidebar-dyn" id="sidebarDyn"></div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>用交/差/并分析三大节日的共同主题、特色标签与检索入口，体会文化数字化。</span>
+        <div class="visual-badge">交=主题 · 差=特色 · 并=检索</div>
+      </section>
+
+      <!-- Tab1 -->
+      <div class="tab-content active" id="tab1">
+        <h2 class="pane-title">三大传统节日意象图谱</h2>
+        <p class="pane-sub">A 中秋（红）· B 春节（金）· C 端午（绿）。选运算，结果元素高亮并在左侧列出。</p>
+        <div class="kg-box"><svg class="venn" id="venn" viewBox="0 0 500 440" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <div class="insight-box">
+          <div class="insight-title">🏮 三节之交 = 家国情怀</div>
+          <p>中秋∩春节∩端午 = <b>家国</b>。集合运算把传统文化『共同主题（交）、特色标签（差）、检索入口（并）』变得可计算——这正是文化数字化、让中华文脉可检索可传播的内核。</p>
+          <div class="badges"><span class="badge">文化自信</span><span class="badge">家国情怀</span><span class="badge">守正创新</span></div>
+        </div>
+      </div>
+
+      <!-- Tab2 -->
+      <div class="tab-content" id="tab2">
+        <h2 class="pane-title">文化检索沙盘</h2>
+        <p class="pane-sub">勾选节日 → 并集 = 检索结果池；交集 = 跨节日共同主题（推荐）；各节日差集 = 特色标签。</p>
+        <div class="panel-card"><h3>检索结果池（并集 ∪）</h3><div class="qres" id="poolBox" style="border:none;padding:0;background:none;"></div></div>
+        <div class="panel-card"><h3>共同主题（交集 ∩，跨节日推荐）</h3><div class="qres" id="commonBox" style="border:none;padding:0;background:none;"></div></div>
+        <div class="panel-card"><h3>各节日特色标签（差集）</h3><div id="uniqBox"></div></div>
+        <div class="insight-box">
+          <div class="insight-title">🔍 一套集合运算，驱动文化检索</div>
+          <p>并集扩展检索入口（多节日联合检索）、交集发现共同主题（智能推荐）、差集形成特色标签（精准分类）。博物馆、数字图书馆正是用这套运算让海量文化资源可达、可推荐、可传播。</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
+
+  <script>
+    window.SECTION_META = {
+      "chapter": "第2章 集合及其运算", "section": "2.7 中秋案例 · 拓展层", "title": "传统节日数字化",
+      "grounding": "本页（拓展层）主题：把中秋、春节、端午建成意象集合，用集合运算做文化数字化——交集=跨节日共同主题（家国情怀为三节之交），差集=节日特色标签，并集=扩展检索入口。这是博物馆/数字图书馆文化检索与推荐的数学内核。",
+      "steps": [
+        {"name": "情境引入", "desc": "如何用集合运算组织多个节日的文化意象，支撑检索与推荐？"},
+        {"name": "对象抽取", "desc": "把各节日意象抽象为集合元素。"},
+        {"name": "结构建模", "desc": "交=共同主题，差=特色标签，并=检索入口。"},
+        {"name": "推理求解", "desc": "对多节日做交/差/并，得到主题、标签与检索池。"},
+        {"name": "程序验证", "desc": "勾选节日、选运算，验证检索与推荐结果。"},
+        {"name": "迁移反思", "desc": "迁移到博物馆藏品、数字图书馆的文化资源组织。"}
+      ],
+      "ideology": {"title": "家国一体 · 文化自信", "text": "中秋、春节、端午等传统节日意象的交集落到『家国』——家国情怀是中华节日共同的精神内核。用集合运算把传统文化数字化、可检索、可推荐，是以现代信息技术传承弘扬中华优秀传统文化、坚定文化自信的生动实践。", "dims": ["文化自信", "家国情怀", "守正创新"], "quote": "万家灯火、家国一体——传统节日的『交集』，是中华民族共同的精神原乡。"},
+      "reflect": ["三大节日的交集为何落在『家国』？这揭示了中华文化怎样的共同内核？", "差集为何能形成『节日特色标签』？对文化分类有何意义？", "并集如何扩展检索入口、提升文化资源可达性？"],
+      "transfer": ["博物馆藏品、数字图书馆按主题集合归类检索；多节日意象关系图谱与智能推荐。"],
+      "layers": [
+        {"name": "文化要素集合化", "concepts": "意象/习俗归类 / 确定性分类", "task": "把中秋文化要素抽象为集合。", "page": "midautumn-basic.html"},
+        {"name": "用运算分析关联", "concepts": "交=共性 / 并=汇总 / 划分=主题", "task": "用集合运算分析文化要素关系。", "page": "midautumn.html"},
+        {"name": "传统节日数字化", "concepts": "节日意象图谱 / 文化检索", "task": "迁移到传统文化的数字化组织。", "page": "midautumn-extend.html"}
+      ]
+    };
+  </script>
+
+  <script>
+  (function(){
+    "use strict";
+    var $=function(id){return document.getElementById(id);};
+    var FNAME={A:'中秋',B:'春节',C:'端午'};
+    var ELEMS=[
+      {n:'家国',s:['A','B','C']},{n:'团圆',s:['A','B']},{n:'思乡',s:['A','C']},
+      {n:'明月',s:['A']},{n:'月饼',s:['A']},
+      {n:'守岁',s:['B']},{n:'春联',s:['B']},{n:'饺子',s:['B']},
+      {n:'爱国',s:['C']},{n:'龙舟',s:['C']},{n:'粽子',s:['C']}
+    ];
+    var REGION={A:[250,92],B:[120,310],C:[380,310],AB:[178,212],AC:[322,212],BC:[250,330],ABC:[250,242]};
+    function rk(s){return s.slice().sort().join('');}
+    function layout(){var g={};ELEMS.forEach(function(e){var k=rk(e.s);(g[k]=g[k]||[]).push(e);});Object.keys(g).forEach(function(k){var a=g[k],c=REGION[k];a.forEach(function(e,i){var o=(i-(a.length-1)/2);e.x=c[0]+o*44;e.y=c[1]+(i%2?11:-3);});});}
+    function inS(e,L){return e.s.indexOf(L)>=0;}
+    function setOf(L){return ELEMS.filter(function(e){return inS(e,L);});}
+    var currentTab='tab1',guide='common',diffFest='A';
+
+    // ---- Tab1 Venn ----
+    function compute(){
+      if(guide==='common'){ // triple intersection emphasized, pairwise too
+        return {lit:ELEMS.filter(function(e){return e.s.length>=2;}),core:ELEMS.filter(function(e){return e.s.length===3;}),litC:['A','B','C'],dim:[]};
+      }
+      if(guide==='diff'){var others=['A','B','C'].filter(function(L){return L!==diffFest;});
+        return {lit:ELEMS.filter(function(e){return inS(e,diffFest)&&!inS(e,others[0])&&!inS(e,others[1]);}),core:[],litC:[diffFest],dim:others};
+      }
+      return {lit:ELEMS.slice(),core:[],litC:['A','B','C'],dim:[]}; // union
+    }
+    function drawVenn(){
+      var r=compute();var litSet={};r.lit.forEach(function(e){litSet[e.n]=1;});var coreSet={};r.core.forEach(function(e){coreSet[e.n]=1;});
+      var svg='';
+      ['A','B','C'].forEach(function(L){var cx=L==='A'?250:L==='B'?175:325,cy=L==='A'?150:275;var cls='vc '+L+(r.litC.indexOf(L)>=0?' lit':'')+(r.dim.indexOf(L)>=0?' dim':'');svg+='<circle class="'+cls+'" cx="'+cx+'" cy="'+cy+'" r="115"/>';});
+      svg+='<text class="vlabel" x="250" y="56" text-anchor="middle" fill="#d63b1d">A 中秋</text><text class="vlabel" x="92" y="300" text-anchor="middle" fill="#8a5d0b">B 春节</text><text class="vlabel" x="408" y="300" text-anchor="middle" fill="#2f7d57">C 端午</text>';
+      ELEMS.forEach(function(e){var w=e.n.length*15+12;var core=coreSet[e.n],lit=litSet[e.n]&&!core,dim=!litSet[e.n];svg+='<g class="echip'+(core?' core':lit?' lit':'')+(dim?' dim':'')+'"><rect x="'+(e.x-w/2)+'" y="'+(e.y-11)+'" width="'+w+'" height="22" rx="11" fill="rgba(255,255,255,.92)" stroke="'+(core||lit?'#8b0000':'rgba(116,55,31,.3)')+'" stroke-width="'+(core||lit?2.4:1.4)+'"/><text x="'+e.x+'" y="'+(e.y+4)+'" text-anchor="middle">'+e.n+'</text></g>';});
+      $('venn').innerHTML=svg;
+    }
+    function infoTab1(){
+      var box=$('t1res');if(!box)return;
+      if(guide==='common'){
+        var triple=ELEMS.filter(function(e){return e.s.length===3;}).map(function(e){return e.n;});
+        var ab=ELEMS.filter(function(e){return inS(e,'A')&&inS(e,'B');}).map(function(e){return e.n;});
+        var ac=ELEMS.filter(function(e){return inS(e,'A')&&inS(e,'C');}).map(function(e){return e.n;});
+        box.innerHTML='<span class="formula">A∩B∩C</span> = '+triple.map(function(n){return '<span class="tag core">'+n+'</span>';}).join('')+'（三节共同内核）<br><span style="font-size:.8rem;opacity:.85">中秋∩春节='+ab.join('、')+'；中秋∩端午='+ac.join('、')+'。<b>交集=共同主题</b>，用于跨节日智能推荐。</span>';
+      } else if(guide==='diff'){
+        var others=['A','B','C'].filter(function(L){return L!==diffFest;});
+        var uniq=ELEMS.filter(function(e){return inS(e,diffFest)&&!inS(e,others[0])&&!inS(e,others[1]);}).map(function(e){return e.n;});
+        box.innerHTML='<span class="formula">'+FNAME[diffFest]+' − 其他</span> = '+uniq.map(function(n){return '<span class="tag uniq">'+n+'</span>';}).join('')+'<br><span style="font-size:.8rem;opacity:.85"><b>差集=节日特色标签</b>：'+FNAME[diffFest]+'独有的意象，用于精准分类与特色检索。</span>';
+      } else {
+        box.innerHTML='<span class="formula">A∪B∪C</span> = 全部 '+ELEMS.length+' 个意象 '+ELEMS.map(function(e){return '<span class="tag pool">'+e.n+'</span>';}).join('')+'<br><span style="font-size:.8rem;opacity:.85"><b>并集=扩展检索入口</b>：多节日联合检索，任一意象都能召回。</span>';
+      }
+    }
+
+    // ---- Tab2 retrieval ----
+    var picked={A:true,B:true,C:true};
+    function renderTab2(){
+      var sel=['A','B','C'].filter(function(L){return picked[L];});
+      // pool = union, common = intersection
+      var pool=ELEMS.filter(function(e){return sel.some(function(L){return inS(e,L);});});
+      var common=sel.length?ELEMS.filter(function(e){return sel.every(function(L){return inS(e,L);});}):[];
+      $('poolBox').innerHTML=sel.length?pool.map(function(e){return '<span class="tag pool">'+e.n+'</span>';}).join('')+'　<span style="font-size:.78rem;opacity:.8">共 '+pool.length+' 项（'+sel.map(function(L){return FNAME[L];}).join(' ∪ ')+'）</span>':'<span style="opacity:.6">请至少勾选一个节日</span>';
+      $('commonBox').innerHTML=sel.length?(common.length?common.map(function(e){return '<span class="tag '+(e.s.length===3?'core':'common')+'">'+e.n+'</span>';}).join('')+'　<span style="font-size:.78rem;opacity:.8">'+sel.map(function(L){return FNAME[L];}).join(' ∩ ')+' 的共同主题</span>':'<span style="opacity:.6">所选节日无共同意象（∅）</span>'):'';
+      $('uniqBox').innerHTML=['A','B','C'].map(function(L){var others=['A','B','C'].filter(function(x){return x!==L;});var u=ELEMS.filter(function(e){return inS(e,L)&&!inS(e,others[0])&&!inS(e,others[1]);}).map(function(e){return e.n;});return '<div class="fest-row"><span class="fn">'+FNAME[L]+'</span><span>'+u.map(function(n){return '<span class="tag uniq">'+n+'</span>';}).join('')+'</span></div>';}).join('');
+    }
+
+    // ---- Tabs ----
+    $('tabNav').querySelectorAll('.tab-btn').forEach(function(b){b.addEventListener('click',function(){switchTab(b.dataset.tab);});});
+    function switchTab(id){currentTab=id;$('tabNav').querySelectorAll('.tab-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tab===id);});document.querySelectorAll('.tab-content').forEach(function(c){c.classList.toggle('active',c.id===id);});updateSidebar(id);}
+    function updateSidebar(id){
+      var sd=$('sidebarDyn');
+      if(id==='tab1'){
+        sd.innerHTML='<div class="control-group"><label>三步运算（点一步看图高亮）</label><div class="kg-step-grid">'+
+          '<button class="kg-step'+(guide==='common'?' active':'')+'" data-g="common"><b>1 共同主题（交 ∩）</b><span>三节之交=家国</span></button>'+
+          '<button class="kg-step'+(guide==='diff'?' active':'')+'" data-g="diff"><b>2 特色标签（差）</b><span>某节日 − 其他</span></button>'+
+          '<button class="kg-step'+(guide==='union'?' active':'')+'" data-g="union"><b>3 检索入口（并 ∪）</b><span>全部意象池</span></button></div>'+
+          '<div style="margin-top:8px"><label style="font-size:12px">差集 — 选节日</label><select class="fsel" id="diffSel"><option value="A">中秋</option><option value="B">春节</option><option value="C">端午</option></select></div></div>'+
+          '<div class="control-group" style="padding:0;border:none;background:none;"><div class="kg-feedback" id="t1fb"></div></div>'+
+          '<div class="kg-formula-row" style="margin-top:8px"><span class="kg-token" data-t="cap">∩ 共同主题</span><span class="kg-token" data-t="diff">差 特色标签</span><span class="kg-token" data-t="cup">∪ 检索入口</span></div>'+
+          '<div class="control-group" style="padding:0;border:none;background:none;"><div class="qres" id="t1res"></div></div>';
+        $('diffSel').value=diffFest;$('diffSel').onchange=function(e){diffFest=e.target.value;guide='diff';refreshT1();};
+        sd.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){guide=b.dataset.g;refreshT1();};});
+        refreshT1();
+      } else {
+        sd.innerHTML='<div class="control-group"><label>勾选要联合检索的节日</label><div class="fest-toggles" id="ftogs">'+
+          ['A','B','C'].map(function(L){return '<label class="ftog"><input type="checkbox" data-f="'+L+'"'+(picked[L]?' checked':'')+'> '+FNAME[L]+'</label>';}).join('')+'</div></div>'+
+          '<div class="control-group" style="padding:0;border:none;background:none;"><div class="kg-feedback">并集=检索结果池，交集=共同主题（推荐），各节日差集=特色标签。改变勾选实时更新。</div></div>'+
+          '<div class="kg-formula-row" style="margin-top:8px"><span class="kg-token on" data-t="cup">∪ 检索池</span><span class="kg-token on" data-t="cap">∩ 推荐</span><span class="kg-token on" data-t="diff">差 标签</span></div>';
+        $('ftogs').querySelectorAll('input').forEach(function(c){c.onchange=function(){picked[c.dataset.f]=c.checked;renderTab2();};});
+        renderTab2();
+      }
+    }
+    function refreshT1(){
+      $('sidebarDyn').querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.g===guide);});
+      $('sidebarDyn').querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',(guide==='common'&&t.dataset.t==='cap')||(guide==='diff'&&t.dataset.t==='diff')||(guide==='union'&&t.dataset.t==='cup'));});
+      var fb=$('t1fb');if(fb)fb.innerHTML=guide==='common'?'<b>交集=共同主题</b>：三大节日意象的交集落到『家国』，是中华节日共同的精神内核。':guide==='diff'?'<b>差集=特色标签</b>：'+FNAME[diffFest]+' 减去其他节日，得到它独有的意象标签。':'<b>并集=检索入口</b>：合并全部节日意象，任一关键词都能召回相关节日。';
+      drawVenn();infoTab1();
+    }
+    layout();updateSidebar('tab1');
+  })();
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

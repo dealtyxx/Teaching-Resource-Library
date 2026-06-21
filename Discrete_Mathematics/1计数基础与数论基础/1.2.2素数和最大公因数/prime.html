@@ -4,15 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>素数与最大公因数 - 思政可视化</title>
-    <meta name="description" content="离散数学课程 - 素数与最大公因数 - 思政可视化">
+    <title>素数与最大公因数 - 价值引领可视化</title>
+    <meta name="description" content="离散数学课程 - 素数与最大公因数 - 价值引领可视化">
 
     <link rel="stylesheet" href="prime.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="../chapter1-compact.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+XiaoWei&display=swap"
         rel="stylesheet">
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
@@ -54,7 +57,7 @@
                 </div>
 
                 <div class="control-group">
-                    <label>思政主题</label>
+                    <label>价值主题</label>
                     <select id="themeSelect" class="apple-select">
                         <option value="core">核心价值观</option>
                         <option value="foundation">基层基础</option>
@@ -143,19 +146,104 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "chapter": "第1章 计数基础与数论基础",
+      "section": "1.2.2 素数和最大公因数 · 进阶层",
+      "title": "欧几里得算法",
+      "grounding": "本节主题：素数与最大公因数。素数是大于1且只有1与自身两个因子的数；算术基本定理——每个大于1的整数都能唯一分解为素数之积。最大公因数 gcd(a,b) 用欧几里得算法求得：gcd(a,b)=gcd(b, a mod b)，直到余数为0。gcd(a,b)=1 时称 a、b 互素。",
+      "steps": [
+            {
+                  "name": "情境引入",
+                  "desc": "为什么素数被称为『数的原子』？大数分解为何困难？"
+            },
+            {
+                  "name": "对象抽取",
+                  "desc": "把整数抽象为素因子的乘积，把公约关系抽象为 gcd。"
+            },
+            {
+                  "name": "结构建模",
+                  "desc": "用算术基本定理刻画唯一分解，用辗转相除刻画 gcd。"
+            },
+            {
+                  "name": "推理求解",
+                  "desc": "执行欧几里得算法求 gcd，并理解其每步规模快速收缩。"
+            },
+            {
+                  "name": "程序验证",
+                  "desc": "用本页交互观察辗转相除的迭代过程与素性判定。"
+            },
+            {
+                  "name": "迁移反思",
+                  "desc": "迁移到分数化简、RSA 密钥、互素与可逆元。"
+            }
+      ],
+      "ideology": {
+            "title": "固本培元 · 各美其美",
+            "text": "素数是构成一切整数的『基本元素』，正如基础学科、关键核心技术是国家发展的基石——不可替代、必须自立自强。欧几里得算法两千年不衰，告诉我们经典之美在于简洁与永恒；唯一分解定理则诠释了『各美其美、美美与共』的多元统一。",
+            "dims": [
+                  "文化自信",
+                  "科学精神",
+                  "自立自强"
+            ],
+            "quote": "求其上者得其中——掌握素数这类『数的根本』，方能在密码安全等关键领域不受制于人。"
+      },
+      "reflect": [
+            "算术基本定理保证分解的『唯一性』——若没有这条唯一性，密码学会出什么问题？",
+            "欧几里得算法为什么这么快？每一步的规模大致如何缩小？",
+            "判断一个大数是否为素数，和把它分解为素因子，难度一样吗？为什么？"
+      ],
+      "transfer": [
+            "把两个大素数相乘很容易，但把乘积分解回去极难——RSA 正是建立在这种『单向难度』上。",
+            {
+                  "t": "分数与可逆",
+                  "d": "gcd=1 是模 m 下存在乘法逆元的条件，本节如何为同余方程铺路？"
+            },
+            {
+                  "t": "最小公倍数",
+                  "d": "lcm(a,b)·gcd(a,b)=a·b，这个对偶关系如何帮助快速求最小公倍数？"
+            }
+      ],
+      "layers": [
+            {
+                  "name": "素数与唯一分解",
+                  "concepts": "素数 / 算术基本定理",
+                  "task": "理解『数的原子』与唯一分解定理。",
+                  "page": "prime-basic.html"
+            },
+            {
+                  "name": "欧几里得算法",
+                  "concepts": "gcd(a,b)=gcd(b,a mod b) / 互素",
+                  "task": "会用辗转相除高效求最大公因数。",
+                  "page": "prime.html"
+            },
+            {
+                  "name": "难解性与密码",
+                  "concepts": "大数分解难题 / RSA / 可逆元",
+                  "task": "理解单向难度如何支撑现代密码安全。",
+                  "page": "prime-extend.html"
+            }
+      ]
+};
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 

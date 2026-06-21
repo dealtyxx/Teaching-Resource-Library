@@ -28,9 +28,10 @@ const ORIGINAL_EDGES = [
 // State
 let currentClosure = null;
 let nodePositions = {};
+let graphSize = { width: 0, height: 0, centerX: 0, centerY: 0 };
 
 // Config
-const NODE_RADIUS = 25;
+const NODE_RADIUS = 22;
 
 // Initialization
 function init() {
@@ -39,32 +40,35 @@ function init() {
     renderClosureGraph([]);
 }
 
-// Layout (Circular)
-function calculateLayout() {
-    const width = 400; // Approximate panel width
-    const height = 400;
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const radius = 120;
+// Layout (Circular) — 依据「指定图容器」的实际尺寸做圆形布局，
+// 每个图各自按自己的容器居中、自适应半径，确保四个节点与所有边完整落在容器内。
+function layoutFor(container, svg) {
+    const rect = container ? container.getBoundingClientRect() : { width: 360, height: 360 };
+    const w = Math.max(180, Math.round(rect.width || (container && container.clientWidth) || 360));
+    const h = Math.max(260, Math.round(rect.height || (container && container.clientHeight) || 360));
+    const cx = w / 2;
+    const cy = h / 2;
+    const r = Math.max(42, Math.min(w * 0.28, h * 0.28, w / 2 - NODE_RADIUS - 34, h / 2 - NODE_RADIUS - 34));
+    const pos = {};
+
+    graphSize = { width: w, height: h, centerX: cx, centerY: cy };
+    if (svg) {
+        svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+        svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    }
 
     NODES.forEach((val, idx) => {
-        const angle = (idx / NODES.length) * 2 * Math.PI - Math.PI / 2;
-        nodePositions[val] = {
-            x: centerX + radius * Math.cos(angle),
-            y: centerY + radius * Math.sin(angle)
-        };
+        const a = (idx / NODES.length) * 2 * Math.PI - Math.PI / 2;
+        pos[val] = { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
     });
+    return pos;
 }
+function calculateLayout() { /* 兼容旧调用：实际布局在各自渲染时按容器计算 */ }
 
 // Rendering
 function renderOriginalGraph() {
-    // Nodes
+    nodePositions = layoutFor(document.getElementById('graphOriginal'), svgOriginal);
     nodesOriginal.innerHTML = '';
-    NODES.forEach(val => {
-        const pos = nodePositions[val];
-        const node = createNode(val, pos, 'original');
-        nodesOriginal.appendChild(node);
-    });
 
     // Edges
     const defs = svgOriginal.querySelector('defs');
@@ -75,16 +79,17 @@ function renderOriginalGraph() {
         const edge = createEdge(u, v, 'edge-original');
         svgOriginal.appendChild(edge);
     });
+
+    NODES.forEach(val => {
+        const pos = nodePositions[val];
+        const node = createNode(val, pos, 'original');
+        svgOriginal.appendChild(node);
+    });
 }
 
 function renderClosureGraph(addedEdges) {
-    // Nodes
+    nodePositions = layoutFor(document.getElementById('graphClosure'), svgClosure);
     nodesClosure.innerHTML = '';
-    NODES.forEach(val => {
-        const pos = nodePositions[val];
-        const node = createNode(val, pos, 'closure');
-        nodesClosure.appendChild(node);
-    });
 
     // Edges
     const defs = svgClosure.querySelector('defs');
@@ -104,6 +109,12 @@ function renderClosureGraph(addedEdges) {
         svgClosure.appendChild(edge);
     });
 
+    NODES.forEach(val => {
+        const pos = nodePositions[val];
+        const node = createNode(val, pos, 'closure');
+        svgClosure.appendChild(node);
+    });
+
     // Update stats
     originalCount.textContent = ORIGINAL_EDGES.length;
     addedCount.textContent = addedEdges.length;
@@ -111,11 +122,18 @@ function renderClosureGraph(addedEdges) {
 }
 
 function createNode(value, pos, type) {
-    const node = document.createElement('div');
-    node.className = 'graph-node';
-    node.textContent = value;
-    node.style.left = `${pos.x - NODE_RADIUS}px`;
-    node.style.top = `${pos.y - NODE_RADIUS}px`;
+    const node = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    node.setAttribute('class', `svg-node node-${type}`);
+    node.setAttribute('transform', `translate(${pos.x} ${pos.y})`);
+
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('r', NODE_RADIUS);
+
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.textContent = value;
+
+    node.appendChild(circle);
+    node.appendChild(text);
     return node;
 }
 
@@ -125,21 +143,38 @@ function createEdge(u, v, className) {
 
     let d;
     if (u === v) {
-        // Self-loop
-        const loopSize = 30;
-        d = `M ${posU.x} ${posU.y - NODE_RADIUS} 
-             Q ${posU.x + loopSize} ${posU.y - NODE_RADIUS - loopSize} 
-               ${posU.x} ${posU.y - NODE_RADIUS}`;
+        const away = getOutwardVector(posU);
+        const tangent = { x: -away.y, y: away.x };
+        const start = {
+            x: posU.x + away.x * NODE_RADIUS + tangent.x * (NODE_RADIUS * 0.62),
+            y: posU.y + away.y * NODE_RADIUS + tangent.y * (NODE_RADIUS * 0.62)
+        };
+        const end = {
+            x: posU.x + away.x * NODE_RADIUS - tangent.x * (NODE_RADIUS * 0.62),
+            y: posU.y + away.y * NODE_RADIUS - tangent.y * (NODE_RADIUS * 0.62)
+        };
+        const lift = Math.min(46, Math.max(28, Math.min(graphSize.width, graphSize.height) * 0.15));
+        const c1 = {
+            x: clamp(start.x + away.x * lift + tangent.x * 22, NODE_RADIUS, graphSize.width - NODE_RADIUS),
+            y: clamp(start.y + away.y * lift + tangent.y * 22, NODE_RADIUS, graphSize.height - NODE_RADIUS)
+        };
+        const c2 = {
+            x: clamp(end.x + away.x * lift - tangent.x * 22, NODE_RADIUS, graphSize.width - NODE_RADIUS),
+            y: clamp(end.y + away.y * lift - tangent.y * 22, NODE_RADIUS, graphSize.height - NODE_RADIUS)
+        };
+        d = `M ${start.x} ${start.y} C ${c1.x} ${c1.y} ${c2.x} ${c2.y} ${end.x} ${end.y}`;
     } else {
         // Regular edge
         const dx = posV.x - posU.x;
         const dy = posV.y - posU.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
+        if (!dist) return document.createElementNS('http://www.w3.org/2000/svg', 'path');
 
-        const startX = posU.x + (dx / dist) * NODE_RADIUS;
-        const startY = posU.y + (dy / dist) * NODE_RADIUS;
-        const endX = posV.x - (dx / dist) * NODE_RADIUS;
-        const endY = posV.y - (dy / dist) * NODE_RADIUS;
+        const offset = NODE_RADIUS + 3;
+        const startX = posU.x + (dx / dist) * offset;
+        const startY = posU.y + (dy / dist) * offset;
+        const endX = posV.x - (dx / dist) * offset;
+        const endY = posV.y - (dy / dist) * offset;
 
         // Slight curve for visibility
         const midX = (startX + endX) / 2;
@@ -154,6 +189,19 @@ function createEdge(u, v, className) {
     path.setAttribute('d', d);
     path.setAttribute('class', `graph-edge ${className} ${u === v ? 'edge-self-loop' : ''}`);
     return path;
+}
+
+function getOutwardVector(pos) {
+    let dx = pos.x - graphSize.centerX;
+    let dy = pos.y - graphSize.centerY;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    dx /= dist;
+    dy /= dist;
+    return { x: dx, y: dy };
+}
+
+function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
 }
 
 // Closure Algorithms
@@ -271,16 +319,20 @@ closureBtns.forEach(btn => {
     });
 });
 
-resetBtn.addEventListener('click', () => {
+function resetClosureView() {
     currentClosure = null;
     closureBtns.forEach(btn => btn.classList.remove('active'));
 
     closureTitle.textContent = '闭包结果 (Closure Result)';
     closureSub.textContent = '选择一个闭包操作';
     insightTitle.textContent = '准备就绪';
-    insightText.textContent = '点击上方按钮，探索三种闭包如何完善社会网络，构建更加紧密的联系。';
+    insightText.textContent = '点击闭包按钮，探索三种闭包如何完善网络，构建更加紧密的联系。';
 
     renderClosureGraph([]);
+}
+
+document.querySelectorAll('#resetBtn').forEach(btn => {
+    btn.addEventListener('click', resetClosureView);
 });
 
 window.addEventListener('resize', () => {
@@ -293,5 +345,23 @@ window.addEventListener('resize', () => {
     }
 });
 
+// 重新渲染（保留当前选择的闭包）；各图渲染时按各自容器实时布局
+function relayout() {
+    renderOriginalGraph();
+    if (currentClosure) updateClosure(currentClosure);
+    else renderClosureGraph([]);
+}
+
 // Init
 init();
+// 容器尺寸任何变化（字体加载 / 屏幕自适配缩放 / 窗口缩放 / 布局稳定）都自动重新布局，
+// 用 ResizeObserver 取代「猜时间」的延时，确保图形始终完整不被裁切。
+if (window.ResizeObserver) {
+    const _ro = new ResizeObserver(function () { relayout(); });
+    const _co = document.getElementById('graphOriginal');
+    const _cc = document.getElementById('graphClosure');
+    if (_co) _ro.observe(_co);
+    if (_cc) _ro.observe(_cc);
+}
+window.addEventListener('load', relayout);
+[200, 600, 1300].forEach(function (d) { setTimeout(relayout, d); });

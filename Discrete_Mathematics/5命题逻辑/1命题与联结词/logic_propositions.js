@@ -224,7 +224,7 @@ function buildTruthTable(type) {
 
     // Trigger MathJax rendering
     if (window.MathJax) {
-        MathJax.typesetPromise([container]);
+        window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise([container]);
     }
 }
 

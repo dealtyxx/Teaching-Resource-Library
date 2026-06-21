@@ -8,11 +8,13 @@
     <meta name="description" content="离散数学课程 - 红色数理 - 关系表示">
 
     <link rel="stylesheet" href="representation.css">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet">
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
@@ -35,8 +37,8 @@
     <div class="app-container">
         <header class="main-header">
             <div class="header-content">
-                <h1>红色数理 <span class="highlight">三重视角</span></h1>
-                <p class="subtitle">Three Perspectives</p>
+                <h1>红色数理 <span class="highlight">进阶层</span></h1>
+                <p class="subtitle">关系表示 · 三重视角</p>
             </div>
             <div class="header-controls">
                 <button id="clearBtn" class="apple-btn sm-btn" aria-label="清空 (Clear)">清空 (Clear)</button>
@@ -120,19 +122,89 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
+    background: transparent;
+    color: inherit;
+    opacity: 0.72;
     padding: 15px 10px;
     text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
+    box-shadow: none;
     z-index: 9999;
 ">
     <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
+        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
         版权所有 ｜ 项目总负责人：谢鑫
     </p>
 </footer>
 
+
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "layers": [
+        {"name": "三种表示", "concepts": "集合 / 关系矩阵 / 关系图", "task": "在三种等价表示间互相转换。", "page": "representation-basic.html"},
+        {"name": "矩阵即计算", "concepts": "布尔矩阵 / 合成=布尔乘 / 通路", "task": "用矩阵做关系运算、用图找通路。", "page": "representation.html"},
+        {"name": "稀疏存储与加速", "concepts": "邻接矩阵·邻接表 / CSR / 存储权衡", "task": "迁移到稀疏存储与高性能计算。", "page": "representation-extend.html"}
+      ],
+      "chapter": "第3章 二元关系",
+      "section": "3.3 二元关系的表示",
+      "title": "二元关系的表示",
+      "grounding": "本节主题：关系的三种表示——集合（有序对列举）、关系矩阵（M_R 的 (i,j) 元为1当且仅当 aᵢRaⱼ）、关系图（有向图，aᵢ→aⱼ 表示相关）。矩阵便于运算（合成=布尔矩阵乘），图便于直观与路径分析。三者等价，按需切换。",
+      "steps": [
+        {
+          "name": "情境引入",
+          "desc": "同一份『联系数据』，怎样的表示既好算又好看？"
+        },
+        {
+          "name": "对象抽取",
+          "desc": "把关系分别抽象为集合、0-1 矩阵、有向图。"
+        },
+        {
+          "name": "结构建模",
+          "desc": "建立三种表示的相互转换规则。"
+        },
+        {
+          "name": "推理求解",
+          "desc": "用矩阵做关系合成，用图找通路。"
+        },
+        {
+          "name": "程序验证",
+          "desc": "用本页交互在三种表示间切换，验证一致性。"
+        },
+        {
+          "name": "迁移反思",
+          "desc": "迁移到邻接矩阵/邻接表、稀疏存储。"
+        }
+      ],
+      "ideology": {
+        "title": "一体多面 · 各取所长",
+        "text": "同一个关系可用集合、矩阵、图三种形式表达，恰如同一事物可从不同角度认识——『横看成岭侧成峰』。善于在表示之间切换、各取所长，正是具体问题具体分析、灵活务实的方法论体现。",
+        "dims": [
+          "辩证思维",
+          "灵活务实",
+          "系统观念"
+        ],
+        "quote": "横看成岭侧成峰——三种表示是同一关系的不同侧面，切换视角方能事半功倍。"
+      },
+      "reflect": [
+        "关系矩阵与关系图各自的优势是什么？什么场景该用哪种？",
+        "为什么关系合成对应『布尔矩阵乘法』？这背后是什么逻辑运算？",
+        "稀疏关系用矩阵存储会浪费空间，邻接表为何更优？"
+      ],
+      "transfer": [
+        "图的邻接矩阵与邻接表正是关系矩阵与关系图在第7章的延续。",
+        {
+          "t": "稀疏存储",
+          "d": "社交网络的关系极稀疏，用压缩稀疏行（CSR）如何节省空间？"
+        },
+        {
+          "t": "矩阵即计算",
+          "d": "把关系运算化为矩阵运算，能否借助高性能线性代数库加速？"
+        }
+      ]
+    };
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
 

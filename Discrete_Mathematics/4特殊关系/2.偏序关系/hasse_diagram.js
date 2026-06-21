@@ -41,6 +41,10 @@ const RELATIONS = [
     ['s7', 's8']
 ];
 
+const NODE_WIDTH = 120;
+const NODE_HEIGHT = 40;
+const NODE_GAP = 18;
+
 // Graph State
 let nodes = [];
 let edges = [];
@@ -56,11 +60,20 @@ function init() {
 }
 
 function calculateLayout() {
-    width = document.getElementById('diagramContainer').clientWidth;
-    height = document.getElementById('diagramContainer').clientHeight;
+    const container = document.getElementById('diagramContainer');
+    const rect = container.getBoundingClientRect();
+    width = Math.max(620, Math.round(rect.width || container.clientWidth || 760));
+    height = Math.max(430, Math.round(rect.height || container.clientHeight || 520));
+
+    diagramSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    diagramSvg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 
     // Hasse Layout: Levels
-    const levelHeight = (height - 100) / 5;
+    const padX = NODE_WIDTH / 2 + 28;
+    const padTop = NODE_HEIGHT / 2 + 30;
+    const padBottom = NODE_HEIGHT / 2 + 34;
+    const maxLevel = Math.max(...STRATEGIES.map(s => s.level));
+    const levelHeight = (height - padTop - padBottom) / Math.max(1, maxLevel);
     const levelCounts = {};
     STRATEGIES.forEach(s => {
         levelCounts[s.level] = (levelCounts[s.level] || 0) + 1;
@@ -73,9 +86,13 @@ function calculateLayout() {
         const idx = levelCurrent[s.level] || 0;
         levelCurrent[s.level] = idx + 1;
 
-        // Center nodes
-        const x = width / 2 + (idx - (count - 1) / 2) * 140;
-        const y = height - 60 - s.level * levelHeight;
+        const availableWidth = width - padX * 2;
+        const minNeeded = count > 1 ? (count - 1) * (NODE_WIDTH + NODE_GAP) : 0;
+        const spread = Math.min(availableWidth, Math.max(minNeeded, availableWidth * 0.9));
+        const x = count === 1
+            ? width / 2
+            : width / 2 - spread / 2 + (spread * idx) / (count - 1);
+        const y = height - padBottom - s.level * levelHeight;
 
         return { ...s, x, y };
     });
@@ -93,10 +110,11 @@ function renderDiagram() {
     // Draw Edges
     edges.forEach(edge => {
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', edge.source.x);
-        line.setAttribute('y1', edge.source.y - 20);
-        line.setAttribute('x2', edge.target.x);
-        line.setAttribute('y2', edge.target.y + 20);
+        const points = edgeEndpoints(edge.source, edge.target);
+        line.setAttribute('x1', points.start.x);
+        line.setAttribute('y1', points.start.y);
+        line.setAttribute('x2', points.end.x);
+        line.setAttribute('y2', points.end.y);
         line.setAttribute('class', 'edge');
         line.dataset.id = edge.id;
         diagramSvg.appendChild(line);
@@ -108,12 +126,15 @@ function renderDiagram() {
         g.setAttribute('transform', `translate(${node.x}, ${node.y})`);
         g.setAttribute('class', 'node-group');
         g.dataset.id = node.id;
+        if (selectedNodes.has(node.id)) {
+            g.classList.add('selected');
+        }
 
         const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         rect.setAttribute('x', -60);
         rect.setAttribute('y', -20);
-        rect.setAttribute('width', 120);
-        rect.setAttribute('height', 40);
+        rect.setAttribute('width', NODE_WIDTH);
+        rect.setAttribute('height', NODE_HEIGHT);
         rect.setAttribute('class', 'node-rect');
 
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -134,6 +155,33 @@ function renderDiagram() {
 
         diagramSvg.appendChild(g);
     });
+}
+
+function edgeEndpoints(source, target) {
+    const dx = target.x - source.x;
+    const dy = target.y - source.y;
+    const length = Math.hypot(dx, dy) || 1;
+    const ux = dx / length;
+    const uy = dy / length;
+    const startOffset = rectBoundaryOffset(ux, uy);
+    const endOffset = rectBoundaryOffset(-ux, -uy);
+
+    return {
+        start: {
+            x: source.x + ux * startOffset,
+            y: source.y + uy * startOffset
+        },
+        end: {
+            x: target.x - ux * endOffset,
+            y: target.y - uy * endOffset
+        }
+    };
+}
+
+function rectBoundaryOffset(ux, uy) {
+    const tx = Math.abs(ux) > 0.0001 ? (NODE_WIDTH / 2) / Math.abs(ux) : Infinity;
+    const ty = Math.abs(uy) > 0.0001 ? (NODE_HEIGHT / 2) / Math.abs(uy) : Infinity;
+    return Math.min(tx, ty) + 2;
 }
 
 // Interaction
@@ -309,9 +357,10 @@ function updateConcept(title, desc, math, icon, insight) {
 }
 
 function showTooltip(e, node) {
-    const rect = diagramSvg.getBoundingClientRect();
-    tooltip.style.left = `${node.x + rect.left + 20}px`;
-    tooltip.style.top = `${node.y + rect.top - 20}px`;
+    const left = Math.min(width - 240, node.x + NODE_WIDTH / 2 + 12);
+    const top = Math.max(8, node.y - NODE_HEIGHT / 2 - 12);
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
     tooltip.style.opacity = 1;
 
     tooltip.innerHTML = `

@@ -227,7 +227,7 @@ function performComparison() {
 
     // Trigger MathJax rendering
     if (window.MathJax) {
-        MathJax.typesetPromise([document.getElementById('detailContent')]);
+        window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise([document.getElementById('detailContent')]);
     }
 
     setTimeout(() => {

@@ -1,5 +1,5 @@
 /**
- * 数论基础：整除性与模算术 - 思政可视化
+ * 数论基础：整除性与模算术 - 价值引领可视化
  * 主题：周期循环，顺序轮换
  */
 
@@ -27,7 +27,7 @@ let period = 7;
 let totalDays = 30;
 let isAnimating = false;
 
-// 思政主题数据
+// 价值主题数据
 const themes = {
     rotation: {
         name: '干部轮岗制度',

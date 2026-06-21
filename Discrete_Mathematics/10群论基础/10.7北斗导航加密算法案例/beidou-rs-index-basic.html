@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第10章 群论基础 - 北斗纠错码 · 基础层 线性码=群</title>
+  <meta name="description" content="10.7 北斗导航加密算法案例 基础层：线性码=群，奇偶校验检错">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(139,0,0,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}.kg-step-head strong{color:var(--red);font-size:.95rem;}.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.86rem;}.kg-step span{display:block;font-size:.76rem;color:var(--muted);margin-top:3px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.84rem;color:#7a3216;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
+.result-card{border-radius:10px;border:2px solid var(--gold);background:linear-gradient(135deg,rgba(214,59,29,.1),rgba(197,138,31,.12));padding:14px;text-align:center;}
+.result-card .rt{font-weight:700;color:var(--red);font-size:13px;}
+.result-card .rv{font-family:"JetBrains Mono",monospace;font-weight:800;font-size:1.5rem;color:var(--red);margin:6px 0;}
+.result-card .rl{display:inline-block;padding:4px 16px;border-radius:999px;font-weight:700;font-size:.85rem;}
+.result-card .rl.ok{background:rgba(47,125,87,.16);color:var(--green);}.result-card .rl.bad{background:rgba(180,35,24,.14);color:var(--red);}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 14px;}
+.panel-card{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:16px;margin:10px 0;}
+.panel-card h3{margin:0 0 10px;color:var(--red);font-size:1rem;}
+.bits{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:8px 0;}
+.bit{width:52px;height:60px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:"JetBrains Mono",monospace;font-weight:800;font-size:1.5rem;border:2px solid var(--line);background:rgba(255,255,255,.75);cursor:pointer;transition:.2s;position:relative;}
+.bit .lbl{position:absolute;bottom:-18px;font-size:.66rem;font-weight:700;color:var(--muted);white-space:nowrap;}
+.bit.data{border-color:var(--green);color:var(--green);}
+.bit.parity{border-color:var(--gold);color:#8a5d0b;background:rgba(197,138,31,.12);}
+.bit.err{border-color:var(--red);background:rgba(180,35,24,.16);color:var(--red);box-shadow:0 0 0 4px rgba(180,35,24,.12);}
+.synd{font-family:"JetBrains Mono",monospace;font-weight:800;font-size:1.1rem;text-align:center;margin-top:22px;}
+.synd b{font-size:1.5rem;}
+.closure{font-family:"JetBrains Mono",monospace;font-size:.92rem;color:#5b4136;line-height:2.1;text-align:center;}
+.closure .cw{display:inline-block;padding:2px 8px;border-radius:7px;background:rgba(47,125,87,.12);color:#1c7a6e;margin:0 3px;font-weight:800;}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:13px 15px;margin-top:12px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}.insight-box p{margin:0;font-size:13.5px;line-height:1.7;color:#4e362d;}
+.badges{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px;}.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">基础层</span></h1>
+        <p class="subtitle">北斗纠错码 · 线性码=群</p>
+      </div>
+      <p class="intro">把校验码字看作群：数据加一位奇偶校验，全体合法码字对异或 ⊕ 封闭，构成一个线性码（群）。</p>
+
+      <div class="value-panel">
+        <h3>北斗组网 · 自主可控</h3>
+        <p>可靠传输背后是冗余设计与自主可控的数学工程。把核心算法握在自己手中，是建设航天强国、网络强国的底气。</p>
+        <div class="dim-list"><span>自立自强</span><span>总体国家安全观</span><span>科学精神</span></div>
+      </div>
+
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步纠错互动</strong><span>点一步，看反馈、公式项和码字位同步高亮</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-guide="encode"><b>1 编码（加校验位）</b><span>p = d₁⊕d₂⊕d₃</span></button>
+          <button class="kg-step" type="button" data-guide="inject"><b>2 注入 1 位错误</b><span>信道翻转一位</span></button>
+          <button class="kg-step" type="button" data-guide="check"><b>3 校验检错</b><span>综合征 s = ⊕全部位</span></button>
+        </div>
+        <div class="kg-feedback" id="kgFeedback">点数据位可改 0/1。编码后追加偶校验位 p，使码字异或和为 0。</div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-token="C">C = 线性码（群）</span>
+          <span class="kg-token" data-token="s">s = ⊕ 全部位</span>
+          <span class="kg-token" data-token="det">检错</span>
+        </div>
+      </div>
+
+      <div class="result-card">
+        <div class="rt" id="rTitle">综合征校验</div>
+        <div class="rv" id="rVal">s = 0</div>
+        <div class="rl ok" id="rLabel">无错（校验通过）</div>
+      </div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>设置数据位、加偶校验、注入错误，看综合征 s 如何发现传输错误。</span>
+        <div class="visual-badge">码字 + 校验</div>
+      </section>
+      <h2 class="pane-title">单奇偶校验码（4,3）· 点击数据位可切换 0/1</h2>
+      <p class="pane-sub">绿=数据位 d₁d₂d₃，金=校验位 p。偶校验：码字所有位异或和必须为 0。</p>
+      <div class="panel-card">
+        <h3>码字</h3>
+        <div class="bits" id="bits"></div>
+        <div class="synd" id="syndLine"></div>
+      </div>
+      <div class="panel-card">
+        <h3>群封闭性（合法码字对 ⊕ 封闭）</h3>
+        <div class="closure" id="closure"></div>
+      </div>
+      <div class="insight-box">
+        <div class="insight-title">🛰️ 线性码就是一个群</div>
+        <p>全体偶校验码字对异或 ⊕ 封闭、含零元、每个元素自逆——它是向量空间的子群。群结构让『综合征校验』成为可能：合法码字综合征恒为 0，一旦出错综合征非 0，错误立刻被发现。</p>
+        <div class="badges"><span class="badge">自立自强</span><span class="badge">科学精神</span><span class="badge">自主可控</span></div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
+
+  <script>
+    window.SECTION_META = {
+      "layers": [
+        {"name": "线性码=群", "concepts": "码字群 / 向量空间", "task": "把纠错码建模为群结构。", "page": "beidou-rs-index-basic.html"},
+        {"name": "综合征纠错", "concepts": "同态编码 / 陪集首译码", "task": "算综合征、定位并纠正错误。", "page": "beidou-rs-index.html"},
+        {"name": "二维码与深空通信", "concepts": "RS 码 / 突发纠错 / 汉明界", "task": "迁移到二维码、存储与深空纠错。", "page": "beidou-rs-index-extend.html"}
+      ],
+      "chapter": "第10章 群论基础", "section": "10.7 北斗导航加密算法案例 · 基础层", "title": "线性码=群",
+      "grounding": "本页（基础层）主题：把纠错码字看作群——单奇偶校验码 (4,3) 的全体合法码字对异或封闭、含零元，构成向量空间的子群（线性码）。综合征 s=所有位异或，合法码字 s=0，出错则 s=1，据此检错。",
+      "steps": [
+        {"name": "情境引入", "desc": "北斗短报文如何用一位校验发现传输错误？"},
+        {"name": "对象抽取", "desc": "把码字抽象为群/向量空间元素。"},
+        {"name": "结构建模", "desc": "合法码字对异或封闭=线性码（群）。"},
+        {"name": "推理求解", "desc": "用综合征 s=⊕全部位检测错误。"},
+        {"name": "程序验证", "desc": "改数据、注错，观察综合征变化。"},
+        {"name": "迁移反思", "desc": "综合征定位纠错（进阶层）、RS 纠多错（拓展层）。"}
+      ],
+      "ideology": {"title": "北斗组网 · 自主可控", "text": "北斗卫星导航系统是我国自主建设、独立运行的国之重器。RS 纠错码保障其通信可靠，背后是群论与有限域的深厚根基。把核心算法掌握在自己手中，正是关键核心技术自主可控、建设航天强国与网络强国的生动实践。", "dims": ["自立自强", "总体国家安全观", "科学精神"], "quote": "中国的北斗、世界的北斗——可靠纠错的背后，是把关键核心技术牢牢握在自己手中的底气。"},
+      "reflect": ["为什么合法码字集合对异或封闭就构成群？", "单校验位为何只能『检 1 错』而不能『纠 1 错』？"],
+      "transfer": ["综合征定位纠错（进阶层 汉明码）；RS 码纠多错与突发错（拓展层）。"]
+    };
+  </script>
+
+  <script>
+    var $=function(id){return document.getElementById(id);};
+    var data=[1,0,1],guide='encode',errPos=-1;
+    function parity(){return data[0]^data[1]^data[2];}
+    function code(){return data.concat([parity()]);}
+    function received(){var c=code();if(errPos>=0&&guide!=='encode')c[errPos]^=1;return c;}
+    function syndrome(arr){return arr.reduce(function(a,b){return a^b;},0);}
+    function render(){
+      var c=code(),r=received();
+      var labels=['d₁','d₂','d₃','p（偶校验）'];
+      var html='';
+      r.forEach(function(b,i){
+        var cls='bit '+(i<3?'data':'parity')+((errPos===i&&guide!=='encode')?' err':'');
+        html+='<div class="'+cls+'" data-i="'+i+'">'+b+'<span class="lbl">'+labels[i]+'</span></div>';
+      });
+      $('bits').innerHTML=html;
+      $('bits').querySelectorAll('.bit').forEach(function(el){var i=+el.dataset.i;if(i<3)el.onclick=function(){data[i]^=1;errPos=-1;if(guide!=='encode'){guide='encode';syncGuide();}render();};});
+      // syndrome
+      var s=syndrome(r);
+      $('syndLine').innerHTML='综合征 s = '+r.join(' ⊕ ')+' = <b style="color:'+(s?'#b42318':'#2f7d57')+'">'+s+'</b>';
+      // closure demo
+      var cwTwo=[1,1,0,0],cwThree=[0,1,1,0];
+      var xr=cwTwo.map(function(b,i){return b^cwThree[i];});
+      $('closure').innerHTML='<span class="cw">'+cwTwo.join('')+'</span> ⊕ <span class="cw">'+cwThree.join('')+'</span> = <span class="cw">'+xr.join('')+'</span><br><span style="font-size:.78rem;color:var(--muted)">两个合法码字（偶校验）异或，结果仍是合法码字 ⟹ 对 ⊕ 封闭 ⟹ 构成群</span>';
+      // result card
+      if(guide==='encode'){$('rTitle').textContent='编码完成';$('rVal').textContent='码字 = '+c.join('');$('rLabel').className='rl ok';$('rLabel').textContent='偶校验，s = 0';}
+      else if(guide==='inject'){$('rTitle').textContent='已注入错误';$('rVal').textContent='第 '+(errPos+1)+' 位翻转';$('rLabel').className='rl bad';$('rLabel').textContent='数据已损坏';}
+      else{$('rTitle').textContent='综合征校验';$('rVal').textContent='s = '+s;$('rLabel').className='rl '+(s?'bad':'ok');$('rLabel').textContent=s?'检测到 1 位错误！':'无错（校验通过）';}
+    }
+    function syncGuide(){
+      document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.guide===guide);});
+      document.querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',(guide==='encode'&&t.dataset.token==='C')||(guide==='inject'&&t.dataset.token==='C')||(guide==='check'&&(t.dataset.token==='s'||t.dataset.token==='det')));});
+    }
+    function setGuide(g){
+      guide=g;syncGuide();
+      if(g==='encode'){errPos=-1;$('kgFeedback').innerHTML='编码：在 3 位数据后追加<b>偶校验位 p=d₁⊕d₂⊕d₃</b>，使码字所有位异或和为 0。点数据位可改 0/1。';}
+      else if(g==='inject'){errPos=Math.floor(Math.random()*4);$('kgFeedback').innerHTML='注入错误：信道把第 <b>'+(errPos+1)+'</b> 位翻转（红色高亮）。此时码字不再是合法码字。';}
+      else{if(errPos<0)errPos=Math.floor(Math.random()*4);$('kgFeedback').innerHTML='校验：计算<b>综合征 s = 所有位异或</b>。合法码字 s=0；若 s=1 说明出现奇数个错误，<b>检测到错误</b>（但单校验位无法定位是哪一位）。';}
+      render();
+    }
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setGuide(b.dataset.guide);};});
+    setGuide('encode');
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

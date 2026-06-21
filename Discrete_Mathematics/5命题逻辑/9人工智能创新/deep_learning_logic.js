@@ -13,6 +13,17 @@ document.addEventListener('DOMContentLoaded', () => {
 let proofSteps = [];
 let currentStep = 0;
 
+function renderMath(root) {
+    root = root || document.body;
+    if (window.DMMathJax && window.DMMathJax.typeset) {
+        window.DMMathJax.typeset(root);
+        return;
+    }
+    if (window.MathJax && window.MathJax.typesetPromise && /(?:\$\$|\$[^$\n]{1,160}\$|\\\(|\\\[|\\begin\{)/.test(root.textContent || '')) {
+        MathJax.typesetPromise([root]).catch(() => {});
+    }
+}
+
 // ===== Expected Proof Sequence =====
 const PROOF_SEQUENCE = [
     { formula: 'A', reason: '前提', type: 'premise' },
@@ -72,7 +83,7 @@ function init() {
     loadPremises();
     updateDisplay();
     setupListeners();
-    if (window.MathJax) MathJax.typesetPromise();
+    renderMath(document.body);
 }
 
 function setupListeners() {
@@ -109,7 +120,7 @@ function loadPremises() {
         grid.appendChild(card);
     });
 
-    if (window.MathJax) MathJax.typesetPromise();
+    renderMath(grid);
 }
 
 // ===== Add Next Step =====
@@ -170,7 +181,7 @@ function updateProofTable() {
         tbody.appendChild(tr);
     });
 
-    if (window.MathJax) MathJax.typesetPromise();
+    renderMath(tbody);
 }
 
 function updateProgress() {

@@ -470,7 +470,7 @@ function loadCase(index) {
         sourceControl.style.display = 'none';
     }
 
-    // 更新思政内涵
+    // 更新价值内涵
     document.getElementById('philosophyPanel').innerHTML =
         `<p style="font-size: 0.85rem; line-height: 1.6;">${caseData.philosophy}</p>`;
 

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>环同态加密 · 基础层 — 同态加密思想</title>
+  <meta name="description" content="11.9 环同态加密 基础层：把加密理解为保持运算的环同态映射">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1500px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(139,0,0,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}.kg-step-head strong{color:var(--red);font-size:.95rem;}.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.86rem;}.kg-step span{display:block;font-size:.76rem;color:var(--muted);margin-top:3px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.84rem;color:#7a3216;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.74rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
+.ctrl-box{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
+.ctrl-box>label{display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:8px;}
+.numchips{display:flex;gap:5px;flex-wrap:wrap;}
+.numchip{width:34px;height:34px;border-radius:8px;border:1.5px solid var(--line);background:rgba(255,255,255,.7);color:#5b4136;font-family:"JetBrains Mono",monospace;font-weight:800;font-size:.95rem;cursor:pointer;transition:.12s;}
+.numchip.on{background:var(--blue);color:#fff;border-color:var(--blue);}
+.qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.88rem;color:#5b4136;line-height:1.9;}
+.qres b{color:var(--red);}.qres .formula{font-family:"JetBrains Mono",monospace;font-weight:800;color:var(--red);}
+.qres .ok{color:var(--green);font-weight:800;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 8px;}
+.svgbox{flex:1;min-height:420px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(255,250,239,.7));padding:6px;display:flex;align-items:center;}
+.viz{width:100%;height:auto;display:block;}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:13px 15px;margin-top:12px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}.insight-box p{margin:0;font-size:13.5px;line-height:1.7;color:#4e362d;}
+.badges{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px;}.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">基础层</span></h1>
+        <p class="subtitle">环同态加密 · 同态加密思想</p>
+      </div>
+      <p class="intro">从最朴素的加密入手：E(a)=(a·k) mod m 把明文环 Z<sub>m</sub> 一一映到密文环。理解加密就是一个<b>保持结构的环同态映射</b>，解密 D(c)=(c·k⁻¹) mod m 把它还原。</p>
+
+      <div class="value-panel">
+        <h3>数据安全 · 科技向善</h3>
+        <p>加密不是把数据变乱，而是换一种『结构相通』的表示——这正是同态加密让数据『可用不可见』的思想起点。</p>
+        <div class="dim-list"><span>数据安全</span><span>科技向善</span></div>
+      </div>
+
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步建模互动</strong><span>点一步，看反馈、公式项与环映射同步高亮</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-guide="enc"><b>1 加密映射</b><span>E(a)=(a·k) mod m</span></button>
+          <button class="kg-step" type="button" data-guide="dec"><b>2 解密还原</b><span>D(c)=(c·k⁻¹) mod m</span></button>
+          <button class="kg-step" type="button" data-guide="hom"><b>3 保持结构</b><span>相邻明文 → 等距密文</span></button>
+        </div>
+        <div class="kg-feedback" id="kgFeedback"></div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-token="enc">E(a)=a·k mod m</span>
+          <span class="kg-token" data-token="dec">D(c)=c·k⁻¹ mod m</span>
+          <span class="kg-token" data-token="hom">环同态</span>
+        </div>
+      </div>
+
+      <div class="ctrl-box" id="ctrlBox"></div>
+      <div class="qres" id="qres"></div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>选一个明文 a，观察它如何被加密映射到密文环、再解密还原，并体会加密为什么『保持结构』。</span>
+        <div class="visual-badge">环映射 · Z₁₁</div>
+      </section>
+      <h2 class="pane-title">明文环 → 密文环 · 同态映射</h2>
+      <p class="pane-sub">左=明文环 Z₁₁，右=密文环 Z₁₁。蓝点=明文 a，红点=密文 E(a)，箭头表示加密映射（参数 k=3，k⁻¹=4）。</p>
+      <div class="svgbox"><svg class="viz" id="viz" viewBox="0 0 760 440" preserveAspectRatio="xMidYMid meet"></svg></div>
+      <div class="insight-box">
+        <div class="insight-title">🔐 加密 = 保持运算的环同态</div>
+        <p>E(a)=(a·k) mod m 是 Z<sub>m</sub> 上的一个<b>双射</b>，且保持加法：相邻明文 0,1,2,… 被映射成等距（步长 k）的密文。因为它『保运算』，才能在<b>不解密</b>的情况下对密文计算——这就是同态加密的核心思想。解密用 k 的逆元 k⁻¹ 还原，D(E(a))=a。</p>
+        <div class="badges"><span class="badge">数据安全</span><span class="badge">科技向善</span><span class="badge">人民立场</span></div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
+
+  <script>
+    window.SECTION_META = {
+      "chapter": "第11章 环、域、格和布尔代数", "section": "11.9 环同态加密系统案例 · 基础层", "title": "同态加密思想",
+      "grounding": "本页（基础层）主题：把加密理解为保持运算的环同态映射。用 E(a)=(a·k) mod m 把明文环 Z_m 一一映射到密文环，D(c)=(c·k⁻¹) mod m 还原；因为映射保持加法结构（相邻明文→等距密文），才能在不解密下对密文计算——这就是同态加密的核心思想。",
+      "steps": [
+        {"name": "情境引入", "desc": "能不能在不解密的前提下直接对加密数据计算？"},
+        {"name": "对象抽取", "desc": "把加密抽象为环上的映射 E:Z_m→Z_m。"},
+        {"name": "结构建模", "desc": "E(a)=(a·k) mod m 是保持加法的双射（环同态）。"},
+        {"name": "推理求解", "desc": "解密 D(c)=(c·k⁻¹) mod m，验证 D(E(a))=a。"},
+        {"name": "程序验证", "desc": "选明文加密、解密、观察等距映射，体会保结构。"},
+        {"name": "迁移反思", "desc": "加同态/乘同态（进阶层）、全同态与隐私计算（拓展层）。"}
+      ],
+      "ideology": {"title": "数据安全 · 隐私为民", "text": "同态加密让数据可用不可见，在保护个人隐私的前提下释放数据价值。从最朴素的保结构映射理解加密思想，是掌握核心密码技术、维护数据主权、建设可信数字社会的第一步。", "dims": ["数据安全", "人民立场", "科技向善"], "quote": "让数据可用不可见——同态加密以保持运算之巧，守护隐私、释放价值。"},
+      "reflect": ["为什么同态加密必须是保持运算的映射（环同态）？", "为什么 E(a)=(a·k) mod m 需要 k 与 m 互素才可逆解密？"],
+      "transfer": ["加同态/乘同态的验证（进阶层）；全同态加密与隐私计算（拓展层）。"],
+      "layers": [
+        {"name": "同态加密思想", "concepts": "加密=保运算的环同态", "task": "理解同态加密的核心思想。", "page": "homomorphic_encryption-basic.html"},
+        {"name": "加同态·乘同态", "concepts": "密文计算=明文计算", "task": "验证密文运算解密后等于明文运算。", "page": "homomorphic_encryption.html"},
+        {"name": "全同态与隐私计算", "concepts": "FHE / 噪声累积 / 联邦学习", "task": "迁移到隐私计算与安全外包。", "page": "homomorphic_encryption-extend.html"}
+      ]
+    };
+  </script>
+
+  <script>
+    var $=function(id){return document.getElementById(id);};
+    var M=11,K=3,KINV=4; // 3*4=12≡1 mod 11
+    function E(a){return (a*K)%M;}
+    function D(c){return (c*KINV)%M;}
+    var C_PT='#2f5f9f',C_CT='#d63b1d',C_OK='#2f7d57',C_DIM='rgba(116,90,60,.32)';
+    var guide='enc',a=2;
+    function pts(cx,cy,r){var arr=[];for(var i=0;i<M;i++){var ang=(-90+i*360/M)*Math.PI/180;arr.push({x:cx+r*Math.cos(ang),y:cy+r*Math.sin(ang)});}return arr;}
+    function ring(cx,cy,r,title,marks){
+      var P=pts(cx,cy,r),s='';
+      s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(116,55,31,.18)" stroke-width="2"/>';
+      s+='<text x="'+cx+'" y="'+(cy-r-16)+'" text-anchor="middle" font-family="Noto Serif SC,serif" font-size="15" font-weight="800" fill="#8b0000">'+title+'</text>';
+      P.forEach(function(p,i){var mk=marks[i];var col=mk?mk.color:C_DIM;var fill=mk?mk.color:'#fff';var rr=mk?15:11;
+        s+='<circle cx="'+p.x+'" cy="'+p.y+'" r="'+rr+'" fill="'+(mk?fill:'rgba(255,255,255,.9)')+'" stroke="'+col+'" stroke-width="'+(mk?2.6:1.4)+'"/>';
+        s+='<text x="'+p.x+'" y="'+(p.y+4)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="800" fill="'+(mk?'#fff':'#a08b80')+'">'+i+'</text>';});
+      return s;
+    }
+    function arrow(p1,p2,color,dashed){return '<path d="M'+p1.x+' '+p1.y+' Q '+((p1.x+p2.x)/2)+' '+((p1.y+p2.y)/2-40)+' '+p2.x+' '+p2.y+'" fill="none" stroke="'+color+'" stroke-width="2.6"'+(dashed?' stroke-dasharray="6,5"':'')+' marker-end="url(#ah)"/>';}
+    function draw(){
+      var Lc={x:200,y:210},Rc={x:560,y:210},r=125;
+      var PL=pts(Lc.x,Lc.y,r),PR=pts(Rc.x,Rc.y,r);
+      var ml={},mr={},svg='<defs><marker id="ah" markerWidth="11" markerHeight="11" refX="9" refY="3.2" orient="auto"><path d="M0,0 L10,3.2 L0,6.4 Z" fill="#b42318"/></marker></defs>';
+      if(guide==='enc'){ml[a]={color:C_PT};mr[E(a)]={color:C_CT};
+        svg+=ring(Lc.x,Lc.y,r,'明文环 Z₁₁',ml)+ring(Rc.x,Rc.y,r,'密文环 Z₁₁',mr);
+        svg+=arrow(PL[a],PR[E(a)],'#b42318',false);
+        svg+='<text x="380" y="378" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="17" font-weight="800" fill="#b42318">E('+a+') = ('+a+'×3) mod 11 = '+E(a)+'</text>';
+      } else if(guide==='dec'){var c=E(a);mr[c]={color:C_CT};ml[a]={color:C_OK};
+        svg+=ring(Lc.x,Lc.y,r,'明文环 Z₁₁',ml)+ring(Rc.x,Rc.y,r,'密文环 Z₁₁',mr);
+        svg+=arrow(PR[c],PL[a],'#c58a1f',true);
+        svg+='<text x="380" y="372" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="16" font-weight="800" fill="#2f7d57">D('+c+') = ('+c+'×4) mod 11 = '+D(c)+'</text>';
+        svg+='<text x="380" y="398" text-anchor="middle" font-family="Noto Serif SC,serif" font-size="13" font-weight="700" fill="#2f7d57">解密还原成功：D(E('+a+')) = '+a+' ✓</text>';
+      } else {var b=(a+1)%M;ml[a]={color:C_PT};ml[b]={color:'#2f7d57'};mr[E(a)]={color:C_CT};mr[E(b)]={color:'#c58a1f'};
+        svg+=ring(Lc.x,Lc.y,r,'明文环 Z₁₁',ml)+ring(Rc.x,Rc.y,r,'密文环 Z₁₁',mr);
+        svg+=arrow(PL[a],PR[E(a)],'#b42318',false);svg+=arrow(PL[b],PR[E(b)],'#2f7d57',false);
+        svg+='<text x="380" y="374" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="15" font-weight="800" fill="#b42318">E('+b+')−E('+a+') = '+E(b)+'−'+E(a)+' ≡ 3 (= k)</text>';
+        svg+='<text x="380" y="400" text-anchor="middle" font-family="Noto Serif SC,serif" font-size="13" font-weight="700" fill="#8b0000">相邻明文 → 等距密文：加密保持加法结构</text>';
+      }
+      $('viz').innerHTML=svg;
+    }
+    function info(){
+      if(guide==='enc')$('qres').innerHTML='<span class="formula">E('+a+') = ('+a+'×3) mod 11 = '+E(a)+'</span><br>明文 a='+a+' 被加密为密文 '+E(a)+'。映射是<b>一一对应</b>（k 与 m 互素），不丢信息。';
+      else if(guide==='dec'){var c=E(a);$('qres').innerHTML='<span class="formula">D('+c+') = ('+c+'×4) mod 11 = '+D(c)+'</span><br>用逆元 k⁻¹=4 解密，<b class="ok">D(E('+a+'))='+a+'</b> 完美还原。3×4=12≡1 (mod 11)。';}
+      else{var b=(a+1)%M;$('qres').innerHTML='<span class="formula">E(a+1) − E(a) ≡ k = 3</span><br>相邻明文 '+a+','+b+' → 密文 '+E(a)+','+E(b)+'，间距恒为 k。加密<b>保持加法结构</b> → 这是一个<b class="ok">环同态</b>。';}
+    }
+    function renderCtrl(){
+      $('ctrlBox').innerHTML='<label>选择明文 a（0–10）</label><div class="numchips" id="achips"></div>';
+      var s='';for(var i=0;i<M;i++)s+='<button class="numchip'+(i===a?' on':'')+'" data-v="'+i+'">'+i+'</button>';
+      $('achips').innerHTML=s;
+      $('achips').querySelectorAll('.numchip').forEach(function(b){b.onclick=function(){a=+b.dataset.v;draw();info();renderCtrl();};});
+    }
+    function syncGuide(){
+      document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.guide===guide);});
+      var map={enc:'enc',dec:'dec',hom:'hom'};
+      document.querySelectorAll('.kg-token').forEach(function(t){t.classList.toggle('on',map[guide]===t.dataset.token);});
+    }
+    function setGuide(g){
+      guide=g;syncGuide();
+      if(g==='enc')$('kgFeedback').innerHTML='<b>加密映射</b>：E(a)=(a·k) mod m 把明文映到密文环。选不同 a 看箭头落点变化。';
+      else if(g==='dec')$('kgFeedback').innerHTML='<b>解密还原</b>：用 k 的逆元 k⁻¹ 反向映射，D(E(a))=a。加密可逆才不丢数据。';
+      else $('kgFeedback').innerHTML='<b>保持结构</b>：相邻明文映射到等距密文（间距=k），说明加密保持加法 → 环同态，这正是同态计算的前提。';
+      renderCtrl();draw();info();
+    }
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setGuide(b.dataset.guide);};});
+    setGuide('enc');
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

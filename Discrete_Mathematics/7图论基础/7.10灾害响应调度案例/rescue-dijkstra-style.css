@@ -634,3 +634,483 @@ tr.visited td {
 ::-webkit-scrollbar-thumb:hover {
     background: #ffaa33;
 }
+
+/* ===== 7.6-style compact learning board ===== */
+body {
+    min-height: 100vh;
+    height: auto;
+    overflow: auto;
+    overflow-x: hidden !important;
+    display: block !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    padding: 50px 0 0 !important;
+}
+
+.app-container {
+    width: min(94vw, 1760px) !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    display: grid !important;
+    grid-template-columns: 360px minmax(0, 1fr) !important;
+    grid-template-areas: "side main" !important;
+    grid-template-rows: auto !important;
+    gap: 12px !important;
+    align-items: start;
+    align-content: start;
+    overflow: visible;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.sidebar {
+    grid-area: side;
+    width: auto !important;
+    min-width: 0 !important;
+    min-height: 0;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 0 16px !important;
+    padding: 20px !important;
+    gap: 12px;
+    overflow: visible !important;
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    background: rgba(30, 30, 30, 0.88) !important;
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(16px) saturate(120%);
+    -webkit-backdrop-filter: blur(16px) saturate(120%);
+}
+
+.window-controls { display: none; }
+.sidebar-header { gap: 8px; }
+.sidebar-header h1 {
+    margin: 0 0 6px;
+    color: #d63b1d;
+    font-family: "Ma Shan Zheng", "Noto Serif SC", serif;
+    font-size: 2.1rem;
+    line-height: 1.2;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+}
+.sidebar-header h1 .highlight { color: #ffb400; }
+.sidebar-header .subtitle {
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 0.96rem;
+    font-style: normal;
+    letter-spacing: 0;
+    line-height: 1.6;
+}
+
+.controls-wrapper { gap: 12px; flex-grow: 0; }
+.control-group,
+.info-panel,
+.info-box {
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 149, 0, 0.18);
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: none;
+}
+.control-group label,
+label {
+    margin-bottom: 8px;
+    color: var(--accent-orange);
+    font-size: 0.86rem;
+    letter-spacing: 0;
+    text-transform: none;
+}
+.apple-btn {
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    text-transform: none;
+}
+.distance-table-container {
+    height: auto;
+    max-height: 190px;
+}
+
+.visualizer-stage {
+    grid-area: main;
+    min-width: 0;
+    min-height: 0;
+    height: auto !important;
+    margin: 0 0 16px !important;
+    padding: 14px !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto;
+    gap: 12px;
+    align-items: start;
+    justify-content: stretch;
+    overflow: hidden;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 149, 0, 0.18);
+    background: rgba(17, 17, 17, 0.86);
+    box-shadow: var(--shadow-md);
+}
+.visualizer-stage > #dm-page-layers {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 0 12px !important;
+    overflow: hidden;
+}
+.visualizer-stage > #dm-page-layers .dm-ladder {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+.glass-pane {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+    min-width: 0;
+    min-height: clamp(500px, 66vh, 720px);
+    height: auto !important;
+    padding: 0;
+    overflow: hidden;
+    border-radius: 14px;
+    background: rgba(30, 30, 30, 0.62);
+    box-shadow: inset 0 0 42px rgba(0, 0, 0, 0.42);
+}
+#graphSvg {
+    width: 100%;
+    height: 100%;
+    min-height: inherit;
+    display: block;
+}
+.graph-title {
+    top: 14px;
+    left: 14px;
+    padding: 10px 14px;
+}
+.legend {
+    top: 14px;
+    right: 14px;
+    padding: 10px 12px;
+}
+
+.app-container[data-dm-side-shell] {
+    width: min(94vw, 1760px) !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    grid-template-columns: 360px minmax(0, 1fr) !important;
+    grid-template-areas: "side main" !important;
+    gap: 12px !important;
+    overflow: visible !important;
+}
+.app-container[data-dm-side-shell] > .sidebar {
+    grid-area: side !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 0 16px !important;
+}
+.app-container[data-dm-side-shell] > .visualizer-stage {
+    grid-area: main !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 16px !important;
+    overflow: hidden !important;
+}
+.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers,
+.app-container[data-dm-side-shell] > .visualizer-stage > .glass-pane {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-ladder {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+}
+.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-tier {
+    min-width: 0 !important;
+    padding: 12px 14px !important;
+}
+.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-tier-name,
+.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-tier-concepts,
+.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-tier-sub,
+.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-tier-task {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 1000px) {
+    .app-container,
+    .app-container[data-dm-side-shell] {
+        width: min(94vw, 760px) !important;
+        grid-template-columns: 1fr !important;
+        grid-template-areas:
+            "side"
+            "main" !important;
+        overflow: visible;
+    }
+    .sidebar { width: 100% !important; min-width: 0 !important; margin: 0 !important; }
+    .visualizer-stage { margin: 0 0 16px !important; }
+    .visualizer-stage > #dm-page-layers .dm-ladder,
+    .app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-ladder {
+        grid-template-columns: 1fr !important;
+    }
+    .glass-pane { min-height: 460px; }
+}
+
+/* Unified warm card style for the advanced layer */
+:root {
+    --app-bg: #fff8ec;
+    --sidebar-bg: rgba(255, 253, 246, 0.92);
+    --glass-border: rgba(116, 55, 31, 0.18);
+    --text-primary: #251713;
+    --text-secondary: #6c5a52;
+    --accent-orange: #c58a1f;
+    --accent-red: #b42318;
+    --accent-green: #2f7d57;
+    --accent-blue: #2f5f9f;
+    --node-center: #b42318;
+    --node-target: #c58a1f;
+    --node-visited: #2f7d57;
+    --node-default: #fff7ed;
+    --edge-default: rgba(116, 55, 31, 0.25);
+    --edge-scanning: #f97316;
+    --edge-path: #2f7d57;
+    --shadow-sm: 0 8px 24px rgba(69, 31, 15, 0.08);
+    --shadow-md: 0 18px 50px rgba(69, 31, 15, 0.14);
+    --shadow-lg: 0 18px 50px rgba(69, 31, 15, 0.14);
+    --font-family: "Noto Serif SC", "Microsoft YaHei", serif;
+    --font-title: "Ma Shan Zheng", "Noto Serif SC", serif;
+}
+
+body {
+    color: var(--text-primary) !important;
+    background:
+        radial-gradient(circle at 16% 12%, rgba(222, 91, 61, 0.18), transparent 28%),
+        radial-gradient(circle at 82% 8%, rgba(47, 95, 159, 0.14), transparent 26%),
+        linear-gradient(135deg, #fff7e6 0%, #f8ead3 45%, #f3dfc7 100%) !important;
+}
+
+.app-container,
+.app-container[data-dm-side-shell] {
+    grid-template-columns: minmax(300px, 360px) minmax(0, 1fr) !important;
+    gap: 18px !important;
+}
+
+.sidebar,
+.app-container[data-dm-side-shell] > .sidebar {
+    border-radius: 8px !important;
+    border: 1px solid var(--glass-border) !important;
+    background: var(--sidebar-bg) !important;
+    box-shadow: var(--shadow-md) !important;
+    color: var(--text-primary) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+}
+
+.sidebar-header h1 {
+    color: #d63b1d !important;
+    font-size: 2.1rem !important;
+    line-height: 1.2 !important;
+    font-weight: 400 !important;
+    letter-spacing: 0 !important;
+}
+
+.sidebar-header .subtitle {
+    color: #64748b !important;
+}
+
+.control-group,
+.info-panel,
+.info-box {
+    border-radius: 8px !important;
+    border: 1px solid rgba(116, 55, 31, 0.16) !important;
+    background: rgba(255, 255, 255, 0.66) !important;
+    box-shadow: none !important;
+}
+
+.control-group label,
+label {
+    color: #4e362d !important;
+    font-size: 0.92rem !important;
+    font-weight: 800 !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+}
+
+.apple-btn {
+    border-radius: 8px !important;
+    min-height: 42px !important;
+    font-weight: 800 !important;
+    text-transform: none !important;
+}
+
+.primary-btn {
+    background: linear-gradient(135deg, #b42318, #ef7d32) !important;
+    color: #fff !important;
+    box-shadow: 0 8px 18px rgba(180, 35, 24, 0.18) !important;
+}
+
+.danger-btn {
+    border: 1px solid rgba(180, 35, 24, 0.28) !important;
+    background: rgba(180, 35, 24, 0.08) !important;
+    color: #b42318 !important;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+    background: rgba(116, 55, 31, 0.16) !important;
+}
+
+input[type=range]::-webkit-slider-thumb {
+    background: #b42318 !important;
+    box-shadow: 0 4px 12px rgba(180, 35, 24, 0.22) !important;
+}
+
+.stat-item,
+.distance-table-container {
+    border: 1px solid rgba(116, 55, 31, 0.14) !important;
+    background: rgba(255, 250, 242, 0.86) !important;
+}
+
+#statusText {
+    color: #b42318 !important;
+    border-bottom-color: rgba(116, 55, 31, 0.14) !important;
+}
+
+.stat-label,
+.info-box p {
+    color: var(--text-secondary) !important;
+}
+
+.stat-value,
+td {
+    color: var(--text-primary) !important;
+}
+
+th {
+    background: rgba(180, 35, 24, 0.08) !important;
+    color: #b42318 !important;
+}
+
+td {
+    border-bottom-color: rgba(116, 55, 31, 0.12) !important;
+}
+
+.visualizer-stage,
+.app-container[data-dm-side-shell] > .visualizer-stage {
+    border-radius: 8px !important;
+    border: 1px solid var(--glass-border) !important;
+    background: var(--sidebar-bg) !important;
+    box-shadow: var(--shadow-md) !important;
+    padding: 18px !important;
+    overflow: visible !important;
+}
+
+.glass-pane,
+.app-container[data-dm-side-shell] > .visualizer-stage > .glass-pane {
+    border-radius: 8px !important;
+    border: 1px solid rgba(116, 55, 31, 0.16) !important;
+    background:
+        linear-gradient(90deg, rgba(116,55,31,0.05) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(116,55,31,0.05) 1px, transparent 1px),
+        rgba(255,255,255,0.58) !important;
+    background-size: 28px 28px !important;
+    box-shadow: none !important;
+}
+
+.rain-bg {
+    display: none !important;
+}
+
+.graph-title,
+.legend,
+.node-popup {
+    border-radius: 8px !important;
+    border: 1px solid rgba(116, 55, 31, 0.16) !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 12px 28px rgba(69, 31, 15, 0.12) !important;
+    color: var(--text-primary) !important;
+}
+
+.graph-title h2,
+.node-popup h3,
+.info-box h3 {
+    color: #b42318 !important;
+}
+
+.graph-title p,
+.legend-item,
+.node-popup p {
+    color: var(--text-secondary) !important;
+}
+
+.edge-label {
+    fill: #7c2d12 !important;
+}
+
+.edge-label-bg {
+    fill: rgba(255, 255, 255, 0.94) !important;
+    stroke: rgba(116, 55, 31, 0.12) !important;
+}
+
+.node-circle {
+    stroke: rgba(116, 55, 31, 0.35) !important;
+}
+
+.node-circle.current {
+    stroke: #b42318 !important;
+    filter: drop-shadow(0 0 10px rgba(180, 35, 24, 0.35)) !important;
+}
+
+.node-text {
+    fill: var(--text-primary) !important;
+    text-shadow: none !important;
+}
+
+.node-dist {
+    fill: #b42318 !important;
+}
+
+#graphSvg {
+    min-height: 560px !important;
+}
+
+@media (max-width: 1000px) {
+    .app-container,
+    .app-container[data-dm-side-shell] {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+}
+
+@media (min-width: 1100px) {
+    body .app-container > main.visualizer-stage > #dm-page-layers .dm-ladder,
+    body .app-container[data-dm-side-shell] > main.visualizer-stage > #dm-page-layers .dm-ladder {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+    }
+
+    body .app-container > main.visualizer-stage > .glass-pane,
+    body .app-container[data-dm-side-shell] > main.visualizer-stage > .glass-pane {
+        min-height: clamp(420px, 52vh, 540px) !important;
+    }
+
+    body .app-container > main.visualizer-stage > .glass-pane #graphSvg {
+        height: 520px !important;
+        min-height: 0 !important;
+        max-height: 520px !important;
+    }
+}

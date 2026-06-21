@@ -1,10 +1,13 @@
 :root {
-    /* Hunan Red & Cultural Gold Theme */
-    --app-bg: #fdfbf7;
-    --panel-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(214, 59, 29, 0.1);
-    --text-primary: #2c2c2c;
-    --text-secondary: #7a7a7a;
+    /* Unified Warm-Paper Theme (与 9.7 / 9.8 案例统一的显示风格) */
+    --app-bg: #fff8ec;
+    --paper: #fff8ec;
+    --card: rgba(255, 253, 246, 0.92);
+    --panel-bg: rgba(255, 253, 246, 0.92);
+    --sidebar-bg: rgba(255, 253, 246, 0.92);
+    --glass-border: rgba(116, 55, 31, 0.18);
+    --text-primary: #2d211d;
+    --text-secondary: #6c5a52;
 
     --accent-red: #d63b1d;
     --accent-gold: #c5a059;
@@ -13,12 +16,18 @@
     --works-color: #c5a059;
     --locations-color: #27c93f;
 
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+    --shadow-sm: 0 2px 8px rgba(69, 31, 15, 0.08);
+    --shadow-md: 0 18px 50px rgba(69, 31, 15, 0.14);
 
     --font-family: "Noto Serif SC", "Outfit", serif;
     --font-mono: "JetBrains Mono", monospace;
     --font-title: "Ma Shan Zheng", cursive;
+
+    /* 覆盖共享外壳背景，让基础层/拓展层与本页采用同一暖色宣纸背景 */
+    --dm-shell-bg:
+        radial-gradient(circle at 16% 12%, rgba(222, 91, 61, 0.18), transparent 28%),
+        radial-gradient(circle at 82% 8%, rgba(47, 95, 159, 0.14), transparent 26%),
+        linear-gradient(135deg, #fff7e6 0%, #f8ead3 45%, #f3dfc7 100%) !important;
 }
 
 * {
@@ -29,48 +38,55 @@
 
 body {
     font-family: var(--font-family);
-color: var(--text-primary);
+    color: var(--text-primary);
     height: 100vh;
     overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #f0f4ff;
+    background-color: #fff7e6;
     background-image:
-        radial-gradient(circle at 20% 20%, rgba(0,122,255,0.16) 0 95px, transparent 97px),
-        radial-gradient(circle at 80% 80%, rgba(214,59,29,0.13) 0 75px, transparent 77px),
-        radial-gradient(circle at 50% 50%, rgba(0,82,204,0.07) 0 155px, transparent 157px),
-        repeating-linear-gradient(45deg, rgba(0,122,255,0.10) 0 1px, transparent 1px 44px),
-        repeating-linear-gradient(-45deg, rgba(0,82,204,0.07) 0 1px, transparent 1px 44px),
-        linear-gradient(160deg, #f0f4ff 0%, #e8eeff 50%, #f4f0ff 100%);
-    background-size: auto, auto, auto, 44px 44px, 44px 44px, cover;
+        radial-gradient(circle at 16% 12%, rgba(222, 91, 61, 0.18), transparent 28%),
+        radial-gradient(circle at 82% 8%, rgba(47, 95, 159, 0.14), transparent 26%),
+        linear-gradient(135deg, #fff7e6 0%, #f8ead3 45%, #f3dfc7 100%);
+    background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+body,
+.query-panel,
+.results-container,
+.query-card,
+.kg-step-feedback,
+.kg-step {
+    line-height: 1.68;
 }
 
 .app-container {
     width: 95vw;
     height: 90vh;
     max-width: 1800px;
-    background: rgba(255, 252, 245, 0.95);
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
+    background: transparent;
     border-radius: 24px;
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-md);
+    border: none;
+    box-shadow: none;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    gap: 14px;
+    overflow: visible;
 }
 
 /* Header */
 .main-header {
-    padding: 1.5rem 2rem;
+    flex: 0 0 auto;
+    padding: 0.6rem 0.4rem 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--glass-border);
-    background: rgba(255, 255, 255, 0.5);
+    border-bottom: none;
+    background: transparent;
 }
 
 .header-content h1 {
@@ -105,13 +121,13 @@ color: var(--text-primary);
 }
 
 .secondary-btn {
-    background: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    color: var(--text-primary);
+    background: rgba(255, 250, 242, 0.9);
+    border: 1px solid var(--glass-border);
+    color: var(--accent-red);
 }
 
 .secondary-btn:hover {
-    background: #f5f5f5;
+    background: rgba(214, 59, 29, 0.08);
 }
 
 .primary-btn {
@@ -144,7 +160,7 @@ color: var(--text-primary);
 .panel-header {
     padding: 16px 24px;
     border-bottom: 1px solid var(--glass-border);
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 253, 246, 0.55);
 }
 
 .panel-header h3 {
@@ -232,6 +248,10 @@ color: var(--text-primary);
     transform: scale(1.05);
 }
 
+.entity-node.dimmed {
+    opacity: 0.34;
+}
+
 .graph-edge {
     stroke: #999;
     stroke-width: 1.5;
@@ -247,6 +267,10 @@ color: var(--text-primary);
     opacity: 1;
     marker-end: url(#arrow-highlight);
     filter: drop-shadow(0 0 4px var(--accent-gold));
+}
+
+.graph-edge.dimmed {
+    opacity: 0.12;
 }
 
 /* Legend */
@@ -309,10 +333,10 @@ color: var(--text-primary);
 }
 
 .query-card {
-    background: #fff;
+    background: rgba(255, 253, 246, 0.72);
     border-radius: 10px;
     padding: 12px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--glass-border);
 }
 
 .query-card.highlight {
@@ -353,13 +377,130 @@ color: var(--text-primary);
     display: inline-block;
 }
 
+.query-card.active,
+.card-formula.active {
+    border-color: var(--accent-red);
+    box-shadow: 0 8px 22px rgba(214, 59, 29, 0.12);
+}
+
+.card-formula.active {
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent-red), #b8321a);
+}
+
+.kg-step-lab {
+    margin-top: 14px;
+    border: 1px solid rgba(214, 59, 29, 0.16);
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255,255,255,.82), rgba(255,248,232,.76));
+    padding: 13px;
+    box-shadow: var(--shadow-sm);
+}
+
+.kg-step-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.kg-step-head strong {
+    color: var(--accent-red);
+    font-size: .94rem;
+}
+
+.kg-step-head span {
+    color: var(--text-secondary);
+    font-size: .78rem;
+}
+
+.kg-step-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.kg-step {
+    text-align: left;
+    cursor: pointer;
+    border: 1px solid rgba(214,59,29,.14);
+    border-radius: 10px;
+    background: rgba(255,255,255,.8);
+    padding: 10px;
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    transition: transform .18s, border-color .18s, box-shadow .18s;
+}
+
+.kg-step:hover,
+.kg-step.active {
+    transform: translateY(-2px);
+    border-color: rgba(214,59,29,.38);
+    box-shadow: 0 10px 22px rgba(214,59,29,.11);
+}
+
+.kg-step b {
+    display: block;
+    color: var(--accent-red);
+    font-size: .86rem;
+}
+
+.kg-step span {
+    display: block;
+    color: var(--text-secondary);
+    font-size: .76rem;
+    margin-top: 3px;
+}
+
+.kg-step-feedback {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(197,160,89,.11);
+    border: 1px dashed rgba(197,160,89,.4);
+    color: #713c12;
+    font-size: .84rem;
+}
+
+/* Keep the advanced layer's native two-panel interaction intact inside the shared lesson shell. */
+.app-container > .main-stage {
+    display: grid !important;
+    grid-template-columns: minmax(520px, 1.12fr) minmax(360px, .88fr) !important;
+    gap: 14px !important;
+    align-items: stretch !important;
+    background: transparent !important;
+    overflow: visible !important;
+    padding: 0 !important;
+}
+
+.app-container > .main-stage > .graph-panel,
+.app-container > .main-stage > .query-panel {
+    min-height: 640px;
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--panel-bg);
+    box-shadow: var(--shadow-md);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+}
+
+.app-container > .main-stage .graph-container {
+    min-height: 510px;
+}
+
+.app-container > .main-stage > .query-panel {
+    overflow-y: visible;
+}
+
 /* Results */
 .results-container {
-    background: #fff;
+    background: rgba(255, 253, 246, 0.72);
     border-radius: 10px;
     padding: 16px;
     min-height: 200px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--glass-border);
 }
 
 .empty-state {
@@ -394,7 +535,7 @@ color: var(--text-primary);
 
 .result-list li {
     padding: 8px;
-    background: rgba(0, 0, 0, 0.02);
+    background: rgba(116, 55, 31, 0.05);
     border-radius: 6px;
     margin-bottom: 6px;
     font-size: 0.85rem;
@@ -408,4 +549,26 @@ color: var(--text-primary);
     margin-left: 8px;
     background: var(--accent-gold);
     color: white;
+}
+
+@media (max-width: 900px) {
+    .main-stage {
+        grid-template-columns: 1fr !important;
+        overflow: auto;
+    }
+
+    .kg-step-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Unified left lesson panels for the 3.9 three-layer pages. */
+.sidebar,
+.main-header {
+    line-height: 1.78;
+}
+
+.sidebar .control-group,
+.main-header .header-content {
+    line-height: 1.78;
 }

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数论基础 · 基础层 — 整除与带余除法可视化</title>
+    <meta name="description" content="离散数学 1.2.1 基础层：整除性与带余除法 b=aq+r 的互动可视化">
+    <link rel="stylesheet" href="modular.css">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="../chapter1-compact.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <style>
+        .dm-t-field { margin: 8px 0; }
+        .dm-t-field .lab { display: flex; justify-content: space-between; font-size: .82rem; color: #8b0000; margin-bottom: 5px; }
+        .dm-t-field .v { font-weight: 700; color: #d63b1d; font-family: 'Courier New', monospace; }
+        .dm-t-field input[type=range] { width: 100%; accent-color: #d63b1d; }
+        .dm-t-stage { display: flex; flex-direction: column; gap: 1.3rem; align-items: center; width: 100%; }
+        .dm-t-groups { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-width: 640px; }
+        .dm-t-group { border: 2px solid rgba(214, 59, 29, 0.35); border-radius: 10px; padding: 8px; display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; background: rgba(255, 255, 255, 0.5); }
+        .dm-t-group.rem { border-style: dashed; border-color: #ffb400; background: rgba(255, 180, 0, 0.1); }
+        .dm-t-dot { width: 18px; height: 18px; border-radius: 4px; background: linear-gradient(135deg, #d63b1d, #ffb400); animation: dmpop .3s ease; }
+        .dm-t-group.rem .dm-t-dot { background: #ffb400; }
+        @keyframes dmpop { from { transform: scale(0); } to { transform: scale(1); } }
+        .dm-t-eq { font-family: 'Courier New', monospace; font-size: 1.25rem; color: #8b0000; text-align: center; }
+        .dm-t-eq b { color: #d63b1d; }
+        .dm-t-verdict { font-size: 1rem; font-weight: 700; padding: 11px 16px; border-radius: 11px; text-align: center; max-width: 520px; line-height: 1.6; }
+        .dm-t-verdict.yes { background: rgba(39, 201, 63, .14); color: #176b2c; }
+        .dm-t-verdict.no { background: rgba(214, 59, 29, .1); color: #9c2b1e; }
+        .dm-t-legend { font-size: .8rem; color: #a05a5a; line-height: 1.7; }
+    
+        .value-panel {
+            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
+            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
+            box-shadow: var(--shadow-sm);
+        }
+        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
+        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
+        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+        .value-dims span {
+            padding: 3px 8px; border-radius: 999px; color: #8b0000;
+            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
+            font-size: .74rem; font-weight: 700;
+        }
+        .value-quote {
+            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
+            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
+        }
+        .value-inline {
+            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
+            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
+            color: var(--text-primary); line-height: 1.5;
+        }
+    </style>
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+
+<body>
+    <a href="../../index.html" title="返回课程主页" style="position:fixed;top:14px;left:14px;z-index:9999;display:flex;align-items:center;gap:6px;background:rgba(30,30,40,0.82);color:#fff;padding:7px 14px 7px 10px;border-radius:20px;font-size:13px;font-family:'Noto Serif SC',serif;text-decoration:none;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.15);box-shadow:0 2px 12px rgba(0,0,0,0.35);transition:background .2s;" onmouseover="this.style.background='rgba(214,59,29,0.88)'" onmouseout="this.style.background='rgba(30,30,40,0.82)'">🏠 <span>课程主页</span></a>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+                <h1>数论基础 <span class="highlight">基础层</span></h1>
+                <p class="subtitle">●○○ 整除 · 带余除法 · 建立直觉</p>
+            </div>
+            <div class="controls-wrapper">
+                
+                
+                
+                
+                <div class="control-group value-consistency-group">
+                    <label>价值映射（与进阶层一致）</label>
+                    <div class="value-panel" data-value-source="SECTION_META.ideology">
+                        <h3>周而复始 · 守正循环</h3>
+                        <p>模运算把无限的整数收束进有限的剩余类，正如周期与节律之于自然和社会——日月轮转、四季更替、制度循环往复又螺旋上升。在『取模』的约束中保持运算的严整与封闭，恰似在规矩之内行稳致远。</p>
+                        <div class="value-dims"><span>规则意识</span><span>辩证思维</span><span>严谨求实</span></div>
+                            <div class="value-quote">不以规矩，不能成方圆——模运算正是在『余数』的规矩里，保证了计算的可靠与可循环。</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>被除数 b</label>
+                    <div class="dm-t-field"><div class="lab"><span>b</span><span class="v" id="bVal">17</span></div><input type="range" id="bRange" min="0" max="40" value="17"></div>
+                </div>
+                <div class="control-group">
+                    <label>除数 a</label>
+                    <div class="dm-t-field"><div class="lab"><span>a</span><span class="v" id="aVal">5</span></div><input type="range" id="aRange" min="1" max="12" value="5"></div>
+                </div>
+                <div class="control-group">
+                    <label>原理说明</label>
+                    <div class="info-panel">
+                        <h3>带余除法</h3>
+                        <p>任意整数 b 除以正整数 a，存在<b>唯一</b>的商 q 与余数 r，使 <b>b = a·q + r</b>（0 ≤ r &lt; a）。</p>
+                        <p class="political-text" id="pol">r = 0 时称 a 整除 b，记作 a | b。</p>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>结果</label>
+                    <div class="result-panel">
+                        <div class="result-item"><span class="result-label">商 q</span><span class="result-value" id="qOut">3</span></div>
+                        <div class="result-item"><span class="result-label">余数 r</span><span class="result-value" id="rOut">2</span></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="visualization-area" id="vizArea">
+                    <div class="dm-t-stage">
+                        <div class="dm-t-eq" id="eq"></div>
+                        <div class="dm-t-groups" id="groups"></div>
+                        <div class="dm-t-verdict" id="verdict"></div>
+                        <div class="dm-t-legend" id="legend"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer style="position:fixed;bottom:0;left:0;width:100%;background: transparent;color: inherit;
+    opacity: 0.72;padding:15px 10px;text-align:center;box-shadow: none;z-index:9999;">
+        <p style="font-size:0.9rem;line-height:1.6;margin:0;opacity:0.95;">© 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>版权所有 ｜ 项目总负责人：谢鑫</p>
+    </footer>
+
+    <script>
+        var $ = function (id) { return document.getElementById(id); };
+        function render() {
+            var b = +$('bRange').value, a = +$('aRange').value;
+            $('bVal').textContent = b; $('aVal').textContent = a;
+            var q = Math.floor(b / a), r = b % a;
+            $('qOut').textContent = q; $('rOut').textContent = r;
+            $('eq').innerHTML = b + ' = ' + a + ' × <b>' + q + '</b> + <b>' + r + '</b>';
+            var html = '';
+            for (var g = 0; g < q; g++) { var d = ''; for (var i = 0; i < a; i++) d += '<div class="dm-t-dot"></div>'; html += '<div class="dm-t-group">' + d + '</div>'; }
+            if (r > 0) { var dr = ''; for (var j = 0; j < r; j++) dr += '<div class="dm-t-dot"></div>'; html += '<div class="dm-t-group rem">' + dr + '</div>'; }
+            $('groups').innerHTML = html || '<div class="dm-t-legend">b = 0，没有物体可分组。</div>';
+            var v = $('verdict');
+            if (r === 0) { v.className = 'dm-t-verdict yes'; v.innerHTML = '✅ 余数 r = 0：<b>a 整除 b</b>，记作 <b>' + a + ' | ' + b + '</b>。' + q + ' 个满组、没有剩余。'; $('pol').textContent = '整除是带余除法 r=0 的特例，是同余与模运算的基础。'; }
+            else { v.className = 'dm-t-verdict no'; v.innerHTML = '🟠 余数 r = <b>' + r + '</b> ≠ 0：a 不整除 b。' + q + ' 个满组 + ' + r + ' 个剩余（金色虚线框）。'; $('pol').textContent = 'r 就是 b mod a；它把整数收束进 0..a-1 的剩余类。'; }
+            $('legend').innerHTML = '红块按每组 ' + a + ' 个装满 → ' + q + ' 组；剩下 ' + r + ' 个无法成组（即余数）。';
+        }
+        $('bRange').oninput = render; $('aRange').oninput = render;
+        render();
+    </script>
+
+    <!-- ===== 共享升级框架：学习助手 + 三阶导航 ===== -->
+    <script>
+    window.SECTION_META = {
+        layers: [
+            { "name": "整除与带余除法", "concepts": "a|b / b=aq+r 唯一", "task": "理解整除与余数的唯一性及其含义。", "page": "modular-basic.html" },
+            { "name": "模运算与同余", "concepts": "剩余类 / (a·b)mod m / 先取模再算", "task": "会做模加减乘，高效求大数余数。", "page": "modular.html" },
+            { "name": "模运算工程化", "concepts": "时钟模运算 / 快速幂 / 模指数", "task": "迁移到校验、散列与密码学模幂。", "page": "modular-extend.html" }
+        ],
+        chapter: "第1章 计数基础与数论基础",
+        section: "1.2.1 整除性和模运算 · 基础层",
+        title: "整除与带余除法",
+        grounding: "本页（基础层）主题：整除与带余除法。任意整数 b 与正整数 a，存在唯一的商 q 与余数 r 使 b=a·q+r 且 0≤r<a；当 r=0 时 a 整除 b（a|b）。余数 r 即 b mod a，把整数收束进 0..a-1 的剩余类——这是同余与模运算的基础。",
+        steps: [
+            { name: "情境引入", desc: "把 b 个物体每 a 个装一组，能装几组？剩几个？" },
+            { name: "对象抽取", desc: "把『分组』抽象为带余除法 b=aq+r。" },
+            { name: "结构建模", desc: "商 q=⌊b/a⌋、余数 r=b mod a，且唯一。" },
+            { name: "推理求解", desc: "调整 a、b，观察 q、r 与是否整除。" },
+            { name: "程序验证", desc: "用分组可视化验证 b=aq+r 与 r=0⇔a|b。" },
+            { name: "迁移反思", desc: "余数把整数分成剩余类，通向模运算（进阶层）。" }
+        ],
+        ideology: {
+        "title": "周而复始 · 守正循环",
+        "text": "模运算把无限的整数收束进有限的剩余类，正如周期与节律之于自然和社会——日月轮转、四季更替、制度循环往复又螺旋上升。在『取模』的约束中保持运算的严整与封闭，恰似在规矩之内行稳致远。",
+        "dims": [
+                "规则意识",
+                "辩证思维",
+                "严谨求实"
+        ],
+        "quote": "不以规矩，不能成方圆——模运算正是在『余数』的规矩里，保证了计算的可靠与可循环。"
+},
+        reflect: ["为什么商和余数是『唯一』的？这个唯一性对算法有何意义？", "r=0 与 r≠0 分别意味着什么？"],
+        transfer: ["余数 r 就是 b mod a——进阶层将据此建立同余与模运算。"]
+    };
+    </script>
+    
+    <script data-dm-ideology-bridge="1">
+    (function () {
+        function esc(s) {
+            return String(s || '').replace(/[&<>"']/g, function (c) {
+                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+            });
+        }
+        function noteHtml() {
+            var ideology = (window.SECTION_META && window.SECTION_META.ideology) || {};
+            var title = ideology.title || '价值引领';
+            var text = ideology.text || '本层延续进阶层的价值主线，在操作中体会数学结构与价值判断的一致性。';
+            return '<span class="value-inline" data-ideology-inline="1"><strong>价值观察：</strong>本层沿用进阶层“'
+                + esc(title) + '”主线。' + esc(text) + '</span>';
+        }
+        function appendIdeologyNote() {
+            if (document.querySelector('[data-ideology-inline="1"]')) return;
+            var resultExtra = document.getElementById('resultExtra');
+            if (resultExtra) {
+                resultExtra.insertAdjacentHTML('beforeend', noteHtml());
+                return;
+            }
+            var anchor = document.querySelector('.result-panel, #eqOut, #note, .visualization-area');
+            if (!anchor) return;
+            if (anchor.id === 'eqOut' || anchor.id === 'note') anchor.insertAdjacentHTML('afterend', noteHtml());
+            else anchor.insertAdjacentHTML('beforeend', noteHtml());
+        }
+        function wrapSetResult() {
+            var original = window.setResult;
+            if (typeof original !== 'function' || original.__ideologyWrapped) return;
+            window.setResult = function () {
+                var ret = original.apply(this, arguments);
+                appendIdeologyNote();
+                return ret;
+            };
+            window.setResult.__ideologyWrapped = true;
+        }
+        function boot() {
+            wrapSetResult();
+            appendIdeologyNote();
+            ['input', 'change', 'click'].forEach(function (eventName) {
+                document.addEventListener(eventName, function () {
+                    setTimeout(appendIdeologyNote, 0);
+                }, true);
+            });
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+        else boot();
+    })();
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+
+</html>

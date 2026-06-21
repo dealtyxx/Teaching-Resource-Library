@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第6章 谓词逻辑 - 文化遗产规则判定台</title>
+  <meta name="description" content="6.9 国家历史文化遗产保护 - 基础层 · 政策谓词化">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{
+  --ink:#251713; --muted:#6c5a52; --paper:#fff8ec; --card:rgba(255,253,246,0.92);
+  --line:rgba(116,55,31,0.18); --red:#b42318; --red-2:#de5b3d; --gold:#c58a1f;
+  --green:#2f7d57; --blue:#2f5f9f; --amber:#f0a202;
+  --shadow:0 18px 50px rgba(69,31,15,0.14);
+}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;
+  background:radial-gradient(circle at 16% 12%, rgba(222,91,61,.18), transparent 28%),radial-gradient(circle at 82% 8%, rgba(47,95,159,.14), transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:14px;overflow:auto;}
+.glass-pane{padding:22px;overflow:auto;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}
+.dot.red{background:#ff5f56;} .dot.yellow{background:#ffbd2e;} .dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}
+.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.rule-box{border-radius:10px;border:1px solid var(--line);background:rgba(255,253,246,.7);padding:12px 14px;}
+.rule-box .rt{font-weight:700;color:var(--red);font-size:13px;margin-bottom:6px;}
+.rule-box .rf{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--ink);background:rgba(255,250,242,.85);padding:8px 10px;border-radius:6px;line-height:1.5;}
+.rule-box .rd{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5;}
+.pred-legend{display:grid;gap:6px;}
+.pred-legend .pi{display:flex;gap:8px;font-size:12.5px;color:#5b4136;line-height:1.5;}
+.pred-legend code{font-family:"JetBrains Mono",monospace;color:var(--red);font-weight:700;white-space:nowrap;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:16px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);} .mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.2rem;margin:0 0 6px;}
+.pane-sub{color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 14px;}
+.heritage-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin:0 0 16px;}
+.heritage-card{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s;position:relative;}
+.heritage-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(69,31,15,.12);}
+.heritage-card.sel{border-color:var(--red);background:rgba(180,35,24,.08);}
+.heritage-card.key::after{content:"★";position:absolute;top:7px;right:9px;color:var(--gold);font-size:14px;}
+.heritage-ico{font-size:2.4rem;}
+.heritage-name{font-weight:700;color:var(--ink);margin-top:6px;font-size:.95rem;}
+.tag-row{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:8px;}
+.tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;}
+.tag.unesco{background:rgba(47,95,159,.12);color:var(--blue);}
+.tag.cand{background:rgba(197,138,31,.16);color:#8a5d0b;}
+.panel-card{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:16px;margin-top:14px;}
+.panel-card h3{margin:0 0 10px;color:var(--red);font-size:1rem;display:flex;align-items:center;gap:8px;}
+.detail-head{text-align:center;margin-bottom:10px;}
+.detail-head .di{font-size:2.4rem;}
+.detail-head .dn{font-weight:800;font-size:1.1rem;color:var(--ink);}
+.detail-head .dl{font-size:12px;color:var(--muted);}
+.detail-row{margin:8px 0;font-size:13px;line-height:1.6;}
+.detail-row .dlab{font-weight:700;color:var(--red);font-size:12px;}
+.pred-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.pred-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;font-family:"JetBrains Mono",monospace;}
+.pred-chip.t{background:rgba(47,125,87,.14);color:var(--green);}
+.pred-chip.f{background:rgba(180,35,24,.1);color:var(--red);}
+.reason-step{border-radius:8px;border:1px solid var(--line);background:rgba(255,253,246,.7);padding:9px 12px;margin:8px 0;}
+.reason-step.fire{border-color:rgba(47,125,87,.5);background:rgba(47,125,87,.1);}
+.reason-formula{font-family:"JetBrains Mono",monospace;font-weight:700;color:var(--blue);font-size:12.5px;word-break:break-word;}
+.reason-result{font-size:13px;color:#4e362d;margin-top:4px;}
+.reason-result.success{color:var(--green);font-weight:700;}
+.verdict{border-radius:12px;border:2px solid var(--gold);background:linear-gradient(135deg,rgba(214,59,29,.1),rgba(197,138,31,.12));padding:18px;text-align:center;margin:14px 0;}
+.verdict .vt{font-weight:700;color:var(--red);margin-bottom:6px;font-size:13px;}
+.verdict .vv{font-size:1.6rem;font-weight:800;color:var(--red);}
+.verdict .vl{margin-top:6px;color:#8a5d0b;font-weight:700;}
+.empty{padding:30px 10px;text-align:center;color:var(--muted);}
+.empty .ei{font-size:2.4rem;opacity:.5;display:block;margin-bottom:8px;}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:14px 16px;margin-top:16px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}
+.insight-box p{margin:0;font-size:14px;line-height:1.7;color:#4e362d;}
+.badges{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;}
+.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){
+  body{overflow:auto;}
+  .app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}
+  .side-panel,.glass-pane{max-height:none;overflow:visible;}
+}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+<body>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">基础层</span></h1>
+        <p class="subtitle">文化遗产规则判定台 · 政策谓词化</p>
+      </div>
+      <p class="intro">把「是否世界遗产」抽象为一个谓词，用一条全称规则判定遗迹是否应重点保护。</p>
+
+      <div class="value-panel">
+        <h3>守护文明 · 赓续根脉</h3>
+        <p>文化遗产是中华民族的根与魂。把保护政策写成清晰可执行的逻辑规则，让每一处遗迹的保护责任都有据可依。</p>
+        <div class="dim-list"><span>文化自信</span><span>历史担当</span><span>依法治理</span></div>
+      </div>
+
+      <div class="rule-box">
+        <div class="rt">本层规则 · 世界遗产应重点保护</div>
+        <div class="rf">∀x ( WorldHeritage(x) → KeyProtection(x) )</div>
+        <div class="rd">对论域中每一个遗迹 x：只要它是世界遗产，就应列为重点保护。</div>
+      </div>
+
+      <div class="value-panel" style="border-left-color:var(--blue);">
+        <h3 style="color:var(--blue);">谓词说明</h3>
+        <div class="pred-legend">
+          <div class="pi"><code>WorldHeritage(x)</code><span>遗迹 x 是世界遗产</span></div>
+          <div class="pi"><code>KeyProtection(x)</code><span>遗迹 x 应重点保护</span></div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>点击遗迹卡片，看谓词取值如何代入规则，推出「重点保护 / 常规维护」。</span>
+        <div class="visual-badge">遗产卡片 + 一条规则</div>
+      </section>
+
+      <h2 class="pane-title">🏯 中华文化遗产清单</h2>
+      <p class="pane-sub">论域 D 中共 6 处遗迹，部分已列入世界遗产、部分为申报候选。点击卡片代入规则判定。</p>
+      <div class="heritage-grid" id="heritageGrid"></div>
+
+      <div class="panel-card">
+        <h3>🔍 遗迹详情</h3>
+        <div id="heritageDetail"><div class="empty"><span class="ei">🏛️</span>点击上方遗迹卡片查看详情</div></div>
+      </div>
+
+      <div class="panel-card">
+        <h3>🧠 一条规则的推理</h3>
+        <div id="reasoningProcess"><div class="empty"><span class="ei">🧩</span>选择遗迹后展示推理过程</div></div>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">🚩 把政策抽象成谓词</div>
+        <p>「世界遗产应重点保护」这句政策，被抽象为一个谓词 WorldHeritage(x) 和一条全称蕴含规则 ∀x(…→…)。谓词取真，规则就推出「重点保护」——这是用逻辑守护文明根脉的第一步。</p>
+        <div class="badges"><span class="badge">文化自信</span><span class="badge">历史担当</span><span class="badge">依法治理</span></div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+    <div>版权所有 · 项目总负责人：谢鑫</div>
+  </footer>
+
+  <script>
+    window.SECTION_META = {
+      "layers": [
+            { "name": "政策谓词化", "concepts": "文物/等级/标准谓词", "task": "把保护政策抽象为谓词。", "page": "heritage_protection-basic.html" },
+            { "name": "规则判定责任", "concepts": "∀x(文物→应保护) / 冲突检测", "task": "用规则统一判定保护责任。", "page": "heritage_protection.html" },
+            { "name": "规则引擎与合规", "concepts": "法规规则化 / 合规判定", "task": "迁移到法规规则引擎与合规。", "page": "heritage_protection-extend.html" }
+      ],
+      "chapter": "第6章 谓词逻辑",
+      "section": "6.9 国家历史文化遗产保护",
+      "title": "谓词逻辑应用 · 文化遗产的逻辑守护",
+      "grounding": "本节主题：用谓词逻辑构建文化遗产保护的规则与判定——把『属于文物』『需要保护』『符合修缮标准』抽象为谓词，用 ∀∃ 量词表达保护政策（如 ∀x(文物(x)→应保护(x))），用推理判定保护责任，体会逻辑在政策规则化中的作用。",
+      "steps": [
+            { "name": "情境引入", "desc": "海量文化遗产，如何用统一的逻辑规则判定『该不该保护、怎么保护』？" },
+            { "name": "对象抽取", "desc": "把遗产、等级、标准抽象为个体与谓词。" },
+            { "name": "结构建模", "desc": "用量词与蕴含把保护政策形式化为规则。" },
+            { "name": "推理求解", "desc": "用谓词推理判定保护责任与措施。" },
+            { "name": "程序验证", "desc": "用本页交互配置政策规则，验证判定。" },
+            { "name": "迁移反思", "desc": "迁移到政策规则引擎、合规判定、知识库。" }
+      ],
+      "ideology": {
+            "title": "守护文明 · 赓续根脉",
+            "text": "『让收藏在博物馆里的文物、陈列在广阔大地上的遗产、书写在古籍里的文字都活起来』。用谓词逻辑把保护政策规则化、可执行，是以现代治理与科技守护中华文明根脉的实践，彰显坚定的文化自信与历史担当。",
+            "dims": [ "文化自信", "历史担当", "依法治理" ],
+            "quote": "求木之长者，必固其根本——文化遗产的逻辑守护，是为中华文明固本培元。"
+      },
+      "reflect": [
+            "『所有不可移动文物都应原址保护』如何符号化？例外情形如何表达？",
+            "保护政策规则之间若冲突（如开发与保护），如何用逻辑发现并协调？",
+            "用全称规则统一判定，与逐案人工判断相比，各有何利弊？"
+      ],
+      "transfer": [
+            "法律法规、合规审查系统把条文规则化为谓词规则，自动判定合规性。",
+            { "t": "规则引擎", "d": "把政策写成可执行规则，如何兼顾刚性（统一）与柔性（个案裁量）？" }
+      ]
+    };
+  </script>
+
+  <script>
+  (function(){
+    "use strict";
+    const SITES=[
+      { id:1, name:'长城', icon:'🏯', location:'北京等多地', unesco:true, desc:'世界文化遗产，中华民族的象征，人类建筑史上的奇迹。' },
+      { id:2, name:'故宫', icon:'🏰', location:'北京', unesco:true, desc:'明清两代皇宫，现存规模最大、保存最完整的木质古建筑群。' },
+      { id:3, name:'敦煌莫高窟', icon:'🎨', location:'甘肃敦煌', unesco:true, desc:'世界最大的佛教艺术宝库，丝绸之路文明交流的见证。' },
+      { id:4, name:'凤凰古城', icon:'🏘️', location:'湖南湘西', unesco:false, desc:'历史文化名城，正在推进申报世界遗产的候选地。' },
+      { id:5, name:'乡村古戏台', icon:'🎭', location:'某县乡镇', unesco:false, desc:'地方文物保护单位，承载民间戏曲与节庆记忆。' },
+      { id:6, name:'老字号作坊', icon:'🏮', location:'某历史街区', unesco:false, desc:'传统工艺老字号，列为非遗与文物候选，尚未申报世界遗产。' }
+    ];
+    let selected=null;
+    const $=id=>document.getElementById(id);
+
+    function renderGrid(){
+      const g=$('heritageGrid'); g.innerHTML='';
+      SITES.forEach(s=>{
+        const c=document.createElement('div'); c.className='heritage-card'+(s.unesco?' key':'')+(selected&&selected.id===s.id?' sel':'');
+        c.innerHTML=`<div class="heritage-ico">${s.icon}</div><div class="heritage-name">${s.name}</div>
+          <div class="tag-row">${s.unesco?'<span class="tag unesco">世界遗产</span>':'<span class="tag cand">申报候选</span>'}</div>`;
+        c.addEventListener('click',()=>select(s));
+        g.appendChild(c);
+      });
+    }
+
+    function select(s){
+      selected=s; renderGrid();
+      $('heritageDetail').innerHTML=`
+        <div class="detail-head"><div class="di">${s.icon}</div><div class="dn">${s.name}</div><div class="dl">📍 ${s.location}</div></div>
+        <div class="detail-row"><span class="dlab">遗迹描述</span><br>${s.desc}</div>
+        <div class="detail-row"><span class="dlab">谓词取值</span>
+          <div class="pred-chips"><span class="pred-chip ${s.unesco?'t':'f'}">WorldHeritage(${s.name}) = ${s.unesco?'T':'F'}</span></div></div>`;
+      const key=s.unesco;
+      $('reasoningProcess').innerHTML=
+        `<div class="reason-step"><div class="reason-formula">规则：∀x ( WorldHeritage(x) → KeyProtection(x) )</div><div class="reason-result">对 x = ${s.name} 实例化（全称指定 UI）。</div></div>`+
+        `<div class="reason-step"><div class="reason-formula">WorldHeritage(${s.name}) = ${key?'True':'False'}</div><div class="reason-result">${key?'🌍 该遗迹是世界遗产，前件为真。':'前件为假：该遗迹尚未列入世界遗产。'}</div></div>`+
+        `<div class="reason-step${key?' fire':''}"><div class="reason-formula">${key?'前件为真 → 蕴含推出后件':'前件为假 → 蕴含不触发后件'}</div><div class="reason-result${key?' success':''}">${key?'🎯 KeyProtection('+s.name+') = True':'本规则未推出重点保护（可继续申报与常规维护）。'}</div></div>`+
+        `<div class="verdict"><div class="vt">规则判定结论</div><div class="vv">KeyProtection(${s.name}) = ${key?'True':'False'}</div><div class="vl">${key?'重点保护':'常规维护 · 申报候选'}</div></div>`;
+    }
+
+    renderGrid();
+  })();
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+</html>

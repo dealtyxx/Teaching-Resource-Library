@@ -1,185 +1,244 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧政务 - 形式概念分析</title>
-    <meta name="description" content="离散数学课程 - 智慧政务 - 形式概念分析">
-
-    <link rel="stylesheet" href="fca_style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
-        rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智慧政务 - 形式概念分析 · 进阶层</title>
+  <meta name="description" content="11.10 形式概念分析 进阶层：构造概念格、上下确界与蕴含规则">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#251713;--muted:#6c5a52;--paper:#fff8ec;--card:rgba(255,253,246,0.92);--line:rgba(116,55,31,0.18);--red:#b42318;--gold:#c58a1f;--green:#2f7d57;--blue:#2f5f9f;--shadow:0 18px 50px rgba(69,31,15,0.14);}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;background:radial-gradient(circle at 16% 12%,rgba(222,91,61,.18),transparent 28%),radial-gradient(circle at 82% 8%,rgba(47,95,159,.14),transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(37,23,19,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
+.app-container{width:min(1500px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:18px;}
+.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
+.side-panel{display:flex;flex-direction:column;padding:20px;gap:13px;overflow:auto;}
+.glass-pane{padding:20px;overflow:auto;display:flex;flex-direction:column;}
+.sidebar-header{display:flex;flex-direction:column;gap:6px;}
+.window-controls{display:flex;gap:7px;}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}.dot.red{background:#ff5f56;}.dot.yellow{background:#ffbd2e;}.dot.green{background:#27c93f;}
+.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
+.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
+.subtitle{margin:0;color:#7a655b;font-size:.95rem;line-height:1.5;}
+.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
+.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
+.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
+.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
+.kg-step-lab{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,248,232,.78));padding:13px;box-shadow:0 8px 20px rgba(139,0,0,.06);}
+.kg-step-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}.kg-step-head strong{color:var(--red);font-size:.95rem;}.kg-step-head span{font-size:.76rem;color:var(--muted);}
+.kg-step-grid{display:grid;gap:8px;}
+.kg-step{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:#8b0000;transition:.2s;}
+.kg-step.active,.kg-step:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 8px 20px rgba(214,59,29,.12);}
+.kg-step b{display:block;color:var(--red);font-size:.86rem;}.kg-step span{display:block;font-size:.76rem;color:var(--muted);margin-top:3px;}
+.kg-feedback{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);font-size:.84rem;color:#7a3216;line-height:1.78;}
+.kg-formula-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.kg-token{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;font-size:.72rem;color:#a05a5a;font-weight:700;transition:.2s;}
+.kg-token.on{background:linear-gradient(135deg,#d63b1d,#8d1a12);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
+.ctrl-box{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
+.ctrl-box>label{display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:8px;}
+.qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.86rem;color:#5b4136;line-height:1.85;}
+.qres b{color:var(--red);}.qres .formula{font-family:"JetBrains Mono",monospace;font-weight:800;color:var(--red);}
+.qres .tag{display:inline-block;padding:2px 9px;border-radius:11px;margin:2px;font-size:.77rem;font-weight:700;}
+.qres .ext{background:rgba(47,125,87,.15);color:#1c6b48;}.qres .int{background:rgba(197,138,31,.18);color:#8a5d0b;}
+.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
+.mission-card b{color:var(--red);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.pane-title{color:var(--red);font-size:1.15rem;margin:0 0 4px;}.pane-sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 8px;}
+.fctx{border-collapse:collapse;width:100%;font-size:12.5px;margin-bottom:10px;}
+.fctx th,.fctx td{border:1px solid var(--line);padding:6px 5px;text-align:center;}
+.fctx thead th{background:rgba(47,95,159,.08);color:var(--blue);font-weight:800;}
+.fctx thead th.intcol{box-shadow:inset 0 -4px 0 var(--gold);}
+.fctx .objname{text-align:left;font-weight:700;color:#4e362d;background:rgba(255,255,255,.5);}
+.fctx tr.extrow td{background:rgba(47,125,87,.10);}
+.fctx td.cellhit{color:var(--green);font-weight:900;}
+.svgbox{flex:1;min-height:340px;border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(255,250,239,.7));padding:6px;display:flex;align-items:center;}
+.viz{width:100%;height:auto;display:block;}
+.node{cursor:pointer;}
+.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:13px 15px;margin-top:12px;}
+.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}.insight-box p{margin:0;font-size:13.5px;line-height:1.7;color:#4e362d;}
+.badges{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px;}.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
+.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
+@media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+  </style>
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
-
 <body>
-    <!-- 返回主页浮动按钮 (auto-injected) -->
-    <a href="../../index.html" title="返回课程主页" style="
-        position:fixed;top:14px;left:14px;z-index:9999;
-        display:flex;align-items:center;gap:6px;
-        background:rgba(30,30,40,0.82);color:#fff;
-        padding:7px 14px 7px 10px;border-radius:20px;
-        font-size:13px;font-family:'Noto Serif SC',serif;
-        text-decoration:none;backdrop-filter:blur(8px);
-        border:1px solid rgba(255,255,255,0.15);
-        box-shadow:0 2px 12px rgba(0,0,0,0.35);
-        transition:background .2s;
-    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
-       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
-        🏠 <span>课程主页</span>
-    </a>
+  <a class="home-link" href="../../index.html">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="sidebar-header">
+        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+        <h1>红色数理 <span class="highlight">进阶层</span></h1>
+        <p class="subtitle">形式概念分析 · 概念格</p>
+      </div>
+      <p class="intro">把全部形式概念按『一般–特殊』偏序组织成<b>概念格</b>（Hasse 图），点节点看外延/内涵，求两概念的<b>上确界 ∨</b> 与 <b>下确界 ∧</b>，并读出属性蕴含规则。</p>
 
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="window-controls">
-                    <span class="dot red"></span>
-                    <span class="dot yellow"></span>
-                    <span class="dot green"></span>
-                </div>
-                <h1>智慧政务 <span class="highlight">服务评价</span></h1>
-                <p class="subtitle">Formal Concept Analysis</p>
-            </div>
+      <div class="value-panel">
+        <h3>智慧政务 · 数据赋能</h3>
+        <p>用数据说话、用数据决策——概念格把零散政务数据梳理成清晰的知识层级，赋能科学决策与精细治理。</p>
+        <div class="dim-list"><span>智慧治理</span><span>数据赋能</span><span>系统观念</span></div>
+      </div>
 
-            <div class="controls-wrapper">
-                <div class="control-group">
-                    <label>🎯 思政理念融合</label>
-                    <div class="info-panel ideology-panel">
-                        <p class="ideology-text">
-                            <strong>人民至上</strong> · 为民服务<br>
-                            <strong>科学决策</strong> · 数据驱动<br>
-                            <strong>创新治理</strong> · 跨学科融合
-                        </p>
-                    </div>
-                </div>
+      <div class="kg-step-lab">
+        <div class="kg-step-head"><strong>三步格分析互动</strong><span>点一步，看反馈、公式项与概念格/矩阵同步高亮</span></div>
+        <div class="kg-step-grid">
+          <button class="kg-step active" type="button" data-guide="lat"><b>1 概念格 · 偏序</b><span>点节点看外延/内涵与上下层</span></button>
+          <button class="kg-step" type="button" data-guide="bound"><b>2 上确界∨·下确界∧</b><span>选两概念求并/交</span></button>
+          <button class="kg-step" type="button" data-guide="impl"><b>3 蕴含规则</b><span>有 A 必有 B</span></button>
+        </div>
+        <div class="kg-feedback" id="kgFeedback"></div>
+        <div class="kg-formula-row">
+          <span class="kg-token on" data-token="lat">≤ 一般-特殊</span>
+          <span class="kg-token" data-token="bound">∨ / ∧</span>
+          <span class="kg-token" data-token="impl">A ⇒ B</span>
+        </div>
+      </div>
 
-                <div class="control-group">
-                    <label>📊 评价维度</label>
-                    <div class="dimensions-list">
-                        <div class="dimension-tag">响应迅速</div>
-                        <div class="dimension-tag">流程简便</div>
-                        <div class="dimension-tag">数据安全</div>
-                        <div class="dimension-tag">服务贴心</div>
-                    </div>
-                </div>
+      <div class="ctrl-box" id="ctrlBox"></div>
+      <div class="qres" id="qres"></div>
+    </aside>
 
-                <div class="control-group">
-                    <label>📈 分析状态</label>
-                    <div class="info-panel">
-                        <p id="statusText">准备就绪</p>
-                        <div class="stats-display">
-                            <span>已生成概念: <strong id="conceptCount">0</strong></span>
-                        </div>
-                    </div>
-                </div>
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span><b>互动任务：</b>探索政务服务概念格：点节点查外延/内涵与层级，选两概念求上下确界，读出属性蕴含规则。</span>
+        <div class="visual-badge">概念格 Hasse 图</div>
+      </section>
+      <h2 class="pane-title">概念格结构 · 一般↔特殊层级</h2>
+      <p class="pane-sub">上=外延大/内涵小（更一般），下=外延小/内涵大（更特殊）。点概念节点，矩阵中其外延行、内涵列同步高亮。</p>
+      <div id="matrix"></div>
+      <div class="svgbox"><svg class="viz" id="viz" viewBox="0 0 720 440" preserveAspectRatio="xMidYMid meet"></svg></div>
+      <div class="insight-box">
+        <div class="insight-title">🏛 概念格 = 知识的层级骨架</div>
+        <p>所有形式概念按偏序构成一个<b>格</b>：任意两概念都有唯一<b>上确界 ∨</b>（最小公共上概念，外延取并的闭包）与<b>下确界 ∧</b>（最大公共下概念，外延取交）。顶为最一般概念、底为最特殊概念。沿格还能读出<b>属性蕴含规则</b>（如『流程简便 ⇒ 服务贴心』），把数据自动梳理成可解释的知识层级，赋能智慧政务。</p>
+        <div class="badges"><span class="badge">智慧治理</span><span class="badge">数据赋能</span><span class="badge">系统观念</span></div>
+      </div>
+    </main>
+  </div>
 
-                <div class="control-group">
-                    <label>💡 数据洞察</label>
-                    <div class="info-panel insights-panel">
-                        <p id="insightText">点击"生成概念格"开始分析</p>
-                    </div>
-                </div>
-            </div>
+  <footer class="footer"><div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div><div>版权所有 · 项目总负责人：谢鑫</div></footer>
 
-            <div class="actions-footer">
-                <button id="generateBtn" class="apple-btn action-btn" aria-label="生成概念格">
-                    <span class="icon">✨</span> 生成概念格
-                </button>
-                <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置数据">重置数据</button>
-            </div>
-        </aside>
+  <script>
+    window.SECTION_META = {
+      "chapter": "第11章 环、域、格和布尔代数", "section": "11.10 格在形式概念分析案例 · 进阶层", "title": "概念格",
+      "grounding": "本节主题：用格做形式概念分析。本页（进阶层）把全部形式概念按『一般-特殊』偏序构造成概念格(Hasse 图)，求任意两概念的上确界∨（外延取并闭包）与下确界∧（外延取交），并沿格读出属性蕴含规则，用于知识发现与智慧政务。",
+      "steps": [
+        {"name": "情境引入", "desc": "如何把所有形式概念组织成有层次的知识结构？"},
+        {"name": "对象抽取", "desc": "把(外延,内涵)抽象为概念，把一般-特殊抽象为偏序。"},
+        {"name": "结构建模", "desc": "用概念格(格结构)组织概念的层级关系。"},
+        {"name": "推理求解", "desc": "求上确界∨/下确界∧，分析蕴含规则。"},
+        {"name": "程序验证", "desc": "点节点、选两概念求上下确界、读蕴含规则。"},
+        {"name": "迁移反思", "desc": "迁移到知识图谱、推荐、智慧政务（拓展层）。"}
+      ],
+      "ideology": {"title": "智慧政务 · 数据赋能", "text": "形式概念分析用格结构从政务数据中自动梳理概念层级、发现规律，助力科学决策与精细治理。以数学方法把数据转化为知识、把知识转化为治理效能，体现数字政府、智慧政务建设中数据赋能、便民利民的价值追求。", "dims": ["智慧治理", "数据赋能", "系统观念"], "quote": "用数据说话、用数据决策——概念格把零散数据梳理成清晰的知识层级，赋能智慧政务。"},
+      "reflect": ["概念格中两概念的上确界/下确界在知识层级上意味着什么？", "为什么概念格的顶是最一般概念、底是最特殊概念？", "概念格如何帮助发现属性蕴含规则（如有 A 必有 B）？"],
+      "transfer": ["FCA 用于知识图谱构建、推荐系统、领域本体与智慧政务（拓展层）。"],
+      "layers": [
+        {"name": "形式概念", "concepts": "外延·内涵 / 对偶偏序", "task": "理解(外延,内涵)构成的概念。", "page": "fca_visualization-basic.html"},
+        {"name": "概念格", "concepts": "上下确界 / 一般-特殊层级 / 蕴含规则", "task": "构造概念格、挖掘知识结构。", "page": "fca_visualization.html"},
+        {"name": "知识发现", "concepts": "本体 / 推荐 / 智慧政务", "task": "迁移到知识图谱与智慧政务。", "page": "fca_visualization-extend.html"}
+      ]
+    };
+  </script>
 
-        <main class="visualizer-stage">
-            <div class="content-columns">
-                <!-- Left: Formal Context Matrix -->
-                <div class="matrix-panel glass-pane">
-                    <div class="panel-header">
-                        <h2>形式背景矩阵</h2>
-                        <p class="panel-subtitle">政务服务平台 × 服务质量属性</p>
-                    </div>
-                    <div class="matrix-container" id="matrixContainer">
-                        <table class="context-matrix" id="contextMatrix">
-                            <thead>
-                                <tr>
-                                    <th class="corner-cell">平台 \ 属性</th>
-                                    <th data-attr="0">响应迅速</th>
-                                    <th data-attr="1">流程简便</th>
-                                    <th data-attr="2">数据安全</th>
-                                    <th data-attr="3">服务贴心</th>
-                                </tr>
-                            </thead>
-                            <tbody id="matrixBody">
-                                <!-- Will be populated by JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="matrix-legend">
-                        <span class="legend-item">
-                            <span class="legend-box filled"></span> 具有该属性
-                        </span>
-                        <span class="legend-item">
-                            <span class="legend-box empty"></span> 不具有
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Right: Concept Lattice -->
-                <div class="lattice-panel glass-pane">
-                    <div class="panel-header">
-                        <h2>概念格结构</h2>
-                        <p class="panel-subtitle">层次关系与知识发现</p>
-                    </div>
-                    <div class="lattice-container">
-                        <svg id="latticeSvg" width="100%" height="100%">
-                            <defs>
-                                <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3"
-                                    orient="auto">
-                                    <polygon points="0 0, 10 3, 0 6" fill="var(--accent-red)" opacity="0.6" />
-                                </marker>
-                                <filter id="glow">
-                                    <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-                                    <feMerge>
-                                        <feMergeNode in="coloredBlur" />
-                                        <feMergeNode in="SourceGraphic" />
-                                    </feMerge>
-                                </filter>
-                            </defs>
-                            <g id="edgesGroup"></g>
-                            <g id="nodesGroup"></g>
-                        </svg>
-                    </div>
-                    <div class="concept-details" id="conceptDetails">
-                        <p class="hint-text">悬停在概念节点上查看详情</p>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <script src="fca_script.js"></script>
-
-<!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
-    color: white;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25);
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程思政库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
-</footer>
-
+  <script>
+    var $=function(id){return document.getElementById(id);};
+    var ATTRS=['响应迅速','流程简便','数据安全','服务贴心'];
+    var OBJS=[{n:'一网通办',a:[0,1,2,3]},{n:'掌上政务',a:[0,1,3]},{n:'政务热线',a:[0,3]},{n:'安全中心',a:[0,2]}];
+    var ALL=[0,1,2,3];
+    function intent(X){if(!X.length)return ALL.slice();return ALL.filter(function(at){return X.every(function(oi){return OBJS[oi].a.indexOf(at)>=0;});});}
+    function extentY(Y){var e=[];OBJS.forEach(function(o,i){if(Y.every(function(j){return o.a.indexOf(j)>=0;}))e.push(i);});return e;}
+    function eq(a,b){return a.length===b.length&&a.every(function(x){return b.indexOf(x)>=0;});}
+    function inter(a,b){return a.filter(function(x){return b.indexOf(x)>=0;});}
+    // enumerate concepts
+    var CONC=[];(function(){var seen={};for(var m=0;m<16;m++){var Y=[];for(var i=0;i<4;i++)if(m&(1<<i))Y.push(i);var ext=extentY(Y),intc=intent(ext);var key=intc.join(',');if(!seen[key]){seen[key]=1;CONC.push({ext:ext,int:intc});}}})();
+    CONC.sort(function(a,b){return b.ext.length-a.ext.length;});
+    // layout by extent size levels
+    (function(){var sizes=[];CONC.forEach(function(c){if(sizes.indexOf(c.ext.length)<0)sizes.push(c.ext.length);});sizes.sort(function(a,b){return b-a;});
+      var byLvl={};CONC.forEach(function(c){var lv=sizes.indexOf(c.ext.length);(byLvl[lv]=byLvl[lv]||[]).push(c);});
+      var H=440,W=720,topY=70,botY=370;
+      Object.keys(byLvl).forEach(function(lv){var arr=byLvl[lv];var y=topY+(botY-topY)*(sizes.length>1?lv/(sizes.length-1):0);arr.forEach(function(c,i){c.x=W/2+(i-(arr.length-1)/2)*230;c.y=y;});});})();
+    function findExt(ext){for(var i=0;i<CONC.length;i++)if(eq(CONC[i].ext,ext))return i;return -1;}
+    function findInt(intc){for(var i=0;i<CONC.length;i++)if(eq(CONC[i].int,intc))return i;return -1;}
+    // hasse cover edges
+    var EDGES=[];(function(){function sub(a,b){return a.every(function(x){return b.indexOf(x)>=0;});}
+      for(var i=0;i<CONC.length;i++)for(var j=0;j<CONC.length;j++){if(i===j)continue;if(sub(CONC[j].ext,CONC[i].ext)&&CONC[j].ext.length<CONC[i].ext.length){var btw=false;for(var k=0;k<CONC.length;k++){if(k===i||k===j)continue;if(sub(CONC[j].ext,CONC[k].ext)&&sub(CONC[k].ext,CONC[i].ext)&&CONC[k].ext.length>CONC[j].ext.length&&CONC[k].ext.length<CONC[i].ext.length)btw=true;}if(!btw)EDGES.push([i,j]);}}})();
+    var IMPL=[];(function(){[0,1,2,3].forEach(function(at){var e=extentY([at]);var common=intent(e);var rhs=common.filter(function(x){return x!==at;});if(rhs.length)IMPL.push({lhs:at,rhs:rhs,ext:e});});})();
+    var guide='lat',focus=0,pick=[],implSel=0;
+    function isSuper(i,j){return CONC[j].ext.every(function(x){return CONC[i].ext.indexOf(x)>=0;})&&CONC[j].ext.length<CONC[i].ext.length;} // i more general than j
+    function draw(){
+      var svg='<defs><marker id="ah" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="rgba(180,35,24,.5)"/></marker></defs>';
+      var hi={}; // node id -> color
+      if(guide==='lat'){hi[focus]='focus';CONC.forEach(function(c,i){if(i!==focus){if(isSuper(i,focus))hi[i]='up';else if(isSuper(focus,i))hi[i]='down';}});}
+      else if(guide==='bound'){pick.forEach(function(p){hi[p]='pick';});if(pick.length===2){var je=intent(CONC[pick[0]].ext.concat(CONC[pick[1]].ext));var joinExt=extentY(je);var ji=findExt(joinExt);var mi=findExt(inter(CONC[pick[0]].ext,CONC[pick[1]].ext));if(ji>=0)hi[ji]=hi[ji]||'join';if(mi>=0)hi[mi]=hi[mi]||'meet';}}
+      else {var r=IMPL[implSel];CONC.forEach(function(c,i){if(c.int.indexOf(r.lhs)>=0)hi[i]='impl';});}
+      EDGES.forEach(function(e){var A=CONC[e[0]],B=CONC[e[1]];svg+='<line x1="'+A.x+'" y1="'+A.y+'" x2="'+B.x+'" y2="'+B.y+'" stroke="rgba(116,90,60,.4)" stroke-width="2.2"/>';});
+      CONC.forEach(function(c,i){
+        var col='rgba(255,255,255,.95)',stroke='rgba(116,55,31,.5)',sw=2,rr=22;
+        var h=hi[i];
+        if(h==='focus'||h==='pick'){col='#b42318';stroke='#8b0000';sw=3.4;rr=25;}
+        else if(h==='up'){col='rgba(214,59,29,.25)';stroke='#b42318';}
+        else if(h==='down'){col='rgba(47,95,159,.22)';stroke='#2f5f9f';}
+        else if(h==='join'){col='#c58a1f';stroke='#8a5d0b';sw=3;rr=24;}
+        else if(h==='meet'){col='#2f7d57';stroke='#1c5f40';sw=3;rr=24;}
+        else if(h==='impl'){col='rgba(197,138,31,.3)';stroke='#c58a1f';}
+        svg+='<g class="node" data-i="'+i+'"><circle cx="'+c.x+'" cy="'+c.y+'" r="'+rr+'" fill="'+col+'" stroke="'+stroke+'" stroke-width="'+sw+'"/>';
+        svg+='<text x="'+c.x+'" y="'+(c.y+4)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="12" font-weight="800" fill="'+((h==='focus'||h==='pick'||h==='join'||h==='meet')?'#fff':'#7a3216')+'">'+c.ext.length+'|'+c.int.length+'</text>';
+        // small label of introduced attr/obj
+        var lbl=c.int.length===4?'一网通办':(c.ext.length===4?'全部平台':ATTRS[c.int[c.int.length-1]]);
+        svg+='<text x="'+c.x+'" y="'+(c.y+rr+15)+'" text-anchor="middle" font-family="Noto Serif SC,serif" font-size="10.5" font-weight="700" fill="#6c5a52">'+lbl+'</text></g>';
+      });
+      svg+='<text x="36" y="78" font-family="Noto Serif SC,serif" font-size="11" font-weight="700" fill="#b42318">▲ 更一般</text>';
+      svg+='<text x="36" y="385" font-family="Noto Serif SC,serif" font-size="11" font-weight="700" fill="#2f5f9f">▼ 更特殊</text>';
+      svg+='<text x="690" y="430" text-anchor="end" font-family="Noto Serif SC,serif" font-size="10.5" font-weight="600" fill="#9a8b80">节点标签：|外延|·|内涵|</text>';
+      $('viz').innerHTML=svg;
+      $('viz').querySelectorAll('.node').forEach(function(g){g.onclick=function(){onNode(+g.dataset.i);};});
+    }
+    function onNode(i){
+      if(guide==='bound'){var k=pick.indexOf(i);if(k>=0)pick.splice(k,1);else{pick.push(i);if(pick.length>2)pick.shift();}}
+      else focus=i;
+      draw();info();buildMatrix();
+    }
+    function buildMatrix(){
+      var f=(guide==='bound'&&pick.length)?pick[pick.length-1]:focus;var c=CONC[f];var ext=c.ext,intc=c.int;
+      var html='<table class="fctx"><thead><tr><th class="objname">平台 \\ 属性</th>';
+      ATTRS.forEach(function(at,j){html+='<th class="'+(intc.indexOf(j)>=0?'intcol':'')+'">'+at+'</th>';});
+      html+='</tr></thead><tbody>';
+      OBJS.forEach(function(o,i){var isE=ext.indexOf(i)>=0;html+='<tr class="'+(isE?'extrow':'')+'"><td class="objname">'+o.n+'</td>';
+        ATTRS.forEach(function(at,j){var hit=o.a.indexOf(j)>=0;html+='<td class="'+(hit?'cellhit':'')+'">'+(hit?'●':'·')+'</td>';});html+='</tr>';});
+      html+='</tbody></table>';$('matrix').innerHTML=html;
+    }
+    function info(){
+      if(guide==='lat'){var c=CONC[focus];$('qres').innerHTML='<span class="formula">概念 #'+focus+'</span><br>外延（'+c.ext.length+'）：'+c.ext.map(function(i){return '<span class="tag ext">'+OBJS[i].n+'</span>';}).join('')+'<br>内涵（'+c.int.length+'）：'+c.int.map(function(i){return '<span class="tag int">'+ATTRS[i]+'</span>';}).join('')+'<br><span style="font-size:.78rem;opacity:.8">红=更一般（外延更大）·蓝=更特殊（外延更小）</span>';}
+      else if(guide==='bound'){if(pick.length<2){$('qres').innerHTML='已选 '+pick.length+'/2 个概念。再点一个节点，求其<b>上确界 ∨</b> 与<b>下确界 ∧</b>。';return;}
+        var a=CONC[pick[0]],b=CONC[pick[1]];var joinExt=extentY(intent(a.ext.concat(b.ext)));var ji=findExt(joinExt);var mi=findExt(inter(a.ext,b.ext));
+        $('qres').innerHTML='<span class="formula">C'+pick[0]+' ∨ C'+pick[1]+' = C'+ji+'</span>（金，最小公共上概念）<br><span class="formula">C'+pick[0]+' ∧ C'+pick[1]+' = C'+mi+'</span>（绿，最大公共下概念）<br><span style="font-size:.8rem;opacity:.85">∨ 外延取并的闭包；∧ 外延取交。任两概念皆有唯一上下确界 → 这是『格』。</span>';}
+      else{var r=IMPL[implSel];$('qres').innerHTML='<span class="formula">'+ATTRS[r.lhs]+' ⇒ '+r.rhs.map(function(x){return ATTRS[x];}).join(' ∧ ')+'</span><br>凡具备『'+ATTRS[r.lhs]+'』的平台（'+r.ext.map(function(i){return OBJS[i].n;}).join('、')+'）都具备上述属性。<br><span style="font-size:.8rem;opacity:.85">蕴含规则由概念格自动读出，支持 100% 置信。</span>';}
+    }
+    function renderCtrl(){
+      if(guide==='lat'){$('ctrlBox').innerHTML='<label>点概念格节点查看（共 '+CONC.length+' 个概念）</label><div style="font-size:12.5px;color:#6c5a52;line-height:1.7">点上方节点：金色焦点概念，红色为其更一般的上层概念，蓝色为更特殊的下层概念。</div>';}
+      else if(guide==='bound'){$('ctrlBox').innerHTML='<label>选两个概念求上下确界</label><div style="font-size:12.5px;color:#6c5a52;line-height:1.7">在概念格上点两个节点：金色=上确界 ∨，绿色=下确界 ∧。再次点击可取消选择。</div>';}
+      else{$('ctrlBox').innerHTML='<label>属性蕴含规则（点选查看）</label><div style="display:flex;flex-wrap:wrap;gap:6px" id="implbtns"></div>';
+        $('implbtns').innerHTML=IMPL.map(function(r,i){return '<button class="kg-token'+(i===implSel?' on':'')+'" data-i="'+i+'" style="cursor:pointer;border:1.5px solid '+(i===implSel?'#b42318':'var(--line)')+'">'+ATTRS[r.lhs]+'⇒'+r.rhs.map(function(x){return ATTRS[x];}).join('∧')+'</button>';}).join('');
+        $('implbtns').querySelectorAll('button').forEach(function(b){b.onclick=function(){implSel=+b.dataset.i;draw();info();renderCtrl();};});}
+    }
+    function syncGuide(){
+      document.querySelectorAll('.kg-step').forEach(function(b){b.classList.toggle('active',b.dataset.guide===guide);});
+      var map={lat:'lat',bound:'bound',impl:'impl'};
+      document.querySelectorAll('.kg-token[data-token]').forEach(function(t){t.classList.toggle('on',map[guide]===t.dataset.token);});
+    }
+    function setGuide(g){
+      guide=g;syncGuide();
+      if(g==='lat'){$('kgFeedback').innerHTML='<b>概念格 · 偏序</b>：点任一概念节点，红色为更一般（外延更大）、蓝色为更特殊（外延更小）的概念。';}
+      else if(g==='bound'){pick=[];$('kgFeedback').innerHTML='<b>上下确界</b>：点两个概念节点 → 金色为上确界 ∨（外延并的闭包）、绿色为下确界 ∧（外延交）。任两概念皆有 → 这就是格。';}
+      else{$('kgFeedback').innerHTML='<b>蕴含规则</b>：沿概念格读出『有 A 必有 B』。点选规则，矩阵与格中相关概念高亮。';}
+      renderCtrl();draw();info();buildMatrix();
+    }
+    document.querySelectorAll('.kg-step').forEach(function(b){b.onclick=function(){setGuide(b.dataset.guide);};});
+    setGuide('lat');
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
 </body>
-
 </html>

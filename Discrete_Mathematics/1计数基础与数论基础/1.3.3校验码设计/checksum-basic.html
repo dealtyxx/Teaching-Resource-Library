@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校验位思想 · 基础层 - 离散数学课程资源库</title>
+    <meta name="description" content="第1章 计数基础与数论基础 1.3.3 校验码设计 基础层互动可视化页面">
+    <link rel="stylesheet" href="checksum.css">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="../chapter1-compact.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+
+    <style>
+        .apple-input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--accent-red); background: #fff; color: var(--text-primary); font-family: var(--font-family); font-size: .9rem; box-shadow: var(--shadow-sm); }
+        .layer-badge { display: inline-flex; width: fit-content; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; background: linear-gradient(135deg, rgba(255,180,0,.18), rgba(214,59,29,.12)); border: 1px solid rgba(214,59,29,.18); color: var(--accent-red); font-size: .78rem; font-weight: 700; }
+        .stage-header { text-align: center; margin-bottom: 1.1rem; }
+        .stage-header h2 { font-family: var(--font-title); color: var(--accent-red); font-size: 1.85rem; font-weight: 400; letter-spacing: .04em; margin: 0 0 .35rem; }
+        .stage-header p { color: var(--text-secondary); font-size: .9rem; line-height: 1.6; margin: 0 auto; max-width: 760px; }
+        .visualization-area { justify-content: flex-start !important; gap: 1rem !important; overflow: auto; }
+        .viz-toolbar { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: .5rem; }
+        .viz-card, .viz-panel { background: rgba(255,255,255,.75); border: 1px solid rgba(214,59,29,.16); border-radius: 14px; box-shadow: var(--shadow-sm); padding: 14px 16px; }
+        .viz-card strong, .viz-panel strong { color: var(--accent-red); }
+        .viz-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(54px, 1fr)); gap: 8px; width: 100%; }
+        .num-cell { min-height: 46px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid rgba(214,59,29,.14); background: rgba(255,255,255,.8); color: var(--text-primary); font-family: Consolas, monospace; font-weight: 700; transition: transform .18s, box-shadow .18s; }
+        .num-cell:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .num-cell.hot { background: linear-gradient(135deg, var(--accent-red), #b32b12); color: #fff; border-color: var(--accent-red); }
+        .num-cell.good { background: linear-gradient(135deg, #27c93f, #1f9d55); color: #fff; border-color: #1f9d55; }
+        .num-cell.muted { background: #f0e8e2; color: #9b7a68; }
+        .flow-row { display: flex; align-items: stretch; justify-content: center; gap: 10px; flex-wrap: wrap; width: 100%; }
+        .flow-node { min-width: 128px; flex: 1 1 128px; max-width: 210px; border-radius: 14px; padding: 13px; background: linear-gradient(135deg, rgba(214,59,29,.08), rgba(255,180,0,.12)); border: 1px solid rgba(214,59,29,.16); text-align: center; }
+        .flow-node b { color: var(--accent-red); display: block; margin-bottom: 6px; }
+        .flow-node span { color: var(--text-secondary); font-size: .82rem; line-height: 1.45; }
+        .bucket-wrap { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; width: 100%; }
+        .bucket { min-height: 82px; border-radius: 12px; padding: 10px; background: rgba(255,255,255,.75); border: 1px solid rgba(214,59,29,.14); }
+        .bucket h4 { margin: 0 0 8px; color: var(--accent-red); }
+        .pill { display: inline-flex; align-items: center; justify-content: center; margin: 3px; padding: 4px 9px; border-radius: 999px; background: rgba(255,180,0,.18); color: #7a3d12; font-size: .78rem; font-weight: 700; }
+        .pill.hot { background: var(--accent-red); color: #fff; }
+        .bit-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; font-family: Consolas, monospace; }
+        .bit { width: 22px; height: 26px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,.8); border: 1px solid rgba(214,59,29,.14); }
+        .bit.diff { background: var(--accent-red); color: #fff; }
+        .svg-box { width: min(100%, 420px); aspect-ratio: 1; border-radius: 16px; background: rgba(255,255,255,.7); border: 1px solid rgba(214,59,29,.16); }
+        .legend, .legend-panel { z-index: 5; }
+        .layer-links { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: .8rem; }
+        .layer-link { display: inline-flex; align-items: center; justify-content: center; padding: 8px 14px; border-radius: 11px; text-decoration: none; background: linear-gradient(135deg, var(--accent-red), #b32b12); color: #fff; font-size: .85rem; font-weight: 700; box-shadow: var(--shadow-sm); }
+        .layer-link.secondary { background: #fff; color: var(--accent-red); border: 1px solid rgba(214,59,29,.3); }
+        .formula-display { word-break: break-word; }
+        @media (max-width: 760px) { .stage-header h2 { font-size: 1.45rem; } .flow-node { max-width: none; } }
+    
+        .value-panel {
+            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
+            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
+            box-shadow: var(--shadow-sm);
+        }
+        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
+        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
+        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+        .value-dims span {
+            padding: 3px 8px; border-radius: 999px; color: #8b0000;
+            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
+            font-size: .74rem; font-weight: 700;
+        }
+        .value-quote {
+            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
+            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
+        }
+        .value-inline {
+            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
+            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
+            color: var(--text-primary); line-height: 1.5;
+        }
+    </style>
+
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+
+<body class="interactive-layer-page">
+    <!-- 返回主页浮动按钮 (auto-injected) -->
+    <a href="../../index.html" title="返回课程主页" style="
+        position:fixed;top:14px;left:14px;z-index:9999;
+        display:flex;align-items:center;gap:6px;
+        background:rgba(30,30,40,0.82);color:#fff;
+        padding:7px 14px 7px 10px;border-radius:20px;
+        font-size:13px;font-family:'Noto Serif SC',serif;
+        text-decoration:none;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+        border:1px solid rgba(255,255,255,0.15);
+        box-shadow:0 2px 12px rgba(0,0,0,0.35);
+        transition:background .2s;
+    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
+       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
+        🏠 <span>课程主页</span>
+    </a>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <h1>校验码设计 <span class="highlight">基础层</span></h1>
+                <p class="subtitle">加权和取模 / 冗余位 / 同余判定</p>
+                <span class="layer-badge">低门槛 · 强互动</span>
+            </div>
+
+            <div class="controls-wrapper">
+                
+                
+                
+                
+                <div class="control-group value-consistency-group">
+                    <label>价值映射（与进阶层一致）</label>
+                    <div class="value-panel" data-value-source="SECTION_META.ideology">
+                        <h3>严谨把关 · 责任担当</h3>
+                        <p>校验码以一位冗余守住数据的『最后一公里』，象征着严格的审查把关与责任意识——差之毫厘的录入错误，被一道模运算的关卡拦下。它启示我们：制度的价值，往往在于用低成本的校验机制，防住高代价的系统性差错。</p>
+                        <div class="value-dims"><span>规则意识</span><span>责任担当</span><span>严谨求实</span></div>
+                            <div class="value-quote">100-1=0——一位校验码看似微小，却是数据可信链条上不可或缺的一环。</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>校验方案</label>
+                    <select id="scheme" class="apple-select"><option value="isbn">ISBN-10 前9位</option><option value="luhn">Luhn 前若干位</option></select>
+                    <input id="digits" class="apple-input" value="730241805">
+                </div>
+                <div class="control-group">
+                    <label>本层原理</label>
+                    <div class="info-panel">
+                        <h3>校验码计算器</h3>
+                        <p>用加权和取模生成校验位，观察一位冗余如何检错。</p>
+                        <p class="political-text">严谨把关 · 责任担当</p>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>计算结果</label>
+                    <div class="result-panel">
+                        <div class="formula-display"><span id="formulaText">等待计算</span></div>
+                        <div class="result-display">
+                            <span class="result-label">即时结论</span>
+                            <span class="result-value" id="resultValue">--</span>
+                        </div>
+                        <p id="resultExtra" class="political-text"></p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <div class="stage-header">
+                    <h2>校验位思想</h2>
+                    <p>理解一位冗余如何当场发现录入错误。</p>
+                </div>
+                <div class="visualization-area" id="vizArea"></div>
+                <div class="legend" id="legendPanel"></div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="site-footer" style="
+        position: fixed; bottom: 0; left: 0; width: 100%;
+        background: linear-gradient(135deg, #D63B1D 0%, #B8321A 100%);
+        color: white; padding: 15px 10px; text-align: center;
+        box-shadow: 0 -4px 20px rgba(214, 59, 29, 0.25); z-index: 9999;">
+        <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
+            © 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队<br>
+            版权所有 · 项目总负责人：谢鑫
+        </p>
+    </footer>
+
+
+    <script>
+    const KIND = "checksum";
+    const MID_PAGE = "checksum.html";
+    const OTHER_PAGE = "checksum-extend.html";
+    const OTHER_TEXT = "去拓展层";
+    const $ = id => document.getElementById(id);
+    const gcd = (a,b) => { a=Math.abs(a); b=Math.abs(b); while(b){ [a,b]=[b,a%b]; } return a; };
+    function egcd(a,b){ if(!b) return [a,1,0]; const [g,x,y]=egcd(b,a%b); return [g,y,x-Math.floor(a/b)*y]; }
+    function modInv(a,m){ const [g,x]=egcd(((a%m)+m)%m,m); return g===1?((x%m)+m)%m:null; }
+    function modPow(a,e,m){ let r=1%m, b=((a%m)+m)%m; while(e>0){ if(e&1) r=(r*b)%m; b=(b*b)%m; e=Math.floor(e/2); } return r; }
+    function isPrime(n){ if(n<2) return false; for(let i=2;i*i<=n;i++) if(n%i===0) return false; return true; }
+    function phi(n){ let c=0; for(let i=1;i<=n;i++) if(gcd(i,n)===1)c++; return c; }
+    function toyHash(s){ let h=2166136261>>>0; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619)>>>0; h^=h>>>13; } return h>>>0; }
+    function bin32(x){ return (x>>>0).toString(2).padStart(32,'0'); }
+    function setResult(formula,value,extra){ $('formulaText').innerHTML=formula; $('resultValue').textContent=value; $('resultExtra').innerHTML=extra||''; }
+    function legend(title,items){ const panel = $("legendPanel"); if (panel) panel.innerHTML = ""; }
+    function links(){ return '<div class="layer-links"><a class="layer-link" href="'+MID_PAGE+'">进入进阶层互动页</a><a class="layer-link secondary" href="'+OTHER_PAGE+'">'+OTHER_TEXT+'</a></div>'; }
+    function syncLabels(){ document.querySelectorAll('input[type=range]').forEach(i=>{ const s=$(i.id.replace('Range','Val')); if(s) s.textContent=i.value; }); }
+
+    function renderSieve(){
+      const n=+$('nRange').value; $('nVal').textContent=n;
+      let primes=0, html='<div class="viz-grid">';
+      for(let i=2;i<=n;i++){ const p=isPrime(i); if(p) primes++; html+='<div class="num-cell '+(p?'hot':'muted')+'">'+i+'</div>'; }
+      html+='</div>'+links(); $('vizArea').innerHTML=html;
+      setResult('π('+n+') = '+primes, primes+' 个素数', '红色为素数，灰色为可继续分解的合数。');
+    }
+
+    function renderFactorRsa(){
+      const p=+$('pSelect').value,q=+$('qSelect').value,n=p*q, ph=(p-1)*(q-1), lim=Math.floor(Math.sqrt(n));
+      let tries=[]; for(let d=2;d<=Math.min(lim,31);d++) tries.push('<span class="pill '+(n%d===0?'hot':'')+'">'+d+'</span>');
+      $('vizArea').innerHTML='<div class="flow-row"><div class="flow-node"><b>素数 p</b><span>'+p+'</span></div><div class="flow-node"><b>素数 q</b><span>'+q+'</span></div><div class="flow-node"><b>公开 n=pq</b><span>'+n+'</span></div><div class="flow-node"><b>φ(n)</b><span>'+ph+'</span></div></div><div class="viz-panel"><strong>试除分解路径</strong><div style="margin-top:10px">'+tries.join('')+'</div><p style="margin-top:10px;color:var(--text-secondary)">真实 RSA 中 n 极大，试除到 √n 完全不可行；这里用小数值建立单向难度直觉。</p></div>'+links();
+      setResult(n+' = '+p+' × '+q, '√n≈'+lim, '知道 p、q 很容易得到 n；只知道 n 时要反向寻找因子。');
+    }
+
+    function renderLinearCongruence(){
+      const a=+$('aRange').value,b=+$('bRange').value,m=+$('mRange').value; syncLabels();
+      const g=gcd(a,m), ok=b%g===0; let sols=[], cells='';
+      for(let x=0;x<m;x++){ const r=(a*x)%m, hit=r===b%m; if(hit) sols.push(x); cells+='<div class="num-cell '+(hit?'good':'')+'"><span>x='+x+'<br>'+r+'</span></div>'; }
+      $('vizArea').innerHTML='<div class="viz-grid">'+cells+'</div>'+links();
+      setResult(a+'x ≡ '+b+' (mod '+m+')', ok?(sols.length?sols.join(', '):'有解判据成立'):'无解', 'gcd('+a+','+m+')='+g+'，'+g+(ok?' | ':' ∤ ')+b);
+    }
+
+    function renderCrt(){
+      const r3=+$('r3').value,r5=+$('r5').value,r7=+$('r7').value,M=105; let sol=0; for(let x=0;x<M;x++) if(x%3===r3&&x%5===r5&&x%7===r7){sol=x;break;}
+      let cells=''; for(let x=0;x<105;x++){ const hit=x===sol; cells+='<div class="num-cell '+(hit?'hot':(x%3===r3||x%5===r5||x%7===r7?'':'muted'))+'">'+x+'</div>'; }
+      $('vizArea').innerHTML='<div class="viz-card"><strong>约束：</strong> x≡'+r3+'(mod3), x≡'+r5+'(mod5), x≡'+r7+'(mod7)</div><div class="viz-grid">'+cells+'</div>'+links();
+      setResult('模 M=3×5×7=105', 'x ≡ '+sol+' (mod 105)', '两两互素时，局部余数拼成一个全局唯一解。');
+    }
+
+    function renderPhi(){
+      const n=+$('nRange').value; $('nVal').textContent=n; let c=0,cells='';
+      for(let i=1;i<=n;i++){ const co=gcd(i,n)===1; if(co)c++; cells+='<div class="num-cell '+(co?'good':'muted')+'">'+i+'</div>'; }
+      $('vizArea').innerHTML='<div class="viz-grid">'+cells+'</div>'+links();
+      setResult('φ('+n+') = |{1≤k≤n : gcd(k,n)=1}|', c, '绿色成员与 n 互素，构成模 n 既约剩余系。');
+    }
+
+    function renderModCycle(){
+      const a=+$('aRange').value,n=+$('nRange').value,K=+$('kRange').value; syncLabels(); const ph=phi(n), co=gcd(a,n)===1;
+      let cells=''; for(let k=1;k<=K;k++){ const v=modPow(a,k,n); cells+='<div class="num-cell '+(co&&k===ph?'hot':'')+'"><span>'+a+'^'+k+'<br>≡ '+v+'</span></div>'; }
+      $('vizArea').innerHTML='<div class="viz-grid">'+cells+'</div>'+links();
+      setResult(a+'^k mod '+n, co?'φ('+n+')='+ph:'gcd('+a+','+n+')≠1', co?'互素时欧拉定理保证 a^φ(n)≡1 (mod n)。':'不互素时不能直接套用欧拉定理。');
+    }
+
+    function renderHashTable(){
+      const m=+$('mRange').value,k=+$('kRange').value; syncLabels(); let buckets=Array.from({length:m},()=>[]);
+      for(let i=0;i<k;i++){ const key=(17+i*23)%101; buckets[key%m].push(key); }
+      let h='<div class="bucket-wrap">'+buckets.map((arr,i)=>'<div class="bucket"><h4>桶 '+i+'</h4>'+arr.map(x=>'<span class="pill '+(arr.length>1?'hot':'')+'">'+x+'</span>').join('')+'</div>').join('')+'</div>'+links();
+      $('vizArea').innerHTML=h; const collisions=buckets.filter(x=>x.length>1).length;
+      setResult('h(k)=k mod '+m, collisions+' 个冲突桶', '装填因子 α='+ (k/m).toFixed(2)+'。键多于桶时，冲突不可避免。');
+    }
+
+    function renderHashAvalanche(){
+      const A=$('msgA').value,B=$('msgB').value,ha=toyHash(A),hb=toyHash(B),ba=bin32(ha),bb=bin32(hb); let bits='',diff=0;
+      for(let i=0;i<32;i++){ const d=ba[i]!==bb[i]; if(d)diff++; bits+='<span class="bit '+(d?'diff':'')+'">'+bb[i]+'</span>'; }
+      $('vizArea').innerHTML='<div class="flow-row"><div class="flow-node"><b>消息 A</b><span>'+A+'</span></div><div class="flow-node"><b>hash(A)</b><span>0x'+ha.toString(16).padStart(8,'0')+'</span></div><div class="flow-node"><b>消息 B</b><span>'+B+'</span></div><div class="flow-node"><b>hash(B)</b><span>0x'+hb.toString(16).padStart(8,'0')+'</span></div></div><div class="viz-panel"><strong>差异位</strong><div class="bit-row" style="margin-top:10px">'+bits+'</div></div>'+links();
+      setResult('toyHash(A) vs toyHash(B)', diff+'/32 位不同', '真实密码学哈希需要更强的抗碰撞与雪崩效应。');
+    }
+
+    function renderLcg(){
+      const m=+$('mRange').value,a=+$('aRange').value,c=+$('cRange').value,seed=+$('seedRange').value; syncLabels(); let seen={},x=seed,seq=[],period=0;
+      for(let i=0;i<40;i++){ if(seen[x]!=null){period=i-seen[x]; break;} seen[x]=i; seq.push(x); x=(a*x+c)%m; }
+      $('vizArea').innerHTML='<div class="viz-grid">'+seq.map((v,i)=>'<div class="num-cell '+(i===0?'hot':'')+'"><span>x'+i+'<br>'+v+'</span></div>').join('')+'</div>'+links();
+      setResult('Xₙ₊₁ = ('+a+'Xₙ + '+c+') mod '+m, '周期 '+(period||'未闭合'), '同一组参数与种子会生成完全相同的序列。');
+    }
+
+    function renderMonteCarlo(){
+      const N=+$('sampleRange').value,seed=+$('seedRange').value; syncLabels(); let x=seed,inside=0,pts='';
+      function rnd(){ x=(1103515245*x+12345)%2147483648; return x/2147483648; }
+      for(let i=0;i<N;i++){ const px=rnd(),py=rnd(),hit=px*px+py*py<=1; if(hit)inside++; if(i<240) pts+='<circle cx="'+(px*320).toFixed(1)+'" cy="'+((1-py)*320).toFixed(1)+'" r="2.6" fill="'+(hit?'#D63B1D':'#9B7A68')+'" opacity=".75"/>'; }
+      const pi=4*inside/N;
+      $('vizArea').innerHTML='<svg class="svg-box" viewBox="0 0 320 320"><rect width="320" height="320" fill="rgba(255,255,255,.45)"/><path d="M0 320 A320 320 0 0 1 320 0 L0 0 Z" fill="rgba(255,180,0,.14)" stroke="#D63B1D" stroke-width="2"/>'+pts+'</svg>'+links();
+      setResult('π ≈ 4 × 命中数 / 样本数', pi.toFixed(4), '命中 '+inside+' / '+N+'。仿真可复现依赖伪随机，安全密钥则需要 CSPRNG。');
+    }
+
+    function renderChecksum(){
+      const scheme=$('scheme').value; let raw=$('digits').value.replace(/\D/g,''); if(!raw){raw='0';}
+      if(scheme==='isbn'){ raw=raw.slice(0,9).padEnd(9,'0'); let sum=0; for(let i=0;i<9;i++) sum+=(i+1)*(+raw[i]); const check=(11-(sum%11))%11; const ch=check===10?'X':String(check); $('digits').value=raw; $('vizArea').innerHTML='<div class="flow-row">'+raw.split('').map((d,i)=>'<div class="flow-node"><b>第 '+(i+1)+' 位</b><span>'+d+' × '+(i+1)+'</span></div>').join('')+'<div class="flow-node"><b>校验位</b><span>'+ch+'</span></div></div>'+links(); setResult('Σ i·dᵢ + 10·校验位 ≡ 0 (mod 11)', raw+ch, '加权和='+sum+'，校验位='+ch); }
+      else { let sum=0, rev=raw.split('').reverse(); for(let i=0;i<rev.length;i++){ let v=+rev[i]; if(i%2===0){v*=2;if(v>9)v-=9;} sum+=v;} const check=(10-sum%10)%10; $('vizArea').innerHTML='<div class="viz-card"><strong>基础号：</strong>'+raw+'</div><div class="viz-grid">'+raw.split('').map((d,i)=>'<div class="num-cell">'+d+'</div>').join('')+'<div class="num-cell hot">'+check+'</div></div>'+links(); setResult('Luhn 加权和 mod 10', raw+check, '校验位='+check+'，完整号码满足校验和为 10 的倍数。'); }
+    }
+
+    function renderHamming(){
+      let bits=$('bits').value.replace(/[^01]/g,'').slice(0,4).padEnd(4,'0'); $('bits').value=bits; const d=[0,+bits[0],+bits[1],+bits[2],+bits[3]];
+      let code=[]; code[3]=d[1]; code[5]=d[2]; code[6]=d[3]; code[7]=d[4]; code[1]=(code[3]^code[5]^code[7]); code[2]=(code[3]^code[6]^code[7]); code[4]=(code[5]^code[6]^code[7]);
+      const flip=+$('flipRange').value; $('flipVal').textContent=flip; let recv=code.slice(); if(flip) recv[flip]^=1;
+      const s1=recv[1]^recv[3]^recv[5]^recv[7],s2=recv[2]^recv[3]^recv[6]^recv[7],s4=recv[4]^recv[5]^recv[6]^recv[7],syn=s1+2*s2+4*s4;
+      $('vizArea').innerHTML='<div class="viz-card"><strong>编码：</strong>'+code.slice(1).join('')+'</div><div class="viz-grid">'+recv.slice(1).map((v,i)=>'<div class="num-cell '+((i+1)===syn?'hot':'')+'"><span>位'+(i+1)+'<br>'+v+'</span></div>').join('')+'</div>'+links();
+      setResult('syndrome = '+s4+s2+s1+'₂', syn?('错误位 '+syn):'无错误', syn?'红色位置可被定位并纠正。':'所有校验关系通过。');
+    }
+
+    function rsaParams(){ const p=+$('pSelect').value,q=+$('qSelect').value,n=p*q,ph=(p-1)*(q-1); let e=$('eSelect')?+$('eSelect').value:7; if(gcd(e,ph)!==1) e=5; let d=modInv(e,ph); if(d==null){ e=3; d=modInv(e,ph); } return {p,q,n,ph,e,d}; }
+    function renderRsaKey(){
+      const r=rsaParams(); let msg=+$('msgRange').value%(r.n); if(msg<2)msg=2; $('msgVal').textContent=$('msgRange').value; const c=modPow(msg,r.e,r.n), dec=modPow(c,r.d,r.n);
+      $('vizArea').innerHTML='<div class="flow-row"><div class="flow-node"><b>p,q</b><span>'+r.p+', '+r.q+'</span></div><div class="flow-node"><b>n=pq</b><span>'+r.n+'</span></div><div class="flow-node"><b>φ(n)</b><span>'+r.ph+'</span></div><div class="flow-node"><b>公钥 e</b><span>'+r.e+'</span></div><div class="flow-node"><b>私钥 d</b><span>'+r.d+'</span></div><div class="flow-node"><b>密文 c</b><span>'+c+'</span></div></div>'+links();
+      setResult('c=m^e mod n, m=c^d mod n', dec===msg?'解密成功':'参数需调整', 'm='+msg+' → c='+c+' → 解密='+dec);
+    }
+
+    function renderSignature(){
+      const r=rsaParams(), msg=$('message').value, h=toyHash(msg)%r.n, sig=modPow(h,r.d,r.n), ver=modPow(sig,r.e,r.n);
+      $('vizArea').innerHTML='<div class="flow-row"><div class="flow-node"><b>消息</b><span>'+msg+'</span></div><div class="flow-node"><b>摘要 h</b><span>'+h+'</span></div><div class="flow-node"><b>私钥签名</b><span>'+sig+'</span></div><div class="flow-node"><b>公钥验证</b><span>'+ver+'</span></div></div>'+links();
+      setResult('verify = sig^e mod n', ver===h?'验证通过':'验证失败', '签名不是保密，而是证明“确由私钥持有者发出且未被篡改”。');
+    }
+
+    function render(){ syncLabels(); ({
+      sieve:renderSieve, factor_rsa:renderFactorRsa, linear_congruence:renderLinearCongruence, crt:renderCrt,
+      phi:renderPhi, mod_cycle:renderModCycle, hash_table:renderHashTable, hash_avalanche:renderHashAvalanche,
+      lcg:renderLcg, monte_carlo:renderMonteCarlo, checksum:renderChecksum, hamming:renderHamming,
+      rsa_key:renderRsaKey, signature:renderSignature
+    })[KIND](); }
+    document.querySelectorAll('input,select').forEach(el=>{ el.addEventListener('input',render); el.addEventListener('change',render); });
+    render();
+    </script>
+
+
+    <!-- ===== 共享升级框架：学习助手 + 三阶导航 ===== -->
+    <script>
+    window.SECTION_META = {
+    "chapter": "第1章 计数基础与数论基础",
+    "section": "1.3.3 校验码设计 · 基础层",
+    "title": "校验位思想",
+    "grounding": "本节主题：校验码用模运算给数据附加冗余位以检错。如 ISBN-10 用 mod 11 加权校验，身份证末位用 mod 11 映射，银行卡用 Luhn（mod 10）算法。核心：构造加权和并取模，使合法编码满足某个同余式；单个数字错误或相邻换位会破坏该同余式，从而被检出。 本页定位为基础层：用可视化互动建立概念直觉与最小模型。",
+    "steps": [
+        {
+            "name": "情境引入",
+            "desc": "录入身份证、银行卡时打错一位，系统怎么当场发现？"
+        },
+        {
+            "name": "对象抽取",
+            "desc": "把编码各位抽象为整数，把『合法』抽象为满足某个模同余式。"
+        },
+        {
+            "name": "结构建模",
+            "desc": "设计加权系数与模数，使常见错误（错位、换位）必然违反同余。"
+        },
+        {
+            "name": "推理求解",
+            "desc": "计算加权和取模得校验位，验证检错能力的覆盖范围。"
+        },
+        {
+            "name": "程序验证",
+            "desc": "用本页交互篡改某位，观察校验是否报错。"
+        },
+        {
+            "name": "迁移反思",
+            "desc": "迁移到 ISBN、Luhn、CRC、纠错码。"
+        }
+    ],
+    "ideology": {
+        "title": "严谨把关 · 责任担当",
+        "text": "校验码以一位冗余守住数据的『最后一公里』，象征着严格的审查把关与责任意识——差之毫厘的录入错误，被一道模运算的关卡拦下。它启示我们：制度的价值，往往在于用低成本的校验机制，防住高代价的系统性差错。",
+        "dims": [
+                "规则意识",
+                "责任担当",
+                "严谨求实"
+        ],
+        "quote": "100-1=0——一位校验码看似微小，却是数据可信链条上不可或缺的一环。"
+},
+    "reflect": [
+        "为什么 ISBN 用模 11 而不是模 10？模数的选择如何影响检错能力？",
+        "校验码能『检错』却一般不能『纠错』——这两者的本质区别是什么？",
+        "相邻两位换位是常见录入错误，好的校验方案为何能专门防住它？"
+    ],
+    "transfer": [
+        "Luhn 算法（mod 10）保护着全球银行卡号，它如何用简单加权防住手误？",
+        {
+            "t": "从检错到纠错",
+            "d": "再加冗余位就能定位并纠正错误（汉明码）——本节是纠错码的起点。"
+        },
+        {
+            "t": "CRC 校验",
+            "d": "网络与存储用 CRC（多项式取模）检错，与本节模运算思想如何一脉相承？"
+        }
+    ],
+    "layers": [
+        {
+            "name": "校验位思想",
+            "concepts": "加权和取模 / 冗余位 / 同余判定",
+            "task": "理解一位冗余如何当场发现录入错误。",
+            "page": "checksum-basic.html"
+        },
+        {
+            "name": "常见校验方案",
+            "concepts": "ISBN(mod11) / Luhn(mod10) / 换位检测",
+            "task": "会算校验位、分析其检错能力边界。",
+            "page": "checksum.html"
+        },
+        {
+            "name": "从检错到纠错",
+            "concepts": "CRC / 汉明码 / 纠错冗余",
+            "task": "迁移到通信与存储中的纠错编码。",
+            "page": "checksum-extend.html"
+        }
+    ]
+};
+    </script>
+    
+    <script data-dm-ideology-bridge="1">
+    (function () {
+        function esc(s) {
+            return String(s || '').replace(/[&<>"']/g, function (c) {
+                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+            });
+        }
+        function noteHtml() {
+            var ideology = (window.SECTION_META && window.SECTION_META.ideology) || {};
+            var title = ideology.title || '价值引领';
+            var text = ideology.text || '本层延续进阶层的价值主线，在操作中体会数学结构与价值判断的一致性。';
+            return '<span class="value-inline" data-ideology-inline="1"><strong>价值观察：</strong>本层沿用进阶层“'
+                + esc(title) + '”主线。' + esc(text) + '</span>';
+        }
+        function appendIdeologyNote() {
+            if (document.querySelector('[data-ideology-inline="1"]')) return;
+            var resultExtra = document.getElementById('resultExtra');
+            if (resultExtra) {
+                resultExtra.insertAdjacentHTML('beforeend', noteHtml());
+                return;
+            }
+            var anchor = document.querySelector('.result-panel, #eqOut, #note, .visualization-area');
+            if (!anchor) return;
+            if (anchor.id === 'eqOut' || anchor.id === 'note') anchor.insertAdjacentHTML('afterend', noteHtml());
+            else anchor.insertAdjacentHTML('beforeend', noteHtml());
+        }
+        function wrapSetResult() {
+            var original = window.setResult;
+            if (typeof original !== 'function' || original.__ideologyWrapped) return;
+            window.setResult = function () {
+                var ret = original.apply(this, arguments);
+                appendIdeologyNote();
+                return ret;
+            };
+            window.setResult.__ideologyWrapped = true;
+        }
+        function boot() {
+            wrapSetResult();
+            appendIdeologyNote();
+            ['input', 'change', 'click'].forEach(function (eventName) {
+                document.addEventListener(eventName, function () {
+                    setTimeout(appendIdeologyNote, 0);
+                }, true);
+            });
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+        else boot();
+    })();
+    </script>
+    <script src="../../shared/ai-tutor.js" defer></script>
+</body>
+
+</html>

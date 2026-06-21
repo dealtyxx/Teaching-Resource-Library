@@ -36,12 +36,17 @@ function init() {
 function setupCanvas() {
     function resizeCanvas(canvas) {
         const container = canvas.parentElement;
-        const rect = container.getBoundingClientRect();
+        const styles = getComputedStyle(container);
+        const padX = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight);
+        const padY = parseFloat(styles.paddingTop) + parseFloat(styles.paddingBottom);
+        const info = container.querySelector('.system-info');
+        const heading = container.querySelector('h3');
+        const reserved = (info ? info.offsetHeight : 0) + (heading ? heading.offsetHeight : 0) + 20;
 
         // Set canvas actual dimensions for rendering
         const dpr = window.devicePixelRatio || 1;
-        const width = rect.width - 32; // Account for padding
-        const height = 400;
+        const width = Math.max(180, container.clientWidth - padX);
+        const height = Math.max(170, Math.min(260, container.clientHeight - padY - reserved));
 
         canvas.width = width * dpr;
         canvas.height = height * dpr;
@@ -52,17 +57,27 @@ function setupCanvas() {
 
         // Scale context for retina displays
         const ctx = canvas.getContext('2d');
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.scale(dpr, dpr);
+    }
+
+    function resizeAll() {
+        resizeCanvas(originalCanvas);
+        resizeCanvas(transformedCanvas);
+        updateVisualization();
     }
 
     resizeCanvas(originalCanvas);
     resizeCanvas(transformedCanvas);
 
-    window.addEventListener('resize', () => {
-        resizeCanvas(originalCanvas);
-        resizeCanvas(transformedCanvas);
-        updateVisualization();
-    });
+    window.addEventListener('resize', resizeAll);
+    if (window.ResizeObserver) {
+        const observer = new ResizeObserver(resizeAll);
+        observer.observe(originalCanvas.parentElement);
+        observer.observe(transformedCanvas.parentElement);
+    }
+    setTimeout(resizeAll, 300);
+    setTimeout(resizeAll, 1200);
 }
 
 function setupControls() {
