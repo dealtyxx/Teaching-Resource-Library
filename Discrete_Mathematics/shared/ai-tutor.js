@@ -288,27 +288,30 @@
         var managed = !(app.getAttribute('data-dm-self-layout') === '1');
         if (!managed) return;
         var set = function (node, prop, value) { if (node) node.style.setProperty(prop, value, 'important'); };
+        // 窄屏（手机/小平板竖屏）：用块级单列流替代桌面双列网格，根除 390px 固定侧栏列
+        // 造成的横向溢出与破碎网格；子项宽度交由 discrete-ui.css 的 ≤860px 规则补齐。
+        var narrow = (window.innerWidth || document.documentElement.clientWidth || 0) <= 860;
         [
-          ['display', 'grid'],
-          ['grid-template-columns', '390px minmax(0, 1fr)'],
+          ['display', narrow ? 'block' : 'grid'],
+          ['grid-template-columns', narrow ? 'none' : '390px minmax(0, 1fr)'],
           ['align-items', 'stretch'],
-          ['width', 'min(94vw, 1760px)'],
-          ['max-width', 'none'],
+          ['width', narrow ? '100%' : 'min(94vw, 1760px)'],
+          ['max-width', '100%'],
           ['height', 'auto'],
-          ['min-height', 'calc(100vh - 88px)'],
-          ['margin', '0 auto'],
-          ['padding', '12px'],
-          ['gap', '12px'],
+          ['min-height', narrow ? '0' : 'calc(100vh - 88px)'],
+          ['margin', narrow ? '0 0 12px' : '0 auto'],
+          ['padding', narrow ? '10px' : '12px'],
+          ['gap', narrow ? '10px' : '12px'],
           ['box-sizing', 'border-box'],
           ['overflow', 'visible'],
           ['background', 'rgba(255,252,245,.92)'],
           ['border', '1px solid rgba(214,59,29,.16)'],
-          ['border-radius', '22px'],
+          ['border-radius', narrow ? '14px' : '22px'],
           ['box-shadow', '0 18px 40px rgba(139,0,0,.10)']
         ].forEach(function (kv) { set(app, kv[0], kv[1]); });
         var insight = app.querySelector(':scope > .insight-footer');
-        set(app, 'grid-template-areas', insight ? '"side main" "side foot"' : '"side main"');
-        set(app, 'grid-template-rows', insight ? 'minmax(0, 1fr) auto' : 'minmax(0, 1fr)');
+        set(app, 'grid-template-areas', narrow ? 'none' : (insight ? '"side main" "side foot"' : '"side main"'));
+        set(app, 'grid-template-rows', narrow ? 'none' : (insight ? 'minmax(0, 1fr) auto' : 'minmax(0, 1fr)'));
         if (insight) {
           set(insight, 'grid-area', 'foot');
           set(insight, 'margin', '0');
@@ -502,6 +505,15 @@
     setTimeout(injectUnifiedFrameStyle, 1500);
     setTimeout(injectUnifiedFrameStyle, 2500);
     window.addEventListener('load', injectUnifiedFrameStyle);
+    /* 视口变化（旋转/缩放）时重算外壳内联样式，使桌面双列↔手机单列正确切换 */
+    var __dmFrameRT;
+    window.addEventListener('resize', function () {
+      clearTimeout(__dmFrameRT);
+      __dmFrameRT = setTimeout(injectUnifiedFrameStyle, 180);
+    });
+    window.addEventListener('orientationchange', function () {
+      setTimeout(injectUnifiedFrameStyle, 250);
+    });
 
     /* 三阶互动页：在页面侧栏显眼处注入「价值引领」面板（原有页已自带，故跳过） */
     injectIdeologyPanel();

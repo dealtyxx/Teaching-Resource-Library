@@ -1346,16 +1346,105 @@ body:has(.app-container > aside.sidebar) > footer.site-footer {
   body:has(.app-container[data-dm-side-shell]) > .app-container,
   body:has(.app-container[data-dm-app]) > .app-container,
   body:has(.app-container > aside.sidebar) > .app-container:has(> aside.sidebar) {
+    /* 改为块级流：grid 区域全部失效，注入的三阶带(band)与侧栏/主区按文档流单列堆叠，
+       根除「band 落入隐式列」导致的破碎网格与横向溢出 */
+    display: block !important;
     width: min(94vw, 760px) !important;
+    height: auto !important;
     grid-template-columns: 1fr !important;
-    grid-template-areas: "side" "main" !important;
-    grid-template-rows: auto minmax(0, 1fr) !important;
-  }
-
-  body:has(.app-container[data-dm-side-shell]) > .app-container:has(> .insight-footer),
-  body:has(.app-container[data-dm-app]) > .app-container:has(> .insight-footer),
-  body:has(.app-container > aside.sidebar) > .app-container:has(> aside.sidebar):has(> .insight-footer) {
-    grid-template-areas: "side" "main" "foot" !important;
-    grid-template-rows: auto minmax(0, 1fr) auto !important;
+    grid-template-areas: none !important;
+    grid-template-rows: none !important;
   }
 }
+
+/* =====================================================================
+   移动端统一外壳重排（≤860px）—— 深度手机适配
+   修复：注入式 .app-container[data-dm-app] / [data-dm-side-shell] /
+   :has(>aside.sidebar) 的桌面双列网格在手机上未正确收成单列
+   （grid-areas 被后续无媒体查询规则覆盖回双列，且上方 1000px 块依赖
+   "body > .app-container" 直接子选择器而漏配），导致 390px 0px 破碎网格、
+   横向溢出与超长空白。这里改用 display:block 让外壳子项按文档流全宽堆叠，
+   不依赖网格区域与直接子选择器，最稳健；并紧凑化三阶导览、给可视化区
+   保底高度、加横向溢出兜底。
+   ===================================================================== */
+@media (max-width: 860px) {
+  /* 0. 全局横向滚动兜底 */
+  html, body { max-width: 100%; overflow-x: hidden; }
+
+  /* 1. 注入式外壳容器 → 单列块级流（覆盖一切网格/弹性桌面外壳）
+     说明：选择器不与 :has() 同组，避免个别引擎把整组判为无效而丢弃整条规则；
+     同时强制 grid-template 单列，即便 display:block 未生效也保证不破碎。 */
+  .app-container,
+  .app-container[data-dm-app],
+  .app-container[data-dm-side-shell] {
+    display: block !important;
+    grid-template-columns: 1fr !important;
+    grid-template-areas: none !important;
+    grid-template-rows: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 0 12px !important;
+    border-radius: 16px !important;
+    overflow: visible !important;
+  }
+
+  /* body 不再居中固定外壳（避免 align-items:center 压缩宽度） */
+  body:has(.app-container[data-dm-app]),
+  body:has(.app-container[data-dm-side-shell]),
+  body:has(.app-container > aside.sidebar) {
+    display: block !important;
+    padding: 10px !important;
+    overflow-x: hidden !important;
+  }
+
+  /* 2. 侧栏 / 页头 → 全宽，取消固定宽与 50vh 限高，分隔线改为下边框 */
+  .app-container > aside.sidebar,
+  .app-container > .sidebar,
+  .app-container[data-dm-app] > .main-header,
+  .app-container[data-dm-side-shell] > aside.sidebar {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--glass-border, rgba(214, 59, 29, 0.18)) !important;
+    overflow: visible !important;
+  }
+
+  /* 3. 主区 / 舞台 / 玻璃面板 → 全宽，自适应高度 */
+  .app-container > main,
+  .app-container > .visualizer-stage,
+  .app-container > .glass-pane,
+  .app-container .visualizer-stage,
+  .app-container .glass-pane {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+  }
+
+  /* 4. 可视化绘制区：保底高度，内容不超宽 */
+  .visualization-area, #vizArea, .viz-area {
+    min-height: 280px !important;
+    height: auto !important;
+    max-width: 100% !important;
+  }
+  .app-container svg, .app-container canvas,
+  svg, canvas, img { max-width: 100% !important; }
+
+  /* 5. 三阶导览 ladder → 单列 + 紧凑（隐藏长描述，保留快捷导航卡） */
+  #dm-page-layers { width: 100% !important; max-width: 100% !important; box-sizing: border-box; }
+  #dm-page-layers .dm-ladder { grid-template-columns: 1fr !important; gap: 8px !important; }
+  #dm-page-layers .dm-tier { padding: 10px 12px !important; }
+  #dm-page-layers .dm-tier-sub,
+  #dm-page-layers .dm-tier-task { display: none !important; }
+  #dm-page-layers .dm-tier-name { font-size: 14px !important; }
+}
+
