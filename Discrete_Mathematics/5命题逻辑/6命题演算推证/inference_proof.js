@@ -1,493 +1,370 @@
-/**
- * Logic Inference & Proof Visualization (Enhanced)
- * 红色数理 - 推理与论证
- */
+/* =====================================================================
+ * 5.6 命题演算推证 —— 三层统一交互引擎（推理规则步进器）
+ * 基础层 / 进阶层 / 拓展层 共用本引擎，按 window.SYMBOLIZE_LEVEL 取难度。
+ *
+ * 交互形态（与本章其它小节同形）：选择推证 → 逐步演证
+ *   点一步推出一行 → 看反馈（用了什么规则、引用了哪些前提行）
+ *   → 看推证记录中当前行高亮、被引用行高亮 → 看推理图节点 / 依赖边高亮
+ *   → 抵达结论行即证毕 QED。完成后可点任意行 / 图节点回看依赖。
+ *
+ * 难度梯度：
+ *   基础层：有效推理，MP / MT 短证明（3~5 行）。
+ *   进阶层：MP/MT/HS/DS + 反证(归谬) + 附加前提 CP（5~7 行）。
+ *   拓展层：自动定理证明——归结法(resolution)、Hoare 逻辑程序验证（5~7 行）。
+ * ===================================================================== */
+(function (global) {
+  "use strict";
 
-document.addEventListener('DOMContentLoaded', () => {
-    init();
-});
-
-// --- State ---
-let currentLevel = 'direct';
-let proofSteps = [];
-let selectedLines = [];
-let isSolved = false;
-let hintIndex = 0;
-
-// --- Helper: Format Formula for MathJax ---
-function formatFormula(formula) {
-    return formula
-        .replace(/->/g, '\\to ')
-        .replace(/&/g, '\\land ')
-        .replace(/\|/g, '\\lor ')
-        .replace(/!/g, '\\neg ');
-}
-
-// --- Rule Descriptions ---
-const RULE_DESCRIPTIONS = {
-    'MP': { name: '假言推理 (Modus Ponens)', desc: 'A→B, A ⇒ B', example: '如果坚持改革则发展, 坚持改革 → 发展' },
-    'MT': { name: '拒取式 (Modus Tollens)', desc: 'A→B, ¬B ⇒ ¬A', example: '如果坚持改革则发展, 未发展 → 未坚持改革' },
-    'HS': { name: '假言三段论 (Hypothetical Syllogism)', desc: 'A→B, B→C ⇒ A→C', example: '政策传导链' },
-    'DS': { name: '析取三段论 (Disjunctive Syllogism)', desc: 'A∨B, ¬A ⇒ B', example: '非此即彼' },
-    'Simp': { name: '化简律 (Simplification)', desc: 'A∧B ⇒ A', example: '提取关键' },
-    'Add': { name: '附加律 (Addition)', desc: 'A ⇒ A∨B', example: '扩大范围' },
-    'Conj': { name: '合取律 (Conjunction)', desc: 'A, B ⇒ A∧B', example: '整合统一' },
-    'CD': { name: '构造性二难 (Constructive Dilemma)', desc: '(A→B)∧(C→D), A∨C ⇒ B∨D', example: '政策选择' },
-    'DD': { name: '破坏性二难 (Destructive Dilemma)', desc: '(A→B)∧(C→D), ¬B∨¬D ⇒ ¬A∨¬C', example: '风险预警' },
-    'DM': { name: '德摩根律 (De Morgan)', desc: '¬(A∧B) ⇔ ¬A∨¬B', example: '逻辑等价' }
-};
-
-// --- Levels Configuration (Enhanced) ---
-const LEVELS = {
-    'direct': {
-        name: '正面攻坚',
-        difficulty: '⭐',
-        goal: 'A -> C',
-        goalDesc: '证明：如果坚持改革(A)，就能实现复兴(C)。',
-        ideology: '步步为营，从顶层设计到基层落实，每一步都有据可循。',
-        premises: [
-            { id: 'p1', formula: 'A -> B', desc: '坚持改革(A) → 经济发展(B)' },
-            { id: 'p2', formula: 'B -> C', desc: '经济发展(B) → 实现复兴(C)' }
-        ],
-        target: 'A -> C',
-        cpAllowed: false,
-        hints: [
-            '提示1：这是一个典型的传导链，需要使用假言三段论(HS)。',
-            '提示2：先引入两个前提，然后对它们应用HS规则。',
-            '提示3：选择步骤(1)和(2)，点击HS按钮。'
-        ]
+  /* 每个推证：lines[] 顺序排列；前提行 refs:[]；派生行 refs 为所引用行的 0 基下标 */
+  var LEVELS = {
+    basic: {
+      introStatus: "选择一个推证，点「下一步」逐行推演：每一行要么是前提，要么由规则从前面的行推出。看清『有据可依』。",
+      legend: [
+        ["MP", "A→B, A ⇒ B（假言推理）"],
+        ["MT", "A→B, ¬B ⇒ ¬A（拒取式）"],
+        ["前提", "P 规则 · 引入前提"],
+        ["⊢", "由前提推出结论"],
+        ["有效", "前提真则结论必真"]
+      ],
+      cases: [
+        { label: "P→Q, P ⊢ Q（MP）", goal: "Q", goalDesc: "由蕴含与前件，推出后件。",
+          lines: [
+            { f: "P → Q", rule: "前提", refs: [], note: "引入前提：若 P 则 Q。" },
+            { f: "P", rule: "前提", refs: [], note: "引入前提：P 成立。" },
+            { f: "Q", rule: "MP", refs: [0, 1], note: "假言推理：由『P→Q』与『P』，得 Q。" }
+          ] },
+        { label: "P→Q, ¬Q ⊢ ¬P（MT）", goal: "¬P", goalDesc: "否定后件，推出否定前件。",
+          lines: [
+            { f: "P → Q", rule: "前提", refs: [], note: "引入前提。" },
+            { f: "¬Q", rule: "前提", refs: [], note: "引入前提：Q 不成立。" },
+            { f: "¬P", rule: "MT", refs: [0, 1], note: "拒取式：后件假则前件假，得 ¬P。" }
+          ] },
+        { label: "P→Q, Q→R, P ⊢ R（MP×2）", goal: "R", goalDesc: "沿蕴含链一步步推进。",
+          lines: [
+            { f: "P → Q", rule: "前提", refs: [], note: "引入前提。" },
+            { f: "Q → R", rule: "前提", refs: [], note: "引入前提。" },
+            { f: "P", rule: "前提", refs: [], note: "引入前提。" },
+            { f: "Q", rule: "MP", refs: [0, 2], note: "由『P→Q』与『P』得 Q。" },
+            { f: "R", rule: "MP", refs: [1, 3], note: "再由『Q→R』与『Q』得 R。" }
+          ] }
+      ]
     },
-    'indirect': {
-        name: '反腐辩证',
-        difficulty: '⭐⭐',
-        goal: '!C',
-        goalDesc: '证明：腐败(C)是不可能的（反证法）。\n已知：如果腐败(C)，则失去民心(L)；如果失去民心(L)，则政权不稳(U)；但政权是稳固的(!U)。',
-        ideology: '自我革命，勇于刀刃向内。通过逻辑推理，论证腐败在健康政治生态中的不可能性。',
-        premises: [
-            { id: 'p1', formula: 'C -> L', desc: '腐败(C) → 失去民心(L)' },
-            { id: 'p2', formula: 'L -> U', desc: '失去民心(L) → 政权不稳(U)' },
-            { id: 'p3', formula: '!U', desc: '政权稳固(!U)' }
-        ],
-        target: '!C',
-        cpAllowed: false,
-        hints: [
-            '提示1：先用HS将(1)和(2)连接起来，得到C→U。',
-            '提示2：然后使用MT（拒取式）：如果C→U且¬U，则¬C。',
-            '提示3：这就是反证法的逻辑结构！'
-        ]
+    advanced: {
+      introStatus: "选择一个推证，逐行演证：综合运用 MP/MT/HS/DS、反证与附加前提 CP，搭建严密的证明链。",
+      legend: [
+        ["MP", "A→B, A ⇒ B"], ["MT", "A→B, ¬B ⇒ ¬A"],
+        ["HS", "A→B, B→C ⇒ A→C"], ["DS", "A∨B, ¬A ⇒ B"],
+        ["CP", "附加前提 ⇒ 蕴含式"], ["反证", "归谬 · 假设导出矛盾"], ["⊢", "推出"]
+      ],
+      cases: [
+        { label: "P∨Q, ¬P, Q→R ⊢ R（DS+MP）", goal: "R", goalDesc: "先用析取三段论，再用假言推理。",
+          lines: [
+            { f: "P ∨ Q", rule: "前提", refs: [], note: "引入前提。" },
+            { f: "¬P", rule: "前提", refs: [], note: "引入前提。" },
+            { f: "Q → R", rule: "前提", refs: [], note: "引入前提。" },
+            { f: "Q", rule: "DS", refs: [0, 1], note: "析取三段论：P∨Q 且 ¬P，得 Q。" },
+            { f: "R", rule: "MP", refs: [2, 3], note: "假言推理：Q→R 且 Q，得 R。" }
+          ] },
+        { label: "P→Q, Q→R, R→S, P ⊢ S（HS+MP）", goal: "S", goalDesc: "用假言三段论压缩蕴含链。",
+          lines: [
+            { f: "P → Q", rule: "前提", refs: [], note: "引入前提。" },
+            { f: "Q → R", rule: "前提", refs: [], note: "引入前提。" },
+            { f: "R → S", rule: "前提", refs: [], note: "引入前提。" },
+            { f: "P", rule: "前提", refs: [], note: "引入前提。" },
+            { f: "P → R", rule: "HS", refs: [0, 1], note: "假言三段论：P→Q, Q→R 得 P→R。" },
+            { f: "P → S", rule: "HS", refs: [4, 2], note: "再与 R→S 得 P→S。" },
+            { f: "S", rule: "MP", refs: [5, 3], note: "由 P→S 与 P，得 S。" }
+          ] },
+        { label: "P→Q, P→¬Q ⊢ ¬P（反证）", goal: "¬P", goalDesc: "假设 P，导出矛盾，故 ¬P。",
+          lines: [
+            { f: "P → Q", rule: "前提", refs: [], note: "引入前提。" },
+            { f: "P → ¬Q", rule: "前提", refs: [], note: "引入前提。" },
+            { f: "P", rule: "假设(反证)", refs: [], note: "归谬法：先假设结论之反 P 成立。" },
+            { f: "Q", rule: "MP", refs: [0, 2], note: "由 P→Q 与 P 得 Q。" },
+            { f: "¬Q", rule: "MP", refs: [1, 2], note: "由 P→¬Q 与 P 得 ¬Q。" },
+            { f: "Q ∧ ¬Q", rule: "合取(矛盾)", refs: [3, 4], note: "Q 与 ¬Q 同时成立——矛盾！" },
+            { f: "¬P", rule: "反证", refs: [2, 5], note: "假设 P 导出矛盾，故 P 不成立，得 ¬P。" }
+          ] },
+        { label: "P→Q, Q→R ⊢ P→R（CP）", goal: "P → R", goalDesc: "用附加前提法证明蕴含式。",
+          lines: [
+            { f: "P → Q", rule: "前提", refs: [], note: "引入前提。" },
+            { f: "Q → R", rule: "前提", refs: [], note: "引入前提。" },
+            { f: "P", rule: "附加前提(CP)", refs: [], note: "CP 规则：为证 P→R，临时假设前件 P。" },
+            { f: "Q", rule: "MP", refs: [0, 2], note: "由 P→Q 与 P 得 Q。" },
+            { f: "R", rule: "MP", refs: [1, 3], note: "由 Q→R 与 Q 得 R。" },
+            { f: "P → R", rule: "CP", refs: [2, 4], note: "由假设 P 推出 R，故 P→R 成立（撤销假设）。" }
+          ] }
+      ]
     },
-    'cp': {
-        name: '制度探索',
-        difficulty: '⭐⭐',
-        goal: 'P -> Q',
-        goalDesc: '证明：如果进行试点(P)，则能推广经验(Q)。\n已知：试点(P)能发现问题(D)；发现问题(D)能解决问题(S)；解决问题(S)能推广经验(Q)。',
-        ideology: '大胆假设，小心求证。通过CP规则（附加前提法），模拟"试点-推广"的科学决策过程。',
-        premises: [
-            { id: 'p1', formula: 'P -> D', desc: '试点(P) → 发现问题(D)' },
-            { id: 'p2', formula: 'D -> S', desc: '发现问题(D) → 解决问题(S)' },
-            { id: 'p3', formula: 'S -> Q', desc: '解决问题(S) → 推广经验(Q)' }
-        ],
-        target: 'P -> Q',
-        cpAllowed: true,
-        hints: [
-            '提示1：点击"假设(Assume)"按钮，引入P作为临时前提。',
-            '提示2：从P出发，通过三次MP或HS推导出Q。',
-            '提示3：最后点击"结论(Conclude)"，完成CP推理。'
-        ]
-    },
-    'complex1': {
-        name: '全面发展',
-        difficulty: '⭐⭐⭐',
-        goal: 'E & F',
-        goalDesc: '证明：经济发展(E)与社会进步(F)可以同时实现。\n已知：改革开放(R)；改革开放蕴含经济发展(R→E)；改革开放蕴含社会进步(R→F)。',
-        ideology: '统筹兼顾，既要又要。用逻辑证明"两手抓"的可行性。',
-        premises: [
-            { id: 'p1', formula: 'R', desc: '改革开放(R)' },
-            { id: 'p2', formula: 'R -> E', desc: '改革开放(R) → 经济发展(E)' },
-            { id: 'p3', formula: 'R -> F', desc: '改革开放(R) → 社会进步(F)' }
-        ],
-        target: 'E & F',
-        cpAllowed: false,
-        hints: [
-            '提示1：先用MP从(1)和(2)推出E，再用MP从(1)和(3)推出F。',
-            '提示2：最后使用Conj（合取律）将E和F合并为E∧F。',
-            '提示3：这体现了"五位一体"总体布局的整体性。'
-        ]
-    },
-    'complex2': {
-        name: '路径选择',
-        difficulty: '⭐⭐⭐',
-        goal: 'G | H',
-        goalDesc: '证明：要么走创新之路(G)，要么走改革之路(H)。\n已知：不发展就倒退(!D→B)；倒退则危机(B→C)；危机则必须创新或改革(C→(G|H))；事实上我们不发展(!D)。',
-        ideology: '居安思危，主动求变。逻辑推演国家发展的必然选择。',
-        premises: [
-            { id: 'p1', formula: '!D -> B', desc: '不发展(!D) → 倒退(B)' },
-            { id: 'p2', formula: 'B -> C', desc: '倒退(B) → 危机(C)' },
-            { id: 'p3', formula: 'C -> (G | H)', desc: '危机(C) → (创新(G) | 改革(H))' },
-            { id: 'p4', formula: '!D', desc: '不发展(!D)' }
-        ],
-        target: 'G | H',
-        cpAllowed: false,
-        hints: [
-            '提示1：这是一个四步推理链：!D → B → C → (G|H)。',
-            '提示2：先对(1)(2)用HS得到!D→C，再对结果与(3)用HS。',
-            '提示3：最后用MP加上前提(4)!D，推出G|H。'
-        ]
+    extend: {
+      introStatus: "选择一个机械推理任务，逐步执行：归结法消去互补文字得空子句，或 Hoare 逻辑逐条验证程序断言。",
+      legend: [
+        ["归结", "互补文字消去得 resolvent"],
+        ["□", "空子句 · 矛盾 ⇒ 原结论成立"],
+        ["子句", "CNF clause（前提化）"],
+        ["¬结论", "反证：先否定待证结论"],
+        ["Hoare", "{P} S {Q} 程序验证"],
+        ["wp", "最弱前置条件"]
+      ],
+      cases: [
+        { label: "归结法证 P→Q, P ⊢ Q", goal: "Q", goalDesc: "否定结论得 ¬Q，归结出空子句□，反证 Q。",
+          lines: [
+            { f: "{¬P, Q}", rule: "子句", refs: [], note: "前提 P→Q 化为子句 ¬P∨Q。" },
+            { f: "{P}", rule: "子句", refs: [], note: "前提 P 化为子句。" },
+            { f: "{¬Q}", rule: "¬结论", refs: [], note: "反证：否定待证结论 Q。" },
+            { f: "{Q}", rule: "归结", refs: [0, 1], note: "{¬P,Q} 与 {P} 消去互补文字 P/¬P，得 {Q}。" },
+            { f: "□（空子句）", rule: "归结", refs: [2, 3], note: "{¬Q} 与 {Q} 归结得空子句——矛盾，故原结论 Q 成立。" }
+          ] },
+        { label: "归结法证 P∨Q, ¬P, Q→R ⊢ R", goal: "R", goalDesc: "多子句归结，导出空子句□。",
+          lines: [
+            { f: "{P, Q}", rule: "子句", refs: [], note: "前提 P∨Q。" },
+            { f: "{¬P}", rule: "子句", refs: [], note: "前提 ¬P。" },
+            { f: "{¬Q, R}", rule: "子句", refs: [], note: "前提 Q→R 化为 ¬Q∨R。" },
+            { f: "{¬R}", rule: "¬结论", refs: [], note: "反证：否定结论 R。" },
+            { f: "{Q}", rule: "归结", refs: [0, 1], note: "{P,Q} 与 {¬P} 消去 P，得 {Q}。" },
+            { f: "{R}", rule: "归结", refs: [2, 4], note: "{¬Q,R} 与 {Q} 消去 Q，得 {R}。" },
+            { f: "□（空子句）", rule: "归结", refs: [3, 5], note: "{¬R} 与 {R} 归结得空子句——证毕，R 成立。" }
+          ] },
+        { label: "Hoare 逻辑验证 {x≥0} y:=x+1 {y≥1}", goal: "{y ≥ 1}", goalDesc: "由赋值公理与验证条件，证明程序满足规约。",
+          lines: [
+            { f: "{ x ≥ 0 }", rule: "前置条件", refs: [], note: "程序执行前的断言（规约前件）。" },
+            { f: "y := x + 1", rule: "程序语句", refs: [], note: "待验证的赋值语句。" },
+            { f: "{ y = x + 1 }", rule: "赋值公理", refs: [0, 1], note: "赋值公理：执行后 y 的值由 x 决定。" },
+            { f: "x ≥ 0 → x + 1 ≥ 1", rule: "验证条件", refs: [0], note: "算术蕴含：前置条件保证 x+1≥1。" },
+            { f: "{ y ≥ 1 }", rule: "蕴含弱化", refs: [2, 3], note: "由 y=x+1 与 x+1≥1 弱化得后置条件，程序正确。" }
+          ] }
+      ]
     }
-};
+  };
 
-function init() {
-    setupTabs();
-    setupToolbox();
-    setupHintSystem();
-    loadLevel('direct');
-}
+  function computeCase(c) {
+    var lines = c.lines.map(function (ln, i) {
+      return {
+        i: i, f: ln.f, rule: ln.rule, refs: ln.refs || [], note: ln.note || "",
+        isPrem: (ln.refs || []).length === 0,
+        isFinal: i === c.lines.length - 1,
+        isContra: /□|矛盾/.test(ln.f)
+      };
+    });
+    return { goal: c.goal, goalDesc: c.goalDesc, premises: lines.filter(function (l) { return l.isPrem; }), lines: lines };
+  }
 
-// --- Enhanced Logic Engine ---
-function checkRule(rule, lines) {
-    if (lines.length === 0) return null;
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = { LEVELS: LEVELS, computeCase: computeCase };
+  }
 
-    const f1 = lines[0].formula;
-    const f2 = lines.length > 1 ? lines[1].formula : null;
+  /* ====================== 以下仅浏览器运行 ====================== */
+  if (typeof document === "undefined") return;
 
-    // Helper functions
-    const parseImp = (s) => {
-        // Bracket-aware split on '->' at depth 0
-        let depth = 0;
-        for (let k = 0; k < s.length - 1; k++) {
-            if (s[k] === '(') depth++;
-            else if (s[k] === ')') depth--;
-            else if (depth === 0 && s.slice(k, k + 2) === '->') {
-                return { left: s.slice(0, k).trim(), right: s.slice(k + 2).trim() };
-            }
-        }
-        return null;
-    };
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function esc(v) {
+    return String(v == null ? "" : v).replace(/[&<>"']/g, function (ch) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
+    });
+  }
+  function svgEl(type, attrs) { var el = document.createElementNS(SVGNS, type); if (attrs) for (var k in attrs) el.setAttribute(k, attrs[k]); return el; }
+  function byId(id) { return document.getElementById(id); }
+  function refStr(refs) { return refs.map(function (r) { return r + 1; }).join(","); }
 
-    const parseAnd = (s) => {
-        // Simple check for A & B pattern
-        const parts = s.split('&').map(x => x.trim());
-        return parts.length === 2 ? { left: parts[0], right: parts[1] } : null;
-    };
+  function run() {
+    var levelKey = global.SYMBOLIZE_LEVEL || "basic";
+    var cfg = LEVELS[levelKey] || LEVELS.basic;
 
-    const parseOr = (s) => {
-        // Check for patterns like (A | B)
-        const match = s.match(/^\((.+?)\s*\|\s*(.+?)\)$/) || s.match(/^(.+?)\s*\|\s*(.+?)$/);
-        return match ? { left: match[1].trim(), right: match[2].trim() } : null;
-    };
+    var controlsEl = byId("controls");
+    var goalEl = byId("ipGoal");
+    var tableEl = byId("ipTable");
+    var evalEl = byId("ipEval");
+    var graphEl = byId("ipGraph");
+    if (!controlsEl || !tableEl) return;
 
-    switch (rule) {
-        case 'MP': // A->B, A => B
-            if (!f2) return null;
-            let imp = parseImp(f1);
-            if (imp && imp.left === f2) return imp.right;
-            imp = parseImp(f2);
-            if (imp && imp.left === f1) return imp.right;
-            return null;
+    var pr = null;
+    var p = 0, manualFocus = null, autoTimer = null;
+    var rowEls = [], nodeEls = [], arcEls = [];
+    var statusEl, progBar, progNum, prevBtn, nextBtn, autoBtn;
 
-        case 'MT': // A->B, !B => !A
-            if (!f2) return null;
-            imp = parseImp(f1);
-            if (imp && f2 === '!' + imp.right) return '!' + imp.left;
-            imp = parseImp(f2);
-            if (imp && f1 === '!' + imp.right) return '!' + imp.left;
-            return null;
-
-        case 'HS': // A->B, B->C => A->C
-            if (!f2) return null;
-            const i1 = parseImp(f1);
-            const i2 = parseImp(f2);
-            if (i1 && i2) {
-                if (i1.right === i2.left) return `${i1.left} -> ${i2.right}`;
-                if (i2.right === i1.left) return `${i2.left} -> ${i1.right}`;
-            }
-            return null;
-
-        case 'DS': // A|B, !A => B
-            if (!f2) return null;
-            const or1 = parseOr(f1);
-            if (or1) {
-                if (f2 === '!' + or1.left) return or1.right;
-                if (f2 === '!' + or1.right) return or1.left;
-            }
-            const or2 = parseOr(f2);
-            if (or2) {
-                if (f1 === '!' + or2.left) return or2.right;
-                if (f1 === '!' + or2.right) return or2.left;
-            }
-            return null;
-
-        case 'Simp': // A&B => A (left) or A&B => B (right, when second line specified)
-            const and1 = parseAnd(f1);
-            if (and1) {
-                // If second line given, treat it as a hint for which side to extract
-                if (f2 !== null) {
-                    if (f2 === and1.right) return and1.right;
-                    if (f2 === and1.left) return and1.left;
-                }
-                return and1.left;
-            }
-            return null;
-
-        case 'Add': // A => A|B (user input B needed, skip for now)
-            return null;
-
-        case 'Conj': // A, B => A&B
-            if (!f2) return null;
-            return `${f1} & ${f2}`;
-
-        case 'CD': // (A->B)&(C->D), A|C => B|D
-            // Complex, skip for this demo
-            return null;
-
-        case 'DD': // (A->B)&(C->D), !B|!D => !A|!C
-            // Complex, skip for this demo
-            return null;
-
-        case 'DM': // De Morgan's Laws (equivalence, not inference)
-            // Could implement but needs input from user
-            return null;
-
-        default:
-            return null;
+    function renderControls() {
+      var opts = cfg.cases.map(function (c, i) { return '<option value="' + i + '">' + esc(c.label) + '</option>'; }).join("");
+      controlsEl.innerHTML =
+        '<div class="control-group"><label><span>选择推证</span><small>前提 ⊢ 结论</small></label>' +
+          '<select id="ipSelect">' + opts + '</select></div>' +
+        '<div class="control-group"><label><span>逐步演证</span><small>点一步 · 看反馈</small></label>' +
+          '<div class="sym-step-row">' +
+            '<button class="sym-step-btn" id="ipPrev">◀ 上一步</button>' +
+            '<button class="sym-step-btn sym-primary" id="ipNext">下一步 ▶</button>' +
+            '<button class="sym-step-btn" id="ipAuto">⏵ 自动播放</button>' +
+            '<button class="sym-step-btn" id="ipReset">↺ 重置</button>' +
+          '</div></div>' +
+        '<div class="control-group"><label><span>进度</span></label>' +
+          '<div class="sym-progress-wrap"><div class="sym-progress"><i id="ipProgBar"></i></div>' +
+          '<span class="sym-progress-num" id="ipProgNum">0 / 0</span></div></div>' +
+        '<div class="control-group"><label><span>当前反馈</span></label>' +
+          '<div class="sym-status" id="ipStatus"></div></div>';
+      statusEl = byId("ipStatus"); progBar = byId("ipProgBar"); progNum = byId("ipProgNum");
+      prevBtn = byId("ipPrev"); nextBtn = byId("ipNext"); autoBtn = byId("ipAuto");
+      byId("ipSelect").addEventListener("change", function (e) { loadCase(+e.target.value); });
+      prevBtn.addEventListener("click", function () { stopAuto(); step(-1); });
+      nextBtn.addEventListener("click", function () { stopAuto(); step(1); });
+      byId("ipReset").addEventListener("click", function () { stopAuto(); p = 0; manualFocus = null; render(); });
+      autoBtn.addEventListener("click", toggleAuto);
     }
-}
 
-// --- UI Interaction ---
+    function renderLegend() {
+      var box = byId("legendPanel"); if (!box) return;
+      box.innerHTML = '<div class="legend-title">推理规则速查</div><div class="legend-grid">' +
+        cfg.legend.map(function (it) { return '<div class="legend-item"><span class="sym">' + esc(it[0]) + '</span><span class="desc">' + esc(it[1]) + '</span></div>'; }).join("") + '</div>';
+    }
 
-function setupTabs() {
-    const btns = document.querySelectorAll('.tab-btn');
-    btns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            btns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            loadLevel(btn.dataset.tab);
+    function loadCase(idx) {
+      stopAuto();
+      pr = computeCase(cfg.cases[idx]);
+      p = 0; manualFocus = null;
+      renderGoal(); renderTable(); renderGraph();
+      evalEl.innerHTML = "";
+      render();
+    }
+
+    function renderGoal() {
+      var prem = pr.premises.map(function (l) { return "<code>" + esc(l.f) + "</code>"; }).join("，");
+      goalEl.innerHTML = '<div class="g-premises"><b>前提：</b>' + prem + '　<b>⊢</b></div>' +
+        '<div class="g-goal">' + esc(pr.goal) + '</div>' +
+        '<div class="g-desc">' + esc(pr.goalDesc) + '</div>';
+    }
+
+    function renderTable() {
+      var body = pr.lines.map(function (l, i) {
+        var reason = l.isPrem ? '<span class="r-rule">' + esc(l.rule) + '</span>' :
+          '<span class="r-rule">' + esc(l.rule) + '</span> <span class="r-refs">(' + refStr(l.refs) + ')</span>';
+        return '<tr class="ip-row' + (l.isPrem ? " is-prem" : "") + (l.isFinal ? " is-final" : "") + '" data-row="' + i + '">' +
+          '<td class="c-no">' + (i + 1) + '</td><td class="c-f">' + esc(l.f) + '</td><td class="c-r">' + reason + '</td></tr>';
+      }).join("");
+      tableEl.innerHTML = '<table class="ip-table"><thead><tr><th>步</th><th>命题公式</th><th>依据（引用行）</th></tr></thead><tbody>' + body + '</tbody></table>';
+      rowEls = Array.prototype.slice.call(tableEl.querySelectorAll("tr.ip-row"));
+      rowEls.forEach(function (tr, i) { tr.addEventListener("click", function () { clickRow(i); }); });
+    }
+
+    function renderGraph() {
+      graphEl.innerHTML = "";
+      var n = pr.lines.length, VW = 760, pad = 12, rowH = 50, nodeW = 360, nodeH = 36;
+      var cx = VW * 0.42, leftArc = cx - nodeW / 2;
+      var H = pad * 2 + n * rowH;
+      var svg = svgEl("svg", { id: "ipGraph", viewBox: "0 0 " + VW + " " + H, width: "100%", height: H });
+      var g = svgEl("g"); svg.appendChild(g);
+      function yOf(i) { return pad + i * rowH + nodeH / 2; }
+
+      // 依赖弧（从被引用行 → 当前行，画在右侧）
+      arcEls = [];
+      pr.lines.forEach(function (l, i) {
+        l.refs.forEach(function (r) {
+          var x = cx + nodeW / 2, y1 = yOf(r), y2 = yOf(i);
+          var bulge = 30 + Math.min(70, (i - r) * 12);
+          var path = svgEl("path", { d: "M " + x + " " + y1 + " C " + (x + bulge) + " " + y1 + " " + (x + bulge) + " " + y2 + " " + x + " " + y2,
+            stroke: "#2f5f9f", "stroke-width": 1.8, fill: "none" });
+          path.setAttribute("class", "ip-arc"); path.dataset.to = i;
+          g.appendChild(path);
+          arcEls.push({ el: path, to: i, from: r });
         });
-    });
-}
+      });
 
-function setupHintSystem() {
-    // Create hint button
-    const hintBtn = document.createElement('button');
-    hintBtn.id = 'hintBtn';
-    hintBtn.className = 'control-btn';
-    hintBtn.textContent = '💡 提示';
-    hintBtn.onclick = showHint;
-
-    const actionRow = document.querySelector('.action-row');
-    if (actionRow) {
-        const old = document.getElementById('hintBtn');
-        if (old) old.remove();
-        actionRow.insertBefore(hintBtn, actionRow.firstChild);
-    }
-}
-
-function showHint() {
-    const config = LEVELS[currentLevel];
-    if (!config.hints || hintIndex >= config.hints.length) {
-        alert('已无更多提示！');
-        return;
+      // 节点
+      nodeEls = pr.lines.map(function (l, i) {
+        var y = pad + i * rowH;
+        var fill = l.isContra ? "#f6d3ce" : l.isFinal ? "#cdebd9" : l.isPrem ? "#dbe6f3" : "#fdeccd";
+        var stroke = l.isContra ? "#b42318" : l.isFinal ? "#2f7d57" : l.isPrem ? "#2f5f9f" : "#c58a1f";
+        var ng = svgEl("g"); ng.setAttribute("class", "ip-node"); ng.dataset.row = i;
+        var rect = svgEl("rect", { x: leftArc, y: y, width: nodeW, height: nodeH, rx: 8, fill: fill, stroke: stroke, "stroke-width": 1.6 });
+        var num = svgEl("text", { x: leftArc + 16, y: y + nodeH / 2, "text-anchor": "middle", "dominant-baseline": "central", fill: "#6c5a52", "font-size": 12, "font-weight": "800", "font-family": "JetBrains Mono, monospace" }); num.textContent = (i + 1);
+        var tf = svgEl("text", { x: leftArc + 34, y: y + nodeH / 2, "dominant-baseline": "central", fill: "#2d211d", "font-size": 13, "font-weight": "700", "font-family": "JetBrains Mono, monospace" }); tf.textContent = l.f;
+        var tr = svgEl("text", { x: leftArc + nodeW - 10, y: y + nodeH / 2, "text-anchor": "end", "dominant-baseline": "central", fill: stroke, "font-size": 11, "font-weight": "800" }); tr.textContent = l.rule;
+        ng.appendChild(rect); ng.appendChild(num); ng.appendChild(tf); ng.appendChild(tr);
+        ng.addEventListener("click", function () { clickRow(i); });
+        g.appendChild(ng);
+        return { g: ng, rect: rect };
+      });
+      graphEl.appendChild(svg);
     }
 
-    alert(config.hints[hintIndex]);
-    hintIndex++;
-}
+    function total() { return pr.lines.length; }
+    function step(dir) { manualFocus = null; p = Math.max(0, Math.min(total(), p + dir)); render(); }
+    function clickRow(i) {
+      stopAuto();
+      var L = pr.lines.length;
+      if (p < L) { p = i + 1; manualFocus = null; }
+      else { manualFocus = (manualFocus === i ? null : i); }
+      render();
+    }
+    function toggleAuto() {
+      if (autoTimer) { stopAuto(); return; }
+      if (p >= total()) { p = 0; manualFocus = null; render(); }
+      autoBtn.classList.add("sym-playing"); autoBtn.textContent = "⏸ 暂停";
+      autoTimer = setInterval(function () { if (p >= total()) { stopAuto(); return; } manualFocus = null; p += 1; render(); }, 1050);
+    }
+    function stopAuto() { if (autoTimer) { clearInterval(autoTimer); autoTimer = null; } if (autoBtn) { autoBtn.classList.remove("sym-playing"); autoBtn.textContent = "⏵ 自动播放"; } }
 
-function loadLevel(levelId) {
-    currentLevel = levelId;
-    const config = LEVELS[levelId];
-    if (!config) return;
+    function render() {
+      var L = pr.lines.length;
+      var linesShown = p;
+      var done = p >= L;
+      var stepLine = (p >= 1 && p <= L) ? p - 1 : null;
+      var focusLine = (manualFocus != null) ? manualFocus : stepLine;
+      var citedSet = {};
+      if (focusLine != null) pr.lines[focusLine].refs.forEach(function (r) { citedSet[r] = true; });
 
-    // Reset State
-    proofSteps = [];
-    selectedLines = [];
-    isSolved = false;
-    hintIndex = 0;
-
-    // Update UI
-    document.getElementById('goalFormula').innerHTML = `$$ ${formatFormula(config.goal)} $$`;
-    document.getElementById('goalDesc').innerHTML = `
-        <div style="margin-bottom: 8px;">${config.goalDesc}</div>
-        <div style="background: #fff5f5; padding: 10px; border-radius: 6px; margin-top: 10px; font-size: 0.95rem; border-left: 3px solid #de2910;">
-            <strong>🚩 价值启示：</strong>${config.ideology}
-        </div>
-        <div style="margin-top: 8px; color: #999; font-size:0.85rem;">难度: ${config.difficulty}</div>
-    `;
-    document.getElementById('proofStatus').innerHTML = '<span class="status-text">正在推演中...</span>';
-    document.getElementById('cpSection').classList.toggle('hidden', !config.cpAllowed);
-
-    // Render Premises
-    const pList = document.getElementById('premiseList');
-    pList.innerHTML = '';
-    config.premises.forEach(p => {
-        const btn = document.createElement('div');
-        btn.className = 'premise-btn';
-        // Display premises in simple text or MathJax? Let's keep simple text for toolbox readability, 
-        // or use formatFormula but inside $$? Toolbox is narrow, $$ might be too big.
-        // Let's stick to text but maybe replace -> with arrow symbol for better look?
-        const displayFormula = p.formula.replace(/->/g, '→').replace(/&/g, '∧').replace(/\|/g, '∨').replace(/!/g, '¬');
-        btn.innerHTML = `<strong>${displayFormula}</strong><br><small>${p.desc}</small>`;
-        btn.onclick = () => addStep(p.formula, 'P (前提)');
-        pList.appendChild(btn);
-    });
-
-    renderProofTable();
-    if (window.MathJax) window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise();
-}
-
-function setupToolbox() {
-    // Rule Buttons with tooltips
-    document.querySelectorAll('.rule-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (btn.id === 'cpStartBtn') {
-                handleCPStart();
-                return;
-            }
-            if (btn.id === 'cpEndBtn') {
-                handleCPEnd();
-                return;
-            }
-
-            const rule = btn.dataset.rule;
-            applyRule(rule);
-        });
-
-        // Add tooltip
-        const rule = btn.dataset.rule;
-        if (rule && RULE_DESCRIPTIONS[rule]) {
-            btn.title = RULE_DESCRIPTIONS[rule].desc;
+      for (var k = 0; k < L; k++) {
+        var revealed = k < linesShown;
+        var isCur = (k === focusLine);
+        var isCited = !!citedSet[k] && revealed;
+        if (rowEls[k]) {
+          rowEls[k].classList.toggle("sym-pending", !revealed);
+          rowEls[k].classList.toggle("sym-cur", isCur);
+          rowEls[k].classList.toggle("is-cited", isCited && !isCur);
         }
-    });
-
-    // Controls
-    document.getElementById('undoBtn').onclick = () => {
-        if (proofSteps.length > 0) {
-            proofSteps.pop();
-            selectedLines = [];
-            renderProofTable();
+        if (nodeEls[k]) {
+          nodeEls[k].g.classList.toggle("sym-pending", !revealed);
+          nodeEls[k].g.classList.toggle("sym-cur", isCur);
+          nodeEls[k].g.classList.toggle("is-cited", isCited && !isCur);
         }
-    };
-    document.getElementById('resetBtn').onclick = () => loadLevel(currentLevel);
-}
+      }
+      arcEls.forEach(function (a) {
+        a.el.classList.toggle("is-active", focusLine != null && a.to === focusLine);
+        a.el.style.opacity = (a.to < linesShown) ? "" : "0";
+      });
 
-function addStep(formula, reason) {
-    if (isSolved) return;
-
-    proofSteps.push({
-        id: proofSteps.length + 1,
-        formula: formula,
-        reason: reason
-    });
-
-    selectedLines = [];
-    renderProofTable();
-    checkWinCondition();
-}
-
-function applyRule(rule) {
-    if (selectedLines.length === 0) {
-        alert("请先在右侧表格中点击选择要引用的步骤（1-2行）");
-        return;
+      evalEl.innerHTML = evalHTML(focusLine, done);
+      progNum.textContent = p + " / " + L;
+      progBar.style.width = (L ? (p / L * 100) : 0) + "%";
+      prevBtn.disabled = (p <= 0 && manualFocus == null);
+      nextBtn.disabled = (p >= L);
+      statusEl.innerHTML = statusHTML(p, focusLine, done);
     }
 
-    const lines = selectedLines.map(idx => proofSteps[idx]);
-    const result = checkRule(rule, lines);
-
-    if (result) {
-        const lineNums = selectedLines.map(i => i + 1).join(', ');
-        const ruleName = RULE_DESCRIPTIONS[rule]?.name || rule;
-        addStep(result, `T (${ruleName}) on ${lineNums}`);
-    } else {
-        const ruleName = RULE_DESCRIPTIONS[rule]?.name || rule;
-        alert(`无法应用"${ruleName}"。\n${RULE_DESCRIPTIONS[rule]?.desc || ''}\n请检查选择的步骤是否符合规则。`);
-        selectedLines = [];
-        renderProofTable();
+    function evalHTML(focusLine, done) {
+      if (focusLine == null) return '<span style="color:#6c5a52">点「下一步」逐行推演。前提行直接引入；派生行由推理规则从已得的行推出。</span>';
+      var l = pr.lines[focusLine];
+      var head = '<div>第 <b>' + (focusLine + 1) + '</b> 行：<span class="ev-f">' + esc(l.f) + '</span></div>';
+      var body;
+      if (l.isPrem) body = '<div style="margin-top:4px"><span class="ev-rule">' + esc(l.rule) + '</span>：' + esc(l.note) + '</div>';
+      else body = '<div style="margin-top:4px">规则 <span class="ev-rule">' + esc(l.rule) + '</span>，引用第 <span class="ev-ref">' + refStr(l.refs) + '</span> 行：' + esc(l.note) + '</div>';
+      if (done && l.isFinal) body += '<div style="margin-top:6px;color:#1d6b43;font-weight:800">✅ 抵达结论 ' + esc(pr.goal) + '，证毕（QED）。</div>';
+      return head + body;
     }
-}
 
-function handleCPStart() {
-    const config = LEVELS[currentLevel];
-    if (config.goal.includes('->')) {
-        const parts = config.goal.split('->').map(s => s.trim());
-        const assumption = parts[0];
-        addStep(assumption, 'P (CP假设 - 临时前提)');
+    function statusHTML(pp, focusLine, done) {
+      if (pp === 0) return cfg.introStatus + (pr.goalDesc ? '<br><b>目标：</b>' + esc(pr.goal) + ' —— ' + esc(pr.goalDesc) : "");
+      if (focusLine != null) {
+        var l = pr.lines[focusLine];
+        var via = l.isPrem ? '（' + esc(l.rule) + '）' : '（' + esc(l.rule) + ' · 引用 ' + refStr(l.refs) + '）';
+        var msg = '第 <b>' + (focusLine + 1) + '</b> 行：<b>' + esc(l.f) + '</b> ' + via + '。';
+        if (done && l.isFinal) msg = '✅ <b>证毕</b>：已推出结论 ' + esc(pr.goal) + '。可点任意行回看依赖。';
+        return msg;
+      }
+      return "";
     }
-}
 
-function handleCPEnd() {
-    const config = LEVELS[currentLevel];
-    if (config.goal.includes('->')) {
-        const parts = config.goal.split('->').map(s => s.trim());
-        const consequent = parts[1];
+    renderControls();
+    renderLegend();
+    loadCase(0);
+  }
 
-        const lastStep = proofSteps[proofSteps.length - 1];
-        if (lastStep.formula === consequent) {
-            addStep(`${parts[0]} -> ${parts[1]}`, 'CP (附加前提法完成)');
-        } else {
-            alert(`CP规则要求最后一步必须是结论 "${consequent}"`);
-        }
-    }
-}
-
-function renderProofTable() {
-    const tbody = document.querySelector('#proofTable tbody');
-    tbody.innerHTML = '';
-
-    proofSteps.forEach((step, index) => {
-        const tr = document.createElement('tr');
-        if (selectedLines.includes(index)) {
-            tr.classList.add('selected');
-        }
-
-        tr.innerHTML = `
-            <td>(${step.id})</td>
-            <td>$$ ${formatFormula(step.formula)} $$</td>
-            <td>${step.reason}</td>
-        `;
-
-        tr.onclick = () => {
-            if (selectedLines.includes(index)) {
-                selectedLines = selectedLines.filter(i => i !== index);
-            } else {
-                if (selectedLines.length < 2) {
-                    selectedLines.push(index);
-                } else {
-                    selectedLines.shift();
-                    selectedLines.push(index);
-                }
-            }
-            renderProofTable();
-        };
-
-        tbody.appendChild(tr);
-    });
-
-    if (window.MathJax) window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise();
-}
-
-function checkWinCondition() {
-    const config = LEVELS[currentLevel];
-    const lastStep = proofSteps[proofSteps.length - 1];
-
-    if (lastStep && lastStep.formula === config.target) {
-        isSolved = true;
-        const quotes = [
-            '"真理是时间的女儿，不是权威的女儿。" —— 培根',
-            '"实践是检验真理的唯一标准。" —— 马克思主义哲学',
-            '"逻辑是思维的规律，也是探寻真理的阶梯。" —— 亚里士多德',
-            '"求真务实，是我们的根本要求。"',
-            '"步步为营，才能登顶真理。"'
-        ];
-        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-
-        document.getElementById('proofStatus').innerHTML = `
-            <span class="status-text success">🎉 推演成功！真理已证！</span>
-            <div style="font-size: 0.9rem; margin-top: 10px; color: #7f8c8d;">
-                ${randomQuote}
-            </div>
-            <div style="margin-top: 15px;">
-                <button onclick="loadLevel(currentLevel)" style="padding: 8px 20px; background: #27ae60; color: white; border: none; border-radius: 6px; cursor: pointer;">再试一次</button>
-            </div>
-        `;
-    }
-}
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
+  else run();
+})(typeof window !== "undefined" ? window : globalThis);

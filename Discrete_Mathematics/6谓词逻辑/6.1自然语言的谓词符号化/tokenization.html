@@ -4,294 +4,114 @@
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
-    <!-- Open Graph / 社交分享（微信、钉钉、Telegram 等）。部署域名变更时全局替换下方 BASE 即可 -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
-    <meta property="og:title" content="诗词符号化 - 传承中华文化">
-    <meta property="og:description" content="离散数学课程 - 诗词符号化 - 传承中华文化">
+    <meta property="og:title" content="谓词符号化 · 进阶层 - 全称与存在">
+    <meta property="og:description" content="离散数学课程 - 6.1 自然语言的谓词符号化 · 进阶层（全称/存在 · 逐步符号化）">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/6%E8%B0%93%E8%AF%8D%E9%80%BB%E8%BE%91/6.1%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E7%9A%84%E8%B0%93%E8%AF%8D%E7%AC%A6%E5%8F%B7%E5%8C%96/tokenization.html">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="诗词符号化 - 传承中华文化">
-    <meta name="twitter:description" content="离散数学课程 - 诗词符号化 - 传承中华文化">
+    <meta name="twitter:title" content="谓词符号化 · 进阶层 - 全称与存在">
+    <meta name="twitter:description" content="离散数学课程 - 6.1 自然语言的谓词符号化 · 进阶层">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>诗词符号化 - 传承中华文化</title>
-    <meta name="description" content="离散数学课程 - 诗词符号化 - 传承中华文化">
+    <title>谓词符号化 · 进阶层 - 全称与存在</title>
+    <meta name="description" content="离散数学课程 - 6.1 自然语言的谓词符号化 · 进阶层">
 
-    <link rel="stylesheet" href="tokenization.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="tokenization.css">
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
     <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
-    <!-- 返回主页浮动按钮 (auto-injected) -->
-    <a href="../../index.html" title="返回课程主页" style="
-        position:fixed;top:14px;left:14px;z-index:9999;
-        display:flex;align-items:center;gap:6px;
-        background:rgba(30,30,40,0.82);color:#fff;
-        padding:7px 14px 7px 10px;border-radius:20px;
-        font-size:13px;font-family:'Noto Serif SC',serif;
-        text-decoration:none;backdrop-filter:blur(8px);
-        border:1px solid rgba(255,255,255,0.15);
-        box-shadow:0 2px 12px rgba(0,0,0,0.35);
-        transition:background .2s;
-    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
-       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
-        🏠 <span>课程主页</span>
-    </a>
+    <a class="home-link" href="../../index.html">← 返回课程主页</a>
 
     <div class="app-container">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="window-controls">
-                    <span class="dot red"></span>
-                    <span class="dot yellow"></span>
-                    <span class="dot green"></span>
-                </div>
-                <h1>红色数理 <span class="highlight">进阶层</span></h1>
-                <p class="subtitle">谓词符号化积木台 · 传承</p>
+        <aside class="side-panel">
+            <div class="eyebrow">进阶层 · 第6章 谓词逻辑</div>
+            <h1>全称·存在符号化</h1>
+            <p class="subtitle">∀x(P→Q) / ∃x(P∧Q) / 辖域</p>
+            <p class="tier-line">核心掌握 · 建模求解</p>
+            <p class="intro">🎯 正确符号化『所有/有些』判断。</p>
+
+            <div class="value-panel">
+                <h3>传承中华文化 · 精准表达</h3>
+                <p>把诗词、典籍中的判断精准符号化，既训练严谨的逻辑表达，又在数理中品味中华语言之美。『全称』与『存在』的分寸，恰如做判断要实事求是——既不以偏概全，也不以全否偏。</p>
+                <div class="dim-list"><span>文化自信</span><span>逻辑严谨</span><span>辩证思维</span></div>
             </div>
 
-            <div class="controls-wrapper">
-                <div class="control-group">
-                    <label>选择经典诗词</label>
-                    <select id="poemSelect" class="apple-select">
-                        <option value="0">《沁园春·雪》- 毛泽东</option>
-                        <option value="1">《春望》- 杜甫</option>
-                        <option value="2">《水调歌头》- 苏轼</option>
-                        <option value="3">《登高》- 杜甫</option>
-                        <option value="custom">自定义输入...</option>
-                    </select>
-                </div>
-
-                <div class="control-group" id="customInputGroup" style="display: none;">
-                    <label>输入您的文本</label>
-                    <textarea id="customInput" class="apple-textarea" rows="4"
-                        placeholder="请输入中文诗词或句子..."></textarea>
-                </div>
-
-                <div class="control-group">
-                    <label>符号化方式</label>
-                    <div class="token-mode-buttons">
-                        <button class="mode-btn active" data-mode="word" aria-label="词语切分">词语切分</button>
-                        <button class="mode-btn" data-mode="char" aria-label="字符切分">字符切分</button>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <label>动画速度</label>
-                    <input type="range" id="speed" min="1" max="100" value="60">
-                </div>
-
-                <div class="control-group">
-                    <label>当前状态</label>
-                    <div class="info-panel">
-                        <p id="statusText">准备开始符号化</p>
-                        <div class="stats-display">
-                            <div class="stat-item">
-                                <span class="stat-label">已处理:</span>
-                                <span class="stat-value" id="processedCount">0</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">总数:</span>
-                                <span class="stat-value" id="totalCount">0</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <label>谓词逻辑符号化</label>
-                    <div class="logic-explanation">
-                        <div class="explanation-title">符号体系说明</div>
-                        <div class="symbol-legend">
-                            <div class="legend-item">
-                                <span class="symbol">∀x</span>
-                                <span class="desc">全称量词 - 对所有个体</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="symbol">∃x</span>
-                                <span class="desc">存在量词 - 存在个体</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="symbol">P(x)</span>
-                                <span class="desc">谓词 - 描述性质或关系</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="symbol">∧</span>
-                                <span class="desc">逻辑与</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="symbol">∨</span>
-                                <span class="desc">逻辑或</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="symbol">¬</span>
-                                <span class="desc">逻辑非</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="symbol">→</span>
-                                <span class="desc">蕴含</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="actions-footer">
-                <button id="startBtn" class="apple-btn action-btn" aria-label="开始演示">开始演示</button>
-                <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置">重置</button>
-            </div>
+            <div id="controls"></div>
+            <div class="legend-panel" id="legendPanel"></div>
         </aside>
 
-        <main class="visualizer-stage">
-            <div class="glass-pane">
-                <div class="visualization-container">
-                    <!-- 原文区域 -->
-                    <div class="section original-section">
-                        <h2 class="section-title">原文</h2>
-                        <div id="originalText" class="text-display">
-                            <div class="poem-lines"></div>
-                        </div>
-                    </div>
+        <main class="glass-pane">
+            <section class="mission-card">
+                <span><b>互动任务：</b>逐步拆解全称/存在判断，正确处理量词、辖域与联结词，看公式项与结构树联动高亮。</span>
+                <div class="visual-badge">语句卡片 · 逐步符号化</div>
+            </section>
 
-                    <!-- 箭头动画区域 -->
-                    <div class="arrow-section">
-                        <svg class="flow-arrow" viewBox="0 0 100 200" preserveAspectRatio="none">
-                            <defs>
-                                <linearGradient id="arrowGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                    <stop offset="0%" style="stop-color:#d63b1d;stop-opacity:1" />
-                                    <stop offset="100%" style="stop-color:#ffb400;stop-opacity:1" />
-                                </linearGradient>
-                            </defs>
-                            <path d="M 50 10 L 50 180 M 50 180 L 40 165 M 50 180 L 60 165"
-                                stroke="url(#arrowGradient)" stroke-width="3" fill="none"
-                                stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        <div class="process-label">符号化处理</div>
+            <div class="sym-pipeline">
+                <section class="sym-stage-card">
+                    <div class="sym-stage-head"><span class="sym-stage-num">1</span><span class="sym-stage-title">原文 · 语句</span><span class="sym-stage-hint">点词块可定位</span></div>
+                    <div id="symOriginal" class="sym-original"></div>
+                </section>
+                <section class="sym-stage-card">
+                    <div class="sym-stage-head"><span class="sym-stage-num">2</span><span class="sym-stage-title">符号序列 · 词类积木</span><span class="sym-stage-hint">量词 / 个体词 / 谓词 / 联结词</span></div>
+                    <div id="symTokens" class="sym-tokens"></div>
+                </section>
+                <section class="sym-stage-card">
+                    <div class="sym-stage-head"><span class="sym-stage-num">3</span><span class="sym-stage-title">谓词逻辑符号化</span><span class="sym-stage-hint">原子 → 整句公式</span></div>
+                    <div class="sym-formula">
+                        <div id="symAtoms" class="sym-atoms"></div>
+                        <div id="symSyn" class="sym-syn-list"></div>
                     </div>
-
-                    <!-- 符号化结果区域 -->
-                    <div class="section tokens-section">
-                        <h2 class="section-title">符号序列</h2>
-                        <div id="tokensDisplay" class="tokens-container"></div>
-                    </div>
-
-                    <!-- 谓词逻辑符号化区域 -->
-                    <div class="section predicate-section">
-                        <h2 class="section-title">谓词逻辑符号化</h2>
-                        <div class="predicate-container">
-                            <div id="predicateFormulas" class="formulas-display"></div>
-                        </div>
-                    </div>
-
-                    <!-- 树形结构区域 -->
-                    <div class="section tree-section">
-                        <h2 class="section-title">分类树状图</h2>
-                        <svg id="treeSvg" width="100%" height="300">
-                            <g id="treeGroup"></g>
-                        </svg>
-                    </div>
-                </div>
+                </section>
+                <section class="sym-stage-card">
+                    <div class="sym-stage-head"><span class="sym-stage-num">4</span><span class="sym-stage-title">结构树状图</span><span class="sym-stage-hint">词类 → 结构</span></div>
+                    <div id="symTreeWrap" class="sym-tree-wrap"></div>
+                </section>
             </div>
         </main>
     </div>
 
-    <script src="tokenization.js"></script>
-
-<!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: transparent;
-    color: inherit;
-    opacity: 0.72;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: none;
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
-</footer>
-
-
+    <footer class="footer">
+        <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+        <div>版权所有 · 项目总负责人：谢鑫</div>
+    </footer>
 
     <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
     <script>
     window.SECTION_META = {
       "layers": [
-            {
-                  "name": "个体词·谓词·量词",
-                  "concepts": "P(x) / ∀ ∃ / 论域",
-                  "task": "认识谓词逻辑的基本构件。",
-                  "page": "tokenization-basic.html"
-            },
-            {
-                  "name": "全称·存在符号化",
-                  "concepts": "∀x(P→Q) / ∃x(P∧Q) / 辖域",
-                  "task": "正确符号化『所有/有些』判断。",
-                  "page": "tokenization.html"
-            },
-            {
-                  "name": "数据库与知识表示",
-                  "concepts": "EXISTS·ALL·ANY / 本体",
-                  "task": "迁移到数据库查询与知识表示。",
-                  "page": "tokenization-extend.html"
-            }
+            { "name": "个体词·谓词·量词", "concepts": "P(x) / ∀ ∃ / 论域", "task": "认识谓词逻辑的基本构件。", "page": "tokenization-basic.html" },
+            { "name": "全称·存在符号化", "concepts": "∀x(P→Q) / ∃x(P∧Q) / 辖域", "task": "正确符号化『所有/有些』判断。", "page": "tokenization.html" },
+            { "name": "数据库与知识表示", "concepts": "EXISTS·ALL·ANY / 本体", "task": "迁移到数据库查询与知识表示。", "page": "tokenization-extend.html" }
       ],
       "chapter": "第6章 谓词逻辑",
       "section": "6.1 自然语言的谓词符号化",
-      "title": "谓词符号化",
+      "title": "谓词符号化 · 进阶层",
       "grounding": "本节主题：谓词逻辑引入个体词、谓词 P(x)、量词（全称∀、存在∃）。符号化要点：确定论域、识别谓词、正确使用量词与辖域。『所有…都…』用 ∀x(P(x)→Q(x))，『有些…是…』用 ∃x(P(x)∧Q(x))，量词与联结词的搭配是常见易错点。",
       "steps": [
-            {
-                  "name": "情境引入",
-                  "desc": "『所有』『有些』这类全称/存在判断，命题逻辑为何力不从心？"
-            },
-            {
-                  "name": "对象抽取",
-                  "desc": "确定论域、提取个体词与谓词、识别量词。"
-            },
-            {
-                  "name": "结构建模",
-                  "desc": "用 ∀/∃ 与谓词把自然语言精确符号化。"
-            },
-            {
-                  "name": "推理求解",
-                  "desc": "辨析 ∀→ 与 ∃∧ 的正确搭配，避免常见错误。"
-            },
-            {
-                  "name": "程序验证",
-                  "desc": "用本页交互符号化语句，验证量词辖域。"
-            },
-            {
-                  "name": "迁移反思",
-                  "desc": "迁移到数据库查询、知识表示、形式规约。"
-            }
+            { "name": "情境引入", "desc": "『所有』『有些』这类全称/存在判断，命题逻辑为何力不从心？" },
+            { "name": "对象抽取", "desc": "确定论域、提取个体词与谓词、识别量词。" },
+            { "name": "结构建模", "desc": "用 ∀/∃ 与谓词把自然语言精确符号化。" },
+            { "name": "推理求解", "desc": "辨析 ∀→ 与 ∃∧ 的正确搭配，避免常见错误。" },
+            { "name": "程序验证", "desc": "用本页逐步符号化语句，验证量词辖域。" },
+            { "name": "迁移反思", "desc": "迁移到数据库查询、知识表示、形式规约。" }
       ],
       "ideology": {
             "title": "传承中华文化 · 精准表达",
             "text": "把诗词、典籍中的判断精准符号化，既训练严谨的逻辑表达，又在数理中品味中华语言之美。『全称』与『存在』的分寸，恰如做判断要实事求是——既不以偏概全，也不以全否偏，体现辩证而精确的思维品格。",
-            "dims": [
-                  "文化自信",
-                  "逻辑严谨",
-                  "辩证思维"
-            ],
+            "dims": [ "文化自信", "逻辑严谨", "辩证思维" ],
             "quote": "为有源头活水来——谓词逻辑让我们把中华典籍中的智慧判断精确表达、代代相传。"
       },
       "reflect": [
@@ -301,13 +121,12 @@
       ],
       "transfer": [
             "SQL 的 EXISTS、ALL、ANY 正是存在量词与全称量词的数据库化身。",
-            {
-                  "t": "知识表示",
-                  "d": "本体（Ontology）用谓词与量词描述概念间的『所有/存在』关系。"
-            }
+            { "t": "知识表示", "d": "本体（Ontology）用谓词与量词描述概念间的『所有/存在』关系。" }
       ]
 };
     </script>
+    <script>window.SYMBOLIZE_LEVEL = "advanced";</script>
+    <script src="tokenization.js"></script>
     <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>

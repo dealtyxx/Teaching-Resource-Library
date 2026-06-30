@@ -2,7 +2,6 @@
 <html lang="zh-CN">
 
 <head>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <meta charset="UTF-8">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
     <!-- Open Graph / 社交分享（微信、钉钉、Telegram 等）。部署域名变更时全局替换下方 BASE 即可 -->
@@ -23,263 +22,216 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>红色数理 - 命题解释与真值：求真务实的逻辑</title>
     <meta name="description" content="离散数学课程 - 红色数理 - 命题解释与真值：求真务实的逻辑">
-
-    <link rel="stylesheet" href="formula_interpretation.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
-        rel="stylesheet">
-    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script>
-        MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                displayMath: [['$$', '$$'], ['\\[', '\\]']]
-            }
-        ,
-            startup: { typeset: true }
-        };
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+
+:root {
+  --ink: #251713; --muted: #6c5a52; --paper: #fff8ec; --card: rgba(255, 253, 246, 0.92);
+  --line: rgba(116, 55, 31, 0.18); --red: #b42318; --red-2: #de5b3d; --gold: #c58a1f;
+  --green: #2f7d57; --blue: #2f5f9f; --shadow: 0 18px 50px rgba(69, 31, 15, 0.14);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100vh; color: var(--ink);
+  font-family: "Noto Serif SC", "Microsoft YaHei", serif;
+  background:
+    radial-gradient(circle at 16% 12%, rgba(222, 91, 61, 0.18), transparent 28%),
+    radial-gradient(circle at 82% 8%, rgba(47, 95, 159, 0.14), transparent 26%),
+    linear-gradient(135deg, #fff7e6 0%, #f8ead3 45%, #f3dfc7 100%);
+  overflow: hidden;
+}
+.home-link { position: fixed; top: 14px; left: 14px; z-index: 10000; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.5); background: rgba(37, 23, 19, 0.82); color: #fff; text-decoration: none; font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); backdrop-filter: blur(10px); }
+.app-container { width: min(1440px, calc(100vw - 32px)); height: calc(100vh - 166px); min-height: 640px; margin: 74px auto 0; display: grid; grid-template-columns: minmax(300px, 360px) minmax(0, 1fr); gap: 18px; }
+.side-panel, .glass-pane { border: 1px solid var(--line); background: var(--card); box-shadow: var(--shadow); backdrop-filter: blur(12px); }
+.side-panel { border-radius: 8px; padding: 20px; overflow: auto; display: flex; flex-direction: column; }
+.glass-pane { border-radius: 8px; padding: 18px; overflow: auto; }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 5px 10px; border-radius: 999px; border: 1px solid rgba(180, 35, 24, 0.22); color: var(--red); background: rgba(180, 35, 24, 0.08); font-size: 12px; font-weight: 700; align-self: flex-start; margin-bottom: 10px; }
+h1 { margin: 0 0 8px; font-family: "Ma Shan Zheng", "Noto Serif SC", serif; font-size: 2.1rem; line-height: 1.2; font-weight: 400; color: #d63b1d; }
+.subtitle { margin: 0 0 10px; color: #64748b; font-size: 0.95rem; line-height: 1.6; font-family: "JetBrains Mono", "Noto Serif SC", monospace; }
+.tier-line { display: inline-flex; align-self: flex-start; gap: 6px; margin: 0 0 12px; padding: 4px 11px; border-radius: 999px; font-size: 12.5px; font-weight: 800; color: #8a5d0b; background: rgba(197,138,31,0.14); border: 1px solid rgba(197,138,31,0.28); letter-spacing: .03em; }
+.intro { margin: 0 0 16px; color: var(--muted); line-height: 1.7; font-size: 15px; }
+.value-panel { padding: 14px; margin: 4px 0 16px; border-radius: 8px; border: 1px solid rgba(116, 55, 31, 0.16); background: rgba(255,255,255,0.66); border-left: 4px solid var(--red); }
+.value-panel h3 { margin: 0 0 8px; font-size: 17px; color: var(--red); }
+.value-panel p { margin: 0; line-height: 1.7; color: #563c31; font-size: 14px; }
+.dim-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.dim-list span { border-radius: 999px; background: rgba(197, 138, 31, 0.13); color: #8a5d0b; padding: 4px 9px; font-size: 12px; font-weight: 700; }
+.control-group { padding: 12px; border-radius: 8px; border: 1px solid rgba(116, 55, 31, 0.16); background: rgba(255,255,255,0.66); margin-bottom: 10px; }
+.control-group label { display: flex; justify-content: space-between; gap: 12px; color: #4e362d; font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+.control-group small { color: var(--muted); font-weight: 400; }
+select { width: 100%; min-height: 38px; border-radius: 8px; border: 1px solid rgba(116,55,31,0.22); background: #fffaf2; color: var(--ink); padding: 0 10px; font: inherit; cursor: pointer; }
+.speed-row { display: flex; align-items: center; gap: 10px; }
+input[type="range"] { width: 100%; accent-color: var(--red); }
+.mission-card { padding: 14px 16px; margin-bottom: 14px; border-radius: 8px; border: 1px solid rgba(116, 55, 31, 0.16); background: rgba(255,255,255,0.66); display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+.mission-card b { color: var(--red); }
+.mission-card span { color: var(--muted); line-height: 1.6; }
+.visual-badge { white-space: nowrap; border-radius: 999px; padding: 7px 10px; background: rgba(47,95,159,0.1); color: var(--blue); font-size: 12px; font-weight: 700; }
+
+.stage { display: grid; gap: 14px; }
+.il-panel { border-radius: 10px; border: 1px solid rgba(116,55,31,0.16); background: rgba(255,255,255,0.62); padding: 14px 16px; }
+.il-panel-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; color: var(--red); margin: 0 0 12px; letter-spacing: 0.02em; }
+.il-panel-title .num { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--red); color: #fff; font-size: 12px; font-family: "JetBrains Mono", monospace; }
+.il-panel-title .badge { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--blue); background: rgba(47,95,159,0.1); border-radius: 999px; padding: 3px 10px; }
+.il-formula { font-family: "JetBrains Mono", Consolas, monospace; font-size: 27px; font-weight: 800; letter-spacing: 1px; text-align: center; padding: 10px 8px; color: #2d211d; }
+.il-term { display: inline-block; padding: 2px 6px; margin: 0 1px; border-radius: 8px; transition: all .28s ease; }
+.il-term.tt { color: var(--green); } .il-term.ff { color: var(--red); }
+.il-term.hot { background: linear-gradient(135deg, rgba(255,180,0,0.32), rgba(222,91,61,0.22)); box-shadow: 0 0 0 2px rgba(197,138,31,0.45); }
+.il-sub { margin-top: 4px; min-height: 24px; text-align: center; font-size: 15px; color: #5e4338; font-family: "JetBrains Mono", Consolas, monospace; }
+.il-sub .t { color: var(--green); font-weight: 800; } .il-sub .f { color: var(--red); font-weight: 800; }
+.il-graph-wrap { border-radius: 8px; background: linear-gradient(90deg, rgba(116,55,31,0.05) 1px, transparent 1px), linear-gradient(0deg, rgba(116,55,31,0.05) 1px, transparent 1px), rgba(255,255,255,0.5); background-size: 26px 26px; border: 1px solid rgba(116,55,31,0.12); padding: 6px; }
+#treeSvg { width: 100%; height: auto; display: block; }
+.il-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+.il-legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; margin-right: 5px; vertical-align: -2px; }
+table.il-tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; font-family: "JetBrains Mono", monospace; }
+table.il-tbl th, table.il-tbl td { border: 1px solid rgba(116,55,31,0.16); padding: 6px 9px; text-align: center; }
+table.il-tbl th { background: rgba(180,35,24,0.08); color: var(--red); font-weight: 800; }
+table.il-tbl th.rescol, table.il-tbl td.res { background: rgba(255,180,0,0.07); font-weight: 800; }
+table.il-tbl tr.cur td { background: rgba(255,180,0,0.22); outline: 2px solid var(--gold); outline-offset: -2px; }
+table.il-tbl tr.pending td { color: #c3b2a4; }
+.cell-t { color: var(--green); font-weight: 800; } .cell-f { color: var(--red); font-weight: 800; }
+/* accumulator + type chips */
+.acc-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; font-size: 13.5px; margin-bottom: 12px; }
+.acc-flag { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 8px; background: rgba(255,255,255,0.7); border: 1px solid rgba(116,55,31,0.16); font-weight: 700; color: var(--muted); }
+.acc-flag b { font-family: "JetBrains Mono", monospace; }
+.acc-flag.on-t { border-color: rgba(47,125,87,0.5); color: var(--green); background: rgba(47,125,87,0.1); }
+.acc-flag.on-f { border-color: rgba(180,35,24,0.45); color: var(--red); background: rgba(180,35,24,0.08); }
+.type-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.type-chip { flex: 1; min-width: 130px; border: 1px solid rgba(116,55,31,0.18); border-radius: 10px; padding: 10px 12px; background: rgba(255,255,255,0.6); opacity: 0.5; transition: all .25s ease; }
+.type-chip h4 { margin: 0 0 3px; font-size: 14px; color: #4e362d; }
+.type-chip p { margin: 0; font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+.type-chip.active { opacity: 1; transform: translateY(-2px); }
+.type-chip.active.taut { border-color: var(--green); box-shadow: 0 6px 16px rgba(47,125,87,0.18); background: rgba(47,125,87,0.08); }
+.type-chip.active.contra { border-color: var(--red); box-shadow: 0 6px 16px rgba(180,35,24,0.16); background: rgba(180,35,24,0.07); }
+.type-chip.active.contin { border-color: var(--blue); box-shadow: 0 6px 16px rgba(47,95,159,0.16); background: rgba(47,95,159,0.07); }
+.il-stepbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.il-btn { border: 1px solid rgba(116,55,31,0.22); background: #fffaf2; color: #4e362d; border-radius: 8px; padding: 8px 14px; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; transition: all .18s ease; }
+.il-btn:hover { border-color: var(--red); color: var(--red); transform: translateY(-1px); }
+.il-btn:disabled { opacity: .42; cursor: not-allowed; transform: none; }
+.il-btn.primary { background: var(--red); color: #fff; border-color: var(--red); }
+.il-btn.primary:hover { background: #9a1d12; color: #fff; }
+.il-btn.ghost { background: rgba(47,95,159,0.08); border-color: rgba(47,95,159,0.25); color: var(--blue); }
+.il-status { border-radius: 8px; background: rgba(255,250,242,0.9); border: 1px dashed rgba(116,55,31,0.28); padding: 12px 14px; line-height: 1.7; font-size: 14.5px; color: #4a342b; min-height: 52px; }
+.il-status b { color: var(--red); }
+.il-footer-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+.il-progress { font-size: 12px; color: var(--muted); font-family: "JetBrains Mono", monospace; }
+.il-verdict { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 15px; padding: 8px 16px; border-radius: 999px; border: 1px solid transparent; background: rgba(108,90,82,0.1); color: var(--muted); }
+.il-verdict.taut { background: rgba(47,125,87,0.14); color: var(--green); border-color: rgba(47,125,87,0.4); }
+.il-verdict.contra { background: rgba(180,35,24,0.1); color: var(--red); border-color: rgba(180,35,24,0.4); }
+.il-verdict.contin { background: rgba(47,95,159,0.12); color: var(--blue); border-color: rgba(47,95,159,0.4); }
+.footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 9998; min-height: 72px; padding: 14px 10px; text-align: center; color: inherit; opacity: 0.72; background: transparent; font-size: 13px; line-height: 1.7; }
+@media (max-width: 920px) {
+  body { overflow: auto; }
+  .app-container { width: min(100vw - 22px, 760px); height: auto; min-height: 0; grid-template-columns: 1fr; margin-bottom: 96px; }
+  .side-panel, .glass-pane { max-height: none; }
+  .mission-card { grid-template-columns: 1fr; }
+  .il-formula { font-size: 22px; }
+}
+
+    </style>
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
-    <link rel="stylesheet" href="formula_interpretation.css" data-page-fix="1">
+    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
-    <!-- 返回主页浮动按钮 (auto-injected) -->
-    <a href="../../index.html" title="返回课程主页" style="
-        position:fixed;top:14px;left:14px;z-index:9999;
-        display:flex;align-items:center;gap:6px;
-        background:rgba(30,30,40,0.82);color:#fff;
-        padding:7px 14px 7px 10px;border-radius:20px;
-        font-size:13px;font-family:'Noto Serif SC',serif;
-        text-decoration:none;backdrop-filter:blur(8px);
-        border:1px solid rgba(255,255,255,0.15);
-        box-shadow:0 2px 12px rgba(0,0,0,0.35);
-        transition:background .2s;
-    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
-       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
-        🏠 <span>课程主页</span>
-    </a>
-
+    <a class="home-link" href="../../index.html">← 返回课程主页</a>
     <div class="app-container">
-        <header class="main-header">
-            <div class="header-content">
-                <h1>红色数理 <span class="highlight">进阶层</span></h1>
-                <p class="subtitle">真值表自动铺排 · 命题解释与真值：求真务实的逻辑</p>
+        <aside class="side-panel">
+            <div class="eyebrow">进阶层 · 第5章 命题逻辑</div>
+            <h1>公式分类</h1>
+            <p class="subtitle">重言式 / 矛盾式 / 可满足式</p>
+            <p class="tier-line">核心掌握 · 建模求解</p>
+            <p class="intro">🎯 据真值表对公式分类。</p>
+
+            <div class="value-panel">
+                <h3>求真务实 · 实践检验</h3>
+                <p>扫描真值表的结果列：是否出现过真、出现过假？重言式经得起一切检验，矛盾式则处处不成立——不以偏概全，也不因噎废食。</p>
+                <div class="dim-list"><span>实事求是</span><span>求真务实</span><span>科学精神</span></div>
             </div>
-            <div class="header-tabs">
-                <button class="tab-btn active" data-tab="assignments" aria-label="成真与成假赋值">成真与成假赋值</button>
-                <button class="tab-btn" data-tab="classification" aria-label="公式类型判定">公式类型判定</button>
-                <button class="tab-btn" data-tab="simulator" aria-label="实践检验真理">实践检验真理</button>
+
+            <div class="control-group">
+                <label><span>选择命题公式</span></label>
+                <select id="formulaSel">
+                    <option value="taut1">p ∨ ¬p（排中律）</option>
+                    <option value="taut2">(p ∧ q) → p</option>
+                    <option value="contra">p ∧ ¬p（矛盾）</option>
+                    <option value="contin1">p → q</option>
+                    <option value="contin2">(p ∧ q) → r</option>
+                </select>
             </div>
-        </header>
+            <div class="control-group">
+                <label><span>自动播放速度</span></label>
+                <div class="speed-row"><span style="font-size:12px;color:var(--muted)">慢</span><input type="range" id="speed" min="1" max="100" value="55"><span style="font-size:12px;color:var(--muted)">快</span></div>
+            </div>
+        </aside>
 
-        <main class="main-stage">
-            <!-- Assignments Tab -->
-            <div class="tab-content active" id="assignmentsTab">
-                <div class="content-area">
-                    <div class="section-header">
-                        <h2>成真赋值与成假赋值</h2>
-                        <p class="section-desc">探索不同条件（赋值）下命题的真假，理解“实践是检验真理的唯一标准”。</p>
-                    </div>
+        <main class="glass-pane">
+            <section class="mission-card">
+                <span><b>互动任务：</b>逐行扫描真值表结果列，记录是否见过真、见过假，据此判定公式属于哪一类。</span>
+                <div class="visual-badge">结果列扫描 + 类型判定</div>
+            </section>
 
-                    <div class="explorer-container">
-                        <div class="control-panel">
-                            <h3>设定命题公式</h3>
-                            <div class="connective-label">选择联结词示例</div>
-                            <div class="preset-buttons">
-                                <button class="preset-btn" data-formula="!p" data-desc="NOT (¬): 否定 - 不搞一刀切" aria-label="¬ 不搞一刀切">
-                                    <span class="op-symbol">¬</span> 不搞一刀切
-                                </button>
-                                <button class="preset-btn" data-formula="p & q" data-desc="AND (∧): 合取 - 既要又要" aria-label="∧ 既要又要">
-                                    <span class="op-symbol">∧</span> 既要又要
-                                </button>
-                                <button class="preset-btn" data-formula="p | q" data-desc="OR (∨): 析取 - 多措并举" aria-label="∨ 多措并举">
-                                    <span class="op-symbol">∨</span> 多措并举
-                                </button>
-                                <button class="preset-btn" data-formula="p -> q" data-desc="IMPLIES (→): 蕴含 - 科学决策" aria-label="→ 科学决策">
-                                    <span class="op-symbol">→</span> 科学决策
-                                </button>
-                                <button class="preset-btn" data-formula="p <-> q" data-desc="IFF (↔): 等价 - 理论实践" aria-label="↔ 理论实践">
-                                    <span class="op-symbol">↔</span> 理论实践
-                                </button>
-                            </div>
-                            <div class="current-connective" id="currentConnective">
-                                当前选择: <strong>自定</strong>
-                            </div>
-                            <div class="input-group">
-                                <input type="text" id="formulaInput" value="p -> q" placeholder="输入公式（如 p -> q）">
-                                <button id="analyzeBtn" aria-label="分析真值">分析真值</button>
-                            </div>
-                            <div class="legend">
-                                <span class="legend-item"><span class="dot true"></span>成真赋值 (T)</span>
-                                <span class="legend-item"><span class="dot false"></span>成假赋值 (F)</span>
-                            </div>
-                        </div>
-
-                        <div class="truth-table-wrapper" id="truthTableContainer">
-                            <!-- Table generated by JS -->
-                        </div>
-                    </div>
+            <section class="stage">
+                <div class="il-panel">
+                    <h2 class="il-panel-title"><span class="num">F</span>命题公式 · Formula<span class="badge" id="cntBadge">—</span></h2>
+                    <div id="formulaBox" class="il-formula"></div>
+                    <div id="subBox" class="il-sub"></div>
                 </div>
-            </div>
 
-            <!-- Classification Tab -->
-            <div class="tab-content" id="classificationTab">
-                <div class="content-area">
-                    <div class="section-header">
-                        <h2>成真赋值与成假赋值</h2><p class="section-desc">探索不同条件（赋值）下命题的真假，理解“实践是检验真理的唯一标准”。</p>
+                <div class="il-panel">
+                    <h2 class="il-panel-title"><span class="num">✓</span>类型判定（扫描结果列）</h2>
+                    <div class="acc-row">
+                        <span class="acc-flag" id="flagT">出现过 <b>真</b>？ <span id="flagTv">—</span></span>
+                        <span class="acc-flag" id="flagF">出现过 <b>假</b>？ <span id="flagFv">—</span></span>
                     </div>
-
-                    <div class="classification-stage">
-                        <div class="type-cards">
-                            <div class="type-card tautology">
-                                <div class="card-icon">☀</div>
-                                <h3>永真式 (Tautology)</h3>
-                                <p>无论变元如何取值，公式恒为真</p>
-                                <div class="ideology-tag">核心价值</div>
-                                <p class="example">例如：$p \lor \neg p$ (发展是硬道理)</p>
-                            </div>
-                            <div class="type-card contradiction">
-                                <div class="card-icon">🌑</div>
-                                <h3>永假式 (Contradiction)</h3>
-                                <p>无论变元如何取值，公式恒为假</p>
-                                <div class="ideology-tag">根本错误</div>
-                                <p class="example">例如：$p \land \neg p$ (自相矛盾)</p>
-                            </div>
-                            <div class="type-card satisfiable">
-                                <div class="card-icon">🌤</div>
-                                <h3>可满足式 (Satisfiable)</h3>
-                                <p>至少存在一种赋值使公式为真</p>
-                                <div class="ideology-tag">具体政策</div>
-                                <p class="example">例如：$p \rightarrow q$ (因地制宜)</p>
-                            </div>
-                        </div>
-
-                        <div class="classifier-tool">
-                            <h3>智能判定</h3>
-                            <div class="classifier-input">
-                                <input type="text" id="classInput" placeholder="输入公式进行判定（如 p & !p）">
-                                <button id="classBtn" aria-label="判定类型">判定类型</button>
-                            </div>
-                            <div class="result-display" id="classResult">
-                                <div class="placeholder-text">等待输入...</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Simulator Tab -->
-            <div class="tab-content" id="simulatorTab">
-                <div class="content-area">
-                    <div class="section-header">
-                        <h2>成真赋值与成假赋值</h2><p class="section-desc">探索不同条件（赋值）下命题的真假，理解“实践是检验真理的唯一标准”。</p>
-                    </div>
-
-                    <div class="game-container">
-                        <div class="mission-panel">
-                            <h3>当前目标：<span id="missionName">乡村振兴</span></h3>
-                            <div class="formula-display" id="missionFormula">
-                                $$ (p \land q) \lor (r \land s) $$
-                            </div>
-                            <p class="mission-desc">只有当产业兴旺 (p) 且生态宜居 (q)，或者乡风文明 (r) 且治理有效 (s) 时，才能实现目标。</p>
-                        </div>
-
-                        <div class="controls-area" id="variableControls">
-                            <!-- Switches generated by JS -->
-                        </div>
-
-                        <div class="status-monitor">
-                            <div class="status-indicator" id="missionStatus">
-                                <span class="status-icon"></span>
-                                <span class="status-text">等待实践...</span>
-                            </div>
-                        </div>
-
-                        <div class="level-selector">
-                            <button class="level-btn active" data-level="1" aria-label="初级：乡村振兴">初级：乡村振兴</button>
-                            <button class="level-btn" data-level="2" aria-label="中级：科技强国">中级：科技强国</button>
-                            <button class="level-btn" data-level="3" aria-label="高级：民族复兴">高级：民族复兴</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <aside class="sidebar">
-                <div class="panel-section">
-                    <div class="panel-header">
-                        <span class="panel-icon">📚</span>
-                        <h3>核心概念</h3>
-                    </div>
-                    <div class="concept-content" id="conceptContent">
-                        <h4>解释 (Interpretation)</h4>
-                        <p>命题公式中各变元的一组真值赋值，称为该公式的一个解释</p>
-
-                        <h4>成真与成假</h4>
-                        <p>使公式真值为 T 的解释称为 <strong>成真赋值</strong>；使公式真值为 F 的解释称为 <strong>成假赋值</strong>。</p>
+                    <div class="type-chips">
+                        <div class="type-chip taut" id="chipTaut"><h4>重言式（永真）</h4><p>结果列全为真。象征经得起一切检验的真理。</p></div>
+                        <div class="type-chip contra" id="chipContra"><h4>矛盾式（永假）</h4><p>结果列全为假。代表自相矛盾、处处不成立。</p></div>
+                        <div class="type-chip contin" id="chipContin"><h4>可满足式（有真有假）</h4><p>既有成真赋值又有成假赋值，结论成立有条件。</p></div>
                     </div>
                 </div>
 
-                <div class="panel-section">
-                    <div class="panel-header">
-                        <span class="panel-icon">💡</span>
-                        <h3>价值启示</h3>
-                    </div>
-                    <div class="insight-content">
-                        <h4>🔍 求真务实</h4>
-                        <p>"解释"就是实践。不同的实践条件（赋值）会导致不同的结果。我们要寻找能使国家发展目标"成真"的正确道路。</p>
-
-                        <h4>🚫 避免矛盾</h4>
-                        <p>永假式代表逻辑上的自相矛盾。在政策制定中，要避免“既要...又要...”中的逻辑冲突，确保政策的可执行性。</p>
-
-                        <h4>🌟 坚定信仰</h4>
-                        <p>永真式代表绝对真理。就“为人民服务”的宗旨而言，在任何时代、任何条件下都是正确的。</p>
+                <div class="il-panel">
+                    <h2 class="il-panel-title"><span class="num">T</span>当前解释下的表达式树</h2>
+                    <div class="il-graph-wrap">
+                        <svg id="treeSvg" viewBox="0 0 760 240" preserveAspectRatio="xMidYMid meet" role="img" aria-label="表达式树"></svg>
                     </div>
                 </div>
-            </aside>
+
+                <div class="il-panel">
+                    <h2 class="il-panel-title"><span class="num">≣</span>真值表（结果列高亮）</h2>
+                    <div id="ttable"></div>
+                </div>
+
+                <div class="il-panel">
+                    <h2 class="il-panel-title"><span class="num">▶</span>逐步推演 · 反馈</h2>
+                    <div class="il-stepbar">
+                        <button class="il-btn" id="prevBtn">◀ 上一步</button>
+                        <button class="il-btn primary" id="nextBtn">下一步 ▶</button>
+                        <button class="il-btn ghost" id="autoBtn">自动播放</button>
+                        <button class="il-btn" id="resetBtn">重置</button>
+                    </div>
+                    <div id="statusText" class="il-status">点击 <b>下一步</b>：逐行看公式真值，记录“是否见过真/见过假”，扫描完整列后判定类型。</div>
+                    <div class="il-footer-row">
+                        <span id="verdict" class="il-verdict">类型待定</span>
+                        <span id="stepLabel" class="il-progress">步骤 0 / 0</span>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
-<script>
-    (function () {
-        var sidebar = document.querySelector('main.main-stage > .sidebar');
-        var header = document.querySelector('.main-header');
-        if (sidebar && header && !header.contains(sidebar)) {
-            sidebar.classList.add('left-info-panel');
-            header.appendChild(sidebar);
-        }
-    })();
-</script>
-<script src="formula_interpretation.js"></script>
 
-<!-- 固定底部版权信息 -->
-<footer class="page-footer">
-    <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队<br>
-        版权所有 · 项目总负责人：谢鑫</p>
-</footer>
+    <footer class="footer">
+        <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+        <div>版权所有 · 项目总负责人：谢鑫</div>
+    </footer>
+
     <script>
         window.SECTION_META = {
           "layers": [
-            {
-              "name": "解释与赋值",
-              "concepts": "变元真值指派 / 2ⁿ 种解释",
-              "task": "枚举所有解释下的真值。",
-              "page": "formula_interpretation-basic.html"
-            },
-            {
-              "name": "公式分类",
-              "concepts": "重言式 / 矛盾式 / 可满足式",
-              "task": "据真值表对公式分类。",
-              "page": "formula_interpretation.html"
-            },
-            {
-              "name": "SAT 与电路验证",
-              "concepts": "SAT / NP完全 / 电路等价",
-              "task": "迁移到可满足性与电路验证。",
-              "page": "formula_interpretation-extend.html"
-            }
+            { "name": "解释与赋值", "concepts": "变元真值指派 / 2ⁿ 种解释", "task": "枚举所有解释下的真值。", "page": "formula_interpretation-basic.html" },
+            { "name": "公式分类", "concepts": "重言式 / 矛盾式 / 可满足式", "task": "据真值表对公式分类。", "page": "formula_interpretation.html" },
+            { "name": "SAT 与电路验证", "concepts": "SAT / NP完全 / 电路等价", "task": "迁移到可满足性与电路验证。", "page": "formula_interpretation-extend.html" }
           ],
           "chapter": "第5章 命题逻辑",
           "section": "5.3 命题公式解释与真值表 · 进阶层",
@@ -309,6 +261,196 @@
             {"t":"电路验证","d":"判断两个电路是否等价，本质是判断对应公式是否重言等价。"}
           ]
         };
+    </script>
+
+    <script>
+(function () {
+  "use strict";
+
+  /* ===== AST 引擎 ===== */
+  const A = n => ({ op: "atom", name: n });
+  const NOT = c => ({ op: "not", child: c });
+  const AND = (l, r) => ({ op: "and", left: l, right: r });
+  const IMP = (l, r) => ({ op: "implies", left: l, right: r });
+  const OR = (l, r) => ({ op: "or", left: l, right: r });
+  const SYM = { not: "¬", and: "∧", or: "∨", implies: "→", iff: "↔" };
+  const GATE = { not: "非", and: "与", or: "或", implies: "条件", iff: "等价" };
+  const isBin = n => ["and", "or", "implies", "iff"].includes(n.op);
+  let _id = 0;
+  function annotate(n) { n.id = _id++; n.desc = new Set([n.id]); const kids = n.op === "atom" ? [] : (n.op === "not" ? [n.child] : [n.left, n.right]); kids.forEach(k => { annotate(k); k.desc.forEach(d => n.desc.add(d)); }); return n; }
+  function ev(n, e) { switch (n.op) { case "atom": return e[n.name]; case "not": return !ev(n.child, e); case "and": return ev(n.left, e) && ev(n.right, e); case "or": return ev(n.left, e) || ev(n.right, e); case "implies": return !ev(n.left, e) || ev(n.right, e); case "iff": return ev(n.left, e) === ev(n.right, e); } }
+  function toks(n, top) { if (n.op === "atom") return [{ t: n.name, nid: n.id }]; if (n.op === "not") return [{ t: "¬", nid: n.id }].concat(toks(n.child, false)); let arr = toks(n.left, false).concat([{ t: SYM[n.op], nid: n.id }], toks(n.right, false)); if (!top && isBin(n)) arr = [{ t: "(", nid: n.id }].concat(arr, [{ t: ")", nid: n.id }]); return arr; }
+  function strOf(n) { return toks(n, true).map(x => x.t).join(""); }
+  function atomsOf(n, s) { s = s || new Set(); if (n.op === "atom") s.add(n.name); else if (n.op === "not") atomsOf(n.child, s); else { atomsOf(n.left, s); atomsOf(n.right, s); } return [...s].sort(); }
+
+  function makeFormula() {
+    return {
+      taut1: OR(A("p"), NOT(A("p"))),
+      taut2: IMP(AND(A("p"), A("q")), A("p")),
+      contra: AND(A("p"), NOT(A("p"))),
+      contin1: IMP(A("p"), A("q")),
+      contin2: IMP(AND(A("p"), A("q")), A("r"))
+    };
+  }
+
+  function layout(root) {
+    const leaves = [];
+    (function c(n) { if (n.op === "atom") leaves.push(n); else if (n.op === "not") c(n.child); else { c(n.left); c(n.right); } })(root);
+    let maxDepth = 0; const depth = {};
+    (function d(n, dp) { depth[n.id] = dp; maxDepth = Math.max(maxDepth, dp); if (n.op === "not") d(n.child, dp + 1); else if (n.op !== "atom") { d(n.left, dp + 1); d(n.right, dp + 1); } })(root, 0);
+    leaves.forEach((lf, i) => lf._u = leaves.length === 1 ? 0.5 : i / (leaves.length - 1));
+    (function u(n) { if (n.op === "atom") return n._u; if (n.op === "not") { n._u = u(n.child); return n._u; } const a = u(n.left), b = u(n.right); n._u = (a + b) / 2; return n._u; })(root);
+    return { maxDepth, depth };
+  }
+
+  /* ===== DOM ===== */
+  const formulaSel = document.getElementById("formulaSel");
+  const speed = document.getElementById("speed");
+  const cntBadge = document.getElementById("cntBadge");
+  const formulaBox = document.getElementById("formulaBox");
+  const subBox = document.getElementById("subBox");
+  const treeSvg = document.getElementById("treeSvg");
+  const ttable = document.getElementById("ttable");
+  const statusText = document.getElementById("statusText");
+  const verdict = document.getElementById("verdict");
+  const stepLabel = document.getElementById("stepLabel");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const autoBtn = document.getElementById("autoBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const flagT = document.getElementById("flagT"), flagF = document.getElementById("flagF");
+  const flagTv = document.getElementById("flagTv"), flagFv = document.getElementById("flagFv");
+  const chip = { taut: document.getElementById("chipTaut"), contra: document.getElementById("chipContra"), contin: document.getElementById("chipContin") };
+
+  const SVGNS = "http://www.w3.org/2000/svg";
+  let ast = null, atoms = [], steps = [], idx = 0, timer = null;
+
+  function tm(v) { return v ? "T" : "F"; }
+  function tf(v) { return v ? '<span class="t">真</span>' : '<span class="f">假</span>'; }
+  function esc(s) { return String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
+  function delay() { return Math.max(280, 1500 - Number(speed.value) * 12); }
+  function rowEnv(m) { const e = {}; atoms.forEach((a, i) => e[a] = !!(m & (1 << (atoms.length - 1 - i)))); return e; }
+  function classOf() { let t = false, f = false; const rows = 1 << atoms.length; for (let m = 0; m < rows; m++) { ev(ast, rowEnv(m)) ? t = true : f = true; } return !f ? "taut" : !t ? "contra" : "contin"; }
+
+  function buildAst() { _id = 0; ast = makeFormula()[formulaSel.value]; annotate(ast); atoms = atomsOf(ast); layout(ast); }
+
+  /* ===== 步骤 ===== */
+  function buildSteps() {
+    const N = atoms.length, rows = 1 << N;
+    const list = [];
+    list.push({ row: -1, seenT: false, seenF: false, status: "据真值表给公式<b>分类</b>有三类：<b>重言式</b>（结果列全真）、<b>矛盾式</b>（全假）、<b>可满足式</b>（有真有假）。方法是扫描整列，看是否<b>出现过真、出现过假</b>。", sub: "变元 " + atoms.join("、") + "，共 " + rows + " 行" });
+    let seenT = false, seenF = false;
+    for (let m = 0; m < rows; m++) {
+      const val = ev(ast, rowEnv(m));
+      seenT = seenT || val; seenF = seenF || !val;
+      list.push({
+        row: m, seenT, seenF,
+        status: "扫描第 <b>" + (m + 1) + "/" + rows + "</b> 行：" + atoms.map(a => a + "=" + (rowEnv(m)[a] ? "真" : "假")).join("，") + " ⟹ 公式 = <b>" + (val ? "真" : "假") + "</b>。累计：见过真 " + (seenT ? "✓" : "✗") + "、见过假 " + (seenF ? "✓" : "✗") + "。",
+        sub: strOf(ast) + " = " + tf(val),
+        verdict: val
+      });
+    }
+    const cls = classOf();
+    const txt = { taut: "结果列<b>全为真</b> ⟹ <b>重言式（永真式）</b>。它在任何解释下都成立，象征经得起一切检验的真理。", contra: "结果列<b>全为假</b> ⟹ <b>矛盾式（永假式）</b>。它在任何解释下都不成立，是自相矛盾。", contin: "结果列<b>有真有假</b> ⟹ <b>可满足式</b>（非重言）。它的成立有条件——既不能以偏概全，也不能因噎废食。" }[cls];
+    let nT = 0; for (let m = 0; m < rows; m++) if (ev(ast, rowEnv(m))) nT++;
+    list.push({ row: rows, done: true, cls, seenT, seenF, status: "<b>扫描完成。</b>" + txt + "（成真赋值 " + nT + " 个，成假赋值 " + (rows - nT) + " 个。）", sub: "判定：" + ({ taut: "重言式", contra: "矛盾式", contin: "可满足式" }[cls]) });
+    return list;
+  }
+
+  /* ===== 渲染公式（按当前解释给原子上色） ===== */
+  function renderFormula(env) {
+    const list = toks(ast, true);
+    formulaBox.innerHTML = list.map(tk => {
+      let cls = "il-term";
+      const isAtom = atoms.indexOf(tk.t) >= 0;
+      if (env && isAtom) cls += env[tk.t] ? " tt" : " ff";
+      return '<span class="' + cls + '">' + esc(tk.t) + "</span>";
+    }).join("");
+  }
+
+  /* ===== SVG 树 ===== */
+  function makeEl(tag, attrs) { const el = document.createElementNS(SVGNS, tag); for (const k in attrs) el.setAttribute(k, attrs[k]); return el; }
+  function renderTree(env) {
+    treeSvg.innerHTML = "";
+    if (!env) { const t = makeEl("text", { x: 380, y: 120, "text-anchor": "middle", fill: "#a48a7c", "font-size": 17, "font-family": "Noto Serif SC, serif" }); t.textContent = "点「下一步」开始扫描真值表……"; treeSvg.appendChild(t); return; }
+    const W = 760, H = 240, mx = 64, my = 38;
+    const lay = layout(ast); const pos = {};
+    (function walk(n) { const x = mx + n._u * (W - 2 * mx); const y = my + (lay.maxDepth === 0 ? 0 : lay.depth[n.id] / lay.maxDepth) * (H - 2 * my); pos[n.id] = { x, y }; if (n.op === "not") walk(n.child); else if (n.op !== "atom") { walk(n.left); walk(n.right); } })(ast);
+    (function edges(n) { const kids = n.op === "not" ? [n.child] : (n.op === "atom" ? [] : [n.left, n.right]); kids.forEach(k => { const a = pos[n.id], b = pos[k.id]; treeSvg.appendChild(makeEl("path", { d: "M " + a.x + " " + a.y + " L " + b.x + " " + b.y, stroke: ev(k, env) ? "#2f7d57" : "#c9a99a", "stroke-width": 3, fill: "none", opacity: 0.85 })); edges(k); }); })(ast);
+    (function nodes(n) {
+      const p = pos[n.id], val = ev(n, env);
+      if (n.op === "atom") {
+        treeSvg.appendChild(makeEl("circle", { cx: p.x, cy: p.y, r: 24, fill: val ? "#2f7d57" : "#e7d8cc", stroke: val ? "#256346" : "#c9a99a", "stroke-width": 2, filter: "drop-shadow(0 3px 6px rgba(69,31,15,0.16))" }));
+        const tx = makeEl("text", { x: p.x, y: p.y + 6, "text-anchor": "middle", fill: val ? "#fff" : "#3a2a22", "font-size": 17, "font-weight": "800", "font-family": "JetBrains Mono, monospace" }); tx.textContent = n.name; treeSvg.appendChild(tx);
+      } else {
+        const isRoot = n.id === ast.id;
+        if (isRoot) treeSvg.appendChild(makeEl("rect", { x: p.x - 32, y: p.y - 24, width: 64, height: 48, rx: 12, fill: "none", stroke: "#c58a1f", "stroke-width": 3, opacity: 0.85 }));
+        treeSvg.appendChild(makeEl("rect", { x: p.x - 28, y: p.y - 21, width: 56, height: 42, rx: 10, fill: val ? "#2f7d57" : "#e7d8cc", stroke: val ? "#256346" : "#c9a99a", "stroke-width": 2, filter: "drop-shadow(0 3px 6px rgba(69,31,15,0.16))" }));
+        const s = makeEl("text", { x: p.x, y: p.y - 1, "text-anchor": "middle", fill: val ? "#fff" : "#b42318", "font-size": 17, "font-weight": "800", "font-family": "JetBrains Mono, monospace" }); s.textContent = SYM[n.op]; treeSvg.appendChild(s);
+        const g = makeEl("text", { x: p.x, y: p.y + 14, "text-anchor": "middle", fill: val ? "rgba(255,255,255,.85)" : "#9a6a3a", "font-size": 9.5, "font-weight": "700" }); g.textContent = GATE[n.op]; treeSvg.appendChild(g);
+      }
+      const kids = n.op === "not" ? [n.child] : (n.op === "atom" ? [] : [n.left, n.right]);
+      kids.forEach(nodes);
+    })(ast);
+  }
+
+  /* ===== 真值表 ===== */
+  function renderTable(curRow, done) {
+    const N = atoms.length, rows = 1 << N;
+    const head = atoms.map(a => "<th>" + a + "</th>").join("") + "<th class='rescol'>" + esc(strOf(ast)) + "</th>";
+    let body = "";
+    const limit = done ? rows - 1 : curRow;
+    for (let m = 0; m < rows; m++) {
+      const e = rowEnv(m), res = ev(ast, e), shown = limit >= m;
+      const cls = (m === curRow && !done) ? "cur" : (shown ? "" : "pending");
+      const cells = atoms.map(a => "<td>" + (shown ? '<span class="' + (e[a] ? "cell-t" : "cell-f") + '">' + tm(e[a]) + "</span>" : "·") + "</td>").join("");
+      body += '<tr class="' + cls + '">' + cells + '<td class="res">' + (shown ? '<span class="' + (res ? "cell-t" : "cell-f") + '">' + tm(res) + "</span>" : "·") + "</td></tr>";
+    }
+    ttable.innerHTML = '<table class="il-tbl"><thead><tr>' + head + "</tr></thead><tbody>" + body + "</tbody></table>";
+  }
+
+  /* ===== 应用步骤 ===== */
+  function applyStep() {
+    const st = steps[idx];
+    const env = st.row >= 0 && !st.done ? rowEnv(st.row) : null;
+    renderFormula(env);
+    renderTree(env);
+    renderTable(st.done ? (1 << atoms.length) - 1 : st.row, st.done);
+    statusText.innerHTML = st.status;
+    subBox.innerHTML = st.sub || "";
+    cntBadge.textContent = "2^" + atoms.length + " = " + (1 << atoms.length) + " 行";
+    stepLabel.textContent = "步骤 " + idx + " / " + (steps.length - 1);
+    // accumulator flags
+    flagTv.textContent = st.seenT ? "✓ 是" : "—"; flagFv.textContent = st.seenF ? "✓ 是" : "—";
+    flagT.className = "acc-flag" + (st.seenT ? " on-t" : ""); flagF.className = "acc-flag" + (st.seenF ? " on-f" : "");
+    // type chips
+    ["taut", "contra", "contin"].forEach(k => chip[k].classList.remove("active"));
+    if (st.done) chip[st.cls].classList.add("active");
+    // verdict
+    if (st.done) {
+      verdict.className = "il-verdict " + st.cls;
+      verdict.textContent = { taut: "☀ 重言式（永真）", contra: "🌑 矛盾式（永假）", contin: "🌤 可满足式（有真有假）" }[st.cls];
+    } else if (typeof st.verdict === "boolean") {
+      verdict.className = "il-verdict " + (st.verdict ? "taut" : "contra");
+      verdict.textContent = st.verdict ? "本行：真" : "本行：假";
+    } else { verdict.className = "il-verdict"; verdict.textContent = "类型待定"; }
+    prevBtn.disabled = idx === 0;
+    nextBtn.disabled = idx >= steps.length - 1;
+  }
+  function go(to) { idx = Math.max(0, Math.min(steps.length - 1, to)); applyStep(); }
+  function rebuild() { buildAst(); steps = buildSteps(); idx = 0; applyStep(); }
+  function stopAuto() { if (timer) { clearInterval(timer); timer = null; autoBtn.textContent = "自动播放"; autoBtn.classList.remove("primary"); } }
+  function toggleAuto() { if (timer) { stopAuto(); return; } if (idx >= steps.length - 1) go(0); autoBtn.textContent = "暂停"; autoBtn.classList.add("primary"); timer = setInterval(() => { if (idx >= steps.length - 1) { stopAuto(); return; } go(idx + 1); }, delay()); }
+
+  formulaSel.addEventListener("change", () => { stopAuto(); rebuild(); });
+  nextBtn.addEventListener("click", () => { stopAuto(); go(idx + 1); });
+  prevBtn.addEventListener("click", () => { stopAuto(); go(idx - 1); });
+  resetBtn.addEventListener("click", () => { stopAuto(); go(0); });
+  autoBtn.addEventListener("click", toggleAuto);
+  speed.addEventListener("input", () => { if (timer) { stopAuto(); toggleAuto(); } });
+
+  rebuild();
+})();
     </script>
     <script src="../../shared/ai-tutor.js" defer></script>
 

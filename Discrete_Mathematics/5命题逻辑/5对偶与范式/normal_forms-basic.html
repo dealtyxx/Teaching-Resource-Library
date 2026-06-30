@@ -3,476 +3,76 @@
 <head>
   <meta charset="UTF-8">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
-  <!-- Open Graph / 社交分享（微信、钉钉、Telegram 等）。部署域名变更时全局替换下方 BASE 即可 -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:locale" content="zh_CN">
-  <meta property="og:title" content="第5章 命题逻辑 - 对偶与范式拼图">
-  <meta property="og:description" content="5.5 对偶与范式 - 对偶与范式拼图">
+  <meta property="og:title" content="对偶与范式拼图 · 基础层 - 对偶原理">
+  <meta property="og:description" content="第5章 命题逻辑 - 5.5 对偶与范式 · 基础层（∧↔∨ / T↔F 对称之美）">
   <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/5%E5%91%BD%E9%A2%98%E9%80%BB%E8%BE%91/5%E5%AF%B9%E5%81%B6%E4%B8%8E%E8%8C%83%E5%BC%8F/normal_forms-basic.html">
   <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="第5章 命题逻辑 - 对偶与范式拼图">
-  <meta name="twitter:description" content="5.5 对偶与范式 - 对偶与范式拼图">
+  <meta name="twitter:title" content="对偶与范式拼图 · 基础层 - 对偶原理">
+  <meta name="twitter:description" content="第5章 命题逻辑 - 5.5 对偶与范式 · 基础层">
   <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>第5章 命题逻辑 - 对偶与范式拼图</title>
-  <meta name="description" content="5.5 对偶与范式 - 对偶与范式拼图">
+  <title>对偶与范式拼图 · 基础层 - 对偶原理</title>
+  <meta name="description" content="第5章 命题逻辑 - 5.5 对偶与范式 · 基础层">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
-  <style>
-
-:root {
-  --ink: #251713;
-  --muted: #6c5a52;
-  --paper: #fff8ec;
-  --card: rgba(255, 253, 246, 0.92);
-  --line: rgba(116, 55, 31, 0.18);
-  --red: #b42318;
-  --red-2: #de5b3d;
-  --gold: #c58a1f;
-  --green: #2f7d57;
-  --blue: #2f5f9f;
-  --shadow: 0 18px 50px rgba(69, 31, 15, 0.14);
-}
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  min-height: 100vh;
-  color: var(--ink);
-  font-family: "Noto Serif SC", "Microsoft YaHei", serif;
-  background:
-    radial-gradient(circle at 16% 12%, rgba(222, 91, 61, 0.18), transparent 28%),
-    radial-gradient(circle at 82% 8%, rgba(47, 95, 159, 0.14), transparent 26%),
-    linear-gradient(135deg, #fff7e6 0%, #f8ead3 45%, #f3dfc7 100%);
-  overflow: hidden;
-}
-.home-link {
-  position: fixed;
-  top: 14px;
-  left: 14px;
-  z-index: 10000;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.5);
-  background: rgba(37, 23, 19, 0.82);
-  color: #fff;
-  text-decoration: none;
-  font-size: 13px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  backdrop-filter: blur(10px);
-}
-.app-container {
-  width: min(1440px, calc(100vw - 32px));
-  height: calc(100vh - 166px);
-  min-height: 640px;
-  margin: 74px auto 0;
-  display: grid;
-  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
-  gap: 18px;
-}
-.side-panel,
-.glass-pane {
-  border: 1px solid var(--line);
-  background: var(--card);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(12px);
-}
-.side-panel {
-  border-radius: 8px;
-  padding: 20px;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-}
-.glass-pane {
-  border-radius: 8px;
-  padding: 18px;
-  overflow: auto;
-}
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(180, 35, 24, 0.22);
-  color: var(--red);
-  background: rgba(180, 35, 24, 0.08);
-  font-size: 12px;
-  font-weight: 700;
-}
-h1 {
-  margin: 14px 0 8px;
-  font-size: 30px;
-  line-height: 1.18;
-  letter-spacing: 0;
-}
-.side-panel > .eyebrow {
-  order: 1;
-  align-self: flex-start;
-  margin-bottom: 10px;
-}
-.side-panel > h1 {
-  order: 2;
-  margin: 0 0 8px;
-  font-family: "Ma Shan Zheng", "Noto Serif SC", serif;
-  font-size: 2.1rem;
-  line-height: 1.2;
-  font-weight: 400;
-  color: #d63b1d;
-}
-.side-panel > h1 .highlight {
-  color: #ffb400;
-}
-.side-panel > .subtitle {
-  order: 3;
-  margin: 0 0 12px;
-  color: #64748b;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  font-style: normal;
-}
-.side-panel > .intro {
-  order: 4;
-}
-.side-panel > #dm-ideo-page,
-.side-panel > .value-panel {
-  order: 5;
-}
-.side-panel > #controls {
-  order: 6;
-}
-.side-panel > .result-card,
-.side-panel > .mission-card {
-  order: 7;
-}
-.intro {
-  margin: 0 0 16px;
-  color: var(--muted);
-  line-height: 1.7;
-  font-size: 15px;
-}
-.mission-card,
-.control-group,
-.value-panel,
-.result-card {
-  border-radius: 8px;
-  border: 1px solid rgba(116, 55, 31, 0.16);
-  background: rgba(255,255,255,0.66);
-}
-.mission-card {
-  padding: 14px 16px;
-  margin-bottom: 14px;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-  align-items: center;
-}
-.mission-card b { color: var(--red); }
-.mission-card span {
-  color: var(--muted);
-  line-height: 1.6;
-}
-.visual-badge {
-  white-space: nowrap;
-  border-radius: 999px;
-  padding: 7px 10px;
-  background: rgba(47,95,159,0.1);
-  color: var(--blue);
-  font-size: 12px;
-  font-weight: 700;
-}
-.value-panel {
-  padding: 14px;
-  margin: 14px 0;
-  border-left: 4px solid var(--red);
-}
-.value-panel h3 {
-  margin: 0 0 8px;
-  font-size: 17px;
-  color: var(--red);
-}
-.value-panel p {
-  margin: 0;
-  line-height: 1.7;
-  color: #563c31;
-  font-size: 14px;
-}
-.dim-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
-}
-.dim-list span {
-  border-radius: 999px;
-  background: rgba(197, 138, 31, 0.13);
-  color: #8a5d0b;
-  padding: 4px 9px;
-  font-size: 12px;
-  font-weight: 700;
-}
-#controls {
-  display: grid;
-  gap: 10px;
-}
-.control-group {
-  padding: 12px;
-}
-.control-group label {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  color: #4e362d;
-  font-weight: 700;
-  font-size: 14px;
-  margin-bottom: 8px;
-}
-.control-group small {
-  color: var(--muted);
-  font-weight: 400;
-}
-select,
-input[type="range"] {
-  width: 100%;
-}
-select {
-  min-height: 38px;
-  border-radius: 8px;
-  border: 1px solid rgba(116,55,31,0.22);
-  background: #fffaf2;
-  color: var(--ink);
-  padding: 0 10px;
-  font: inherit;
-}
-input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--red);
-}
-.switch-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  color: var(--muted);
-  font-size: 13px;
-}
-.logic-board {
-  min-height: 360px;
-  border-radius: 8px;
-  border: 1px solid rgba(116,55,31,0.16);
-  background:
-    linear-gradient(90deg, rgba(116,55,31,0.06) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(116,55,31,0.06) 1px, transparent 1px),
-    rgba(255,255,255,0.56);
-  background-size: 28px 28px;
-  padding: 18px;
-  overflow: hidden;
-}
-.viz-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-.node-card,
-.gate-card,
-.table-wrap,
-.proof-card,
-.meter-card {
-  border-radius: 8px;
-  border: 1px solid rgba(116,55,31,0.18);
-  background: rgba(255,255,255,0.84);
-  padding: 14px;
-  box-shadow: 0 8px 22px rgba(69,31,15,0.08);
-}
-.node-card strong,
-.gate-card strong,
-.proof-card strong,
-.meter-card strong {
-  display: block;
-  font-size: 15px;
-  margin-bottom: 6px;
-}
-.truth-on { border-color: rgba(47,125,87,0.5); background: rgba(47,125,87,0.12); }
-.truth-off { border-color: rgba(180,35,24,0.4); background: rgba(180,35,24,0.09); }
-.truth-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 58px;
-  height: 34px;
-  border-radius: 999px;
-  font-family: "JetBrains Mono", Consolas, monospace;
-  font-weight: 800;
-  color: #fff;
-  background: var(--green);
-}
-.truth-chip.false { background: var(--red); }
-.gate-symbol {
-  display: grid;
-  place-items: center;
-  min-height: 112px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, rgba(180,35,24,0.12), rgba(47,95,159,0.13));
-  font-size: 42px;
-  font-family: "JetBrains Mono", Consolas, monospace;
-  font-weight: 800;
-  color: var(--red);
-}
-.formula-line {
-  font-family: "JetBrains Mono", Consolas, monospace;
-  font-weight: 800;
-  color: #2d211d;
-}
-.stack {
-  display: grid;
-  gap: 10px;
-}
-.flow {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-}
-.flow .node-card { min-height: 112px; }
-.arrow {
-  color: var(--gold);
-  font-weight: 800;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: "JetBrains Mono", Consolas, monospace;
-  font-size: 13px;
-}
-th, td {
-  border-bottom: 1px solid rgba(116,55,31,0.14);
-  padding: 8px 7px;
-  text-align: center;
-}
-th {
-  background: rgba(180,35,24,0.08);
-  color: var(--red);
-}
-tr.hot td { background: rgba(47,125,87,0.1); }
-tr.warn td { background: rgba(180,35,24,0.08); }
-.pill-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
-}
-.pill {
-  border-radius: 999px;
-  padding: 7px 10px;
-  color: #53362c;
-  background: rgba(197,138,31,0.14);
-  font-family: "JetBrains Mono", Consolas, monospace;
-  font-weight: 700;
-}
-.result-card {
-  margin-top: 14px;
-  padding: 16px;
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 12px;
-  align-items: stretch;
-}
-#formulaText,
-#resultValue,
-#resultExtra {
-  border-radius: 8px;
-  padding: 12px;
-  background: rgba(255,250,242,0.86);
-  line-height: 1.7;
-}
-#formulaText {
-  font-family: "JetBrains Mono", Consolas, monospace;
-  font-weight: 800;
-  color: var(--blue);
-}
-#resultValue {
-  font-weight: 800;
-  color: var(--red);
-}
-#resultExtra {
-  grid-column: 1 / -1;
-  color: #5e4338;
-}
-.footer {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 9998;
-  min-height: 72px;
-  padding: 14px 10px;
-  text-align: center;
-  color: inherit;
-    opacity: 0.72;
-  background: transparent;
-  box-shadow: none;
-  font-size: 13px;
-  line-height: 1.7;
-}
-@media (max-width: 920px) {
-  body { overflow: auto; }
-  .app-container {
-    width: min(100vw - 22px, 720px);
-    height: auto;
-    min-height: 0;
-    grid-template-columns: 1fr;
-    margin-bottom: 96px;
-  }
-  .side-panel, .glass-pane { max-height: none; }
-  .viz-grid, .flow, .result-card { grid-template-columns: 1fr; }
-  #resultExtra { grid-column: auto; }
-  .mission-card { grid-template-columns: 1fr; }
-}
-
-  </style>
-    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
-    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+  <link rel="stylesheet" href="normal_forms.css">
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 <body>
   <a class="home-link" href="../../index.html">← 返回课程主页</a>
+
   <div class="app-container">
     <aside class="side-panel">
       <div class="eyebrow">基础层 · 第5章 命题逻辑</div>
-      <h1>红色数理 <span class="highlight">基础层</span></h1>
-                <p class="subtitle">对偶与范式拼图</p>
-      <p class="intro">从真值行提取小项或大项，直观看见主析取范式与主合取范式。</p>
+      <h1>对偶原理</h1>
+      <p class="subtitle">∧↔∨ / T↔F / 对称之美</p>
+      <p class="tier-line">低门槛 · 建立直觉</p>
+      <p class="intro">🎯 用对偶原理简化推导。</p>
 
       <div class="value-panel">
         <h3>思想的标准化 · 守正统一</h3>
-        <p>范式把千姿百态的表达统一为唯一标准形，体现『立标准、求统一』的规范化思维——标准统一才能高效协作、互认互通。对偶原理则揭示∧与∨、真与假对称共生的辩证之美，启示我们在统一中尊重对立两面。</p>
+        <p>极小项用 ∧、极大项用 ∨，文字极性相反——对偶原理揭示 ∧ 与 ∨、真与假对称共生的辩证之美，启示我们在统一中尊重对立两面。</p>
         <div class="dim-list"><span>标准意识</span><span>辩证思维</span><span>系统观念</span></div>
       </div>
 
       <div id="controls"></div>
+      <div class="legend-panel" id="legendPanel"></div>
     </aside>
 
     <main class="glass-pane">
       <section class="mission-card">
-        <span><b>互动任务：</b>用标准化表达压缩复杂判断，让问题有统一格式、可复核路径。</span>
-        <div class="visual-badge">小项/大项积木</div>
+        <span><b>互动任务：</b>逐行扫描真值表，真行提取极小项 m，假行提取极大项 M，看 ∧↔∨、M=¬m 的对偶之美。</span>
+        <div class="visual-badge">真值表 · 对偶提取</div>
       </section>
 
-      <section class="logic-board" id="vizArea"></section>
-
-      <section class="result-card">
-        <div id="formulaText">等待交互</div>
-        <div id="resultValue">等待判定</div>
-        <div id="resultExtra">价值观察：范式把千姿百态的表达统一为唯一标准形，体现『立标准、求统一』的规范化思维——标准统一才能高效协作、互认互通。对偶原理则揭示∧与∨、真与假对称共生的辩证之美，启示我们在统一中尊重对立两面。</div>
-      </section>
+      <div class="sym-pipeline">
+        <section class="sym-stage-card">
+          <div class="sym-stage-head"><span class="sym-stage-num">1</span><span class="sym-stage-title">真值表 · 目标函数</span><span class="sym-stage-hint">点行可定位</span></div>
+          <div id="nfTable" class="nf-table-wrap"></div>
+        </section>
+        <section class="sym-stage-card">
+          <div class="sym-stage-head"><span class="sym-stage-num">2</span><span class="sym-stage-title">逐行提取 · 小项 / 大项</span><span class="sym-stage-hint">真行→m，假行→M</span></div>
+          <div id="nfTerms" class="nf-terms"></div>
+          <div id="nfEval" class="nf-eval" style="margin-top:12px"></div>
+        </section>
+        <section class="sym-stage-card">
+          <div class="sym-stage-head"><span class="sym-stage-num">3</span><span class="sym-stage-title">主范式拼装 · 对偶</span><span class="sym-stage-hint">PDNF / PCNF</span></div>
+          <div id="nfForms" class="nf-forms"></div>
+        </section>
+        <section class="sym-stage-card">
+          <div class="sym-stage-head"><span class="sym-stage-num">4</span><span class="sym-stage-title">真值星图</span><span class="sym-stage-hint">每格一行 · 真/假</span></div>
+          <div id="nfStar" class="nf-star-wrap"></div>
+        </section>
+      </div>
     </main>
   </div>
 
@@ -484,417 +84,41 @@ tr.warn td { background: rgba(180,35,24,0.08); }
   <script>
     window.SECTION_META = {
       "layers": [
-            {
-                  "name": "对偶原理",
-                  "concepts": "∧↔∨ / T↔F / 对称之美",
-                  "task": "用对偶原理简化推导。",
-                  "page": "normal_forms-basic.html"
-            },
-            {
-                  "name": "主范式",
-                  "concepts": "DNF/CNF / 极小项·极大项 / 唯一",
-                  "task": "把公式化为唯一的主范式。",
-                  "page": "normal_forms.html"
-            },
-            {
-                  "name": "电路综合与 SAT",
-                  "concepts": "逻辑综合 / CNF 预处理",
-                  "task": "迁移到电路综合与 SAT 求解。",
-                  "page": "normal_forms-extend.html"
-            }
+        { "name": "对偶原理", "concepts": "∧↔∨ / T↔F / 对称之美", "task": "用对偶原理简化推导。", "page": "normal_forms-basic.html" },
+        { "name": "主范式", "concepts": "DNF/CNF / 极小项·极大项 / 唯一", "task": "把公式化为唯一的主范式。", "page": "normal_forms.html" },
+        { "name": "电路综合与 SAT", "concepts": "逻辑综合 / CNF 预处理", "task": "迁移到电路综合与 SAT 求解。", "page": "normal_forms-extend.html" }
       ],
       "chapter": "第5章 命题逻辑",
-      "section": "5.5 对偶与范式",
-      "title": "对偶与范式",
-      "grounding": "本节主题：对偶原理（∧↔∨、T↔F 互换）；范式——析取范式 DNF（极小项之或）、合取范式 CNF（极大项之合）；主范式唯一，可由真值表直接读出。范式把任意公式标准化，便于比较、判定与电路综合。",
+      "section": "5.5 对偶与范式 · 基础层",
+      "title": "对偶原理",
+      "grounding": "本节主题：对偶原理（∧↔∨、T↔F 互换）。基础层用 2 变元真值表建立直觉：真行提取极小项（合取 ∧），假行提取极大项（析取 ∨），观察 M_i=¬m_i 与 ∧/∨ 对称共生，体会对偶原理如何简化推导。",
       "steps": [
-            {
-                  "name": "情境引入",
-                  "desc": "形态各异的逻辑表达式，能否化成统一的『标准形』来比较？"
-            },
-            {
-                  "name": "对象抽取",
-                  "desc": "把公式按极小项/极大项分解。"
-            },
-            {
-                  "name": "结构建模",
-                  "desc": "用主析取/主合取范式给出唯一标准形。"
-            },
-            {
-                  "name": "推理求解",
-                  "desc": "由真值表读主范式，用对偶原理简化推导。"
-            },
-            {
-                  "name": "程序验证",
-                  "desc": "用本页交互把公式转范式，验证唯一性。"
-            },
-            {
-                  "name": "迁移反思",
-                  "desc": "迁移到电路综合、SAT 预处理、逻辑优化。"
-            }
+        {"name":"情境引入","desc":"∧ 与 ∨、真与假之间，藏着怎样的对称？"},
+        {"name":"对象抽取","desc":"把真行/假行对应极小项/极大项。"},
+        {"name":"结构建模","desc":"极小项用 ∧、极大项用 ∨，文字极性相反。"},
+        {"name":"推理求解","desc":"观察 M_i=¬m_i，用对偶原理简化推导。"},
+        {"name":"程序验证","desc":"用本页逐行扫描，验证对偶关系。"},
+        {"name":"迁移反思","desc":"为进阶层的主范式唯一性打基础。"}
       ],
       "ideology": {
-            "title": "思想的标准化 · 守正统一",
-            "text": "范式把千姿百态的表达统一为唯一标准形，体现『立标准、求统一』的规范化思维——标准统一才能高效协作、互认互通。对偶原理则揭示∧与∨、真与假对称共生的辩证之美，启示我们在统一中尊重对立两面。",
-            "dims": [
-                  "标准意识",
-                  "辩证思维",
-                  "系统观念"
-            ],
-            "quote": "车同轨，书同文——主范式的唯一标准形，正是逻辑世界的『统一度量衡』。"
+        "title": "思想的标准化 · 守正统一",
+        "text": "范式把千姿百态的表达统一为唯一标准形，体现『立标准、求统一』的规范化思维——标准统一才能高效协作、互认互通。对偶原理则揭示∧与∨、真与假对称共生的辩证之美，启示我们在统一中尊重对立两面。",
+        "dims": ["标准意识", "辩证思维", "系统观念"],
+        "quote": "车同轨，书同文——主范式的唯一标准形，正是逻辑世界的『统一度量衡』。"
       },
       "reflect": [
-            "为什么主析取范式（由极小项构成）是唯一的？它与真值表为真的行如何对应？",
-            "对偶原理为什么成立？把一个等值式对偶后还成立吗？",
-            "把公式转 CNF 是 SAT 求解器的标准预处理，为什么需要标准化？"
+        "为什么极小项用 ∧、极大项用 ∨？它们的文字极性为何相反？",
+        "可以验证 M_i = ¬m_i 吗？这与对偶原理有何关系？",
+        "p∧q 与 p∨q 互为对偶，它们的真值表有什么对称关系？"
       ],
       "transfer": [
-            "数字电路综合先把逻辑函数化为范式，再优化为门电路。",
-            {
-                  "t": "SAT 求解",
-                  "d": "现代 SAT 求解器输入 CNF，本节范式是其工业应用的入口。"
-            }
+        "理解对偶与极小/极大项，是后续主范式与化简的基础。",
+        {"t":"进阶预告","d":"进阶层将用 3 变元真值表构造唯一的主析取/主合取范式。"}
       ]
-};
-  </script>
-  <script>
-    const PROFILE = {
-  "title": "对偶与范式拼图",
-  "subtitle": "从真值行提取小项或大项，直观看见主析取范式与主合取范式。",
-  "family": "normal",
-  "layerLabel": "基础层",
-  "mission": "用标准化表达压缩复杂判断，让问题有统一格式、可复核路径。",
-  "visual": "小项/大项积木",
-  "params": {
-    "mode": "basic"
-  }
-};
-  </script>
-  <script>
-
-(function () {
-  "use strict";
-  const meta = window.SECTION_META || {};
-  const ideology = meta.ideology || {};
-  const controls = document.getElementById("controls");
-  const viz = document.getElementById("vizArea");
-  const formulaText = document.getElementById("formulaText");
-  const resultValue = document.getElementById("resultValue");
-  const resultExtra = document.getElementById("resultExtra");
-
-  function esc(v) {
-    return String(v == null ? "" : v).replace(/[&<>"']/g, function (ch) {
-      return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch];
-    });
-  }
-  function boolText(v) { return v ? "真 T" : "假 F"; }
-  function chip(v) { return '<span class="truth-chip' + (v ? "" : " false") + '">' + boolText(v) + '</span>'; }
-  function option(value, text, selected) {
-    return '<option value="' + esc(value) + '"' + (selected ? " selected" : "") + ">" + esc(text) + "</option>";
-  }
-  function control(label, body, small) {
-    return '<div class="control-group"><label><span>' + esc(label) + '</span>' + (small ? '<small>' + esc(small) + '</small>' : '') + '</label>' + body + '</div>';
-  }
-  function selectControl(id, label, items, selected, small) {
-    return control(label, '<select id="' + id + '">' + items.map(function (it) { return option(it[0], it[1], it[0] === selected); }).join("") + "</select>", small);
-  }
-  function checkControl(id, label, checked, small) {
-    return control(label, '<div class="switch-row"><span>' + esc(small || "切换真值") + '</span><input type="checkbox" id="' + id + '"' + (checked ? " checked" : "") + "></div>");
-  }
-  function rangeControl(id, label, value, min, max, step, small) {
-    return control(label, '<input type="range" id="' + id + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + value + '">', small);
-  }
-  function val(id) {
-    const el = document.getElementById(id);
-    if (!el) return "";
-    if (el.type === "checkbox") return !!el.checked;
-    if (el.type === "range") return Number(el.value);
-    return el.value;
-  }
-  function setResult(formula, result, extra) {
-    formulaText.innerHTML = esc(formula);
-    resultValue.innerHTML = result;
-    const dims = (ideology.dims || []).join(" · ");
-    resultExtra.innerHTML = '<b>价值观察：</b>' + esc(ideology.text || "用严谨推理支撑清晰判断。")
-      + (dims ? '<div class="pill-row"><span class="pill">' + esc(dims) + '</span></div>' : "")
-      + (extra ? '<p>' + esc(extra) + '</p>' : "");
-  }
-
-  const truthPatterns = [
-    { id: "imp", name: "(P ∧ Q) → R", vars: ["P", "Q", "R"], fn: function (p, q, r) { return !(p && q) || r; } },
-    { id: "chain", name: "(P → Q) ∧ (Q → R)", vars: ["P", "Q", "R"], fn: function (p, q, r) { return (!p || q) && (!q || r); } },
-    { id: "vote", name: "(P ∨ Q) ∧ ¬R", vars: ["P", "Q", "R"], fn: function (p, q, r) { return (p || q) && !r; } },
-    { id: "xor", name: "(P ∨ Q) ∧ ¬(P ∧ Q)", vars: ["P", "Q"], fn: function (p, q) { return (p || q) && !(p && q); } }
-  ];
-
-  function rowsFor(pattern) {
-    const n = pattern.vars.length;
-    const rows = [];
-    for (let mask = 0; mask < (1 << n); mask++) {
-      const vals = [];
-      for (let i = n - 1; i >= 0; i--) vals.push(Boolean(mask & (1 << i)));
-      rows.push({ vals, out: pattern.fn.apply(null, vals) });
-    }
-    return rows;
-  }
-  function tableHtml(headers, rows, classFn) {
-    return '<div class="table-wrap"><table><thead><tr>' + headers.map(function (h) { return "<th>" + esc(h) + "</th>"; }).join("")
-      + '</tr></thead><tbody>' + rows.map(function (row, idx) {
-        const cls = classFn ? classFn(row, idx) : "";
-        return '<tr class="' + cls + '">' + row.map(function (cell) { return "<td>" + cell + "</td>"; }).join("") + "</tr>";
-      }).join("") + "</tbody></table></div>";
-  }
-
-  function setupConnective() {
-    const policy = PROFILE.params.mode === "policy";
-    controls.innerHTML =
-      checkControl("p", policy ? "条件 P：信息真实" : "原子命题 P", true, policy ? "事实清楚" : "P 的真假")
-      + checkControl("q", policy ? "条件 Q：程序合规" : "原子命题 Q", true, policy ? "流程正当" : "Q 的真假")
-      + selectControl("op", "联结词", [["not", "¬P"], ["and", "P ∧ Q"], ["or", "P ∨ Q"], ["imp", "P → Q"], ["iff", "P ↔ Q"]], policy ? "imp" : "and", "切换逻辑门");
-    renderConnective();
-  }
-  function renderConnective() {
-    const p = val("p"), q = val("q"), op = val("op");
-    let out = false, formula = "";
-    if (op === "not") { out = !p; formula = "¬P"; }
-    if (op === "and") { out = p && q; formula = "P ∧ Q"; }
-    if (op === "or") { out = p || q; formula = "P ∨ Q"; }
-    if (op === "imp") { out = !p || q; formula = "P → Q"; }
-    if (op === "iff") { out = p === q; formula = "P ↔ Q"; }
-    const policy = PROFILE.params.mode === "policy";
-    const leftName = policy ? "P 信息真实" : "P";
-    const rightName = policy ? "Q 程序合规" : "Q";
-    viz.innerHTML = '<div class="viz-grid">'
-      + '<div class="node-card ' + (p ? "truth-on" : "truth-off") + '"><strong>' + esc(leftName) + '</strong>' + chip(p) + '<p>原子判断必须先清楚，复合判断才可靠。</p></div>'
-      + '<div class="gate-card"><strong>联结词</strong><div class="gate-symbol">' + esc(formula.replace(/[PQ]/g, "")) + '</div><p class="formula-line">' + esc(formula) + '</p></div>'
-      + '<div class="node-card ' + (q ? "truth-on" : "truth-off") + '"><strong>' + esc(rightName) + '</strong>' + chip(q) + '<p>条件之间的关系决定行动边界。</p></div>'
-      + '</div><div class="node-card" style="margin-top:12px"><strong>输出判断</strong>' + chip(out) + '<p>' + esc(policy ? "规则引擎要求条件表达清楚、执行一致，不让模糊判断进入决策。" : "同一个联结词在所有真假组合下都有确定输出。") + '</p></div>';
-    setResult(formula + " = " + (out ? "T" : "F"), chip(out), op === "imp" ? "蕴含在前件为假时为真，这不是纵容空话，而是提醒我们必须先审查前提是否成立。" : "命题逻辑把复杂表述拆成可验证结构。");
-  }
-
-  function setupSymbol() {
-    const rule = PROFILE.params.mode === "rule";
-    controls.innerHTML =
-      selectControl("scenario", "情境语句", [
-        ["service", rule ? "若资料齐全且程序合规，则准予办理" : "今天完成调研，并且形成报告"],
-        ["risk", rule ? "若风险未清，则不得推进" : "如果下雨，则活动改为线上"],
-        ["equiv", rule ? "当且仅当审核通过，流程才归档" : "考试通过当且仅当成绩合格"]
-      ], rule ? "service" : "risk", "选择自然语言")
-      + checkControl("neg", "加入否定 ¬", false, "对关键条件取反")
-      + selectControl("join", "组合方式", [["and", "P ∧ Q"], ["or", "P ∨ Q"], ["imp", "P → Q"], ["iff", "P ↔ Q"]], rule ? "imp" : "and", "公式骨架");
-    renderSymbol();
-  }
-  function renderSymbol() {
-    const scenarios = {
-      service: { text: PROFILE.params.mode === "rule" ? "若资料齐全且程序合规，则准予办理" : "今天完成调研，并且形成报告", p: "P：资料齐全/完成调研", q: "Q：程序合规/形成报告" },
-      risk: { text: PROFILE.params.mode === "rule" ? "若风险未清，则不得推进" : "如果下雨，则活动改为线上", p: "P：风险未清/下雨", q: "Q：不得推进/改为线上" },
-      equiv: { text: PROFILE.params.mode === "rule" ? "当且仅当审核通过，流程才归档" : "考试通过当且仅当成绩合格", p: "P：审核通过/考试通过", q: "Q：流程归档/成绩合格" }
     };
-    const s = scenarios[val("scenario")];
-    const join = val("join");
-    const neg = val("neg");
-    let p = neg ? "¬P" : "P";
-    let formula = p + (join === "and" ? " ∧ Q" : join === "or" ? " ∨ Q" : join === "imp" ? " → Q" : " ↔ Q");
-    viz.innerHTML = '<div class="stack">'
-      + '<div class="node-card"><strong>自然语言</strong><p>' + esc(s.text) + '</p></div>'
-      + '<div class="flow"><div class="node-card"><strong>抽取 P</strong><p>' + esc(s.p) + '</p></div><div class="node-card"><strong>抽取 Q</strong><p>' + esc(s.q) + '</p></div><div class="node-card"><strong>联结</strong><p class="formula-line">' + esc(formula) + '</p></div><div class="node-card"><strong>可计算表达</strong><p>进入真值表、证明或规则系统。</p></div></div>'
-      + '<div class="pill-row"><span class="pill">对象抽取</span><span class="pill">结构建模</span><span class="pill">责任边界</span></div></div>';
-    setResult("自然语言 -> " + formula, '<span class="truth-chip">已符号化</span>', "符号化不是把话变冷，而是让公共表达可讨论、可追责、可复核。");
-  }
-
-  function setupTruth() {
-    controls.innerHTML =
-      selectControl("pattern", "公式模板", truthPatterns.map(function (p) { return [p.id, p.name]; }), PROFILE.params.mode === "circuit" ? "chain" : "imp", "选择要验证的公式")
-      + rangeControl("focus", "高亮解释行", 0, 0, 7, 1, "拖动查看每一行");
-    renderTruth();
-  }
-  function renderTruth() {
-    const pattern = truthPatterns.find(function (p) { return p.id === val("pattern"); }) || truthPatterns[0];
-    const rows = rowsFor(pattern);
-    const focus = Math.min(rows.length - 1, val("focus"));
-    const body = rows.map(function (r, idx) {
-      return r.vals.map(function (v) { return v ? "T" : "F"; }).concat([r.out ? "T" : "F", idx === focus ? "当前" : ""]);
-    });
-    const trueCount = rows.filter(function (r) { return r.out; }).length;
-    viz.innerHTML = tableHtml(pattern.vars.concat([pattern.name, "观察"]), body, function (_, idx) { return idx === focus ? "hot" : ""; })
-      + '<div class="pill-row"><span class="pill">真值行为 ' + trueCount + '/' + rows.length + '</span><span class="pill">' + (trueCount === rows.length ? "永真式" : trueCount === 0 ? "矛盾式" : "可满足式") + '</span></div>';
-    setResult(pattern.name + " 的真值表", '<span class="truth-chip">' + trueCount + "/" + rows.length + '</span>', "穷尽所有解释，是避免只看有利样本、坚持实事求是的数学方法。");
-  }
-
-  function pairDefs() {
-    return {
-      equiv: { name: "等价：P→Q 与 ¬P∨Q", a: "P→Q", b: "¬P∨Q", fnA: function (p, q) { return !p || q; }, fnB: function (p, q) { return !p || q; } },
-      entail: { name: "蕴含：P∧Q 推出 P", a: "P∧Q", b: "P", fnA: function (p, q) { return p && q; }, fnB: function (p) { return p; } },
-      conflict: { name: "矛盾：P 与 ¬P", a: "P", b: "¬P", fnA: function (p) { return p; }, fnB: function (p) { return !p; } },
-      compat: { name: "相容：P∨Q 与 P→Q", a: "P∨Q", b: "P→Q", fnA: function (p, q) { return p || q; }, fnB: function (p, q) { return !p || q; } }
-    };
-  }
-  function setupCompare() {
-    controls.innerHTML =
-      selectControl("pair", "关系样本", [["equiv", "等价关系"], ["entail", "蕴含关系"], ["conflict", "矛盾关系"], ["compat", "相容关系"]], PROFILE.params.mode === "model" ? "compat" : "equiv", "并排比较")
-      + rangeControl("modelRow", "检查解释行", 0, 0, 3, 1, "定位一个模型");
-    renderCompare();
-  }
-  function renderCompare() {
-    const d = pairDefs()[val("pair")];
-    const rows = [];
-    let same = 0, bothTrue = 0, entailOk = true;
-    [[false,false],[false,true],[true,false],[true,true]].forEach(function (x, idx) {
-      const p = x[0], q = x[1], a = d.fnA(p, q), b = d.fnB(p, q);
-      if (a === b) same++;
-      if (a && b) bothTrue++;
-      if (a && !b) entailOk = false;
-      rows.push([p ? "T" : "F", q ? "T" : "F", a ? "T" : "F", b ? "T" : "F", idx === val("modelRow") ? "检查" : ""]);
-    });
-    let relation = same === 4 ? "等价" : entailOk ? "A 蕴含 B" : bothTrue > 0 ? "相容但不等价" : "矛盾/不相容";
-    viz.innerHTML = '<div class="viz-grid"><div class="node-card"><strong>公式 A</strong><p class="formula-line">' + esc(d.a) + '</p></div><div class="node-card"><strong>关系判定</strong><p>' + esc(relation) + '</p></div><div class="node-card"><strong>公式 B</strong><p class="formula-line">' + esc(d.b) + '</p></div></div>'
-      + tableHtml(["P", "Q", "A", "B", "模型"], rows, function (_, idx) { return idx === val("modelRow") ? "hot" : ""; });
-    setResult(d.name + " -> " + relation, '<span class="truth-chip">' + esc(relation) + '</span>', "关系判定要看全部解释，而不是抓住单行证据就下结论。");
-  }
-
-  function setupNormal() {
-    controls.innerHTML =
-      selectControl("nfPattern", "目标公式", truthPatterns.map(function (p) { return [p.id, p.name]; }), PROFILE.params.mode === "sat" ? "vote" : "imp", "选择真值结构")
-      + selectControl("nfMode", "范式类型", [["dnf", "主析取范式 DNF"], ["cnf", "主合取范式 CNF"]], PROFILE.params.mode === "sat" ? "cnf" : "dnf", "标准化输出");
-    renderNormal();
-  }
-  function term(vars, vals, dnf) {
-    return "(" + vars.map(function (v, i) {
-      const bit = vals[i];
-      return dnf ? (bit ? v : "¬" + v) : (bit ? "¬" + v : v);
-    }).join(dnf ? " ∧ " : " ∨ ") + ")";
-  }
-  function renderNormal() {
-    const pattern = truthPatterns.find(function (p) { return p.id === val("nfPattern"); }) || truthPatterns[0];
-    const rows = rowsFor(pattern);
-    const dnf = val("nfMode") === "dnf";
-    const picked = rows.filter(function (r) { return dnf ? r.out : !r.out; });
-    const terms = picked.map(function (r) { return term(pattern.vars, r.vals, dnf); });
-    const formula = terms.length ? terms.join(dnf ? " ∨ " : " ∧ ") : (dnf ? "0" : "1");
-    const body = rows.map(function (r) {
-      return r.vals.map(function (v) { return v ? "T" : "F"; }).concat([r.out ? "T" : "F", (dnf ? r.out : !r.out) ? "提取" : "-"]);
-    });
-    viz.innerHTML = tableHtml(pattern.vars.concat([pattern.name, dnf ? "小项" : "大项"]), body, function (row) { return row[row.length - 1] === "提取" ? "hot" : ""; })
-      + '<div class="node-card" style="margin-top:12px"><strong>标准范式</strong><p class="formula-line">' + esc(formula) + '</p><div class="pill-row">' + terms.slice(0, 8).map(function (t) { return '<span class="pill">' + esc(t) + '</span>'; }).join("") + '</div></div>';
-    setResult((dnf ? "DNF: " : "CNF: ") + formula, '<span class="truth-chip">' + picked.length + "项</span>", "范式把复杂表达归入统一格式，便于检查、比较和工程求解。");
-  }
-
-  function setupProof() {
-    controls.innerHTML =
-      selectControl("rule", "推理规则", [["mp", "假言推理 MP"], ["mt", "拒取式 MT"], ["hs", "假言三段论 HS"], ["ds", "析取三段论 DS"]], PROFILE.params.mode === "audit" ? "mt" : "mp", "选择规则")
-      + rangeControl("step", "推证进度", 1, 1, 3, 1, "逐步展开");
-    renderProof();
-  }
-  function renderProof() {
-    const rules = {
-      mp: { name: "MP", pre: ["P → Q", "P"], mid: "由前件成立触发后件", out: "Q" },
-      mt: { name: "MT", pre: ["P → Q", "¬Q"], mid: "后件不成立，反推前件不成立", out: "¬P" },
-      hs: { name: "HS", pre: ["P → Q", "Q → R"], mid: "条件链合并", out: "P → R" },
-      ds: { name: "DS", pre: ["P ∨ Q", "¬P"], mid: "排除一个分支，保留另一个分支", out: "Q" }
-    };
-    const r = rules[val("rule")];
-    const step = val("step");
-    const cards = [
-      '<div class="proof-card truth-on"><strong>1 前提</strong><p class="formula-line">' + esc(r.pre.join("，")) + '</p></div>',
-      '<div class="proof-card ' + (step >= 2 ? "truth-on" : "") + '"><strong>2 规则</strong><p>' + esc(r.name + "：" + r.mid) + '</p></div>',
-      '<div class="proof-card ' + (step >= 3 ? "truth-on" : "") + '"><strong>3 结论</strong><p class="formula-line">' + (step >= 3 ? esc(r.out) : "待推出") + '</p></div>'
-    ];
-    viz.innerHTML = '<div class="flow">' + cards.join("") + '<div class="proof-card"><strong>审计提示</strong><p>每一步都要能说明“用了哪条规则”。</p></div></div>';
-    setResult(r.pre.join(", ") + " ⊢ " + (step >= 3 ? r.out : "..."), step >= 3 ? chip(true) : '<span class="truth-chip false">推证中</span>', "严谨推理要求证据、规则、结论一致，不能用愿望代替证明。");
-  }
-
-  function setupSystem() {
-    controls.innerHTML =
-      rangeControl("axiom", "公理覆盖", PROFILE.params.mode === "lab" ? 72 : 55, 0, 100, 1, "表达能力")
-      + rangeControl("ruleSafe", "规则可靠", PROFILE.params.mode === "lab" ? 82 : 70, 0, 100, 1, "可靠性")
-      + rangeControl("modelCheck", "模型检验", PROFILE.params.mode === "lab" ? 78 : 60, 0, 100, 1, "一致性验证");
-    renderSystem();
-  }
-  function meter(label, value, good) {
-    return '<div class="meter-card ' + (good ? "truth-on" : "truth-off") + '"><strong>' + esc(label) + '</strong><div class="gate-symbol" style="font-size:30px">' + value + '%</div><p>' + (good ? "状态稳健" : "需要补强") + '</p></div>';
-  }
-  function renderSystem() {
-    const a = val("axiom"), r = val("ruleSafe"), m = val("modelCheck");
-    const sound = r >= 70 && m >= 60;
-    const complete = a >= 70 && r >= 55;
-    const consistent = m >= 70 && !(a > 90 && r < 65);
-    viz.innerHTML = '<div class="viz-grid">'
-      + meter("可靠性 soundness", r, sound)
-      + meter("完备性 completeness", a, complete)
-      + meter("一致性 consistency", m, consistent)
-      + '</div><div class="node-card" style="margin-top:12px"><strong>系统状态</strong><p>规则越强，越要配套检验；表达越丰富，越要守住一致性。</p><div class="pill-row"><span class="pill">可靠 ' + (sound ? "✓" : "待补") + '</span><span class="pill">完备 ' + (complete ? "✓" : "待补") + '</span><span class="pill">一致 ' + (consistent ? "✓" : "待补") + '</span></div></div>';
-    setResult("Sound=" + sound + ", Complete=" + complete + ", Consistent=" + consistent, (sound && complete && consistent) ? chip(true) : '<span class="truth-chip false">需修正</span>', "形式系统建设像制度建设：既要有能力解决问题，也要有机制防止自相矛盾。");
-  }
-
-  function setupMission() {
-    const launch = PROFILE.params.mode === "launch";
-    controls.innerHTML =
-      checkControl("verify", launch ? "验证充分 V" : "理论验证 V", true, "尊重规律")
-      + checkControl("collab", launch ? "协同就绪 C" : "组织协同 C", true, "集体攻关")
-      + checkControl("risk", launch ? "风险闭环 R" : "风险可控 R", launch, "底线思维")
-      + checkControl("discipline", launch ? "纪律严明 S" : "保密纪律 S", true, "国家使命");
-    renderMission();
-  }
-  function renderMission() {
-    const v = val("verify"), c = val("collab"), r = val("risk"), s = val("discipline");
-    const go = v && c && r && s;
-    const labels = [["V 科学验证", v], ["C 协同攻关", c], ["R 风险闭环", r], ["S 纪律担当", s]];
-    viz.innerHTML = '<div class="flow">' + labels.map(function (x) {
-      return '<div class="node-card ' + (x[1] ? "truth-on" : "truth-off") + '"><strong>' + esc(x[0]) + '</strong>' + chip(x[1]) + '<p>重大工程的每个条件都不能用侥幸替代。</p></div>';
-    }).join("") + '</div><div class="node-card" style="margin-top:12px"><strong>决策灯</strong><div class="gate-symbol">' + (go ? "GO" : "WAIT") + '</div><p>公式：(V ∧ C ∧ R ∧ S) → 行动。只有条件齐备，行动才稳健。</p></div>';
-    setResult("(V ∧ C ∧ R ∧ S) = " + (go ? "T" : "F"), go ? chip(true) : '<span class="truth-chip false">暂缓</span>', "两弹一星精神中的爱国、协同、求实与纪律，都能在严格条件判断中得到可视化表达。");
-  }
-
-  function setupAI() {
-    controls.innerHTML =
-      rangeControl("data", "数据可信度", PROFILE.params.mode === "neuro" ? 76 : 62, 0, 100, 1, "事实基础")
-      + rangeControl("logic", "逻辑约束", PROFILE.params.mode === "neuro" ? 82 : 68, 0, 100, 1, "规则边界")
-      + rangeControl("explain", "可解释性", PROFILE.params.mode === "neuro" ? 74 : 58, 0, 100, 1, "责任追踪")
-      + rangeControl("public", "公共价值校准", PROFILE.params.mode === "neuro" ? 80 : 70, 0, 100, 1, "向善而用");
-    renderAI();
-  }
-  function renderAI() {
-    const data = val("data"), logic = val("logic"), explain = val("explain"), pub = val("public");
-    const trusted = data >= 65 && logic >= 70 && explain >= 60 && pub >= 70;
-    const score = Math.round((data + logic + explain + pub) / 4);
-    const items = [["数据", data], ["逻辑", logic], ["解释", explain], ["价值", pub]];
-    viz.innerHTML = '<div class="flow">' + items.map(function (x) {
-      const ok = x[1] >= 70;
-      return '<div class="node-card ' + (ok ? "truth-on" : "truth-off") + '"><strong>' + esc(x[0]) + '</strong><div class="gate-symbol" style="font-size:30px">' + x[1] + '</div><p>' + (ok ? "支撑可信输出" : "需要补强") + '</p></div>';
-    }).join("") + '</div><div class="node-card" style="margin-top:12px"><strong>可信 AI 判定</strong><p class="formula-line">(D≥65) ∧ (L≥70) ∧ (E≥60) ∧ (G≥70)</p><div class="pill-row"><span class="pill">综合 ' + score + '</span><span class="pill">' + (trusted ? "可信推进" : "继续校准") + '</span></div></div>';
-    setResult("TrustedAI = " + trusted, trusted ? chip(true) : '<span class="truth-chip false">需校准</span>', "人工智能创新要把技术能力、逻辑约束和公共价值一起纳入判断。");
-  }
-
-  function render() {
-    const family = PROFILE.family;
-    if (family === "connective") renderConnective();
-    else if (family === "symbol") renderSymbol();
-    else if (family === "truth") renderTruth();
-    else if (family === "compare") renderCompare();
-    else if (family === "normal") renderNormal();
-    else if (family === "proof") renderProof();
-    else if (family === "system") renderSystem();
-    else if (family === "mission") renderMission();
-    else if (family === "ai") renderAI();
-  }
-  function init() {
-    const family = PROFILE.family;
-    if (family === "connective") setupConnective();
-    else if (family === "symbol") setupSymbol();
-    else if (family === "truth") setupTruth();
-    else if (family === "compare") setupCompare();
-    else if (family === "normal") setupNormal();
-    else if (family === "proof") setupProof();
-    else if (family === "system") setupSystem();
-    else if (family === "mission") setupMission();
-    else if (family === "ai") setupAI();
-    controls.addEventListener("input", render);
-    controls.addEventListener("change", render);
-  }
-  init();
-})();
-
   </script>
+  <script>window.SYMBOLIZE_LEVEL = "basic";</script>
+  <script src="normal_forms.js"></script>
   <script src="../../shared/ai-tutor.js" defer></script>
 </body>
 </html>
