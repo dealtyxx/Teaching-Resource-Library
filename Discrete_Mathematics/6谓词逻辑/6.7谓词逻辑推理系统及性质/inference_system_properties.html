@@ -1,319 +1,132 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
-    <!-- Open Graph / 社交分享（微信、钉钉、Telegram 等）。部署域名变更时全局替换下方 BASE 即可 -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
-    <meta property="og:title" content="推理系统及性质 - 辩证思维与逻辑真理">
-    <meta property="og:description" content="离散数学课程 - 推理系统及性质 - 辩证思维与逻辑真理">
+    <meta property="og:title" content="一阶系统性质仪表盘 · 进阶层 - 完备但不可判定">
+    <meta property="og:description" content="第6章 谓词逻辑 - 6.7 谓词逻辑推理系统及性质 · 进阶层（哥德尔完备性 / 丘奇 / 半可判定）">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/6%E8%B0%93%E8%AF%8D%E9%80%BB%E8%BE%91/6.7%E8%B0%93%E8%AF%8D%E9%80%BB%E8%BE%91%E6%8E%A8%E7%90%86%E7%B3%BB%E7%BB%9F%E5%8F%8A%E6%80%A7%E8%B4%A8/inference_system_properties.html">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="推理系统及性质 - 辩证思维与逻辑真理">
-    <meta name="twitter:description" content="离散数学课程 - 推理系统及性质 - 辩证思维与逻辑真理">
+    <meta name="twitter:title" content="一阶系统性质仪表盘 · 进阶层 - 完备但不可判定">
+    <meta name="twitter:description" content="第6章 谓词逻辑 - 6.7 谓词逻辑推理系统及性质 · 进阶层">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>推理系统及性质 - 辩证思维与逻辑真理</title>
-    <meta name="description" content="离散数学课程 - 推理系统及性质 - 辩证思维与逻辑真理">
+    <title>一阶系统性质仪表盘 · 进阶层 - 完备但不可判定</title>
+    <meta name="description" content="第6章 谓词逻辑 - 6.7 谓词逻辑推理系统及性质 · 进阶层">
 
-    <link rel="stylesheet" href="inference_system_properties.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="inference_system_properties.css">
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
     <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
+
 <body>
-    <!-- 返回主页浮动按钮 (auto-injected) -->
-    <a href="../../index.html" title="返回课程主页" style="
-        position:fixed;top:14px;left:14px;z-index:9999;
-        display:flex;align-items:center;gap:6px;
-        background:rgba(30,30,40,0.82);color:#fff;
-        padding:7px 14px 7px 10px;border-radius:20px;
-        font-size:13px;font-family:'Noto Serif SC',serif;
-        text-decoration:none;backdrop-filter:blur(8px);
-        border:1px solid rgba(255,255,255,0.15);
-        box-shadow:0 2px 12px rgba(0,0,0,0.35);
-        transition:background .2s;
-    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
-       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
-        🏠 <span>课程主页</span>
-    </a>
+    <a class="home-link" href="../../index.html">← 返回课程主页</a>
 
     <div class="app-container">
-        <!-- 侧边栏 -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="window-controls">
-                    <span class="dot red"></span>
-                    <span class="dot yellow"></span>
-                    <span class="dot green"></span>
-                </div>
-                <h1>红色数理 <span class="highlight">进阶层</span></h1>
-                <p class="subtitle">一阶系统性质仪表盘 · 及性质</p>
+        <aside class="side-panel">
+            <div class="eyebrow">进阶层 · 第6章 谓词逻辑</div>
+            <h1>完备但不可判定</h1>
+            <p class="subtitle">哥德尔完备性 / 丘奇 / 半可判定</p>
+            <p class="tier-line">核心掌握 · 建模求解</p>
+            <p class="intro">🎯 辨析『完备』与『可判定』之别。</p>
+
+            <div class="value-panel">
+                <h3>辩证思维 · 真理与边界</h3>
+                <p>一阶逻辑既完备又不可判定，揭示理性的力量与边界的辩证统一——真理可被证明，却不能被算法一键判定。既坚信真理可知，又承认认识有过程、有边界。</p>
+                <div class="dim-list"><span>辩证思维</span><span>科学精神</span><span>求真探索</span></div>
             </div>
 
-            <div class="controls-wrapper">
-                <!-- 性质类型选择 -->
-                <div class="control-group">
-                    <label>选择系统性质</label>
-                    <div class="property-grid">
-                        <button class="property-btn active" data-property="soundness" aria-label="可靠性 Soundness">
-                            可靠性
-                            <span class="prop-sub">Soundness</span>
-                        </button>
-                        <button class="property-btn" data-property="consistency" aria-label="一致性 Consistency">
-                            一致性
-                            <span class="prop-sub">Consistency</span>
-                        </button>
-                        <button class="property-btn" data-property="completeness" aria-label="完备性 Completeness">
-                            完备性
-                            <span class="prop-sub">Completeness</span>
-                        </button>
-                        <button class="property-btn" data-property="godel" aria-label="哥德尔定理 Gödel's Theorem">
-                            哥德尔定理
-                            <span class="prop-sub">Gödel's Theorem</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 案例选择 -->
-                <div class="control-group">
-                    <label>选择价值引领案例</label>
-                    <select id="caseSelector" class="apple-select">
-                        <option value="0">理论与实践 - 可靠性体现</option>
-                        <option value="1">思想统一 - 一致性原则</option>
-                        <option value="2">全面发展 - 完备性追求</option>
-                        <option value="3">实践检验 - 辩证认识</option>
-                    </select>
-                </div>
-
-                <!-- 动画速度控制 -->
-                <div class="control-group">
-                    <label>演示速度</label>
-                    <input type="range" id="speedControl" min="300" max="2000" value="800" step="100">
-                    <div class="speed-display">
-                        <span>快</span>
-                        <span id="speedValue">800ms</span>
-                        <span>慢</span>
-                    </div>
-                </div>
-
-                <!-- 信息面板 -->
-                <div class="info-panel">
-                    <p id="propertyInfo">可靠性确保推理过程的正确性,正如实事求是的思想路线。</p>
-                    <div class="stats-display">
-                        <div class="stat-item">
-                            <span class="stat-label">当前性质:</span>
-                            <span class="stat-value" id="currentProperty">可靠性</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 操作按钮 -->
-            <div class="actions-footer">
-                <button id="startBtn" class="apple-btn action-btn" aria-label="开始演示">开始演示</button>
-                <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置">重置</button>
-            </div>
+            <div id="controls"></div>
+            <div class="legend-panel" id="legendPanel"></div>
         </aside>
 
-        <!-- 主可视化区域 -->
-        <main class="visualizer-stage">
-            <div class="glass-pane">
-                <div class="visualization-container" id="vizContainer">
-                    <!-- 性质介绍区 -->
-                    <section class="section" id="propertiesIntro">
-                        <h2 class="section-title">推理系统的四大性质</h2>
-                        <div class="properties-overview">
-                            <div class="overview-card soundness-card">
-                                <div class="card-icon">✓</div>
-                                <h3>可靠性 (Soundness)</h3>
-                                <p class="card-definition">如果能够证明φ,那么φ必然为真</p>
-                                <div class="card-formula">⊢ φ → ⊨ φ</div>
-                                <p class="card-meaning">推理系统中可证明的公式都是有效的,不会推导出假命题。</p>
-                                <div class="card-principle">
-                                    <strong>价值内涵:</strong> 理论联系实际,确保理论正确性
-                                </div>
-                            </div>
+        <main class="glass-pane">
+            <section class="mission-card">
+                <span><b>互动任务：</b>逐项判定命题样本的 ⊨ 有效、⊢ 可证与枚举搜索是否终止，辨析『完备』与『可判定』之别，看维恩图与元性质结论联动高亮。</span>
+                <div class="visual-badge">命题样本 · 元性质判定</div>
+            </section>
 
-                            <div class="overview-card consistency-card">
-                                <div class="card-icon">≡</div>
-                                <h3>一致性 (Consistency)</h3>
-                                <p class="card-definition">不存在公式φ使得φ和¬φ同时可证</p>
-                                <div class="card-formula">¬(⊢ φ ∧ ⊢ ¬φ)</div>
-                                <p class="card-meaning">推理系统内部不会产生矛盾,保持逻辑一致。</p>
-                                <div class="card-principle">
-                                    <strong>价值内涵:</strong> 思想统一,避免自相矛盾
-                                </div>
-                            </div>
-
-                            <div class="overview-card completeness-card">
-                                <div class="card-icon">∀</div>
-                                <h3>完备性 (Completeness)</h3>
-                                <p class="card-definition">如果φ为真,那么φ必然可以被证明</p>
-                                <div class="card-formula">⊨ φ → ⊢ φ</div>
-                                <p class="card-meaning">所有有效的公式都能在系统中被证明,不遗漏真理。</p>
-                                <div class="card-principle">
-                                    <strong>价值内涵:</strong> 全面发展,追求真理完备
-                                </div>
-                            </div>
-
-                            <div class="overview-card godel-card">
-                                <div class="card-icon">∃</div>
-                                <h3>哥德尔不完全定理</h3>
-                                <p class="card-definition">足够强的一致系统必然不完备</p>
-                                <div class="card-formula">∃φ (⊭ φ ∧ ⊬ φ ∧ ⊬ ¬φ)</div>
-                                <p class="card-meaning">存在真命题无法在系统内证明,认识具有局限性。</p>
-                                <div class="card-principle">
-                                    <strong>价值内涵:</strong> 实践检验,认识无止境
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- 案例展示区 -->
-                    <section class="section" id="caseDisplay" style="display: none;">
-                        <h2 class="section-title" id="caseTitle"></h2>
-                        <div id="caseContent"></div>
-                    </section>
-
-                    <!-- 验证过程区 -->
-                    <section class="section" id="verificationProcess" style="display: none;">
-                        <h2 class="section-title">性质验证过程</h2>
-                        <div id="verificationSteps"></div>
-                    </section>
-
-                    <!-- 可视化图示区 -->
-                    <section class="section" id="visualDiagram" style="display: none;">
-                        <h2 class="section-title">关系图示</h2>
-                        <div id="diagramContent"></div>
-                    </section>
-
-                    <!-- 结论与启示区 -->
-                    <section class="section" id="conclusionSection" style="display: none;">
-                        <h2 class="section-title">结论与价值启示</h2>
-                        <div id="conclusionContent"></div>
-                    </section>
-
-                    <!-- 辩证思维解读区 -->
-                    <section class="section" id="philosophySection" style="display: none;">
-                        <h2 class="section-title">辩证思维解读</h2>
-                        <div id="philosophyContent"></div>
-                    </section>
-                </div>
+            <div class="sym-pipeline">
+                <section class="sym-stage-card">
+                    <div class="sym-stage-head"><span class="sym-stage-num">1</span><span class="sym-stage-title">系统配置</span><span class="sym-stage-hint">公理 · 推理规则</span></div>
+                    <div id="spSystem" class="sp-system"></div>
+                </section>
+                <section class="sym-stage-card">
+                    <div class="sym-stage-head"><span class="sym-stage-num">2</span><span class="sym-stage-title">命题样本 · 逐项判定</span><span class="sym-stage-hint">⊨ 有效 / ⊢ 可证 / 搜索</span></div>
+                    <div id="spFormulas" class="sp-formulas"></div>
+                    <div id="spEval" class="sp-eval" style="margin-top:12px"></div>
+                </section>
+                <section class="sym-stage-card">
+                    <div class="sym-stage-head"><span class="sym-stage-num">3</span><span class="sym-stage-title">语义 ⊨ × 语法 ⊢ 图</span><span class="sym-stage-hint">点样本可定位</span></div>
+                    <div id="spVenn" class="sp-venn-wrap"></div>
+                </section>
+                <section class="sym-stage-card">
+                    <div class="sym-stage-head"><span class="sym-stage-num">4</span><span class="sym-stage-title">元性质结论</span><span class="sym-stage-hint">可靠 / 完备 / 可判定</span></div>
+                    <div id="spVerdict" class="sp-verdict"></div>
+                </section>
             </div>
         </main>
     </div>
 
-    <script src="inference_system_properties.js"></script>
-
-<!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: transparent;
-    color: inherit;
-    opacity: 0.72;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: none;
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
-</footer>
-
-
+    <footer class="footer">
+        <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+        <div>版权所有 · 项目总负责人：谢鑫</div>
+    </footer>
 
     <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
     <script>
     window.SECTION_META = {
       "layers": [
-            {
-                  "name": "一阶形式系统",
-                  "concepts": "公理 / 推理规则",
-                  "task": "理解一阶逻辑的推理系统。",
-                  "page": "inference_system_properties-basic.html"
-            },
-            {
-                  "name": "完备但不可判定",
-                  "concepts": "哥德尔完备性 / 丘奇 / 半可判定",
-                  "task": "辨析『完备』与『可判定』之别。",
-                  "page": "inference_system_properties.html"
-            },
-            {
-                  "name": "证明助手与 AI 边界",
-                  "concepts": "Lean/Coq / 机械推理边界",
-                  "task": "迁移到机器证明与推理极限。",
-                  "page": "inference_system_properties-extend.html"
-            }
+            { "name": "一阶形式系统", "concepts": "公理 / 推理规则", "task": "理解一阶逻辑的推理系统。", "page": "inference_system_properties-basic.html" },
+            { "name": "完备但不可判定", "concepts": "哥德尔完备性 / 丘奇 / 半可判定", "task": "辨析『完备』与『可判定』之别。", "page": "inference_system_properties.html" },
+            { "name": "证明助手与 AI 边界", "concepts": "Lean/Coq / 机械推理边界", "task": "迁移到机器证明与推理极限。", "page": "inference_system_properties-extend.html" }
       ],
       "chapter": "第6章 谓词逻辑",
       "section": "6.7 谓词逻辑推理系统及性质",
       "title": "谓词推理系统及其性质",
-      "grounding": "本节主题：一阶谓词逻辑的形式系统及元性质——哥德尔完备性定理（有效⇔可证，一阶逻辑可靠且完备）；但有效性『不可判定』（丘奇定理），只是『半可判定』（有效式可枚举证明）。区分『完备性』与『可判定性』是本节难点。",
+      "grounding": "本节主题：一阶逻辑推理系统的元性质。可靠性（可证⇒有效）、完备性（有效⇒可证，哥德尔完备性定理）；但有效性不可判定（丘奇定理）——只是半可判定：有效式可枚举证明，无效式可能不终止。注意区分：一阶逻辑（纯逻辑）完备，含算术的强理论则不完备（哥德尔不完备定理）。本页定位为进阶层：辨析『完备』与『可判定』之别。",
       "steps": [
-            {
-                  "name": "情境引入",
-                  "desc": "一阶逻辑『真的都能证』，却又『无法机械判定』——这矛盾吗？"
-            },
-            {
-                  "name": "对象抽取",
-                  "desc": "把可靠性、完备性、可判定性作为系统的元性质。"
-            },
-            {
-                  "name": "结构建模",
-                  "desc": "用完备性（哥德尔）与不可判定性（丘奇）刻画一阶逻辑。"
-            },
-            {
-                  "name": "推理求解",
-                  "desc": "辨析『完备 ≠ 可判定』，理解半可判定。"
-            },
-            {
-                  "name": "程序验证",
-                  "desc": "用本页交互体会证明可枚举但判定不可机械。"
-            },
-            {
-                  "name": "迁移反思",
-                  "desc": "迁移到可计算性、证明助手、AI 推理边界。"
-            }
+            { "name": "情境引入", "desc": "一阶逻辑既然完备（真理都可证），为什么还说它『不可判定』？" },
+            { "name": "对象抽取", "desc": "区分语义有效 ⊨、语法可证 ⊢ 与判定算法的存在性。" },
+            { "name": "结构建模", "desc": "用可靠 / 完备 / 可判定刻画系统的元性质。" },
+            { "name": "推理求解", "desc": "辨析完备与可判定，理解半可判定的不对称。" },
+            { "name": "程序验证", "desc": "用本页逐项判定样本，观察搜索是否终止。" },
+            { "name": "迁移反思", "desc": "迁移到证明助手、自动推理、AI 的能力边界。" }
       ],
       "ideology": {
             "title": "辩证思维 · 真理与边界",
             "text": "一阶逻辑既完备又不可判定，深刻揭示了理性的力量与边界的辩证统一——真理可被证明，却不能被算法一键判定。这启示我们：既要坚定对真理可知的信念，又要承认认识有过程、有边界，保持探索的耐心与谦逊。",
-            "dims": [
-                  "辩证思维",
-                  "科学精神",
-                  "求真探索"
-            ],
-            "quote": "为学日益，为道日损——完备而不可判定，正是理性既强大又有边界的辩证写照。"
+            "dims": [ "辩证思维", "科学精神", "求真探索" ],
+            "quote": "路漫漫其修远兮——真理可证而不可一键判定，正是理性力量与边界的统一。"
       },
       "reflect": [
-            "『完备性』（有效式都可证）与『可判定性』（能机械判定有效）为何不是一回事？",
-            "半可判定意味着：有效式总能在有限步证出，但无效式可能永远证不出——为什么？",
-            "哥德尔完备性定理与不完备定理，分别说的是什么？别混淆。"
+            "『完备』与『可判定』有何区别？为什么一阶逻辑前者成立、后者不成立？",
+            "『半可判定』是什么意思？为什么有效式可枚举证明、无效式可能不终止？",
+            "一阶逻辑（纯逻辑）完备，为什么含算术的理论却不完备（哥德尔）？"
       ],
       "transfer": [
-            "证明助手（Lean/Coq）依托一阶/高阶逻辑的可靠性，机械检验人写的证明。",
-            {
-                  "t": "AI 推理边界",
-                  "d": "为什么不存在能判定一切数学命题真假的算法？这对自动推理意味着什么？"
-            }
+            "证明助手 Lean/Coq 的自动证明触及不可判定边界，需人工引导。",
+            { "t": "AI 推理边界", "d": "再强的 AI 也无法对任意一阶命题『一键判定』——这是数学定下的边界。" }
       ]
 };
     </script>
+    <script>window.SYMBOLIZE_LEVEL = "advanced";</script>
+    <script src="inference_system_properties.js"></script>
     <script src="../../shared/ai-tutor.js" defer></script>
 
 </body>
+
 </html>

@@ -1,502 +1,357 @@
-/**
- * Inference Rules System
- * 谓词逻辑推理规则系统 - US, ES, EG, UG
- */
+/* =====================================================================
+ * 6.6 谓词逻辑有效推理 —— 三层统一交互引擎（谓词推理规则步进器）
+ * 基础层 / 进阶层 / 拓展层 共用本引擎，按 window.SYMBOLIZE_LEVEL 取难度。
+ *
+ * 交互形态（与本章其它小节同形）：选择推证 → 逐步演证
+ *   点一步推出一行 → 看反馈（用了什么规则、引用了哪些前提行）
+ *   → 看推证记录中当前行高亮、被引用行高亮 → 看推理图节点 / 依赖边高亮
+ *   → 抵达结论行即证毕 QED。完成后可点任意行 / 图节点回看依赖。
+ *
+ * 难度梯度：
+ *   基础层：全称指定 UI，从普遍原则推个别情形（2~4 行）。
+ *   进阶层：四条量词规则 UI/EI/UG/EG 及其限制（4~6 行）。
+ *   拓展层：专家系统前向链 + 归结反演（含 Skolem 与合一，5~7 行）。
+ * ===================================================================== */
+(function (global) {
+  "use strict";
 
-// DOM Elements
-const caseSelect = document.getElementById('caseSelect');
-const startBtn = document.getElementById('startBtn');
-const resetBtn = document.getElementById('resetBtn');
-const speedInput = document.getElementById('speed');
-const statusText = document.getElementById('statusText');
-const stepCount = document.getElementById('stepCount');
-const ruleCount = document.getElementById('ruleCount');
-const currentCase = document.getElementById('currentCase');
-const inferenceSteps = document.getElementById('inferenceSteps');
-const inferenceDiagram = document.getElementById('inferenceDiagram');
-const conclusionDisplay = document.getElementById('conclusionDisplay');
-const philosophyPanel = document.getElementById('philosophyPanel');
-
-// 价值主题推理案例
-const CASES = [
-    {
-        name: "为人民服务 - US规则应用",
-        rule: "US",
-        premise: "∀x(党员(x) → 为人民服务(x))",
-        conclusion: "党员(张三) → 为人民服务(张三)",
-        context: "中国共产党的根本宗旨是全心全意为人民服务",
-        steps: [
-            {
-                num: 1,
-                statement: "∀x(党员(x) → 为人民服务(x))",
-                justification: "前提(普遍原则)",
-                rule: null
-            },
-            {
-                num: 2,
-                statement: "党员(张三) → 为人民服务(张三)",
-                justification: "US规则,将x实例化为张三",
-                rule: "US"
-            }
-        ],
-        philosophy: "这个推理体现了从普遍原则到具体实践的过程。'为人民服务'是中国共产党的根本宗旨,适用于每一位党员。通过US规则,我们将这个普遍真理应用到具体的个体(张三)身上。这启示我们:理论的生命力在于指导实践,普遍原则必须落实到每个人的具体行动中。毛泽东同志指出'全心全意为人民服务',就是要求每个共产党员都身体力行这一宗旨。",
-        theme: "理论与实践",
-        diagram: {
-            type: "downward",
-            nodes: [
-                { level: 0, text: "∀x(党员(x) → 为人民服务(x))", label: "普遍原则" },
-                { level: 1, text: "党员(张三) → 为人民服务(张三)", label: "具体实践" }
-            ]
-        }
+  /* 每个推证：lines[] 顺序排列；前提行 refs:[]；派生行 refs 为所引用行的 0 基下标 */
+  var LEVELS = {
+    basic: {
+      introStatus: "选择一个推证，点「下一步」逐行推演：用全称指定 UI 把普遍原则落到个别个体，再用假言推理得出结论。",
+      legend: [
+        ["UI", "全称指定：∀xP(x) ⊢ P(c)"],
+        ["前提", "P 规则 · 引入前提"],
+        ["MP", "A→B, A ⇒ B（假言推理）"],
+        ["c", "个体常项 / 项"],
+        ["⊢", "由前提推出结论"]
+      ],
+      cases: [
+        { label: "∀xP(x) ⊢ P(a)（UI）", goal: "P(a)", goalDesc: "从『所有个体都 P』推出『个体 a 也 P』。",
+          lines: [
+            { f: "∀x P(x)", rule: "前提", refs: [], note: "引入前提：所有个体都满足 P。" },
+            { f: "P(a)", rule: "UI", refs: [0], note: "全称指定：对前提取个体 a，得 P(a)。" }
+          ] },
+        { label: "∀x(P(x)→Q(x)), P(a) ⊢ Q(a)", goal: "Q(a)", goalDesc: "把普遍规则用到个体，再假言推理。",
+          lines: [
+            { f: "∀x ( P(x) → Q(x) )", rule: "前提", refs: [], note: "引入前提（普遍规则）。" },
+            { f: "P(a)", rule: "前提", refs: [], note: "引入前提（个别事实）。" },
+            { f: "P(a) → Q(a)", rule: "UI", refs: [0], note: "全称指定：把规则用到个体 a。" },
+            { f: "Q(a)", rule: "MP", refs: [2, 1], note: "假言推理：由 P(a)→Q(a) 与 P(a) 得 Q(a)。" }
+          ] },
+        { label: "党员模范带头（思政三段论）", goal: "应模范(张三)", goalDesc: "从普遍原则推出个别党员应模范带头。",
+          lines: [
+            { f: "∀x ( 党员(x) → 应模范(x) )", rule: "前提", refs: [], note: "普遍原则：所有党员都应模范带头。" },
+            { f: "党员(张三)", rule: "前提", refs: [], note: "个别事实：张三是党员。" },
+            { f: "党员(张三) → 应模范(张三)", rule: "UI", refs: [0], note: "全称指定：把原则落实到张三。" },
+            { f: "应模范(张三)", rule: "MP", refs: [2, 1], note: "由规则与事实推出：张三应模范带头。" }
+          ] }
+      ]
     },
-    {
-        name: "英雄榜样 - ES规则应用",
-        rule: "ES",
-        premise: "∃x(英雄(x) ∧ 奉献(x))",
-        conclusion: "英雄(雷锋) ∧ 奉献(雷锋)",
-        context: "中华民族涌现出无数英雄人物",
-        steps: [
-            {
-                num: 1,
-                statement: "∃x(英雄(x) ∧ 奉献(x))",
-                justification: "前提(存在性断言)",
-                rule: null
-            },
-            {
-                num: 2,
-                statement: "英雄(雷锋) ∧ 奉献(雷锋)",
-                justification: "ES规则,引入特殊常量'雷锋'",
-                rule: "ES"
-            }
-        ],
-        philosophy: "这个推理体现了从抽象存在到具体榜样的过程。我们知道'存在英雄',但这是抽象的;通过ES规则,我们引入具体的英雄人物——雷锋,使抽象概念具象化。习近平总书记强调'崇尚英雄才会产生英雄,争做英雄才能英雄辈出'。这个推理告诉我们:理想不是空洞的,每个时代都有具体的英雄榜样;学习英雄,就要从学习具体的英雄事迹开始,让抽象的英雄主义精神在具体人物身上闪光。",
-        theme: "榜样的力量",
-        diagram: {
-            type: "downward",
-            nodes: [
-                { level: 0, text: "∃x(英雄(x) ∧ 奉献(x))", label: "抽象存在" },
-                { level: 1, text: "英雄(雷锋) ∧ 奉献(雷锋)", label: "具体榜样" }
-            ]
-        }
+    advanced: {
+      introStatus: "选择一个推证，逐行演证：综合运用 UI、EI、UG、EG 四条量词规则，并严守 EI 新常项、UG 须任意等限制。",
+      legend: [
+        ["UI", "全称指定：∀x ⊢ c"],
+        ["EI", "存在指定：∃x ⊢ 新常项 c"],
+        ["UG", "全称推广：任意 c ⊢ ∀x"],
+        ["EG", "存在推广：P(c) ⊢ ∃x"],
+        ["新常项", "EI 必须用此前未出现的常项"], ["⊢", "推出"]
+      ],
+      cases: [
+        { label: "∀x(P(x)→Q(x)), ∃xP(x) ⊢ ∃xQ(x)", goal: "∃x Q(x)", goalDesc: "EI 引入新常项，UI 同步实例化，再 EG。",
+          lines: [
+            { f: "∀x ( P(x) → Q(x) )", rule: "前提", refs: [], note: "引入前提（普遍规则）。" },
+            { f: "∃x P(x)", rule: "前提", refs: [], note: "引入前提（存在断言）。" },
+            { f: "P(c)", rule: "EI", refs: [1], note: "存在指定：引入此前未出现的新常项 c。先做 EI，避免与后续 c 冲突。" },
+            { f: "P(c) → Q(c)", rule: "UI", refs: [0], note: "全称指定：对同一常项 c 实例化规则。" },
+            { f: "Q(c)", rule: "MP", refs: [3, 2], note: "假言推理：由 P(c)→Q(c) 与 P(c) 得 Q(c)。" },
+            { f: "∃x Q(x)", rule: "EG", refs: [4], note: "存在推广：由 Q(c) 得 ∃xQ(x)。" }
+          ] },
+        { label: "∀x(P(x)→Q(x)), ∀xP(x) ⊢ ∀xQ(x)", goal: "∀x Q(x)", goalDesc: "对任意 c 推出 Q(c)，再 UG 推广。",
+          lines: [
+            { f: "∀x ( P(x) → Q(x) )", rule: "前提", refs: [], note: "引入前提。" },
+            { f: "∀x P(x)", rule: "前提", refs: [], note: "引入前提。" },
+            { f: "P(c) → Q(c)", rule: "UI", refs: [0], note: "全称指定（c 取任意个体）。" },
+            { f: "P(c)", rule: "UI", refs: [1], note: "全称指定。" },
+            { f: "Q(c)", rule: "MP", refs: [2, 3], note: "假言推理得 Q(c)。" },
+            { f: "∀x Q(x)", rule: "UG", refs: [4], note: "全称推广：c 是任意个体（非 EI 引入），可合法推广为 ∀x。" }
+          ] },
+        { label: "∃x(P(x)∧Q(x)) ⊢ ∃xP(x)", goal: "∃x P(x)", goalDesc: "EI 取出实例，化简后再 EG。",
+          lines: [
+            { f: "∃x ( P(x) ∧ Q(x) )", rule: "前提", refs: [], note: "引入前提。" },
+            { f: "P(c) ∧ Q(c)", rule: "EI", refs: [0], note: "存在指定：引入新常项 c。" },
+            { f: "P(c)", rule: "化简 Simp", refs: [1], note: "合取化简：取左合取项。" },
+            { f: "∃x P(x)", rule: "EG", refs: [2], note: "存在推广：由 P(c) 得 ∃xP(x)。" }
+          ] }
+      ]
     },
-    {
-        name: "个人奋斗 - EG规则应用",
-        rule: "EG",
-        premise: "奋斗(李明) ∧ 成功(李明)",
-        conclusion: "∃x(奋斗(x) ∧ 成功(x))",
-        context: "个人的成功证明了成功的可能性",
-        steps: [
-            {
-                num: 1,
-                statement: "奋斗(李明) ∧ 成功(李明)",
-                justification: "前提(个案事实)",
-                rule: null
-            },
-            {
-                num: 2,
-                statement: "∃x(奋斗(x) ∧ 成功(x))",
-                justification: "EG规则,从个案推广到存在",
-                rule: "EG"
-            }
-        ],
-        philosophy: "这个推理体现了从个别到一般的认识过程。李明通过奋斗获得成功,这是一个具体的事实;通过EG规则,我们得出'存在通过奋斗获得成功的人'这一普遍结论。这体现了马克思主义认识论:认识始于个别,但不止于个别,而要上升到一般。习近平总书记说'幸福都是奋斗出来的',无数个人的成功案例证明了这一真理。每个成功者的故事,都为后来者提供了可能性的证明,激励更多人通过奋斗改变命运。",
-        theme: "个别与一般",
-        diagram: {
-            type: "upward",
-            nodes: [
-                { level: 1, text: "奋斗(李明) ∧ 成功(李明)", label: "个案事实" },
-                { level: 0, text: "∃x(奋斗(x) ∧ 成功(x))", label: "存在命题" }
-            ]
-        }
-    },
-    {
-        name: "普遍真理 - UG规则应用",
-        rule: "UG",
-        premise: "学习(x₀) → 进步(x₀) [x₀任意]",
-        conclusion: "∀x(学习(x) → 进步(x))",
-        context: "从任意个体验证到普遍规律",
-        steps: [
-            {
-                num: 1,
-                statement: "设x₀为任意个体",
-                justification: "引入任意元素",
-                rule: null
-            },
-            {
-                num: 2,
-                statement: "学习(x₀) → 进步(x₀)",
-                justification: "对x₀成立(经验证)",
-                rule: null
-            },
-            {
-                num: 3,
-                statement: "∀x(学习(x) → 进步(x))",
-                justification: "UG规则,x₀是任意的",
-                rule: "UG"
-            }
-        ],
-        philosophy: "这个推理体现了科学规律的形成过程。我们对任意一个人验证:如果学习,就会进步。由于验证对象是任意选取的,不依赖于特殊性质,因此可以推广到所有人。这体现了实践是检验真理的唯一标准:一个命题,只有对任意个体都成立,才能上升为普遍规律。毛泽东同志在《实践论》中指出:'通过实践而发现真理,又通过实践而证实真理'。这个推理告诉我们:真理不是臆想,而是经过反复验证的普遍规律。",
-        theme: "实践与真理",
-        diagram: {
-            type: "upward",
-            nodes: [
-                { level: 1, text: "学习(x₀) → 进步(x₀)", label: "任意个体" },
-                { level: 0, text: "∀x(学习(x) → 进步(x))", label: "普遍规律" }
-            ]
-        }
-    },
-    {
-        name: "完整推理链 - 综合应用",
-        rule: "ALL",
-        premise: "∀x(青年(x) → 有理想(x)), 青年(小王)",
-        conclusion: "∃x 有理想(x)",
-        context: "综合运用US和EG规则",
-        steps: [
-            {
-                num: 1,
-                statement: "∀x(青年(x) → 有理想(x))",
-                justification: "前提1(普遍原则)",
-                rule: null
-            },
-            {
-                num: 2,
-                statement: "青年(小王)",
-                justification: "前提2(个案事实)",
-                rule: null
-            },
-            {
-                num: 3,
-                statement: "青年(小王) → 有理想(小王)",
-                justification: "US规则,从1实例化",
-                rule: "US"
-            },
-            {
-                num: 4,
-                statement: "有理想(小王)",
-                justification: "假言推理,由2和3",
-                rule: "MP"
-            },
-            {
-                num: 5,
-                statement: "∃x 有理想(x)",
-                justification: "EG规则,从4概括",
-                rule: "EG"
-            }
-        ],
-        philosophy: "这个完整推理链展示了理论指导实践、实践验证理论的完整过程。首先,我们有普遍原则'所有青年都有理想'(全称命题);然后,我们识别出小王是青年(个案);通过US规则,我们将普遍原则应用到小王身上;通过逻辑推理,得出小王有理想;最后通过EG规则,从小王这个具体例子上升到'存在有理想的人'。这体现了辩证唯物主义的认识过程:从一般到个别,再从个别回到一般,螺旋上升,不断深化。习近平总书记对青年寄语'立鸿鹄志,做奋斗者',每个有理想的青年,都在用行动证明这一真理。",
-        theme: "认识的螺旋上升",
-        diagram: {
-            type: "complex",
-            nodes: [
-                { level: 0, text: "∀x(青年(x) → 有理想(x))", label: "普遍原则", pos: "left" },
-                { level: 0, text: "青年(小王)", label: "个案事实", pos: "right" },
-                { level: 1, text: "青年(小王) → 有理想(小王)", label: "US应用", pos: "center" },
-                { level: 2, text: "有理想(小王)", label: "推理结论", pos: "center" },
-                { level: 3, text: "∃x 有理想(x)", label: "EG概括", pos: "center" }
-            ]
-        }
+    extend: {
+      introStatus: "选择一个机械推理任务，逐步执行：专家系统前向链触发规则，或归结反演（合一 + 空子句）证明结论。",
+      legend: [
+        ["前向链", "事实触发规则 → 推出新事实"],
+        ["归结", "互补文字 + 合一 → 归结式"],
+        ["合一", "x = c 等代入使文字匹配"],
+        ["□", "空子句 · 矛盾 ⇒ 结论成立"],
+        ["Skolem", "∃ → 常项 / 函数"],
+        ["反演", "否定结论，归结出矛盾"]
+      ],
+      cases: [
+        { label: "专家系统 · 前向链推理", goal: "需检测(张三)", goalDesc: "事实触发规则1、再触发规则2，链式推出结论。",
+          lines: [
+            { f: "∀x ( 发烧(x) → 疑似(x) )", rule: "规则", refs: [], note: "专家系统规则 1。" },
+            { f: "∀x ( 疑似(x) → 需检测(x) )", rule: "规则", refs: [], note: "专家系统规则 2。" },
+            { f: "发烧(张三)", rule: "事实", refs: [], note: "知识库中的事实。" },
+            { f: "发烧(张三) → 疑似(张三)", rule: "UI", refs: [0], note: "规则 1 实例化到张三。" },
+            { f: "疑似(张三)", rule: "前向链(MP)", refs: [3, 2], note: "前向链：事实匹配规则 1 前件，推出新事实。" },
+            { f: "疑似(张三) → 需检测(张三)", rule: "UI", refs: [1], note: "规则 2 实例化。" },
+            { f: "需检测(张三)", rule: "前向链(MP)", refs: [5, 4], note: "前向链：新事实再触发规则 2，推出结论。" }
+          ] },
+        { label: "归结反演 · 苏格拉底", goal: "必死(苏格拉底)", goalDesc: "否定结论，与前提归结出空子句。",
+          lines: [
+            { f: "{ ¬人(x), 必死(x) }", rule: "规则子句", refs: [], note: "前提 ∀x(人(x)→必死(x)) 化为子句。" },
+            { f: "{ 人(苏格拉底) }", rule: "事实子句", refs: [], note: "前提事实子句。" },
+            { f: "{ ¬必死(苏格拉底) }", rule: "¬结论", refs: [], note: "反演：否定待证结论。" },
+            { f: "{ 必死(苏格拉底) }", rule: "归结", refs: [0, 1], note: "归结：合一 x=苏格拉底，消去 人 / ¬人。" },
+            { f: "□（空子句）", rule: "归结", refs: [2, 3], note: "与 ¬必死 归结得空子句——矛盾，故结论成立。" }
+          ] },
+        { label: "归结反演 · 含 ∃（Skolem + 合一）", goal: "∃x Q(x)", goalDesc: "∃ 经 Skolem 化为常项，归结出空子句。",
+          lines: [
+            { f: "{ ¬P(x), Q(x) }", rule: "规则子句", refs: [], note: "前提 ∀x(P(x)→Q(x)) 子句。" },
+            { f: "{ P(c) }", rule: "Skolem子句", refs: [], note: "前提 ∃xP(x) → Skolem 常项 c。" },
+            { f: "{ ¬Q(y) }", rule: "¬结论", refs: [], note: "反演：¬∃xQ(x) = ∀x¬Q(x) → 子句 ¬Q(y)。" },
+            { f: "{ Q(c) }", rule: "归结", refs: [0, 1], note: "归结：合一 x=c，消去 P / ¬P。" },
+            { f: "□（空子句）", rule: "归结", refs: [2, 3], note: "归结：合一 y=c，得空子句——证毕。" }
+          ] }
+      ]
     }
-];
+  };
 
-// State
-let currentCaseData = null;
-let selectedRule = 'US';
-let isRunning = false;
-let shouldStop = false;
-
-// Helper Functions
-function getDelay() {
-    const val = parseInt(speedInput.value);
-    return Math.max(50, 1000 - (val * 10));
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// 渲染当前案例
-function renderCurrentCase(caseData) {
-    currentCase.innerHTML = `
-        <div class="case-card">
-            <div class="case-title">
-                <h3>${caseData.name}</h3>
-                <span class="case-rule-badge ${caseData.rule.toLowerCase()}">${caseData.rule}</span>
-            </div>
-            <div class="case-content">
-                <div class="case-item premise">
-                    <div class="item-label">前提:</div>
-                    <div class="item-value">${caseData.premise}</div>
-                </div>
-                <div class="inference-arrow">⟹</div>
-                <div class="case-item conclusion">
-                    <div class="item-label">结论:</div>
-                    <div class="item-value">${caseData.conclusion}</div>
-                </div>
-            </div>
-            <div class="case-context">
-                <strong>背景:</strong> ${caseData.context}
-            </div>
-        </div>
-    `;
-}
-
-// 渲染推理步骤
-async function renderInferenceSteps(steps) {
-    inferenceSteps.innerHTML = '';
-
-    statusText.textContent = '正在执行推理步骤...';
-
-    const usedRules = new Set();
-
-    for (let i = 0; i < steps.length; i++) {
-        if (shouldStop) break;
-
-        const step = steps[i];
-        await sleep(getDelay());
-
-        const stepEl = document.createElement('div');
-        stepEl.className = 'inference-step';
-
-        if (step.rule) {
-            usedRules.add(step.rule);
-        }
-
-        stepEl.innerHTML = `
-            <div class="step-num">${step.num}</div>
-            <div class="step-content">
-                <div class="step-statement">${step.statement}</div>
-                <div class="step-justification">
-                    ${step.justification}
-                    ${step.rule ? `<span class="rule-tag ${step.rule.toLowerCase()}">${step.rule}</span>` : ''}
-                </div>
-            </div>
-        `;
-
-        inferenceSteps.appendChild(stepEl);
-
-        setTimeout(() => stepEl.classList.add('visible'), 10);
-
-        stepCount.textContent = i + 1;
-        ruleCount.textContent = usedRules.size;
-    }
-}
-
-// 渲染推理图示
-async function renderInferenceDiagram(diagram) {
-    inferenceDiagram.innerHTML = '';
-
-    statusText.textContent = '正在构建推理图...';
-    await sleep(getDelay());
-
-    const diagramEl = document.createElement('div');
-    diagramEl.className = `diagram-flow ${diagram.type}`;
-
-    if (diagram.type === 'complex') {
-        // 复杂图示(多个前提)
-        const levels = {};
-        diagram.nodes.forEach(node => {
-            if (!levels[node.level]) levels[node.level] = [];
-            levels[node.level].push(node);
-        });
-
-        Object.keys(levels).sort().forEach(level => {
-            const levelEl = document.createElement('div');
-            levelEl.className = 'diagram-level';
-
-            levels[level].forEach(node => {
-                const nodeEl = document.createElement('div');
-                nodeEl.className = `diagram-node ${node.pos || 'center'}`;
-                nodeEl.innerHTML = `
-                    <div class="node-content">${node.text}</div>
-                    <div class="node-label">${node.label}</div>
-                `;
-                levelEl.appendChild(nodeEl);
-            });
-
-            diagramEl.appendChild(levelEl);
-
-            if (parseInt(level) < Object.keys(levels).length - 1) {
-                const arrow = document.createElement('div');
-                arrow.className = 'diagram-arrow';
-                arrow.textContent = '⬇';
-                diagramEl.appendChild(arrow);
-            }
-        });
-
-    } else {
-        // 简单图示(单一推理链)
-        diagram.nodes.forEach((node, idx) => {
-            const nodeEl = document.createElement('div');
-            nodeEl.className = 'diagram-node';
-            nodeEl.innerHTML = `
-                <div class="node-content">${node.text}</div>
-                <div class="node-label">${node.label}</div>
-            `;
-            diagramEl.appendChild(nodeEl);
-
-            setTimeout(() => nodeEl.classList.add('visible'), idx * 300);
-
-            if (idx < diagram.nodes.length - 1) {
-                const arrow = document.createElement('div');
-                arrow.className = 'diagram-arrow';
-                arrow.textContent = diagram.type === 'upward' ? '⬆' : '⬇';
-                diagramEl.appendChild(arrow);
-            }
-        });
-    }
-
-    inferenceDiagram.appendChild(diagramEl);
-    setTimeout(() => diagramEl.classList.add('visible'), 10);
-}
-
-// 渲染结论
-async function renderConclusion(caseData) {
-    conclusionDisplay.innerHTML = '';
-
-    statusText.textContent = '正在生成推理结论...';
-    await sleep(getDelay());
-
-    const conclusionEl = document.createElement('div');
-    conclusionEl.className = 'conclusion-card';
-
-    conclusionEl.innerHTML = `
-        <div class="conclusion-header">
-            <span class="conclusion-icon">✓</span>
-            <h3>推理有效</h3>
-        </div>
-        <div class="conclusion-body">
-            <div class="conclusion-formula">
-                ${caseData.conclusion}
-            </div>
-            <div class="conclusion-explanation">
-                <p>通过 <strong>${caseData.rule}</strong> 规则,我们成功从前提推导出结论。</p>
-                <p>该推理过程遵循了谓词逻辑的形式规则,结论必然为真。</p>
-            </div>
-            <div class="conclusion-validity">
-                <div class="validity-badge">✓ 形式有效</div>
-                <div class="validity-badge">✓ 逻辑严密</div>
-                <div class="validity-badge">✓ 结论可靠</div>
-            </div>
-        </div>
-    `;
-
-    conclusionDisplay.appendChild(conclusionEl);
-    setTimeout(() => conclusionEl.classList.add('visible'), 10);
-}
-
-// 渲染哲学解读
-async function renderPhilosophy(caseData) {
-    philosophyPanel.innerHTML = '';
-
-    statusText.textContent = '正在生成价值解读...';
-    await sleep(getDelay());
-
-    const philEl = document.createElement('div');
-    philEl.className = 'philosophy-panel-content';
-
-    philEl.innerHTML = `
-        <div class="phil-header">
-            <span class="phil-icon">📚</span>
-            <h3>${caseData.theme}</h3>
-        </div>
-        <div class="phil-body">
-            <p class="phil-text">${caseData.philosophy}</p>
-        </div>
-        <div class="phil-footer">
-            <div class="phil-tags">
-                <span class="phil-tag">马克思主义认识论</span>
-                <span class="phil-tag">辩证法</span>
-                <span class="phil-tag">${caseData.theme}</span>
-            </div>
-        </div>
-    `;
-
-    philosophyPanel.appendChild(philEl);
-    setTimeout(() => philEl.classList.add('visible'), 10);
-}
-
-// 主流程
-async function startInference() {
-    if (isRunning) return;
-
-    isRunning = true;
-    shouldStop = false;
-    startBtn.disabled = true;
-    caseSelect.disabled = true;
-
-    try {
-        const caseData = CASES[parseInt(caseSelect.value)];
-        currentCaseData = caseData;
-
-        // 渲染案例
-        renderCurrentCase(caseData);
-        await sleep(500);
-
-        // 推理步骤
-        await renderInferenceSteps(caseData.steps);
-        await sleep(300);
-
-        if (!shouldStop) {
-            // 推理图示
-            await renderInferenceDiagram(caseData.diagram);
-            await sleep(300);
-
-            // 结论
-            await renderConclusion(caseData);
-            await sleep(300);
-
-            // 哲学解读
-            await renderPhilosophy(caseData);
-
-            statusText.textContent = '推理完成!';
-        }
-
-    } catch (error) {
-        console.error('推理错误:', error);
-        statusText.textContent = '推理出错: ' + error.message;
-    }
-
-    isRunning = false;
-    startBtn.disabled = false;
-    caseSelect.disabled = false;
-}
-
-function resetInference() {
-    shouldStop = true;
-    isRunning = false;
-
-    currentCase.innerHTML = '';
-    inferenceSteps.innerHTML = '';
-    inferenceDiagram.innerHTML = '';
-    conclusionDisplay.innerHTML = '';
-    philosophyPanel.innerHTML = '';
-
-    stepCount.textContent = '0';
-    ruleCount.textContent = '0';
-    statusText.textContent = '准备推理';
-
-    startBtn.disabled = false;
-    caseSelect.disabled = false;
-}
-
-// 事件监听
-caseSelect.addEventListener('change', () => {
-    resetInference();
-});
-
-document.querySelectorAll('.rule-type-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.rule-type-btn').forEach(b => b.classList.remove('active'));
-        e.currentTarget.classList.add('active');
-        selectedRule = e.currentTarget.dataset.rule;
+  function computeCase(c) {
+    var lines = c.lines.map(function (ln, i) {
+      return {
+        i: i, f: ln.f, rule: ln.rule, refs: ln.refs || [], note: ln.note || "",
+        isPrem: (ln.refs || []).length === 0,
+        isFinal: i === c.lines.length - 1,
+        isContra: /□|矛盾/.test(ln.f)
+      };
     });
-});
+    return { goal: c.goal, goalDesc: c.goalDesc, premises: lines.filter(function (l) { return l.isPrem; }), lines: lines };
+  }
 
-startBtn.addEventListener('click', startInference);
-resetBtn.addEventListener('click', resetInference);
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = { LEVELS: LEVELS, computeCase: computeCase };
+  }
 
-// 初始化
-window.addEventListener('load', () => {
-    currentCaseData = CASES[0];
-    renderCurrentCase(currentCaseData);
-});
+  /* ====================== 以下仅浏览器运行 ====================== */
+  if (typeof document === "undefined") return;
+
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function esc(v) {
+    return String(v == null ? "" : v).replace(/[&<>"']/g, function (ch) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
+    });
+  }
+  function svgEl(type, attrs) { var el = document.createElementNS(SVGNS, type); if (attrs) for (var k in attrs) el.setAttribute(k, attrs[k]); return el; }
+  function byId(id) { return document.getElementById(id); }
+  function refStr(refs) { return refs.map(function (r) { return r + 1; }).join(","); }
+
+  function run() {
+    var levelKey = global.SYMBOLIZE_LEVEL || "basic";
+    var cfg = LEVELS[levelKey] || LEVELS.basic;
+
+    var controlsEl = byId("controls");
+    var goalEl = byId("ipGoal");
+    var tableEl = byId("ipTable");
+    var evalEl = byId("ipEval");
+    var graphEl = byId("ipGraph");
+    if (!controlsEl || !tableEl) return;
+
+    var pr = null;
+    var p = 0, manualFocus = null, autoTimer = null;
+    var rowEls = [], nodeEls = [], arcEls = [];
+    var statusEl, progBar, progNum, prevBtn, nextBtn, autoBtn;
+
+    function renderControls() {
+      var opts = cfg.cases.map(function (c, i) { return '<option value="' + i + '">' + esc(c.label) + '</option>'; }).join("");
+      controlsEl.innerHTML =
+        '<div class="control-group"><label><span>选择推证</span><small>前提 ⊢ 结论</small></label>' +
+          '<select id="ipSelect">' + opts + '</select></div>' +
+        '<div class="control-group"><label><span>逐步演证</span><small>点一步 · 看反馈</small></label>' +
+          '<div class="sym-step-row">' +
+            '<button class="sym-step-btn" id="ipPrev">◀ 上一步</button>' +
+            '<button class="sym-step-btn sym-primary" id="ipNext">下一步 ▶</button>' +
+            '<button class="sym-step-btn" id="ipAuto">⏵ 自动播放</button>' +
+            '<button class="sym-step-btn" id="ipReset">↺ 重置</button>' +
+          '</div></div>' +
+        '<div class="control-group"><label><span>进度</span></label>' +
+          '<div class="sym-progress-wrap"><div class="sym-progress"><i id="ipProgBar"></i></div>' +
+          '<span class="sym-progress-num" id="ipProgNum">0 / 0</span></div></div>' +
+        '<div class="control-group"><label><span>当前反馈</span></label>' +
+          '<div class="sym-status" id="ipStatus"></div></div>';
+      statusEl = byId("ipStatus"); progBar = byId("ipProgBar"); progNum = byId("ipProgNum");
+      prevBtn = byId("ipPrev"); nextBtn = byId("ipNext"); autoBtn = byId("ipAuto");
+      byId("ipSelect").addEventListener("change", function (e) { loadCase(+e.target.value); });
+      prevBtn.addEventListener("click", function () { stopAuto(); step(-1); });
+      nextBtn.addEventListener("click", function () { stopAuto(); step(1); });
+      byId("ipReset").addEventListener("click", function () { stopAuto(); p = 0; manualFocus = null; render(); });
+      autoBtn.addEventListener("click", toggleAuto);
+    }
+
+    function renderLegend() {
+      var box = byId("legendPanel"); if (!box) return;
+      box.innerHTML = '<div class="legend-title">推理规则速查</div><div class="legend-grid">' +
+        cfg.legend.map(function (it) { return '<div class="legend-item"><span class="sym">' + esc(it[0]) + '</span><span class="desc">' + esc(it[1]) + '</span></div>'; }).join("") + '</div>';
+    }
+
+    function loadCase(idx) {
+      stopAuto();
+      pr = computeCase(cfg.cases[idx]);
+      p = 0; manualFocus = null;
+      renderGoal(); renderTable(); renderGraph();
+      evalEl.innerHTML = "";
+      render();
+    }
+
+    function renderGoal() {
+      var prem = pr.premises.map(function (l) { return "<code>" + esc(l.f) + "</code>"; }).join("，");
+      goalEl.innerHTML = '<div class="g-premises"><b>前提：</b>' + prem + '　<b>⊢</b></div>' +
+        '<div class="g-goal">' + esc(pr.goal) + '</div>' +
+        '<div class="g-desc">' + esc(pr.goalDesc) + '</div>';
+    }
+
+    function renderTable() {
+      var body = pr.lines.map(function (l, i) {
+        var reason = l.isPrem ? '<span class="r-rule">' + esc(l.rule) + '</span>' :
+          '<span class="r-rule">' + esc(l.rule) + '</span> <span class="r-refs">(' + refStr(l.refs) + ')</span>';
+        return '<tr class="ip-row' + (l.isPrem ? " is-prem" : "") + (l.isFinal ? " is-final" : "") + '" data-row="' + i + '">' +
+          '<td class="c-no">' + (i + 1) + '</td><td class="c-f">' + esc(l.f) + '</td><td class="c-r">' + reason + '</td></tr>';
+      }).join("");
+      tableEl.innerHTML = '<table class="ip-table"><thead><tr><th>步</th><th>公式 / 子句</th><th>依据（引用行）</th></tr></thead><tbody>' + body + '</tbody></table>';
+      rowEls = Array.prototype.slice.call(tableEl.querySelectorAll("tr.ip-row"));
+      rowEls.forEach(function (tr, i) { tr.addEventListener("click", function () { clickRow(i); }); });
+    }
+
+    function renderGraph() {
+      graphEl.innerHTML = "";
+      var n = pr.lines.length, VW = 760, pad = 12, rowH = 50, nodeW = 360, nodeH = 36;
+      var cx = VW * 0.42, leftArc = cx - nodeW / 2;
+      var H = pad * 2 + n * rowH;
+      var svg = svgEl("svg", { id: "ipGraph", viewBox: "0 0 " + VW + " " + H, width: "100%", height: H });
+      var g = svgEl("g"); svg.appendChild(g);
+      function yOf(i) { return pad + i * rowH + nodeH / 2; }
+
+      arcEls = [];
+      pr.lines.forEach(function (l, i) {
+        l.refs.forEach(function (r) {
+          var x = cx + nodeW / 2, y1 = yOf(r), y2 = yOf(i);
+          var bulge = 30 + Math.min(70, (i - r) * 12);
+          var path = svgEl("path", { d: "M " + x + " " + y1 + " C " + (x + bulge) + " " + y1 + " " + (x + bulge) + " " + y2 + " " + x + " " + y2,
+            stroke: "#2f5f9f", "stroke-width": 1.8, fill: "none" });
+          path.setAttribute("class", "ip-arc"); path.dataset.to = i;
+          g.appendChild(path);
+          arcEls.push({ el: path, to: i, from: r });
+        });
+      });
+
+      nodeEls = pr.lines.map(function (l, i) {
+        var y = pad + i * rowH;
+        var fill = l.isContra ? "#f6d3ce" : l.isFinal ? "#cdebd9" : l.isPrem ? "#dbe6f3" : "#fdeccd";
+        var stroke = l.isContra ? "#b42318" : l.isFinal ? "#2f7d57" : l.isPrem ? "#2f5f9f" : "#c58a1f";
+        var ng = svgEl("g"); ng.setAttribute("class", "ip-node"); ng.dataset.row = i;
+        var rect = svgEl("rect", { x: leftArc, y: y, width: nodeW, height: nodeH, rx: 8, fill: fill, stroke: stroke, "stroke-width": 1.6 });
+        var num = svgEl("text", { x: leftArc + 16, y: y + nodeH / 2, "text-anchor": "middle", "dominant-baseline": "central", fill: "#6c5a52", "font-size": 12, "font-weight": "800", "font-family": "JetBrains Mono, monospace" }); num.textContent = (i + 1);
+        var tf = svgEl("text", { x: leftArc + 34, y: y + nodeH / 2, "dominant-baseline": "central", fill: "#2d211d", "font-size": 13, "font-weight": "700", "font-family": "JetBrains Mono, monospace" }); tf.textContent = l.f;
+        var tr = svgEl("text", { x: leftArc + nodeW - 10, y: y + nodeH / 2, "text-anchor": "end", "dominant-baseline": "central", fill: stroke, "font-size": 11, "font-weight": "800" }); tr.textContent = l.rule;
+        ng.appendChild(rect); ng.appendChild(num); ng.appendChild(tf); ng.appendChild(tr);
+        ng.addEventListener("click", function () { clickRow(i); });
+        g.appendChild(ng);
+        return { g: ng, rect: rect };
+      });
+      graphEl.appendChild(svg);
+    }
+
+    function total() { return pr.lines.length; }
+    function step(dir) { manualFocus = null; p = Math.max(0, Math.min(total(), p + dir)); render(); }
+    function clickRow(i) {
+      stopAuto();
+      var L = pr.lines.length;
+      if (p < L) { p = i + 1; manualFocus = null; }
+      else { manualFocus = (manualFocus === i ? null : i); }
+      render();
+    }
+    function toggleAuto() {
+      if (autoTimer) { stopAuto(); return; }
+      if (p >= total()) { p = 0; manualFocus = null; render(); }
+      autoBtn.classList.add("sym-playing"); autoBtn.textContent = "⏸ 暂停";
+      autoTimer = setInterval(function () { if (p >= total()) { stopAuto(); return; } manualFocus = null; p += 1; render(); }, 1050);
+    }
+    function stopAuto() { if (autoTimer) { clearInterval(autoTimer); autoTimer = null; } if (autoBtn) { autoBtn.classList.remove("sym-playing"); autoBtn.textContent = "⏵ 自动播放"; } }
+
+    function render() {
+      var L = pr.lines.length;
+      var linesShown = p;
+      var done = p >= L;
+      var stepLine = (p >= 1 && p <= L) ? p - 1 : null;
+      var focusLine = (manualFocus != null) ? manualFocus : stepLine;
+      var citedSet = {};
+      if (focusLine != null) pr.lines[focusLine].refs.forEach(function (r) { citedSet[r] = true; });
+
+      for (var k = 0; k < L; k++) {
+        var revealed = k < linesShown;
+        var isCur = (k === focusLine);
+        var isCited = !!citedSet[k] && revealed;
+        if (rowEls[k]) {
+          rowEls[k].classList.toggle("sym-pending", !revealed);
+          rowEls[k].classList.toggle("sym-cur", isCur);
+          rowEls[k].classList.toggle("is-cited", isCited && !isCur);
+        }
+        if (nodeEls[k]) {
+          nodeEls[k].g.classList.toggle("sym-pending", !revealed);
+          nodeEls[k].g.classList.toggle("sym-cur", isCur);
+          nodeEls[k].g.classList.toggle("is-cited", isCited && !isCur);
+        }
+      }
+      arcEls.forEach(function (a) {
+        a.el.classList.toggle("is-active", focusLine != null && a.to === focusLine);
+        a.el.style.opacity = (a.to < linesShown) ? "" : "0";
+      });
+
+      evalEl.innerHTML = evalHTML(focusLine, done);
+      progNum.textContent = p + " / " + L;
+      progBar.style.width = (L ? (p / L * 100) : 0) + "%";
+      prevBtn.disabled = (p <= 0 && manualFocus == null);
+      nextBtn.disabled = (p >= L);
+      statusEl.innerHTML = statusHTML(p, focusLine, done);
+    }
+
+    function evalHTML(focusLine, done) {
+      if (focusLine == null) return '<span style="color:#6c5a52">点「下一步」逐行推演。前提行直接引入；派生行由推理规则从已得的行推出。</span>';
+      var l = pr.lines[focusLine];
+      var head = '<div>第 <b>' + (focusLine + 1) + '</b> 行：<span class="ev-f">' + esc(l.f) + '</span></div>';
+      var body;
+      if (l.isPrem) body = '<div style="margin-top:4px"><span class="ev-rule">' + esc(l.rule) + '</span>：' + esc(l.note) + '</div>';
+      else body = '<div style="margin-top:4px">规则 <span class="ev-rule">' + esc(l.rule) + '</span>，引用第 <span class="ev-ref">' + refStr(l.refs) + '</span> 行：' + esc(l.note) + '</div>';
+      if (done && l.isFinal) body += '<div style="margin-top:6px;color:#1d6b43;font-weight:800">✅ 抵达结论 ' + esc(pr.goal) + '，证毕（QED）。</div>';
+      return head + body;
+    }
+
+    function statusHTML(pp, focusLine, done) {
+      if (pp === 0) return cfg.introStatus + (pr.goalDesc ? '<br><b>目标：</b>' + esc(pr.goal) + ' —— ' + esc(pr.goalDesc) : "");
+      if (focusLine != null) {
+        var l = pr.lines[focusLine];
+        var via = l.isPrem ? '（' + esc(l.rule) + '）' : '（' + esc(l.rule) + ' · 引用 ' + refStr(l.refs) + '）';
+        var msg = '第 <b>' + (focusLine + 1) + '</b> 行：<b>' + esc(l.f) + '</b> ' + via + '。';
+        if (done && l.isFinal) msg = '✅ <b>证毕</b>：已推出结论 ' + esc(pr.goal) + '。可点任意行回看依赖。';
+        return msg;
+      }
+      return "";
+    }
+
+    renderControls();
+    renderLegend();
+    loadCase(0);
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
+  else run();
+})(typeof window !== "undefined" ? window : globalThis);
