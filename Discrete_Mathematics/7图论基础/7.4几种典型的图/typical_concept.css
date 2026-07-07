@@ -1,0 +1,491 @@
+/* ============================================================
+   7.1 图的基本概念 · 三层统一交互引擎样式（暖纸风）
+   basic / advanced / extend 共用：点一步、看反馈、看公式项高亮、看图高亮
+   ============================================================ */
+:root {
+  --ink: #2c1810;
+  --muted: #6b4a38;
+  --paper: #fff8ec;
+  --card: rgba(255, 253, 246, 0.92);
+  --line: rgba(116, 55, 31, 0.18);
+  --red: #d63b1d;
+  --red-2: #de5b3d;
+  --gold: #c58a1f;
+  --green: #2f7d57;
+  --blue: #2f5f9f;
+  --shadow: 0 18px 50px rgba(69, 31, 15, 0.14);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: "Noto Serif SC", "Microsoft YaHei", serif;
+  background:
+    radial-gradient(circle at 16% 12%, rgba(222, 91, 61, 0.18), transparent 28%),
+    radial-gradient(circle at 82% 8%, rgba(47, 95, 159, 0.14), transparent 26%),
+    linear-gradient(135deg, #fff7e6 0%, #f8ead3 45%, #f3dfc7 100%);
+  overflow: hidden;
+}
+.home-link {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 10000;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.5);
+  background: rgba(44, 24, 16, 0.82);
+  color: #fff;
+  text-decoration: none;
+  font-size: 13px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  backdrop-filter: blur(10px);
+}
+.app-container {
+  width: min(1440px, calc(100vw - 32px));
+  height: calc(100vh - 166px);
+  min-height: 640px;
+  margin: 74px auto 0;
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  gap: 18px;
+}
+.side-panel,
+.glass-pane {
+  border: 1px solid var(--line);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+}
+.side-panel {
+  border-radius: 8px;
+  padding: 20px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+.glass-pane {
+  border-radius: 8px;
+  padding: 18px;
+  overflow: auto;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 14px;
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(214, 59, 29, 0.22);
+  color: var(--red);
+  background: rgba(214, 59, 29, 0.08);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ---- 左栏标题四行区（标题 / 概念 / 梯度 / 任务）---- */
+.side-panel > .eyebrow { order: 1; align-self: flex-start; margin-bottom: 10px; }
+.side-panel > h1 {
+  order: 2;
+  margin: 0 0 6px;
+  font-family: "Ma Shan Zheng", "Noto Serif SC", cursive;
+  font-size: 2.1rem;
+  font-weight: 400;
+  line-height: 1.16;
+  color: #d63b1d;
+}
+.side-panel > h1 .highlight { color: #ffb400; }
+.side-panel > .subtitle {
+  order: 3;
+  margin: 0 0 6px;
+  color: #6b4a38;
+  line-height: 1.6;
+  font-size: 15px;
+}
+.side-panel > .tier-line {
+  order: 4;
+  margin: 0 0 10px;
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: rgba(47, 95, 159, 0.1);
+  color: var(--blue);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.side-panel > .intro { order: 5; }
+.side-panel > #dm-ideo-page,
+.side-panel > .value-panel { order: 6; }
+.side-panel > #controls { order: 7; }
+.intro {
+  margin: 0 0 16px;
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+/* ---- 思政价值卡 ---- */
+.value-panel {
+  border-radius: 8px;
+  border: 1px solid rgba(116, 55, 31, 0.16);
+  background: rgba(255,255,255,0.66);
+  padding: 14px;
+  margin: 4px 0 14px;
+  border-left: 4px solid var(--red);
+}
+.value-panel h3 { margin: 0 0 8px; font-size: 17px; color: var(--red); }
+.value-panel p { margin: 0; line-height: 1.7; color: #563c31; font-size: 14px; }
+.dim-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.dim-list span {
+  border-radius: 999px;
+  background: rgba(197, 138, 31, 0.13);
+  color: #8a5d0b;
+  padding: 4px 9px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ---- 步骤控制器 ---- */
+#controls { display: grid; gap: 12px; }
+.step-controller {
+  border-radius: 8px;
+  border: 1px solid rgba(116, 55, 31, 0.16);
+  background: rgba(255,255,255,0.7);
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+.step-progress-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-weight: 700;
+  color: #4e362d;
+  font-size: 14px;
+}
+.step-progress-head small { color: var(--muted); font-weight: 400; }
+.progress-track {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(116,55,31,0.12);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--red), var(--gold));
+  transition: width .35s ease;
+}
+.step-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.step-btn {
+  border-radius: 8px;
+  border: 1px solid rgba(116,55,31,0.22);
+  background: #fffaf2;
+  color: var(--ink);
+  padding: 9px 10px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .18s ease;
+}
+.step-btn:hover { background: #fff; border-color: var(--red); transform: translateY(-1px); }
+.step-btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+.step-btn.primary { background: var(--red); color: #fff; border-color: var(--red); }
+.step-btn.primary:hover { background: #9c1c13; }
+.step-btn.wide { grid-column: 1 / -1; }
+.step-btn.playing { background: var(--gold); color: #fff; border-color: var(--gold); }
+
+/* ---- 步骤清单 ---- */
+.step-list { display: grid; gap: 6px; }
+.step-item {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 7px 9px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  color: #6b4a38;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.step-item:hover { background: rgba(116,55,31,0.05); }
+.step-item .num {
+  display: grid;
+  place-items: center;
+  width: 24px; height: 24px;
+  border-radius: 999px;
+  background: rgba(116,55,31,0.12);
+  color: #7a5240;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 800;
+  font-size: 12px;
+}
+.step-item.active {
+  background: rgba(214, 59, 29,0.08);
+  border-color: rgba(214, 59, 29,0.25);
+  color: var(--red);
+  font-weight: 700;
+}
+.step-item.active .num { background: var(--red); color: #fff; }
+.step-item.done .num { background: var(--green); color: #fff; }
+
+/* ---- 右栏 ---- */
+.mission-card {
+  border-radius: 8px;
+  border: 1px solid rgba(116, 55, 31, 0.16);
+  background: rgba(255,255,255,0.66);
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.mission-card b { color: var(--red); }
+.mission-card span { color: var(--muted); line-height: 1.6; }
+.visual-badge {
+  white-space: nowrap;
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(47,95,159,0.1);
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.logic-board {
+  border-radius: 8px;
+  border: 1px solid rgba(116,55,31,0.16);
+  background:
+    linear-gradient(90deg, rgba(116,55,31,0.05) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(116,55,31,0.05) 1px, transparent 1px),
+    rgba(255,255,255,0.56);
+  background-size: 28px 28px;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+.graph-canvas {
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+  display: block;
+}
+.canvas-hint {
+  position: absolute;
+  left: 14px;
+  bottom: 12px;
+  font-size: 12px;
+  color: var(--muted);
+  background: rgba(255,250,242,0.82);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 11px;
+  pointer-events: none;
+}
+
+/* ---- 公式 / 反馈卡 ---- */
+.step-card {
+  border-radius: 8px;
+  border: 1px solid rgba(116,55,31,0.16);
+  background: rgba(255,255,255,0.78);
+  padding: 14px 16px;
+  display: grid;
+  gap: 10px;
+}
+.formula-line {
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 800;
+  font-size: 16px;
+  color: #2c1810;
+  line-height: 1.7;
+  word-break: break-word;
+}
+.formula-line .ft {
+  padding: 1px 5px;
+  border-radius: 6px;
+  transition: all .2s ease;
+}
+.formula-line .ft.hot {
+  background: rgba(214, 59, 29,0.14);
+  color: var(--red);
+  box-shadow: 0 0 0 1px rgba(214, 59, 29,0.3) inset;
+}
+.formula-line .ft.hot-blue {
+  background: rgba(47,95,159,0.14);
+  color: var(--blue);
+  box-shadow: 0 0 0 1px rgba(47,95,159,0.3) inset;
+}
+.formula-line .ft.hot-green {
+  background: rgba(47,125,87,0.14);
+  color: var(--green);
+  box-shadow: 0 0 0 1px rgba(47,125,87,0.3) inset;
+}
+.step-status {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border-radius: 8px;
+  background: rgba(255,250,242,0.86);
+  border: 1px solid var(--line);
+  padding: 11px 13px;
+  color: #5e4338;
+  line-height: 1.7;
+  font-size: 14px;
+}
+.step-status .badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 800;
+  font-size: 12px;
+  color: #fff;
+  background: var(--green);
+}
+.step-status .badge.blue { background: var(--blue); }
+.step-status .badge.gold { background: var(--gold); }
+.step-status .badge.red { background: var(--red); }
+
+.viz-note { display: grid; gap: 8px; }
+.graph-summary {
+  border-radius: 8px;
+  border: 1px solid rgba(116,55,31,0.16);
+  background: rgba(255,255,255,0.78);
+  padding: 10px 12px;
+  color: #5e4338;
+  line-height: 1.65;
+  font-size: 13.5px;
+}
+.pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.pill {
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #53362c;
+  background: rgba(197,138,31,0.14);
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* ---- 邻接/关系矩阵 ---- */
+.matrix-wrap { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.matrix-grid {
+  display: inline-grid;
+  gap: 3px;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.82);
+  border: 1px solid rgba(116,55,31,0.18);
+}
+.matrix-cell {
+  min-width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 5px;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  background: rgba(47,95,159,0.08);
+  color: #253447;
+  font-weight: 800;
+  font-size: 12px;
+}
+.matrix-cell.one { background: rgba(47,125,87,0.16); color: var(--green); }
+.matrix-cell.hot { background: rgba(214, 59, 29,0.16); color: var(--red); box-shadow: 0 0 0 1px rgba(214, 59, 29,0.35) inset; }
+.matrix-cell.head { background: transparent; color: var(--muted); font-weight: 700; }
+
+.footer {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 9998;
+  min-height: 72px;
+  padding: 14px 10px;
+  text-align: center;
+  color: inherit;
+  opacity: 0.72;
+  background: transparent;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+@media (max-width: 920px) {
+  body { overflow: auto; }
+  .app-container {
+    width: min(100vw - 22px, 720px);
+    height: auto;
+    min-height: 0;
+    grid-template-columns: 1fr;
+    margin-bottom: 96px;
+  }
+  .side-panel, .glass-pane { max-height: none; }
+  .glass-pane { grid-template-rows: auto auto auto; }
+  .graph-canvas { min-height: 300px; }
+  .mission-card { grid-template-columns: 1fr; }
+  .step-btns { grid-template-columns: 1fr 1fr; }
+}
+
+/* ---- 7.4 专属：左栏「定义与性质 + 当前属性」信息卡（位于价值卡之后、步骤选择之前） ---- */
+.side-panel > .side-info { order: 6; }
+.side-info {
+  border-radius: 8px;
+  border: 1px solid rgba(116, 55, 31, 0.16);
+  background: rgba(255,255,255,0.7);
+  padding: 13px 14px;
+  margin-top: 12px;
+  display: grid;
+  gap: 9px;
+}
+.side-info .info-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--red);
+}
+.side-info .info-def {
+  margin: 0;
+  color: #563c31;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.side-info .info-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.side-info .stat-box {
+  border-radius: 8px;
+  background: rgba(255,250,242,0.9);
+  border: 1px solid rgba(116,55,31,0.14);
+  padding: 8px 10px;
+  text-align: center;
+}
+.side-info .stat-box .lab {
+  display: block;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.side-info .stat-box .val {
+  display: block;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--blue);
+}

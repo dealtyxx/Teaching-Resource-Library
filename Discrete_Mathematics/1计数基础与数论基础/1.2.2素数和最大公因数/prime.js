@@ -329,7 +329,7 @@ async function visualizePrimes() {
     // 图例
     legendPanel.innerHTML = `
         <div class="legend-item">
-            <div class="legend-color" style="background: linear-gradient(135deg, #d63b1d 0%, #b32b12 100%);"></div>
+            <div class="legend-color" style="background: linear-gradient(135deg, #d63b1d 0%, #b8321a 100%);"></div>
             <span>✨ 素数（${primes.length}个）- ${theme.title}的基础元素</span>
         </div>
         <div class="legend-item">

@@ -16,7 +16,7 @@
 
   /* ---------- 词类（个体词/谓词/量词/联结词） ---------- */
   var CATS = {
-    quant: { name: "量词", color: "#b42318" },
+    quant: { name: "量词", color: "#d63b1d" },
     ind:   { name: "个体词", color: "#2f5f9f" },
     pred:  { name: "谓词", color: "#c58a1f" },
     conn:  { name: "联结词", color: "#2f7d57" }
@@ -38,7 +38,7 @@
         ["∧", "合取 · 并且"]
       ],
       treeGroups: [
-        { cat: "quant", label: "量词", color: "#b42318" },
+        { cat: "quant", label: "量词", color: "#d63b1d" },
         { cat: "ind", label: "个体词", color: "#2f5f9f" },
         { cat: "pred", label: "谓词", color: "#c58a1f" },
         { cat: "conn", label: "联结词", color: "#2f7d57" }
@@ -99,7 +99,7 @@
         ["¬", "否定（非）"]
       ],
       treeGroups: [
-        { cat: "quant", label: "量词", color: "#b42318" },
+        { cat: "quant", label: "量词", color: "#d63b1d" },
         { cat: "ind", label: "个体词", color: "#2f5f9f" },
         { cat: "pred", label: "谓词", color: "#c58a1f" },
         { cat: "conn", label: "联结词", color: "#2f7d57" }
@@ -185,7 +185,7 @@
       treeGroups: [
         { cat: "ind", label: "概念 Class", color: "#2f5f9f" },
         { cat: "pred", label: "关系 / 属性", color: "#c58a1f" },
-        { cat: "quant", label: "量化约束", color: "#b42318" },
+        { cat: "quant", label: "量化约束", color: "#d63b1d" },
         { cat: "conn", label: "逻辑联结", color: "#2f7d57" }
       ],
       sentences: [
@@ -476,7 +476,7 @@
 
       // 根节点
       var rootG = svgEl("g");
-      rootG.appendChild(svgEl("circle", { cx: rootX, cy: rootY, r: 24, fill: "#8b0000", stroke: "#fff", "stroke-width": 3 }));
+      rootG.appendChild(svgEl("circle", { cx: rootX, cy: rootY, r: 24, fill: "#b8321a", stroke: "#fff", "stroke-width": 3 }));
       var rt = svgEl("text", { x: rootX, y: rootY, "text-anchor": "middle", "dominant-baseline": "central", fill: "#fff", "font-size": 13, "font-weight": "bold" });
       rt.textContent = "符号化";
       rootG.appendChild(rt);
@@ -501,7 +501,7 @@
           leafG.setAttribute("class", "sym-leaf");
           leafG.dataset.i = lf.i;
           leafG.appendChild(svgEl("rect", { x: gx - w / 2, y: ly - 15, width: w, height: 30, rx: 8, fill: "#fff", stroke: grp.color, "stroke-width": 1.6 }));
-          var lt = svgEl("text", { x: gx, y: ly, "text-anchor": "middle", "dominant-baseline": "central", fill: "#2d211d", "font-size": 13, "font-weight": "600" });
+          var lt = svgEl("text", { x: gx, y: ly, "text-anchor": "middle", "dominant-baseline": "central", fill: "#2c1810", "font-size": 13, "font-weight": "600" });
           lt.textContent = lf.text;
           leafG.appendChild(lt);
           leafG.addEventListener("click", function () { clickToken(lf.i); });

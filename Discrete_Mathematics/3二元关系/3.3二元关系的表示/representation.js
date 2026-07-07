@@ -240,7 +240,7 @@ function highlightPair(u, v, active) {
     const edge = document.getElementById(`edge-${u}-${v}`);
     if (edge) {
         edge.style.strokeWidth = active ? '4' : '';
-        edge.style.stroke = active ? '#c5a059' : '';
+        edge.style.stroke = active ? '#c58a1f' : '';
     }
 }
 

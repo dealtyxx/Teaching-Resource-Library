@@ -264,7 +264,7 @@
     }
 
     function evalHTML(focusRow, done) {
-      if (focusRow == null) return '<span style="color:#6c5a52">点「下一步」逐步执行等值改写。每一步把量词向最前移动，或把否定深入到谓词。</span>';
+      if (focusRow == null) return '<span style="color:#6b4a38">点「下一步」逐步执行等值改写。每一步把量词向最前移动，或把否定深入到谓词。</span>';
       var s = cc.steps[focusRow];
       var head = '<div>第 <b>' + (focusRow + 1) + '</b> 步：<span class="ev-f">' + esc(s.f) + '</span></div>';
       var body = '<div style="margin-top:4px">规则 <span class="ev-rule">' + esc(s.rule) + '</span>：' + esc(s.note) + '</div>';

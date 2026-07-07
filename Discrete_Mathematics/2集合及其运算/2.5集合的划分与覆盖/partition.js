@@ -24,7 +24,7 @@ const TEAM_COLORS = [
     '#ff5f56', // Red
     '#ffbd2e', // Yellow
     '#27c93f', // Green
-    '#007aff', // Blue
+    '#2f5f9f', // Blue
     '#af52de', // Purple
     '#ff9500'  // Orange
 ];
@@ -184,8 +184,8 @@ function updateUI() {
                         ${hexToRgba(color2, 0.4)} 10px,
                         ${hexToRgba(color2, 0.4)} 20px
                     )`;
-                    zone.style.borderColor = '#ff3b30'; // Red border for conflict
-                    zone.style.boxShadow = '0 0 0 3px rgba(255, 59, 48, 0.2)';
+                    zone.style.borderColor = '#c0392b'; // Red border for conflict
+                    zone.style.boxShadow = '0 0 0 3px rgba(192, 57, 43, 0.2)';
                 } else {
                     // COVER MODE: Overlap is OK - show collaboration pattern
                     bg.style.background = `linear-gradient(

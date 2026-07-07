@@ -200,7 +200,7 @@ function drawGraph() {
     const scaleY = 12; // pixels per person (万人)
 
     ctx.save();
-    ctx.strokeStyle = '#2d3436';
+    ctx.strokeStyle = '#2c1810';
     ctx.lineWidth = 2;
 
     // X-axis
@@ -233,7 +233,7 @@ function drawGraph() {
     ctx.restore();
 
     // Labels
-    ctx.fillStyle = '#636e72';
+    ctx.fillStyle = '#6b4a38';
     ctx.font = '12px Arial';
     ctx.textAlign = 'center';
     ctx.fillText('时间 (天)', w - 40, originY + 30);
@@ -323,9 +323,9 @@ function drawGraph() {
 
     // Tick marks
     ctx.save();
-    ctx.fillStyle = '#636e72';
+    ctx.fillStyle = '#6b4a38';
     ctx.font = '11px Arial';
-    ctx.strokeStyle = '#2d3436';
+    ctx.strokeStyle = '#2c1810';
     ctx.lineWidth = 1;
 
     // X-axis ticks

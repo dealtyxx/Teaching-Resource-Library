@@ -461,7 +461,7 @@ function drawNode(node) {
     ctx.stroke();
 
     // Label
-    ctx.fillStyle = node.selected ? '#fff' : '#2c3e50';
+    ctx.fillStyle = node.selected ? '#fff' : '#2c1810';
     ctx.font = 'bold 15px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';

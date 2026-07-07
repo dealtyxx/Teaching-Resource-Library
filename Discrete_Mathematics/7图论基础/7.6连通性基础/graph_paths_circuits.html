@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
@@ -7,272 +8,71 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
-    <meta property="og:title" content="图论通路与回路 - 连通性基础">
-    <meta property="og:description" content="离散数学课程 - 图论通路、回路与连通性基础">
+    <meta property="og:title" content="红色数理 - 连通性基础：红色征程，道路自信">
+    <meta property="og:description" content="离散数学课程 - 红色数理 - 连通性基础：红色征程，道路自信">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/7%E5%9B%BE%E8%AE%BA%E5%9F%BA%E7%A1%80/7.6%E8%BF%9E%E9%80%9A%E6%80%A7%E5%9F%BA%E7%A1%80/graph_paths_circuits.html">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="图论通路与回路 - 连通性基础">
-    <meta name="twitter:description" content="离散数学课程 - 图论通路、回路与连通性基础">
+    <meta name="twitter:title" content="红色数理 - 连通性基础：红色征程，道路自信">
+    <meta name="twitter:description" content="离散数学课程 - 红色数理 - 连通性基础：红色征程，道路自信">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>图论通路与回路 - 连通性基础</title>
-    <meta name="description" content="离散数学课程 - 图论通路、回路与连通性基础">
+    <title>红色数理 - 连通性基础：红色征程，道路自信</title>
+    <meta name="description" content="离散数学课程 - 红色数理 - 连通性基础：红色征程，道路自信">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="connectivity_concept.css">
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
-    <link rel="stylesheet" href="graph_paths_circuits.css">
     <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
+
 <body>
-    <!-- 返回主页浮动按钮 (auto-injected) -->
-    <a href="../../index.html" title="返回课程主页" style="
-        position:fixed;top:14px;left:14px;z-index:9999;
-        display:flex;align-items:center;gap:6px;
-        background:rgba(30,30,40,0.82);color:#fff;
-        padding:7px 14px 7px 10px;border-radius:20px;
-        font-size:13px;font-family:'Noto Serif SC',serif;
-        text-decoration:none;backdrop-filter:blur(8px);
-        border:1px solid rgba(255,255,255,0.15);
-        box-shadow:0 2px 12px rgba(0,0,0,0.35);
-        transition:background .2s;
-    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
-       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
-        🏠 <span>课程主页</span>
-    </a>
-
+    <a class="home-link" href="../../index.html">← 返回课程主页</a>
     <div class="app-container">
-        <!-- 侧边栏 -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="window-controls">
-                    <span class="dot red"></span>
-                    <span class="dot yellow"></span>
-                    <span class="dot green"></span>
-                </div>
-                <h1>红色数理 <span class="highlight">进阶层</span></h1>
-                <p class="subtitle">通路连通追踪器 · 通路回路</p>
+        <aside class="side-panel">
+            <div class="eyebrow">进阶层 · 第7章 图论基础</div>
+            <h1>连通<span class="highlight">与分支</span></h1>
+            <p class="subtitle">连通分支 / 强·弱连通 / 可达</p>
+            <p class="tier-line">核心掌握 · 建模求解</p>
+            <p class="intro">🎯 判定连通性、求连通分支。</p>
+
+            <div class="value-panel">
+                <h3>红色征程 · 道路自信</h3>
+                <p>通路与连通象征『道路畅通、上下贯通』——革命与建设的征程，正是一条在艰难中开辟、把分散力量连成整体的道路。强连通启示我们：唯有党群同心、政令畅通、双向贯通，事业方能行稳致远。</p>
+                <div class="dim-list"><span>道路自信</span><span>系统观念</span><span>团结观念</span></div>
             </div>
 
-            <div class="controls-wrapper">
-                <!-- 概念类型选择 -->
-                <div class="control-group">
-                    <label>选择图论概念</label>
-                    <div class="concept-grid">
-                        <button class="concept-btn active" data-concept="path" aria-label="通路 Path">
-                            通路
-                            <span class="concept-sub">Path</span>
-                        </button>
-                        <button class="concept-btn" data-concept="circuit" aria-label="回路 Circuit">
-                            回路
-                            <span class="concept-sub">Circuit</span>
-                        </button>
-                        <button class="concept-btn" data-concept="component" aria-label="连通分量 Component">
-                            连通分量
-                            <span class="concept-sub">Component</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 案例选择 -->
-                <div class="control-group">
-                    <label>选择历史案例</label>
-                    <select id="caseSelector" class="apple-select">
-                        <option value="0">长征路线 - 初级通路</option>
-                        <option value="1">丝绸之路 - 简单通路</option>
-                        <option value="2">革命根据地 - 初级回路</option>
-                        <option value="3">经济循环 - 简单回路</option>
-                        <option value="4">解放区连片 - 连通分量</option>
-                    </select>
-                </div>
-
-                <!-- 动画速度控制 -->
-                <div class="control-group">
-                    <label>演示速度</label>
-                    <input type="range" id="speedControl" min="300" max="2000" value="800" step="100">
-                    <div class="speed-display">
-                        <span>快</span>
-                        <span id="speedValue">800ms</span>
-                        <span>慢</span>
-                    </div>
-                </div>
-
-                <!-- 信息面板 -->
-                <div class="info-panel">
-                    <p id="conceptInfo">通路是图中从一个顶点到另一个顶点的路径,如同革命征程。</p>
-                    <div class="stats-display">
-                        <div class="stat-item">
-                            <span class="stat-label">当前概念:</span>
-                            <span class="stat-value" id="currentConcept">通路</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">路径长度:</span>
-                            <span class="stat-value" id="pathLength">-</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 操作按钮 -->
-            <div class="actions-footer">
-                <button id="startBtn" class="apple-btn action-btn" aria-label="开始演示">开始演示</button>
-                <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置">重置</button>
-            </div>
+            <div id="controls"></div>
         </aside>
 
-        <!-- 主可视化区域 -->
-        <main class="visualizer-stage">
-            <div class="glass-pane">
-                <div class="visualization-container" id="vizContainer">
-                    <!-- 概念介绍区 -->
-                    <section class="section" id="conceptsIntro">
-                        <h2 class="section-title">图论核心概念</h2>
-                        <div class="concepts-overview">
-                            <!-- 通路概念 -->
-                            <div class="concept-category path-category">
-                                <h3>通路 (Path)</h3>
-                                <div class="concept-cards">
-                                    <div class="definition-card">
-                                        <div class="card-header">
-                                            <span class="card-icon">→</span>
-                                            <h4>初级通路</h4>
-                                        </div>
-                                        <div class="card-content">
-                                            <p class="definition">除起点和终点外,其余顶点不重复的通路</p>
-                                            <div class="formula">v₁ → v₂ → v₃ → ... → vₙ (顶点不重复)</div>
-                                            <p class="example">例: 长征从江西瑞金到陕北延安</p>
-                                        </div>
-                                    </div>
-                                    <div class="definition-card">
-                                        <div class="card-header">
-                                            <span class="card-icon">⇒</span>
-                                            <h4>简单通路</h4>
-                                        </div>
-                                        <div class="card-content">
-                                            <p class="definition">边不重复的通路</p>
-                                            <div class="formula">e₁, e₂, e₃, ..., eₙ (边不重复)</div>
-                                            <p class="example">例: 古代丝绸之路贸易线</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+        <main class="glass-pane">
+            <section class="mission-card">
+                <span id="missionText"><b>互动任务：</b>判定可达与连通、求连通分支，辨析强连通与弱连通。</span>
+                <div class="visual-badge" id="visualBadge">连通与分支</div>
+            </section>
 
-                            <!-- 回路概念 -->
-                            <div class="concept-category circuit-category">
-                                <h3>回路 (Circuit)</h3>
-                                <div class="concept-cards">
-                                    <div class="definition-card">
-                                        <div class="card-header">
-                                            <span class="card-icon">↻</span>
-                                            <h4>初级回路</h4>
-                                        </div>
-                                        <div class="card-content">
-                                            <p class="definition">起点和终点相同,其余顶点不重复的通路</p>
-                                            <div class="formula">v₁ → v₂ → ... → vₙ → v₁ (形成循环)</div>
-                                            <p class="example">例: 革命根据地巡视路线</p>
-                                        </div>
-                                    </div>
-                                    <div class="definition-card">
-                                        <div class="card-header">
-                                            <span class="card-icon">⟲</span>
-                                            <h4>简单回路</h4>
-                                        </div>
-                                        <div class="card-content">
-                                            <p class="definition">起点和终点相同,边不重复的回路</p>
-                                            <div class="formula">闭合路径,边各异</div>
-                                            <p class="example">例: 经济循环系统</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+            <section class="logic-board" id="vizArea">
+                <canvas id="graphCanvas" class="graph-canvas"></canvas>
+                <div class="canvas-hint">点“下一步”，看公式项与图上高亮、分支着色同步变化</div>
+            </section>
 
-                            <!-- 连通分量概念 -->
-                            <div class="concept-category component-category">
-                                <h3>连通分量 (Connected Component)</h3>
-                                <div class="concept-cards">
-                                    <div class="definition-card wide-card">
-                                        <div class="card-header">
-                                            <span class="card-icon">◎</span>
-                                            <h4>最大连通子图</h4>
-                                        </div>
-                                        <div class="card-content">
-                                            <p class="definition">图中的极大连通子图,任意两点间存在通路</p>
-                                            <div class="formula">∀u,v ∈ V, ∃ path(u,v)</div>
-                                            <p class="example">例: 革命根据地连成一片</p>
-                                            <div class="properties">
-                                                <div class="property-item">✓ 内部完全连通</div>
-                                                <div class="property-item">✓ 不可再扩展</div>
-                                                <div class="property-item">✓ 分量间不连通</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- 案例展示区 -->
-                    <section class="section" id="caseDisplay" style="display: none;">
-                        <h2 class="section-title" id="caseTitle"></h2>
-                        <div id="caseContent"></div>
-                    </section>
-
-                    <!-- 图可视化区 -->
-                    <section class="section" id="graphVisualization" style="display: none;">
-                        <h2 class="section-title">图结构可视化</h2>
-                        <div id="graphCanvas"></div>
-                    </section>
-
-                    <!-- 路径追踪区 -->
-                    <section class="section" id="pathTracing" style="display: none;">
-                        <h2 class="section-title">路径追踪演示</h2>
-                        <div id="tracingContent"></div>
-                    </section>
-
-                    <!-- 性质分析区 -->
-                    <section class="section" id="propertyAnalysis" style="display: none;">
-                        <h2 class="section-title">性质分析</h2>
-                        <div id="analysisContent"></div>
-                    </section>
-
-                    <!-- 价值启示区 -->
-                    <section class="section" id="philosophySection" style="display: none;">
-                        <h2 class="section-title">价值启示</h2>
-                        <div id="philosophyContent"></div>
-                    </section>
-                </div>
-            </div>
+            <section class="step-card">
+                <div class="formula-line" id="formulaText">等待交互</div>
+                <div class="step-status" id="stepStatus"></div>
+                <div class="viz-note" id="vizText" style="display:none"></div>
+            </section>
         </main>
     </div>
 
-    <script src="graph_paths_circuits.js"></script>
-
-<!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: transparent;
-    color: inherit;
-    opacity: 0.72;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: none;
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
-</footer>
-
-
+    <footer class="footer">
+        <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+        <div>版权所有 · 项目总负责人：谢鑫</div>
+    </footer>
 
     <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
     <script>
@@ -300,41 +100,19 @@
       "chapter": "第7章 图论基础",
       "section": "7.6 连通性基础 · 进阶层",
       "title": "通路、回路与连通性",
-      "grounding": "本节主题：通路（walk/path）、回路（closed walk/circuit）、简单通路、初级通路（路径）；无向图连通、连通分支；有向图强连通/弱连通。可达性=存在通路。连通性刻画网络『是否畅通、能否抵达』。",
+      "grounding": "本节主题：通路（walk/path)、回路（closed walk/circuit）、简单通路、初级通路（路径）；无向图连通、连通分支；有向图强连通/弱连通。可达性=存在通路。连通性刻画网络『是否畅通、能否抵达』。",
       "steps": [
-            {
-                  "name": "情境引入",
-                  "desc": "网络中任意两点是否都能互达？哪些是『孤岛』？"
-            },
-            {
-                  "name": "对象抽取",
-                  "desc": "把『能否走到』抽象为通路与可达性。"
-            },
-            {
-                  "name": "结构建模",
-                  "desc": "用通路/回路与连通分支刻画网络畅通性。"
-            },
-            {
-                  "name": "推理求解",
-                  "desc": "判定连通性、求连通分支、强/弱连通。"
-            },
-            {
-                  "name": "程序验证",
-                  "desc": "用本页交互探索通路，观察连通分支。"
-            },
-            {
-                  "name": "迁移反思",
-                  "desc": "迁移到网络可达、社交圈、爬虫遍历。"
-            }
+            { "name": "情境引入", "desc": "网络中任意两点是否都能互达？哪些是『孤岛』？" },
+            { "name": "对象抽取", "desc": "把『能否走到』抽象为通路与可达性。" },
+            { "name": "结构建模", "desc": "用通路/回路与连通分支刻画网络畅通性。" },
+            { "name": "推理求解", "desc": "判定连通性、求连通分支、强/弱连通。" },
+            { "name": "程序验证", "desc": "用本页交互探索通路，观察连通分支。" },
+            { "name": "迁移反思", "desc": "迁移到网络可达、社交圈、爬虫遍历。" }
       ],
       "ideology": {
             "title": "红色征程 · 道路自信",
             "text": "通路与连通象征『道路畅通、上下贯通』——革命与建设的征程，正是一条在艰难中开辟、把分散力量连成整体的道路。强连通启示我们：唯有党群同心、政令畅通、双向贯通，事业方能行稳致远。",
-            "dims": [
-                  "道路自信",
-                  "系统观念",
-                  "团结观念"
-            ],
+            "dims": [ "道路自信", "系统观念", "团结观念" ],
             "quote": "雄关漫道真如铁，而今迈步从头越——通路与连通，正是把征程一步步走通的数学写照。"
       },
       "reflect": [
@@ -344,130 +122,14 @@
       ],
       "transfer": [
             "网络爬虫、社交圈发现、电路连通性检测都依赖连通性分析。",
-            {
-                  "t": "强连通分量",
-                  "d": "Tarjan/Kosaraju 算法求强连通分量，在死锁检测中如何应用？"
-            }
+            { "t": "强连通分量", "d": "Tarjan/Kosaraju 算法求强连通分量，在死锁检测中如何应用？" }
       ]
 };
     </script>
+    <script>window.CONN_LEVEL = "advanced";</script>
+    <script src="connectivity_concept.js"></script>
     <script src="../../shared/ai-tutor.js" defer></script>
-    <script>
-    window.addEventListener('load', function () {
-        var old = document.getElementById('graph-paths-runtime-layout');
-        if (old) old.remove();
-        var style = document.createElement('style');
-        style.id = 'graph-paths-runtime-layout';
-        style.textContent = `
-body:has(.app-container[data-dm-side-shell]) {
-    display: block !important;
-    min-height: 100vh !important;
-    overflow: auto !important;
-    overflow-x: hidden !important;
-    padding-top: 50px !important;
-}
-.app-container[data-dm-side-shell] {
-    width: min(94vw, 1760px) !important;
-    max-width: none !important;
-    min-height: 0 !important;
-    height: auto !important;
-    margin: 0 auto !important;
-    padding: 0 !important;
-    display: grid !important;
-    grid-template-columns: 360px minmax(0, 1fr) !important;
-    grid-template-areas: "side main" !important;
-    grid-template-rows: auto !important;
-    gap: 12px !important;
-    align-items: start !important;
-    overflow: visible !important;
-    background: transparent !important;
-    border: 0 !important;
-    box-shadow: none !important;
-}
-.app-container[data-dm-side-shell] > .sidebar {
-    grid-area: side !important;
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    height: auto !important;
-    max-height: none !important;
-    margin: 0 0 16px !important;
-    padding: 20px !important;
-    overflow: visible !important;
-}
-.app-container[data-dm-side-shell] > .visualizer-stage {
-    grid-area: main !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    height: auto !important;
-    min-height: 0 !important;
-    margin: 0 0 16px !important;
-    padding: 14px !important;
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) !important;
-    grid-template-rows: auto auto !important;
-    gap: 12px !important;
-    align-items: start !important;
-    overflow: hidden !important;
-}
-.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers,
-.app-container[data-dm-side-shell] > .visualizer-stage > .glass-pane {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    box-sizing: border-box !important;
-}
-.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers {
-    margin-bottom: 12px !important;
-    overflow: hidden !important;
-}
-.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-ladder {
-    display: grid !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 10px !important;
-}
-.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-tier {
-    min-width: 0 !important;
-    padding: 12px 14px !important;
-}
-.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-tier-name,
-.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-tier-concepts,
-.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-tier-sub,
-.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-tier-task {
-    min-width: 0 !important;
-    overflow-wrap: anywhere !important;
-}
-.app-container[data-dm-side-shell] .glass-pane {
-    padding: 0 !important;
-    overflow: visible !important;
-    background: transparent !important;
-    border: 0 !important;
-    box-shadow: none !important;
-}
-.app-container[data-dm-side-shell] .concepts-overview {
-    display: grid !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 12px !important;
-}
-.app-container[data-dm-side-shell] .section {
-    padding: 14px !important;
-}
-@media (max-width: 1000px) {
-    .app-container[data-dm-side-shell] {
-        width: min(94vw, 760px) !important;
-        grid-template-columns: 1fr !important;
-        grid-template-areas: "side" "main" !important;
-    }
-    .app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-ladder,
-    .app-container[data-dm-side-shell] .concepts-overview {
-        grid-template-columns: 1fr !important;
-    }
-}`;
-        document.head.appendChild(style);
-    });
-    </script>
 
 </body>
+
 </html>

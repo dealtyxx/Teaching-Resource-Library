@@ -746,7 +746,7 @@ function reset() {
                 <svg viewBox="0 0 200 200" class="tower-svg">
                     <defs>
                         <linearGradient id="towerGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-                            <stop offset="0%" style="stop-color:#8b0000;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#b8321a;stop-opacity:1" />
                             <stop offset="50%" style="stop-color:#d63b1d;stop-opacity:1" />
                             <stop offset="100%" style="stop-color:#ffb400;stop-opacity:1" />
                         </linearGradient>

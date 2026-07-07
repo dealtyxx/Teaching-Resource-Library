@@ -353,11 +353,11 @@
     pos.forEach((point, index) => drawNode(point, index, metrics));
 
     ctx.fillStyle = "#7c2d12";
-    ctx.font = "800 20px 'Noto Serif SC', serif";
+    ctx.font = "800 20px 'Noto Serif SC', 'Microsoft YaHei', serif";
     ctx.textAlign = "left";
     ctx.fillText(isExtend ? "智能制造瓶颈矩阵推演" : "简单工序依赖图", 24, 34);
-    ctx.fillStyle = "#64748b";
-    ctx.font = "700 13px 'Noto Serif SC', serif";
+    ctx.fillStyle = "#6b4a38";
+    ctx.font = "700 13px 'Noto Serif SC', 'Microsoft YaHei', serif";
     ctx.fillText(isExtend ? "点击矩阵切换依赖，点击图中节点/连线高亮对应关系" : "箭头表示先后依赖，红色表示当前关键路线", 24, 58);
   }
 
@@ -390,7 +390,7 @@
       ctx.fillStyle = index % 2 ? "rgba(47, 95, 159, 0.035)" : "rgba(214, 59, 29, 0.035)";
       ctx.fillRect(x, 78, w * 0.13, h - 110);
       ctx.fillStyle = "#9a3412";
-      ctx.font = "700 12px 'Noto Serif SC', serif";
+      ctx.font = "700 12px 'Noto Serif SC', 'Microsoft YaHei', serif";
       ctx.textAlign = "center";
       ctx.fillText(label, x + w * 0.065, h - 28);
     });
@@ -465,10 +465,10 @@
     ctx.fillText("V" + index, point.x, point.y);
 
     ctx.fillStyle = "#253447";
-    ctx.font = "800 13px 'Noto Serif SC', serif";
+    ctx.font = "800 13px 'Noto Serif SC', 'Microsoft YaHei', serif";
     ctx.textBaseline = "top";
     ctx.fillText(displayName(index), point.x, point.y + 28);
-    ctx.fillStyle = "#64748b";
+    ctx.fillStyle = "#6b4a38";
     ctx.font = "700 10px Outfit, sans-serif";
     ctx.fillText(displaySub(index), point.x, point.y + 46);
     ctx.restore();
@@ -715,20 +715,20 @@ body .app-container > main.glass-pane.manufacturing-stage .graph-canvas{min-heig
 .mfg-summary>div{min-width:0;border:1px solid rgba(116,55,31,.12);border-radius:8px;background:rgba(255,255,255,.72);padding:9px 10px}
 .mfg-summary b{display:block;color:#9a3412;font-size:.78rem;margin-bottom:4px}
 .mfg-summary span{display:block;color:#253447;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mfg-hint{padding:10px 12px;border-radius:8px;background:rgba(255,248,237,.86);border:1px solid rgba(214,59,29,.13);color:#6c5a52;font-weight:700}
+.mfg-hint{padding:10px 12px;border-radius:8px;background:rgba(255,248,237,.86);border:1px solid rgba(214,59,29,.13);color:#6b4a38;font-weight:700}
 .mfg-matrix-wrap{overflow:auto;border:1px solid rgba(116,55,31,.14);border-radius:8px;background:rgba(255,255,255,.78);padding:12px}
-.mfg-matrix-wrap h3{margin:0 0 10px;color:#d63b1d;font-family:"Noto Serif SC",serif;font-size:1rem}
+.mfg-matrix-wrap h3{margin:0 0 10px;color:#d63b1d;font-family:"Noto Serif SC", "Microsoft YaHei", serif;font-size:1rem}
 .mfg-matrix-grid{display:grid;gap:4px;align-items:center;width:max-content;min-width:100%}
 .mfg-head{height:32px;display:grid;place-items:center;color:#7c2d12;font-weight:900;font-size:.75rem}
-.mfg-cell{width:38px;height:32px;border:1px solid rgba(116,55,31,.12);border-radius:6px;background:rgba(47,95,159,.06);color:#64748b;font:800 13px JetBrains Mono,Consolas,monospace;cursor:pointer}
-.mfg-cell.hot{background:rgba(214,59,29,.14);border-color:rgba(214,59,29,.30);color:#b42318}
+.mfg-cell{width:38px;height:32px;border:1px solid rgba(116,55,31,.12);border-radius:6px;background:rgba(47,95,159,.06);color:#6b4a38;font:800 13px JetBrains Mono,Consolas,monospace;cursor:pointer}
+.mfg-cell.hot{background:rgba(214,59,29,.14);border-color:rgba(214,59,29,.30);color:#d63b1d}
 .mfg-cell.disabled{opacity:.36;cursor:not-allowed}
 .mfg-cell:hover:not(.disabled){transform:scale(1.06);background:rgba(47,95,159,.14)}
 .mfg-route-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
 .mfg-route-row{display:grid;gap:3px;text-align:left;border:1px solid rgba(116,55,31,.13);border-radius:8px;background:rgba(255,255,255,.72);padding:9px 10px;color:#253447;cursor:pointer}
 .mfg-route-row span{font-weight:900}
 .mfg-route-row b{color:#225a9f}
-.mfg-route-row small{color:#64748b}
+.mfg-route-row small{color:#6b4a38}
 .mfg-route-row.hot{border-color:rgba(214,59,29,.34);background:rgba(214,59,29,.10)}
 @media(max-width:920px){.mfg-summary{grid-template-columns:1fr 1fr}.mfg-actions{grid-template-columns:1fr}body .app-container>main.glass-pane.manufacturing-stage .logic-board{grid-template-rows:340px auto!important}.mfg-cell{width:34px}}
 `;

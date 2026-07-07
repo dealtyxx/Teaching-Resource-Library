@@ -106,6 +106,8 @@ sub.dm-math-script,
   overflow: hidden; text-overflow: ellipsis;
 }
 #dm-crumb .dm-cb-ch { color: var(--dm-muted); }
+#dm-crumb a.dm-cb-ch { text-decoration: none; border-radius: 8px; padding: 1px 5px; margin: -1px -3px; transition: color .16s ease, background .16s ease; }
+#dm-crumb a.dm-cb-ch:hover { color: var(--dm-red); background: rgba(214, 59, 29, 0.08); }
 #dm-crumb .dm-cb-sep { color: var(--dm-gold); font-weight: 700; }
 #dm-crumb .dm-cb-sec { color: var(--dm-red); font-weight: 700; }
 @media (max-width: 720px) { #dm-crumb { display: none; } }
@@ -844,13 +846,18 @@ body:has(.app-container) > footer {
 h1:has(.highlight),
 .sidebar-header h1,
 .sidebar h1,
-.header-content h1 {
+.header-content h1,
+.main-header h1 {
   font-family: 'Ma Shan Zheng', 'Noto Serif SC', cursive !important;
   color: #D63B1D !important;
+  /* 全站标题字号刻度统一：原各页离散在 1.4rem ~ 2.1rem / 30px 之间 */
+  font-size: clamp(1.85rem, 1.1vw + 1.3rem, 2.15rem) !important;
+  line-height: 1.22 !important;
+  font-weight: 400 !important; /* 书法体不加粗，避免伪粗渲染发糊 */
 }
 h1 .highlight {
   color: #FFB400 !important;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 /* ===== 统一标题区「主标题 ↔ 副标题」间距，与参考页 (3.1 relations.html) 一致：
@@ -1446,5 +1453,133 @@ body:has(.app-container > aside.sidebar) > footer.site-footer {
   #dm-page-layers .dm-tier-sub,
   #dm-page-layers .dm-tier-task { display: none !important; }
   #dm-page-layers .dm-tier-name { font-size: 14px !important; }
+}
+
+/* =====================================================================
+   全站质感统一层（holistic polish pass）
+   目标：为共享此文件的全部内容页统一微交互与观感 ——
+   滚动条 / 文本选区 / 键盘焦点环 / 按压反馈 / 「课程主页」浮标 /
+   页面入场过渡 / 动效无障碍降级。
+   原则：除「主页浮标」必须压过各页内联样式外，其余一律用 :where()
+   零特异度兜底 —— 任何页面已有的自定义样式都能无痛覆盖本层，
+   保证 126 节零破坏。
+   ===================================================================== */
+
+/* ---- 1. 全站滚动条：对齐首页的红金品牌样式（内容页原为系统默认灰） ---- */
+html {
+  scrollbar-color: rgba(214, 59, 29, 0.45) rgba(255, 248, 232, 0.6); /* Firefox */
+}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: rgba(255, 248, 232, 0.55); }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(160deg, rgba(214, 59, 29, 0.6), rgba(184, 50, 26, 0.6));
+  border-radius: 999px;
+  border: 2px solid rgba(255, 248, 232, 0.85);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(160deg, #D63B1D, #B8321A);
+}
+::-webkit-scrollbar-corner { background: transparent; }
+
+/* ---- 2. 文本选区：品牌金色高亮 ---- */
+::selection { background: rgba(255, 180, 0, 0.38); color: #2C1810; }
+
+/* ---- 3. 键盘焦点环：全站统一（鼠标点击不出现，仅键盘导航可见） ---- */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid rgba(214, 59, 29, 0.75);
+  outline-offset: 2px;
+}
+
+/* ---- 4. 触控与表单控件统一 ---- */
+:where(a, button, label, select, summary) { -webkit-tap-highlight-color: transparent; }
+:where(button, select) { touch-action: manipulation; } /* 消除移动端双击缩放延迟 */
+:root { accent-color: #D63B1D; } /* 复选框/单选/滑杆/进度条统一品牌红 */
+
+/* ---- 5. 按压反馈：所有按钮类控件按下时轻微收缩（用独立 scale 属性，
+        不覆盖任何页面自有 transform 定位/动画） ---- */
+:where(button, [role="button"], a.dm-tier-btn, .filter-btn, .apple-btn):where(:not(:disabled)):active {
+  scale: 0.975;
+}
+
+/* ---- 6. 「课程主页」浮标统一：全站原有 4 种配色变体（暖棕 / 暗蓝 /
+        卡片白 + 128 页内联注入版），统一为暖棕玻璃药丸、悬停品牌红。
+        需 !important 压过内联 style 与 onmouseover 的 JS 改色。 ---- */
+a.home-link,
+a[title="返回课程主页"] {
+  position: fixed !important; top: 14px !important; left: 14px !important; z-index: 10000 !important;
+  display: inline-flex !important; align-items: center !important; gap: 7px !important;
+  padding: 8px 15px 8px 12px !important;
+  border-radius: 999px !important;
+  background: rgba(44, 24, 16, 0.84) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 214, 130, 0.35) !important;
+  font-size: 13px !important;
+  font-family: 'Noto Serif SC', 'Microsoft YaHei', serif !important;
+  text-decoration: none !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  backdrop-filter: blur(10px) !important;
+  box-shadow: 0 6px 20px rgba(44, 24, 16, 0.28) !important;
+  transition: background .2s ease, transform .2s ease, box-shadow .2s ease !important;
+}
+a.home-link:hover,
+a[title="返回课程主页"]:hover {
+  background: linear-gradient(135deg, #D63B1D, #B8321A) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 10px 26px rgba(214, 59, 29, 0.35) !important;
+}
+a.home-link:active,
+a[title="返回课程主页"]:active {
+  transform: translateY(0) scale(0.96) !important;
+}
+a.home-link:focus-visible,
+a[title="返回课程主页"]:focus-visible {
+  outline: 2px solid #FFB400 !important;
+  outline-offset: 2px !important;
+}
+
+/* ---- 7. 页面入场过渡：外壳轻柔上浮淡入，与 @view-transition 层间切换衔接 ---- */
+@keyframes dm-shell-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  body:has(.app-container) > .app-container {
+    animation: dm-shell-enter .5s cubic-bezier(.22, .61, .36, 1) both;
+  }
+}
+
+/* ---- 8. 标题排版：多行标题两端均衡断行，避免孤字尾行 ---- */
+:where(h1, h2, h3) { text-wrap: balance; }
+
+/* ---- 8b. 全站规范色板（2026-07 批量统一后的唯一来源，新增页面请照此取色）
+        品牌红 #D63B1D · 暗红 #B8321A · 高亮金 #FFB400 · 光金(浅底文字用) #C58A1F/#8A5D0B
+        墨色 #2C1810 · 次级文字 #6B4A38 · 弱化文字 #9B7A68
+        语义色：成功 #1F9D55 · 错误 #C0392B · 钢蓝 #2F5F9F · 墨绿 #2F7D57
+        品牌阴影 rgba(139,0,0,α) · 边线 rgba(214,59,29,.18)
+        字体三栈：正文 'Noto Serif SC','Microsoft YaHei',serif ·
+                  标题 'Ma Shan Zheng','Noto Serif SC',cursive ·
+                  等宽 'JetBrains Mono',Consolas,monospace                  ---- */
+
+/* ---- 8c. 副标题字号统一（原各页离散在 0.75rem ~ 0.96rem / 15px 之间） ---- */
+.subtitle {
+  font-size: 0.92rem !important;
+  line-height: 1.65 !important;
+  letter-spacing: 0 !important;
+}
+
+/* ---- 8d. 代码/等宽元素兜底字体（页面未声明时生效，:where 零特异度） ---- */
+:where(code, kbd, samp, pre) {
+  font-family: 'JetBrains Mono', Consolas, monospace;
+}
+
+/* ---- 9. 平滑滚动 + 动效无障碍降级 ---- */
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
 }
 

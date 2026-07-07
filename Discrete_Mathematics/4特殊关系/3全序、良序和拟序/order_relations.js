@@ -102,7 +102,7 @@ function checkTotalCompletion() {
 function showTotalFeedback(msg, type) {
     const el = document.getElementById('totalFeedback');
     el.textContent = msg;
-    el.style.color = type === 'error' ? '#c0392b' : (type === 'success' ? '#27ae60' : '#2c3e50');
+    el.style.color = type === 'error' ? '#c0392b' : (type === 'success' ? '#27ae60' : '#2c1810');
 }
 
 // --- Well Order Logic ---

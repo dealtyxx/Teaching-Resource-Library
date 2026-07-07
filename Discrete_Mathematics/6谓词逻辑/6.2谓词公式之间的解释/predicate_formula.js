@@ -431,7 +431,7 @@ async function renderSyntaxTree(parsed) {
     const rootX = width / 2;
     const rootY = 60;
 
-    drawTreeNode(rootX, rootY, '公式', '#8b0000', 45);
+    drawTreeNode(rootX, rootY, '公式', '#b8321a', 45);
 
     // 第一层:量词和主体
     const hasQuantifiers = parsed.quantifiers.length > 0;

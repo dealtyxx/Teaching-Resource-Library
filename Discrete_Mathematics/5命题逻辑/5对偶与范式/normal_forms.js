@@ -256,8 +256,8 @@
         var x = pad + col * cw, y = pad + row * chh;
         var cg = svgEl("g"); cg.setAttribute("class", "nf-cell"); cg.dataset.row = i;
         var rect = svgEl("rect", { x: x + 5, y: y + 5, width: cw - 10, height: chh - 12, rx: 9,
-          fill: r.val ? "#cdebd9" : "#f6d3ce", stroke: r.val ? "#2f7d57" : "#b42318", "stroke-width": 1.6 });
-        var t1 = svgEl("text", { x: x + cw / 2, y: y + 24, "text-anchor": "middle", fill: "#2d211d", "font-size": 14, "font-weight": "800", "font-family": "JetBrains Mono, monospace" }); t1.textContent = r.bits;
+          fill: r.val ? "#cdebd9" : "#f6d3ce", stroke: r.val ? "#2f7d57" : "#d63b1d", "stroke-width": 1.6 });
+        var t1 = svgEl("text", { x: x + cw / 2, y: y + 24, "text-anchor": "middle", fill: "#2c1810", "font-size": 14, "font-weight": "800", "font-family": "JetBrains Mono, monospace" }); t1.textContent = r.bits;
         var t2 = svgEl("text", { x: x + cw / 2, y: y + 42, "text-anchor": "middle", fill: r.val ? "#1d6b43" : "#97180f", "font-size": 12.5, "font-weight": "800" });
         t2.textContent = (r.val ? "m" : "M") + i + " · f=" + (r.val ? "1" : "0");
         cg.appendChild(rect); cg.appendChild(t1); cg.appendChild(t2);
@@ -310,7 +310,7 @@
     }
 
     function evalHTML(focusRow, assembleShown) {
-      if (focusRow == null && !assembleShown) return '<span style="color:#6c5a52">点「下一步」逐行扫描真值表。f=1 的行提取极小项并入 PDNF，f=0 的行提取极大项并入 PCNF。</span>';
+      if (focusRow == null && !assembleShown) return '<span style="color:#6b4a38">点「下一步」逐行扫描真值表。f=1 的行提取极小项并入 PDNF，f=0 的行提取极大项并入 PCNF。</span>';
       if (focusRow == null && assembleShown) {
         return '✅ 已扫描全部 <b>' + tbl.rows.length + '</b> 行：' + tbl.ones.length + ' 个真行 → PDNF（' + tbl.ones.length + ' 项），' +
           tbl.zeros.length + ' 个假行 → PCNF（' + tbl.zeros.length + ' 项）。主范式唯一确定。可点任意元素回看。';

@@ -182,7 +182,7 @@
       .vm-switch input {
         width: 18px;
         height: 18px;
-        accent-color: #b42318;
+        accent-color: #d63b1d;
       }
       .vm-actions {
         display: grid;
@@ -194,7 +194,7 @@
       }
       .vm-btn {
         min-height: 40px;
-        border: 1px solid rgba(180, 35, 24, 0.22);
+        border: 1px solid rgba(214, 59, 29, 0.22);
         border-radius: 8px;
         background: rgba(255, 250, 242, 0.94);
         color: #7b2417;
@@ -208,7 +208,7 @@
         box-shadow: 0 8px 20px rgba(69, 31, 15, 0.12);
       }
       .vm-btn.primary {
-        background: #b42318;
+        background: #d63b1d;
         color: #fff;
       }
       .vm-btn.primary:hover {
@@ -220,7 +220,7 @@
         font-size: 14px;
       }
       .vm-tip b {
-        color: #b42318;
+        color: #d63b1d;
       }
       .logic-board.vm-board {
         grid-template-rows: minmax(0, 1fr);
@@ -262,13 +262,13 @@
       .vm-card strong {
         display: block;
         margin-top: 4px;
-        color: #b42318;
+        color: #d63b1d;
         font: 900 20px "JetBrains Mono", Consolas, monospace;
       }
       .vm-card small {
         display: block;
         margin-top: 4px;
-        color: #6c5a52;
+        color: #6b4a38;
         line-height: 1.4;
       }
       .vm-note {
@@ -277,7 +277,7 @@
         line-height: 1.65;
       }
       .vm-note b {
-        color: #b42318;
+        color: #d63b1d;
       }
       .vm-pill-row {
         display: flex;
@@ -760,7 +760,7 @@
     ctx.clearRect(0, 0, w, h);
     drawBackdrop(w, h);
     const pos = layout();
-    drawColumnTitle("志愿者 U", pos.volunteers[0].x, 36, "#b42318");
+    drawColumnTitle("志愿者 U", pos.volunteers[0].x, 36, "#d63b1d");
     drawColumnTitle(isExtend ? "服务需求 W" : "服务岗位 W", pos.posts[0].x, 36, "#2f7d57");
     drawMiddleTitle(w / 2, 36);
     drawEdges(pos);
@@ -795,7 +795,7 @@
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = color;
-    ctx.font = "900 18px 'Noto Serif SC', serif";
+    ctx.font = "900 18px 'Noto Serif SC', 'Microsoft YaHei', serif";
     ctx.fillText(text, x, y);
     ctx.restore();
   }
@@ -844,7 +844,7 @@
           ctx.lineWidth = isExtend ? 1.2 + weight * 0.35 : 2;
         }
         if (isHover) {
-          ctx.strokeStyle = "#b42318";
+          ctx.strokeStyle = "#d63b1d";
           ctx.lineWidth = Math.max(ctx.lineWidth, 3.5);
         }
         ctx.stroke();
@@ -858,7 +858,7 @@
     const x = (a.x + b.x) / 2;
     const y = (a.y + b.y) / 2;
     ctx.save();
-    ctx.fillStyle = hot ? "#b42318" : allowed ? "#2f5f9f" : "#aa9a91";
+    ctx.fillStyle = hot ? "#d63b1d" : allowed ? "#2f5f9f" : "#aa9a91";
     ctx.strokeStyle = "rgba(255, 253, 246, 0.9)";
     ctx.lineWidth = 4;
     ctx.font = "900 12px 'JetBrains Mono', Consolas, monospace";
@@ -874,8 +874,8 @@
     points.forEach((point, index) => {
       const matchedIndex = type === "volunteer" ? state.matchL[index] : state.matchR[index];
       const matched = matchedIndex !== -1;
-      const color = type === "volunteer" ? "#b42318" : "#2f7d57";
-      const soft = type === "volunteer" ? "rgba(180, 35, 24, 0.10)" : "rgba(47, 125, 87, 0.10)";
+      const color = type === "volunteer" ? "#d63b1d" : "#2f7d57";
+      const soft = type === "volunteer" ? "rgba(214, 59, 29, 0.10)" : "rgba(47, 125, 87, 0.10)";
       const item = items[index];
       const circleX = point.x - box.w / 2 + box.circleOffset;
       const textX = circleX + box.textOffset;
@@ -900,10 +900,10 @@
       ctx.fillText(item.id, circleX, point.y);
       ctx.textAlign = "left";
       ctx.fillStyle = "#2f231f";
-      ctx.font = "900 " + box.nameFont + "px 'Noto Serif SC', serif";
+      ctx.font = "900 " + box.nameFont + "px 'Noto Serif SC', 'Microsoft YaHei', serif";
       ctx.fillText(item.name, textX, point.y - box.nameDy);
       ctx.fillStyle = "#8b6b5d";
-      ctx.font = "800 " + box.tagFont + "px 'Noto Serif SC', serif";
+      ctx.font = "800 " + box.tagFont + "px 'Noto Serif SC', 'Microsoft YaHei', serif";
       ctx.fillText(item.tag, textX, point.y + box.tagDy);
       ctx.restore();
     });
@@ -928,7 +928,7 @@
     roundRect(18, h - 46, w - 36, 28, 8);
     ctx.fill();
     ctx.fillStyle = m.count === m.target ? "#2f7d57" : "#7c6257";
-    ctx.font = "800 13px 'Noto Serif SC', serif";
+    ctx.font = "800 13px 'Noto Serif SC', 'Microsoft YaHei', serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(text, w / 2, h - 32);

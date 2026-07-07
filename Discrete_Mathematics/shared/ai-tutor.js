@@ -459,10 +459,15 @@
     injectUnifiedFrameStyle();
     root = el('div'); root.id = 'dm-assist-root';
 
-    /* 面包屑 */
+    /* 面包屑（章名可点击返回课程首页，复用页内主页浮标的相对链接） */
     var crumb = el('div'); crumb.id = 'dm-crumb';
-    crumb.innerHTML = '<span class="dm-cb-ch">' + esc(META.chapter) + '</span>'
-      + '<span class="dm-cb-sep">›</span><span class="dm-cb-sec">' + esc(META.section || META.title) + '</span>';
+    var homeAnchor = document.querySelector('a.home-link, a[title="返回课程主页"]');
+    var homeHref = (homeAnchor && homeAnchor.getAttribute('href')) || '../../index.html';
+    var cbCh = el('a', 'dm-cb-ch', esc(META.chapter));
+    cbCh.href = homeHref; cbCh.title = '返回课程首页';
+    crumb.appendChild(cbCh);
+    crumb.appendChild(el('span', 'dm-cb-sep', '›'));
+    crumb.appendChild(el('span', 'dm-cb-sec', esc(META.section || META.title)));
     root.appendChild(crumb);
 
     /* 启动按钮 */

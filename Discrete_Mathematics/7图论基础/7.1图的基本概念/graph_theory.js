@@ -663,7 +663,7 @@ function drawNode(node) {
     ctx.stroke();
 
     // Draw label
-    ctx.fillStyle = node.selected ? '#ffffff' : '#2c3e50';
+    ctx.fillStyle = node.selected ? '#ffffff' : '#2c1810';
     ctx.font = 'bold 15px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';

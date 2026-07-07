@@ -121,7 +121,7 @@
         }
 
         .formula-box .formula {
-            font-family: 'Courier New', monospace;
+            font-family: 'JetBrains Mono', Consolas, monospace;
             font-size: 1.3rem;
             color: var(--accent-red);
             font-weight: 700;
@@ -171,7 +171,7 @@
         }
 
         .step-expression {
-            font-family: 'Courier New', monospace;
+            font-family: 'JetBrains Mono', Consolas, monospace;
             font-size: 1rem;
             color: var(--accent-red);
             font-weight: 600;
@@ -208,7 +208,7 @@
         }
 
         .side-box .value {
-            font-family: 'Courier New', monospace;
+            font-family: 'JetBrains Mono', Consolas, monospace;
             font-size: 1.8rem;
             color: var(--accent-red);
             font-weight: 700;
@@ -257,7 +257,7 @@
             background: rgba(139, 0, 0, 0.05);
             padding: 0.8rem;
             border-radius: 8px;
-            font-family: 'Courier New', monospace;
+            font-family: 'JetBrains Mono', Consolas, monospace;
             font-size: 0.9rem;
             color: var(--accent-red);
             margin: 0.5rem 0;
@@ -281,6 +281,11 @@
             padding-bottom: 0.5rem;
         }
 
+        /* 共享框架注入的三阶层次带横跨 glass-pane 两列（参照 9.1 标准外壳） */
+        .glass-pane > #dm-page-layers {
+            grid-column: 1 / -1;
+        }
+
         /* 响应式 */
         @media (max-width: 1200px) {
             .glass-pane {
@@ -289,25 +294,12 @@
         }
     </style>
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="algebraic_laws-tier.css">
     <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
-<body>
-    <!-- 返回主页浮动按钮 (auto-injected) -->
-    <a href="../../index.html" title="返回课程主页" style="
-        position:fixed;top:14px;left:14px;z-index:9999;
-        display:flex;align-items:center;gap:6px;
-        background:rgba(30,30,40,0.82);color:#fff;
-        padding:7px 14px 7px 10px;border-radius:20px;
-        font-size:13px;font-family:'Noto Serif SC',serif;
-        text-decoration:none;backdrop-filter:blur(8px);
-        border:1px solid rgba(255,255,255,0.15);
-        box-shadow:0 2px 12px rgba(0,0,0,0.35);
-        transition:background .2s;
-    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
-       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
-        🏠 <span>课程主页</span>
-    </a>
+<body class="law-advanced-body">
+    <a class="home-link" href="../../index.html">⌂ 课程主页</a>
 
     <div class="app-container">
         <aside class="sidebar">
@@ -317,8 +309,8 @@
                     <span class="dot yellow"></span>
                     <span class="dot green"></span>
                 </div>
-                <h1>红色数理 <span class="highlight">进阶层</span></h1>
-                <p class="subtitle">运算定律检验台 · 与性质</p>
+                <h1>分配·吸收·消去律 <span class="highlight">进阶层</span></h1>
+                <p class="subtitle">分配 / 吸收 / 消去 / 幂等</p>
             </div>
 
             <div class="controls-wrapper">
@@ -355,6 +347,7 @@
             </div>
 
             <div class="actions-footer">
+                <button id="nextStepBtn" class="apple-btn primary-btn" aria-label="单步验证">下一步</button>
                 <button id="verifyBtn" class="apple-btn action-btn" aria-label="验证定律">验证定律</button>
                 <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置">重置</button>
             </div>
@@ -402,24 +395,9 @@
 
     <script src="algebraic_laws.js"></script>
 
-<!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: transparent;
-    color: inherit;
-    opacity: 0.72;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: none;
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
+<footer class="footer">
+    <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+    <div>版权所有 · 项目总负责人：谢鑫</div>
 </footer>
 
 

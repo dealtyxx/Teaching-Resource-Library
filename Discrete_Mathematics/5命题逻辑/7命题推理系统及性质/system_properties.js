@@ -180,7 +180,7 @@
   }
   function svgEl(type, attrs) { var el = document.createElementNS(SVGNS, type); if (attrs) for (var k in attrs) el.setAttribute(k, attrs[k]); return el; }
   function byId(id) { return document.getElementById(id); }
-  var KIND_COLOR = { theorem: "#2f7d57", gap: "#c58a1f", unsound: "#b42318", excluded: "#9aa0a6" };
+  var KIND_COLOR = { theorem: "#2f7d57", gap: "#c58a1f", unsound: "#d63b1d", excluded: "#9aa0a6" };
 
   function run() {
     var levelKey = global.SYMBOLIZE_LEVEL || "basic";
@@ -331,7 +331,7 @@
     }
 
     function evalHTML(focusRow, verdictShown) {
-      if (focusRow == null && !verdictShown) return '<span style="color:#6c5a52">点「下一步」逐项判定命题样本：先看是否有效 ⊨，再看本系统是否可证 ⊢，归类为定理/缺口/破坏/排除。</span>';
+      if (focusRow == null && !verdictShown) return '<span style="color:#6b4a38">点「下一步」逐项判定命题样本：先看是否有效 ⊨，再看本系统是否可证 ⊢，归类为定理/缺口/破坏/排除。</span>';
       if (focusRow == null && verdictShown) return '已判定全部 <b>' + st.formulas.length + '</b> 个样本，下方综合给出可靠性、完备性、一致性结论。可点任意样本回看。';
       var f = st.formulas[focusRow];
       return '<div>判定 <span class="ev-f">' + esc(f.f) + '</span>：' + (f.valid ? "有效 ⊨" : "无效 ⊭") + '，' + (f.provable ? "可证 ⊢" : "不可证 ⊬") + '</div>' +

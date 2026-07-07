@@ -1,0 +1,601 @@
+:root {
+  --ink: #2c1810;
+  --muted: #6b4a38;
+  --paper: #fff8ec;
+  --card: rgba(255, 253, 246, 0.92);
+  --line: rgba(116, 55, 31, 0.18);
+  --red: #d63b1d;
+  --gold: #c58a1f;
+  --green: #2f7d57;
+  --blue: #2f5f9f;
+  --purple: #6f4aa8;
+  --shadow: 0 18px 50px rgba(69, 31, 15, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: "Noto Serif SC", "Microsoft YaHei", serif;
+  background:
+    radial-gradient(circle at 16% 12%, rgba(222, 91, 61, 0.18), transparent 28%),
+    radial-gradient(circle at 82% 8%, rgba(47, 95, 159, 0.14), transparent 26%),
+    linear-gradient(135deg, #fff7e6 0%, #f8ead3 45%, #f3dfc7 100%);
+  overflow: hidden;
+}
+
+#dm-onboard {
+  display: none !important;
+}
+
+.home-link {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 10000;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(44, 24, 16, 0.82);
+  color: #fff;
+  text-decoration: none;
+  font-size: 13px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.app-container {
+  width: min(1440px, calc(100vw - 32px));
+  height: calc(100vh - 166px);
+  min-height: 640px;
+  margin: 74px auto 0;
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  gap: 18px;
+}
+
+.side-panel,
+.glass-pane {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+}
+
+.side-panel {
+  padding: 20px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.glass-pane {
+  padding: 18px;
+  overflow: auto;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 14px;
+}
+
+.eyebrow {
+  width: fit-content;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(214, 59, 29, 0.22);
+  color: var(--red);
+  background: rgba(214, 59, 29, 0.08);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sidebar-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-header h1 {
+  margin: 0 0 4px;
+  font-family: "Ma Shan Zheng", "Noto Serif SC", cursive;
+  font-size: 2.1rem;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--red);
+  letter-spacing: 0;
+}
+
+.sidebar-header h1 .highlight {
+  color: #ffb400;
+}
+
+.subtitle,
+.intro {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.subtitle {
+  font-size: 0.96rem;
+}
+
+.intro {
+  font-size: 15px;
+}
+
+#controls {
+  display: grid;
+  gap: 10px;
+}
+
+.control-group,
+.mission-card,
+.result-card,
+.algebra-board {
+  border-radius: 8px;
+  border: 1px solid rgba(116, 55, 31, 0.16);
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.control-group {
+  padding: 12px;
+}
+
+.control-group label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  color: #4e362d;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.control-group small {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+select,
+input[type="range"] {
+  width: 100%;
+}
+
+select {
+  min-height: 38px;
+  border-radius: 8px;
+  border: 1px solid rgba(116, 55, 31, 0.22);
+  background: #fffaf2;
+  color: var(--ink);
+  padding: 0 10px;
+  font: inherit;
+}
+
+input[type="range"] {
+  accent-color: var(--red);
+}
+
+.button-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.button-row.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tool-btn {
+  min-height: 38px;
+  border: 1px solid rgba(214, 59, 29, 0.22);
+  border-radius: 8px;
+  background: #fffaf2;
+  color: var(--red);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(69, 31, 15, 0.08);
+}
+
+.tool-btn.primary {
+  background: var(--red);
+  color: #fff;
+}
+
+.tool-btn:hover {
+  transform: translateY(-1px);
+}
+
+.step-card {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(47, 95, 159, 0.14);
+  background: rgba(47, 95, 159, 0.07);
+}
+
+.step-track {
+  display: grid;
+  grid-template-columns: repeat(var(--step-count), minmax(0, 1fr));
+  gap: 5px;
+}
+
+.step-dot {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(107, 74, 56, 0.18);
+}
+
+.step-dot.is-active {
+  background: var(--red);
+}
+
+.step-title {
+  min-height: 44px;
+  color: #53362c;
+  line-height: 1.55;
+}
+
+.mission-card {
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.mission-card b {
+  color: var(--red);
+}
+
+.mission-card span {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.visual-badge {
+  white-space: nowrap;
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(47, 95, 159, 0.1);
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.algebra-board {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(340px, 1fr) auto;
+  gap: 12px;
+  padding: 14px;
+}
+
+.board-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.graph-title h2 {
+  margin: 0;
+  font-family: "Ma Shan Zheng", "Noto Serif SC", cursive;
+  font-size: 1.55rem;
+  font-weight: 400;
+  color: var(--red);
+}
+
+.graph-title p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(255, 250, 242, 0.9);
+  color: #53362c;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.diagram-shell {
+  min-height: 340px;
+  border-radius: 8px;
+  border: 1px solid rgba(116, 55, 31, 0.12);
+  background:
+    linear-gradient(90deg, rgba(116, 55, 31, 0.055) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(116, 55, 31, 0.055) 1px, transparent 1px),
+    rgba(255, 255, 255, 0.58);
+  background-size: 28px 28px;
+  overflow: hidden;
+}
+
+#diagramSvg {
+  width: 100%;
+  height: 100%;
+  min-height: 340px;
+  display: block;
+}
+
+.axiom-row {
+  cursor: pointer;
+}
+
+.axiom-box {
+  fill: rgba(255, 250, 242, 0.94);
+  stroke: rgba(116, 55, 31, 0.18);
+  stroke-width: 2;
+  filter: drop-shadow(0 7px 14px rgba(69, 31, 15, 0.12));
+}
+
+.axiom-row.is-met .axiom-box {
+  fill: rgba(47, 125, 87, 0.16);
+  stroke: var(--green);
+}
+
+.axiom-row.is-current .axiom-box {
+  fill: rgba(214, 59, 29, 0.12);
+  stroke: var(--red);
+  stroke-width: 4;
+}
+
+.axiom-row.is-missing .axiom-box {
+  fill: rgba(214, 59, 29, 0.08);
+  stroke: rgba(214, 59, 29, 0.35);
+}
+
+.axiom-label {
+  fill: #3d2b25;
+  font-size: 14px;
+  font-weight: 800;
+  pointer-events: none;
+}
+
+.axiom-note {
+  fill: var(--muted);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.system-shell {
+  fill: rgba(255, 255, 255, 0.82);
+  stroke: rgba(214, 59, 29, 0.36);
+  stroke-width: 3;
+}
+
+.system-title {
+  fill: var(--red);
+  font-family: "Ma Shan Zheng", "Noto Serif SC", cursive;
+  font-size: 26px;
+}
+
+.system-formula {
+  fill: var(--blue);
+  font: 900 18px "JetBrains Mono", Consolas, monospace;
+}
+
+.system-comment {
+  fill: #53362c;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.connector {
+  stroke: rgba(47, 95, 159, 0.28);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.connector.is-hot {
+  stroke: var(--red);
+  stroke-width: 5;
+}
+
+.op-node {
+  fill: var(--blue);
+  stroke: #fffaf2;
+  stroke-width: 4;
+  filter: drop-shadow(0 5px 10px rgba(69, 31, 15, 0.14));
+}
+
+.op-node.is-hot {
+  fill: var(--red);
+}
+
+.op-text {
+  fill: #fff;
+  font: 900 14px "JetBrains Mono", Consolas, monospace;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+
+.graph-summary {
+  border-radius: 8px;
+  border: 1px solid rgba(116, 55, 31, 0.16);
+  background: rgba(255, 255, 255, 0.78);
+  padding: 12px;
+  color: #5e4338;
+  line-height: 1.65;
+}
+
+.result-card {
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  gap: 12px;
+}
+
+.formula-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.formula-chip {
+  min-height: 72px;
+  border-radius: 8px;
+  border: 1px solid rgba(116, 55, 31, 0.14);
+  background: rgba(255, 250, 242, 0.86);
+  padding: 10px;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.formula-chip.is-hot {
+  border-color: rgba(214, 59, 29, 0.52);
+  box-shadow: 0 0 0 3px rgba(214, 59, 29, 0.11);
+}
+
+.formula-value {
+  color: var(--blue);
+  font: 900 20px "JetBrains Mono", Consolas, monospace;
+}
+
+.formula-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+#resultValue,
+#resultExtra {
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(255, 250, 242, 0.86);
+  line-height: 1.7;
+}
+
+#resultValue {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  color: var(--red);
+  font-weight: 800;
+}
+
+#resultExtra {
+  grid-column: 1 / -1;
+  color: #5e4338;
+}
+
+.truth-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 76px;
+  height: 34px;
+  border-radius: 999px;
+  padding: 0 12px;
+  color: #fff;
+  background: var(--green);
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-weight: 900;
+}
+
+.truth-chip.false {
+  background: var(--red);
+}
+
+.footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9998;
+  min-height: 72px;
+  padding: 14px 10px;
+  text-align: center;
+  color: inherit;
+  opacity: 0.72;
+  background: transparent;
+  box-shadow: none;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+@media (max-width: 1020px) {
+  body {
+    overflow: auto;
+  }
+
+  .app-container {
+    width: min(100vw - 22px, 760px);
+    height: auto;
+    min-height: 0;
+    grid-template-columns: 1fr;
+    margin-bottom: 96px;
+  }
+
+  .mission-card,
+  .result-card {
+    grid-template-columns: 1fr;
+  }
+
+  .formula-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #resultExtra {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .app-container {
+    width: calc(100vw - 16px);
+    margin-top: 66px;
+  }
+
+  .side-panel,
+  .glass-pane {
+    padding: 14px;
+  }
+
+  .button-row,
+  .button-row.three,
+  .mission-card {
+    grid-template-columns: 1fr;
+  }
+
+  .algebra-board {
+    grid-template-rows: auto 320px auto;
+  }
+
+  .formula-grid {
+    grid-template-columns: 1fr;
+  }
+}

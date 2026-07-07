@@ -312,15 +312,15 @@
 
       // 合取门
       var gate = svgEl("g");
-      gate.appendChild(svgEl("circle", { cx: gateX, cy: centerY, r: gateR, fill: "#fff", stroke: "#b42318", "stroke-width": 2 }));
-      var gt = svgEl("text", { x: gateX, y: centerY, "text-anchor": "middle", "dominant-baseline": "central", fill: "#b42318", "font-size": 22, "font-weight": "800" }); gt.textContent = "∧";
+      gate.appendChild(svgEl("circle", { cx: gateX, cy: centerY, r: gateR, fill: "#fff", stroke: "#d63b1d", "stroke-width": 2 }));
+      var gt = svgEl("text", { x: gateX, y: centerY, "text-anchor": "middle", "dominant-baseline": "central", fill: "#d63b1d", "font-size": 22, "font-weight": "800" }); gt.textContent = "∧";
       gate.appendChild(gt); g.appendChild(gate);
 
       // 推荐节点
       var rg = svgEl("g"); rg.setAttribute("class", "car-node");
       var rrect = svgEl("rect", { x: recX, y: centerY - recH / 2, width: recW, height: recH, rx: 11, fill: "#eee", stroke: "#cfc3bb", "stroke-width": 2 });
-      var rt1 = svgEl("text", { x: recX + recW / 2, y: centerY - 8, "text-anchor": "middle", fill: "#2d211d", "font-size": 14, "font-weight": "800", "font-family": "JetBrains Mono, monospace" }); rt1.textContent = action + "(x,j)";
-      var rt2 = svgEl("text", { x: recX + recW / 2, y: centerY + 14, "text-anchor": "middle", fill: "#6c5a52", "font-size": 12.5, "font-weight": "700" }); rt2.textContent = "待判定";
+      var rt1 = svgEl("text", { x: recX + recW / 2, y: centerY - 8, "text-anchor": "middle", fill: "#2c1810", "font-size": 14, "font-weight": "800", "font-family": "JetBrains Mono, monospace" }); rt1.textContent = action + "(x,j)";
+      var rt2 = svgEl("text", { x: recX + recW / 2, y: centerY + 14, "text-anchor": "middle", fill: "#6b4a38", "font-size": 12.5, "font-weight": "700" }); rt2.textContent = "待判定";
       rg.appendChild(rrect); rg.appendChild(rt1); rg.appendChild(rt2);
       g.appendChild(rg);
       recNode = { g: rg, rect: rrect, txt: rt2 };
@@ -376,7 +376,7 @@
           nodeEls[k].g.classList.toggle("sym-pending", !revealed);
           nodeEls[k].g.classList.toggle("sym-cur", isCur);
           nodeEls[k].rect.setAttribute("fill", revealed ? (v ? "#cdebd9" : "#f6d3ce") : "#eee");
-          nodeEls[k].rect.setAttribute("stroke", revealed ? (v ? "#2f7d57" : "#b42318") : "#cfc3bb");
+          nodeEls[k].rect.setAttribute("stroke", revealed ? (v ? "#2f7d57" : "#d63b1d") : "#cfc3bb");
         }
       }
 
@@ -384,14 +384,14 @@
       if (recNode) {
         if (verdictShown) {
           recNode.rect.setAttribute("fill", cur.recommend ? "#cdebd9" : "#f6d3ce");
-          recNode.rect.setAttribute("stroke", cur.recommend ? "#2f7d57" : "#b42318");
+          recNode.rect.setAttribute("stroke", cur.recommend ? "#2f7d57" : "#d63b1d");
           recNode.txt.textContent = cur.recommend ? "成立 ✓ 推荐" : "前件假 ✗";
           recNode.txt.setAttribute("fill", cur.recommend ? "#1d6b43" : "#97180f");
         } else {
           recNode.rect.setAttribute("fill", "#eee");
           recNode.rect.setAttribute("stroke", "#cfc3bb");
           recNode.txt.textContent = "待判定";
-          recNode.txt.setAttribute("fill", "#6c5a52");
+          recNode.txt.setAttribute("fill", "#6b4a38");
         }
       }
 
@@ -406,7 +406,7 @@
     }
 
     function evalHTML(focusCond, verdictShown) {
-      if (focusCond == null && !verdictShown) return '<span style="color:#6c5a52">点「下一步」逐项核验谓词条件。每个条件成立与否，决定规则前件是否为真。</span>';
+      if (focusCond == null && !verdictShown) return '<span style="color:#6b4a38">点「下一步」逐项核验谓词条件。每个条件成立与否，决定规则前件是否为真。</span>';
       if (focusCond == null && verdictShown) return '已核验全部 <b>' + cur.conds.length + '</b> 个条件，下方给出推荐结论。可点任意条件回看。';
       var q = cur.conds[focusCond];
       return '<div>核验 <span class="ev-pred">' + esc(q.pred) + '</span>（' + esc(q.name) + '）：' + esc(cur.who) + ' — ' + esc(q.detail) +

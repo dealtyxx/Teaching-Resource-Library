@@ -1,347 +1,27 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
-    <!-- Open Graph / 社交分享（微信、钉钉、Telegram 等）。部署域名变更时全局替换下方 BASE 即可 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="9.1 代数系统的定义 · 进阶层互动">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
-    <meta property="og:title" content="代数系统 - 价值引领可视化">
-    <meta property="og:description" content="离散数学课程 - 代数系统 - 价值引领可视化">
-    <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/9%E4%BB%A3%E6%95%B0%E7%B3%BB%E7%BB%9F/9.1%E5%AE%9A%E4%B9%89/algebraic_systems.html">
+    <meta property="og:title" content="第9章 代数系统 - 代数系统定义进阶层">
+    <meta property="og:description" content="通过逐步运算演示、公式项高亮和性质检查理解代数系统定义。">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="代数系统 - 价值引领可视化">
-    <meta name="twitter:description" content="离散数学课程 - 代数系统 - 价值引领可视化">
-    <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>代数系统 - 价值引领可视化</title>
-    <meta name="description" content="离散数学课程 - 代数系统 - 价值引领可视化">
-
-    <link rel="stylesheet" href="style.css">
+    <title>第9章 代数系统 - 代数系统定义进阶层</title>
+    <link rel="icon" type="image/svg+xml" href="../../shared/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
-        rel="stylesheet">
-    <style>
-        /* 扩展样式 */
-        .sidebar {
-            overflow-y: auto;
-        }
-
-        .sidebar-header h1 {
-            font-size: 1.6rem;
-            line-height: 1.3;
-        }
-
-        .operation-selector {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.5rem;
-        }
-
-        .op-btn {
-            padding: 10px 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid var(--accent-red);
-            background: #fff;
-            color: var(--accent-red);
-            font-family: var(--font-family);
-            text-align: center;
-        }
-
-        .op-btn.active {
-            background: var(--accent-red);
-            color: #fff;
-        }
-
-        .op-btn:hover:not(.active) {
-            background: rgba(214, 59, 29, 0.1);
-        }
-
-        select {
-            width: 100%;
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid rgba(139, 0, 0, 0.2);
-            background: #fff;
-            color: var(--text-primary);
-            font-family: var(--font-family);
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-
-        select:focus {
-            outline: none;
-            border-color: var(--accent-red);
-        }
-
-        .operation-table {
-            background: rgba(255, 255, 255, 0.6);
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            color: var(--text-primary);
-            border: 1px solid rgba(139, 0, 0, 0.1);
-            max-height: 200px;
-            overflow: auto;
-        }
-
-        .operation-table table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.75rem;
-        }
-
-        .operation-table th,
-        .operation-table td {
-            border: 1px solid rgba(139, 0, 0, 0.2);
-            padding: 4px 6px;
-            text-align: center;
-        }
-
-        .operation-table th {
-            background: rgba(214, 59, 29, 0.15);
-            color: var(--accent-red);
-            font-weight: 600;
-        }
-
-        .operation-table td.highlight {
-            background: rgba(255, 180, 0, 0.2);
-            font-weight: 700;
-            color: var(--accent-gold);
-        }
-
-        /* 右侧面板 */
-        .glass-pane {
-            display: grid;
-            grid-template-columns: 1fr 340px;
-            gap: 1rem;
-            padding: 1rem;
-        }
-
-        .visualization-area {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 12px;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            padding: 1rem;
-        }
-
-        .operation-demo {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 12px;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .operation-formula {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--accent-red);
-            font-family: 'Courier New', monospace;
-            margin: 1rem 0;
-        }
-
-        .operation-arrow {
-            font-size: 1.5rem;
-            color: var(--accent-gold);
-            margin: 0.5rem 0;
-        }
-
-        .operation-result {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--accent-gold);
-            font-family: 'Courier New', monospace;
-            background: rgba(255, 180, 0, 0.15);
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            border: 2px solid var(--accent-gold);
-        }
-
-        .properties-display {
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 12px;
-            padding: 1rem;
-        }
-
-        .properties-display h4 {
-            font-family: var(--font-title);
-            font-size: 1rem;
-            color: var(--accent-red);
-            margin-bottom: 0.8rem;
-            border-bottom: 2px solid var(--accent-red);
-            padding-bottom: 0.5rem;
-        }
-
-        .property-item {
-            background: rgba(255, 255, 255, 0.8);
-            padding: 8px 12px;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .property-item .icon {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            font-weight: 700;
-            flex-shrink: 0;
-        }
-
-        .property-item .icon.yes {
-            background: #4caf50;
-            color: white;
-        }
-
-        .property-item .icon.no {
-            background: #f44336;
-            color: white;
-        }
-
-        .info-panel-right {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .definition-panel {
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 12px;
-            padding: 1rem;
-            border: 1px solid rgba(139, 0, 0, 0.1);
-        }
-
-        .definition-panel h3 {
-            font-family: var(--font-title);
-            font-size: 1.1rem;
-            color: var(--accent-red);
-            margin-bottom: 0.8rem;
-            border-bottom: 2px solid var(--accent-red);
-            padding-bottom: 0.5rem;
-        }
-
-        .definition-panel p {
-            font-size: 0.85rem;
-            line-height: 1.6;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-        }
-
-        .definition-panel .formula-box {
-            background: rgba(139, 0, 0, 0.05);
-            padding: 0.8rem;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            color: var(--accent-red);
-            margin: 0.5rem 0;
-            border-left: 4px solid var(--accent-red);
-        }
-
-        .examples-panel {
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 12px;
-            padding: 1rem;
-            overflow-y: auto;
-            border: 1px solid rgba(139, 0, 0, 0.1);
-            flex: 1;
-        }
-
-        .examples-panel h3 {
-            font-family: var(--font-title);
-            font-size: 1.1rem;
-            color: var(--accent-red);
-            margin-bottom: 1rem;
-            border-bottom: 2px solid var(--accent-red);
-            padding-bottom: 0.5rem;
-        }
-
-        .example-item {
-            background: rgba(255, 255, 255, 0.8);
-            padding: 10px 12px;
-            border-radius: 8px;
-            margin-bottom: 0.8rem;
-            border-left: 3px solid var(--accent-gold);
-            font-size: 0.85rem;
-            line-height: 1.5;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .example-item:hover {
-            background: rgba(255, 248, 240, 0.95);
-            transform: translateX(4px);
-        }
-
-        .example-item .example-title {
-            font-weight: 700;
-            color: var(--accent-red);
-            margin-bottom: 0.3rem;
-        }
-
-        .example-item .example-desc {
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-        }
-
-        /* 响应式 */
-        @media (max-width: 1200px) {
-            .glass-pane {
-                grid-template-columns: 1fr;
-            }
-            .info-panel-right {
-                max-height: 400px;
-                overflow-y: auto;
-            }
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="style.css">
     <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
-
 <body>
-    <!-- 返回主页浮动按钮 (auto-injected) -->
-    <a href="../../index.html" title="返回课程主页" style="
-        position:fixed;top:14px;left:14px;z-index:9999;
-        display:flex;align-items:center;gap:6px;
-        background:rgba(30,30,40,0.82);color:#fff;
-        padding:7px 14px 7px 10px;border-radius:20px;
-        font-size:13px;font-family:'Noto Serif SC',serif;
-        text-decoration:none;backdrop-filter:blur(8px);
-        border:1px solid rgba(255,255,255,0.15);
-        box-shadow:0 2px 12px rgba(0,0,0,0.35);
-        transition:background .2s;
-    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
-       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
-        🏠 <span>课程主页</span>
-    </a>
+    <a class="home-link" href="../../index.html">⌂ 课程主页</a>
 
     <div class="app-container">
         <aside class="sidebar">
@@ -351,179 +31,121 @@
                     <span class="dot yellow"></span>
                     <span class="dot green"></span>
                 </div>
-                <h1>红色数理 <span class="highlight">进阶层</span></h1>
-                <p class="subtitle">代数系统搭建器 · 定义与运算</p>
+                <h1>代数系统 <span class="highlight">进阶层</span></h1>
+                <p class="subtitle">定义、运算与性质同步观察</p>
             </div>
 
-            <div class="controls-wrapper">
+            <p class="intro">从一元、二元到 n 元运算，逐步检查封闭性、单位元、逆元和交换律。</p>
+            <div class="layer-note" id="philosophyPanel"></div>
+
+            <div class="controls-wrapper" id="controlsArea">
                 <div class="control-group">
-                    <label>运算类型</label>
+                    <label><span>运算类型</span><small>进阶多类型</small></label>
                     <div class="operation-selector">
-                        <button class="op-btn active" data-type="unary" aria-label="一元运算">一元运算</button>
-                        <button class="op-btn" data-type="binary" aria-label="二元运算">二元运算</button>
-                        <button class="op-btn" data-type="n-ary" aria-label="n元运算">n元运算</button>
-                        <button class="op-btn" data-type="system" aria-label="代数系统">代数系统</button>
+                        <button class="op-btn active" data-type="unary">一元运算</button>
+                        <button class="op-btn" data-type="binary">二元运算</button>
+                        <button class="op-btn" data-type="nary">n 元运算</button>
+                        <button class="op-btn" data-type="system">代数系统</button>
                     </div>
                 </div>
 
                 <div class="control-group">
-                    <label>选择案例</label>
-                    <select id="caseSelector">
-                        <!-- 动态生成 -->
-                    </select>
+                    <label><span>选择案例</span><small>性质检验</small></label>
+                    <select id="caseSelector"></select>
                 </div>
 
-                <div class="control-group">
-                    <label>运算表</label>
-                    <div class="operation-table" id="operationTable">
-                        <em style="color: var(--text-secondary);">选择案例后显示运算表</em>
+                <div class="step-panel">
+                    <div class="step-label" id="stepLabel"></div>
+                    <div class="step-progress" id="stepProgress"><i></i></div>
+                    <div class="step-row">
+                        <button class="step-btn" id="prevStepBtn">上一步</button>
+                        <button class="step-btn" id="nextStepBtn">下一步</button>
                     </div>
                 </div>
 
                 <div class="control-group">
-                    <label>价值内涵</label>
-                    <div class="info-panel" id="philosophyPanel">
-                        <p style="color: var(--text-secondary); font-size: 0.85rem;">选择案例查看价值内涵</p>
-                    </div>
+                    <label><span>运算表 / 输入表</span><small>同步高亮</small></label>
+                    <div class="operation-table" id="operationTable"></div>
                 </div>
             </div>
 
             <div class="actions-footer">
-                <button id="demoBtn" class="apple-btn action-btn" aria-label="演示运算">演示运算</button>
-                <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置">重置</button>
+                <button id="demoBtn" class="apple-btn action-btn">演示下一步</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
             </div>
         </aside>
 
         <main class="visualizer-stage">
             <div class="glass-pane">
-                <div class="visualization-area">
-                    <div class="operation-demo" id="operationDemo">
-                        <div style="color: var(--text-secondary); font-size: 0.9rem;">点击"演示运算"开始</div>
-                    </div>
-                    <div class="properties-display" id="propertiesDisplay">
-                        <h4>运算性质</h4>
-                        <div style="color: var(--text-secondary); font-size: 0.85rem;">演示后显示性质检验</div>
-                    </div>
-                </div>
-                <div class="info-panel-right">
-                    <div class="definition-panel" id="definitionPanel">
-                        <h3>定义与概念</h3>
-                        <p>选择左侧的运算类型查看详细定义</p>
-                    </div>
+                <section class="mission-card">
+                    <span id="missionText"></span>
+                    <div class="visual-badge" id="visualBadge"></div>
+                </section>
+
+                <section class="visualization-area">
+                    <div class="operation-demo" id="operationDemo"></div>
+                    <div class="properties-display" id="propertiesDisplay"></div>
+                </section>
+
+                <section class="result-card">
+                    <div id="formulaText"></div>
+                    <div id="resultValue"></div>
+                    <div id="resultExtra"></div>
+                </section>
+
+                <section class="info-panel-right">
+                    <div class="definition-panel" id="definitionPanel"></div>
                     <div class="examples-panel">
-                        <h3>价值引领案例</h3>
-                        <div id="examplesList">
-                            <p style="color: var(--text-secondary); font-size: 0.85rem;">加载中...</p>
-                        </div>
+                        <h3>本层案例</h3>
+                        <div id="examplesList"></div>
                     </div>
-                </div>
+                </section>
             </div>
         </main>
     </div>
 
-    <script src="algebraic_systems.js"></script>
+    <footer class="footer">
+        <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+        <div>版权所有 · 项目总负责人：谢鑫</div>
+    </footer>
 
-<!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: transparent;
-    color: inherit;
-    opacity: 0.72;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: none;
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
-</footer>
-
-
-
-    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
     <script>
-    window.SECTION_META = {
-      "layers": [
-            {
-                  "name": "代数系统 ⟨S,∘⟩",
-                  "concepts": "非空集合 + 运算 / 封闭",
-                  "task": "认识代数系统的构成。",
-                  "page": "algebraic_systems-basic.html"
-            },
-            {
-                  "name": "运算与封闭性判定",
-                  "concepts": "二元运算 / 封闭性检验",
-                  "task": "判定运算是否封闭、构成代数系统。",
-                  "page": "algebraic_systems.html"
-            },
-            {
-                  "name": "统一抽象框架",
-                  "concepts": "群环域 / 类型+操作",
-                  "task": "迁移到群环域与编程类型。",
-                  "page": "algebraic_systems-extend.html"
-            }
-      ],
-      "chapter": "第9章 代数系统",
-      "section": "9.1 代数系统的定义",
-      "title": "代数系统的定义",
-      "grounding": "本节主题：代数系统=非空集合 S + 若干运算（及运算律），记 ⟨S,∘⟩。二元运算 ∘:S×S→S 要求封闭（运算结果仍在 S 内）。代数系统抽象出『对象+运算+规则』的共性，是研究结构的统一框架。",
-      "steps": [
-            {
-                  "name": "情境引入",
-                  "desc": "整数加法、矩阵乘法、字符串拼接，看似无关，有何共同结构？"
-            },
-            {
-                  "name": "对象抽取",
-                  "desc": "把『集合+运算』抽象为代数系统 ⟨S,∘⟩。"
-            },
-            {
-                  "name": "结构建模",
-                  "desc": "用封闭性与运算律刻画代数系统。"
-            },
-            {
-                  "name": "推理求解",
-                  "desc": "判定运算是否封闭、是否构成代数系统。"
-            },
-            {
-                  "name": "程序验证",
-                  "desc": "用本页交互定义运算表，检验封闭性。"
-            },
-            {
-                  "name": "迁移反思",
-                  "desc": "迁移到群、环、域、布尔代数的统一视角。"
-            }
-      ],
-      "ideology": {
-            "title": "抽象统一 · 透过现象看本质",
-            "text": "代数系统从纷繁的具体运算中抽象出共同结构，体现『由具体到抽象、由现象到本质』的认识飞跃。掌握抽象统一的方法，便能以一驭万、举一反三——这正是马克思主义认识论『从感性到理性』的科学思维写照。",
-            "dims": [
-                  "辩证思维",
-                  "抽象思维",
-                  "科学精神"
+        window.ALGEBRA_PAGE_CONFIG = {
+            layer: "advanced",
+            layerLabel: "进阶层",
+            initialType: "unary",
+            mission: "点一步，观察输入、运算、输出、公式项和性质判断如何同步变化。",
+            badge: "运算 + 性质联动",
+            note: "核心掌握：从封闭性继续追问单位元、逆元、交换律和多元运算。"
+        };
+        window.SECTION_META = {
+            layers: [
+                { name: "代数系统 ⟨S,∘⟩", concepts: "非空集合 / 运算 / 封闭", task: "认清代数系统的三件套。", page: "algebraic_systems-basic.html" },
+                { name: "运算与性质", concepts: "封闭 / 单位元 / 逆元", task: "逐步检验结构性质。", page: "algebraic_systems.html" },
+                { name: "结构迁移", concepts: "多运算 / 同态 / 积结构", task: "迁移到更复杂的系统。", page: "algebraic_systems-extend.html" }
             ],
-            "quote": "万物得其本者生——代数系统抓住『集合+运算+规则』这一本，便统摄了万千具体结构。"
-      },
-      "reflect": [
-            "『封闭性』为什么是代数系统的基本要求？不封闭会带来什么问题？",
-            "整数减法在自然数集上封闭吗？这说明运算的封闭性依赖于什么？",
-            "为什么要抽象出『代数系统』这一概念，而不就事论事研究每种运算？"
-      ],
-      "transfer": [
-            "编程中的『类型+操作』（如字符串+拼接）正是代数系统的化身。",
-            {
-                  "t": "抽象代数全景",
-                  "d": "群、环、域、格都是带特定公理的代数系统——本章如何统领后续？"
-            }
-      ]
-};
+            chapter: "第9章 代数系统",
+            section: "9.1 代数系统的定义",
+            title: "代数系统的定义",
+            grounding: "代数系统由非空集合 S 与定义在 S 上的运算组成。进阶层关注运算表、封闭性和常见性质之间的同步判断。",
+            steps: [
+                { name: "抽取集合", desc: "明确载体集合 S。" },
+                { name: "选择运算", desc: "确定一元、二元或 n 元规则。" },
+                { name: "逐步计算", desc: "让图、表、公式同步高亮。" },
+                { name: "性质判断", desc: "检查封闭、单位元、逆元等结构信息。" },
+                { name: "反思迁移", desc: "思考更高阶代数结构如何建立在这些定义上。" }
+            ],
+            reflect: [
+                "封闭性和单位元分别解决什么问题？",
+                "为什么 n 元运算仍然可以纳入同一个代数系统框架？"
+            ],
+            transfer: [
+                "群、环、域、格都是在代数系统基础上增加公理约束。",
+                { t: "程序视角", d: "类型与操作也可以看作载体集合与运算规则的组合。" }
+            ]
+        };
     </script>
+    <script src="algebraic_systems.js"></script>
     <script src="../../shared/ai-tutor.js" defer></script>
-
 </body>
-
 </html>

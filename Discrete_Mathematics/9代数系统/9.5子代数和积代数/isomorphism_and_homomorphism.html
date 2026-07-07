@@ -1,393 +1,27 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
-    <!-- Open Graph / 社交分享（微信、钉钉、Telegram 等）。部署域名变更时全局替换下方 BASE 即可 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="9.5 子代数和积代数 · 进阶层互动">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
-    <meta property="og:title" content="同构与同态 - 价值引领可视化">
-    <meta property="og:description" content="离散数学课程 - 同构与同态 - 价值引领可视化">
-    <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/9%E4%BB%A3%E6%95%B0%E7%B3%BB%E7%BB%9F/9.5%E5%AD%90%E4%BB%A3%E6%95%B0%E5%92%8C%E7%A7%AF%E4%BB%A3%E6%95%B0/isomorphism_and_homomorphism.html">
+    <meta property="og:title" content="第9章 代数系统 - 子代数与积代数进阶层">
+    <meta property="og:description" content="通过强互动案例观察子代数、积代数与保结构映射。">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="同构与同态 - 价值引领可视化">
-    <meta name="twitter:description" content="离散数学课程 - 同构与同态 - 价值引领可视化">
-    <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>同构与同态 - 价值引领可视化</title>
-    <meta name="description" content="离散数学课程 - 同构与同态 - 价值引领可视化">
-
-    <link rel="stylesheet" href="style.css">
+    <title>第9章 代数系统 - 子代数与积代数进阶层</title>
+    <link rel="icon" type="image/svg+xml" href="../../shared/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
-        rel="stylesheet">
-    <style>
-        /* 扩展样式 */
-        .sidebar {
-            overflow-y: auto;
-        }
-
-        .sidebar-header h1 {
-            font-size: 1.4rem;
-            line-height: 1.3;
-        }
-
-        .concept-selector {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 0.5rem;
-        }
-
-        .concept-btn {
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid var(--accent-red);
-            background: #fff;
-            color: var(--accent-red);
-            font-family: var(--font-family);
-            text-align: center;
-        }
-
-        .concept-btn.active {
-            background: var(--accent-red);
-            color: #fff;
-        }
-
-        .concept-btn:hover:not(.active) {
-            background: rgba(214, 59, 29, 0.1);
-        }
-
-        select {
-            width: 100%;
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid rgba(139, 0, 0, 0.2);
-            background: #fff;
-            color: var(--text-primary);
-            font-family: var(--font-family);
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-
-        /* 右侧面板 */
-        .glass-pane {
-            display: grid;
-            grid-template-columns: 1fr 340px;
-            gap: 1rem;
-            padding: 1rem;
-        }
-
-        .visualization-area {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 12px;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .mapping-diagram {
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 12px;
-            padding: 1.5rem;
-            min-height: 350px;
-            position: relative;
-        }
-
-        .mapping-diagram h3 {
-            font-family: var(--font-title);
-            font-size: 1.2rem;
-            color: var(--accent-red);
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-
-        .systems-row {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            gap: 2rem;
-            align-items: center;
-            margin-top: 2rem;
-        }
-
-        .system-box {
-            background: rgba(255, 255, 255, 0.8);
-            border: 2px solid var(--accent-red);
-            border-radius: 12px;
-            padding: 1.5rem;
-            text-align: center;
-        }
-
-        .system-box .title {
-            font-family: var(--font-title);
-            font-size: 1rem;
-            color: var(--accent-red);
-            margin-bottom: 1rem;
-            font-weight: 600;
-        }
-
-        .system-box .elements {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .element-item {
-            background: rgba(214, 59, 29, 0.1);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            color: var(--accent-red);
-            font-weight: 600;
-        }
-
-        .arrow-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .arrow {
-            font-size: 2.5rem;
-            color: var(--accent-gold);
-            font-weight: 700;
-        }
-
-        .arrow-label {
-            font-family: var(--font-title);
-            font-size: 0.9rem;
-            color: var(--accent-gold);
-            font-weight: 600;
-        }
-
-        .properties-display {
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 12px;
-            padding: 1.5rem;
-            flex: 1;
-        }
-
-        .properties-display h4 {
-            font-family: var(--font-title);
-            font-size: 1.1rem;
-            color: var(--accent-red);
-            margin-bottom: 1rem;
-            border-bottom: 2px solid var(--accent-red);
-            padding-bottom: 0.5rem;
-        }
-
-        .property-card {
-            background: rgba(255, 255, 255, 0.8);
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 0.8rem;
-            border-left: 4px solid var(--accent-gold);
-        }
-
-        .property-card .prop-title {
-            font-weight: 700;
-            color: var(--accent-red);
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .property-card .prop-desc {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            line-height: 1.5;
-        }
-
-        .formula-display {
-            background: rgba(139, 0, 0, 0.05);
-            padding: 1rem;
-            border-radius: 8px;
-            border-left: 4px solid var(--accent-red);
-            margin: 1rem 0;
-        }
-
-        .formula-display .formula {
-            font-family: 'Courier New', monospace;
-            font-size: 1.1rem;
-            color: var(--accent-red);
-            font-weight: 600;
-            text-align: center;
-        }
-
-        .info-panel-right {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .definition-panel {
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 12px;
-            padding: 1rem;
-            border: 1px solid rgba(139, 0, 0, 0.1);
-        }
-
-        .definition-panel h3 {
-            font-family: var(--font-title);
-            font-size: 1.1rem;
-            color: var(--accent-red);
-            margin-bottom: 0.8rem;
-            border-bottom: 2px solid var(--accent-red);
-            padding-bottom: 0.5rem;
-        }
-
-        .definition-panel p {
-            font-size: 0.85rem;
-            line-height: 1.6;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-        }
-
-        .definition-panel .formula-box {
-            background: rgba(139, 0, 0, 0.05);
-            padding: 0.8rem;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            color: var(--accent-red);
-            margin: 0.5rem 0;
-            border-left: 4px solid var(--accent-red);
-            line-height: 1.8;
-        }
-
-        .examples-panel {
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 12px;
-            padding: 1rem;
-            overflow-y: auto;
-            flex: 1;
-        }
-
-        .examples-panel h3 {
-            font-family: var(--font-title);
-            font-size: 1.1rem;
-            color: var(--accent-red);
-            margin-bottom: 1rem;
-            border-bottom: 2px solid var(--accent-red);
-            padding-bottom: 0.5rem;
-        }
-
-        /* 对比表格样式 */
-        .comparison-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 16px rgba(139, 0, 0, 0.15);
-        }
-
-        .comparison-table thead {
-            background: linear-gradient(135deg, var(--accent-red), rgba(214, 59, 29, 0.8));
-        }
-
-        .comparison-table th {
-            padding: 14px 16px;
-            font-family: var(--font-title);
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: white;
-            text-align: left;
-            border-right: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .comparison-table th:last-child {
-            border-right: none;
-        }
-
-        .comparison-table tbody tr {
-            background: rgba(255, 255, 255, 0.8);
-            transition: all 0.3s ease;
-        }
-
-        .comparison-table tbody tr:hover {
-            background: rgba(255, 248, 240, 0.95);
-            transform: translateX(4px);
-        }
-
-        .comparison-table tbody tr:nth-child(even) {
-            background: rgba(255, 252, 245, 0.9);
-        }
-
-        .comparison-table tbody tr:nth-child(even):hover {
-            background: rgba(255, 248, 240, 0.95);
-        }
-
-        .comparison-table td {
-            padding: 12px 16px;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            border-right: 1px solid rgba(139, 0, 0, 0.1);
-            border-bottom: 1px solid rgba(139, 0, 0, 0.1);
-            line-height: 1.6;
-        }
-
-        .comparison-table td:last-child {
-            border-right: none;
-        }
-
-        .comparison-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .comparison-table td.highlight {
-            background: rgba(214, 59, 29, 0.15);
-            font-weight: 700;
-            color: var(--accent-red);
-            font-family: var(--font-title);
-        }
-
-        /* 响应式 */
-        @media (max-width: 1200px) {
-            .glass-pane {
-                grid-template-columns: 1fr;
-            }
-            .systems-row {
-                grid-template-columns: 1fr;
-            }
-            .arrow-section {
-                transform: rotate(90deg);
-            }
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="style.css">
     <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
-
 <body>
-    <!-- 返回主页浮动按钮 (auto-injected) -->
-    <a href="../../index.html" title="返回课程主页" style="
-        position:fixed;top:14px;left:14px;z-index:9999;
-        display:flex;align-items:center;gap:6px;
-        background:rgba(30,30,40,0.82);color:#fff;
-        padding:7px 14px 7px 10px;border-radius:20px;
-        font-size:13px;font-family:'Noto Serif SC',serif;
-        text-decoration:none;backdrop-filter:blur(8px);
-        border:1px solid rgba(255,255,255,0.15);
-        box-shadow:0 2px 12px rgba(0,0,0,0.35);
-        transition:background .2s;
-    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
-       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
-        🏠 <span>课程主页</span>
-    </a>
+    <a class="home-link" href="../../index.html">← 课程主页</a>
 
     <div class="app-container">
         <aside class="sidebar">
@@ -397,174 +31,121 @@
                     <span class="dot yellow"></span>
                     <span class="dot green"></span>
                 </div>
-                <h1>红色数理 <span class="highlight">进阶层</span></h1>
-                <p class="subtitle">子代数闭合检查器 · 子系统积系统</p>
+                <h1>子代数与积代数 <span class="highlight">进阶层</span></h1>
+                <p class="subtitle">闭合、分量运算、保结构关系同步观察</p>
             </div>
+
+            <p class="intro">点一步，看当前元素、运算表格、公式项和结构图同时变化。</p>
+            <div class="layer-note" id="philosophyPanel"></div>
 
             <div class="controls-wrapper">
                 <div class="control-group">
-                    <label>概念选择</label>
+                    <label><span>概念模式</span><small>进阶多案例</small></label>
                     <div class="concept-selector">
-                        <button class="concept-btn active" data-concept="isomorphic" aria-label="同类型和同种">同类型和同种</button>
-                        <button class="concept-btn" data-concept="subsystem" aria-label="子代数系统">子代数系统</button>
-                        <button class="concept-btn" data-concept="product" aria-label="积代数系统">积代数系统</button>
-                        <button class="concept-btn" data-concept="multisort" aria-label="多类型系统">多类型系统</button>
+                        <button class="concept-btn active" data-concept="subalgebra">子代数</button>
+                        <button class="concept-btn" data-concept="product">积代数</button>
+                        <button class="concept-btn" data-concept="isomorphic">保结构映射</button>
+                        <button class="concept-btn" data-concept="multisort">多类型</button>
                     </div>
                 </div>
 
                 <div class="control-group">
-                    <label>选择案例</label>
-                    <select id="caseSelector">
-                        <!-- 动态生成 -->
-                    </select>
+                    <label><span>选择案例</span><small>关系建模</small></label>
+                    <select id="caseSelector"></select>
+                </div>
+
+                <div class="step-panel">
+                    <div class="step-label" id="stepLabel"></div>
+                    <div class="step-progress" id="stepProgress"><i></i></div>
+                    <div class="step-row">
+                        <button class="step-btn" id="prevStepBtn">上一步</button>
+                        <button class="step-btn" id="nextStepBtn">下一步</button>
+                    </div>
                 </div>
 
                 <div class="control-group">
-                    <label>价值内涵</label>
-                    <div class="info-panel" id="philosophyPanel">
-                        <p style="color: var(--text-secondary); font-size: 0.85rem;">选择案例查看价值内涵</p>
-                    </div>
+                    <label><span>结构表</span><small>计算路径</small></label>
+                    <div class="operation-table" id="structureTable"></div>
                 </div>
             </div>
 
             <div class="actions-footer">
-                <button id="showBtn" class="apple-btn action-btn" aria-label="展示映射">展示映射</button>
-                <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置">重置</button>
+                <button id="showBtn" class="apple-btn action-btn">演示下一步</button>
+                <button id="resetBtn" class="apple-btn danger-btn">重置</button>
             </div>
         </aside>
 
         <main class="visualizer-stage">
             <div class="glass-pane">
-                <div class="visualization-area">
-                    <div class="mapping-diagram" id="mappingDiagram">
-                        <h3>选择概念开始</h3>
-                    </div>
-                    <div class="properties-display">
-                        <h4>关键性质</h4>
-                        <div id="propertiesContent">
-                            <p style="color: var(--text-secondary); font-size: 0.85rem;">展示映射后显示性质</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="info-panel-right">
-                    <div class="definition-panel" id="definitionPanel">
-                        <h3>概念定义</h3>
-                        <p>选择左侧的概念按钮查看详细定义</p>
-                    </div>
+                <section class="mission-card">
+                    <span id="missionText"></span>
+                    <div class="visual-badge" id="visualBadge"></div>
+                </section>
+
+                <section class="visualization-area">
+                    <div class="mapping-diagram" id="mappingDiagram"></div>
+                    <div class="properties-display" id="propertiesContent"></div>
+                </section>
+
+                <section class="result-card">
+                    <div id="formulaText"></div>
+                    <div id="resultValue"></div>
+                    <div id="resultExtra"></div>
+                </section>
+
+                <section class="info-panel-right">
+                    <div class="definition-panel" id="definitionPanel"></div>
                     <div class="examples-panel">
-                        <h3>价值引领案例库</h3>
-                        <div id="examplesList">
-                            <p style="color: var(--text-secondary); font-size: 0.85rem;">加载中...</p>
-                        </div>
+                        <h3>本层案例</h3>
+                        <div id="examplesList"></div>
                     </div>
-                </div>
+                </section>
             </div>
         </main>
     </div>
 
-    <script src="isomorphism_and_homomorphism.js"></script>
+    <footer class="footer">
+        <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+        <div>版权所有 · 项目总负责人：谢鑫</div>
+    </footer>
 
-<!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: transparent;
-    color: inherit;
-    opacity: 0.72;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: none;
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
-</footer>
-
-
-
-    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
     <script>
-    window.SECTION_META = {
-      "layers": [
-            {
-                  "name": "子代数",
-                  "concepts": "对运算封闭的子集",
-                  "task": "判定一个子集是否为子代数。",
-                  "page": "isomorphism_and_homomorphism-basic.html"
-            },
-            {
-                  "name": "积代数",
-                  "concepts": "分量运算 / 性质继承",
-                  "task": "构造积代数并分析性质继承。",
-                  "page": "isomorphism_and_homomorphism.html"
-            },
-            {
-                  "name": "模块化与直积分解",
-                  "concepts": "模块集成 / 直积定理",
-                  "task": "迁移到系统集成与结构分解。",
-                  "page": "isomorphism_and_homomorphism-extend.html"
-            }
-      ],
-      "chapter": "第9章 代数系统",
-      "section": "9.5 子代数和积代数",
-      "title": "子代数与积代数",
-      "grounding": "本节主题：子代数=对运算封闭的非空子集（含单位元等特殊元）；积代数=在笛卡尔积 S₁×S₂ 上按分量定义运算，继承各分量的性质。子代数『以小见大』，积代数『由分到合』，是构造与分解代数系统的方法。",
-      "steps": [
-            {
-                  "name": "情境引入",
-                  "desc": "如何从大系统中取出『自成一体』的小系统，或把小系统组合成大系统？"
-            },
-            {
-                  "name": "对象抽取",
-                  "desc": "把『封闭子集』抽象为子代数，把『分量组合』抽象为积代数。"
-            },
-            {
-                  "name": "结构建模",
-                  "desc": "用封闭性判子代数，用分量运算建积代数。"
-            },
-            {
-                  "name": "推理求解",
-                  "desc": "判定子代数、构造积代数并分析其性质继承。"
-            },
-            {
-                  "name": "程序验证",
-                  "desc": "用本页交互构造子代数/积代数，验证封闭与继承。"
-            },
-            {
-                  "name": "迁移反思",
-                  "desc": "迁移到子群、直积、模块化系统。"
-            }
-      ],
-      "ideology": {
-            "title": "由分到合 · 系统集成",
-            "text": "子代数体现『局部自洽、麻雀虽小五脏俱全』，积代数体现『分而治之、集成协同』。两者一分一合，正是系统工程中模块化与集成化的辩证统一——既要每个子系统稳健自立，又要整体组合大于部分之和。",
-            "dims": [
-                  "系统观念",
-                  "辩证思维",
-                  "协同集成"
+        window.SUBPRODUCT_PAGE_CONFIG = {
+            layer: "advanced",
+            layerLabel: "进阶层",
+            initialConcept: "subalgebra",
+            mission: "点一步，联动查看子代数、积代数和保结构映射的计算证据。",
+            badge: "图 + 表 + 公式",
+            note: "进阶层把闭合性、分量运算和保结构映射放在同一个交互框架里比较。"
+        };
+        window.SECTION_META = {
+            layers: [
+                { name: "基础层", concepts: "候选子集 / 闭合性", task: "判断 H 是否为子代数。", page: "isomorphism_and_homomorphism-basic.html" },
+                { name: "进阶层", concepts: "子代数 / 积代数 / 保结构", task: "同步观察图、表、公式和性质。", page: "isomorphism_and_homomorphism.html" },
+                { name: "拓展层", concepts: "多分量 / 多类型", task: "迁移到更复杂的系统结构。", page: "isomorphism_and_homomorphism-extend.html" }
             ],
-            "quote": "致广大而尽精微——子代数精于局部，积代数成于整合，分合之道尽显系统智慧。"
-      },
-      "reflect": [
-            "判定一个子集是否为子代数，关键检查什么（封闭性、含特殊元）？",
-            "积代数 S₁×S₂ 的单位元、运算如何由分量确定？性质如何继承？",
-            "积代数是否一定保持各分量的所有性质（如交换性）？为什么？"
-      ],
-      "transfer": [
-            "模块化软件把系统分解为自洽子模块、再组合集成，正是子/积代数思想。",
-            {
-                  "t": "直积分解",
-                  "d": "有限阿贝尔群可分解为循环群的直积，这种『分解定理』有何威力？"
-            }
-      ]
-};
+            chapter: "第9章 代数系统",
+            section: "9.5 子代数和积代数",
+            title: "子代数与积代数",
+            grounding: "进阶层在子代数闭合判定的基础上加入积代数分量计算和保结构映射，帮助学生把局部、整体、映射三种结构关系放在一起辨析。",
+            steps: [
+                { name: "识别载体", desc: "区分父系统、候选子系统或积系统分量。" },
+                { name: "选取样本", desc: "点一步选择当前参与运算的元素。" },
+                { name: "跟踪计算", desc: "表格、图和公式同时标出当前路径。" },
+                { name: "判断性质", desc: "看闭合、分量合法或保结构关系是否成立。" },
+                { name: "反思方法", desc: "把数学结构迁移到模块协作、规则保持和过程校准。" }
+            ],
+            reflect: [
+                "积代数为什么可以逐坐标计算？",
+                "保结构映射为什么比单纯的元素对应更严格？"
+            ],
+            transfer: [
+                "工程系统中的接口保持、数据转换和模块组合，都需要类似的结构检查。",
+                { t: "思政关联", d: "规则清楚、过程可查、反馈及时，是数学训练与治理能力之间的共同方法。" }
+            ]
+        };
     </script>
+    <script src="isomorphism_and_homomorphism.js"></script>
     <script src="../../shared/ai-tutor.js" defer></script>
-
 </body>
-
 </html>

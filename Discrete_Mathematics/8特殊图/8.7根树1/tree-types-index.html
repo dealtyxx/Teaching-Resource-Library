@@ -4,67 +4,46 @@
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
-    <!-- Open Graph / 社交分享（微信、钉钉、Telegram 等）。部署域名变更时全局替换下方 BASE 即可 -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
-    <meta property="og:title" content="红色谱系 - 二叉树类型">
-    <meta property="og:description" content="离散数学课程 - 红色谱系 - 二叉树类型">
+    <meta property="og:title" content="第8章 特殊图 - 根树遍历与性质">
+    <meta property="og:description" content="8.7 根树（一）· 二叉树类型 - 进阶层互动">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/8%E7%89%B9%E6%AE%8A%E5%9B%BE/8.7%E6%A0%B9%E6%A0%911/tree-types-index.html">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="红色谱系 - 二叉树类型">
-    <meta name="twitter:description" content="离散数学课程 - 红色谱系 - 二叉树类型">
+    <meta name="twitter:title" content="第8章 特殊图 - 根树遍历与性质">
+    <meta name="twitter:description" content="8.7 根树（一）· 二叉树类型 - 进阶层互动">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>红色谱系 - 二叉树类型</title>
-    <meta name="description" content="离散数学课程 - 红色谱系 - 二叉树类型">
+    <title>第8章 特殊图 - 根树遍历与性质</title>
+    <meta name="description" content="8.7 根树（一）· 二叉树类型 - 进阶层互动">
 
-    <link rel="stylesheet" href="tree-types-style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="tree-types-style.css">
     <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
-    <!-- 返回主页浮动按钮 (auto-injected) -->
-    <a href="../../index.html" title="返回课程主页" style="
-        position:fixed;top:14px;left:14px;z-index:9999;
-        display:flex;align-items:center;gap:6px;
-        background:rgba(30,30,40,0.82);color:#fff;
-        padding:7px 14px 7px 10px;border-radius:20px;
-        font-size:13px;font-family:'Noto Serif SC',serif;
-        text-decoration:none;backdrop-filter:blur(8px);
-        border:1px solid rgba(255,255,255,0.15);
-        box-shadow:0 2px 12px rgba(0,0,0,0.35);
-        transition:background .2s;
-    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
-       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
-        🏠 <span>课程主页</span>
-    </a>
+    <a class="home-link" href="../../index.html">← 返回课程主页</a>
 
-    <div class="app-container">
+    <div class="tree-app">
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="window-controls">
-                    <span class="dot red"></span>
-                    <span class="dot yellow"></span>
-                    <span class="dot green"></span>
-                </div>
                 <h1>红色数理 <span class="highlight">进阶层</span></h1>
-                <p class="subtitle">根树层次与遍历 · 二叉树</p>
+                <p class="subtitle">根树遍历与二叉树性质</p>
+                <p class="intro">切换树型和遍历规则，逐步观察访问序列、公式项和树图高亮同步变化。</p>
             </div>
 
             <div class="controls-wrapper">
                 <div class="control-group">
-                    <label>树的类型</label>
+                    <label for="treeTypeSelect">树的类型 <small>结构模型</small></label>
                     <select id="treeTypeSelect" class="apple-select">
                         <optgroup label="基础树">
                             <option value="directed">有向树</option>
@@ -73,8 +52,8 @@
                         </optgroup>
                         <optgroup label="特殊二叉树">
                             <option value="complete">完全二叉树</option>
-                            <option value="m-ary">完全m叉树</option>
-                            <option value="proper">正则二叉树(满二叉树)</option>
+                            <option value="m-ary">完全 m 叉树</option>
+                            <option value="proper">正则二叉树</option>
                         </optgroup>
                         <optgroup label="带权树">
                             <option value="weighted">带权二叉树</option>
@@ -83,23 +62,39 @@
                 </div>
 
                 <div class="control-group">
-                    <label>参数调整</label>
-                    <div id="paramControls">
-                        <div class="param-group">
-                            <span class="param-label">节点数: <strong id="nodeCountValue">7</strong></span>
-                            <input type="range" id="nodeCount" min="3" max="15" value="7">
-                        </div>
-                        <div class="param-group" id="mAryControl" style="display:none;">
-                            <span class="param-label">m值: <strong id="mValue">3</strong></span>
-                            <input type="range" id="mCount" min="2" max="5" value="3">
-                        </div>
+                    <label for="nodeCount">参数调整 <small>生成结构</small></label>
+                    <div class="param-group">
+                        <span class="param-label">节点数: <strong id="nodeCountValue">9</strong></span>
+                        <input type="range" id="nodeCount" min="5" max="15" value="9">
+                    </div>
+                    <div class="param-group" id="mAryControl" style="display:none;">
+                        <span class="param-label">m 值: <strong id="mValue">3</strong></span>
+                        <input type="range" id="mCount" min="2" max="5" value="3">
                     </div>
                 </div>
 
                 <div class="control-group">
-                    <button id="generateBtn" class="apple-btn primary-btn" aria-label="生成树示例">
-                        <span class="icon">🌳</span> 生成树示例
-                    </button>
+                    <label for="traversalMode">遍历规则 <small>公式项会高亮</small></label>
+                    <select id="traversalMode" class="apple-select">
+                        <option value="pre">前序 N-L-R</option>
+                        <option value="in">中序 L-N-R</option>
+                        <option value="post">后序 L-R-N</option>
+                        <option value="level">层序 BFS</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="traversalStep">单步推进 <small id="stepValue">1/9</small></label>
+                    <input type="range" id="traversalStep" min="1" max="9" value="1">
+                    <div class="step-buttons">
+                        <button id="firstStep" class="apple-btn action-btn" type="button">回到 1</button>
+                        <button id="prevStep" class="apple-btn action-btn" type="button">上一步</button>
+                        <button id="nextStep" class="apple-btn primary-btn" type="button">下一步</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <button id="generateBtn" class="apple-btn primary-btn" type="button">生成树示例</button>
                 </div>
 
                 <div class="control-group">
@@ -108,19 +103,19 @@
                         <p id="statusText">准备就绪</p>
                         <div class="stats-grid">
                             <div class="stat-item">
-                                <span class="stat-label">节点数:</span>
+                                <span class="stat-label">节点数</span>
                                 <strong id="nodeCountDisplay" class="stat-value">0</strong>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">树高度:</span>
+                                <span class="stat-label">树高度</span>
                                 <strong id="treeHeight" class="stat-value">0</strong>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">叶节点:</span>
+                                <span class="stat-label">叶节点</span>
                                 <strong id="leafCount" class="stat-value">0</strong>
                             </div>
                             <div class="stat-item" id="degreeDisplay" style="display:none;">
-                                <span class="stat-label">度数:</span>
+                                <span class="stat-label">最大度</span>
                                 <strong id="maxDegree" class="stat-value">0</strong>
                             </div>
                         </div>
@@ -128,159 +123,116 @@
                 </div>
 
                 <div class="info-box">
-                    <h3>💡 革命寓意</h3>
-                    <div id="conceptInfo">
-                        <p><strong>有向树:</strong> 明确的领导关系,自上而下贯彻精神。</p>
-                        <p><strong>根树:</strong> 以根为核心,层层延伸。</p>
-                        <p><strong>完全二叉树:</strong> 结构紧凑,资源利用最优。</p>
-                        <p><strong>正则二叉树:</strong> 每个节点要么是叶子,要么有两个子节点。</p>
-                        <p><strong>带权树:</strong> 根据重要性分配资源。</p>
-                    </div>
+                    <h3>进阶观察</h3>
+                    <p><strong>前序:</strong> 先访问根，再处理子树，适合复制树结构。</p>
+                    <p><strong>中序:</strong> 对二叉搜索树可得到递增序列。</p>
+                    <p><strong>后序:</strong> 先处理子树，再回到根，适合释放或汇总。</p>
+                    <p><strong>层序:</strong> 按层推进，适合最短层级和队列建模。</p>
                 </div>
             </div>
 
             <div class="actions-footer">
-                <button id="randomBtn" class="apple-btn action-btn" aria-label="随机生成">随机生成</button>
-                <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置">重置</button>
+                <button id="randomBtn" class="apple-btn action-btn" type="button">随机生成</button>
+                <button id="resetBtn" class="apple-btn danger-btn" type="button">重置</button>
             </div>
         </aside>
 
         <main class="visualizer-stage">
             <div class="glass-pane">
-                <div class="tree-type-badge">
-                    <h2 id="typeBadgeText">二叉树</h2>
-                    <p id="typeDescription">基本的二叉树结构</p>
-                </div>
-                <div class="legend">
-                    <div class="legend-item">
-                        <span class="legend-dot" style="background: var(--node-root)"></span>
-                        <span>根节点</span>
+                <section class="mission-card">
+                    <span><b>互动任务：</b>点一步，看当前节点、路径边、访问序列和性质公式如何同步变化。</span>
+                    <div class="visual-badge">遍历 + 性质</div>
+                </section>
+
+                <section class="tree-board">
+                    <div class="tree-type-badge">
+                        <h2 id="typeBadgeText">二叉树</h2>
+                        <p id="typeDescription">每个节点最多有两个子节点</p>
                     </div>
-                    <div class="legend-item">
-                        <span class="legend-dot" style="background: var(--node-internal)"></span>
-                        <span>内部节点</span>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <span class="legend-dot" style="background: var(--node-root)"></span>
+                            <span>根节点</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot" style="background: var(--accent-blue)"></span>
+                            <span>已访问</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot" style="background: var(--node-current)"></span>
+                            <span>当前节点</span>
+                        </div>
                     </div>
-                    <div class="legend-item">
-                        <span class="legend-dot" style="background: var(--node-leaf)"></span>
-                        <span>叶节点</span>
-                    </div>
-                </div>
-                <svg id="treeSvg" width="100%" height="100%">
-                    <defs>
-                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                            <polygon points="0 0, 10 3.5, 0 7" fill="var(--edge-color)" />
-                        </marker>
-                    </defs>
-                    <g id="edgesGroup"></g>
-                    <g id="nodesGroup"></g>
-                </svg>
+                    <svg id="treeSvg" width="100%" height="100%">
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="var(--edge-color)" />
+                            </marker>
+                        </defs>
+                        <g id="edgesGroup"></g>
+                        <g id="nodesGroup"></g>
+                    </svg>
+                </section>
+
+                <section class="sequence-panel">
+                    <h3>访问序列</h3>
+                    <div id="visitSequence"></div>
+                </section>
+
+                <section class="result-card">
+                    <div id="formulaText">等待交互</div>
+                    <div id="resultValue">等待判定</div>
+                    <div id="resultExtra">选择遍历规则后，点击“下一步”查看每一步的公式项和图形高亮。</div>
+                </section>
             </div>
         </main>
     </div>
 
-    <script src="tree-types-script.js"></script>
+    <footer class="footer">
+        <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+        <div>版权所有 · 项目总负责人：谢鑫</div>
+    </footer>
 
-<!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: transparent;
-    color: inherit;
-    opacity: 0.72;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: none;
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
-</footer>
-
-
-
-    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
     <script>
-    window.SECTION_META = {
-      "layers": [
-            {
-                  "name": "根树与二叉树",
-                  "concepts": "根 / 层次 / 每点≤2子",
-                  "task": "认识根树与二叉树。",
-                  "page": "tree-types-index-basic.html"
-            },
-            {
-                  "name": "遍历与性质",
-                  "concepts": "前·中·后·层序 / 层数节点数",
-                  "task": "执行遍历、计算节点数与高度。",
-                  "page": "tree-types-index.html"
-            },
-            {
-                  "name": "搜索树与堆",
-                  "concepts": "BST / 堆 / 平衡树",
-                  "task": "迁移到搜索树、堆与平衡。",
-                  "page": "tree-types-index-extend.html"
-            }
-      ],
-      "chapter": "第8章 特殊图",
-      "section": "8.7 根树（一）· 二叉树类型",
-      "title": "根树与二叉树",
-      "grounding": "本节主题：根树（指定根、有层次方向）、有序树；二叉树（每点≤2子）、满/完全二叉树；遍历（前序/中序/后序/层序）；二叉树性质（第 i 层≤2^(i-1) 点、高 h 树≤2^h−1 点）。根树是层级数据的核心结构。",
-      "steps": [
-            {
-                  "name": "情境引入",
-                  "desc": "家谱、目录、决策流程都有『根与层级』，如何统一刻画？"
-            },
-            {
-                  "name": "对象抽取",
-                  "desc": "把层级关系抽象为根树，把分支抽象为子树。"
-            },
-            {
-                  "name": "结构建模",
-                  "desc": "用二叉树与各类遍历刻画层级数据。"
-            },
-            {
-                  "name": "推理求解",
-                  "desc": "计算节点数/高度，执行各种遍历。"
-            },
-            {
-                  "name": "程序验证",
-                  "desc": "用本页交互构造二叉树，观察遍历次序。"
-            },
-            {
-                  "name": "迁移反思",
-                  "desc": "迁移到表达式树、搜索树、堆、决策树。"
-            }
-      ],
-      "ideology": {
-            "title": "正本清源 · 层次分明",
-            "text": "根树有『根』有『序』，层次分明、源流清晰，象征『正本清源、纲举目张』的治理与治学之道。明确根本、理顺层级，复杂事务便条理可循——抓住『根』与主干，枝叶自然有序生长。",
-            "dims": [
-                  "系统观念",
-                  "纲举目张",
-                  "条理清晰"
+        window.SECTION_META = {
+            "layers": [
+                { "name": "根树与二叉树", "concepts": "根 / 层次 / 每点≤2子", "task": "认识根树与二叉树。", "page": "tree-types-index-basic.html" },
+                { "name": "遍历与性质", "concepts": "前·中·后·层序 / 层数节点数", "task": "执行遍历、计算节点数与高度。", "page": "tree-types-index.html" },
+                { "name": "搜索树与堆", "concepts": "BST / 堆 / 平衡树", "task": "迁移到搜索树、堆与平衡。", "page": "tree-types-index-extend.html" }
             ],
-            "quote": "本立而道生——根树以一根统众枝，正是抓住根本、层次分明的结构智慧。"
-      },
-      "reflect": [
-            "前序、中序、后序遍历的差别在于『何时访问根』，它们各适合什么任务？",
-            "完全二叉树为什么能用数组紧凑存储？父子下标关系是什么？",
-            "高度为 h 的二叉树最多/最少有多少个节点？平衡为何重要？"
-      ],
-      "transfer": [
-            "二叉搜索树、堆、表达式树、字典树都是根树的具体应用。",
-            {
-                  "t": "平衡树",
-                  "d": "AVL/红黑树通过旋转保持平衡，为什么能保证 O(log n) 操作？"
-            }
-      ]
-};
+            "chapter": "第8章 特殊图",
+            "section": "8.7 根树（一）· 二叉树类型",
+            "title": "根树与二叉树",
+            "grounding": "本节主题：根树（指定根、有层次方向）、有序树；二叉树（每点≤2子）、满/完全二叉树；遍历（前序/中序/后序/层序）；二叉树性质（第 i 层≤2^(i-1) 点、高 h 树≤2^h−1 点）。根树是层级数据的核心结构。",
+            "steps": [
+                { "name": "情境引入", "desc": "家谱、目录、决策流程都有『根与层级』，如何统一刻画？" },
+                { "name": "对象抽取", "desc": "把层级关系抽象为根树，把分支抽象为子树。" },
+                { "name": "结构建模", "desc": "用二叉树与各类遍历刻画层级数据。" },
+                { "name": "推理求解", "desc": "计算节点数/高度，执行各种遍历。" },
+                { "name": "程序验证", "desc": "用本页交互构造二叉树，观察遍历次序。" },
+                { "name": "迁移反思", "desc": "迁移到表达式树、搜索树、堆、决策树。" }
+            ],
+            "reflect": [
+                "前序、中序、后序遍历的差别在于『何时访问根』，它们各适合什么任务？",
+                "完全二叉树为什么能用数组紧凑存储？父子下标关系是什么？",
+                "高度为 h 的二叉树最多/最少有多少个节点？平衡为何重要？"
+            ],
+            "transfer": [
+                "二叉搜索树、堆、表达式树、字典树都是根树的具体应用。",
+                { "t": "平衡树", "d": "AVL/红黑树通过旋转保持平衡，为什么能保证 O(log n) 操作？" }
+            ]
+        };
+        window.TREE_PAGE_CONFIG = {
+            layer: "advanced",
+            initialTreeType: "binary",
+            initialTraversal: "pre",
+            initialNodes: 9,
+            mission: "执行遍历、计算节点数与高度。",
+            feedback: "当前步骤把结构、公式和图形同步起来。"
+        };
     </script>
+    <script src="tree-types-script.js"></script>
     <script src="../../shared/ai-tutor.js" defer></script>
-
 </body>
 
 </html>

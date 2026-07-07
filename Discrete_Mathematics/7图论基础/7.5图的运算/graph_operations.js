@@ -419,7 +419,7 @@ function draw() {
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        ctx.fillStyle = '#2c3e50';
+        ctx.fillStyle = '#2c1810';
         ctx.font = 'bold 14px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -486,10 +486,10 @@ function drawUnionDiff() {
         ctx.beginPath();
         ctx.arc(n.x, n.y, 20, 0, 2 * Math.PI);
         ctx.fillStyle = 'white';
-        ctx.strokeStyle = '#2c3e50';
+        ctx.strokeStyle = '#2c1810';
         ctx.fill();
         ctx.stroke();
-        ctx.fillStyle = '#2c3e50';
+        ctx.fillStyle = '#2c1810';
         ctx.fillText(n.label, n.x, n.y);
     });
 }

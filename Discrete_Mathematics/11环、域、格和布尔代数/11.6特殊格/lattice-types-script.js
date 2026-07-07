@@ -522,8 +522,8 @@ function resetVisualization() {
                     <rect x="140" y="60" width="20" height="120" fill="url(#pillarsGrad)" class="pillar" style="animation-delay: 0.4s" />
                     <rect x="190" y="60" width="20" height="120" fill="url(#pillarsGrad)" class="pillar" style="animation-delay: 0.6s" />
                     <rect x="240" y="60" width="20" height="120" fill="url(#pillarsGrad)" class="pillar" style="animation-delay: 0.8s" />
-                    <polygon points="20,60 280,60 260,30 40,30" fill="#8b0000" opacity="0.8" />
-                    <rect x="20" y="180" width="260" height="10" fill="#8b0000" />
+                    <polygon points="20,60 280,60 260,30 40,30" fill="#b8321a" opacity="0.8" />
+                    <rect x="20" y="180" width="260" height="10" fill="#b8321a" />
                 </svg>
             </div>
             <p class="welcome-text">步入格之殿堂，探索格的分类奥秘</p>

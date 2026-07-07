@@ -8,332 +8,71 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
-    <meta property="og:title" content="最短通路算法 - 图论基础">
-    <meta property="og:description" content="离散数学课程 - 最短通路算法、Dijkstra 与 Floyd 可视化">
+    <meta property="og:title" content="红色数理 - 最短通路：找准路径，行稳致远">
+    <meta property="og:description" content="离散数学课程 - 红色数理 - 最短通路：找准路径，行稳致远">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/7%E5%9B%BE%E8%AE%BA%E5%9F%BA%E7%A1%80/7.8%E6%9C%80%E7%9F%AD%E9%80%9A%E8%B7%AF/shortest_path_algorithms.html">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="最短通路算法 - 图论基础">
-    <meta name="twitter:description" content="离散数学课程 - 最短通路算法、Dijkstra 与 Floyd 可视化">
+    <meta name="twitter:title" content="红色数理 - 最短通路：找准路径，行稳致远">
+    <meta name="twitter:description" content="离散数学课程 - 红色数理 - 最短通路：找准路径，行稳致远">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>最短通路算法 - 图论基础</title>
-    <meta name="description" content="离散数学课程 - 最短通路算法、Dijkstra 与 Floyd 可视化">
+    <title>红色数理 - 最短通路：找准路径，行稳致远</title>
+    <meta name="description" content="离散数学课程 - 红色数理 - 最短通路：找准路径，行稳致远">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
-        rel="stylesheet">
-    <style>
-        /* 扩展样式 */
-        .sidebar {
-            overflow-y: auto;
-        }
-
-        .sidebar-header h1 {
-            font-size: 1.6rem;
-            line-height: 1.3;
-        }
-
-        .algo-selector {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .algo-toggle {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .algo-btn {
-            flex: 1;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid var(--accent-red);
-            background: #fff;
-            color: var(--accent-red);
-            font-family: var(--font-family);
-        }
-
-        .algo-btn.active {
-            background: var(--accent-red);
-            color: #fff;
-        }
-
-        .algo-btn:hover:not(.active) {
-            background: rgba(214, 59, 29, 0.1);
-        }
-
-        select {
-            width: 100%;
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid rgba(139, 0, 0, 0.2);
-            background: #fff;
-            color: var(--text-primary);
-            font-family: var(--font-family);
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-
-        select:focus {
-            outline: none;
-            border-color: var(--accent-red);
-        }
-
-        .result-display {
-            background: rgba(255, 255, 255, 0.6);
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            color: var(--text-primary);
-            border: 1px solid rgba(139, 0, 0, 0.1);
-            max-height: 200px;
-            overflow-y: auto;
-            line-height: 1.6;
-        }
-
-        .result-display strong {
-            color: var(--accent-red);
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-
-        .result-display code {
-            background: rgba(139, 0, 0, 0.08);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            color: var(--accent-red);
-            font-weight: 600;
-        }
-
-        .path-highlight {
-            color: var(--accent-gold);
-            font-weight: 700;
-        }
-
-        /* 右侧步骤面板 */
-        .glass-pane {
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 1rem;
-            padding: 1rem;
-        }
-
-        .graph-canvas {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 12px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .steps-panel {
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 12px;
-            padding: 1rem;
-            overflow-y: auto;
-            border: 1px solid rgba(139, 0, 0, 0.1);
-        }
-
-        .steps-panel h3 {
-            font-family: var(--font-title);
-            font-size: 1.1rem;
-            color: var(--accent-red);
-            margin-bottom: 1rem;
-            border-bottom: 2px solid var(--accent-red);
-            padding-bottom: 0.5rem;
-        }
-
-        .step-item {
-            background: rgba(255, 255, 255, 0.8);
-            padding: 8px 10px;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-            border-left: 3px solid var(--text-secondary);
-            font-size: 0.8rem;
-            line-height: 1.5;
-            transition: all 0.2s ease;
-        }
-
-        .step-item.active {
-            background: rgba(214, 59, 29, 0.15);
-            border-left-color: var(--accent-red);
-            font-weight: 600;
-        }
-
-        .step-item .step-num {
-            display: inline-block;
-            background: var(--accent-red);
-            color: #fff;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 20px;
-            font-size: 0.75rem;
-            margin-right: 0.5rem;
-            font-weight: 600;
-        }
-
-        .step-item.active .step-num {
-            background: var(--accent-gold);
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-        }
-
-        /* 响应式 */
-        @media (max-width: 1200px) {
-            .glass-pane {
-                grid-template-columns: 1fr;
-            }
-            .steps-panel {
-                max-height: 250px;
-            }
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shortest_concept.css">
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
-    <link rel="stylesheet" href="style.css">
     <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
-    <!-- 返回主页浮动按钮 (auto-injected) -->
-    <a href="../../index.html" title="返回课程主页" style="
-        position:fixed;top:14px;left:14px;z-index:9999;
-        display:flex;align-items:center;gap:6px;
-        background:rgba(30,30,40,0.82);color:#fff;
-        padding:7px 14px 7px 10px;border-radius:20px;
-        font-size:13px;font-family:'Noto Serif SC',serif;
-        text-decoration:none;backdrop-filter:blur(8px);
-        border:1px solid rgba(255,255,255,0.15);
-        box-shadow:0 2px 12px rgba(0,0,0,0.35);
-        transition:background .2s;
-    " onmouseover="this.style.background='rgba(214,59,29,0.88)'"
-       onmouseout="this.style.background='rgba(30,30,40,0.82)'">
-        🏠 <span>课程主页</span>
-    </a>
-
+    <a class="home-link" href="../../index.html">← 返回课程主页</a>
     <div class="app-container">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="window-controls">
-                    <span class="dot red"></span>
-                    <span class="dot yellow"></span>
-                    <span class="dot green"></span>
-                </div>
-                <h1>红色数理 <span class="highlight">进阶层</span></h1>
-                <p class="subtitle">最短通路演示器 · 可视化</p>
+        <aside class="side-panel">
+            <div class="eyebrow">进阶层 · 第7章 图论基础</div>
+            <h1>带权<span class="highlight">最短路</span></h1>
+            <p class="subtitle">Dijkstra 非负 / Floyd 全源</p>
+            <p class="tier-line">核心掌握 · 建模求解</p>
+            <p class="intro">🎯 执行最短路算法、理解贪心与DP。</p>
+
+            <div class="value-panel">
+                <h3>找准路径 · 行稳致远</h3>
+                <p>最短路径算法体现『找准方向、优化路径、提质增效』的方法论智慧。Dijkstra 的贪心『步步择优』，启示我们立足当下、稳扎稳打；全局最优来自每一步的可靠选择——发展之路，正需既看脚下、又谋长远。</p>
+                <div class="dim-list"><span>科学决策</span><span>效率观念</span><span>系统观念</span></div>
             </div>
 
-            <div class="controls-wrapper">
-                <div class="control-group">
-                    <label>算法选择</label>
-                    <div class="algo-selector">
-                        <div class="algo-toggle">
-                            <button class="algo-btn active" data-algo="dijkstra" aria-label="Dijkstra">Dijkstra</button>
-                            <button class="algo-btn" data-algo="floyd" aria-label="Floyd">Floyd</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <label>选择案例</label>
-                    <select id="caseSelector">
-                        <option value="0">精准扶贫最优路径</option>
-                        <option value="1">应急物流调度</option>
-                        <option value="2">区域协作网络</option>
-                        <option value="3">交通规划优化</option>
-                    </select>
-                </div>
-
-                <div class="control-group" id="sourceControl">
-                    <label>起始节点 (Dijkstra)</label>
-                    <select id="sourceSelector">
-                        <!-- 动态生成 -->
-                    </select>
-                </div>
-
-                <div class="control-group">
-                    <label>演示速度</label>
-                    <input type="range" id="speed" min="1" max="100" value="40">
-                </div>
-
-                <div class="control-group">
-                    <label>最短路径结果</label>
-                    <div class="result-display" id="resultDisplay">
-                        <em style="color: var(--text-secondary);">执行算法后显示结果</em>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <label>价值内涵</label>
-                    <div class="info-panel" id="philosophyPanel">
-                        <p style="color: var(--text-secondary); font-size: 0.85rem;">选择案例查看价值内涵</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="actions-footer">
-                <button id="runBtn" class="apple-btn action-btn" aria-label="执行算法">执行算法</button>
-                <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置">重置</button>
-            </div>
+            <div id="controls"></div>
         </aside>
 
-        <main class="visualizer-stage">
-            <div class="glass-pane">
-                <div class="graph-canvas">
-                    <svg id="graphSvg" width="100%" height="100%" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet">
-                        <g id="edgesGroup"></g>
-                        <g id="nodesGroup"></g>
-                    </svg>
-                </div>
-                <div class="steps-panel">
-                    <h3>执行步骤</h3>
-                    <div id="stepsList">
-                        <p style="color: var(--text-secondary); font-size: 0.85rem;">执行算法后显示步骤</p>
-                    </div>
-                </div>
-            </div>
+        <main class="glass-pane">
+            <section class="mission-card">
+                <span id="missionText"><b>互动任务：</b>一步步执行 Dijkstra，再用 Floyd 看全源答案。</span>
+                <div class="visual-badge" id="visualBadge">Dijkstra / Floyd</div>
+            </section>
+
+            <section class="logic-board" id="vizArea">
+                <canvas id="graphCanvas" class="graph-canvas"></canvas>
+                <div class="canvas-hint">点“下一步”，看距离标签、已定区扩张与松弛边高亮</div>
+            </section>
+
+            <section class="step-card">
+                <div class="formula-line" id="formulaText">等待交互</div>
+                <div class="step-status" id="stepStatus"></div>
+                <div class="viz-note" id="vizText" style="display:none"></div>
+            </section>
         </main>
     </div>
 
-    <script src="shortest_path_algorithms.js"></script>
-
-<!-- 固定底部版权信息 -->
-<footer style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: transparent;
-    color: inherit;
-    opacity: 0.72;
-    padding: 15px 10px;
-    text-align: center;
-    box-shadow: none;
-    z-index: 9999;
-">
-    <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; opacity: 0.95;">
-        © 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>
-        版权所有 ｜ 项目总负责人：谢鑫
-    </p>
-</footer>
-
-
+    <footer class="footer">
+        <div>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</div>
+        <div>版权所有 · 项目总负责人：谢鑫</div>
+    </footer>
 
     <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
     <script>
@@ -363,39 +102,17 @@
       "title": "最短通路算法",
       "grounding": "本节主题：带权图最短路径。Dijkstra（非负权，贪心+优先队列，O(E log V)）；Floyd-Warshall（全源，动态规划，O(V³)）；BFS（无权图最短跳数）。最短路径是导航、调度、路由的核心。",
       "steps": [
-            {
-                  "name": "情境引入",
-                  "desc": "导航如何瞬间算出两地间最快路线？"
-            },
-            {
-                  "name": "对象抽取",
-                  "desc": "把路网抽象为带权图，把『最快/最近』抽象为最短路径。"
-            },
-            {
-                  "name": "结构建模",
-                  "desc": "用 Dijkstra/Floyd 建模单源/全源最短路。"
-            },
-            {
-                  "name": "推理求解",
-                  "desc": "执行算法求最短路径与距离，理解贪心/DP 思想。"
-            },
-            {
-                  "name": "程序验证",
-                  "desc": "用本页交互运行最短路算法，观察松弛过程。"
-            },
-            {
-                  "name": "迁移反思",
-                  "desc": "迁移到导航、网络路由、应急调度。"
-            }
+            { "name": "情境引入", "desc": "导航如何瞬间算出两地间最快路线？" },
+            { "name": "对象抽取", "desc": "把路网抽象为带权图，把『最快/最近』抽象为最短路径。" },
+            { "name": "结构建模", "desc": "用 Dijkstra/Floyd 建模单源/全源最短路。" },
+            { "name": "推理求解", "desc": "执行算法求最短路径与距离，理解贪心/DP 思想。" },
+            { "name": "程序验证", "desc": "用本页交互运行最短路算法，观察松弛过程。" },
+            { "name": "迁移反思", "desc": "迁移到导航、网络路由、应急调度。" }
       ],
       "ideology": {
             "title": "找准路径 · 行稳致远",
             "text": "最短路径算法体现『找准方向、优化路径、提质增效』的方法论智慧。Dijkstra 的贪心『步步择优』，启示我们立足当下、稳扎稳打；全局最优来自每一步的可靠选择——发展之路，正需既看脚下、又谋长远。",
-            "dims": [
-                  "科学决策",
-                  "效率观念",
-                  "系统观念"
-            ],
+            "dims": [ "科学决策", "效率观念", "系统观念" ],
             "quote": "积跬步以至千里——最短路径的每一次『松弛』，都是向最优目标稳健的一步。"
       },
       "reflect": [
@@ -405,131 +122,13 @@
       ],
       "transfer": [
             "地图导航、网络路由协议（OSPF）都基于最短路径算法。",
-            {
-                  "t": "A* 启发式",
-                  "d": "在 Dijkstra 基础上加启发函数加速搜索，游戏寻路如何应用？"
-            }
+            { "t": "A* 启发式", "d": "在 Dijkstra 基础上加启发函数加速搜索，游戏寻路如何应用？" }
       ]
 };
     </script>
+    <script>window.SP_LEVEL = "advanced";</script>
+    <script src="shortest_concept.js"></script>
     <script src="../../shared/ai-tutor.js" defer></script>
-    <script>
-    window.addEventListener('load', function () {
-        var old = document.getElementById('shortest-path-runtime-layout');
-        if (old) old.remove();
-        var style = document.createElement('style');
-        style.id = 'shortest-path-runtime-layout';
-        style.textContent = `
-body:has(.app-container[data-dm-side-shell]) {
-    display: block !important;
-    min-height: 100vh !important;
-    overflow: auto !important;
-    overflow-x: hidden !important;
-    padding-top: 50px !important;
-}
-.app-container[data-dm-side-shell] {
-    width: min(94vw, 1760px) !important;
-    max-width: none !important;
-    min-height: 0 !important;
-    height: auto !important;
-    margin: 0 auto !important;
-    padding: 0 !important;
-    display: grid !important;
-    grid-template-columns: 360px minmax(0, 1fr) !important;
-    grid-template-areas: "side main" !important;
-    grid-template-rows: auto !important;
-    gap: 12px !important;
-    align-items: start !important;
-    overflow: visible !important;
-    background: transparent !important;
-    border: 0 !important;
-    box-shadow: none !important;
-}
-.app-container[data-dm-side-shell] > .sidebar {
-    grid-area: side !important;
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    height: auto !important;
-    max-height: none !important;
-    margin: 0 0 16px !important;
-    padding: 20px !important;
-    overflow: visible !important;
-}
-.app-container[data-dm-side-shell] > .visualizer-stage {
-    grid-area: main !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    height: auto !important;
-    min-height: 0 !important;
-    margin: 0 0 16px !important;
-    padding: 14px !important;
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) !important;
-    grid-template-rows: auto auto !important;
-    gap: 12px !important;
-    align-items: start !important;
-    overflow: hidden !important;
-}
-.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers,
-.app-container[data-dm-side-shell] > .visualizer-stage > .glass-pane {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    box-sizing: border-box !important;
-}
-.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers {
-    margin-bottom: 12px !important;
-    overflow: hidden !important;
-}
-.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-ladder {
-    display: grid !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 10px !important;
-}
-.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-tier {
-    min-width: 0 !important;
-    padding: 12px 14px !important;
-}
-.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-tier-name,
-.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-tier-concepts,
-.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-tier-sub,
-.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-tier-task {
-    min-width: 0 !important;
-    overflow-wrap: anywhere !important;
-}
-.app-container[data-dm-side-shell] .glass-pane {
-    padding: 0 !important;
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) 300px !important;
-    gap: 12px !important;
-    overflow: visible !important;
-    background: transparent !important;
-    border: 0 !important;
-    box-shadow: none !important;
-}
-.app-container[data-dm-side-shell] .graph-canvas {
-    min-height: clamp(420px, 58vh, 620px) !important;
-}
-.app-container[data-dm-side-shell] .steps-panel {
-    max-height: clamp(420px, 58vh, 620px) !important;
-}
-@media (max-width: 1000px) {
-    .app-container[data-dm-side-shell] {
-        width: min(94vw, 760px) !important;
-        grid-template-columns: 1fr !important;
-        grid-template-areas: "side" "main" !important;
-    }
-    .app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-ladder,
-    .app-container[data-dm-side-shell] .glass-pane {
-        grid-template-columns: 1fr !important;
-    }
-}`;
-        document.head.appendChild(style);
-    });
-    </script>
 
 </body>
 

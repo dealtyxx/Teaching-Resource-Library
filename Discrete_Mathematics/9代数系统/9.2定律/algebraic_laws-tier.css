@@ -1,0 +1,859 @@
+:root {
+    --law-bg: #fff8ef;
+    --law-ink: #2d1b12;
+    --law-muted: #725342;
+    --law-line: rgba(128, 68, 42, 0.18);
+    --law-card: rgba(255, 253, 247, 0.9);
+    --law-red: #d83a1d;
+    --law-red-dark: #a92d18;
+    --law-gold: #f4a300;
+    --law-blue: #2f6fa7;
+    --law-green: #2f8a5b;
+    --law-purple: #6c55a3;
+    --law-shadow: 0 18px 50px rgba(74, 34, 18, 0.14);
+    --law-font: "Noto Serif SC", "Microsoft YaHei", serif;
+    --law-mono: "JetBrains Mono", Consolas, monospace;
+}
+
+body.law-tier-body,
+body.law-advanced-body {
+    margin: 0;
+    min-height: 100vh;
+    /* 整页纵向滚动（与 9.1 及全站一致），不再裁切三阶带与页脚 */
+    overflow-x: hidden;
+    overflow-y: auto;
+    color: var(--law-ink);
+    font-family: var(--law-font);
+    background:
+        linear-gradient(90deg, rgba(216, 58, 29, 0.05) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(47, 111, 167, 0.045) 1px, transparent 1px),
+        radial-gradient(circle at 16% 18%, rgba(244, 163, 0, 0.13), transparent 26%),
+        radial-gradient(circle at 88% 22%, rgba(47, 138, 91, 0.12), transparent 28%),
+        linear-gradient(135deg, #fff8ef 0%, #f7ead8 52%, #edf5f2 100%);
+    background-size: 34px 34px, 34px 34px, cover, cover, cover;
+}
+
+.law-home-link {
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 10000;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    background: rgba(45, 27, 18, 0.84);
+    color: #fff;
+    text-decoration: none;
+    font-size: 13px;
+    box-shadow: 0 8px 22px rgba(45, 27, 18, 0.18);
+}
+
+.law-tier-shell {
+    width: min(1440px, calc(100vw - 32px));
+    /* 高度随内容增长：容纳注入的三阶层次带，超出部分整页滚动 */
+    height: auto;
+    min-height: calc(100vh - 116px);
+    margin: 42px auto 0;
+    display: grid;
+    grid-template-columns: 360px minmax(0, 1fr);
+    gap: 16px;
+}
+
+.law-tier-sidebar,
+.law-tier-stage,
+body.law-advanced-body .sidebar,
+body.law-advanced-body .glass-pane {
+    border: 1px solid var(--law-line);
+    border-radius: 8px;
+    background: var(--law-card);
+    box-shadow: var(--law-shadow);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+}
+
+.law-tier-sidebar {
+    min-height: 0;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow: visible;
+}
+
+.law-tier-header {
+    display: grid;
+    gap: 6px;
+}
+
+.law-tier-kicker {
+    display: inline-flex;
+    width: max-content;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(216, 58, 29, 0.11);
+    color: var(--law-red);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.law-tier-header h1 {
+    margin: 0;
+    color: var(--law-red);
+    font-size: 1.62rem;
+    line-height: 1.22;
+    letter-spacing: 0;
+}
+
+.law-tier-subtitle,
+.law-tier-intro {
+    margin: 0;
+    color: var(--law-muted);
+    line-height: 1.55;
+    font-size: 0.9rem;
+}
+
+.law-control-grid {
+    display: grid;
+    gap: 10px;
+    min-height: 0;
+}
+
+.law-control {
+    display: grid;
+    gap: 6px;
+    padding: 10px;
+    border: 1px solid rgba(128, 68, 42, 0.14);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.62);
+}
+
+.law-control label {
+    color: #5b4033;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.law-select,
+.law-number {
+    width: 100%;
+    min-height: 36px;
+    padding: 8px 10px;
+    border: 1px solid rgba(128, 68, 42, 0.22);
+    border-radius: 8px;
+    background: #fffaf2;
+    color: var(--law-ink);
+    font-family: var(--law-font);
+    font-size: 0.9rem;
+}
+
+.law-step-tools {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.law-btn {
+    min-height: 36px;
+    border: 0;
+    border-radius: 8px;
+    background: rgba(216, 58, 29, 0.1);
+    color: var(--law-red);
+    font-family: var(--law-font);
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+
+.law-btn:hover {
+    transform: translateY(-1px);
+}
+
+.law-btn.primary {
+    background: var(--law-red);
+    color: #fff;
+}
+
+.law-btn.ghost {
+    background: rgba(47, 111, 167, 0.11);
+    color: var(--law-blue);
+}
+
+.law-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.48;
+    transform: none;
+}
+
+.law-meter {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.law-meter-card {
+    padding: 8px;
+    border-radius: 8px;
+    background: rgba(255, 250, 242, 0.82);
+    border: 1px solid rgba(128, 68, 42, 0.12);
+}
+
+.law-meter-card span {
+    display: block;
+    color: var(--law-muted);
+    font-size: 0.72rem;
+    line-height: 1.2;
+}
+
+.law-meter-card strong {
+    display: block;
+    margin-top: 3px;
+    color: var(--law-red);
+    font-family: var(--law-mono);
+    font-size: 1rem;
+}
+
+.law-step-list {
+    display: grid;
+    gap: 6px;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.law-step-chip {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    padding: 7px 8px;
+    border: 1px solid rgba(128, 68, 42, 0.13);
+    border-radius: 8px;
+    background: rgba(255, 250, 242, 0.78);
+    color: var(--law-muted);
+    font-family: var(--law-font);
+    font-size: 0.82rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.law-step-chip b {
+    display: inline-grid;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(47, 111, 167, 0.12);
+    color: var(--law-blue);
+    font-family: var(--law-mono);
+    font-size: 0.72rem;
+}
+
+.law-step-chip.is-active {
+    border-color: rgba(216, 58, 29, 0.48);
+    background: rgba(216, 58, 29, 0.11);
+    color: var(--law-red);
+}
+
+.law-step-chip.is-done b {
+    background: rgba(47, 138, 91, 0.13);
+    color: var(--law-green);
+}
+
+.law-tier-stage {
+    min-width: 0;
+    min-height: 0;
+    padding: 14px;
+    display: grid;
+    /* 四行：共享框架注入的三阶层次带 / 状态行 / 可视化区 / 底部公式反馈 */
+    grid-template-rows: auto auto minmax(300px, 1fr) auto;
+    gap: 12px;
+    overflow: visible;
+}
+
+/* ===== 共享框架注入的三阶层次带（#dm-page-layers）：占第一行、全宽、
+   适度紧凑，不限高不裁切（此前 layout-fix 的 150px 钳高导致内容显示不全）===== */
+.law-tier-stage > #dm-page-layers.dm-page-layers {
+    grid-row: 1;
+    margin: 0 !important;
+    padding: 10px 12px !important;
+    width: 100%;
+    box-sizing: border-box;
+}
+.law-tier-stage #dm-page-layers .dm-pl-head {
+    margin-bottom: 6px;
+}
+.law-tier-stage #dm-page-layers .dm-ladder {
+    gap: 8px;
+}
+.law-tier-stage #dm-page-layers .dm-tier {
+    padding: 10px 11px;
+}
+
+.law-status-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) auto auto;
+    gap: 10px;
+    align-items: center;
+}
+
+.law-title-card,
+.law-result-card,
+.law-formula-card,
+.law-feedback-card,
+.law-table-card {
+    border: 1px solid rgba(128, 68, 42, 0.14);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.66);
+}
+
+.law-title-card {
+    min-width: 0;
+    padding: 10px 12px;
+}
+
+.law-title-card h2 {
+    margin: 0;
+    color: var(--law-red);
+    font-size: 1.16rem;
+    line-height: 1.28;
+}
+
+.law-title-card p {
+    margin: 4px 0 0;
+    color: var(--law-muted);
+    font-size: 0.86rem;
+}
+
+.law-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: rgba(244, 163, 0, 0.15);
+    color: #9c6200;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.law-badge.ok {
+    background: rgba(47, 138, 91, 0.14);
+    color: var(--law-green);
+}
+
+.law-badge.fail {
+    background: rgba(216, 58, 29, 0.13);
+    color: var(--law-red);
+}
+
+.law-visual-grid {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 12px;
+}
+
+.law-visual-card {
+    min-width: 0;
+    min-height: 0;
+    position: relative;
+    border: 1px solid rgba(128, 68, 42, 0.14);
+    border-radius: 8px;
+    background:
+        linear-gradient(90deg, rgba(128, 68, 42, 0.045) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(128, 68, 42, 0.045) 1px, transparent 1px),
+        rgba(255, 255, 255, 0.72);
+    background-size: 28px 28px;
+    overflow: hidden;
+}
+
+.law-visual-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
+}
+
+.law-svg-edge {
+    stroke: rgba(128, 68, 42, 0.25);
+    stroke-width: 3;
+    fill: none;
+    transition: stroke 0.2s ease, stroke-width 0.2s ease;
+}
+
+.law-svg-edge.hot {
+    stroke: var(--law-red);
+    stroke-width: 5;
+}
+
+.law-svg-node rect,
+.law-svg-node circle {
+    fill: #fffaf2;
+    stroke: rgba(128, 68, 42, 0.32);
+    stroke-width: 2;
+    filter: drop-shadow(0 4px 8px rgba(74, 34, 18, 0.12));
+    transition: fill 0.2s ease, stroke 0.2s ease, transform 0.2s ease;
+}
+
+.law-svg-node.hot rect,
+.law-svg-node.hot circle {
+    fill: rgba(216, 58, 29, 0.14);
+    stroke: var(--law-red);
+}
+
+.law-svg-node.done rect,
+.law-svg-node.done circle {
+    fill: rgba(47, 138, 91, 0.12);
+    stroke: var(--law-green);
+}
+
+.law-svg-node text {
+    fill: var(--law-ink);
+    font-family: var(--law-font);
+    font-size: 13px;
+    font-weight: 800;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    pointer-events: none;
+}
+
+.law-svg-node .sub {
+    fill: var(--law-muted);
+    font-family: var(--law-mono);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.law-side-stack {
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 12px;
+}
+
+.law-result-card {
+    padding: 12px;
+}
+
+.law-result-card h3,
+.law-table-card h3,
+.law-formula-card h3,
+.law-feedback-card h3 {
+    margin: 0 0 8px;
+    color: var(--law-red);
+    font-size: 0.98rem;
+}
+
+.law-result-value {
+    display: grid;
+    gap: 7px;
+}
+
+.law-result-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 7px 9px;
+    border-radius: 8px;
+    background: rgba(255, 250, 242, 0.85);
+    font-family: var(--law-mono);
+    font-size: 0.86rem;
+}
+
+.law-result-line.is-hot {
+    background: rgba(244, 163, 0, 0.16);
+    color: #805400;
+}
+
+.law-table-card {
+    min-height: 0;
+    padding: 12px;
+    overflow: hidden;
+}
+
+.law-table {
+    width: 100%;
+    border-collapse: collapse;
+    overflow: hidden;
+    border-radius: 8px;
+    font-family: var(--law-mono);
+    font-size: 0.78rem;
+}
+
+.law-table th,
+.law-table td {
+    border: 1px solid rgba(128, 68, 42, 0.12);
+    padding: 5px 4px;
+    text-align: center;
+    background: rgba(255, 250, 242, 0.78);
+}
+
+.law-table th {
+    color: var(--law-red);
+    background: rgba(216, 58, 29, 0.08);
+}
+
+.law-table td.hot {
+    background: rgba(244, 163, 0, 0.22);
+    color: #805400;
+    font-weight: 900;
+}
+
+.law-bottom-grid {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 400px);
+    gap: 12px;
+}
+
+.law-formula-card,
+.law-feedback-card {
+    min-height: 0;
+    padding: 12px;
+    overflow: hidden;
+}
+
+.law-formula-lines {
+    display: grid;
+    gap: 7px;
+}
+
+.law-formula-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    color: var(--law-muted);
+}
+
+.law-formula-line strong {
+    color: var(--law-blue);
+    margin-right: 3px;
+}
+
+.law-term {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 3px 7px;
+    border: 1px solid rgba(128, 68, 42, 0.13);
+    border-radius: 999px;
+    background: rgba(255, 250, 242, 0.86);
+    color: var(--law-ink);
+    font-family: var(--law-mono);
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.law-term.hot {
+    border-color: rgba(216, 58, 29, 0.45);
+    background: rgba(216, 58, 29, 0.12);
+    color: var(--law-red);
+}
+
+.law-term.done {
+    border-color: rgba(47, 138, 91, 0.34);
+    background: rgba(47, 138, 91, 0.1);
+    color: var(--law-green);
+}
+
+.law-feedback-card p {
+    margin: 0 0 8px;
+    color: #5e4338;
+    line-height: 1.55;
+    font-size: 0.9rem;
+}
+
+.law-feedback-card .hint {
+    color: var(--law-muted);
+    font-size: 0.82rem;
+}
+
+.law-footer {
+    /* 常规文档流页脚（与 9.1 的 .footer 一致），不再固定悬浮遮挡内容 */
+    position: static;
+    width: 100%;
+    padding: 16px 10px 18px;
+    color: inherit;
+    text-align: center;
+    opacity: 0.72;
+    font-size: 13px;
+    line-height: 1.6;
+    background: transparent;
+    box-shadow: none;
+}
+
+.law-footer p {
+    margin: 0;
+    line-height: 1.6;
+}
+
+body.law-advanced-body {
+    display: block;
+}
+
+body.law-advanced-body .app-container {
+    width: min(1440px, calc(100vw - 32px));
+    height: calc(100vh - 116px);
+    max-width: none;
+    margin: 42px auto 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    gap: 16px;
+    overflow: visible;
+}
+
+body.law-advanced-body .sidebar {
+    width: 360px;
+    padding: 18px;
+    gap: 14px;
+    border-right: 1px solid var(--law-line);
+    overflow: hidden;
+}
+
+body.law-advanced-body .sidebar-header h1 {
+    margin: 0;
+    color: var(--law-red);
+    font-size: 1.62rem;
+    letter-spacing: 0;
+}
+
+body.law-advanced-body .window-controls {
+    display: none;
+}
+
+body.law-advanced-body .controls-wrapper {
+    gap: 10px;
+}
+
+body.law-advanced-body .control-group,
+body.law-advanced-body .info-panel,
+body.law-advanced-body .definition-panel,
+body.law-advanced-body .examples-panel,
+body.law-advanced-body .verification-area,
+body.law-advanced-body .law-formula-display,
+body.law-advanced-body .verification-steps,
+body.law-advanced-body .comparison-display,
+body.law-advanced-body .side-box {
+    border: 1px solid rgba(128, 68, 42, 0.14);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.66);
+    box-shadow: none;
+}
+
+body.law-advanced-body .control-group {
+    padding: 10px;
+}
+
+body.law-advanced-body label {
+    color: #5b4033;
+    font-size: 0.82rem;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+body.law-advanced-body .law-btn {
+    min-height: 34px;
+    padding: 8px 9px;
+    border-color: rgba(216, 58, 29, 0.38);
+}
+
+body.law-advanced-body .law-btn.active {
+    background: var(--law-red);
+    color: #fff;
+}
+
+body.law-advanced-body select {
+    min-height: 36px;
+    border-color: rgba(128, 68, 42, 0.22);
+    border-radius: 8px;
+    background: #fffaf2;
+    color: var(--law-ink);
+}
+
+body.law-advanced-body .visualizer-stage {
+    min-width: 0;
+    padding: 0;
+    background: transparent;
+}
+
+body.law-advanced-body .glass-pane {
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(300px, 360px);
+    gap: 12px;
+    padding: 14px;
+}
+
+/* 注入的三阶层次带横跨两列（与 9.1 标准外壳一致） */
+body.law-advanced-body .glass-pane > #dm-page-layers {
+    grid-column: 1 / -1;
+}
+
+body.law-advanced-body .verification-area,
+body.law-advanced-body .info-panel-right {
+    min-height: 0;
+    display: grid;
+    gap: 12px;
+}
+
+body.law-advanced-body .verification-area {
+    grid-template-rows: auto auto minmax(0, 1fr);
+    padding: 12px;
+}
+
+body.law-advanced-body .law-formula-display {
+    padding: 12px;
+}
+
+body.law-advanced-body .formula-box {
+    border: 1px solid rgba(216, 58, 29, 0.28);
+    border-radius: 8px;
+    background: rgba(255, 250, 242, 0.82);
+    padding: 12px;
+}
+
+body.law-advanced-body .formula-box .formula {
+    font-size: 1.04rem;
+    line-height: 1.7;
+}
+
+body.law-advanced-body .law-formula-display.left-hot .formula:first-child,
+body.law-advanced-body .law-formula-display.right-hot .formula:last-child,
+body.law-advanced-body .law-formula-display.compare-hot .formula {
+    border-radius: 8px;
+    background: rgba(244, 163, 0, 0.16);
+}
+
+body.law-advanced-body .comparison-display {
+    padding: 10px;
+}
+
+body.law-advanced-body .side-box {
+    min-width: 0;
+    padding: 12px;
+}
+
+body.law-advanced-body .side-box .value {
+    font-size: 1.1rem;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+}
+
+body.law-advanced-body .verification-steps,
+body.law-advanced-body .examples-panel {
+    min-height: 0;
+    padding: 12px;
+    overflow: hidden;
+}
+
+body.law-advanced-body #stepsList {
+    display: grid;
+    gap: 7px;
+    max-height: 100%;
+    overflow: hidden;
+}
+
+body.law-advanced-body .step-item {
+    margin: 0;
+    border-radius: 8px;
+    border-left-width: 4px;
+    padding: 9px 10px;
+}
+
+body.law-advanced-body .step-item.active {
+    transform: none;
+    outline: 2px solid rgba(216, 58, 29, 0.15);
+}
+
+body.law-advanced-body .step-expression {
+    margin: 0 0 4px;
+    font-size: 0.9rem;
+}
+
+body.law-advanced-body .step-description {
+    line-height: 1.45;
+}
+
+body.law-advanced-body .info-panel-right {
+    grid-template-rows: auto minmax(0, 1fr);
+}
+
+body.law-advanced-body .definition-panel,
+body.law-advanced-body .examples-panel {
+    padding: 12px;
+}
+
+body.law-advanced-body .definition-panel h3,
+body.law-advanced-body .examples-panel h3,
+body.law-advanced-body .verification-steps h4 {
+    margin: 0 0 8px;
+    border-bottom: 1px solid rgba(216, 58, 29, 0.28);
+    color: var(--law-red);
+    font-size: 1rem;
+}
+
+body.law-advanced-body .example-item {
+    margin-bottom: 8px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(128, 68, 42, 0.13);
+    background: rgba(255, 250, 242, 0.82);
+}
+
+body.law-advanced-body .actions-footer {
+    gap: 8px;
+}
+
+body.law-advanced-body .actions-footer .apple-btn {
+    flex: 1 1 0;
+    width: auto;
+}
+
+body.law-advanced-body .apple-btn {
+    min-height: 38px;
+    border-radius: 8px;
+    padding: 8px 10px;
+}
+
+@media (max-width: 980px) {
+    body.law-tier-body,
+    body.law-advanced-body {
+        overflow: auto;
+    }
+
+    .law-tier-shell,
+    body.law-advanced-body .app-container {
+        width: min(100vw - 22px, 720px);
+        height: auto;
+        min-height: 0;
+        grid-template-columns: 1fr;
+        display: grid;
+        margin-bottom: 16px;
+    }
+
+    body.law-advanced-body .app-container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .law-visual-grid,
+    .law-bottom-grid,
+    body.law-advanced-body .glass-pane {
+        grid-template-columns: 1fr;
+    }
+
+    .law-tier-sidebar,
+    body.law-advanced-body .sidebar {
+        width: auto;
+        overflow: visible;
+    }
+}

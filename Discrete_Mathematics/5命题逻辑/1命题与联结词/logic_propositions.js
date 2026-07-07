@@ -202,19 +202,19 @@ function buildTruthTable(type) {
 
     switch (type) {
         case 'and':
-            html += '<p style="font-size: 0.9rem; color: #64748b; line-height: 1.6;">政策"既要发展经济又要保护环境"：只有两者都实现（都为真）时，政策才算成功（为真）。这体现了可持续发展的合取逻辑。</p>';
+            html += '<p style="font-size: 0.9rem; color: #6b4a38; line-height: 1.6;">政策"既要发展经济又要保护环境"：只有两者都实现（都为真）时，政策才算成功（为真）。这体现了可持续发展的合取逻辑。</p>';
             break;
         case 'or':
-            html += '<p style="font-size: 0.9rem; color: #64748b; line-height: 1.6;">服务"可以线上办理或线下办理"：至少提供一种方式（至少一个为真），服务就是可用的（为真）。体现了灵活便民的析取逻辑。</p>';
+            html += '<p style="font-size: 0.9rem; color: #6b4a38; line-height: 1.6;">服务"可以线上办理或线下办理"：至少提供一种方式（至少一个为真），服务就是可用的（为真）。体现了灵活便民的析取逻辑。</p>';
             break;
         case 'implies':
-            html += '<p style="font-size: 0.9rem; color: #64748b; line-height: 1.6;">"如果群众有需求，则政府要回应"：只有在群众有需求（前真）但政府不回应（后假）时，政府失职（为假）。体现了以人民为中心的条件逻辑。</p>';
+            html += '<p style="font-size: 0.9rem; color: #6b4a38; line-height: 1.6;">"如果群众有需求，则政府要回应"：只有在群众有需求（前真）但政府不回应（后假）时，政府失职（为假）。体现了以人民为中心的条件逻辑。</p>';
             break;
         case 'iff':
-            html += '<p style="font-size: 0.9rem; color: #64748b; line-height: 1.6;">"人民幸福当且仅当国家富强"：两者同真同假，体现了个人命运与国家命运紧密相连的等价逻辑。</p>';
+            html += '<p style="font-size: 0.9rem; color: #6b4a38; line-height: 1.6;">"人民幸福当且仅当国家富强"：两者同真同假，体现了个人命运与国家命运紧密相连的等价逻辑。</p>';
             break;
         case 'not':
-            html += '<p style="font-size: 0.9rem; color: #64748b; line-height: 1.6;">对"政策已完善"的否定是"政策未完善"，提醒我们任何政策都有改进空间，体现了持续优化的否定逻辑。</p>';
+            html += '<p style="font-size: 0.9rem; color: #6b4a38; line-height: 1.6;">对"政策已完善"的否定是"政策未完善"，提醒我们任何政策都有改进空间，体现了持续优化的否定逻辑。</p>';
             break;
     }
 

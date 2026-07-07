@@ -72,7 +72,7 @@
     emergency: "#d63b1d",
     community: "#0f766e",
     data: "#2563eb",
-    cross: "#6c5a52"
+    cross: "#6b4a38"
   };
 
   const state = {
@@ -361,7 +361,7 @@
       ctx.fillStyle = index % 2 ? "rgba(47,95,159,.035)" : "rgba(47,125,87,.035)";
       ctx.fillRect(index * bw, 78, bw, h - 108);
       ctx.fillStyle = "#7c2d12";
-      ctx.font = "700 12px 'Noto Serif SC', serif";
+      ctx.font = "700 12px 'Noto Serif SC', 'Microsoft YaHei', serif";
       ctx.textAlign = "center";
       ctx.fillText(label, index * bw + bw / 2, h - 26);
     });
@@ -375,7 +375,7 @@
     const hot = state.activeEdges.includes(edgeKey(edge)) || state.activeEdges.includes(edge.v + "-" + edge.u);
     const incident = edge.u === state.incident || edge.v === state.incident;
     ctx.save();
-    ctx.strokeStyle = hot ? "#d63b1d" : incident && isExtend ? "#f59e0b" : colors[edge.kind] || "#64748b";
+    ctx.strokeStyle = hot ? "#d63b1d" : incident && isExtend ? "#f59e0b" : colors[edge.kind] || "#6b4a38";
     ctx.globalAlpha = hot ? 0.95 : 0.52;
     ctx.lineWidth = hot ? 4.5 : edge.kind === "cross" || edge.kind === "data" ? 2.6 : 2;
     if (edge.kind === "data") ctx.setLineDash([7, 6]);
@@ -422,10 +422,10 @@
     ctx.textBaseline = "middle";
     ctx.fillText("N" + node.id, node.px, node.py);
     ctx.fillStyle = "#253447";
-    ctx.font = "800 13px 'Noto Serif SC', serif";
+    ctx.font = "800 13px 'Noto Serif SC', 'Microsoft YaHei', serif";
     ctx.textBaseline = "top";
     ctx.fillText(node.name, node.px, node.py + radius + 6);
-    ctx.fillStyle = "#64748b";
+    ctx.fillStyle = "#6b4a38";
     ctx.font = "700 10px Outfit, sans-serif";
     ctx.fillText(node.sub, node.px, node.py + radius + 23);
     if (isIncident) {
@@ -441,11 +441,11 @@
   function drawTitle() {
     ctx.save();
     ctx.fillStyle = "#7c2d12";
-    ctx.font = "800 20px 'Noto Serif SC', serif";
+    ctx.font = "800 20px 'Noto Serif SC', 'Microsoft YaHei', serif";
     ctx.textAlign = "left";
     ctx.fillText(isExtend ? "城市大脑多系统联动图" : "智慧城市设施网络图", 24, 34);
-    ctx.fillStyle = "#64748b";
-    ctx.font = "700 13px 'Noto Serif SC', serif";
+    ctx.fillStyle = "#6b4a38";
+    ctx.font = "700 13px 'Noto Serif SC', 'Microsoft YaHei', serif";
     ctx.fillText(isExtend ? "点击节点模拟事件，调节压力观察调度路径变化" : "点一个设施设为事件点，再观察城市大脑如何联动", 24, 58);
     ctx.restore();
   }
@@ -566,10 +566,10 @@ body .app-container>main.glass-pane.smart-city-stage .graph-canvas{min-height:39
 .city-panel{display:grid;gap:10px;color:#253447}.city-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .city-summary>div{min-width:0;border:1px solid rgba(116,55,31,.12);border-radius:8px;background:rgba(255,255,255,.72);padding:9px 10px}
 .city-summary b{display:block;color:#9a3412;font-size:.78rem;margin-bottom:4px}.city-summary span{display:block;color:#253447;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.city-hint{padding:10px 12px;border-radius:8px;background:rgba(255,248,237,.86);border:1px solid rgba(214,59,29,.13);color:#6c5a52;font-weight:700}
+.city-hint{padding:10px 12px;border-radius:8px;background:rgba(255,248,237,.86);border:1px solid rgba(214,59,29,.13);color:#6b4a38;font-weight:700}
 .city-node-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px}
 .city-node-list button{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;text-align:left;border:1px solid rgba(116,55,31,.13);border-radius:8px;background:rgba(255,255,255,.72);padding:8px 10px;color:#253447;cursor:pointer}
-.city-node-list span{grid-row:1/3;color:#d63b1d;font:900 13px JetBrains Mono,Consolas}.city-node-list b{font-size:.88rem}.city-node-list small{color:#64748b}.city-node-list button.hot{border-color:rgba(214,59,29,.34);background:rgba(214,59,29,.10)}
+.city-node-list span{grid-row:1/3;color:#d63b1d;font:900 13px JetBrains Mono,Consolas}.city-node-list b{font-size:.88rem}.city-node-list small{color:#6b4a38}.city-node-list button.hot{border-color:rgba(214,59,29,.34);background:rgba(214,59,29,.10)}
 @media(max-width:920px){.city-summary{grid-template-columns:1fr 1fr}.city-actions{grid-template-columns:1fr}body .app-container>main.glass-pane.smart-city-stage .logic-board{grid-template-rows:340px auto!important}}
 `;
     document.head.appendChild(style);

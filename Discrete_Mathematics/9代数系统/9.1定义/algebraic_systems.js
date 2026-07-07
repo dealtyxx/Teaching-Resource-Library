@@ -1,544 +1,458 @@
-// ============================================
-// 全局状态管理
-// ============================================
-let currentType = 'unary';
-let currentCaseIndex = 0;
-let isAnimating = false;
+(function () {
+    const layerConfig = window.ALGEBRA_PAGE_CONFIG || {};
+    const layer = layerConfig.layer || "advanced";
+    const controls = document.getElementById("controlsArea");
+    const typeButtons = Array.from(document.querySelectorAll(".op-btn"));
+    const caseSelector = document.getElementById("caseSelector");
+    const operationTable = document.getElementById("operationTable");
+    const operationDemo = document.getElementById("operationDemo");
+    const propertiesDisplay = document.getElementById("propertiesDisplay");
+    const definitionPanel = document.getElementById("definitionPanel");
+    const examplesList = document.getElementById("examplesList");
+    const philosophyPanel = document.getElementById("philosophyPanel");
+    const formulaText = document.getElementById("formulaText");
+    const resultValue = document.getElementById("resultValue");
+    const resultExtra = document.getElementById("resultExtra");
+    const stepLabel = document.getElementById("stepLabel");
+    const stepProgress = document.getElementById("stepProgress");
+    const prevStepBtn = document.getElementById("prevStepBtn");
+    const nextStepBtn = document.getElementById("nextStepBtn");
+    const demoBtn = document.getElementById("demoBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const missionText = document.getElementById("missionText");
+    const visualBadge = document.getElementById("visualBadge");
 
-// ============================================
-// 定义与概念数据
-// ============================================
-const DEFINITIONS = {
-    'unary': {
-        title: '一元运算 (Unary Operation)',
-        content: '一元运算是从集合A到A的映射，即对集合中的每个元素进行一次变换。',
-        formula: 'f: A → A\n对于 ∀a∈A, 存在唯一的 f(a)∈A',
-        examples: '取负运算、求补运算、递增递减'
-    },
-    'binary': {
-        title: '二元运算 (Binary Operation)',
-        content: '二元运算是从集合A×A到A的映射，将两个元素结合成一个元素。',
-        formula: '∘: A×A → A\n对于 ∀a,b∈A, 存在唯一的 a∘b∈A',
-        examples: '加法、乘法、取模运算'
-    },
-    'n-ary': {
-        title: 'n元运算 (n-ary Operation)',
-        content: 'n元运算是从集合Aⁿ到A的映射，将n个元素结合成一个元素。',
-        formula: 'f: Aⁿ → A\n对于 ∀a₁,a₂,...,aₙ∈A, 存在唯一的 f(a₁,a₂,...,aₙ)∈A',
-        examples: '投票选举、多数表决、加权平均'
-    },
-    'system': {
-        title: '代数系统 (Algebraic System)',
-        content: '代数系统是一个集合与定义在该集合上的若干运算组成的系统，记作<A, ∘₁, ∘₂, ..., ∘ₙ>。',
-        formula: '<A, ∘> 其中:\nA是非空集合(载体)\n∘是定义在A上的运算',
-        examples: '<ℤ,+>, <ℝ,+,×>, 群、环、域'
-    }
-};
-
-// ============================================
-// 案例数据
-// ============================================
-const CASES = [
-    {
-        type: 'unary',
-        name: '干部轮岗制 - 一元运算',
-        set: ['基层', '中层', '高层'],
-        operation: (a) => {
-            const rotation = { '基层': '中层', '中层': '高层', '高层': '基层' };
-            return rotation[a];
+    const DEFINITIONS = {
+        unary: {
+            title: "一元运算",
+            content: "一元运算把集合 S 中的一个元素变成 S 中的一个元素。",
+            formula: "f:S→S；对任意 a∈S，f(a) 仍在 S 中。",
+            focus: "看清“输入一个、输出一个”的映射关系。"
         },
-        symbol: 'rotate',
-        description: '对干部进行岗位轮换',
-        philosophy: '干部轮岗制体现了一元运算的思想:每个岗位都有对应的下一个岗位。这种"映射"保证了干部队伍的流动性和活力。习近平总书记强调"让干部在不同岗位、不同环境中磨练成长"。轮岗不是简单的位置变换,而是能力的全面提升。一元运算的封闭性告诉我们:无论如何轮换,干部都在组织体系内成长,始终服务于人民事业。',
-        properties: {
-            closure: true,
-            associative: false,
-            commutative: false,
-            identity: false,
-            inverse: false
-        }
-    },
-    {
-        type: 'unary',
-        name: '态度转化 - 补运算',
-        set: ['支持', '中立', '反对'],
-        operation: (a) => {
-            const complement = { '支持': '反对', '中立': '中立', '反对': '支持' };
-            return complement[a];
+        binary: {
+            title: "二元运算",
+            content: "二元运算把 S×S 中的一对元素映到 S 中，是代数系统最常见的运算形态。",
+            formula: "∘:S×S→S；对任意 a,b∈S，a∘b 必须仍在 S 中。",
+            focus: "用运算表逐格检查封闭性。"
         },
-        symbol: '¬',
-        description: '意见的对立面',
-        philosophy: '补运算揭示了对立统一规律。在民主决策中,我们要听取不同声音,包括反对意见。毛泽东说"兼听则明,偏信则暗"。补运算的特点是两次补运算回到原点——这启示我们:批评与自我批评要适度,过度否定会走向反面。中立的补运算仍是中立,说明客观中立是稳定的基点。',
-        properties: {
-            closure: true,
-            associative: false,
-            commutative: false,
-            identity: false,
-            inverse: true
-        }
-    },
-    {
-        type: 'binary',
-        name: '民主集中 - 二元运算',
-        set: ['个人意见', '集体决议', '上级指示', '群众呼声'],
-        operation: (a, b) => {
-            // 民主集中:综合两种意见形成决议
-            if (a === b) return a;
-            if (a === '上级指示' || b === '上级指示') return '集体决议';
-            if (a === '群众呼声' || b === '群众呼声') return '集体决议';
-            return '集体决议';
+        nary: {
+            title: "n 元运算",
+            content: "n 元运算一次接收 n 个输入，再输出集合中的一个元素。",
+            formula: "f:S^n→S；多输入仍要回到同一载体集合。",
+            focus: "从二元推广到多元，观察规则是否仍稳定。"
         },
-        symbol: '⊕',
-        description: '将两个意见综合成统一决议',
-        philosophy: '民主集中制是我们党的根本组织原则。二元运算"⊕"象征着将不同意见综合成集体决议的过程。运算的封闭性保证了无论有多少不同意见,最终都要形成统一决议。交换律意味着无论谁先发言,都应公平对待。结合律说明可以逐步综合多个意见。这体现了"从群众中来,到群众中去"的工作方法。',
-        properties: {
-            closure: true,
-            associative: true,
-            commutative: true,
-            identity: false,
-            inverse: false
+        system: {
+            title: "代数系统",
+            content: "代数系统由非空集合和定义在其上的一个或多个运算组成。",
+            formula: "⟨S,∘⟩ 或 ⟨S,∘1,∘2,...⟩。",
+            focus: "把集合、运算和性质放在同一张结构图里检查。"
         }
-    },
-    {
-        type: 'binary',
-        name: '资源协调 - 最小值运算',
-        set: [10, 20, 30, 40, 50],
-        operation: (a, b) => Math.min(a, b),
-        symbol: 'min',
-        description: '两地资源协调,取短板',
-        philosophy: '木桶原理告诉我们:决定水桶容量的是最短的那块板。在区域协调发展中,min运算揭示了"短板"思维:两地合作的成效取决于发展较慢的一方。习近平总书记强调"全面建成小康社会,一个不能少"。这个运算提醒我们:要关注薄弱环节,补齐短板,实现共同富裕。最小值运算满足交换律和结合律,说明无论从哪个角度看,短板都是短板。',
-        properties: {
-            closure: true,
-            associative: true,
-            commutative: true,
-            identity: true,
-            inverse: false
-        }
-    },
-    {
-        type: 'binary',
-        name: '政策叠加 - 模运算',
-        set: [0, 1, 2, 3, 4],
-        operation: (a, b) => (a + b) % 5,
-        symbol: '+₅',
-        description: '政策效应叠加(模5)',
-        philosophy: '模运算体现了"螺旋式上升"的发展观。政策效应不是线性叠加,而是周期性循环上升。比如五年计划:每个五年都有新起点,但又承接上一个五年。模5运算形成的循环群,象征着发展的周期性和规律性。0是单位元,代表"无为而治"的基准状态。每个元素都有逆元,意味着政策可调整、可纠偏。这是辩证法的数学体现。',
-        properties: {
-            closure: true,
-            associative: true,
-            commutative: true,
-            identity: true,
-            inverse: true
-        }
-    },
-    {
-        type: 'n-ary',
-        name: '三级审批 - 三元运算',
-        set: ['通过', '驳回'],
-        operation: (...args) => {
-            // 三级审批:至少两级通过才最终通过
-            const passCount = args.filter(x => x === '通过').length;
-            return passCount >= 2 ? '通过' : '驳回';
-        },
-        arity: 3,
-        symbol: 'approve',
-        description: '多级审批系统(三级审批)',
-        philosophy: '三级审批制体现了"民主与集中相结合"的原则。三元运算要求至少两级通过,防止了个人专断,也避免了效率过低。这是"少数服从多数"在制度设计中的体现。毛泽东说"一个人说了不算,两个人说了也不一定算,三个人商量着办才靠谱"。n元运算的复杂性提醒我们:决策不是简单的是非判断,而是多方博弈的结果。',
-        properties: {
-            closure: true,
-            associative: false,
-            commutative: true,
-            identity: false,
-            inverse: false
-        }
-    },
-    {
-        type: 'n-ary',
-        name: '民主投票 - 多数表决',
-        set: ['赞成', '反对', '弃权'],
-        operation: (...args) => {
-            // 统计票数,多数胜出
-            const counts = {};
-            args.forEach(vote => {
-                counts[vote] = (counts[vote] || 0) + 1;
-            });
-            let maxVote = args[0];
-            let maxCount = 0;
-            for (let vote in counts) {
-                if (counts[vote] > maxCount) {
-                    maxCount = counts[vote];
-                    maxVote = vote;
-                }
-            }
-            return maxVote;
-        },
-        arity: 5,
-        symbol: 'vote',
-        description: '民主投票系统(5人投票)',
-        philosophy: '民主投票是n元运算的典型应用。"少数服从多数,多数照顾少数"——这是民主集中制的核心。投票运算满足交换律(无论谁先投,结果相同),但不满足结合律(分批统计可能失真)。这提醒我们:民主程序要一次性、整体性进行,不能分割。弃权票的存在体现了"沉默的权利",但过多弃权会导致决策合法性不足。',
-        properties: {
-            closure: true,
-            associative: false,
-            commutative: true,
-            identity: false,
-            inverse: false
-        }
-    },
-    {
-        type: 'system',
-        name: '组织体系 - 群结构',
-        set: ['书记', '副书记', '委员', '党员'],
-        operations: [
-            {
-                name: '提拔',
-                func: (a) => {
-                    const promotion = { '党员': '委员', '委员': '副书记', '副书记': '书记', '书记': '书记' };
-                    return promotion[a];
-                }
-            },
-            {
-                name: '合作',
-                func: (a, b) => {
-                    const level = { '书记': 4, '副书记': 3, '委员': 2, '党员': 1 };
-                    const combined = Math.max(level[a], level[b]);
-                    const reverse = { 4: '书记', 3: '副书记', 2: '委员', 1: '党员' };
-                    return reverse[combined];
-                }
-            }
-        ],
-        description: '党组织层级体系',
-        philosophy: '代数系统<A,∘₁,∘₂>完整描述了组织结构。集合A是组织成员,运算∘₁是晋升机制,运算∘₂是协作机制。群的性质——封闭性(干部来自组织)、结合律(逐级晋升)、单位元(党员是基础)、逆元(可降级)——完美映射了组织规律。这不是机械类比,而是揭示了组织运行的数学本质。列宁说"组织是力量的保证",代数系统正是这种"保证"的形式化表达。',
-        properties: {
-            closure: true,
-            associative: true,
-            commutative: false,
-            identity: true,
-            inverse: true
-        }
-    },
-    {
-        type: 'system',
-        name: '经济系统 - 环结构',
-        set: ['生产', '流通', '分配', '消费'],
-        operations: [
-            {
-                name: '加法(扩大)',
-                func: (a, b) => {
-                    // 循环经济:每个环节都可扩大
-                    return `扩大的${a}`;
-                }
-            },
-            {
-                name: '乘法(效率)',
-                func: (a, b) => {
-                    // 效率提升是乘法效应
-                    return `高效${a}`;
-                }
-            }
-        ],
-        description: '社会主义市场经济体系',
-        philosophy: '环结构<A,+,×>是代数系统的高级形式,完美对应经济体系。"+"代表规模扩张(外延),"×"代表效率提升(内涵)。分配律a×(b+c)=a×b+a×c揭示了"先做大蛋糕,再分好蛋糕"的逻辑。环的加法交换律说明生产和消费可以相互转化;乘法分配律说明技术进步(乘法)对各环节均有效。这是马克价值引领治经济学的数学表达,体现了生产力和生产关系的辩证统一。',
-        properties: {
-            closure: true,
-            associative: true,
-            commutative: true,
-            identity: true,
-            inverse: true
-        }
-    }
-];
-
-// ============================================
-// 运算表生成
-// ============================================
-function generateOperationTable(caseData) {
-    const table = document.getElementById('operationTable');
-
-    if (caseData.type === 'unary') {
-        // 一元运算表
-        let html = '<table><tr><th>元素</th><th>结果</th></tr>';
-        caseData.set.forEach(element => {
-            const result = caseData.operation(element);
-            html += `<tr><td>${element}</td><td>${result}</td></tr>`;
-        });
-        html += '</table>';
-        table.innerHTML = html;
-    } else if (caseData.type === 'binary') {
-        // 二元运算表
-        let html = '<table><tr><th>' + caseData.symbol + '</th>';
-        caseData.set.forEach(el => {
-            html += `<th>${el}</th>`;
-        });
-        html += '</tr>';
-
-        caseData.set.forEach(row => {
-            html += `<tr><th>${row}</th>`;
-            caseData.set.forEach(col => {
-                const result = caseData.operation(row, col);
-                html += `<td>${result}</td>`;
-            });
-            html += '</tr>';
-        });
-        html += '</table>';
-        table.innerHTML = html;
-    } else if (caseData.type === 'n-ary') {
-        // n元运算示例
-        table.innerHTML = `<em style="color: var(--text-secondary);">
-            ${caseData.arity}元运算，从 ${caseData.set.join(', ')} 中选择${caseData.arity}个元素进行运算
-        </em>`;
-    } else if (caseData.type === 'system') {
-        // 代数系统
-        table.innerHTML = `<div style="line-height: 1.6;">
-            <strong style="color: var(--accent-red);">载体集合 A:</strong><br>
-            {${caseData.set.join(', ')}}<br><br>
-            <strong style="color: var(--accent-red);">运算:</strong><br>
-            ${caseData.operations.map(op => '• ' + op.name).join('<br>')}
-        </div>`;
-    }
-}
-
-// ============================================
-// 运算演示
-// ============================================
-async function demonstrateOperation(caseData) {
-    const demoArea = document.getElementById('operationDemo');
-
-    if (caseData.type === 'unary') {
-        // 演示一元运算
-        const element = caseData.set[Math.floor(Math.random() * caseData.set.length)];
-        const result = caseData.operation(element);
-
-        demoArea.innerHTML = `
-            <div style="text-align: center;">
-                <div style="font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 1rem;">
-                    一元运算演示
-                </div>
-                <div class="operation-formula">${caseData.symbol}(${element})</div>
-                <div class="operation-arrow">⬇</div>
-                <div class="operation-result">${result}</div>
-                <div style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
-                    ${caseData.description}
-                </div>
-            </div>
-        `;
-    } else if (caseData.type === 'binary') {
-        // 演示二元运算
-        const a = caseData.set[Math.floor(Math.random() * caseData.set.length)];
-        const b = caseData.set[Math.floor(Math.random() * caseData.set.length)];
-        const result = caseData.operation(a, b);
-
-        demoArea.innerHTML = `
-            <div style="text-align: center;">
-                <div style="font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 1rem;">
-                    二元运算演示
-                </div>
-                <div class="operation-formula">${a} ${caseData.symbol} ${b}</div>
-                <div class="operation-arrow">⬇</div>
-                <div class="operation-result">${result}</div>
-                <div style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
-                    ${caseData.description}
-                </div>
-            </div>
-        `;
-    } else if (caseData.type === 'n-ary') {
-        // 演示n元运算
-        const elements = [];
-        for (let i = 0; i < caseData.arity; i++) {
-            elements.push(caseData.set[Math.floor(Math.random() * caseData.set.length)]);
-        }
-        const result = caseData.operation(...elements);
-
-        demoArea.innerHTML = `
-            <div style="text-align: center;">
-                <div style="font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 1rem;">
-                    ${caseData.arity}元运算演示
-                </div>
-                <div class="operation-formula">${caseData.symbol}(${elements.join(', ')})</div>
-                <div class="operation-arrow">⬇</div>
-                <div class="operation-result">${result}</div>
-                <div style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
-                    ${caseData.description}
-                </div>
-            </div>
-        `;
-    } else if (caseData.type === 'system') {
-        // 演示代数系统
-        const element = caseData.set[Math.floor(Math.random() * caseData.set.length)];
-        const op = caseData.operations[0];
-        const result = op.func(element);
-
-        demoArea.innerHTML = `
-            <div style="text-align: center;">
-                <div style="font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 1rem;">
-                    代数系统演示
-                </div>
-                <div style="font-size: 1.2rem; color: var(--accent-red); margin-bottom: 0.5rem;">
-                    &lt;A, ${caseData.operations.map(o => o.name).join(', ')}&gt;
-                </div>
-                <div class="operation-formula">${op.name}(${element})</div>
-                <div class="operation-arrow">⬇</div>
-                <div class="operation-result">${result}</div>
-                <div style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
-                    ${caseData.description}
-                </div>
-            </div>
-        `;
-    }
-
-    // 显示性质
-    displayProperties(caseData);
-}
-
-// ============================================
-// 性质检验显示
-// ============================================
-function displayProperties(caseData) {
-    const panel = document.getElementById('propertiesDisplay');
-
-    const propertyNames = {
-        closure: '封闭性',
-        associative: '结合律',
-        commutative: '交换律',
-        identity: '单位元',
-        inverse: '逆元'
     };
 
-    let html = '<h4>运算性质</h4>';
+    const CASES = [
+        {
+            id: "z4-add",
+            layer: "basic",
+            type: "binary",
+            name: "Z4 加法表",
+            short: "基础封闭性",
+            set: [0, 1, 2, 3],
+            symbol: "+4",
+            operation: (a, b) => (a + b) % 4,
+            samples: [[0, 1], [1, 2], [2, 3], [3, 3]],
+            properties: { closure: true },
+            focus: "closure",
+            note: "结果每次回到 S={0,1,2,3}，所以这是封闭的二元运算。",
+            feedback: "先认载体集合 S，再看 a∘b 是否仍在 S 中。基础层只抓住“集合+运算+封闭”这条主线。"
+        },
+        {
+            id: "z5-sub",
+            layer: "basic",
+            type: "binary",
+            name: "Z5 普通减法",
+            short: "反例检查",
+            set: [0, 1, 2, 3, 4],
+            symbol: "-",
+            operation: (a, b) => a - b,
+            samples: [[3, 1], [1, 3], [4, 2], [0, 4]],
+            properties: { closure: false },
+            focus: "closure",
+            note: "普通减法会得到负数，某些结果不在 S 中，封闭性失败。",
+            feedback: "一个反例就足以说明“在这个集合上”不是封闭运算。"
+        },
+        {
+            id: "cycle-map",
+            layer: "advanced",
+            type: "unary",
+            name: "状态轮转 f",
+            short: "一元映射",
+            set: ["A", "B", "C"],
+            symbol: "f",
+            operation: (a) => ({ A: "B", B: "C", C: "A" }[a]),
+            samples: [["A"], ["B"], ["C"]],
+            properties: { closure: true, identity: false, inverse: true },
+            focus: "inverse",
+            note: "每个状态都有唯一去向，也能沿反向找回来源。",
+            feedback: "进阶层开始把“封闭”与“逆向可恢复”等性质一起观察。"
+        },
+        {
+            id: "z5-add",
+            layer: "advanced",
+            type: "binary",
+            name: "Z5 模加法",
+            short: "群结构雏形",
+            set: [0, 1, 2, 3, 4],
+            symbol: "+5",
+            operation: (a, b) => (a + b) % 5,
+            samples: [[1, 2], [2, 4], [3, 3], [4, 1]],
+            properties: { closure: true, associative: true, commutative: true, identity: true, inverse: true },
+            focus: "identity",
+            note: "0 是单位元，每个元素都有加法逆元。",
+            feedback: "进阶层不仅判断封闭，还要读出单位元、逆元、交换律等结构信息。"
+        },
+        {
+            id: "vote3",
+            layer: "advanced",
+            type: "nary",
+            name: "三票多数决",
+            short: "三元运算",
+            set: ["同意", "反对"],
+            symbol: "maj",
+            arity: 3,
+            operation: (...args) => args.filter(x => x === "同意").length >= 2 ? "同意" : "反对",
+            samples: [["同意", "同意", "反对"], ["同意", "反对", "反对"], ["反对", "同意", "同意"]],
+            properties: { closure: true, commutative: true, associative: false },
+            focus: "commutative",
+            note: "调换投票顺序不改变多数结果，但分批合并可能改变语义。",
+            feedback: "n 元运算把“多个输入合成一个输出”，仍要检查结果是否落在同一集合。"
+        },
+        {
+            id: "z6-mul",
+            layer: "extend",
+            type: "binary",
+            name: "Z6 模乘法",
+            short: "零因子观察",
+            set: [0, 1, 2, 3, 4, 5],
+            symbol: "×6",
+            operation: (a, b) => (a * b) % 6,
+            samples: [[2, 3], [4, 3], [5, 5], [2, 5]],
+            properties: { closure: true, associative: true, commutative: true, identity: true, inverse: false },
+            focus: "inverse",
+            note: "2×3=0 显示零因子现象，不是每个非零元素都有乘法逆元。",
+            feedback: "拓展层把封闭性迁移到更细的结构判断：零因子、单位、可逆元素。"
+        },
+        {
+            id: "product-system",
+            layer: "extend",
+            type: "system",
+            name: "积结构 A×B",
+            short: "多运算系统",
+            set: ["00", "01", "10", "11"],
+            symbol: "⊕",
+            operation: (a, b) => {
+                const x = Number(a[0]) ^ Number(b[0]);
+                const y = Number(a[1]) ^ Number(b[1]);
+                return `${x}${y}`;
+            },
+            samples: [["01", "10"], ["11", "01"], ["10", "10"], ["00", "11"]],
+            properties: { closure: true, associative: true, commutative: true, identity: true, inverse: true },
+            focus: "closure",
+            note: "两位状态按位异或后仍是两位状态，局部规则组合成整体规则。",
+            feedback: "拓展层强调结构迁移：同一个代数框架可描述状态编码、程序类型与组合系统。"
+        },
+        {
+            id: "parity-hom",
+            layer: "extend",
+            type: "system",
+            name: "奇偶同态",
+            short: "结构保持",
+            set: [0, 1, 2, 3],
+            symbol: "φ",
+            operation: (a, b) => (a + b) % 4,
+            samples: [[1, 2], [2, 3], [3, 3], [0, 1]],
+            properties: { closure: true, homomorphism: true },
+            focus: "homomorphism",
+            note: "φ(a+b mod 4)=φ(a)+φ(b) mod 2，映射后仍保持加法结构。",
+            feedback: "从“能算”走向“保持结构”，这是抽象代数向模型迁移的关键一步。"
+        }
+    ];
 
-    for (let prop in caseData.properties) {
-        const holds = caseData.properties[prop];
-        html += `
-            <div class="property-item">
-                <div class="icon ${holds ? 'yes' : 'no'}">
-                    ${holds ? '✓' : '✗'}
-                </div>
-                <span>${propertyNames[prop]}: ${holds ? '满足' : '不满足'}</span>
-            </div>
-        `;
+    const typeNames = { unary: "一元运算", binary: "二元运算", nary: "n 元运算", system: "代数系统" };
+    const propertyInfo = {
+        closure: ["封闭性", "任意合法输入运算后仍在 S 中。"],
+        associative: ["结合律", "改变括号位置不改变最终结果。"],
+        commutative: ["交换律", "交换输入顺序不改变结果。"],
+        identity: ["单位元", "存在 e，使 e∘a=a∘e=a。"],
+        inverse: ["逆元", "元素可与某个元素结合回到单位元。"],
+        homomorphism: ["同态保持", "映射前后的运算结构保持一致。"]
+    };
+
+    let activeCases = [];
+    let currentCaseIndex = 0;
+    let stepIndex = 0;
+    let currentType = layerConfig.initialType || "binary";
+
+    function esc(value) {
+        return String(value).replace(/[&<>"']/g, ch => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        }[ch]));
     }
 
-    panel.innerHTML = html;
-}
+    function chip(ok, text) {
+        return '<span class="truth-chip' + (ok ? "" : " false") + '">' + esc(text) + "</span>";
+    }
 
-// ============================================
-// 更新定义面板
-// ============================================
-function updateDefinitionPanel(type) {
-    const def = DEFINITIONS[type];
-    const panel = document.getElementById('definitionPanel');
+    function formulaTerm(text, hot) {
+        return '<span class="formula-term' + (hot ? " is-hot" : "") + '">' + esc(text) + "</span>";
+    }
 
-    panel.innerHTML = `
-        <h3>${def.title}</h3>
-        <p>${def.content}</p>
-        <div class="formula-box">${def.formula.replace(/\n/g, '<br>')}</div>
-        <p style="font-size: 0.8rem; color: var(--accent-gold);">
-            <strong>常见例子:</strong> ${def.examples}
-        </p>
-    `;
-}
+    function contains(set, value) {
+        return set.map(String).includes(String(value));
+    }
 
-// ============================================
-// 更新案例列表
-// ============================================
-function updateExamplesList(type) {
-    const examples = CASES.filter(c => c.type === type);
-    const list = document.getElementById('examplesList');
+    function layerAllowed(caseData) {
+        if (layer === "basic") return caseData.layer === "basic";
+        if (layer === "advanced") return caseData.layer === "advanced";
+        return caseData.layer === "extend";
+    }
 
-    list.innerHTML = examples.map((ex, index) => {
-        const globalIndex = CASES.indexOf(ex);
-        return `
-            <div class="example-item" onclick="loadCase(${globalIndex})">
-                <div class="example-title">${ex.name}</div>
-                <div class="example-desc">${ex.description}</div>
-            </div>
-        `;
-    }).join('');
-}
+    function casesForType(type) {
+        return CASES.filter(c => layerAllowed(c) && c.type === type);
+    }
 
-// ============================================
-// 加载案例
-// ============================================
-function loadCase(index) {
-    currentCaseIndex = index;
-    const caseData = CASES[index];
-    currentType = caseData.type;
+    function currentCase() {
+        return activeCases[currentCaseIndex] || activeCases[0] || CASES[0];
+    }
 
-    // 更新类型按钮
-    document.querySelectorAll('.op-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.type === currentType);
-    });
+    function currentOperands(caseData) {
+        const samples = caseData.samples && caseData.samples.length ? caseData.samples : [caseData.set.slice(0, caseData.arity || 2)];
+        return samples[stepIndex % samples.length];
+    }
 
-    // 更新案例选择器
-    const selector = document.getElementById('caseSelector');
-    selector.innerHTML = CASES.map((c, i) =>
-        `<option value="${i}" ${i === index ? 'selected' : ''}>${c.name}</option>`
-    ).join('');
+    function opResult(caseData, operands) {
+        return caseData.operation(...operands);
+    }
 
-    // 更新定义面板
-    updateDefinitionPanel(currentType);
-
-    // 更新案例列表
-    updateExamplesList(currentType);
-
-    // 生成运算表
-    generateOperationTable(caseData);
-
-    // 更新价值内涵
-    document.getElementById('philosophyPanel').innerHTML =
-        `<p style="font-size: 0.85rem; line-height: 1.6;">${caseData.philosophy}</p>`;
-
-    // 清空演示区
-    document.getElementById('operationDemo').innerHTML =
-        '<div style="color: var(--text-secondary); font-size: 0.9rem;">点击"演示运算"开始</div>';
-    document.getElementById('propertiesDisplay').innerHTML =
-        '<h4>运算性质</h4><div style="color: var(--text-secondary); font-size: 0.85rem;">演示后显示性质检验</div>';
-}
-
-// ============================================
-// 初始化
-// ============================================
-document.addEventListener('DOMContentLoaded', () => {
-    // 类型切换
-    document.querySelectorAll('.op-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const type = btn.dataset.type;
-            currentType = type;
-
-            // 更新定义面板
-            updateDefinitionPanel(type);
-
-            // 更新案例列表
-            updateExamplesList(type);
-
-            // 加载第一个匹配的案例
-            const firstCase = CASES.findIndex(c => c.type === type);
-            if (firstCase !== -1) {
-                loadCase(firstCase);
-            }
-        });
-    });
-
-    // 案例选择
-    document.getElementById('caseSelector').addEventListener('change', (e) => {
-        loadCase(parseInt(e.target.value));
-    });
-
-    // 演示按钮
-    document.getElementById('demoBtn').addEventListener('click', () => {
-        if (!isAnimating) {
-            const caseData = CASES[currentCaseIndex];
-            demonstrateOperation(caseData);
+    function setMission() {
+        if (missionText) missionText.innerHTML = "<b>互动任务：</b>" + esc(layerConfig.mission || "选择案例，逐步观察集合、运算与性质如何组成代数系统。");
+        if (visualBadge) visualBadge.textContent = layerConfig.badge || "集合 + 运算 + 性质";
+        if (philosophyPanel) {
+            philosophyPanel.innerHTML = '<b>' + esc(layerConfig.layerLabel || "进阶层") + '</b><br>' + esc(layerConfig.note || "点一步，观察一次输入、运算、输出与性质判断。");
         }
-    });
+    }
 
-    // 重置按钮
-    document.getElementById('resetBtn').addEventListener('click', () => {
-        document.getElementById('operationDemo').innerHTML =
-            '<div style="color: var(--text-secondary); font-size: 0.9rem;">点击"演示运算"开始</div>';
-        document.getElementById('propertiesDisplay').innerHTML =
-            '<h4>运算性质</h4><div style="color: var(--text-secondary); font-size: 0.85rem;">演示后显示性质检验</div>';
-    });
+    function updateTypeButtons() {
+        const available = new Set(CASES.filter(layerAllowed).map(c => c.type));
+        typeButtons.forEach(btn => {
+            const type = btn.dataset.type;
+            btn.hidden = !available.has(type);
+            btn.classList.toggle("active", type === currentType);
+        });
+        if (!available.has(currentType)) currentType = Array.from(available)[0] || "binary";
+    }
 
-    // 初始加载
-    loadCase(0);
-});
+    function renderCaseSelector() {
+        activeCases = casesForType(currentType);
+        if (!activeCases.length) activeCases = CASES.filter(layerAllowed);
+        currentCaseIndex = Math.min(currentCaseIndex, Math.max(0, activeCases.length - 1));
+        caseSelector.innerHTML = activeCases.map((item, index) => (
+            '<option value="' + index + '"' + (index === currentCaseIndex ? " selected" : "") + '>' + esc(item.name) + '</option>'
+        )).join("");
+    }
+
+    function renderDefinition() {
+        const def = DEFINITIONS[currentType] || DEFINITIONS.binary;
+        definitionPanel.innerHTML = ''
+            + '<h3>' + esc(def.title) + '</h3>'
+            + '<p>' + esc(def.content) + '</p>'
+            + '<div class="formula-box">' + esc(def.formula) + '</div>'
+            + '<p><b>本层关注：</b>' + esc(def.focus) + '</p>';
+    }
+
+    function renderExamples() {
+        const c = currentCase();
+        examplesList.innerHTML = '<div class="example-list">' + activeCases.map((item, index) => (
+            '<div class="example-item' + (index === currentCaseIndex ? " is-active" : "") + '" data-case-index="' + index + '">'
+            + '<div class="example-title">' + esc(item.name) + '</div>'
+            + '<div class="example-desc">' + esc(item.short) + '</div>'
+            + '</div>'
+        )).join("") + '</div>';
+        examplesList.querySelectorAll(".example-item").forEach(item => {
+            item.addEventListener("click", () => {
+                currentCaseIndex = Number(item.dataset.caseIndex);
+                stepIndex = 0;
+                renderAll();
+            });
+        });
+        if (philosophyPanel) {
+            philosophyPanel.innerHTML = '<b>' + esc(c.name) + '</b><br>' + esc(c.feedback);
+        }
+    }
+
+    function renderStepPanel() {
+        const c = currentCase();
+        const total = c.samples.length;
+        const number = (stepIndex % total) + 1;
+        if (stepLabel) {
+            stepLabel.innerHTML = '第 <b>' + number + '</b> / ' + total + ' 步：' + esc(c.note);
+        }
+        if (stepProgress) {
+            stepProgress.style.setProperty("--step-width", Math.round(number / total * 100) + "%");
+        }
+    }
+
+    function renderTable() {
+        const c = currentCase();
+        const operands = currentOperands(c);
+        if (c.type === "unary") {
+            operationTable.innerHTML = '<table><tr><th>x</th><th>' + esc(c.symbol) + '(x)</th></tr>'
+                + c.set.map(x => {
+                    const hot = String(x) === String(operands[0]);
+                    return '<tr><th class="' + (hot ? "row-hot" : "") + '">' + esc(x) + '</th><td class="' + (hot ? "cell-hot" : "") + '">' + esc(c.operation(x)) + '</td></tr>';
+                }).join("") + '</table>';
+            return;
+        }
+        if (c.type === "nary") {
+            const result = opResult(c, operands);
+            operationTable.innerHTML = '<table><tr><th>位置</th><th>输入</th></tr>'
+                + operands.map((x, i) => '<tr><th class="row-hot">a' + (i + 1) + '</th><td class="cell-hot">' + esc(x) + '</td></tr>').join("")
+                + '<tr><th>输出</th><td>' + esc(result) + '</td></tr></table>';
+            return;
+        }
+        operationTable.innerHTML = '<table><tr><th>' + esc(c.symbol) + '</th>'
+            + c.set.map(x => '<th class="' + (String(x) === String(operands[1]) ? "col-hot" : "") + '">' + esc(x) + '</th>').join("")
+            + '</tr>' + c.set.map(row => (
+                '<tr><th class="' + (String(row) === String(operands[0]) ? "row-hot" : "") + '">' + esc(row) + '</th>'
+                + c.set.map(col => {
+                    const hot = String(row) === String(operands[0]) && String(col) === String(operands[1]);
+                    return '<td class="' + (hot ? "cell-hot" : "") + '">' + esc(c.operation(row, col)) + '</td>';
+                }).join("") + '</tr>'
+            )).join("") + '</table>';
+    }
+
+    function renderMap() {
+        const c = currentCase();
+        const operands = currentOperands(c);
+        const result = opResult(c, operands);
+        const ok = contains(c.set, result);
+        const inputSet = new Set(operands.map(String));
+        const resultText = String(result);
+        const tokens = c.set.map(item => {
+            const cls = inputSet.has(String(item)) ? " is-input" : resultText === String(item) ? " is-result" : "";
+            return '<span class="set-token' + cls + '">' + esc(item) + '</span>';
+        }).join("");
+        const resultClass = ok ? " is-hot" : " is-fail";
+        const flow = operands.map(item => '<span class="operand-token is-hot">' + esc(item) + '</span>').join('<span class="operator-token">' + esc(c.symbol) + '</span>');
+        operationDemo.innerHTML = ''
+            + '<div class="operation-map">'
+            + '<div class="map-title"><b>' + esc(c.name) + '</b><span>' + esc(typeNames[c.type] || "运算") + '</span></div>'
+            + '<div class="set-line">' + tokens + (!ok ? '<span class="set-token is-fail">' + esc(result) + '</span>' : '') + '</div>'
+            + '<div class="flow-line">' + flow + '<span class="arrow-token">→</span><span class="result-token' + resultClass + '">' + esc(result) + '</span></div>'
+            + '<div class="map-caption">' + esc(c.note) + '</div>'
+            + '</div>';
+    }
+
+    function renderProperties() {
+        const c = currentCase();
+        propertiesDisplay.innerHTML = '<h4>性质检查</h4><div class="property-list">'
+            + Object.entries(c.properties).map(([key, value]) => {
+                const info = propertyInfo[key] || [key, ""];
+                return '<div class="property-item' + (key === c.focus ? " is-focus" : "") + '">'
+                    + '<div class="property-icon ' + (value ? "yes" : "no") + '">' + (value ? "✓" : "×") + '</div>'
+                    + '<div><div class="property-name">' + esc(info[0]) + '</div>'
+                    + '<div class="property-desc">' + esc(info[1]) + '</div></div>'
+                    + '</div>';
+            }).join("")
+            + '</div>';
+    }
+
+    function renderFormula() {
+        const c = currentCase();
+        const operands = currentOperands(c);
+        const result = opResult(c, operands);
+        const ok = contains(c.set, result);
+        if (c.type === "unary") {
+            formulaText.innerHTML = [
+                formulaTerm("S={" + c.set.join(",") + "}", false),
+                formulaTerm(c.symbol + "(" + operands[0] + ")", true),
+                formulaTerm("=" + result, true),
+                formulaTerm(result + "∈S", ok)
+            ].join("");
+        } else if (c.type === "nary") {
+            formulaText.innerHTML = [
+                formulaTerm("f:S^" + (c.arity || operands.length) + "→S", false),
+                formulaTerm(c.symbol + "(" + operands.join(",") + ")", true),
+                formulaTerm("=" + result, true),
+                formulaTerm(result + "∈S", ok)
+            ].join("");
+        } else {
+            formulaText.innerHTML = [
+                formulaTerm("∘:S×S→S", false),
+                formulaTerm(operands[0] + " " + c.symbol + " " + operands[1], true),
+                formulaTerm("=" + result, true),
+                formulaTerm(String(result) + (ok ? "∈S" : "∉S"), true)
+            ].join("");
+        }
+        resultValue.innerHTML = chip(ok, ok ? "本步闭合" : "发现越界");
+        resultExtra.textContent = "反馈：" + c.feedback;
+    }
+
+    function renderAll() {
+        updateTypeButtons();
+        renderCaseSelector();
+        renderDefinition();
+        renderExamples();
+        renderStepPanel();
+        renderTable();
+        renderMap();
+        renderProperties();
+        renderFormula();
+    }
+
+    function loadType(type) {
+        currentType = type;
+        currentCaseIndex = 0;
+        stepIndex = 0;
+        renderAll();
+    }
+
+    function moveStep(delta) {
+        const c = currentCase();
+        stepIndex = (stepIndex + delta + c.samples.length) % c.samples.length;
+        renderStepPanel();
+        renderTable();
+        renderMap();
+        renderFormula();
+    }
+
+    function reset() {
+        stepIndex = 0;
+        renderAll();
+    }
+
+    function bind() {
+        typeButtons.forEach(btn => btn.addEventListener("click", () => loadType(btn.dataset.type)));
+        caseSelector.addEventListener("change", event => {
+            currentCaseIndex = Number(event.target.value);
+            stepIndex = 0;
+            renderAll();
+        });
+        prevStepBtn.addEventListener("click", () => moveStep(-1));
+        nextStepBtn.addEventListener("click", () => moveStep(1));
+        demoBtn.addEventListener("click", () => moveStep(1));
+        resetBtn.addEventListener("click", reset);
+    }
+
+    function init() {
+        setMission();
+        currentType = layerConfig.initialType || currentType;
+        bind();
+        renderAll();
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+})();

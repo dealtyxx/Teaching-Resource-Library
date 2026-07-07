@@ -304,16 +304,16 @@
       cellEls = st.rows.map(function (r, i) {
         var x = x0 + i * cw;
         function cell(val, y) {
-          var rect = svgEl("rect", { x: x, y: y, width: cw - 8, height: ch, rx: 6, fill: val ? "#cdebd9" : "#f6d3ce", stroke: val ? "#2f7d57" : "#b42318", "stroke-width": 1.5 });
+          var rect = svgEl("rect", { x: x, y: y, width: cw - 8, height: ch, rx: 6, fill: val ? "#cdebd9" : "#f6d3ce", stroke: val ? "#2f7d57" : "#d63b1d", "stroke-width": 1.5 });
           var t = svgEl("text", { x: x + (cw - 8) / 2, y: y + ch / 2, "text-anchor": "middle", "dominant-baseline": "central", fill: val ? "#1d6b43" : "#97180f", "font-size": 13, "font-weight": "800", "font-family": "JetBrains Mono, monospace" }); t.textContent = TF(val);
           return [rect, t];
         }
         var ca = cell(r.a, yA), cb = cell(r.b, yB);
         var wrap = svgEl("g"); wrap.setAttribute("class", "fr-cell"); wrap.dataset.row = i;
         wrap.appendChild(ca[0]); wrap.appendChild(ca[1]); wrap.appendChild(cb[0]); wrap.appendChild(cb[1]);
-        var lab = svgEl("text", { x: x + (cw - 8) / 2, y: 18, "text-anchor": "middle", fill: "#6c5a52", "font-size": 11, "font-weight": "700" }); lab.textContent = "模型" + (i + 1);
+        var lab = svgEl("text", { x: x + (cw - 8) / 2, y: 18, "text-anchor": "middle", fill: "#6b4a38", "font-size": 11, "font-weight": "700" }); lab.textContent = "模型" + (i + 1);
         g.appendChild(lab);
-        if (!r.same) { var mk = svgEl("text", { x: x + (cw - 8) / 2, y: yB + ch + 14, "text-anchor": "middle", fill: "#b42318", "font-size": 13, "font-weight": "800" }); mk.textContent = "≠"; g.appendChild(mk); }
+        if (!r.same) { var mk = svgEl("text", { x: x + (cw - 8) / 2, y: yB + ch + 14, "text-anchor": "middle", fill: "#d63b1d", "font-size": 13, "font-weight": "800" }); mk.textContent = "≠"; g.appendChild(mk); }
         wrap.addEventListener("click", function () { clickRow(i); });
         g.appendChild(wrap);
         return { wrap: wrap, ra: ca[0], rb: cb[0] };
@@ -371,7 +371,7 @@
     function setRes(el, txt, v) { el.textContent = txt; el.classList.remove("r-true", "r-false"); if (v === true) el.classList.add("r-true"); else if (v === false) el.classList.add("r-false"); }
 
     function evalHTML(focusRow, verdictShown) {
-      if (focusRow == null && !verdictShown) return '<span style="color:#6c5a52">点「下一步」逐一核验解释模型。每个模型给谓词/关系一组赋值，分别算出 A、B 的真值并比较。</span>';
+      if (focusRow == null && !verdictShown) return '<span style="color:#6b4a38">点「下一步」逐一核验解释模型。每个模型给谓词/关系一组赋值，分别算出 A、B 的真值并比较。</span>';
       if (focusRow == null && verdictShown) return '已核验全部 <b>' + st.rows.length + '</b> 个模型，下方给出关系判定。可点任意模型回看。';
       var r = st.rows[focusRow];
       return '<div>模型 <span class="ev-m">' + (focusRow + 1) + '：' + esc(r.disp) + '</span></div>' +

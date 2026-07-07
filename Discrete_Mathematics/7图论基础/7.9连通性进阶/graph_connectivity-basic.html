@@ -27,12 +27,12 @@
   <style>
 
 :root {
-  --ink: #251713;
-  --muted: #6c5a52;
+  --ink: #2c1810;
+  --muted: #6b4a38;
   --paper: #fff8ec;
   --card: rgba(255, 253, 246, 0.92);
   --line: rgba(116, 55, 31, 0.18);
-  --red: #b42318;
+  --red: #d63b1d;
   --red-2: #de5b3d;
   --gold: #c58a1f;
   --green: #2f7d57;
@@ -62,7 +62,7 @@ body {
   padding: 8px 14px;
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,0.5);
-  background: rgba(37, 23, 19, 0.82);
+  background: rgba(44, 24, 16, 0.82);
   color: #fff;
   text-decoration: none;
   font-size: 13px;
@@ -101,9 +101,9 @@ body {
   gap: 8px;
   padding: 5px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(180, 35, 24, 0.22);
+  border: 1px solid rgba(214, 59, 29, 0.22);
   color: var(--red);
-  background: rgba(180, 35, 24, 0.08);
+  background: rgba(214, 59, 29, 0.08);
   font-size: 12px;
   font-weight: 700;
 }
@@ -262,7 +262,7 @@ input[type="checkbox"] {
   margin-bottom: 6px;
 }
 .truth-on { border-color: rgba(47,125,87,0.5); background: rgba(47,125,87,0.12); }
-.truth-off { border-color: rgba(180,35,24,0.4); background: rgba(180,35,24,0.09); }
+.truth-off { border-color: rgba(214, 59, 29,0.4); background: rgba(214, 59, 29,0.09); }
 .truth-chip {
   display: inline-flex;
   align-items: center;
@@ -281,7 +281,7 @@ input[type="checkbox"] {
   place-items: center;
   min-height: 112px;
   border-radius: 8px;
-  background: linear-gradient(135deg, rgba(180,35,24,0.12), rgba(47,95,159,0.13));
+  background: linear-gradient(135deg, rgba(214, 59, 29,0.12), rgba(47,95,159,0.13));
   font-size: 42px;
   font-family: "JetBrains Mono", Consolas, monospace;
   font-weight: 800;
@@ -290,7 +290,7 @@ input[type="checkbox"] {
 .formula-line {
   font-family: "JetBrains Mono", Consolas, monospace;
   font-weight: 800;
-  color: #2d211d;
+  color: #2c1810;
 }
 .stack {
   display: grid;
@@ -318,11 +318,11 @@ th, td {
   text-align: center;
 }
 th {
-  background: rgba(180,35,24,0.08);
+  background: rgba(214, 59, 29,0.08);
   color: var(--red);
 }
 tr.hot td { background: rgba(47,125,87,0.1); }
-tr.warn td { background: rgba(180,35,24,0.08); }
+tr.warn td { background: rgba(214, 59, 29,0.08); }
 .pill-row {
   display: flex;
   flex-wrap: wrap;
@@ -447,7 +447,7 @@ tr.warn td { background: rgba(180,35,24,0.08); }
   font-weight: 800;
 }
 .matrix-cell.hot {
-  background: rgba(180,35,24,0.14);
+  background: rgba(214, 59, 29,0.14);
   color: var(--red);
 }
 @media (max-width: 920px) {
@@ -467,7 +467,7 @@ tr.warn td { background: rgba(180,35,24,0.08); }
 .side-panel > h1 {
   order: 2;
   margin: 0 0 8px;
-  font-family: "Ma Shan Zheng", "Noto Serif SC", serif;
+  font-family: "Ma Shan Zheng", "Noto Serif SC", cursive;
   font-size: 2.1rem;
   font-weight: 400;
   color: #d63b1d;
@@ -479,7 +479,7 @@ tr.warn td { background: rgba(180,35,24,0.08); }
 .side-panel > .subtitle {
   order: 3;
   margin: 0 0 12px;
-  color: #64748b;
+  color: #6b4a38;
   line-height: 1.6;
 }
 .side-panel > .intro { order: 4; }
@@ -802,7 +802,7 @@ body {
       if (removedEdges.has(edgeKey(e))) return;
       const a = pos[e.u], b = pos[e.v];
       const hot = highEdges.has(edgeKey(e)) || highEdges.has(e.v + "-" + e.u);
-      ctx.strokeStyle = hot ? "#b42318" : "rgba(47,95,159,0.62)";
+      ctx.strokeStyle = hot ? "#d63b1d" : "rgba(47,95,159,0.62)";
       ctx.lineWidth = hot ? 4 : 2;
       ctx.beginPath();
       ctx.moveTo(a.x, a.y);
@@ -814,7 +814,7 @@ body {
       }
       if (weighted) {
         ctx.save();
-        ctx.fillStyle = hot ? "#b42318" : "#6c5a52";
+        ctx.fillStyle = hot ? "#d63b1d" : "#6b4a38";
         ctx.font = "700 13px JetBrains Mono, Consolas";
         ctx.fillText(String(e.w || 1), (a.x + b.x) / 2 + 5, (a.y + b.y) / 2 - 5);
         ctx.restore();
@@ -825,12 +825,12 @@ body {
       const removed = removeNode === i;
       ctx.beginPath();
       ctx.arc(p.x, p.y, highNodes.has(i) ? 21 : 18, 0, Math.PI * 2);
-      ctx.fillStyle = removed ? "rgba(180,35,24,0.18)" : highNodes.has(i) ? "#b42318" : "#2f7d57";
+      ctx.fillStyle = removed ? "rgba(214, 59, 29,0.18)" : highNodes.has(i) ? "#d63b1d" : "#2f7d57";
       ctx.fill();
       ctx.strokeStyle = "#fff8ec";
       ctx.lineWidth = 3;
       ctx.stroke();
-      ctx.fillStyle = removed ? "#b42318" : "#fff";
+      ctx.fillStyle = removed ? "#d63b1d" : "#fff";
       ctx.font = "800 13px JetBrains Mono, Consolas";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";

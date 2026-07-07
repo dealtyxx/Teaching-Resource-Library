@@ -137,8 +137,8 @@
 
   const ART = {
     bronze: { label: "青铜纹饰", color: "#8a6f40", accent: "#2f5f9f", era: 0.78 },
-    porcelain: { label: "瓷器纹饰", color: "#2f5f9f", accent: "#b42318", era: 0.86 },
-    paper: { label: "民间剪纸", color: "#b42318", accent: "#c58a1f", era: 0.69 },
+    porcelain: { label: "瓷器纹饰", color: "#2f5f9f", accent: "#d63b1d", era: 0.86 },
+    paper: { label: "民间剪纸", color: "#d63b1d", accent: "#c58a1f", era: 0.69 },
     textile: { label: "织锦纹样", color: "#2f7d57", accent: "#c58a1f", era: 0.82 }
   };
 
@@ -623,8 +623,8 @@
     values.forEach((item, index) => {
       const x = baseX + index * 132;
       const hot = state.term === item.id || (state.term === "encode" && index === 0);
-      roundRect(ctx, x, h * 0.34, 106, 132, 8, hot ? "rgba(180,35,24,.13)" : "rgba(255,250,242,.9)", hot ? "#b42318" : "rgba(116,55,31,.18)");
-      ctx.fillStyle = hot ? "#b42318" : "#2f5f9f";
+      roundRect(ctx, x, h * 0.34, 106, 132, 8, hot ? "rgba(214, 59, 29,.13)" : "rgba(255,250,242,.9)", hot ? "#d63b1d" : "rgba(116,55,31,.18)");
+      ctx.fillStyle = hot ? "#d63b1d" : "#2f5f9f";
       ctx.font = "800 26px JetBrains Mono, Consolas";
       ctx.textAlign = "center";
       ctx.fillText(item.label, x + 53, h * 0.45);
@@ -632,7 +632,7 @@
       ctx.fillStyle = "#5e4338";
       ctx.font = "700 13px Noto Serif SC, serif";
       ctx.fillText(item.text, x + 53, h * 0.64);
-      ctx.fillStyle = "#251713";
+      ctx.fillStyle = "#2c1810";
       ctx.font = "800 15px JetBrains Mono, Consolas";
       ctx.fillText(item.value.toFixed(2), x + 53, h * 0.72);
     });
@@ -644,7 +644,7 @@
     const art = ART[c.artifact];
     drawCanvasTitle(ctx, "相似检索网络", "阈值 θ=" + c.threshold + "，红色边表示被保留");
     const nodes = [
-      { id: "Q", label: "查询", x: w * 0.5, y: h * 0.5, color: "#b42318", score: 100 },
+      { id: "Q", label: "查询", x: w * 0.5, y: h * 0.5, color: "#d63b1d", score: 100 },
       { id: "A", label: "纹样A", x: w * 0.25, y: h * 0.32, color: art.color, score: clamp(58 + c.motifs * 4, 0, 100) },
       { id: "B", label: "纹样B", x: w * 0.73, y: h * 0.35, color: "#2f7d57", score: clamp(82 - c.motifs * 2, 0, 100) },
       { id: "C", label: "纹样C", x: w * 0.28, y: h * 0.75, color: "#2f5f9f", score: clamp(48 + c.threshold / 3, 0, 100) },
@@ -652,8 +652,8 @@
     ];
     nodes.slice(1).forEach(node => {
       const keep = node.score >= c.threshold;
-      drawLine(ctx, nodes[0].x, nodes[0].y, node.x, node.y, keep || state.term === "theta", keep ? "#b42318" : "rgba(47,95,159,.24)", keep ? 4 : 2);
-      ctx.fillStyle = keep ? "#b42318" : "#6c5a52";
+      drawLine(ctx, nodes[0].x, nodes[0].y, node.x, node.y, keep || state.term === "theta", keep ? "#d63b1d" : "rgba(47,95,159,.24)", keep ? 4 : 2);
+      ctx.fillStyle = keep ? "#d63b1d" : "#6b4a38";
       ctx.font = "800 12px JetBrains Mono, Consolas";
       ctx.fillText(Math.round(node.score), (nodes[0].x + node.x) / 2 + 8, (nodes[0].y + node.y) / 2 - 8);
     });
@@ -687,8 +687,8 @@
       const x = cx + Math.cos(angle) * radius;
       const y = cy + Math.sin(angle) * radius;
       const hot = (state.term === "r" && op.startsWith("r")) || (state.term === "s" && op.startsWith("s")) || state.term === "G";
-      drawLine(ctx, cx, cy, x, y, hot, hot ? "#b42318" : "rgba(47,95,159,.25)", hot ? 3 : 1.6);
-      drawNode(ctx, x, y, opName(op), hot ? "#b42318" : "#2f5f9f", hot);
+      drawLine(ctx, cx, cy, x, y, hot, hot ? "#d63b1d" : "rgba(47,95,159,.25)", hot ? 3 : 1.6);
+      drawNode(ctx, x, y, opName(op), hot ? "#d63b1d" : "#2f5f9f", hot);
     });
     drawNode(ctx, cx, cy, "G", "#2f7d57", state.term === "G");
   }
@@ -723,9 +723,9 @@
     vector.forEach((value, index) => {
       const x = rightX - 90 + index * 86;
       const hot = state.term === "V" || state.term === "sim";
-      roundRect(ctx, x, y - 80, 68, 160, 8, hot ? "rgba(180,35,24,.12)" : "rgba(255,250,242,.9)", hot ? "#b42318" : "rgba(116,55,31,.18)");
+      roundRect(ctx, x, y - 80, 68, 160, 8, hot ? "rgba(214, 59, 29,.12)" : "rgba(255,250,242,.9)", hot ? "#d63b1d" : "rgba(116,55,31,.18)");
       drawMeter(ctx, x + 17, y + 48, 34, 12, value, hot);
-      ctx.fillStyle = hot ? "#b42318" : "#2f5f9f";
+      ctx.fillStyle = hot ? "#d63b1d" : "#2f5f9f";
       ctx.font = "800 24px JetBrains Mono, Consolas";
       ctx.textAlign = "center";
       ctx.fillText(["v₁", "v₂", "v₃"][index], x + 34, y - 25);
@@ -752,7 +752,7 @@
     const cy = h * 0.52;
     const r = Math.min(w, h) * 0.3;
     return labels.map((label, index) => {
-      if (index === 0) return { label, x: cx, y: cy, color: "#b42318" };
+      if (index === 0) return { label, x: cx, y: cy, color: "#d63b1d" };
       const angle = -Math.PI / 2 + (index - 1) * Math.PI * 2 / Math.max(1, labels.length - 1);
       return { label, x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r, color: index % 2 ? "#2f5f9f" : "#2f7d57" };
     });
@@ -761,7 +761,7 @@
   function drawExtendGraph({ ctx, w, h }) {
     const nodes = graphNodes(w, h);
     drawCanvasTitle(ctx, "知识图谱 K", "节点随 |V| 调整，中心为核心藏品");
-    nodes.slice(1).forEach((node, index) => drawLine(ctx, nodes[0].x, nodes[0].y, node.x, node.y, state.term === "E" || index < 2, index < 2 ? "#b42318" : "rgba(47,95,159,.28)", index < 2 ? 4 : 2));
+    nodes.slice(1).forEach((node, index) => drawLine(ctx, nodes[0].x, nodes[0].y, node.x, node.y, state.term === "E" || index < 2, index < 2 ? "#d63b1d" : "rgba(47,95,159,.28)", index < 2 ? 4 : 2));
     nodes.forEach((node, index) => drawNode(ctx, node.x, node.y, node.label, node.color, state.term === "V" || state.term === "K" || index === 0));
     drawTag(ctx, w * 0.08, h * 0.82, "L: 工艺 / 纹样 / 出处", state.term === "L");
   }
@@ -773,8 +773,8 @@
     nodes.slice(1).forEach((node, index) => {
       const weight = clamp(92 - index * 9 + (c.openLevel - 60) / 4, 0, 100);
       const keep = weight >= c.edgeThreshold;
-      drawLine(ctx, nodes[0].x, nodes[0].y, node.x, node.y, keep || state.term === "theta", keep ? "#b42318" : "rgba(47,95,159,.22)", keep ? 4 : 1.8);
-      ctx.fillStyle = keep ? "#b42318" : "#6c5a52";
+      drawLine(ctx, nodes[0].x, nodes[0].y, node.x, node.y, keep || state.term === "theta", keep ? "#d63b1d" : "rgba(47,95,159,.22)", keep ? 4 : 1.8);
+      ctx.fillStyle = keep ? "#d63b1d" : "#6b4a38";
       ctx.font = "800 12px JetBrains Mono, Consolas";
       ctx.fillText(Math.round(weight), (nodes[0].x + node.x) / 2 + 6, (nodes[0].y + node.y) / 2 - 6);
     });
@@ -807,8 +807,8 @@
     ];
     channels.forEach(channel => {
       const hot = c.audience === channelId(channel.label) || state.term === "channels";
-      drawLine(ctx, hub.x, hub.y, channel.x, channel.y, hot || state.term === "feedback", hot ? "#b42318" : "rgba(47,95,159,.26)", hot ? 4 : 2);
-      drawNode(ctx, channel.x, channel.y, channel.label, hot ? "#b42318" : "#2f5f9f", hot);
+      drawLine(ctx, hub.x, hub.y, channel.x, channel.y, hot || state.term === "feedback", hot ? "#d63b1d" : "rgba(47,95,159,.26)", hot ? 4 : 2);
+      drawNode(ctx, channel.x, channel.y, channel.label, hot ? "#d63b1d" : "#2f5f9f", hot);
       drawMeter(ctx, channel.x - 32, channel.y + 32, 64, 8, channel.score / 100, hot);
     });
     drawNode(ctx, hub.x, hub.y, "R", "#2f7d57", state.term === "R" || state.term === "feedback");
@@ -825,7 +825,7 @@
       { id: "S", label: "S 守真", value: s, color: "#2f7d57" },
       { id: "R", label: "R 传播", value: r, color: "#2f5f9f" },
       { id: "C", label: "C 共创", value: co, color: "#c58a1f" },
-      { id: "Q", label: "Q 总评", value: q, color: "#b42318" }
+      { id: "Q", label: "Q 总评", value: q, color: "#d63b1d" }
     ];
     bars.forEach((bar, index) => {
       const x = w * 0.16;
@@ -835,8 +835,8 @@
       ctx.font = "800 14px Noto Serif SC, serif";
       ctx.fillText(bar.label, x, y);
       roundRect(ctx, x + 86, y - 15, w * 0.56, 24, 8, "rgba(255,250,242,.9)", "rgba(116,55,31,.16)");
-      roundRect(ctx, x + 86, y - 15, w * 0.56 * bar.value / 100, 24, 8, hot ? "#b42318" : bar.color, "transparent");
-      ctx.fillStyle = hot ? "#b42318" : "#251713";
+      roundRect(ctx, x + 86, y - 15, w * 0.56 * bar.value / 100, 24, 8, hot ? "#d63b1d" : bar.color, "transparent");
+      ctx.fillStyle = hot ? "#d63b1d" : "#2c1810";
       ctx.font = "800 13px JetBrains Mono, Consolas";
       ctx.fillText(bar.value + "%", x + 100 + w * 0.56, y + 3);
     });
@@ -932,11 +932,11 @@
   }
 
   function drawCanvasTitle(ctx, title, subtitle) {
-    ctx.fillStyle = "#251713";
+    ctx.fillStyle = "#2c1810";
     ctx.font = "900 20px Noto Serif SC, serif";
     ctx.textAlign = "left";
     ctx.fillText(title, 24, 34);
-    ctx.fillStyle = "#6c5a52";
+    ctx.fillStyle = "#6b4a38";
     ctx.font = "700 13px Noto Serif SC, serif";
     ctx.fillText(subtitle, 24, 58);
   }
@@ -949,7 +949,7 @@
     ctx.translate(cx, cy);
     ctx.rotate(transform.rotate);
     ctx.scale(transform.mirror ? -1 : 1, 1);
-    roundRect(ctx, -half, -half, size, size, 8, hot ? "rgba(180,35,24,.13)" : "rgba(255,250,242,.92)", hot ? "#b42318" : "rgba(116,55,31,.2)");
+    roundRect(ctx, -half, -half, size, size, 8, hot ? "rgba(214, 59, 29,.13)" : "rgba(255,250,242,.92)", hot ? "#d63b1d" : "rgba(116,55,31,.2)");
     ctx.strokeStyle = art.color;
     ctx.lineWidth = Math.max(2, size / 46);
     ctx.globalAlpha = 0.95;
@@ -976,7 +976,7 @@
       ctx.stroke();
     }
     if (hot) {
-      ctx.strokeStyle = "#b42318";
+      ctx.strokeStyle = "#d63b1d";
       ctx.lineWidth = 4;
       ctx.strokeRect(-half + 7, -half + 7, size - 14, size - 14);
     }
@@ -984,13 +984,13 @@
   }
 
   function drawMiniTile(ctx, x, y, size, color, hot, label) {
-    roundRect(ctx, x, y, size, size, 8, hot ? "rgba(180,35,24,.13)" : "rgba(255,250,242,.9)", hot ? "#b42318" : "rgba(116,55,31,.18)");
+    roundRect(ctx, x, y, size, size, 8, hot ? "rgba(214, 59, 29,.13)" : "rgba(255,250,242,.9)", hot ? "#d63b1d" : "rgba(116,55,31,.18)");
     ctx.strokeStyle = color;
     ctx.lineWidth = hot ? 3 : 2;
     ctx.beginPath();
     ctx.arc(x + size / 2, y + size / 2, size * 0.24, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.fillStyle = hot ? "#b42318" : "#5e4338";
+    ctx.fillStyle = hot ? "#d63b1d" : "#5e4338";
     ctx.font = "800 11px JetBrains Mono, Consolas";
     ctx.textAlign = "center";
     ctx.fillText(label, x + size / 2, y + size + 17);
@@ -998,7 +998,7 @@
   }
 
   function drawLine(ctx, x1, y1, x2, y2, hot, color, width) {
-    ctx.strokeStyle = color || (hot ? "#b42318" : "rgba(47,95,159,.35)");
+    ctx.strokeStyle = color || (hot ? "#d63b1d" : "rgba(47,95,159,.35)");
     ctx.lineWidth = width || (hot ? 4 : 2);
     ctx.lineCap = "round";
     ctx.beginPath();
@@ -1008,9 +1008,9 @@
   }
 
   function drawArrow(ctx, x1, y1, x2, y2, hot) {
-    drawLine(ctx, x1, y1, x2, y2, hot, hot ? "#b42318" : "#c58a1f", hot ? 4 : 2.4);
+    drawLine(ctx, x1, y1, x2, y2, hot, hot ? "#d63b1d" : "#c58a1f", hot ? 4 : 2.4);
     const angle = Math.atan2(y2 - y1, x2 - x1);
-    ctx.fillStyle = hot ? "#b42318" : "#c58a1f";
+    ctx.fillStyle = hot ? "#d63b1d" : "#c58a1f";
     ctx.beginPath();
     ctx.moveTo(x2, y2);
     ctx.lineTo(x2 - 12 * Math.cos(angle - Math.PI / 6), y2 - 12 * Math.sin(angle - Math.PI / 6));
@@ -1024,7 +1024,7 @@
     ctx.arc(x, y, hot ? 27 : 23, 0, Math.PI * 2);
     ctx.fillStyle = color;
     ctx.fill();
-    ctx.strokeStyle = hot ? "#b42318" : "rgba(255,255,255,.92)";
+    ctx.strokeStyle = hot ? "#d63b1d" : "rgba(255,255,255,.92)";
     ctx.lineWidth = hot ? 5 : 3;
     ctx.stroke();
     ctx.fillStyle = "#fff";
@@ -1038,14 +1038,14 @@
 
   function drawTag(ctx, x, y, text, hot) {
     const width = Math.max(130, ctx.measureText(text).width + 28);
-    roundRect(ctx, x, y, width, 34, 8, hot ? "rgba(180,35,24,.13)" : "rgba(255,250,242,.92)", hot ? "#b42318" : "rgba(116,55,31,.18)");
-    ctx.fillStyle = hot ? "#b42318" : "#5e4338";
+    roundRect(ctx, x, y, width, 34, 8, hot ? "rgba(214, 59, 29,.13)" : "rgba(255,250,242,.92)", hot ? "#d63b1d" : "rgba(116,55,31,.18)");
+    ctx.fillStyle = hot ? "#d63b1d" : "#5e4338";
     ctx.font = "800 13px Noto Serif SC, serif";
     ctx.fillText(text, x + 14, y + 22);
   }
 
   function drawCaption(ctx, x, y, text, hot) {
-    ctx.fillStyle = hot ? "#b42318" : "#5e4338";
+    ctx.fillStyle = hot ? "#d63b1d" : "#5e4338";
     ctx.font = "800 14px JetBrains Mono, Consolas";
     ctx.textAlign = "center";
     ctx.fillText(text, x, y);
@@ -1054,7 +1054,7 @@
 
   function drawMeter(ctx, x, y, width, height, value, hot) {
     roundRect(ctx, x, y, width, height, height / 2, "rgba(47,95,159,.13)", "transparent");
-    roundRect(ctx, x, y, width * clamp(value, 0, 1), height, height / 2, hot ? "#b42318" : "#2f7d57", "transparent");
+    roundRect(ctx, x, y, width * clamp(value, 0, 1), height, height / 2, hot ? "#d63b1d" : "#2f7d57", "transparent");
   }
 
   function drawOrbitMarks(ctx, cx, cy, r, labels, term) {
@@ -1063,13 +1063,13 @@
       const x = cx + Math.cos(angle) * r;
       const y = cy + Math.sin(angle) * r;
       const hot = term && label.toLowerCase().includes(term.replace("2", "²"));
-      drawNode(ctx, x, y, label, hot ? "#b42318" : "#2f5f9f", hot);
+      drawNode(ctx, x, y, label, hot ? "#d63b1d" : "#2f5f9f", hot);
     });
   }
 
   function drawRuleBox(ctx, cx, cy, label, sub, hot) {
-    roundRect(ctx, cx - 52, cy - 52, 104, 104, 8, hot ? "rgba(180,35,24,.13)" : "rgba(255,250,242,.92)", hot ? "#b42318" : "rgba(116,55,31,.18)");
-    ctx.fillStyle = hot ? "#b42318" : "#2f5f9f";
+    roundRect(ctx, cx - 52, cy - 52, 104, 104, 8, hot ? "rgba(214, 59, 29,.13)" : "rgba(255,250,242,.92)", hot ? "#d63b1d" : "rgba(116,55,31,.18)");
+    ctx.fillStyle = hot ? "#d63b1d" : "#2f5f9f";
     ctx.font = "900 30px JetBrains Mono, Consolas";
     ctx.textAlign = "center";
     ctx.fillText(label, cx, cy - 4);
@@ -1092,10 +1092,10 @@
     ctx.closePath();
     ctx.fillStyle = "rgba(47,95,159,.08)";
     ctx.fill();
-    ctx.strokeStyle = term === "Q" ? "#b42318" : "rgba(47,95,159,.5)";
+    ctx.strokeStyle = term === "Q" ? "#d63b1d" : "rgba(47,95,159,.5)";
     ctx.lineWidth = term === "Q" ? 4 : 2;
     ctx.stroke();
-    points.forEach(point => drawNode(ctx, point.x, point.y, point.label, point.id === term ? "#b42318" : "#2f5f9f", point.id === term || term === "Q"));
+    points.forEach(point => drawNode(ctx, point.x, point.y, point.label, point.id === term ? "#d63b1d" : "#2f5f9f", point.id === term || term === "Q"));
   }
 
   function roundRect(ctx, x, y, width, height, radius, fill, stroke) {

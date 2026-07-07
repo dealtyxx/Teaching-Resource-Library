@@ -276,7 +276,7 @@ function drawMousePoint() {
     const py = originY - y * scale;
 
     // Draw Point
-    ctx.fillStyle = '#2d3436';
+    ctx.fillStyle = '#2c1810';
     ctx.beginPath();
     ctx.arc(mouseX, py, 6, 0, Math.PI * 2);
     ctx.fill();

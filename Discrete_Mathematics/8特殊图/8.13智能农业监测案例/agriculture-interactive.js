@@ -617,7 +617,7 @@
         padding: 9px 10px;
         background: rgba(255,253,246,.96);
         color: #321f18;
-        font: 800 14px "Noto Serif SC", serif;
+        font: 800 14px "Noto Serif SC", "Microsoft YaHei", serif;
       }
       .agri-actions {
         display: grid;
@@ -630,7 +630,7 @@
         border-radius: 8px;
         background: rgba(255,250,242,.96);
         color: #276146;
-        font: 900 14px "Noto Serif SC", serif;
+        font: 900 14px "Noto Serif SC", "Microsoft YaHei", serif;
         cursor: pointer;
       }
       .agri-actions button.primary {
@@ -649,7 +649,7 @@
         color: #5e4338;
         line-height: 1.65;
       }
-      .agri-tip b { color: #b42318; }
+      .agri-tip b { color: #d63b1d; }
       #vizArea.agri-board {
         display: block !important;
         grid-template-rows: none !important;
@@ -695,8 +695,8 @@
       }
       .agri-graph-title h2 {
         margin: 0;
-        color: #b42318;
-        font: 400 24px "Ma Shan Zheng", "Noto Serif SC", serif;
+        color: #d63b1d;
+        font: 400 24px "Ma Shan Zheng", "Noto Serif SC", cursive;
       }
       .agri-graph-title p {
         margin: 3px 0 0;
@@ -729,7 +729,7 @@
       .agri-legend .root { background: #1f5138; }
       .agri-legend .region { background: #2f7d57; }
       .agri-legend .sensor { background: #c58a1f; }
-      .agri-legend .station { background: #b42318; }
+      .agri-legend .station { background: #d63b1d; }
       #agriSvg {
         position: relative;
         z-index: 1;
@@ -771,9 +771,9 @@
       .agri-node.region .agri-node-circle { fill: #2f7d57; stroke: #2f7d57; }
       .agri-node.sensor .agri-node-circle { fill: #fff9e8; stroke: #c58a1f; }
       .agri-node.scanned .agri-node-circle { stroke: #2f7d57; stroke-width: 4; }
-      .agri-node.active .agri-node-circle { stroke: #b42318; stroke-width: 5; }
-      .agri-node.alert .agri-node-circle { fill: #fff0ed; stroke: #b42318; }
-      .agri-node.station .agri-node-circle { fill: #b42318; stroke: #b42318; }
+      .agri-node.active .agri-node-circle { stroke: #d63b1d; stroke-width: 5; }
+      .agri-node.alert .agri-node-circle { fill: #fff0ed; stroke: #d63b1d; }
+      .agri-node.station .agri-node-circle { fill: #d63b1d; stroke: #d63b1d; }
       .agri-node.sleeper { opacity: .55; }
       .agri-node-icon {
         fill: #fff;
@@ -784,11 +784,11 @@
       .agri-node.station .agri-node-icon { fill: #fff; }
       .agri-node-label {
         fill: #3b2a24;
-        font: 800 13px "Noto Serif SC", serif;
+        font: 800 13px "Noto Serif SC", "Microsoft YaHei", serif;
         pointer-events: none;
       }
       .agri-node-value {
-        fill: #b42318;
+        fill: #d63b1d;
         font: 900 11px "JetBrains Mono", Consolas, monospace;
         pointer-events: none;
       }

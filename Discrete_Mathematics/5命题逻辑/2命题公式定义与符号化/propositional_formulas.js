@@ -18,7 +18,7 @@
   var CATS = {
     prop: { name: "原子命题", color: "#2f5f9f" },
     conn: { name: "联结词", color: "#2f7d57" },
-    neg:  { name: "否定", color: "#b42318" }
+    neg:  { name: "否定", color: "#d63b1d" }
   };
 
   function seg(x, i) { return { x: x, i: (i === undefined ? -1 : i) }; }
@@ -38,7 +38,7 @@
       treeGroups: [
         { cat: "prop", label: "原子命题", color: "#2f5f9f" },
         { cat: "conn", label: "联结词", color: "#2f7d57" },
-        { cat: "neg", label: "否定", color: "#b42318" }
+        { cat: "neg", label: "否定", color: "#d63b1d" }
       ],
       sentences: [
         {
@@ -97,7 +97,7 @@
       treeGroups: [
         { cat: "prop", label: "原子命题", color: "#2f5f9f" },
         { cat: "conn", label: "联结词", color: "#2f7d57" },
-        { cat: "neg", label: "否定", color: "#b42318" }
+        { cat: "neg", label: "否定", color: "#d63b1d" }
       ],
       sentences: [
         {
@@ -178,7 +178,7 @@
       treeGroups: [
         { cat: "prop", label: "命题 / 条款", color: "#2f5f9f" },
         { cat: "conn", label: "逻辑联结", color: "#2f7d57" },
-        { cat: "neg", label: "否定 / 排除", color: "#b42318" }
+        { cat: "neg", label: "否定 / 排除", color: "#d63b1d" }
       ],
       sentences: [
         {
@@ -454,7 +454,7 @@
       });
 
       var rootG = svgEl("g");
-      rootG.appendChild(svgEl("circle", { cx: rootX, cy: rootY, r: 24, fill: "#8b0000", stroke: "#fff", "stroke-width": 3 }));
+      rootG.appendChild(svgEl("circle", { cx: rootX, cy: rootY, r: 24, fill: "#b8321a", stroke: "#fff", "stroke-width": 3 }));
       var rt = svgEl("text", { x: rootX, y: rootY, "text-anchor": "middle", "dominant-baseline": "central", fill: "#fff", "font-size": 13, "font-weight": "bold" });
       rt.textContent = "命题公式";
       rootG.appendChild(rt);
@@ -478,7 +478,7 @@
           leafG.setAttribute("class", "sym-leaf");
           leafG.dataset.i = lf.i;
           leafG.appendChild(svgEl("rect", { x: gx - w / 2, y: ly - 15, width: w, height: 30, rx: 8, fill: "#fff", stroke: grp.color, "stroke-width": 1.6 }));
-          var lt = svgEl("text", { x: gx, y: ly, "text-anchor": "middle", "dominant-baseline": "central", fill: "#2d211d", "font-size": 13, "font-weight": "600" });
+          var lt = svgEl("text", { x: gx, y: ly, "text-anchor": "middle", "dominant-baseline": "central", fill: "#2c1810", "font-size": 13, "font-weight": "600" });
           lt.textContent = lf.text;
           leafG.appendChild(lt);
           leafG.addEventListener("click", function () { clickToken(lf.i); });

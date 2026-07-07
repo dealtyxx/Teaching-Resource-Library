@@ -163,7 +163,7 @@ function createParticle(person) {
     // Color based on role (Visual flair)
     if (person.inA) el.style.backgroundColor = '#ff5f56';
     else if (person.inB) el.style.backgroundColor = '#ffbd2e';
-    else el.style.backgroundColor = '#007aff';
+    else el.style.backgroundColor = '#2f5f9f';
 
     el.addEventListener('click', event => {
         event.stopPropagation();

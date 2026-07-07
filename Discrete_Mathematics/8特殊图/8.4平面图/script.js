@@ -563,12 +563,12 @@ function updateEulerFormula() {
         statusText.textContent = '✓ 欧拉公式验证成功: V-E+F=2';
         statusText.style.color = '#27c93f';
     } else if (F > 0) {
-        eulerResultDisplay.style.color = '#ff3b30';
+        eulerResultDisplay.style.color = '#c0392b';
         statusText.textContent = '⚠ 欧拉公式不满足,可能存在错误';
-        statusText.style.color = '#ff3b30';
+        statusText.style.color = '#c0392b';
     } else {
         statusText.textContent = '请先检测面';
-        statusText.style.color = '#8b0000';
+        statusText.style.color = '#b8321a';
     }
 }
 
@@ -661,7 +661,7 @@ testPlanarity.addEventListener('click', () => {
 resetBtn.addEventListener('click', () => {
     clearAllHighlights();
     statusText.textContent = '已重置';
-    statusText.style.color = '#8b0000';
+    statusText.style.color = '#b8321a';
 });
 
 // Init

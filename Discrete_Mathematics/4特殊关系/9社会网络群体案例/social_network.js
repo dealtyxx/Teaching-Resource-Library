@@ -176,7 +176,7 @@ function draw() {
 
     // Connection line
     if (connecting) {
-        ctx.strokeStyle = '#636e72';
+        ctx.strokeStyle = '#6b4a38';
         ctx.setLineDash([5, 5]);
         ctx.beginPath();
         ctx.moveTo(connecting.x, connecting.y);
@@ -198,7 +198,7 @@ function draw() {
 
         // Circle
         ctx.fillStyle = color;
-        ctx.strokeStyle = n === hovering || n === dragging ? '#2d3436' : '#636e72';
+        ctx.strokeStyle = n === hovering || n === dragging ? '#2c1810' : '#6b4a38';
         ctx.lineWidth = n === hovering ? 3 : 2;
 
         ctx.beginPath();

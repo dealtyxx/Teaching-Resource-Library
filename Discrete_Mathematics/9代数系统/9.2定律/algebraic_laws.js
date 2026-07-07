@@ -5,6 +5,8 @@ let currentLaw = 'associative';
 let currentCaseIndex = 0;
 let animationSpeed = 1000;
 let isAnimating = false;
+let currentManualStep = -1;
+let currentSequence = [];
 
 // ============================================
 // 定律定义数据
@@ -315,98 +317,123 @@ const CASES = [
 // ============================================
 // 验证动画
 // ============================================
-async function verifyLaw(caseData) {
+function buildVerificationSequence(caseData) {
+    const verification = caseData.verification;
+    const sequence = [];
+    verification.leftSteps.forEach(step => {
+        sequence.push({ side: 'left', expr: step.expr, desc: `左侧: ${step.desc}` });
+    });
+    verification.rightSteps.forEach(step => {
+        sequence.push({ side: 'right', expr: step.expr, desc: `右侧: ${step.desc}` });
+    });
+    (verification.cancelSteps || []).forEach(step => {
+        sequence.push({ side: 'cancel', expr: step.expr, desc: step.desc });
+    });
+    sequence.push({
+        side: 'done',
+        expr: '验证完成',
+        desc: verification.conclusion || '两侧表达式相等，定律成立'
+    });
+    return sequence;
+}
+
+function prepareVerification(caseData) {
     const stepsList = document.getElementById('stepsList');
     const comparisonDisplay = document.getElementById('comparisonDisplay');
-    const leftValue = document.getElementById('leftValue');
-    const rightValue = document.getElementById('rightValue');
     const equalsSign = document.getElementById('equalsSign');
-
-    stepsList.innerHTML = '';
-    comparisonDisplay.style.display = 'grid';
-
     const verification = caseData.verification;
 
-    // 显示公式
+    currentSequence = buildVerificationSequence(caseData);
+    currentManualStep = -1;
+
+    stepsList.innerHTML = currentSequence.map((step, index) => `
+        <div class="step-item" data-step="${index}" style="cursor:pointer;">
+            <div class="step-expression">${step.expr}</div>
+            <div class="step-description">${step.desc}</div>
+        </div>
+    `).join('');
+    comparisonDisplay.style.display = 'grid';
+    equalsSign.textContent = '=';
+    equalsSign.classList.remove('not-equal');
+
+    document.getElementById('leftValue').textContent = '-';
+    document.getElementById('rightValue').textContent = '-';
+    document.getElementById('lawFormulaDisplay').className = 'law-formula-display';
     document.getElementById('lawFormulaDisplay').innerHTML = `
         <h3>${caseData.name}</h3>
         <div class="formula-box">
-            <div class="formula">${verification.left}</div>
+            <div class="formula" data-side="left">${verification.left}</div>
             <div class="formula" style="color: var(--accent-gold); margin: 0.5rem 0;">=</div>
-            <div class="formula">${verification.right}</div>
+            <div class="formula" data-side="right">${verification.right}</div>
         </div>
     `;
+}
 
-    // 左侧计算步骤
-    for (let i = 0; i < verification.leftSteps.length; i++) {
-        const step = verification.leftSteps[i];
-        const stepDiv = document.createElement('div');
-        stepDiv.className = 'step-item active';
-        stepDiv.innerHTML = `
-            <div class="step-expression">${step.expr}</div>
-            <div class="step-description">左侧: ${step.desc}</div>
-        `;
-        stepsList.appendChild(stepDiv);
+function renderVerificationStep(index) {
+    if (!currentSequence.length) return;
+    currentManualStep = Math.max(0, Math.min(index, currentSequence.length - 1));
+    const step = currentSequence[currentManualStep];
+    const leftValue = document.getElementById('leftValue');
+    const rightValue = document.getElementById('rightValue');
+    const equalsSign = document.getElementById('equalsSign');
+    const formulaBox = document.getElementById('lawFormulaDisplay');
+    const verification = CASES[currentCaseIndex].verification;
 
+    document.querySelectorAll('#stepsList .step-item').forEach((item, idx) => {
+        item.classList.toggle('active', idx === currentManualStep);
+        item.classList.toggle('success', idx < currentManualStep || (idx === currentManualStep && step.side === 'done'));
+    });
+
+    formulaBox.classList.remove('left-hot', 'right-hot', 'compare-hot');
+    if (step.side === 'left') {
+        formulaBox.classList.add('left-hot');
         leftValue.textContent = step.expr.substring(0, 20) + (step.expr.length > 20 ? '...' : '');
-
-        await sleep(animationSpeed);
-        stepDiv.classList.remove('active');
-    }
-
-    // 右侧计算步骤
-    for (let i = 0; i < verification.rightSteps.length; i++) {
-        const step = verification.rightSteps[i];
-        const stepDiv = document.createElement('div');
-        stepDiv.className = 'step-item active';
-        stepDiv.innerHTML = `
-            <div class="step-expression">${step.expr}</div>
-            <div class="step-description">右侧: ${step.desc}</div>
-        `;
-        stepsList.appendChild(stepDiv);
-
+    } else if (step.side === 'right') {
+        formulaBox.classList.add('right-hot');
         rightValue.textContent = step.expr.substring(0, 20) + (step.expr.length > 20 ? '...' : '');
+    } else {
+        formulaBox.classList.add('compare-hot');
+    }
 
+    if (step.side === 'done') {
+        leftValue.textContent = verification.left.substring(0, 20) + (verification.left.length > 20 ? '...' : '');
+        rightValue.textContent = verification.right.substring(0, 20) + (verification.right.length > 20 ? '...' : '');
+    }
+
+    if (verification.conclusion && verification.conclusion.includes('≠')) {
+        equalsSign.textContent = '≠';
+        equalsSign.classList.add('not-equal');
+    } else {
+        equalsSign.textContent = '=';
+        equalsSign.classList.remove('not-equal');
+    }
+}
+
+function advanceManualStep() {
+    if (isAnimating) return;
+    const caseData = CASES[currentCaseIndex];
+    if (!currentSequence.length) {
+        prepareVerification(caseData);
+    }
+    renderVerificationStep(Math.min(currentManualStep + 1, currentSequence.length - 1));
+}
+
+function resetVerificationView() {
+    currentManualStep = -1;
+    currentSequence = [];
+    document.getElementById('lawFormulaDisplay').className = 'law-formula-display';
+    document.getElementById('lawFormulaDisplay').innerHTML = '<h3>点击"下一步"或"验证定律"开始</h3>';
+    document.getElementById('comparisonDisplay').style.display = 'none';
+    document.getElementById('stepsList').innerHTML = '<p style="color: var(--text-secondary); font-size: 0.85rem;">点击"下一步"单步观察，或点击"验证定律"自动演示。</p>';
+}
+
+async function verifyLaw(caseData) {
+    prepareVerification(caseData);
+
+    for (let i = 0; i < currentSequence.length; i++) {
+        renderVerificationStep(i);
         await sleep(animationSpeed);
-        stepDiv.classList.remove('active');
     }
-
-    // 消去律特殊处理
-    if (verification.cancelSteps) {
-        for (let i = 0; i < verification.cancelSteps.length; i++) {
-            const step = verification.cancelSteps[i];
-            const stepDiv = document.createElement('div');
-            stepDiv.className = 'step-item active';
-            stepDiv.innerHTML = `
-                <div class="step-expression">${step.expr}</div>
-                <div class="step-description">${step.desc}</div>
-            `;
-            stepsList.appendChild(stepDiv);
-
-            await sleep(animationSpeed);
-            stepDiv.classList.remove('active');
-        }
-
-        // 检查是否相等
-        const isEqual = verification.conclusion.includes('=') && !verification.conclusion.includes('≠');
-        if (!isEqual) {
-            equalsSign.textContent = '≠';
-            equalsSign.classList.add('not-equal');
-        }
-    }
-
-    // 最终结果
-    const resultDiv = document.createElement('div');
-    resultDiv.className = 'step-item success';
-    resultDiv.innerHTML = `
-        <div class="step-expression">验证完成!</div>
-        <div class="step-description">
-            ${verification.conclusion || '两侧表达式相等，定律成立'}
-        </div>
-    `;
-    stepsList.appendChild(resultDiv);
-
-    await sleep(animationSpeed * 1.5);
 }
 
 // ============================================
@@ -475,9 +502,7 @@ function loadCase(index) {
         `<p style="font-size: 0.85rem; line-height: 1.6;">${caseData.philosophy}</p>`;
 
     // 重置显示
-    document.getElementById('lawFormulaDisplay').innerHTML = '<h3>点击"验证定律"开始</h3>';
-    document.getElementById('comparisonDisplay').style.display = 'none';
-    document.getElementById('stepsList').innerHTML = '<p style="color: var(--text-secondary); font-size: 0.85rem;">点击"验证定律"开始</p>';
+    resetVerificationView();
 }
 
 // ============================================
@@ -516,24 +541,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
         isAnimating = true;
         document.getElementById('verifyBtn').disabled = true;
-
-        // 重置等号
-        document.getElementById('equalsSign').textContent = '=';
-        document.getElementById('equalsSign').classList.remove('not-equal');
+        const nextBtn = document.getElementById('nextStepBtn');
+        if (nextBtn) nextBtn.disabled = true;
 
         const caseData = CASES[currentCaseIndex];
         await verifyLaw(caseData);
 
         isAnimating = false;
         document.getElementById('verifyBtn').disabled = false;
+        if (nextBtn) nextBtn.disabled = false;
+    });
+
+    const nextStepBtn = document.getElementById('nextStepBtn');
+    if (nextStepBtn) {
+        nextStepBtn.addEventListener('click', advanceManualStep);
+    }
+
+    document.getElementById('stepsList').addEventListener('click', (event) => {
+        if (isAnimating) return;
+        const step = event.target.closest('[data-step]');
+        if (!step) return;
+        renderVerificationStep(Number(step.dataset.step));
     });
 
     // 重置按钮
     document.getElementById('resetBtn').addEventListener('click', () => {
         if (!isAnimating) {
-            document.getElementById('lawFormulaDisplay').innerHTML = '<h3>点击"验证定律"开始</h3>';
-            document.getElementById('comparisonDisplay').style.display = 'none';
-            document.getElementById('stepsList').innerHTML = '<p style="color: var(--text-secondary); font-size: 0.85rem;">点击"验证定律"开始</p>';
+            resetVerificationView();
         }
     });
 

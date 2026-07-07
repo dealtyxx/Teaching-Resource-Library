@@ -269,11 +269,11 @@
       nodeEls = pr.lines.map(function (l, i) {
         var y = pad + i * rowH;
         var fill = l.isContra ? "#f6d3ce" : l.isFinal ? "#cdebd9" : l.isPrem ? "#dbe6f3" : "#fdeccd";
-        var stroke = l.isContra ? "#b42318" : l.isFinal ? "#2f7d57" : l.isPrem ? "#2f5f9f" : "#c58a1f";
+        var stroke = l.isContra ? "#d63b1d" : l.isFinal ? "#2f7d57" : l.isPrem ? "#2f5f9f" : "#c58a1f";
         var ng = svgEl("g"); ng.setAttribute("class", "ip-node"); ng.dataset.row = i;
         var rect = svgEl("rect", { x: leftArc, y: y, width: nodeW, height: nodeH, rx: 8, fill: fill, stroke: stroke, "stroke-width": 1.6 });
-        var num = svgEl("text", { x: leftArc + 16, y: y + nodeH / 2, "text-anchor": "middle", "dominant-baseline": "central", fill: "#6c5a52", "font-size": 12, "font-weight": "800", "font-family": "JetBrains Mono, monospace" }); num.textContent = (i + 1);
-        var tf = svgEl("text", { x: leftArc + 34, y: y + nodeH / 2, "dominant-baseline": "central", fill: "#2d211d", "font-size": 13, "font-weight": "700", "font-family": "JetBrains Mono, monospace" }); tf.textContent = l.f;
+        var num = svgEl("text", { x: leftArc + 16, y: y + nodeH / 2, "text-anchor": "middle", "dominant-baseline": "central", fill: "#6b4a38", "font-size": 12, "font-weight": "800", "font-family": "JetBrains Mono, monospace" }); num.textContent = (i + 1);
+        var tf = svgEl("text", { x: leftArc + 34, y: y + nodeH / 2, "dominant-baseline": "central", fill: "#2c1810", "font-size": 13, "font-weight": "700", "font-family": "JetBrains Mono, monospace" }); tf.textContent = l.f;
         var tr = svgEl("text", { x: leftArc + nodeW - 10, y: y + nodeH / 2, "text-anchor": "end", "dominant-baseline": "central", fill: stroke, "font-size": 11, "font-weight": "800" }); tr.textContent = l.rule;
         ng.appendChild(rect); ng.appendChild(num); ng.appendChild(tf); ng.appendChild(tr);
         ng.addEventListener("click", function () { clickRow(i); });
@@ -338,7 +338,7 @@
     }
 
     function evalHTML(focusLine, done) {
-      if (focusLine == null) return '<span style="color:#6c5a52">点「下一步」逐行推演。前提行直接引入；派生行由推理规则从已得的行推出。</span>';
+      if (focusLine == null) return '<span style="color:#6b4a38">点「下一步」逐行推演。前提行直接引入；派生行由推理规则从已得的行推出。</span>';
       var l = pr.lines[focusLine];
       var head = '<div>第 <b>' + (focusLine + 1) + '</b> 行：<span class="ev-f">' + esc(l.f) + '</span></div>';
       var body;

@@ -842,6 +842,72 @@
             border-radius: 999px;
             border: 2px solid rgba(255, 248, 232, 0.8);
         }
+
+        /* ===== 质感统一层：与内容页 shared/discrete-ui.css 保持一致 ===== */
+        :root {
+            accent-color: var(--primary-red);
+        }
+
+        html {
+            scrollbar-color: rgba(214, 59, 29, 0.45) rgba(255, 248, 232, 0.8);
+        }
+
+        ::selection {
+            background: rgba(255, 180, 0, 0.38);
+            color: var(--ink);
+        }
+
+        :where(a, button, input, [tabindex]):focus-visible {
+            outline: 2px solid rgba(214, 59, 29, 0.75);
+            outline-offset: 2px;
+        }
+
+        a, button {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button {
+            touch-action: manipulation;
+        }
+
+        /* 按压反馈：独立 scale 属性，不干扰各自的 hover transform */
+        :where(button, .quick-link, .topic-link):where(:not(:disabled)):active {
+            scale: 0.975;
+        }
+
+        .search-button:active {
+            filter: brightness(0.92);
+        }
+
+        :where(h1, h2, h3, .section-title, .path-title) {
+            text-wrap: balance;
+        }
+
+        /* 首屏入场：横幅与内容区依次上浮淡入 */
+        @keyframes rise-in {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: none; }
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            .hero-banner {
+                animation: rise-in 0.55s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+            }
+
+            .container {
+                animation: rise-in 0.55s cubic-bezier(0.22, 0.61, 0.36, 1) 0.08s both;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
     </style>
     <script src="shared/mathjax-auto.js" data-dm-mathjax="1"></script>
     <!-- 不蒜子统计服务：全局访问计数，沿用旧版同源服务以接续累计数 -->

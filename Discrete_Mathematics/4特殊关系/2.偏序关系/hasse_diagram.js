@@ -364,7 +364,7 @@ function showTooltip(e, node) {
     tooltip.style.opacity = 1;
 
     tooltip.innerHTML = `
-        <h4 style="margin-bottom:4px;color:#2c3e50">${node.name}</h4>
+        <h4 style="margin-bottom:4px;color:#2c1810">${node.name}</h4>
         <p style="color:#7f8c8d;font-size:0.8rem">${node.desc}</p>
     `;
 }

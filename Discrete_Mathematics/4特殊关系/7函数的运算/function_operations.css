@@ -1,16 +1,16 @@
 :root {
     --app-bg: #fdfbf7;
-    --text-primary: #2d3436;
-    --text-secondary: #636e72;
+    --text-primary: #2c1810;
+    --text-secondary: #6b4a38;
     --origin-red: #d63031;
     --process-blue: #0984e3;
     --result-green: #00b894;
     --link-gold: #fdcb6e;
     --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.08);
-    --font-family: "Noto Serif SC", "Outfit", serif;
-    --font-mono: "JetBrains Mono", monospace;
-    --font-title: "Ma Shan Zheng", cursive;
+    --font-family: "Noto Serif SC", "Microsoft YaHei", serif;
+    --font-mono: "JetBrains Mono", Consolas, monospace;
+    --font-title: "Ma Shan Zheng", "Noto Serif SC", cursive;
 }
 
 * {
@@ -140,10 +140,25 @@ color: var(--text-primary);
 .main-stage {
     flex: 1;
     display: grid;
-    grid-template-columns: 1fr 350px;
+    grid-template-columns: 1fr;
     gap: 2px;
     background: rgba(0, 0, 0, 0.02);
     overflow: hidden;
+}
+
+/* 价值/性质面板移入左侧栏（主头部）显示，强制单列以适配窄侧栏 */
+.app-container[data-dm-app] .main-header > .insight-panel,
+.main-header > .insight-panel {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: none;
+    gap: 16px;
+    overflow: visible;
+    background: transparent;
+    border-left: none;
+    border-top: none;
+    padding: 0;
 }
 
 .operation-view {

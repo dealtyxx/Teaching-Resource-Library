@@ -330,8 +330,8 @@
       cellEls = [];
       tbl.rows.forEach(function (r, i) {
         var x = x0 + i * cw;
-        var rectA = svgEl("rect", { x: x, y: yA, width: cw - 6, height: ch, rx: 6, fill: r.a ? "#cdebd9" : "#f6d3ce", stroke: r.a ? "#2f7d57" : "#b42318", "stroke-width": 1.4 });
-        var rectB = svgEl("rect", { x: x, y: yB, width: cw - 6, height: ch, rx: 6, fill: r.b ? "#cdebd9" : "#f6d3ce", stroke: r.b ? "#2f7d57" : "#b42318", "stroke-width": 1.4 });
+        var rectA = svgEl("rect", { x: x, y: yA, width: cw - 6, height: ch, rx: 6, fill: r.a ? "#cdebd9" : "#f6d3ce", stroke: r.a ? "#2f7d57" : "#d63b1d", "stroke-width": 1.4 });
+        var rectB = svgEl("rect", { x: x, y: yB, width: cw - 6, height: ch, rx: 6, fill: r.b ? "#cdebd9" : "#f6d3ce", stroke: r.b ? "#2f7d57" : "#d63b1d", "stroke-width": 1.4 });
         var tA = svgEl("text", { x: x + (cw - 6) / 2, y: yA + ch / 2, "text-anchor": "middle", "dominant-baseline": "central", fill: r.a ? "#1d6b43" : "#97180f", "font-size": 13, "font-weight": "800", "font-family": "JetBrains Mono, monospace" }); tA.textContent = TF(r.a);
         var tB = svgEl("text", { x: x + (cw - 6) / 2, y: yB + ch / 2, "text-anchor": "middle", "dominant-baseline": "central", fill: r.b ? "#1d6b43" : "#97180f", "font-size": 13, "font-weight": "800", "font-family": "JetBrains Mono, monospace" }); tB.textContent = TF(r.b);
         var wrapA = svgEl("g", {}); wrapA.setAttribute("class", "rel-cell"); wrapA.appendChild(rectA); wrapA.appendChild(tA);
@@ -341,7 +341,7 @@
         g.appendChild(wrapA); g.appendChild(wrapB);
         // 差异标记
         if (!r.same) {
-          var mark = svgEl("text", { x: x + (cw - 6) / 2, y: yB + ch + 14, "text-anchor": "middle", fill: "#b42318", "font-size": 13, "font-weight": "800" }); mark.textContent = "≠";
+          var mark = svgEl("text", { x: x + (cw - 6) / 2, y: yB + ch + 14, "text-anchor": "middle", fill: "#d63b1d", "font-size": 13, "font-weight": "800" }); mark.textContent = "≠";
           g.appendChild(mark);
         }
         cellEls.push({ a: rectA, b: rectB, wa: wrapA, wb: wrapB });
@@ -428,7 +428,7 @@
     }
 
     function evalHTML(focusRow, verdictShown) {
-      if (focusRow == null && !verdictShown) return '<span style="color:#6c5a52">点「下一步」开始逐行扫描真值表。每行给一组真值指派，分别算出 A、B 的值并比较。</span>';
+      if (focusRow == null && !verdictShown) return '<span style="color:#6b4a38">点「下一步」开始逐行扫描真值表。每行给一组真值指派，分别算出 A、B 的值并比较。</span>';
       if (focusRow == null && verdictShown) return '已逐行检查全部 <b>' + tbl.rows.length + '</b> 个解释，下方给出关系判定。可点任意行回看。';
       var r = tbl.rows[focusRow];
       var interp = tbl.vars.map(function (v) { return v + "=" + TF(r.env[v]); }).join(", ");

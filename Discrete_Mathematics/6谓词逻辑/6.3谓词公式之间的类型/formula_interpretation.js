@@ -218,8 +218,8 @@
         var x = pad + col * cw, y = pad + row * chh;
         var cg = svgEl("g"); cg.setAttribute("class", "fi-cell"); cg.dataset.row = i;
         var rect = svgEl("rect", { x: x + 5, y: y + 5, width: cw - 10, height: chh - 14, rx: 9,
-          fill: it.val ? "#cdebd9" : "#f6d3ce", stroke: it.val ? "#2f7d57" : "#b42318", "stroke-width": 1.6 });
-        var t1 = svgEl("text", { x: x + cw / 2, y: y + 26, "text-anchor": "middle", fill: "#2d211d", "font-size": 14, "font-weight": "800", "font-family": "JetBrains Mono, monospace" }); t1.textContent = "I" + (i + 1) + " · " + it.bits;
+          fill: it.val ? "#cdebd9" : "#f6d3ce", stroke: it.val ? "#2f7d57" : "#d63b1d", "stroke-width": 1.6 });
+        var t1 = svgEl("text", { x: x + cw / 2, y: y + 26, "text-anchor": "middle", fill: "#2c1810", "font-size": 14, "font-weight": "800", "font-family": "JetBrains Mono, monospace" }); t1.textContent = "I" + (i + 1) + " · " + it.bits;
         var t2 = svgEl("text", { x: x + cw / 2, y: y + 45, "text-anchor": "middle", fill: it.val ? "#1d6b43" : "#97180f", "font-size": 13, "font-weight": "800" }); t2.textContent = it.val ? "真 T" : "假 F";
         cg.appendChild(rect); cg.appendChild(t1); cg.appendChild(t2);
         cg.addEventListener("click", function () { clickRow(i); });
@@ -271,7 +271,7 @@
     }
 
     function evalHTML(focusRow, verdictShown) {
-      if (focusRow == null && !verdictShown) return '<span style="color:#6c5a52">点「下一步」逐一核验解释。每个解释给谓词 P 一组真值赋值，算出公式在该解释下的真/假。</span>';
+      if (focusRow == null && !verdictShown) return '<span style="color:#6b4a38">点「下一步」逐一核验解释。每个解释给谓词 P 一组真值赋值，算出公式在该解释下的真/假。</span>';
       if (focusRow == null && verdictShown) {
         return '已核验全部 <b>' + cur.total + '</b> 个解释：' + cur.trues + ' 真 / ' + cur.falses + ' 假。下方给出类型判定。可点任意解释回看。';
       }

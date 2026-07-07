@@ -46,11 +46,11 @@
 .traffic-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .traffic-action{min-height:42px;border:1px solid rgba(116,55,31,.18);border-radius:8px;background:rgba(255,250,242,.92);color:#4e362d;font-weight:800;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
 .traffic-action:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(116,55,31,.14)}
-.traffic-action.primary{border-color:rgba(180,35,24,.32);background:linear-gradient(135deg,#b42318,#ef7d32);color:#fff}
+.traffic-action.primary{border-color:rgba(214, 59, 29,.32);background:linear-gradient(135deg,#d63b1d,#ef7d32);color:#fff}
 .traffic-action.warn{border-color:rgba(47,95,159,.3);background:rgba(47,95,159,.1);color:#23436e}
 .traffic-metrics{width:100%;margin-top:10px;border-collapse:collapse;font-size:.92rem}
 .traffic-metrics td{border-bottom:1px dashed rgba(116,55,31,.16);padding:6px 4px}
-.traffic-metrics td:last-child{text-align:right;font-family:"JetBrains Mono",Consolas,monospace;color:#b42318;font-weight:800}
+.traffic-metrics td:last-child{text-align:right;font-family:"JetBrains Mono",Consolas,monospace;color:#d63b1d;font-weight:800}
 .traffic-view-chip{display:inline-flex;align-items:center;border-radius:999px;padding:4px 9px;margin:0 5px 5px 0;background:rgba(47,95,159,.09);color:#2f5f9f;font-weight:800}
 @media (min-width:1100px){body .app-container>main.glass-pane.visualizer-stage>.logic-board{grid-template-rows:minmax(380px,46vh) auto!important}body .app-container>main.glass-pane.visualizer-stage>.logic-board>.graph-canvas{min-height:380px!important}}
 @media (max-width:920px){body .logic-board{grid-template-rows:360px auto!important}body .graph-canvas{min-height:340px!important}}
@@ -274,11 +274,11 @@
     ctx.strokeStyle = "rgba(116,55,31,0.12)";
     ctx.stroke();
     ctx.fillStyle = "#7c2d12";
-    ctx.font = "800 18px 'Noto Serif SC', serif";
+    ctx.font = "800 18px 'Noto Serif SC', 'Microsoft YaHei', serif";
     ctx.textAlign = "left";
     ctx.fillText(isExtend ? "智慧交通网络流推演" : "城市路网集合建模", 28, 42);
-    ctx.fillStyle = "#64748b";
-    ctx.font = "13px 'Noto Serif SC', serif";
+    ctx.fillStyle = "#6b4a38";
+    ctx.font = "13px 'Noto Serif SC', 'Microsoft YaHei', serif";
     ctx.fillText("绿色=慢行，蓝色=机动车，橙色=共用冲突，灰色=潜在改造；点击道路可切换归属", 28, 64);
 
     allEdges.forEach((edge, index) => {
@@ -288,7 +288,7 @@
       const active = index === scanIndex || edge.id === hoverEdge;
       ctx.save();
       ctx.globalAlpha = visible ? 1 : 0.16;
-      ctx.strokeStyle = active ? "#b42318" : typeColor(type);
+      ctx.strokeStyle = active ? "#d63b1d" : typeColor(type);
       ctx.lineWidth = active ? 6 : type === "shared" ? 5 : type === "potential" ? 2 : 4;
       ctx.setLineDash(type === "potential" ? [8, 7] : []);
       ctx.beginPath();
@@ -302,7 +302,7 @@
         ctx.font = "800 12px 'JetBrains Mono', Consolas, monospace";
         const tw = ctx.measureText(label).width + 14;
         roundRect(mx - tw / 2, my - 11, tw, 22, 7);
-        ctx.fillStyle = active ? "rgba(180,35,24,.96)" : "rgba(255,255,255,.94)";
+        ctx.fillStyle = active ? "rgba(214, 59, 29,.96)" : "rgba(255,255,255,.94)";
         ctx.fill();
         ctx.strokeStyle = "rgba(116,55,31,.16)";
         ctx.stroke();
@@ -332,10 +332,10 @@
     roundRect(w - 238, h - 96, 210, 64, 10);
     ctx.fill();
     ctx.fillStyle = "#5e4338";
-    ctx.font = "800 12px 'Noto Serif SC', serif";
+    ctx.font = "800 12px 'Noto Serif SC', 'Microsoft YaHei', serif";
     ctx.textAlign = "left";
     ctx.fillText("视图：" + activeView.name + " / " + activeView.formula, w - 222, h - 70);
-    ctx.fillStyle = "#b42318";
+    ctx.fillStyle = "#d63b1d";
     ctx.fillText("冲突：" + m.shared + "  评分：" + m.score, w - 222, h - 48);
     ctx.restore();
   }
