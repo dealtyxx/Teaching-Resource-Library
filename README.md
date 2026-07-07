@@ -20,17 +20,8 @@
 AI 学习助手：内置悬浮坞式助手（BYO-key，密钥仅存浏览器 localStorage，直连大模型，不经任何第三方服务器）。
 响应式自适配：内容感知的整页缩放，兼顾不同分辨率首屏观感；移动端独立响应式。
 社交分享就绪：全站 Open Graph / Twitter Card 元数据 + 品牌分享封面，微信/社交分享显示标题与缩略图。
-目录结构
-Discrete_Mathematics/
-├─ index.html                 # 课程资源库主页（章节导航 / 搜索 / 思政理念）
-├─ 1计数基础与数论基础/ … 11环、域、格和布尔代数/   # 11 章，按 小节/ 组织三阶页面
-└─ shared/                    # 全站共享资源
-   ├─ discrete-ui.css         # 统一视觉与组件样式
-   ├─ ai-tutor.js             # 学习助手（BYO-key）
-   ├─ mathjax-auto.js         # MathJax 按需加载 + 整页自适配缩放
-   ├─ auto-superscript.js     # 纯文本上/下标自动渲染
-   ├─ favicon.svg             # 站点图标（图节点 motif）
-   └─ og-cover.png            # 社交分享封面（1200×630）
+
+
 技术栈
 纯静态站点：HTML5 + 原生 CSS/JavaScript，无构建步骤、无重型依赖。公式渲染用 MathJax 3（CDN 按需加载），字体用 Google Fonts，访问统计用不蒜子。可直接部署到 GitHub Pages 或任意静态服务器。
 
