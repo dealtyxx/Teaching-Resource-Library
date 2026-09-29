@@ -8,7 +8,7 @@
   <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="规则推理 vs 学习 · 进阶层｜5.9 人工智能创新 - 离散数学课程资源库">
-  <meta property="og:description" content="第5章 命题逻辑 · 5.9 人工智能创新 · 进阶层：可解释 / 数据拟合 / 异或需多层。辨析符号推理与连接主义长短。">
+  <meta property="og:description" content="第5章 命题逻辑 · 5.9 人工智能创新 · 进阶层：前提符号化 / 推理规则 MP / 感知机学习。用推理规则逐行证明结论，并与从样例学习权重对照。">
   <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/5%E5%91%BD%E9%A2%98%E9%80%BB%E8%BE%91/9%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%88%9B%E6%96%B0/deep_learning_logic.html">
   <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta property="og:image:width" content="1200">
@@ -16,204 +16,227 @@
   <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="规则推理 vs 学习 · 进阶层｜5.9 人工智能创新 - 离散数学课程资源库">
-  <meta name="twitter:description" content="第5章 命题逻辑 · 5.9 人工智能创新 · 进阶层：可解释 / 数据拟合 / 异或需多层。辨析符号推理与连接主义长短。">
+  <meta name="twitter:description" content="第5章 命题逻辑 · 5.9 人工智能创新 · 进阶层：前提符号化 / 推理规则 MP / 感知机学习。用推理规则逐行证明结论，并与从样例学习权重对照。">
   <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>规则推理 vs 学习 · 进阶层｜5.9 人工智能创新 - 离散数学课程资源库</title>
-  <meta name="description" content="第5章 命题逻辑 · 5.9 人工智能创新 · 进阶层：可解释 / 数据拟合 / 异或需多层。辨析符号推理与连接主义长短。">
+  <meta name="description" content="第5章 命题逻辑 · 5.9 人工智能创新 · 进阶层：前提符号化 / 推理规则 MP / 感知机学习。用推理规则逐行证明结论，并与从样例学习权重对照。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap"></noscript>
+  <link rel="stylesheet" href="deep_learning_logic.css">
   <style>
-:root{
-  --ink:#2c1810; --muted:#6b4a38; --paper:#fff8ec; --card:rgba(255,253,246,0.92);
-  --line:rgba(116,55,31,0.18); --red:#d63b1d; --red-2:#de5b3d; --gold:#c58a1f;
-  --green:#2f7d57; --blue:#2f5f9f; --amber:#ffb400;
-  --shadow:0 18px 50px rgba(69,31,15,0.14);
-}
-*{box-sizing:border-box;}
-body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;
-  background:radial-gradient(circle at 16% 12%, rgba(222,91,61,.18), transparent 28%),radial-gradient(circle at 82% 8%, rgba(47,95,159,.14), transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
-.home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(44, 24, 16,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
-.app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:18px;}
-.side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
-.side-panel{display:flex;flex-direction:column;padding:20px;gap:14px;overflow:auto;}
-.glass-pane{padding:22px;overflow:auto;}
-.sidebar-header{display:flex;flex-direction:column;gap:6px;}
-.window-controls{display:flex;gap:7px;}
-.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}
-.dot.red{background:#ff5f56;} .dot.yellow{background:#ffbd2e;} .dot.green{background:#27c93f;}
-.sidebar-header h1{margin:8px 0 0;font-family:"Ma Shan Zheng","Noto Serif SC",cursive;font-size:2rem;font-weight:400;line-height:1.3;color:#d63b1d;}
-.sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
-.subtitle{margin:0;color:#6b4a38;font-size:.95rem;line-height:1.5;}
-.intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
-.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
-.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}
-.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
-.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
-.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
-.sym-box{border-radius:10px;border:1px solid var(--line);background:rgba(255,253,246,.7);padding:12px 14px;}
-.sym-box h3{margin:0 0 8px;font-size:14px;color:var(--blue);}
-.sym-grid{display:grid;gap:5px;font-size:12.5px;color:#5b4136;line-height:1.5;}
-.sym-grid code{font-family:"JetBrains Mono", Consolas, monospace;color:var(--red);font-weight:700;}
-.premise-list{display:grid;gap:6px;}
-.premise-item{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:8px 10px;font-size:12.5px;}
-.premise-item .pf{font-family:"JetBrains Mono", Consolas, monospace;color:var(--red);font-weight:700;}
-.premise-item .pd{color:var(--muted);font-size:11.5px;margin-top:2px;}
-.mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:16px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
-.mission-card b{color:var(--red);} .mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
-.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
-.pane-title{color:var(--red);font-size:1.2rem;margin:0 0 6px;}
-.pane-sub{color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 14px;}
-.panel-card{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:16px;margin:12px 0;}
-.panel-card h3{margin:0 0 10px;color:var(--red);font-size:1rem;}
-.chain-wrap{border-radius:10px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.85),rgba(255,250,239,.7));padding:8px;}
-.chain-svg{width:100%;height:auto;display:block;}
-.cnode{fill:#fff;stroke:var(--line);stroke-width:2;transition:.4s;}
-.cnode.lit{fill:rgba(47,125,87,.85);stroke:var(--green);stroke-width:3;}
-.cnode.ms{stroke-width:2.5;}
-.cnode.ms.lit{fill:rgba(214,59,29,.9);stroke:var(--red);}
-.cedge{stroke:rgba(116,55,31,.32);stroke-width:2.5;transition:.4s;fill:none;}
-.cedge.lit{stroke:var(--gold);stroke-width:4;}
-.ctext{font-family:"Noto Serif SC", "Microsoft YaHei", serif;font-weight:800;fill:#fff;}
-.clabel{font-size:12px;fill:var(--muted);font-weight:700;}
-.controls{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;}
-.ctrl-btn{padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.72);cursor:pointer;font:inherit;font-weight:700;font-size:13px;color:#5b4136;transition:.2s;}
-.ctrl-btn:hover{border-color:var(--red);color:var(--red);}
-.ctrl-btn.primary{background:var(--red);color:#fff;border-color:var(--red);}
-.ctrl-btn.primary:hover{background:#b8321a;color:#fff;}
-.ctrl-btn:disabled{opacity:.45;cursor:not-allowed;}
-.progress-wrap{display:flex;align-items:center;gap:12px;margin:8px 0 4px;}
-.progress-track{flex:1;height:10px;border-radius:999px;background:rgba(214, 59, 29,.12);overflow:hidden;}
-.progress-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--gold));width:0;transition:width .4s;}
-.progress-text{font-size:12.5px;color:var(--muted);font-weight:700;font-family:"JetBrains Mono", Consolas, monospace;white-space:nowrap;}
-.feedback{margin-top:10px;padding:11px 13px;border-radius:10px;border:1px dashed rgba(214,59,29,.3);background:rgba(255,180,0,.1);color:#7a3216;font-size:.9rem;line-height:1.7;}
-.token-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
-.token{padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-family:"JetBrains Mono", Consolas, monospace;font-size:.8rem;color:#6b4a38;font-weight:700;transition:.2s;}
-.token.on{background:linear-gradient(135deg,var(--red),#b8321a);color:#fff;box-shadow:0 8px 18px rgba(214, 59, 29,.18);}
-table.proof{width:100%;border-collapse:collapse;font-size:13px;}
-table.proof th{background:rgba(214, 59, 29,.08);color:var(--red);padding:8px;text-align:left;}
-table.proof td{padding:7px 8px;border-bottom:1px solid var(--line);}
-table.proof td.f{font-family:"JetBrains Mono", Consolas, monospace;font-weight:700;color:var(--ink);}
-table.proof tr:last-child td{background:rgba(47,125,87,.08);}
-.ms-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
-.ms-chip{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-size:12.5px;font-weight:700;color:var(--muted);transition:.3s;}
-.ms-chip.done{background:rgba(47,125,87,.14);color:var(--green);border-color:rgba(47,125,87,.4);}
-.insight-box{border-radius:8px;border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(139,0,0,.05),rgba(214,59,29,.05));padding:14px 16px;margin-top:16px;}
-.insight-title{font-weight:700;color:var(--red);margin-bottom:6px;}
-.insight-box p{margin:0;font-size:14px;line-height:1.7;color:#4e362d;}
-.badges{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;}
-.badge{padding:4px 12px;border-radius:999px;background:var(--gold);color:#3d2b25;font-size:12px;font-weight:700;}
-.footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
-@media(max-width:920px){
-  body{overflow:auto;}
-  .app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}
-  .side-panel,.glass-pane{max-height:none;overflow:visible;}
-}
+/* —— 进阶层特有：推理链 + 证明表 + 感知机学习对照 —— */
+table.dl-table.proof td { text-align: left; }
+table.dl-table.proof td.n { text-align: center; font-family: var(--mono); font-weight: 800; color: var(--muted); width: 52px; }
+table.dl-table.proof tr.row-cur td { background: rgba(255, 180, 0, 0.2); }
+table.dl-table.proof tr.row-goal td { background: rgba(47, 125, 87, 0.12); }
+.proof-empty { padding: 10px 4px; color: var(--muted); font-size: 13px; }
+.sym-map { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 8px 0 10px; }
+.sym-map div { border-radius: 8px; background: rgba(255, 255, 255, 0.82); border: 1px solid rgba(116, 55, 31, 0.12); padding: 7px 10px; font-size: 13px; }
+.sym-map code { color: var(--red); margin-right: 6px; }
+.premise-line { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0; }
+.premise-line span { font-family: var(--mono); font-weight: 700; padding: 4px 10px; border-radius: 999px; background: rgba(214, 59, 29, 0.07); border: 1px solid rgba(214, 59, 29, 0.2); color: var(--ink); font-size: 13px; }
+.learn-box { margin-top: 10px; border-radius: 10px; border: 1px solid rgba(116, 55, 31, 0.16); background: rgba(255, 255, 255, 0.78); padding: 12px; }
+.learn-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.learn-head .opt-row { margin-right: auto; }
+.w-strip { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.w-strip span { font-family: var(--mono); font-weight: 800; padding: 5px 11px; border-radius: 8px; background: rgba(255, 250, 242, 0.95); border: 1px solid rgba(116, 55, 31, 0.16); font-size: 13px; }
+.w-strip span b { color: var(--red); }
+.log { max-height: 190px; overflow: auto; }
+#chainSvg { min-width: 460px; }
   </style>
   <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
   <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 <body>
   <a class="home-link" href="../../index.html#chapter5">← 返回课程主页</a>
+
   <div class="app-container">
     <aside class="side-panel">
-      <div class="sidebar-header">
-        <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
-        <h1>红色数理 <span class="highlight">进阶层</span></h1>
-        <p class="subtitle">深度学习的逻辑必然 · 规则推理 vs 学习</p>
-      </div>
-      <p class="intro">用命题逻辑的严格推理，从「数据·算法·算力·团队」前提一步步证明「项目必然成功 G」。</p>
+      <div class="eyebrow">进阶层 · 第5章 命题逻辑</div>
+      <h1>规则推理 vs 学习</h1>
+      <p class="subtitle">前提符号化 / 推理规则 MP / 感知机学习</p>
+      <p class="tier-line">核心掌握 · 建模求解</p>
+      <p class="intro">🎯 用推理规则逐行证明结论，并与从样例学习权重对照。</p>
 
-      <div class="value-panel">
-        <h3>智能科技 · 创新引领</h3>
-        <p>规则推理可解释、可追溯：每一步都有依据。这正是符号逻辑相对「黑箱学习」的长处，也是可信 AI 的基石。</p>
-        <div class="dim-list"><span>创新引领</span><span>科学精神</span><span>辩证思维</span></div>
+      <div class="controls">
+        <div class="control-group">
+          <div class="cg-label"><span>逐步证明</span><small>每步一行 · 写明依据</small></div>
+          <div class="btn-grid">
+            <button class="dl-btn" id="prevBtn">◀ 上一步</button>
+            <button class="dl-btn primary" id="nextBtn">下一步 ▶</button>
+            <button class="dl-btn" id="autoBtn">⏵ 自动播放</button>
+            <button class="dl-btn ghost" id="resetBtn">↺ 重置</button>
+          </div>
+          <div class="speed-row"><span>速度</span>
+            <select id="speedSel" aria-label="自动播放速度"><option value="1800">慢</option><option value="1100" selected>中</option><option value="600">快</option></select>
+          </div>
+          <div class="btn-row" style="margin-top:8px;"><button class="dl-btn" id="hintBtn" style="flex:1;">💡 提示下一步</button></div>
+        </div>
+        <div class="control-group">
+          <div class="cg-label"><span>进度</span></div>
+          <div class="progress-wrap"><div class="progress"><i id="progBar"></i></div><span class="progress-num" id="progNum">0 / 11</span></div>
+        </div>
+        <div class="control-group">
+          <div class="cg-label"><span>当前反馈</span></div>
+          <div class="status" id="status"></div>
+          <div class="dl-toast" id="toast" role="status" hidden></div>
+        </div>
       </div>
 
-      <div class="panel-card" style="margin:0;">
-        <h3>📋 前提条件</h3>
-        <div class="premise-list" id="premiseList"></div>
-      </div>
-
-      <div class="sym-box">
-        <h3>推理规则 & 符号</h3>
-        <div class="sym-grid">
-          <div><code>MP</code>　假言推理：A→B, A ⟹ B</div>
-          <div><code>∧I</code>　合取引入：A, B ⟹ A∧B</div>
-          <div style="margin-top:4px;"><code>A</code>数据　<code>B</code>网络　<code>C</code>算法　<code>D</code>算力</div>
-          <div><code>E</code>团队　<code>H</code>模型训练　<code>F</code>结果验证　<code>G</code>项目成功</div>
+      <div class="legend-panel">
+        <div class="legend-title">推理规则与符号</div>
+        <div class="legend-grid">
+          <div class="legend-item"><span class="sym">P</span><span class="desc">前提引入：前提可在任一步写出</span></div>
+          <div class="legend-item"><span class="sym">Conj</span><span class="desc">合取规则：由 A、B 得 A∧B</span></div>
+          <div class="legend-item"><span class="sym">MP</span><span class="desc">假言推理（分离规则）：由 A→B、A 得 B</span></div>
+          <div class="legend-item"><span class="sym">⊢</span><span class="desc">由左边的前提可以推出右边的结论</span></div>
+          <div class="legend-item"><span class="sym">A B E</span><span class="desc">数据就绪 / 网络结构设计完成 / 团队协作到位</span></div>
+          <div class="legend-item"><span class="sym">H F G</span><span class="desc">模型训练完成 / 结果通过验证 / 项目成功</span></div>
         </div>
       </div>
     </aside>
 
     <main class="glass-pane">
       <section class="mission-card">
-        <span><b>互动任务：</b>点「下一步」逐步构建证明，看推理链高亮、公式项点亮、里程碑达成。</span>
-        <div class="visual-badge">自然演绎 + 里程碑链</div>
+        <span><b>互动任务：</b>逐步写出证明 G 的每一行和它的依据，看推理链节点逐个点亮；再让感知机从样例「学」规则，对照两条路线。</span>
+        <div class="visual-badge">推理链 · 感知机学习</div>
       </section>
 
-      <h2 class="pane-title">🧠 逻辑推理过程：证明 G（项目成功）</h2>
-      <p class="pane-sub">每点一步，新增一行证明、推理链对应节点高亮、当前公式项点亮，并给出反馈。</p>
+      <div class="stage-pipeline">
+        <section class="stage-card">
+          <div class="stage-head"><span class="stage-num">1</span><span class="stage-title">情境背景</span><span class="stage-hint">两条通往智能的路线</span></div>
+          <div class="stage-body">
+            <p>一个 AI 项目评审助手要回答：「这个项目能否成功？」人工智能史上有两条代表性路线：</p>
+            <div class="fact-grid">
+              <div class="fact"><span class="fk">符号主义</span>由专家把知识写成<b>命题与规则</b>，机器按推理规则一步步推出结论，每一步都有依据，可追溯、可检查。</div>
+              <div class="fact"><span class="fk">连接主义</span>由神经网络从<b>样例数据</b>中调整权重，不需要人写规则，擅长处理图像、语音等难以写成规则的问题，但参数含义往往不直观。</div>
+            </div>
+            <p style="margin-top:10px;">本页先用第 5 章学过的推理规则走一遍「规则路线」，再让基础层的感知机从样例中「学」同一条规则，比较两者。</p>
+          </div>
+        </section>
 
-      <div class="chain-wrap">
-        <svg class="chain-svg" viewBox="0 0 620 250" id="chainSvg">
-          <path class="cedge" id="eAH" d="M60 60 L235 95"/>
-          <path class="cedge" id="eBH" d="M60 150 L235 95"/>
-          <path class="cedge" id="eHF" d="M235 95 L420 95"/>
-          <path class="cedge" id="eEF" d="M235 215 L420 95"/>
-          <path class="cedge" id="eFG" d="M420 95 L560 95"/>
-          <circle class="cnode" id="nA" cx="60" cy="60" r="26"/>
-          <circle class="cnode" id="nB" cx="60" cy="150" r="26"/>
-          <circle class="cnode" id="nE" cx="235" cy="215" r="26"/>
-          <circle class="cnode ms" id="nH" cx="235" cy="95" r="34"/>
-          <circle class="cnode ms" id="nF" cx="420" cy="95" r="34"/>
-          <circle class="cnode ms" id="nG" cx="560" cy="95" r="34"/>
-          <text class="ctext" x="60" y="65" text-anchor="middle" font-size="15">A</text>
-          <text class="ctext" x="60" y="155" text-anchor="middle" font-size="15">B</text>
-          <text class="ctext" x="235" y="220" text-anchor="middle" font-size="15">E</text>
-          <text class="ctext" x="235" y="100" text-anchor="middle" font-size="17">H</text>
-          <text class="ctext" x="420" y="100" text-anchor="middle" font-size="17">F</text>
-          <text class="ctext" x="560" y="100" text-anchor="middle" font-size="17">G</text>
-          <text class="clabel" x="60" y="100" text-anchor="middle">数据</text>
-          <text class="clabel" x="60" y="190" text-anchor="middle">网络</text>
-          <text class="clabel" x="235" y="255" text-anchor="middle">团队</text>
-          <text class="clabel" x="235" y="148" text-anchor="middle">模型训练</text>
-          <text class="clabel" x="420" y="148" text-anchor="middle">结果验证</text>
-          <text class="clabel" x="560" y="148" text-anchor="middle">项目成功</text>
-        </svg>
-      </div>
+        <section class="stage-card">
+          <div class="stage-head"><span class="stage-num">2</span><span class="stage-title">数学建模</span><span class="stage-hint">前提符号化</span></div>
+          <div class="stage-body">
+            <p>先把简单命题符号化：</p>
+            <div class="sym-map">
+              <div><code>A</code>数据已准备就绪</div>
+              <div><code>B</code>网络结构已设计完成</div>
+              <div><code>E</code>团队协作到位</div>
+              <div><code>H</code>模型训练完成</div>
+              <div><code>F</code>结果通过验证</div>
+              <div><code>G</code>项目成功</div>
+            </div>
+            <p>评审规则：「如果数据就绪并且网络结构设计完成，那么模型能训练完成」「如果模型训练完成并且团队协作到位，那么结果能通过验证」「只要结果通过验证，项目就成功」。已知 A、B、E 都成立。</p>
+            <div class="premise-line"><span>(A∧B)→H</span><span>(H∧E)→F</span><span>F→G</span><span>A</span><span>B</span><span>E</span></div>
+            <p>要证明的推理形式：<code>(A∧B)→H，(H∧E)→F，F→G，A，B，E ⊢ G</code></p>
+          </div>
+        </section>
 
-      <div class="controls">
-        <button class="ctrl-btn primary" id="nextBtn">▶ 下一步</button>
-        <button class="ctrl-btn" id="hintBtn">💡 提示</button>
-        <button class="ctrl-btn" id="resetBtn">🔄 重置</button>
-      </div>
-      <div class="progress-wrap"><div class="progress-track"><div class="progress-fill" id="progFill"></div></div><span class="progress-text" id="progText">0 / 11</span></div>
-      <div class="feedback" id="feedback">点击「下一步」开始引入前提，逐步构建证明。</div>
-      <div class="token-row" id="tokenRow">
-        <span class="token" data-t="A">A</span><span class="token" data-t="B">B</span>
-        <span class="token" data-t="AB">A∧B</span><span class="token" data-t="H">H</span>
-        <span class="token" data-t="E">E</span><span class="token" data-t="HE">H∧E</span>
-        <span class="token" data-t="F">F</span><span class="token" data-t="G">G</span>
-      </div>
+        <section class="stage-card">
+          <div class="stage-head"><span class="stage-num">3</span><span class="stage-title">交互求解 · 规则推理</span>
+            <span class="state-legend"><span><i class="lg-idle"></i>未推出</span><span><i class="lg-cur"></i>本步</span><span><i class="lg-done"></i>已得出</span></span>
+          </div>
+          <div class="svg-wrap">
+            <svg viewBox="0 0 620 250" id="chainSvg" role="img" aria-label="推理链示意图">
+              <path class="ed" id="eAH" d="M86 64 L203 91"/>
+              <path class="ed" id="eBH" d="M86 146 L203 101"/>
+              <path class="ed" id="eHF" d="M269 96 L386 96"/>
+              <path class="ed" id="eEF" d="M258 200 L392 116"/>
+              <path class="ed" id="eFG" d="M454 96 L526 96"/>
+              <circle class="nd" id="nA" cx="60" cy="58" r="26"/>
+              <circle class="nd" id="nB" cx="60" cy="152" r="26"/>
+              <circle class="nd" id="nE" cx="235" cy="212" r="26"/>
+              <circle class="nd" id="nH" cx="235" cy="96" r="34"/>
+              <circle class="nd" id="nF" cx="420" cy="96" r="34"/>
+              <circle class="nd" id="nG" cx="560" cy="96" r="34"/>
+              <text class="nt" x="60" y="64" text-anchor="middle" font-size="17">A</text>
+              <text class="nt" x="60" y="158" text-anchor="middle" font-size="17">B</text>
+              <text class="nt" x="235" y="218" text-anchor="middle" font-size="17">E</text>
+              <text class="nt" x="235" y="102" text-anchor="middle" font-size="19">H</text>
+              <text class="nt" x="420" y="102" text-anchor="middle" font-size="19">F</text>
+              <text class="nt" x="560" y="102" text-anchor="middle" font-size="19">G</text>
+              <text class="nl" x="60" y="100" text-anchor="middle">数据就绪</text>
+              <text class="nl" x="60" y="194" text-anchor="middle">网络设计</text>
+              <text class="nl" x="300" y="232" text-anchor="middle">团队协作</text>
+              <text class="nl" x="235" y="148" text-anchor="middle">模型训练</text>
+              <text class="nl" x="420" y="148" text-anchor="middle">结果验证</text>
+              <text class="nl" x="560" y="148" text-anchor="middle">项目成功</text>
+              <text class="nl" x="140" y="70" text-anchor="middle">Conj + MP</text>
+              <text class="nl" x="330" y="86" text-anchor="middle">Conj + MP</text>
+              <text class="nl" x="490" y="86" text-anchor="middle">MP</text>
+            </svg>
+          </div>
+          <div class="sub-title">证明序列</div>
+          <div class="table-wrap">
+            <table class="dl-table proof"><thead><tr><th style="width:52px;">行</th><th>公式</th><th>依据</th></tr></thead><tbody id="proofBody"></tbody></table>
+          </div>
+        </section>
 
-      <div class="panel-card">
-        <h3>📜 证明步骤</h3>
-        <table class="proof"><thead><tr><th style="width:48px;">步骤</th><th>公式</th><th style="width:180px;">推理依据</th></tr></thead><tbody id="proofBody"></tbody></table>
-        <div class="ms-row" id="msRow">
-          <span class="ms-chip" id="msH">🤖 模型训练 H</span>
-          <span class="ms-chip" id="msF">✅ 结果验证 F</span>
-          <span class="ms-chip" id="msG">🎯 项目成功 G</span>
-        </div>
-      </div>
+        <section class="stage-card">
+          <div class="stage-head"><span class="stage-num">4</span><span class="stage-title">结果解读 · 对照数据学习</span><span class="stage-hint">推出来的 vs 学出来的</span></div>
+          <div class="stage-body">
+            <div class="verdict cur" id="verdict"></div>
 
-      <div class="insight-box">
-        <div class="insight-title">⚖️ 规则推理 vs 数据学习</div>
-        <p>规则推理（本页）每步可解释、可验证，但需要人写规则；神经网络靠数据拟合、表达力强，却是「黑箱」。例如单个感知机无法实现「异或」，必须多层——这正是逻辑表达能力的体现。把握二者的辩证关系，是迈向可信 AI（拓展层）的关键。</p>
-        <div class="badges"><span class="badge">创新引领</span><span class="badge">科学精神</span><span class="badge">辩证思维</span></div>
+            <div class="sub-title">换一条路：让感知机从样例中「学」规则 F ⇔ H∧E</div>
+            <p>不写规则，只给出 4 个样例 (H, E) → F，用 Rosenblatt 感知机学习规则：输出 y = 1 当且仅当 w₁H + w₂E ≥ θ；若 y 与目标 t 不同，则 <code>wᵢ ← wᵢ + η(t − y)xᵢ</code>，<code>θ ← θ − η(t − y)</code>（学习率 η = 0.5，初值全为 0）。</p>
+            <div class="learn-box">
+              <div class="learn-head">
+                <div class="opt-row" id="targetRow">
+                  <button class="opt-btn active" data-t="and">目标：F = H∧E</button>
+                  <button class="opt-btn" data-t="xor">目标：H⊕E（异或）</button>
+                </div>
+                <button class="dl-btn primary" id="learnOne">学习一个样例</button>
+                <button class="dl-btn" id="learnEpoch">学习一轮</button>
+                <button class="dl-btn ghost" id="learnReset">↺ 重置</button>
+              </div>
+              <div class="w-strip" id="wStrip"></div>
+              <div class="table-wrap" id="learnNow"></div>
+              <div class="verdict cur" id="learnVerdict"></div>
+              <div class="sub-title" style="margin-top:10px;">学习记录</div>
+              <div class="table-wrap log" id="learnLog"></div>
+            </div>
+
+            <div class="sub-title">两条路线对照</div>
+            <div class="table-wrap">
+              <table class="dl-table">
+                <thead><tr><th></th><th>规则推理（符号主义）</th><th>从样例学习（连接主义）</th></tr></thead>
+                <tbody>
+                  <tr><td class="nw">需要什么</td><td class="l">人写出的前提与规则</td><td class="l">带标签的样例数据</td></tr>
+                  <tr><td class="nw">得到什么</td><td class="l">一条每步有依据的证明</td><td class="l">一组权重与阈值</td></tr>
+                  <tr><td class="nw">可解释性</td><td class="l">每一行都能指出依据的规则</td><td class="l">参数本身不直接说明「为什么」，本例学到的 w₁=1、w₂=0.5 就与手工设计的不同</td></tr>
+                  <tr><td class="nw">出错来源</td><td class="l">前提写错或不全：推理有效，结论却可能不符合实际</td><td class="l">样例不足或模型结构表达不了目标（如单层学不会异或）</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="stage-card">
+          <div class="stage-head"><span class="stage-num">5</span><span class="stage-title">价值引领</span><span class="stage-hint">言必有据，推必有规</span></div>
+          <div class="stage-body value-seg">
+            <p>规则推理的每一行都写明依据，任何人都可以逐行检查——这种「可追溯」正是工程评审、安全论证所需要的品质。同时也要清醒：推理<b>有效</b>只保证「前提真则结论真」，前提本身是否属实，要靠调查研究和数据来检验。</p>
+            <p>符号主义与连接主义不是非此即彼：规则长于严谨和可解释，学习长于从数据中发现规律。用辩证的眼光看待两条路线、取长补短，是今天可信人工智能研究的重要思路。</p>
+            <div class="quote">「有效」不等于「真实」——推理严谨，还要前提可靠。</div>
+            <div class="tag-row"><span>科学精神</span><span>辩证思维</span><span>严谨求实</span></div>
+          </div>
+        </section>
+
+        <section class="stage-card">
+          <div class="stage-head"><span class="stage-num">6</span><span class="stage-title">迁移思考</span><span class="stage-hint">带着问题进入拓展层</span></div>
+          <div class="stage-body">
+            <ol class="think-list">
+              <li>若前提 E（团队协作到位）其实不成立，本页证明还有效吗？结论 G 还能保证为真吗？</li>
+              <li>用 CP 规则（附加前提证明法）证明：(A∧B)→H，(H∧E)→F，F→G ⊢ (A∧B∧E)→G。</li>
+              <li>感知机学不会异或，但一眼就能写出规则 H⊕E ⇔ (H∨E)∧¬(H∧E)。能否让神经网络负责「感知」、让逻辑规则负责「把关」？</li>
+            </ol>
+            <a class="next-link" href="deep_learning_logic-extend.html">进入拓展层：神经符号与可信 AI →</a>
+          </div>
+        </section>
       </div>
     </main>
   </div>
@@ -226,119 +249,168 @@ table.proof tr:last-child td{background:rgba(47,125,87,.08);}
   <script>
     window.SECTION_META = {
       "layers": [
-            { "name": "逻辑门与神经元", "concepts": "布尔函数 / 感知机", "task": "理解逻辑与神经元的联系。", "page": "deep_learning_logic-basic.html" },
-            { "name": "规则推理 vs 学习", "concepts": "可解释 / 数据拟合 / 异或需多层", "task": "辨析符号推理与连接主义长短。", "page": "deep_learning_logic.html" },
-            { "name": "神经符号与可信 AI", "concepts": "神经符号融合 / 形式化验证AI", "task": "迁移到可解释、可信的 AI。", "page": "deep_learning_logic-extend.html" }
+            { "name": "逻辑门与神经元", "concepts": "阈值神经元 / 与或非门 / 异或需多层", "task": "用单个神经元实现与、或、非，并理解单层为何不能实现异或。", "page": "deep_learning_logic-basic.html" },
+            { "name": "规则推理 vs 学习", "concepts": "前提符号化 / 推理规则 MP / 感知机学习", "task": "用推理规则逐行证明结论，并与从样例学习权重对照。", "page": "deep_learning_logic.html" },
+            { "name": "神经符号与可信 AI", "concepts": "神经符号融合 / 安全性质验证 / 可信判定", "task": "用符号规则约束神经网络预测，验证安全性质并判定可信。", "page": "deep_learning_logic-extend.html" }
       ],
       "chapter": "第5章 命题逻辑",
       "section": "5.9 人工智能创新",
-      "title": "命题逻辑应用 · 深度学习的逻辑",
-      "grounding": "本节主题：用命题逻辑理解 AI 中的逻辑结构——逻辑门与神经元激活、布尔函数与感知机、规则推理与可解释性。体会命题逻辑作为符号智能的根基，以及它与连接主义（深度学习）的互补，思考可信 AI 的逻辑基础。本页定位为进阶层：辨析规则推理与数据学习的长短。",
+      "title": "规则推理 vs 学习",
+      "grounding": "本节主题（案例单元）：用命题逻辑理解人工智能中的逻辑结构。进阶层：符号主义（规则推理）与连接主义（从数据学习）的对照。命题 A 数据就绪、B 网络结构设计完成、E 团队协作到位、H 模型训练完成、F 结果通过验证、G 项目成功；前提 (A∧B)→H、(H∧E)→F、F→G、A、B、E，证明 G：(1)A 前提引入 (2)B 前提引入 (3)A∧B 合取规则(1)(2) (4)(A∧B)→H 前提引入 (5)H 假言推理MP(3)(4) (6)E 前提引入 (7)H∧E 合取(5)(6) (8)(H∧E)→F 前提引入 (9)F MP(7)(8) (10)F→G 前提引入 (11)G MP(9)(10)。有效推理只保证前提真则结论真。对照：Rosenblatt 感知机学习规则（η=0.5、初值 0）从 4 个样例学习 F=H∧E，第 6 轮无错误、收敛到 w₁=1、w₂=0.5、θ=1.5；对异或 H⊕E 永不收敛，因为单层感知机不能表示异或。",
       "steps": [
-            { "name": "情境引入", "desc": "深度学习如此强大，它和最基础的逻辑门有什么关系？" },
-            { "name": "对象抽取", "desc": "把判定规则抽象为布尔函数与命题公式。" },
-            { "name": "结构建模", "desc": "用命题逻辑刻画规则推理，对照神经网络的拟合。" },
-            { "name": "推理求解", "desc": "分析逻辑可解释性与神经网络黑箱的张力。" },
-            { "name": "程序验证", "desc": "用本页交互构造逻辑判定，对照学习结果。" },
-            { "name": "迁移反思", "desc": "迁移到可解释AI、神经符号系统、可信AI。" }
+            { "name": "情境引入", "desc": "判断项目能否成功：写规则推理，还是从样例学习？" },
+            { "name": "对象抽取", "desc": "把数据、网络、训练、团队、验证、成功符号化为 A、B、H、E、F、G。" },
+            { "name": "结构建模", "desc": "写出前提 (A∧B)→H、(H∧E)→F、F→G、A、B、E 与结论 G。" },
+            { "name": "推理求解", "desc": "用前提引入、合取规则、假言推理 MP 逐行证明 G。" },
+            { "name": "程序验证", "desc": "用感知机从样例学习 F=H∧E，对照学不会的异或。" },
+            { "name": "迁移反思", "desc": "规则可解释、学习适应数据——如何取长补短？进入拓展层。" }
       ],
       "ideology": {
-            "title": "智能科技 · 创新引领",
-            "text": "人工智能是引领未来的战略性技术。命题逻辑作为符号智能的根基，提醒我们：强大的 AI 更需要可解释、可信赖的逻辑底座。把握逻辑与学习的辩证关系，勇于在神经符号融合等前沿创新，方能让智能科技更好地造福人民、服务国家。",
-            "dims": [ "创新引领", "科学精神", "辩证思维" ],
-            "quote": "既要会『学』，也要讲『理』——可信 AI 的未来，离不开逻辑这块基石。"
+            "title": "严谨求实 · 辩证取舍",
+            "text": "规则推理每一步都写明依据、可追溯、可检查，这正是工程评审与安全论证需要的品质；但推理有效只保证『前提真则结论真』，前提是否属实还要靠调查与数据检验。符号推理与数据学习各有所长，用辩证的眼光取长补短，是可信人工智能的重要思路。",
+            "dims": [ "科学精神", "辩证思维", "严谨求实" ],
+            "quote": "『有效』不等于『真实』——推理严谨，还要前提可靠。"
       },
       "reflect": [
-            "单个感知机能实现『异或』吗？为什么需要多层（这与逻辑的表达能力有何关系）？",
-            "深度学习『拟合数据』与逻辑『严格推理』各有何长短？",
-            "为什么说可解释性是可信 AI 的关键？逻辑能为其提供什么？"
+            "推理有效与结论为真有什么区别？若前提 E 不成立会怎样？",
+            "感知机学到的 w₁=1、w₂=0.5、θ=1.5 与手工设计的 1、1、1.5 不同，为什么都能实现 H∧E？",
+            "为什么感知机学习对异或永远不收敛？"
       ],
       "transfer": [
-            "神经符号 AI 试图把逻辑推理与神经网络结合，兼得可解释与强表达。",
-            { "t": "形式化验证AI", "d": "用逻辑方法验证神经网络的安全性质（如鲁棒性），为什么越来越重要？" }
+            "专家系统用规则推理给出可解释的结论，机器学习模型则从数据中拟合规律。",
+            { "t": "神经符号融合", "d": "让神经网络负责感知、让逻辑规则负责约束与解释，能否兼得两者之长？" }
       ]
     };
   </script>
 
   <script>
-  (function(){
+  (function () {
     "use strict";
-    const PREMISES=[
-      { f:'A ∧ B → H', d:'有数据和网络 → 能训练模型' },
-      { f:'H ∧ E → F', d:'训练后团队协作 → 验证结果' },
-      { f:'F → G',     d:'验证完成 → 项目成功' },
-      { f:'A',  d:'已知：数据已准备' },
-      { f:'B',  d:'已知：网络已设计' },
-      { f:'E',  d:'已知：团队能协作' }
+    var $ = function (id) { return document.getElementById(id); };
+    // 证明序列：node=本步点亮的节点；edges=本步相关的边
+    var SEQ = [
+      { f: "A", r: "前提引入 P", node: "nA", tip: "引入前提 A（数据已准备就绪）。" },
+      { f: "B", r: "前提引入 P", node: "nB", tip: "引入前提 B（网络结构已设计完成）。" },
+      { f: "A ∧ B", r: "合取规则 Conj (1)(2)", edges: ["eAH", "eBH"], tip: "用合取规则把第 (1)(2) 行合成 A∧B，为使用规则 (A∧B)→H 做准备。" },
+      { f: "(A ∧ B) → H", r: "前提引入 P", edges: ["eAH", "eBH"], tip: "引入前提 (A∧B)→H。" },
+      { f: "H", r: "假言推理 MP (3)(4)", node: "nH", done: ["eAH", "eBH"], tip: "由 A∧B 与 (A∧B)→H，用假言推理 MP 推出 H（模型训练完成）。" },
+      { f: "E", r: "前提引入 P", node: "nE", tip: "引入前提 E（团队协作到位）。" },
+      { f: "H ∧ E", r: "合取规则 Conj (5)(6)", edges: ["eHF", "eEF"], tip: "用合取规则把第 (5)(6) 行合成 H∧E。" },
+      { f: "(H ∧ E) → F", r: "前提引入 P", edges: ["eHF", "eEF"], tip: "引入前提 (H∧E)→F。" },
+      { f: "F", r: "假言推理 MP (7)(8)", node: "nF", done: ["eHF", "eEF"], tip: "由 H∧E 与 (H∧E)→F，用假言推理 MP 推出 F（结果通过验证）。" },
+      { f: "F → G", r: "前提引入 P", edges: ["eFG"], tip: "引入前提 F→G。" },
+      { f: "G", r: "假言推理 MP (9)(10)", node: "nG", done: ["eFG"], tip: "由 F 与 F→G，用假言推理 MP 推出 G（项目成功），证明完成。" }
     ];
-    const SEQ=[
-      { f:'A', r:'前提', tok:'A' },
-      { f:'B', r:'前提', tok:'B' },
-      { f:'A ∧ B', r:'合取引入 ∧I (1)(2)', tok:'AB' },
-      { f:'A ∧ B → H', r:'前提' },
-      { f:'H', r:'假言推理 MP (3)(4)', tok:'H', ms:'H' },
-      { f:'E', r:'前提', tok:'E' },
-      { f:'H ∧ E', r:'合取引入 ∧I (5)(6)', tok:'HE' },
-      { f:'H ∧ E → F', r:'前提' },
-      { f:'F', r:'假言推理 MP (7)(8)', tok:'F', ms:'F' },
-      { f:'F → G', r:'前提' },
-      { f:'G', r:'假言推理 MP (9)(10)', tok:'G', ms:'G' }
-    ];
-    const HINTS=[
-      '引入前提 A（数据已采集和预处理）。',
-      '引入前提 B（网络结构已设计）。',
-      '用合取引入 ∧I，把 A 和 B 合成 A∧B。',
-      '引入前提 A∧B→H（有数据和网络就能训练模型）。',
-      '🤖 用假言推理 MP，从 A∧B 与 A∧B→H 推出 H（模型训练完成）！',
-      '引入前提 E（团队能协同工作）。',
-      '用合取引入 ∧I，把 H 和 E 合成 H∧E。',
-      '引入前提 H∧E→F（训练后团队协作能完成验证）。',
-      '✅ 用假言推理 MP，推出 F（结果验证完成）！',
-      '引入前提 F→G（验证完成就能成功）。',
-      '🎯 用假言推理 MP，推出 G（项目成功）！证明完成。'
-    ];
-    let step=0;
-    const $=id=>document.getElementById(id);
-    const TOKMAP={A:'nA',B:'nB',H:'nH',E:'nE',F:'nF',G:'nG'};
-    const EDGEMAP={H:['eAH','eBH'],F:['eHF','eEF'],G:['eFG']};
+    var N = SEQ.length, p = 0, timer = null, toastTimer = null;
 
-    $('premiseList').innerHTML=PREMISES.map(p=>`<div class="premise-item"><div class="pf">${p.f}</div><div class="pd">${p.d}</div></div>`).join('');
+    function toast(msg, kind) {
+      var t = $("toast"); t.className = "dl-toast" + (kind ? " " + kind : ""); t.innerHTML = msg; t.hidden = false;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { t.classList.add("fade"); toastTimer = setTimeout(function () { t.hidden = true; }, 400); }, 4500);
+    }
 
-    $('nextBtn').addEventListener('click',next);
-    $('hintBtn').addEventListener('click',()=>alert('💡 提示：\n\n'+(step<HINTS.length?HINTS[step]:'证明已完成。')));
-    $('resetBtn').addEventListener('click',reset);
-
-    function next(){
-      if(step>=SEQ.length) return;
-      const s=SEQ[step]; step++;
-      // proof row
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td>(${step})</td><td class="f">${s.f}</td><td>${s.r}</td>`;
-      $('proofBody').appendChild(tr);
-      // tokens + nodes
-      if(s.tok){
-        const t=$('tokenRow').querySelector('.token[data-t="'+s.tok+'"]'); if(t) t.classList.add('on');
-        const nid=TOKMAP[s.tok]; if(nid) $(nid).classList.add('lit');
-        if(EDGEMAP[s.tok]) EDGEMAP[s.tok].forEach(e=>$(e).classList.add('lit'));
+    function render() {
+      // 节点
+      ["nA", "nB", "nE", "nH", "nF", "nG"].forEach(function (id) {
+        var at = -1; SEQ.forEach(function (s, i) { if (s.node === id) at = i; });
+        var cls = "nd"; if (at >= 0 && at < p - 1) cls += " done"; else if (at === p - 1) cls += " cur";
+        $(id).setAttribute("class", cls);
+      });
+      // 边
+      ["eAH", "eBH", "eHF", "eEF", "eFG"].forEach(function (id) {
+        var cls = "ed";
+        for (var i = 0; i < p; i++) {
+          var s = SEQ[i];
+          if (s.done && s.done.indexOf(id) >= 0) cls = "ed done";
+          else if (s.edges && s.edges.indexOf(id) >= 0 && cls !== "ed done") cls = (i === p - 1 || cls === "ed cur") ? "ed cur" : cls;
+        }
+        $(id).setAttribute("class", cls);
+      });
+      // 证明表
+      var body = "";
+      for (var i = 0; i < p; i++) {
+        var cls = i === p - 1 ? (i === N - 1 ? "row-goal" : "row-cur") : "";
+        body += '<tr class="' + cls + '"><td class="n">(' + (i + 1) + ')</td><td class="f">' + SEQ[i].f + '</td><td>' + SEQ[i].r + '</td></tr>';
       }
-      if(s.ms){ $('ms'+s.ms).classList.add('done'); }
-      // progress + feedback
-      $('progFill').style.width=(step/SEQ.length*100)+'%';
-      $('progText').textContent=step+' / '+SEQ.length;
-      $('feedback').innerHTML=HINTS[step-1];
-      $('nextBtn').disabled=step>=SEQ.length;
-      if(step>=SEQ.length){ $('nextBtn').textContent='✓ 证明完成'; setTimeout(()=>$('feedback').innerHTML='🎉 证明完成！数据 + 算法 + 算力 + 团队 ⟹ 项目必然成功 G。每一步都可解释、可追溯——这正是规则推理的价值。',300); }
+      $("proofBody").innerHTML = body || '<tr><td colspan="3" class="proof-empty">点「下一步」写出第 (1) 行。</td></tr>';
+      // 反馈与进度
+      $("status").innerHTML = p === 0 ? "证明从前提出发：点「下一步」写出第 (1) 行；不确定时点「💡 提示下一步」。" :
+        "<b>第 (" + p + ") 行</b>：" + SEQ[p - 1].tip + (p === N ? "<br>11 行、每行都有依据，证明完毕。" : "");
+      $("progBar").style.width = (p / N * 100) + "%"; $("progNum").textContent = p + " / " + N;
+      $("prevBtn").disabled = p === 0; $("nextBtn").disabled = p >= N;
+      var v = $("verdict");
+      if (p < N) { v.className = "verdict cur"; v.innerHTML = '<span class="v-chip">证明进行中 ' + p + ' / ' + N + '</span><div>完成全部 11 行后，结论 G 由前提逐行推出。</div>'; }
+      else {
+        v.className = "verdict ok";
+        v.innerHTML = '<span class="v-chip">✓ (A∧B)→H，(H∧E)→F，F→G，A，B，E ⊢ G</span><div>共用了 6 次前提引入、2 次合取规则、3 次假言推理 MP。每一行都能指出依据，这就是规则推理的<b>可解释性</b>。注意：推理<b>有效</b>只保证「前提都真时 G 必真」；若某条前提在现实中不成立（例如团队并未协作到位），G 就得不到保证。</div>';
+      }
     }
-    function reset(){
-      step=0; $('proofBody').innerHTML='';
-      $('tokenRow').querySelectorAll('.token').forEach(t=>t.classList.remove('on'));
-      ['nA','nB','nH','nE','nF','nG'].forEach(n=>$(n).classList.remove('lit'));
-      ['eAH','eBH','eHF','eEF','eFG'].forEach(e=>$(e).classList.remove('lit'));
-      ['msH','msF','msG'].forEach(m=>$(m).classList.remove('done'));
-      $('progFill').style.width='0%'; $('progText').textContent='0 / '+SEQ.length;
-      $('feedback').innerHTML='点击「下一步」开始引入前提，逐步构建证明。';
-      $('nextBtn').disabled=false; $('nextBtn').textContent='▶ 下一步';
+    function stopAuto() { if (timer) { clearInterval(timer); timer = null; } $("autoBtn").classList.remove("playing"); $("autoBtn").textContent = "⏵ 自动播放"; }
+    $("nextBtn").addEventListener("click", function () { stopAuto(); if (p < N) { p++; render(); } });
+    $("prevBtn").addEventListener("click", function () { stopAuto(); if (p > 0) { p--; render(); } });
+    $("resetBtn").addEventListener("click", function () { stopAuto(); p = 0; render(); });
+    $("autoBtn").addEventListener("click", function () {
+      if (timer) { stopAuto(); return; }
+      if (p >= N) { p = 0; render(); }
+      $("autoBtn").classList.add("playing"); $("autoBtn").textContent = "⏸ 暂停";
+      timer = setInterval(function () { if (p >= N) { stopAuto(); return; } p++; render(); }, +$("speedSel").value);
+    });
+    $("speedSel").addEventListener("change", function () { if (timer) { stopAuto(); $("autoBtn").click(); } });
+    $("hintBtn").addEventListener("click", function () {
+      if (p >= N) toast("证明已完成：第 (11) 行得到 G。可点「重置」再做一遍。", "ok");
+      else toast("💡 第 (" + (p + 1) + ") 行：" + SEQ[p].tip);
+    });
+
+    // ===== 感知机学习对照 =====
+    var S = [[0, 0], [0, 1], [1, 0], [1, 1]], ETA = 0.5, MAXEP = 8;
+    var target = "and", L;
+    function tf(a, b) { return target === "and" ? (a & b) : (a ^ b); }
+    function fmt(n) { return String(Math.round(n * 100) / 100).replace("-", "−"); }
+    function lreset() { L = { w1: 0, w2: 0, th: 0, i: 0, ep: 1, errEp: 0, log: [], done: false, lastEpErr: null }; }
+    function predict(a, b) { return L.w1 * a + L.w2 * b >= L.th ? 1 : 0; }
+    function learnOne() {
+      if (L.done) return;
+      var a = S[L.i][0], b = S[L.i][1], t = tf(a, b), y = predict(a, b), d = ETA * (t - y);
+      var before = "(" + fmt(L.w1) + ", " + fmt(L.w2) + ", " + fmt(L.th) + ")";
+      if (y !== t) { L.w1 += d * a; L.w2 += d * b; L.th -= d; L.errEp++; }
+      L.log.push({ ep: L.ep, x: "(" + a + ", " + b + ")", t: t, y: y, upd: y !== t, before: before, after: "(" + fmt(L.w1) + ", " + fmt(L.w2) + ", " + fmt(L.th) + ")" });
+      L.i++;
+      if (L.i === 4) {
+        L.lastEpErr = L.errEp;
+        if (L.errEp === 0 || L.ep >= MAXEP) L.done = true;
+        else { L.ep++; L.i = 0; L.errEp = 0; }
+      }
+      lrender();
     }
+    function lrender() {
+      $("wStrip").innerHTML = '<span>第 <b>' + L.ep + '</b> 轮</span><span>w₁ = <b>' + fmt(L.w1) + '</b></span><span>w₂ = <b>' + fmt(L.w2) + '</b></span><span>θ = <b>' + fmt(L.th) + '</b></span>';
+      var c = function (v) { return '<td class="' + (v ? "v1" : "v0") + '">' + v + '</td>'; };
+      var h = '<table class="dl-table"><thead><tr><th>H</th><th>E</th><th>目标 ' + (target === "and" ? "H∧E" : "H⊕E") + '</th><th>当前输出 y</th><th>吻合</th></tr></thead><tbody>';
+      var ok = 0;
+      S.forEach(function (r) { var t = tf(r[0], r[1]), y = predict(r[0], r[1]); if (t === y) ok++; h += '<tr>' + c(r[0]) + c(r[1]) + c(t) + c(y) + '<td>' + (t === y ? '<span class="pill ok">✓</span>' : '<span class="pill bad">✗</span>') + '</td></tr>'; });
+      $("learnNow").innerHTML = h + '</tbody></table>';
+      var v = $("learnVerdict");
+      if (L.done && L.lastEpErr === 0) { v.className = "verdict ok"; v.innerHTML = '<span class="v-chip">✓ 第 ' + L.ep + ' 轮无错误，学习收敛</span><div>学到 w₁=' + fmt(L.w1) + '，w₂=' + fmt(L.w2) + '，θ=' + fmt(L.th) + '，4 个样例全部正确。它与基础层手工设计的 (1, 1, 1.5) 不同却同样实现了 H∧E——参数能「做对」，却不像证明那样直接说明「为什么」。</div>'; }
+      else if (L.done) { v.className = "verdict bad"; v.innerHTML = '<span class="v-chip">✗ 学了 ' + MAXEP + ' 轮仍有错误</span><div>对异或，每一轮都有样例出错，参数在几个值之间来回变化，永远不会收敛——单层感知机根本<b>表示</b>不了异或（基础层已用反证法证明）。数据再多也无济于事，要换成多层结构。</div>'; }
+      else { v.className = "verdict cur"; v.innerHTML = '<span class="v-chip">学习中</span><div>当前 4 个样例中 ' + ok + ' 个输出正确。感知机学习每轮依次看 4 个样例，一轮内没有出错即收敛。</div>'; }
+      var lg = '<table class="dl-table"><thead><tr><th>轮</th><th>样例 (H,E)</th><th>目标 t</th><th>输出 y</th><th>更新前 (w₁,w₂,θ)</th><th>更新后</th></tr></thead><tbody>';
+      if (!L.log.length) lg += '<tr><td colspan="6">点「学习一个样例」开始。</td></tr>';
+      L.log.slice().reverse().forEach(function (e) { lg += '<tr><td>' + e.ep + '</td><td class="f">' + e.x + '</td>' + c(e.t) + c(e.y) + '<td class="f">' + e.before + '</td><td class="f">' + (e.upd ? '<b style="color:#d63b1d">' + e.after + '</b>' : '不变') + '</td></tr>'; });
+      $("learnLog").innerHTML = lg + '</tbody></table>';
+      $("learnOne").disabled = L.done; $("learnEpoch").disabled = L.done;
+    }
+    $("learnOne").addEventListener("click", learnOne);
+    $("learnEpoch").addEventListener("click", function () { var ep = L.ep; while (!L.done && L.ep === ep) learnOne(); });
+    $("learnReset").addEventListener("click", function () { lreset(); lrender(); });
+    document.querySelectorAll("#targetRow .opt-btn").forEach(function (b) {
+      b.addEventListener("click", function () {
+        target = b.dataset.t;
+        document.querySelectorAll("#targetRow .opt-btn").forEach(function (x) { x.classList.toggle("active", x === b); });
+        lreset(); lrender();
+      });
+    });
+
+    lreset(); lrender(); render();
   })();
   </script>
   <script src="../../shared/ai-tutor.js" defer></script>
