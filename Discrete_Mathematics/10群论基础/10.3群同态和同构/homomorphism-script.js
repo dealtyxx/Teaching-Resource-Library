@@ -96,7 +96,7 @@
       { t: "计算每个 f(x)", d: U.range(n).map(function (x) { return U.m(S.lab(x) + "↦" + T.lab(f[x])); }).join("，") + "。" },
       { t: "核 Ker f = " + S.set(K), d: "映到 G′ 单位元 " + U.m(T.lab(T.e)) + " 的全体元素：" + U.m("Ker f = " + S.set(K)) + "，|Ker f| = " + K.length + "。" },
       { t: "像 Im f = " + T.set(img), d: "所有像点：" + U.m("Im f = " + T.set(img)) + "，|Im f| = " + img.length + (img.length === T.n ? "，f 是满射。" : "，是 G′ 的子群但不是全部。") },
-      { t: "Ker f 是正规子群", d: S.abelian() ? "G 是交换群，任何子群都是正规子群。" : "逐个 g 检验 " + U.m("gKg⁻¹ = K") + "：" + U.range(n).map(function (g) { return U.m(S.lab(g)) + (S.conj(g, K).join() === K.join() ? "✓" : "✗"); }).join(" ") + "。一般地 " + U.m("f(gkg⁻¹) = f(g)e′f(g)⁻¹ = e′") + "。" },
+      { t: "Ker f 是正规子群", d: S.isAbelian() ? "G 是交换群，任何子群都是正规子群。" : "逐个 g 检验 " + U.m("gKg⁻¹ = K") + "：" + U.range(n).map(function (g) { return U.m(S.lab(g)) + (S.conj(g, K).join() === K.join() ? "✓" : "✗"); }).join(" ") + "。一般地 " + U.m("f(gkg⁻¹) = f(g)e′f(g)⁻¹ = e′") + "。" },
       { t: "陪集 ↔ 像点", d: cos.list.map(function (c, i) { return U.m(cName(cos.reps[i]) + " = " + S.set(c)) + " ↦ " + U.m(T.lab(f[c[0]])); }).join("；") + "——同一陪集的元素像相同，不同陪集像不同。" },
       { t: "同态基本定理", d: U.m("|G| / |Ker f| = " + n + " / " + K.length + " = " + n / K.length + " = |Im f|") + "，且 " + U.m("G/Ker f ≅ Im f") + "（aK ↦ f(a)）。" }
     ];

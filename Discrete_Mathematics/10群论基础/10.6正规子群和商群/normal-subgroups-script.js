@@ -1,924 +1,259 @@
-/**
- * 正规子群和商群可视化系统
- * Normal Subgroups and Quotient Groups Visualization System
+/* 10.6 正规子群和商群 —— 三层模块（由 ../group-lab/group-lab.js 渲染）
+ *   基础层：正规子群判定（逐个 g 检验 gNg⁻¹ = N，左右陪集是否一致）
+ *   进阶层：商群 G/N（陪集乘法良定义检验、商群运算表、自然同态的核；非正规时的反例）
+ *   拓展层：模运算与结构分解（Z/nZ、Z₁₂ 的合成列、单群 Z_p 与 A₅）
  */
+(function () {
+  "use strict";
+  var GL = window.GroupLab, U = GL.U, G = GL.G, D = GL.D, P = GL.P;
+  var sortN = function (a) { return a.slice().sort(function (x, y) { return x - y; }); };
+  var cname = function (S, a, N, nm) { return S.additive ? S.lab(a) + " + " + nm : (a === S.e ? nm : S.lab(a) + nm); };
 
-// DOM Elements
-const typeButtons = document.querySelectorAll('.type-btn');
-const groupSelect = document.getElementById('groupSelect');
-const groupOrderValue = document.getElementById('groupOrderValue');
-const subgroupCountValue = document.getElementById('subgroupCountValue');
-const normalCountValue = document.getElementById('normalCountValue');
-const subgroupSelector = document.getElementById('subgroupSelector');
-const elementSelector = document.getElementById('elementSelector');
-const testResult = document.getElementById('testResult');
-const conceptTitle = document.getElementById('conceptTitle');
-const conceptContent = document.getElementById('conceptContent');
-const mainTitle = document.getElementById('mainTitle');
-const mainSubtitle = document.getElementById('mainSubtitle');
-const quoteText = document.getElementById('quoteText');
-const quoteAuthor = document.getElementById('quoteAuthor');
-const ideologyTitle = document.getElementById('ideologyTitle');
-const ideologyText = document.getElementById('ideologyText');
-const analogyText = document.getElementById('analogyText');
-const normalSvg = document.getElementById('normalSvg');
-const mainGroup = document.getElementById('mainGroup');
-const criteriaList = document.getElementById('criteriaList');
-const quotientContainer = document.getElementById('quotientContainer');
-const quotientTableContent = document.getElementById('quotientTableContent');
-const conjugacyResult = document.getElementById('conjugacyResult');
-const conjugacyExplanation = document.getElementById('conjugacyExplanation');
-const demonstrateBtn = document.getElementById('demonstrateBtn');
-const constructBtn = document.getElementById('constructBtn');
-const resetBtn = document.getElementById('resetBtn');
+  var CASES = {
+    s3a3: { S: function () { return G.S3(); }, N: [0, 4, 5], nm: "A₃" },
+    s3t: { S: function () { return G.S3(); }, N: [0, 1], nm: "H" },
+    d4c: { S: function () { return G.D(4); }, N: [0, 2], nm: "N" },
+    d4s: { S: function () { return G.D(4); }, N: [0, 4], nm: "H" },
+    d4r: { S: function () { return G.D(4); }, N: [0, 1, 2, 3], nm: "N" },
+    z6: { S: function () { return G.Zadd(6); }, N: [0, 3], nm: "N" }
+  };
 
-// State
-let currentType = 'normal';
-let currentGroup = 's3';
-let currentSubgroup = null;
-let selectedElement = null;
-
-// Type Data
-const TYPES = {
-    normal: {
-        name: '正规子群',
-        nameEn: 'Normal Subgroup',
-        title: '和谐统一',
-        quote: '"求同存异，和而不同，共建和谐。"',
-        author: '— 中国传统智慧',
-        ideology: '正规子群体现了组织的核心价值观念。它在任何变换下都保持不变，象征着组织的核心理念应当坚守不移。无论外部环境如何变化（群元素的共轭作用），核心价值始终如一。',
-        analogy: '如同党的领导核心地位，无论形势如何变化，党的领导始终是中国特色社会主义最本质的特征。正规子群的不变性，正如核心价值观的坚定性，是组织团结统一的基石。',
-        conceptInfo: `
-            <p><strong>正规子群:</strong> 满足 gHg⁻¹ = H 的子群。</p>
-            <p><strong>核心思想:</strong> 内部对称，外部和谐。</p>
-            <p><strong>社会意义:</strong> 组织的核心价值观。</p>
-        `
-    },
-    quotient: {
-        name: '商群',
-        nameEn: 'Quotient Group',
-        title: '层级管理',
-        quote: '"纲举目张，有条不紊。"',
-        author: '— 管理智慧',
-        ideology: '商群体现了层级管理的组织智慧。通过正规子群将复杂的群结构简化为更高层次的抽象，实现了"化繁为简"的管理艺术。每个陪集代表一个管理层级，层级之间的运算体现了协调配合。',
-        analogy: '如同企业的层级管理结构，将员工按部门（陪集）划分，部门之间的协作（商群运算）遵循统一的规则，实现了组织的高效运转。',
-        conceptInfo: `
-            <p><strong>商群:</strong> G/H = {gH | g ∈ G}</p>
-            <p><strong>核心思想:</strong> 层级抽象，化繁为简。</p>
-            <p><strong>社会意义:</strong> 科学的层级管理。</p>
-        `
-    },
-    relation: {
-        name: '关系演示',
-        nameEn: 'Relationship Demo',
-        title: '内外统一',
-        quote: '"正其本，清其源。"',
-        author: '— 管理原则',
-        ideology: '正规子群与商群的关系体现了"内外统一"的哲学思想。内部的稳定性（正规性）决定了外部结构的合理性（商群存在），只有内部和谐统一，才能形成良好的组织架构。',
-        analogy: '如同企业文化建设，只有核心价值观（正规子群）被全体成员认同，才能在此基础上构建有效的管理体系（商群），实现企业的可持续发展。',
-        conceptInfo: `
-            <p><strong>关系:</strong> H ⊲ G ⟺ G/H 存在</p>
-            <p><strong>核心思想:</strong> 内部稳定，外部有序。</p>
-            <p><strong>社会意义:</strong> 内外兼修，和谐发展。</p>
-        `
-    }
-};
-
-// Group Definitions
-const GROUPS = {
-    s3: {
-        name: 'S₃',
-        fullName: '对称群 S₃',
-        order: 6,
-        elements: ['e', 'r', 'r²', 's', 'sr', 'sr²'],
-        operation: (x, y) => {
-            const table = {
-                'e': { 'e': 'e', 'r': 'r', 'r²': 'r²', 's': 's', 'sr': 'sr', 'sr²': 'sr²' },
-                'r': { 'e': 'r', 'r': 'r²', 'r²': 'e', 's': 'sr', 'sr': 'sr²', 'sr²': 's' },
-                'r²': { 'e': 'r²', 'r': 'e', 'r²': 'r', 's': 'sr²', 'sr': 's', 'sr²': 'sr' },
-                's': { 'e': 's', 'r': 'sr²', 'r²': 'sr', 's': 'e', 'sr': 'r²', 'sr²': 'r' },
-                'sr': { 'e': 'sr', 'r': 's', 'r²': 'sr²', 's': 'r', 'sr': 'e', 'sr²': 'r²' },
-                'sr²': { 'e': 'sr²', 'r': 'sr', 'r²': 's', 's': 'r²', 'sr': 'r', 'sr²': 'e' }
-            };
-            return table[x][y];
-        },
-        inverse: (x) => {
-            // All reflections (s, sr, sr²) are self-inverse (order 2); rotations: r^(-1)=r², r²^(-1)=r
-            const inv = { 'e': 'e', 'r': 'r²', 'r²': 'r', 's': 's', 'sr': 'sr', 'sr²': 'sr²' };
-            return inv[x];
-        },
-        subgroups: [
-            { name: 'H₁', elements: ['e'], isNormal: true, description: '平凡子群（正规）' },
-            { name: 'H₂', elements: ['e', 'r', 'r²'], isNormal: true, description: '旋转子群（正规）' },
-            { name: 'H₃', elements: ['e', 's'], isNormal: false, description: '反射子群（非正规）' },
-            { name: 'H₄', elements: ['e', 'sr'], isNormal: false, description: '反射子群（非正规）' }
-        ]
-    },
-    d4: {
-        name: 'D₄',
-        fullName: '二面体群 D₄',
-        order: 8,
-        elements: ['e', 'r', 'r²', 'r³', 's', 'sr', 'sr²', 'sr³'],
-        operation: (x, y) => {
-            // Full D4 operation using abstract group rules (same convention as S3):
-            // rot_i * rot_j = rot_(i+j)%4
-            // rot_i * ref_j = ref_(i+j)%4
-            // ref_i * rot_j = ref_(i-j+4)%4
-            // ref_i * ref_j = rot_(i-j+4)%4
-            const rotIdx = { 'e': 0, 'r': 1, 'r²': 2, 'r³': 3 };
-            const refIdx = { 's': 0, 'sr': 1, 'sr²': 2, 'sr³': 3 };
-            const rotNames = ['e', 'r', 'r²', 'r³'];
-            const refNames = ['s', 'sr', 'sr²', 'sr³'];
-            const xIsRot = x in rotIdx;
-            const yIsRot = y in rotIdx;
-            if (xIsRot && yIsRot) return rotNames[(rotIdx[x] + rotIdx[y]) % 4];
-            if (xIsRot && !yIsRot) return refNames[(rotIdx[x] + refIdx[y]) % 4];
-            if (!xIsRot && yIsRot) return refNames[((refIdx[x] - rotIdx[y]) % 4 + 4) % 4];
-            return rotNames[((refIdx[x] - refIdx[y]) % 4 + 4) % 4];
-        },
-        inverse: (x) => {
-            // Rotations: r^i inverse = r^(4-i); reflections: all self-inverse (ref^2=e)
-            const inv = { 'e': 'e', 'r': 'r³', 'r²': 'r²', 'r³': 'r', 's': 's', 'sr': 'sr', 'sr²': 'sr²', 'sr³': 'sr³' };
-            return inv[x];
-        },
-        subgroups: [
-            { name: 'H₁', elements: ['e'], isNormal: true, description: '平凡子群（正规）' },
-            { name: 'H₂', elements: ['e', 'r', 'r²', 'r³'], isNormal: true, description: '旋转子群（正规）' },
-            { name: 'H₃', elements: ['e', 'r²'], isNormal: true, description: '180°旋转（正规）' }
-        ]
-    },
-    z6: {
-        name: 'ℤ₆',
-        fullName: '循环群 ℤ₆',
-        order: 6,
-        elements: [0, 1, 2, 3, 4, 5],
-        operation: (a, b) => (a + b) % 6,
-        inverse: (a) => (6 - a) % 6,
-        subgroups: [
-            { name: 'H₁', elements: [0], isNormal: true, description: '平凡子群（正规）' },
-            { name: 'H₂', elements: [0, 2, 4], isNormal: true, description: '子群{0,2,4}（正规）' },
-            { name: 'H₃', elements: [0, 3], isNormal: true, description: '子群{0,3}（正规）' }
-        ]
-    },
-    a4: {
-        name: 'A₄',
-        fullName: '交错群 A₄',
-        order: 12,
-        elements: ['e', 'a', 'b', 'c', 'd', 'f', 'g', 'h', 'i', 'j', 'k', 'l'],
-        operation: (x, y) => {
-            const perms = {
-                'e': [1,2,3,4], 'a': [2,1,4,3], 'b': [3,4,1,2], 'c': [4,3,2,1],
-                'd': [2,3,1,4], 'f': [3,1,2,4], 'g': [2,4,3,1], 'h': [4,1,3,2],
-                'i': [3,2,4,1], 'j': [4,2,1,3], 'k': [1,3,4,2], 'l': [1,4,2,3]
-            };
-            const px = perms[x], py = perms[y];
-            const composed = py.map(val => px[val - 1]);
-            const key = JSON.stringify(composed);
-            return Object.entries(perms).find(([,p]) => JSON.stringify(p) === key)?.[0] || 'e';
-        },
-        inverse: (x) => {
-            // A4 elements: e(order1), a/b/c=double-transpositions(order2,self-inverse),
-            // d/f/g/h/i/j/k/l=3-cycles(order3, inverse is the other 3-cycle in same pair)
-            const inv = {
-                'e': 'e',
-                'a': 'a', 'b': 'b', 'c': 'c',       // (12)(34),(13)(24),(14)(23) are self-inverse
-                'd': 'f', 'f': 'd',                   // 3-cycle pairs: d=(123),f=(132)
-                'g': 'h', 'h': 'g',                   // g=(124),h=(142)
-                'i': 'j', 'j': 'i',                   // i=(134),j=(143)
-                'k': 'l', 'l': 'k'                    // k=(234),l=(243)
-            };
-            return inv[x] || 'e';
-        },
-        subgroups: [
-            { name: 'H₁', elements: ['e'], isNormal: true, description: '平凡子群（正规）' },
-            { name: 'H₂', elements: ['e', 'a', 'b', 'c'], isNormal: true, description: '克莱因四元群（正规）' }
-        ]
-    }
-};
-
-// Initialization
-window.addEventListener('load', () => {
-    updateType('normal');
-    updateGroup('s3');
-    attachEventListeners();
-});
-
-// Update Type
-function updateType(type) {
-    currentType = type;
-    const data = TYPES[type];
-
-    typeButtons.forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.type === type);
+  /* ---------------- 基础层 ---------------- */
+  function normalTest(key) {
+    var c = CASES[key], S = c.S(), N = sortN(c.N), n = S.n, nm = c.nm;
+    var inN = function (x) { return N.indexOf(x) >= 0; };
+    var rows = U.range(n).map(function (g) { var cj = S.conj(g, N); return { g: g, cj: cj, ok: cj.join() === N.join(), l: S.leftCoset(g, N), r: S.rightCoset(g, N) }; });
+    var steps = rows.map(function (r) {
+      return { t: "g = " + S.lab(r.g) + "：g" + nm + "g⁻¹ " + (r.ok ? "=" : "≠") + " " + nm,
+        d: (S.isAbelian() ? "交换群中 " + U.m("gng⁻¹ = n") + "，自然相等。" : U.m("g" + nm + "g⁻¹ = " + S.set(r.cj))) + "；" + U.m("g" + nm + " = " + S.set(r.l)) + "，" + U.m(nm + "g = " + S.set(r.r)) + "，" + (r.ok ? U.ok("左右陪集相同") : U.bad("左右陪集不同")) + "。" };
     });
-
-    conceptTitle.textContent = data.title;
-    conceptContent.innerHTML = data.conceptInfo;
-    mainTitle.textContent = `${data.name} - ${data.title}的组织核心`;
-    mainSubtitle.textContent = data.nameEn;
-    quoteText.textContent = data.quote;
-    quoteAuthor.textContent = data.author;
-    ideologyTitle.textContent = data.name + ' · ' + data.title;
-    ideologyText.innerHTML = `<p>${data.ideology}</p>`;
-    analogyText.textContent = data.analogy;
-
-    if (type === 'quotient') {
-        quotientContainer.style.display = 'block';
-    } else {
-        quotientContainer.style.display = 'none';
-    }
-
-    if (currentSubgroup) {
-        renderVisualization();
-    }
-}
-
-// Update Group
-function updateGroup(groupId) {
-    currentGroup = groupId;
-    const group = GROUPS[groupId];
-
-    groupOrderValue.textContent = group.order;
-    subgroupCountValue.textContent = group.subgroups.length;
-
-    const normalCount = group.subgroups.filter(sg => sg.isNormal).length;
-    normalCountValue.textContent = normalCount;
-
-    renderSubgroupSelector(group);
-    renderElementSelector(group);
-
-    // Select first normal subgroup by default
-    const firstNormal = group.subgroups.find(sg => sg.isNormal && sg.elements.length > 1);
-    if (firstNormal) {
-        selectSubgroup(firstNormal);
-    } else if (group.subgroups.length > 0) {
-        selectSubgroup(group.subgroups[0]);
-    }
-}
-
-// Render Subgroup Selector
-function renderSubgroupSelector(group) {
-    subgroupSelector.innerHTML = '';
-
-    group.subgroups.forEach((subgroup) => {
-        const div = document.createElement('div');
-        div.className = 'subgroup-item' + (subgroup.isNormal ? ' is-normal' : '');
-        div.innerHTML = `
-            <strong>${subgroup.name}</strong>: {${subgroup.elements.join(', ')}}
-            <br><small>${subgroup.description}</small>
-        `;
-        div.addEventListener('click', () => selectSubgroup(subgroup));
-        subgroupSelector.appendChild(div);
-    });
-}
-
-// Select Subgroup
-function selectSubgroup(subgroup) {
-    currentSubgroup = subgroup;
-
-    document.querySelectorAll('.subgroup-item').forEach((item) => {
-        const group = GROUPS[currentGroup];
-        const sg = group.subgroups.find(s =>
-            item.textContent.includes(s.name) && item.textContent.includes(s.description)
-        );
-        item.classList.toggle('selected', sg === subgroup);
-    });
-
-    updateCriteriaBox(subgroup);
-    renderVisualization();
-
-    if (currentType === 'quotient' && subgroup.isNormal) {
-        renderQuotientGroup(subgroup);
-    }
-}
-
-// Render Element Selector
-function renderElementSelector(group) {
-    elementSelector.innerHTML = '';
-
-    group.elements.forEach(el => {
-        const div = document.createElement('div');
-        div.className = 'element-item';
-        div.textContent = el;
-        div.dataset.value = el;
-        div.addEventListener('click', () => selectElement(el));
-        elementSelector.appendChild(div);
-    });
-}
-
-// Select Element
-function selectElement(element) {
-    selectedElement = element;
-
-    document.querySelectorAll('.element-item').forEach(item => {
-        item.classList.toggle('selected', item.dataset.value == element);
-    });
-
-    if (!currentSubgroup) {
-        testResult.innerHTML = '<p style="color: var(--text-secondary);">请先选择一个子群</p>';
-        return;
-    }
-
-    performConjugacyTest(element, currentSubgroup);
-}
-
-// Perform Conjugacy Test: gHg⁻¹
-function performConjugacyTest(g, subgroup) {
-    const group = GROUPS[currentGroup];
-    const gInv = group.inverse(g);
-
-    const conjugatedSet = new Set();
-    subgroup.elements.forEach(h => {
-        // Compute g * h * g⁻¹
-        const gh = group.operation(g, h);
-        const ghg_inv = group.operation(gh, gInv);
-        conjugatedSet.add(ghg_inv.toString());
-    });
-
-    const originalSet = new Set(subgroup.elements.map(e => e.toString()));
-    const isInvariant = areSetsEqual(conjugatedSet, originalSet);
-
-    conjugacyResult.textContent = isInvariant ? 'H ✓' : '≠ H ✗';
-    conjugacyResult.style.color = isInvariant ? 'var(--color-normal)' : 'var(--color-non-normal)';
-
-    conjugacyExplanation.innerHTML = `
-        <strong>g = ${g}, g⁻¹ = ${gInv}</strong><br>
-        gHg⁻¹ = {${Array.from(conjugatedSet).join(', ')}}<br>
-        ${isInvariant ?
-            '<span style="color: var(--color-normal);">✓ 共轭不变，满足正规性</span>' :
-            '<span style="color: var(--color-non-normal);">✗ 共轭改变，不满足正规性</span>'}
-    `;
-
-    testResult.innerHTML = `
-        <p style="font-size: 0.95rem; margin-bottom: 8px;">
-            <strong style="color: var(--accent-red);">共轭检验</strong>
-        </p>
-        <p style="font-size: 0.9rem;">
-            元素 g = <strong>${g}</strong>, g⁻¹ = <strong>${gInv}</strong>
-        </p>
-        <p style="font-size: 0.85rem; margin-top: 6px;">
-            gHg⁻¹ = {${Array.from(conjugatedSet).join(', ')}}
-        </p>
-        <p style="font-size: 0.85rem; color: ${isInvariant ? 'var(--color-normal)' : 'var(--color-non-normal)'}; margin-top: 6px;">
-            ${isInvariant ? '✓ 满足正规性条件' : '✗ 不满足正规性条件'}
-        </p>
-    `;
-}
-
-// Update Criteria Box
-function updateCriteriaBox(subgroup) {
-    criteriaList.innerHTML = '';
-
-    const criteria = [
-        { text: '左陪集 = Right陪集', passed: subgroup.isNormal },
-        { text: 'gHg⁻¹ ⊆ H, ∀g∈G', passed: subgroup.isNormal },
-        { text: '商群 G/H 存在', passed: subgroup.isNormal }
-    ];
-
-    criteria.forEach(criterion => {
-        const div = document.createElement('div');
-        div.className = 'criteria-item' + (criterion.passed ? '' : ' failed');
-        div.innerHTML = `
-            <span class="criteria-icon">${criterion.passed ? '✓' : '✗'}</span>
-            <span>${criterion.text}</span>
-        `;
-        criteriaList.appendChild(div);
-    });
-}
-
-// Render Visualization
-function renderVisualization() {
-    if (!currentSubgroup) return;
-
-    mainGroup.innerHTML = '';
-    const arrowsGroup = document.getElementById('arrowsGroup');
-    arrowsGroup.innerHTML = '';
-
-    const group = GROUPS[currentGroup];
-
-    const WIDTH = normalSvg.clientWidth || 600;
-    const HEIGHT = normalSvg.clientHeight || 350;
-
-    // 根据不同视图模式渲染不同的可视化
-    if (currentType === 'normal') {
-        renderNormalSubgroupView(group, WIDTH, HEIGHT);
-    } else if (currentType === 'quotient') {
-        renderQuotientGroupView(group, WIDTH, HEIGHT);
-    } else if (currentType === 'relation') {
-        renderRelationshipView(group, WIDTH, HEIGHT);
-    }
-}
-
-// 正规子群视图：显示群结构和正规子群边界
-function renderNormalSubgroupView(group, WIDTH, HEIGHT) {
-    const centerX = WIDTH / 2;
-    const centerY = HEIGHT / 2;
-    const radius = Math.min(WIDTH, HEIGHT) / 3;
-    const n = group.elements.length;
-
-    // 绘制正规子群边界
-    if (currentSubgroup.isNormal && currentSubgroup.elements.length > 1) {
-        const boundaryPoints = [];
-        currentSubgroup.elements.forEach(el => {
-            const idx = group.elements.indexOf(el);
-            const angle = (2 * Math.PI * idx) / n - Math.PI / 2;
-            const x = centerX + (radius + 15) * Math.cos(angle);
-            const y = centerY + (radius + 15) * Math.sin(angle);
-            boundaryPoints.push(`${x},${y}`);
-        });
-
-        if (boundaryPoints.length > 2) {
-            const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-            polygon.setAttribute('points', boundaryPoints.join(' '));
-            polygon.setAttribute('class', 'subgroup-boundary');
-            mainGroup.appendChild(polygon);
+    var bad = rows.filter(function (r) { return !r.ok; }), normal = !bad.length;
+    steps.push({ t: normal ? nm + " ⊴ " + S.name : nm + " 不是正规子群", d: normal ? "对所有 g 都有 " + U.m("g" + nm + "g⁻¹ = " + nm) + "，等价地 " + U.m("g" + nm + " = " + nm + "g") + "。" : "共有 " + bad.length + " 个 g 使共轭把 " + nm + " 「搬」出了自身，如 " + U.m(S.lab(bad[0].g) + nm + S.lab(bad[0].g) + "⁻¹ = " + S.set(bad[0].cj)) + "。" });
+    return {
+      titles: { struct: ["共轭检验表", nm + " = " + S.set(N)], viz: [S.name + " 中的 " + nm, "金 = " + nm + " · 红 = 共轭后跑出 " + nm + " 的元素"] },
+      intro: "N 是正规子群 ⇔ 对一切 g ∈ G，gNg⁻¹ = N ⇔ 左陪集 gN 等于右陪集 Ng。逐个 g 检验。",
+      steps: steps,
+      struct: function (k) {
+        return D.table(["g", "g" + nm + "g⁻¹", "g" + nm, nm + "g", ""], rows.map(function (r, i) {
+          return i <= k ? [U.m(S.lab(r.g)), U.m(S.set(r.cj)), U.m(S.set(r.l)), U.m(S.set(r.r)), r.ok ? "✓" : "✗"] : [U.m(S.lab(r.g)), "…", "", "", ""];
+        }), { compact: true, rowCls: function (i) { return i === k ? "cur" : ""; }, cls: function (i, ci) { return ci === 4 && i <= k ? (rows[i].ok ? "ok" : "bad") : ""; } });
+      },
+      viz: function (k) {
+        var cls = U.range(n).map(function (x) { return inN(x) ? "on" : ""; }), arrows = [];
+        if (k >= 0 && k < n) {
+          var r = rows[k], gi = S.inv(r.g);
+          cls[r.g] = cls[r.g] ? "on ring" : "cur";
+          N.forEach(function (h) { var y = S.T[S.T[r.g][h]][gi]; if (y !== h) arrows.push({ a: h, b: y, cls: inN(y) ? "ok" : "bad" }); if (!inN(y)) cls[y] = "bad"; });
         }
+        return D.ring({ labels: U.range(n).map(S.lab), cls: cls, arrows: arrows, center: [nm + (k >= n ? (normal ? " ⊴ G" : " ⋬ G") : ""), k >= 0 && k < n ? "g = " + S.lab(k) : ""] });
+      },
+      verdict: normal ? { kind: "ok", chip: "正规子群", reason: nm + " = " + U.m(S.set(N)) + " 在所有共轭下不变，是 " + S.name + " 的正规子群，记作 " + U.m(nm + " ⊴ " + S.name) + "。",
+          insight: key === "s3a3" ? "A₃ 是 S₃ 中全体偶置换：共轭不改变置换的奇偶性，所以 A₃ 必然正规。指数为 2 的子群总是正规的。" : S.isAbelian() ? "交换群的每个子群都是正规子群。" : "D₄ 的中心 {e, r²} 与所有元素可交换，中心总是正规子群。" }
+        : { kind: "bad", chip: "不是正规子群", reason: "存在 g 使 " + U.m("g" + nm + "g⁻¹ ≠ " + nm) + "（左右陪集不同），所以 " + nm + " 不是正规子群。",
+          insight: "正规性是「子群与整个群的相处方式」，与子群自身大小无关：S₃ 中 {e,(12)} 与 A₃ 都是子群，只有后者正规。" }
+    };
+  }
+  var basic = {
+    legend: [["gNg⁻¹", "N 被 g 共轭后的像"], ["gN = Ng", "左右陪集相同"], ["N ⊴ G", "N 是正规子群"], ['<i class="dot on"></i>', "子群 N 的元素"], ['<i class="dot bad"></i>', "共轭后跑出 N"]],
+    caseLabel: "选择群与子群",
+    cases: [
+      { label: "S₃ 中 A₃ = {e,(123),(132)}", build: function () { return normalTest("s3a3"); } },
+      { label: "S₃ 中 {e,(12)}", build: function () { return normalTest("s3t"); } },
+      { label: "D₄ 中心 {e, r²}", build: function () { return normalTest("d4c"); } },
+      { label: "D₄ 中 {e, s}", build: function () { return normalTest("d4s"); } },
+      { label: "Z₆ 中 {0, 3}", build: function () { return normalTest("z6"); } }
+    ]
+  };
+
+  /* ---------------- 进阶层：商群 ---------------- */
+  function quotient(key) {
+    var c = CASES[key], S = c.S(), N = sortN(c.N), nm = c.nm, cs = S.cosets(N), m = cs.reps.length;
+    var name = function (i) { return cname(S, cs.reps[i], N, nm); };
+    var pairs = [], bad = null;
+    for (var i = 0; i < m; i++) for (var j = 0; j < m; j++) {
+      var hit = {};
+      cs.list[i].forEach(function (x) { cs.list[j].forEach(function (y) { hit[cs.cls[S.T[x][y]]] = [x, y]; }); });
+      var ks = Object.keys(hit).map(Number);
+      pairs.push({ i: i, j: j, ks: ks, ok: ks.length === 1, ex: hit });
+      if (ks.length > 1 && !bad) bad = { i: i, j: j, a: hit[ks[0]], b: hit[ks[1]], ka: ks[0], kb: ks[1] };
     }
-
-    // 绘制群元素
-    group.elements.forEach((el, i) => {
-        const angle = (2 * Math.PI * i) / n - Math.PI / 2;
-        const x = centerX + radius * Math.cos(angle);
-        const y = centerY + radius * Math.sin(angle);
-
-        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        g.setAttribute('class', 'group-node');
-        g.setAttribute('transform', `translate(${x}, ${y})`);
-        g.dataset.element = el;
-
-        const isInSubgroup = currentSubgroup.elements.includes(el) ||
-            currentSubgroup.elements.includes(parseInt(el));
-
-        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        circle.setAttribute('r', 22);
-        circle.setAttribute('class', 'node-circle');
-        circle.setAttribute('fill', isInSubgroup ? '#10b981' : '#d63b1d');
-        circle.setAttribute('stroke', '#fff');
-        circle.setAttribute('stroke-width', 2);
-        circle.setAttribute('filter', 'url(#glow)');
-
-        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        text.setAttribute('class', 'node-label');
-        text.textContent = el;
-
-        g.appendChild(circle);
-        g.appendChild(text);
-        mainGroup.appendChild(g);
-
-        g.addEventListener('click', () => selectElement(el));
+    var steps = [{ t: "列出 " + m + " 个陪集", d: cs.list.map(function (l, t) { return U.m(name(t) + " = " + S.set(l)); }).join("；") + "。" }];
+    pairs.forEach(function (pr) {
+      steps.push({ t: name(pr.i) + " · " + name(pr.j), d: pr.ok ? "任取代表 x ∈ " + name(pr.i) + "、y ∈ " + name(pr.j) + "，乘积 xy 总落在 " + U.m(name(pr.ks[0])) + " " + U.ok("✓ 良定义") + "。"
+        : "取不同代表乘积落在不同陪集：" + pr.ks.map(function (kk) { var e = pr.ex[kk]; return U.m(S.lab(e[0]) + "·" + S.lab(e[1]) + " = " + S.lab(S.T[e[0]][e[1]]) + " ∈ " + name(kk)); }).join("，") + " " + U.bad("✗ 不良定义") + "。" });
     });
-}
-
-// 商群视图：显示陪集分解
-function renderQuotientGroupView(group, WIDTH, HEIGHT) {
-    const cosets = getAllCosets(group, currentSubgroup);
-    const numCosets = cosets.length;
-    const padding = 60;
-    const cosetWidth = (WIDTH - 2 * padding) / numCosets;
-    const cosetHeight = HEIGHT - 2 * padding;
-
-    const COSET_COLORS = ['#10b981', '#4ecdc4', '#ff6b6b', '#f59e0b', '#8b5cf6', '#ec4899'];
-
-    cosets.forEach((coset, i) => {
-        const x = padding + i * cosetWidth;
-        const y = padding;
-        const color = COSET_COLORS[i % COSET_COLORS.length];
-
-        // 陪集边界框
-        const boundary = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        boundary.setAttribute('x', x + 10);
-        boundary.setAttribute('y', y);
-        boundary.setAttribute('width', cosetWidth - 20);
-        boundary.setAttribute('height', cosetHeight);
-        boundary.setAttribute('fill', 'none');
-        boundary.setAttribute('stroke', color);
-        boundary.setAttribute('stroke-width', 3);
-        boundary.setAttribute('stroke-dasharray', '8,4');
-        boundary.setAttribute('rx', 15);
-        boundary.setAttribute('opacity', 0.6);
-        mainGroup.appendChild(boundary);
-
-        // 陪集标签
-        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        label.setAttribute('x', x + cosetWidth / 2);
-        label.setAttribute('y', y - 15);
-        label.setAttribute('text-anchor', 'middle');
-        label.setAttribute('font-size', '16px');
-        label.setAttribute('font-weight', '700');
-        label.setAttribute('fill', color);
-        label.textContent = `${coset.representative}H`;
-        mainGroup.appendChild(label);
-
-        // 陪集元素
-        const numElements = coset.elements.length;
-        coset.elements.forEach((el, j) => {
-            const elementY = y + (j + 0.5) * (cosetHeight / numElements);
-            const elementX = x + cosetWidth / 2;
-
-            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-            g.setAttribute('transform', `translate(${elementX}, ${elementY})`);
-            g.setAttribute('class', 'group-node');
-            g.dataset.element = el;
-
-            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            circle.setAttribute('r', 20);
-            circle.setAttribute('class', 'node-circle');
-            circle.setAttribute('fill', color);
-            circle.setAttribute('stroke', '#fff');
-            circle.setAttribute('stroke-width', 2);
-            circle.setAttribute('filter', 'url(#glow)');
-
-            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            text.setAttribute('class', 'node-label');
-            text.textContent = el;
-
-            g.appendChild(circle);
-            g.appendChild(text);
-            mainGroup.appendChild(g);
-
-            g.addEventListener('click', () => selectElement(coset.representative));
-        });
-    });
-
-    // 自动显示商群运算表
-    if (currentSubgroup.isNormal) {
-        renderQuotientGroup(currentSubgroup);
-    }
-}
-
-// 关系演示视图：显示G到G/H的映射
-function renderRelationshipView(group, WIDTH, HEIGHT) {
-    const leftX = WIDTH * 0.25;
-    const rightX = WIDTH * 0.75;
-    const centerY = HEIGHT / 2;
-    const radius = Math.min(WIDTH, HEIGHT) / 4;
-
-    // 左侧：原群G
-    const leftLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    leftLabel.setAttribute('x', leftX);
-    leftLabel.setAttribute('y', 30);
-    leftLabel.setAttribute('text-anchor', 'middle');
-    leftLabel.setAttribute('font-size', '20px');
-    leftLabel.setAttribute('font-weight', '700');
-    leftLabel.setAttribute('fill', '#d63b1d');
-    leftLabel.textContent = `群 ${group.name}`;
-    mainGroup.appendChild(leftLabel);
-
-    // 绘制原群元素
-    const n = group.elements.length;
-    group.elements.forEach((el, i) => {
-        const angle = (2 * Math.PI * i) / n - Math.PI / 2;
-        const x = leftX + radius * 0.8 * Math.cos(angle);
-        const y = centerY + radius * 0.8 * Math.sin(angle);
-
-        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        g.setAttribute('transform', `translate(${x}, ${y})`);
-        g.setAttribute('class', 'group-node');
-        g.dataset.element = el;
-
-        const isInSubgroup = currentSubgroup.elements.includes(el) ||
-            currentSubgroup.elements.includes(parseInt(el));
-
-        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        circle.setAttribute('r', 18);
-        circle.setAttribute('class', 'node-circle');
-        circle.setAttribute('fill', isInSubgroup ? '#10b981' : '#d63b1d');
-        circle.setAttribute('stroke', '#fff');
-        circle.setAttribute('stroke-width', 2);
-
-        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        text.setAttribute('class', 'node-label');
-        text.setAttribute('font-size', '12px');
-        text.textContent = el;
-
-        g.appendChild(circle);
-        g.appendChild(text);
-        mainGroup.appendChild(g);
-    });
-
-    // 右侧：商群G/H
-    if (currentSubgroup.isNormal) {
-        const cosets = getAllCosets(group, currentSubgroup);
-        const rightLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        rightLabel.setAttribute('x', rightX);
-        rightLabel.setAttribute('y', 30);
-        rightLabel.setAttribute('text-anchor', 'middle');
-        rightLabel.setAttribute('font-size', '20px');
-        rightLabel.setAttribute('font-weight', '700');
-        rightLabel.setAttribute('fill', '#4ecdc4');
-        rightLabel.textContent = `商群 ${group.name}/${currentSubgroup.name}`;
-        mainGroup.appendChild(rightLabel);
-
-        const COSET_COLORS = ['#10b981', '#4ecdc4', '#ff6b6b', '#f59e0b', '#8b5cf6', '#ec4899'];
-        const numCosets = cosets.length;
-
-        // 绘制商群元素（陪集）
-        cosets.forEach((coset, i) => {
-            const angle = (2 * Math.PI * i) / numCosets - Math.PI / 2;
-            const x = rightX + radius * 0.8 * Math.cos(angle);
-            const y = centerY + radius * 0.8 * Math.sin(angle);
-            const color = COSET_COLORS[i % COSET_COLORS.length];
-
-            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-            g.setAttribute('transform', `translate(${x}, ${y})`);
-            g.setAttribute('class', 'group-node');
-
-            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            circle.setAttribute('r', 28);
-            circle.setAttribute('fill', color);
-            circle.setAttribute('stroke', '#fff');
-            circle.setAttribute('stroke-width', 3);
-            circle.setAttribute('filter', 'url(#glow)');
-
-            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            text.setAttribute('text-anchor', 'middle');
-            text.setAttribute('dominant-baseline', 'middle');
-            text.setAttribute('font-size', '14px');
-            text.setAttribute('font-weight', '700');
-            text.setAttribute('fill', '#fff');
-            text.textContent = `${coset.representative}H`;
-
-            g.appendChild(circle);
-            g.appendChild(text);
-            mainGroup.appendChild(g);
-        });
-
-        // 绘制映射箭头
-        const arrowsGroup = document.getElementById('arrowsGroup');
-        group.elements.forEach((el, i) => {
-            const angle1 = (2 * Math.PI * i) / n - Math.PI / 2;
-            const x1 = leftX + radius * 0.8 * Math.cos(angle1);
-            const y1 = centerY + radius * 0.8 * Math.sin(angle1);
-
-            // 找到该元素所属的陪集
-            const cosetIndex = cosets.findIndex(c =>
-                c.elements.includes(el) || c.elements.includes(parseInt(el))
-            );
-
-            if (cosetIndex >= 0) {
-                const angle2 = (2 * Math.PI * cosetIndex) / numCosets - Math.PI / 2;
-                const x2 = rightX + radius * 0.8 * Math.cos(angle2);
-                const y2 = centerY + radius * 0.8 * Math.sin(angle2);
-
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                const d = `M ${x1 + 18} ${y1} Q ${WIDTH / 2} ${centerY} ${x2 - 28} ${y2}`;
-                path.setAttribute('d', d);
-                path.setAttribute('stroke', COSET_COLORS[cosetIndex % COSET_COLORS.length]);
-                path.setAttribute('stroke-width', '1.5');
-                path.setAttribute('fill', 'none');
-                path.setAttribute('opacity', '0.4');
-                path.setAttribute('marker-end', 'url(#arrowGold)');
-                arrowsGroup.appendChild(path);
-            }
-        });
-
-        // 添加映射符号
-        const mapSymbol = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        mapSymbol.setAttribute('x', WIDTH / 2);
-        mapSymbol.setAttribute('y', HEIGHT - 20);
-        mapSymbol.setAttribute('text-anchor', 'middle');
-        mapSymbol.setAttribute('font-size', '18px');
-        mapSymbol.setAttribute('font-weight', '700');
-        mapSymbol.setAttribute('fill', '#ffb400');
-        mapSymbol.textContent = 'π: G → G/H (自然同态)';
-        mainGroup.appendChild(mapSymbol);
+    if (!bad) {
+      steps.push({ t: "商群 " + S.name + "/" + nm, d: "陪集乘法 " + U.m("(a" + nm + ")(b" + nm + ") = (ab)" + nm) + " 良定义，" + m + " 个陪集构成 " + m + " 阶群。" });
+      steps.push({ t: "自然同态 π: g ↦ g" + nm, d: U.m("π(ab) = (ab)" + nm + " = π(a)π(b)") + "，" + U.m("Ker π = " + nm) + "——每个正规子群都是某个同态的核。" });
     } else {
-        // 非正规子群提示
-        const warningText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        warningText.setAttribute('x', rightX);
-        warningText.setAttribute('y', centerY);
-        warningText.setAttribute('text-anchor', 'middle');
-        warningText.setAttribute('font-size', '16px');
-        warningText.setAttribute('fill', '#ff6b6b');
-        warningText.textContent = '该子群不是正规子群';
-        mainGroup.appendChild(warningText);
-
-        const warningText2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        warningText2.setAttribute('x', rightX);
-        warningText2.setAttribute('y', centerY + 25);
-        warningText2.setAttribute('text-anchor', 'middle');
-        warningText2.setAttribute('font-size', '14px');
-        warningText2.setAttribute('fill', '#ff6b6b');
-        warningText2.textContent = '商群不存在';
-        mainGroup.appendChild(warningText2);
+      steps.push({ t: "无法构成商群", d: nm + " 不是正规子群，陪集乘法依赖代表的选取，G/" + nm + " 上定义不出运算。" });
     }
-}
+    var table = function () {
+      return D.table([S.name + "/" + nm].concat(U.range(m).map(name)), U.range(m).map(function (i) {
+        return ["<b>" + name(i) + "</b>"].concat(U.range(m).map(function (j) { var pr = pairs[i * m + j]; return pr.ok ? name(pr.ks[0]) : "✗"; }));
+      }), { compact: true, cls: function (r, ci) { if (ci === 0) return ""; var pr = pairs[r * m + ci - 1]; return pr.ok ? "c" + (pr.ks[0] % 6) : "bad"; } });
+    };
+    return {
+      titles: { struct: ["陪集乘法表", "按任意代表相乘"], viz: [S.name + " 的陪集", "同色 = 同一陪集"] },
+      intro: "商群的元素是陪集，运算是「取代表相乘」。只有当结果与代表的选取无关（良定义）时，商群才存在。",
+      steps: steps,
+      struct: function (k) {
+        if (k <= 0) return D.sets(cs.list.map(function (l, t) { return { name: name(t), body: S.set(l), cls: "c" + (t % 6) }; }));
+        var done = Math.min(k, pairs.length);
+        var h = D.table(["×"].concat(U.range(m).map(name)), U.range(m).map(function (i) {
+          return ["<b>" + name(i) + "</b>"].concat(U.range(m).map(function (j) { var idx = i * m + j, pr = pairs[idx]; return idx < done ? (pr.ok ? name(pr.ks[0]) : "✗") : "…"; }));
+        }), { compact: true, cls: function (r, ci) { if (ci === 0) return ""; var idx = r * m + ci - 1, pr = pairs[idx]; if (idx >= done) return ""; return idx === k - 1 ? "hl" : pr.ok ? "" : "bad"; } });
+        if (k > pairs.length && !bad) h += D.note("商群 " + U.m(S.name + "/" + nm) + " 的阶 = " + U.m(S.n + "/" + N.length + " = " + m) + (m === 2 ? "，≅ Z₂。" : m === 4 ? (U.range(m).every(function (t) { return pairs[t * m + t].ks[0] === 0; }) ? "，每个元素平方为单位元，≅ 克莱因四元群 K₄。" : "，≅ Z₄。") : "。"));
+        return h;
+      },
+      viz: function (k) {
+        var cls = U.range(S.n).map(function (x) { return "c" + (cs.cls[x] % 6); }), arrows = [];
+        var pr = k >= 1 && k <= pairs.length ? pairs[k - 1] : null;
+        if (pr) {
+          cs.list[pr.i].concat(cs.list[pr.j]).forEach(function (x) { cls[x] += " ring"; });
+          if (!pr.ok) { var e1 = pr.ex[pr.ks[0]], e2 = pr.ex[pr.ks[1]]; arrows.push({ a: e1[0], b: S.T[e1[0]][e1[1]], cls: "bad" }, { a: e2[0], b: S.T[e2[0]][e2[1]], cls: "bad" }); }
+        }
+        return D.ring({ labels: U.range(S.n).map(S.lab), cls: cls, arrows: arrows, center: [S.name + "/" + nm, m + " 个陪集"] });
+      },
+      verdict: bad ? { kind: "bad", chip: "商群不存在", reason: "在 " + name(bad.i) + " 与 " + name(bad.j) + " 中取不同代表：" + U.m(S.lab(bad.a[0]) + "·" + S.lab(bad.a[1]) + " ∈ " + name(bad.ka)) + "，但 " + U.m(S.lab(bad.b[0]) + "·" + S.lab(bad.b[1]) + " ∈ " + name(bad.kb)) + "——陪集乘法不良定义。",
+          insight: "这正是要求 N 正规的原因：N 正规 ⇔ 陪集乘法与代表无关 ⇔ G/N 能成为群。" }
+        : { kind: "ok", chip: S.name + "/" + nm + " 是 " + m + " 阶群", reason: "陪集乘法对任意代表都给出同一陪集，得到商群；自然同态 π: g ↦ g" + nm + " 的核恰为 " + nm + "。",
+          insight: "同态基本定理的另一面：核一定正规，而每个正规子群又都是自然同态的核——「正规子群」与「同态」是一回事的两种说法。" }
+    };
+  }
+  var advanced = {
+    legend: [["gN", "商群的元素（陪集）"], ["(aN)(bN)", "= (ab)N，需良定义"], ["π", "自然同态 g ↦ gN"], ["Ker π", "= N"], ["✗", "取不同代表结果不同"]],
+    caseLabel: "选择商群",
+    cases: [
+      { label: "S₃ / A₃", build: function () { return quotient("s3a3"); } },
+      { label: "D₄ / {e, r²}", build: function () { return quotient("d4c"); } },
+      { label: "D₄ / ⟨r⟩", build: function () { return quotient("d4r"); } },
+      { label: "S₃ / {e,(12)}（非正规，反例）", build: function () { return quotient("s3t"); } }
+    ]
+  };
 
-// Render Quotient Group
-function renderQuotientGroup(subgroup) {
-    if (!subgroup.isNormal) {
-        quotientTableContent.innerHTML = '<p style="color: var(--color-non-normal); text-align: center; padding: 20px;">该子群不是正规子群，无法构造商群</p>';
-        return;
-    }
-
-    const group = GROUPS[currentGroup];
-    const cosets = getAllCosets(group, subgroup);
-
-    const table = document.createElement('table');
-
-    // Header row
-    const headerRow = table.insertRow();
-    headerRow.insertCell().textContent = '*';
-    cosets.forEach(coset => {
-        const th = document.createElement('th');
-        th.textContent = `${coset.representative}H`;
-        headerRow.appendChild(th);
+  /* ---------------- 拓展层 ---------------- */
+  function zmodn(n) {
+    var ints = U.range(24).map(function (i) { return i - 8; });
+    var steps = U.range(n).map(function (r) {
+      return { t: "剩余类 [" + r + "] = " + r + " + " + n + "Z", d: "余数为 " + r + " 的全体整数：" + U.m("{…, " + ints.filter(function (x) { return U.mod(x, n) === r; }).join(", ") + ", …}") + "。" };
     });
+    steps.push({ t: "[a] + [b] = [a + b]", d: "例：" + U.m("[" + (n - 1) + "] + [2] = [" + (n + 1) + "] = [" + (n + 1) % n + "]") + "；换代表 " + U.m((2 * n - 1) + " + " + (2 - n) + " = " + (n + 1)) + "，结果相同——nZ 是 Z 的正规子群（Z 交换）。" });
+    steps.push({ t: "Z / nZ ≅ Zₙ", d: "商群 Z/nZ 的 " + n + " 个元素就是模 " + n + " 的剩余类；「模 n 运算」其实就是在商群里计算。" });
+    return {
+      titles: { struct: ["整数按余数分类", "−8 … 15 的整数"], viz: ["商群 Z/" + n + "Z", "箭头 = 加 [1]"] },
+      intro: "整数加法群 Z 以 nZ 为正规子群，陪集就是剩余类，商群就是模 n 的世界。",
+      steps: steps,
+      struct: function (k) {
+        return '<div class="gl-sets">' + U.range(n).map(function (r) {
+          return '<div class="gl-set ' + (r <= k ? "c" + (r % 6) : "dim") + (r === k ? " cur" : "") + '"><b>[' + r + "]</b>" + '<span class="gl-m">' + ints.filter(function (x) { return U.mod(x, n) === r; }).join("  ") + "</span></div>";
+        }).join("") + "</div>";
+      },
+      viz: function (k) {
+        var cls = U.range(n).map(function (r) { return r <= k ? "c" + (r % 6) : ""; });
+        var arrows = k >= n ? U.range(n).map(function (r) { return { a: r, b: (r + 1) % n, cls: "on" }; }) : [];
+        return D.ring({ labels: U.range(n).map(function (r) { return "[" + r + "]"; }), cls: cls, arrows: arrows, center: ["Z/" + n + "Z", "≅ Z" + U.sub(n)] });
+      },
+      verdict: { kind: "ok", chip: "Z/" + n + "Z ≅ Z" + U.sub(n), reason: "Z 的陪集 r + nZ（r = 0…" + (n - 1) + "）在代表相加下构成 " + n + " 阶循环群。",
+        insight: "日历中的星期（模 7）、时钟（模 12）、校验码中的求余，都是在商群 Z/nZ 中计算。" }
+    };
+  }
 
-    // Data rows
-    cosets.forEach(coset1 => {
-        const row = table.insertRow();
-        const th = document.createElement('th');
-        th.textContent = `${coset1.representative}H`;
-        row.appendChild(th);
+  function series() {
+    var S = G.Zadd(12), chain = [[0, 2, 4, 6, 8, 10], [0, 4, 8], [0]];
+    var names = ["Z₁₂", "⟨2⟩", "⟨4⟩", "{0}"], full = [U.range(12)].concat(chain);
+    var steps = [
+      { t: "Z₁₂ ⊳ ⟨2⟩：商 ≅ Z₂", d: U.m("⟨2⟩ = {0,2,4,6,8,10}") + "，指数 2，" + U.m("Z₁₂/⟨2⟩ ≅ Z₂") + "（奇偶两类）。" },
+      { t: "⟨2⟩ ⊳ ⟨4⟩：商 ≅ Z₂", d: U.m("⟨4⟩ = {0,4,8}") + "，" + U.m("⟨2⟩/⟨4⟩ ≅ Z₂") + "。" },
+      { t: "⟨4⟩ ⊳ {0}：商 ≅ Z₃", d: U.m("⟨4⟩ ≅ Z₃") + " 是素数阶群，只有平凡子群，再也分不下去。" },
+      { t: "合成因子 Z₂, Z₂, Z₃", d: "12 = 2 × 2 × 3：每一层的商都是素数阶的「单群」。换一条链（如 Z₁₂ ⊳ ⟨3⟩ ⊳ ⟨6⟩ ⊳ {0}）因子顺序可变，但因子的集合不变（若尔当–赫尔德定理）。" }
+    ];
+    return {
+      titles: { struct: ["合成列", "Z₁₂ ⊳ ⟨2⟩ ⊳ ⟨4⟩ ⊳ {0}"], viz: ["逐层缩小的子群", "颜色 = 所在层"] },
+      intro: "像把整数分解成素数一样，把群沿正规子群一层层「商」下去，直到每层都是单群。",
+      steps: steps,
+      struct: function (k) {
+        return D.table(["层", "子群", "阶", "商群"], [0, 1, 2].map(function (i) {
+          return [i + 1, U.m(names[i] + " ⊳ " + names[i + 1]), full[i].length + " → " + full[i + 1].length, i <= k ? U.m(i === 2 ? "Z₃" : "Z₂") : "…"];
+        }), { rowCls: function (r) { return r === k ? "cur" : ""; } }) + (k >= 3 ? D.note("合成因子：" + U.m("Z₂, Z₂, Z₃") + "；阶的乘积 2·2·3 = 12。") : "");
+      },
+      viz: function (k) {
+        var lvl = Math.min(Math.max(k + 1, 0), 3);
+        var cls = U.range(12).map(function (x) { for (var i = lvl; i >= 1; i--) if (full[i].indexOf(x) >= 0) return ["", "on", "c3", "ok"][i]; return ""; });
+        return D.ring({ labels: U.range(12).map(String), cls: cls, arrows: [], center: [names[lvl], "阶 " + full[lvl].length] });
+      },
+      verdict: { kind: "info", chip: "12 = 2·2·3", reason: "Z₁₂ 的合成因子为 Z₂、Z₂、Z₃，对应 12 的素因子分解。",
+        insight: "单群是群的「素数」：有限单群分类定理把所有有限单群列成了清单，这是 20 世纪数学的一项集体成就。" }
+    };
+  }
 
-        cosets.forEach(coset2 => {
-            const cell = row.insertCell();
-            // Compute coset product
-            const product = group.operation(coset1.representative, coset2.representative);
-            const resultCoset = cosets.find(c =>
-                c.elements.includes(product) || c.elements.includes(parseInt(product))
-            );
-            cell.textContent = resultCoset ? `${resultCoset.representative}H` : '?';
+  function simple(key) {
+    var S = key === "a5" ? G.An(5) : G.Zadd(7), n = S.n;
+    if (key === "z7") {
+      var steps7 = U.range(7).map(function (a) { var H = sortN(S.powers(a)); return { t: "⟨" + a + "⟩ = " + (H.length === 1 ? "{0}" : H.length === 7 ? "Z₇" : U.set(H)), d: "阶 " + H.length + (a ? "：非零元都生成整个 Z₇" : "：平凡子群") + "。" }; });
+      steps7.push({ t: "Z₇ 是单群", d: "7 是素数，由拉格朗日定理子群阶只能是 1 或 7，所以只有 {0} 与 Z₇ 两个正规子群。" });
+      return {
+        titles: { struct: ["全部子群", "|Z₇| = 7"], viz: ["生成轨道", "每个非零元都走遍全部"] },
+        intro: "单群：除 {e} 和自身外没有别的正规子群。素数阶循环群是最简单的单群。",
+        steps: steps7,
+        struct: function (k) { return D.table(["a", "⟨a⟩"], U.range(7).map(function (a) { return [a, a <= k ? steps7[a].t.split(" = ")[1] : "…"]; }), { compact: true, rowCls: function (r) { return r === k ? "cur" : ""; } }); },
+        viz: function (k) {
+          var a = Math.max(0, Math.min(k, 6)), pw = S.powers(a), arrows = [];
+          for (var i = 1; i <= pw.length && pw.length > 1; i++) arrows.push({ a: pw[i - 1], b: pw[i % pw.length], cls: "on" });
+          return D.ring({ labels: U.range(7).map(String), cls: U.range(7).map(function (x) { return x === a ? "cur" : pw.indexOf(x) >= 0 ? "on" : ""; }), arrows: arrows, center: ["⟨" + a + "⟩", "阶 " + pw.length] });
+        },
+        verdict: { kind: "ok", chip: "单群", reason: "Z₇ 只有平凡正规子群，是单群；所有交换单群恰好是素数阶循环群。", insight: "非交换的单群要大得多：最小的是 60 阶的 A₅。" }
+      };
+    }
+    /* A₅：共轭类 → 正规子群只能是共轭类之并 */
+    var seen = {}, classes = [];
+    for (var x = 0; x < n; x++) {
+      if (seen[x]) continue;
+      var cl = {};
+      for (var g = 0; g < n; g++) cl[S.T[S.T[g][x]][S.inv(g)]] = 1;
+      var list = Object.keys(cl).map(Number); list.forEach(function (y) { seen[y] = 1; });
+      classes.push(list);
+    }
+    var sizes = classes.map(function (c) { return c.length; });
+    var others = sizes.slice(1), sums = [];
+    for (var mask = 0; mask < (1 << others.length); mask++) {
+      var s = 1; others.forEach(function (z, i) { if (mask & (1 << i)) s += z; });
+      if (60 % s === 0 && sums.indexOf(s) < 0) sums.push(s);
+    }
+    var desc = function (c) { var p = S.elems[c[0]]; return P.cycles(p).map(function (cy) { return cy.length; }).join("+") || "e"; };
+    var steps = classes.map(function (c, i) { return { t: "共轭类 " + (i + 1) + "：" + c.length + " 个元素", d: "代表 " + U.m(S.lab(c[0])) + "（类型 " + desc(c) + "），与它共轭的元素共 " + c.length + " 个。" }; });
+    steps.push({ t: "正规子群 = 若干共轭类之并", d: "正规子群对共轭封闭，必是含 {e} 的若干共轭类之并，且大小整除 60。可能的大小：1 + 子集和 ∈ " + U.m(U.set(sums)) + "。" });
+    steps.push({ t: "A₅ 是单群", d: "只有 1 和 60 同时满足两个条件，所以 A₅ 的正规子群只有 {e} 和 A₅ 本身。" });
+    return {
+      titles: { struct: ["A₅ 的共轭类", "|A₅| = 60"], viz: ["类的大小", "1 + 15 + 20 + 12 + 12 = 60"] },
+      intro: "A₅（S₅ 中 60 个偶置换）是最小的非交换单群。用「共轭类大小」这一计数论证来验证。",
+      steps: steps,
+      struct: function (k) {
+        return D.table(["类", "代表", "类型", "大小"], classes.map(function (c, i) { return [i + 1, i <= k ? U.m(S.lab(c[0])) : "…", i <= k ? desc(c) : "", i <= k ? c.length : ""]; }), { rowCls: function (r) { return r === k ? "cur" : ""; } }) +
+          (k >= classes.length ? D.note("含 {e} 的并的大小：" + U.m(U.set(sums)) + "（在 1…60 中整除 60 的只有这些）") : "");
+      },
+      viz: function (k) {
+        var h = '<div class="gl-sets">';
+        classes.forEach(function (c, i) {
+          var w = Math.round(c.length / 20 * 100);
+          h += '<div class="gl-set ' + (i <= k ? "c" + (i % 6) : "dim") + '"><b>类 ' + (i + 1) + '</b><span style="flex:1;min-width:80px;height:12px;border-radius:6px;background:rgba(116,55,31,.1);position:relative"><i style="position:absolute;left:0;top:0;bottom:0;width:' + w + '%;border-radius:6px;background:var(--c' + (i % 6) + ')"></i></span><em>' + c.length + "</em></div>";
         });
-    });
+        return h + "</div>";
+      },
+      verdict: { kind: "ok", chip: "A₅ 是单群", reason: "共轭类大小为 " + U.m(sizes.join(", ")) + "；含 1 的部分和中整除 60 的只有 1 与 60。",
+        insight: "A₅ 的单性是「五次及以上方程没有一般根式解」的群论根源（伽罗瓦理论）。" }
+    };
+  }
 
-    quotientTableContent.innerHTML = '';
-    quotientTableContent.appendChild(table);
-}
+  var extend = {
+    legend: [["[r]", "剩余类 r + nZ"], ["Z/nZ", "模 n 的商群"], ["⊳", "包含正规子群"], ["合成因子", "逐层商得的单群"], ["单群", "只有平凡正规子群"]],
+    caseLabel: "选择主题",
+    cases: [
+      { label: "Z / nZ：模 n 的剩余类", params: [{ id: "n", label: "模数 n", type: "select", value: 5, options: [[3, "3"], [4, "4"], [5, "5"], [6, "6"]] }], build: function (p) { return zmodn(p.n); } },
+      { label: "结构分解：Z₁₂ 的合成列", build: series },
+      { label: "单群：Z₇ 与 A₅", params: [{ id: "g", label: "群", type: "select", value: "a5", options: [["a5", "A₅（60 阶）"], ["z7", "Z₇（素数阶）"]] }], build: function (p) { return simple(p.g); } }
+    ]
+  };
 
-// Get All Cosets
-function getAllCosets(group, subgroup) {
-    const cosets = [];
-    const covered = new Set();
-
-    group.elements.forEach(g => {
-        if (covered.has(g.toString())) return;
-
-        const coset = [];
-        subgroup.elements.forEach(h => {
-            const gh = group.operation(g, h);
-            coset.push(gh);
-        });
-
-        cosets.push({
-            representative: g,
-            elements: coset
-        });
-
-        coset.forEach(el => covered.add(el.toString()));
-    });
-
-    return cosets;
-}
-
-// Demonstrate Normality
-async function demonstrateNormality() {
-    if (!currentSubgroup) {
-        testResult.innerHTML = '<p style="color: var(--danger-red);">请先选择一个子群</p>';
-        return;
-    }
-
-    demonstrateBtn.disabled = true;
-    demonstrateBtn.textContent = '演示中...';
-
-    const group = GROUPS[currentGroup];
-
-    testResult.innerHTML = `
-        <p style="font-size: 0.95rem; color: var(--accent-red); margin-bottom: 8px;">
-            <strong>🎯 正规性验证演示</strong>
-        </p>
-        <p style="font-size: 0.85rem;">
-            检验子群 ${currentSubgroup.name} 的正规性
-        </p>
-    `;
-
-    let allPassed = true;
-
-    for (let i = 0; i < Math.min(group.elements.length, 4); i++) {
-        const g = group.elements[i];
-        const gInv = group.inverse(g);
-
-        // Highlight element
-        document.querySelectorAll('.group-node').forEach(node => {
-            const circle = node.querySelector('.node-circle');
-            if (node.dataset.element == g) {
-                circle.setAttribute('r', 28);
-                circle.classList.add('pulse');
-            } else {
-                circle.setAttribute('r', 22);
-                circle.classList.remove('pulse');
-            }
-        });
-
-        const conjugatedSet = new Set();
-        currentSubgroup.elements.forEach(h => {
-            const gh = group.operation(g, h);
-            const ghg_inv = group.operation(gh, gInv);
-            conjugatedSet.add(ghg_inv.toString());
-        });
-
-        const originalSet = new Set(currentSubgroup.elements.map(e => e.toString()));
-        const isInvariant = areSetsEqual(conjugatedSet, originalSet);
-
-        if (!isInvariant) allPassed = false;
-
-        testResult.innerHTML = `
-            <p style="font-size: 0.95rem; color: var(--accent-red); margin-bottom: 8px;">
-                <strong>🎯 正规性验证演示</strong>
-            </p>
-            <p style="font-size: 0.9rem; margin: 8px 0;">
-                步骤 ${i + 1}: 检验 g = <strong style="color: var(--accent-gold);">${g}</strong>
-            </p>
-            <p style="font-size: 0.85rem;">
-                g${currentSubgroup.name}g⁻¹ = {${Array.from(conjugatedSet).join(', ')}}
-            </p>
-            <p style="font-size: 0.85rem; color: ${isInvariant ? 'var(--color-normal)' : 'var(--color-non-normal)'};">
-                ${isInvariant ? '✓ 满足条件' : '✗ 不满足条件'}
-            </p>
-        `;
-
-        conjugacyResult.textContent = isInvariant ? 'H ✓' : '≠ H ✗';
-        conjugacyResult.style.color = isInvariant ? 'var(--color-normal)' : 'var(--color-non-normal)';
-
-        await sleep(1500);
-    }
-
-    // Reset highlighting
-    document.querySelectorAll('.group-node').forEach(node => {
-        const circle = node.querySelector('.node-circle');
-        circle.setAttribute('r', 22);
-        circle.classList.remove('pulse');
-    });
-
-    testResult.innerHTML = `
-        <p style="color: ${allPassed ? 'var(--color-normal)' : 'var(--color-non-normal)'};">
-            ${allPassed ? '✓ 验证完成！该子群是正规子群' : '✗ 该子群不是正规子群'}
-        </p>
-        <p style="font-size: 0.85rem; margin-top: 6px;">
-            ${allPassed ?
-            '所有群元素的共轭作用都保持子群不变，满足正规性条件。' :
-            '存在群元素的共轭作用改变了子群，不满足正规性条件。'}
-        </p>
-    `;
-
-    demonstrateBtn.disabled = false;
-    demonstrateBtn.textContent = '▶ 演示正规性';
-}
-
-// Construct Quotient Group
-function constructQuotientGroup() {
-    if (!currentSubgroup) {
-        testResult.innerHTML = '<p style="color: var(--danger-red);">请先选择一个子群</p>';
-        return;
-    }
-
-    if (!currentSubgroup.isNormal) {
-        testResult.innerHTML = '<p style="color: var(--danger-red);">该子群不是正规子群，无法构造商群</p>';
-        return;
-    }
-
-    updateType('quotient');
-    renderQuotientGroup(currentSubgroup);
-
-    testResult.innerHTML = `
-        <p style="color: var(--color-normal);">
-            ✓ 商群构造成功！
-        </p>
-        <p style="font-size: 0.85rem; margin-top: 6px;">
-            商群 G/${currentSubgroup.name} 的运算表已显示在右侧。
-        </p>
-    `;
-}
-
-// Helper Functions
-function areSetsEqual(set1, set2) {
-    if (set1.size !== set2.size) return false;
-    for (let item of set1) {
-        if (!set2.has(item)) return false;
-    }
-    return true;
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// Event Listeners
-function attachEventListeners() {
-    typeButtons.forEach(btn => {
-        btn.addEventListener('click', () => updateType(btn.dataset.type));
-    });
-
-    groupSelect.addEventListener('change', (e) => {
-        updateGroup(e.target.value);
-    });
-
-    demonstrateBtn.addEventListener('click', demonstrateNormality);
-
-    constructBtn.addEventListener('click', constructQuotientGroup);
-
-    resetBtn.addEventListener('click', () => {
-        location.reload();
-    });
-}
+  GL.define({ basic: basic, advanced: advanced, extend: extend });
+})();

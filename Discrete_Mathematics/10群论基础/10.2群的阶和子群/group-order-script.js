@@ -143,7 +143,7 @@
       },
       verdict: gens.length ? { kind: "ok", chip: "循环群", reason: S.name + " = ⟨" + S.lab(gens[0]) + "⟩，生成元为 " + U.m(U.set(gens.map(S.lab))) + "。循环群一定是交换群。",
           insight: S.additive ? "Zₙ 中 k 是生成元 ⇔ gcd(k, n) = 1，生成元个数为 φ(n) = " + U.phi(n) + "。" : "U(n) 是循环群当且仅当 n = 1, 2, 4, pᵏ 或 2pᵏ（p 为奇素数）。" }
-        : { kind: "bad", chip: "非循环群", reason: S.name + " 中每个元素生成的子群都是真子群，没有生成元。" + (S.abelian() ? "它是交换群却不是循环群——交换 ⇏ 循环。" : "它甚至不是交换群。"),
+        : { kind: "bad", chip: "非循环群", reason: S.name + " 中每个元素生成的子群都是真子群，没有生成元。" + (S.isAbelian() ? "它是交换群却不是循环群——交换 ⇏ 循环。" : "它甚至不是交换群。"),
           insight: key === "u8" ? "U(8) = {1,3,5,7} 中每个非单位元的平方都是 1，它就是克莱因四元群 K₄。" : "S₃ 的元素阶只有 1、2、3，没有 6 阶元。" }
     };
   }

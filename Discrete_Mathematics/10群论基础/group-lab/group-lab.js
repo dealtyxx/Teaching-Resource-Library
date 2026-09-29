@@ -143,6 +143,7 @@
       for (var i = 0; i < n; i++) for (var j = 0; j < n; j++) if (T[i][j] !== T[j][i]) return [i, j];
       return null;
     };
+    S.isAbelian = function () { return !S.abelian(); };
     S.isGroup = function () {
       if (S.closed() || S.assocFail() || S.e < 0) return false;
       for (var i = 0; i < n; i++) if (S.inv(i) < 0) return false;
