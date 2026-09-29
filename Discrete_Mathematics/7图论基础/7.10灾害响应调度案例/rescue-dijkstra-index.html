@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
@@ -8,364 +7,154 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
-    <meta property="og:title" content="最短路调度 · 进阶层｜7.10 灾害响应调度案例 - 离散数学课程资源库">
-    <meta property="og:description" content="第7章 图论基础 · 7.10 灾害响应调度案例 · 进阶层：Dijkstra 最快路径 / 资源分配。求最快救援路径、优化调度。">
+    <meta property="og:title" content="Dijkstra 最快调度 · 进阶层｜7.10 灾害响应调度案例 - 离散数学课程资源库">
+    <meta property="og:description" content="第7章 图论基础 · 7.10 灾害响应调度案例 · 进阶层：dist 与 pre 标号 / 逐轮确定 / 最短路径树。逐轮执行 Dijkstra，求各受灾区的最快路线。">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/7%E5%9B%BE%E8%AE%BA%E5%9F%BA%E7%A1%80/7.10%E7%81%BE%E5%AE%B3%E5%93%8D%E5%BA%94%E8%B0%83%E5%BA%A6%E6%A1%88%E4%BE%8B/rescue-dijkstra-index.html">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="最短路调度 · 进阶层｜7.10 灾害响应调度案例 - 离散数学课程资源库">
-    <meta name="twitter:description" content="第7章 图论基础 · 7.10 灾害响应调度案例 · 进阶层：Dijkstra 最快路径 / 资源分配。求最快救援路径、优化调度。">
+    <meta name="twitter:title" content="Dijkstra 最快调度 · 进阶层｜7.10 灾害响应调度案例 - 离散数学课程资源库">
+    <meta name="twitter:description" content="第7章 图论基础 · 7.10 灾害响应调度案例 · 进阶层：dist 与 pre 标号 / 逐轮确定 / 最短路径树。逐轮执行 Dijkstra，求各受灾区的最快路线。">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>最短路调度 · 进阶层｜7.10 灾害响应调度案例 - 离散数学课程资源库</title>
-    <meta name="description" content="第7章 图论基础 · 7.10 灾害响应调度案例 · 进阶层：Dijkstra 最快路径 / 资源分配。求最快救援路径、优化调度。">
-
+    <title>Dijkstra 最快调度 · 进阶层｜7.10 灾害响应调度案例 - 离散数学课程资源库</title>
+    <meta name="description" content="第7章 图论基础 · 7.10 灾害响应调度案例 · 进阶层：dist 与 pre 标号 / 逐轮确定 / 最短路径树。逐轮执行 Dijkstra，求各受灾区的最快路线。">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap"></noscript>
+    <link rel="stylesheet" href="rescue_case.css">
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
-    <link rel="stylesheet" href="rescue-dijkstra-style.css">
     <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
 <body>
     <a class="home-link" href="../../index.html#chapter7">← 返回课程主页</a>
-
     <div class="app-container">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="window-controls">
-                    <span class="dot red"></span>
-                    <span class="dot yellow"></span>
-                    <span class="dot green"></span>
-                </div>
-                <h1>红色数理 <span class="highlight">进阶层</span></h1>
-                <p class="subtitle">救援路网带权图 · 救援调度</p>
+        <aside class="side-panel">
+            <div class="eyebrow">进阶层 · 第7章 图论基础</div>
+            <h1>Dijkstra<span class="highlight">最快调度</span></h1>
+            <p class="subtitle">dist 与 pre 标号 / 逐轮确定 / 最短路径树</p>
+            <p class="tier-line">核心掌握 · 建模求解</p>
+            <p class="intro">🎯 逐轮执行 Dijkstra，求各受灾区的最快路线。</p>
+
+            <div class="value-panel">
+                <h3>人民至上 · 生命至上</h3>
+                <p>救援调度里，边权就是受灾群众等待的分钟数。把路网建成带权图，用可证明正确的最短路算法求出最快路线，让每一次派车都有依据、少走冤枉路——这是『人民至上、生命至上』在应急管理中的技术落地，也是对每一分钟负责的科学态度。</p>
+                <div class="dim-list"><span>人民至上</span><span>生命至上</span><span>科学决策</span></div>
             </div>
 
-            <div class="controls-wrapper">
-                <div class="control-group">
-                    <button id="startBtn" class="apple-btn primary-btn" aria-label="启动救援调度 (Dijkstra)">
-                        <span class="icon">🚑</span> 启动救援调度 (Dijkstra)
-                    </button>
-                    <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置系统">
-                        <span class="icon">🔄</span> 重置系统
-                    </button>
-                </div>
-
-                <div class="control-group">
-                    <label>调度速度</label>
-                    <input type="range" id="speed" min="1" max="100" value="50">
-                </div>
-
-                <div class="control-group">
-                    <label>救援指挥中心</label>
-                    <div class="info-panel">
-                        <p id="statusText">等待指令...</p>
-
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <span class="stat-label">已覆盖区域:</span>
-                                <strong id="coveredCount" class="stat-value">0/9</strong>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">当前处理:</span>
-                                <strong id="currentNode" class="stat-value highlight">-</strong>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <label>各区域预计到达时间 (分钟)</label>
-                    <div class="distance-table-container">
-                        <table id="distanceTable">
-                            <thead>
-                                <tr>
-                                    <th>区域</th>
-                                    <th>耗时</th>
-                                    <th>状态</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Rows will be populated here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="info-box">
-                    <h3>💡 生命至上</h3>
-                    <div id="conceptInfo">
-                        <p><strong>Dijkstra算法:</strong> 寻找单源最短路径，确保救援队以最快速度到达每一个受灾点。</p>
-                        <p><strong>科学调度:</strong> 优化资源配置，分秒必争，最大限度减少人民生命财产损失。</p>
-                    </div>
-                </div>
-            </div>
+            <div id="controls"></div>
         </aside>
 
-        <main class="visualizer-stage">
-            <div class="glass-pane">
-                <div class="rain-bg"></div>
+        <main class="glass-pane">
+            <section class="mission-card">
+                <span id="missionText"><b>互动任务：</b>加载中…</span>
+                <div class="visual-badge" id="visualBadge">进阶层</div>
+            </section>
 
-                <div class="graph-title">
-                    <h2>受灾区域实时路况</h2>
-                    <p>Real-time Traffic Condition</p>
-                </div>
+            <nav class="case-phases" id="casePhases" aria-label="案例六段式"></nav>
 
-                <div class="legend">
-                    <div class="legend-item">
-                        <span class="legend-dot center"></span>
-                        <span>救援中心</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-dot target"></span>
-                        <span>受灾小区</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-dot visited"></span>
-                        <span>已确认最短路</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-line path"></span>
-                        <span>救援路线</span>
-                    </div>
-                </div>
+            <section class="logic-board" id="vizArea">
+                <canvas id="graphCanvas" class="graph-canvas"></canvas>
+                <div class="canvas-hint">点“下一步”，看图与结论同步变化</div>
+            </section>
 
-                <div id="nodeInfoPopup" class="node-popup">
-                    <h3 id="popupTitle">区域名称</h3>
-                    <p id="popupDesc">描述信息</p>
-                </div>
-
-                <svg id="graphSvg" width="100%" height="100%" viewBox="0 0 900 620" preserveAspectRatio="xMidYMid meet">
-                    <defs>
-                        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feGaussianBlur stdDeviation="3" result="blur" />
-                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                        </filter>
-                        <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                            <polygon points="0 0, 10 3.5, 0 7" fill="var(--edge-path)" />
-                        </marker>
-                    </defs>
-                    <g id="edgesGroup"></g>
-                    <g id="nodesGroup"></g>
-                </svg>
-            </div>
+            <section class="step-card">
+                <div class="formula-line" id="formulaText">等待交互</div>
+                <div class="step-status" id="stepStatus"></div>
+                <div class="viz-note" id="vizText" style="display:none"></div>
+            </section>
         </main>
     </div>
 
-    <script src="rescue-dijkstra-script.js"></script>
-
-<!-- 固定底部版权信息 -->
-<footer class="site-footer">
-    <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
-    <p>版权所有 · 项目总负责人：谢鑫</p>
-</footer>
-
-
+    <footer class="site-footer">
+        <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
+        <p>版权所有 · 项目总负责人：谢鑫</p>
+    </footer>
 
     <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
     <script>
     window.SECTION_META = {
       "layers": [
-            {
-                  "name": "灾区路网带权图",
-                  "concepts": "路口顶点 / 权=时间·通行性",
-                  "task": "把救援路网抽象为带权图。",
-                  "page": "rescue-dijkstra-index-basic.html"
-            },
-            {
-                  "name": "最短路调度",
-                  "concepts": "Dijkstra 最快路径 / 资源分配",
-                  "task": "求最快救援路径、优化调度。",
-                  "page": "rescue-dijkstra-index.html"
-            },
-            {
-                  "name": "应急物流",
-                  "concepts": "动态权重 / 多目标优化",
-                  "task": "迁移到急救、消防智能调度。",
-                  "page": "rescue-dijkstra-index-extend.html"
-            }
+        {
+          "name": "灾区路网带权图",
+          "concepts": "地点顶点 / 道路边 / 通行时间权 / 路径权和",
+          "task": "把救援路网抽象为带权图，比较路线用时。",
+          "page": "rescue-dijkstra-index-basic.html"
+        },
+        {
+          "name": "Dijkstra 最快调度",
+          "concepts": "dist 与 pre 标号 / 逐轮确定 / 最短路径树",
+          "task": "逐轮执行 Dijkstra，求各受灾区的最快路线。",
+          "page": "rescue-dijkstra-index.html"
+        },
+        {
+          "name": "动态应急调度",
+          "concepts": "删边重算 / 动态权重 / 多源最短路 / 多目标加权",
+          "task": "迁移到路况变化与多队协同的应急调度。",
+          "page": "rescue-dijkstra-index-extend.html"
+        }
       ],
       "chapter": "第7章 图论基础",
       "section": "7.10 灾害响应调度案例",
       "title": "图论应用 · 灾害救援调度",
-      "grounding": "本节主题：用带权图与最短路径（Dijkstra）建模灾害救援调度——把灾区路网抽象为带权图，求救援队到各受灾点的最短/最快路径，优化调度方案。体会最短路径算法在应急管理中的生命价值。",
+      "grounding": "本节主题（案例单元，六段式：情境背景→数学建模→交互求解→结果解读→价值引领→迁移思考）：用带权图与 Dijkstra 最短路径建模灾害救援调度。教学数据为虚构路网：救援中心+A–H 八个受灾区共 9 个顶点、15 条无向道路，边权为通行时间（分钟）。基础层认识模型（顶点/边/权、路径权和、最短路不唯一）；进阶层求解模型（Dijkstra 逐轮选最小 dist 顶点确定并松弛邻边，从救援中心出发各区最短时间依次为 A15、E18、B20、F22、C25、H27、D30、G38，G 区路线 救→E→G）；拓展层拓展模型（删边重算、拥堵改权、多源最短路/超级源点、时间+λ·风险 多目标加权）。",
       "steps": [
-            {
-                  "name": "情境引入",
-                  "desc": "灾害发生，如何让救援以最快速度抵达最需要的地方？"
-            },
-            {
-                  "name": "对象抽取",
-                  "desc": "把灾区路网抽象为带权图（权=时间/距离/通行性）。"
-            },
-            {
-                  "name": "结构建模",
-                  "desc": "用最短路径与调度建模救援可达与时效。"
-            },
-            {
-                  "name": "推理求解",
-                  "desc": "用 Dijkstra 求最快路径，优化资源分配。"
-            },
-            {
-                  "name": "程序验证",
-                  "desc": "用本页交互调度救援，验证路径与时效。"
-            },
-            {
-                  "name": "迁移反思",
-                  "desc": "迁移到应急物流、医疗急救、消防调度。"
-            }
+        {
+          "name": "情境引入",
+          "desc": "灾害发生后，如何让救援以最快速度抵达各受灾点？"
+        },
+        {
+          "name": "对象抽取",
+          "desc": "地点→顶点，可通行道路→边，通行时间→边权。"
+        },
+        {
+          "name": "结构建模",
+          "desc": "建立带权图 G=(V,E,w)，把“最快”表述为单源最短路问题。"
+        },
+        {
+          "name": "推理求解",
+          "desc": "逐轮执行 Dijkstra：选最小 dist 顶点确定，再松弛邻边。"
+        },
+        {
+          "name": "程序验证",
+          "desc": "用本页交互核对每轮 dist/pre 与最终路线、总耗时。"
+        },
+        {
+          "name": "迁移反思",
+          "desc": "道路中断、拥堵、多队协同、兼顾安全时如何重算调度。"
+        }
       ],
       "ideology": {
-            "title": "人民至上 · 生命至上",
-            "text": "灾害救援调度中，最短路径每缩短一分钟，就可能多挽救一条生命。用图论优化救援，正是『人民至上、生命至上』理念的技术落地，彰显国家应急管理体系的能力与温度——把数学算到与生命赛跑的分秒之间。",
-            "dims": [
-                  "人民至上",
-                  "生命至上",
-                  "责任担当"
-            ],
-            "quote": "争分夺秒、向险而行——最短路径算法，让救援的每一步都跑在与时间赛跑的最优线上。"
+        "title": "人民至上 · 生命至上",
+        "text": "救援调度里，边权就是受灾群众等待的分钟数。把路网建成带权图，用可证明正确的最短路算法求出最快路线，让每一次派车都有依据、少走冤枉路——这是『人民至上、生命至上』在应急管理中的技术落地，也是对每一分钟负责的科学态度。",
+        "dims": [
+          "人民至上",
+          "生命至上",
+          "科学决策"
+        ],
+        "quote": "争分夺秒、向险而行——让每一条救援路线都有数学的依据。"
       },
       "reflect": [
-            "救援场景中边权可能是『时间』而非『距离』，且会随路况变化——算法如何应对动态权重？",
-            "若有多支救援队、多个灾点，如何从『单源最短路』扩展到调度分配？",
-            "道路可能因灾损中断（删边），如何快速重算可达与最优路径？"
+        "为什么 Dijkstra 要求边权非负？若某条边权为负，“确定即最优”会在哪里失效？",
+        "道路中断（删边）后，哪些受灾区的最短时间一定不变？如何只重算受影响的部分？",
+        "多支救援队同时出发时，超级源点为什么能把多源问题化为单源问题？"
       ],
       "transfer": [
-            "120 急救、消防出警的智能调度系统，内核正是动态最短路径。",
-            {
-                  "t": "多目标优化",
-                  "d": "救援既要快又要覆盖广、还要保安全，如何在多目标间权衡？"
-            }
+        "120 急救、消防出警的智能调度，内核是随实时路况改权重的动态最短路。",
+        {
+          "t": "多目标优化",
+          "d": "救援既要快又要安全，用 时间+λ·风险 加权时，λ 应由谁、依据什么来确定？"
+        }
       ]
-};
+    };
     </script>
+    <script>window.CASE_LEVEL = "advanced";</script>
+    <script src="rescue_case.js"></script>
     <script src="../../shared/ai-tutor.js" defer></script>
-    <script>
-        window.addEventListener('load', function () {
-            var old = document.getElementById('rescue-dijkstra-runtime-layout');
-            if (old) old.remove();
-            var style = document.createElement('style');
-            style.id = 'rescue-dijkstra-runtime-layout';
-            style.textContent = `
-body {
-    min-height: 100vh !important;
-    height: auto !important;
-    overflow: auto !important;
-    overflow-x: hidden !important;
-    display: block !important;
-    align-items: flex-start !important;
-    justify-content: flex-start !important;
-    padding: 50px 0 0 !important;
-}
-.app-container[data-dm-side-shell] {
-    width: min(94vw, 1760px) !important;
-    max-width: none !important;
-    min-height: calc(100vh - 88px) !important;
-    height: auto !important;
-    margin: 0 auto !important;
-    grid-template-columns: 390px minmax(0, 1fr) !important;
-    grid-template-areas: "side main" !important;
-    gap: 12px !important;
-    overflow: visible !important;
-    background: rgba(255, 252, 245, 0.92) !important;
-    border: 1px solid rgba(214, 59, 29, 0.16) !important;
-    border-radius: 22px !important;
-    box-shadow: 0 18px 40px rgba(139, 0, 0, 0.10) !important;
-}
-.app-container[data-dm-side-shell] > .sidebar {
-    grid-area: side !important;
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    margin: 0 0 16px !important;
-}
-.app-container[data-dm-side-shell] > .visualizer-stage {
-    grid-area: main !important;
-    min-width: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 0 16px !important;
-    overflow: hidden !important;
-}
-.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers,
-.app-container[data-dm-side-shell] > .visualizer-stage > .glass-pane {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-}
-.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-ladder {
-    display: grid !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 10px !important;
-}
-.app-container[data-dm-side-shell] > .visualizer-stage > #dm-page-layers .dm-tier {
-    min-width: 0 !important;
-    padding: 12px 14px !important;
-}
-.app-container[data-dm-side-shell] .glass-pane {
-    min-height: clamp(420px, 52vh, 540px) !important;
-    height: auto !important;
-    overflow: hidden !important;
-}
-@media (max-width: 1000px) {
-    .app-container[data-dm-side-shell] {
-        width: min(94vw, 760px) !important;
-        grid-template-columns: 1fr !important;
-        grid-template-areas: "side" "main" !important;
-    }
-}`;
-            document.head.appendChild(style);
-            setTimeout(function () { document.head.appendChild(style); }, 250);
-            setTimeout(function () { document.head.appendChild(style); }, 1000);
-            function lockLayout() {
-                var app = document.querySelector('.app-container');
-                var side = document.querySelector('.sidebar');
-                var stage = document.querySelector('.visualizer-stage');
-                var pane = document.querySelector('.glass-pane');
-                if (app) {
-                    app.style.setProperty('width', 'min(94vw, 1760px)', 'important');
-                    app.style.setProperty('max-width', 'none', 'important');
-                    app.style.setProperty('height', 'auto', 'important');
-                    app.style.setProperty('min-height', 'calc(100vh - 88px)', 'important');
-                    app.style.setProperty('display', 'grid', 'important');
-                    app.style.setProperty('grid-template-columns', '390px minmax(0, 1fr)', 'important');
-                    app.style.setProperty('grid-template-areas', '"side main"', 'important');
-                    app.style.setProperty('gap', '12px', 'important');
-                    app.style.setProperty('margin', '0 auto', 'important');
-                    app.style.setProperty('background', 'rgba(255, 252, 245, 0.92)', 'important');
-                    app.style.setProperty('border', '1px solid rgba(214, 59, 29, 0.16)', 'important');
-                    app.style.setProperty('border-radius', '22px', 'important');
-                    app.style.setProperty('box-shadow', '0 18px 40px rgba(139, 0, 0, 0.10)', 'important');
-                }
-                if (side) {
-                    side.style.setProperty('grid-area', 'side', 'important');
-                    side.style.setProperty('width', 'auto', 'important');
-                    side.style.setProperty('min-width', '0', 'important');
-                }
-                if (stage) {
-                    stage.style.setProperty('grid-area', 'main', 'important');
-                    stage.style.setProperty('width', '100%', 'important');
-                    stage.style.setProperty('min-width', '0', 'important');
-                }
-                if (pane) {
-                    pane.style.setProperty('width', '100%', 'important');
-                    pane.style.setProperty('min-height', 'clamp(420px, 52vh, 540px)', 'important');
-                }
-            }
-            lockLayout();
-            setTimeout(lockLayout, 250);
-            setTimeout(lockLayout, 1000);
-        });
-    </script>
-
 </body>
-
 </html>
