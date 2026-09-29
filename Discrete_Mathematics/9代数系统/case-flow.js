@@ -72,6 +72,24 @@
     return true;
   }
 
+  /* 页内提示条：替代 alert()，不阻塞页面；type 可为 "info" / "warn" / "ok" */
+  var toastTimer = null;
+  window.dm9Toast = function (msg, type) {
+    var box = document.getElementById("dm9Toast");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "dm9Toast";
+      box.className = "dm9-toast";
+      box.setAttribute("role", "status");
+      box.setAttribute("aria-live", "polite");
+      document.body.appendChild(box);
+    }
+    box.textContent = String(msg == null ? "" : msg);
+    box.className = "dm9-toast show " + (type || (/^请|先|至少/.test(String(msg)) ? "warn" : "ok"));
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { box.classList.remove("show"); }, 3600);
+  };
+
   function boot() {
     var tries = 0;
     (function attempt() {
