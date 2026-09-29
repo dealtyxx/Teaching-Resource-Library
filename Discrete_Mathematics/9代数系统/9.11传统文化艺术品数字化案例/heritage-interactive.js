@@ -4,6 +4,8 @@
   const LEVELS = {
     basic: {
       label: "基础层",
+      name: "艺术品数字编码",
+      concepts: "对象识别 / 向量编码 / 相似检索",
       title: "传统艺术品数字化入门",
       subtitle: "艺术品数字编码台",
       intro: "以少量参数把纹样、材质、年代转成可检索编码，先看清“对象怎样被数学化”。",
@@ -40,6 +42,8 @@
     },
     advanced: {
       label: "进阶层",
+      name: "变换群与同构",
+      concepts: "对称群 / 组合运算 / 同构映射",
       title: "变换群刻画纹样结构",
       subtitle: "对称群与同构映射实验台",
       intro: "在基础编码之上加入旋转、翻折与组合运算，观察群结构如何保持纹样风格。",
@@ -64,10 +68,9 @@
         {
           title: "定义变换群",
           desc: "列出可保持风格的旋转与翻折。",
-          formula: state => {
-            const n = state.controls.group === "C4" ? "4" : "4, s²=e";
-            return terms(["G", " = < ", "r", ", ", "s", " | r^", n, " >"], ["G", "r", "s"]);
-          },
+          formula: state => state.controls.group === "C4"
+            ? terms(["G", " = ⟨ ", "r", " | r⁴ = e ⟩"], ["G", "r"])
+            : terms(["G", " = ⟨ ", "r", ", ", "s", " | r⁴ = s² = e, srs = r⁻¹ ⟩"], ["G", "r", "s"]),
           focus: "G"
         },
         {
@@ -86,6 +89,8 @@
     },
     extend: {
       label: "拓展层",
+      name: "知识图谱与再创",
+      concepts: "关系权重 / 生成规则 / 闭环评估",
       title: "文物知识图谱与再创闭环",
       subtitle: "开放共享与生成评估工作台",
       intro: "把单件编码扩展为知识网络，再加入生成、传播、评估，让数学模型服务真实应用场景。",
@@ -165,13 +170,13 @@
   let refs = {};
 
   function opOptions() {
-    return [["e", "e 恒等"], ["r", "r 旋转90°"], ["r2", "r² 旋转180°"], ["r3", "r³ 旋转270°"], ["s", "s 镜像"], ["sr", "sr 镜像后旋转"], ["sr2", "sr² 镜像后旋转"], ["sr3", "sr³ 镜像后旋转"]];
+    return [["e", "e 恒等"], ["r", "r 旋转90°"], ["r2", "r² 旋转180°"], ["r3", "r³ 旋转270°"], ["s", "s 镜像"], ["sr", "rs 先镜像再转90°"], ["sr2", "r²s 先镜像再转180°"], ["sr3", "r³s 先镜像再转270°"]];
   }
 
   function terms(parts, ids) {
     let cursor = 0;
     return parts.map(part => {
-      if (ids[cursor] && !/^[\s,=():|<>+\-.·×≥]+$/.test(part) && !part.includes("| r^")) {
+      if (ids[cursor] && !/^[\s,=():|<>+\-.·×≥{}⟨⟩]+$/.test(part) && !part.includes("|")) {
         const item = { id: ids[cursor], text: part };
         cursor += 1;
         return item;
@@ -205,8 +210,9 @@
       '<aside class="side-panel sidebar">',
       '  <div class="sidebar-header">',
       '    <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>',
-      '    <h1>传统艺术品 <span class="highlight">' + esc(config.label) + '</span></h1>',
-      '    <p class="subtitle">' + esc(config.subtitle) + '</p>',
+      '    <span class="eyebrow">' + esc(config.label) + ' · 第9章 代数系统</span>',
+      '    <h1>' + esc(config.name) + '</h1>',
+      '    <p class="subtitle">' + esc(config.concepts) + '</p>',
       '  </div>',
       '  <p class="intro">' + esc(config.intro) + '</p>',
       '  <div class="level-map" id="levelMap"></div>',
@@ -359,7 +365,7 @@
   }
 
   function renderLevelMap() {
-    refs.levelMap.innerHTML = '<strong>三阶梯度</strong>' + config.map.map((item, index) => '<span data-map-index="' + index + '">' + esc(item) + '</span>').join("");
+    refs.levelMap.innerHTML = '<strong>推演环节</strong>' + config.map.map((item, index) => '<span data-map-index="' + index + '">' + esc(item) + '</span>').join("");
   }
 
   function renderSteps() {
@@ -624,7 +630,7 @@
       const x = baseX + index * 132;
       const hot = state.term === item.id || (state.term === "encode" && index === 0);
       roundRect(ctx, x, h * 0.34, 106, 132, 8, hot ? "rgba(214, 59, 29,.13)" : "rgba(255,250,242,.9)", hot ? "#d63b1d" : "rgba(116,55,31,.18)");
-      ctx.fillStyle = hot ? "#d63b1d" : "#2f5f9f";
+      ctx.fillStyle = hot ? "#d63b1d" : "#B7791F";
       ctx.font = "800 26px JetBrains Mono, Consolas";
       ctx.textAlign = "center";
       ctx.fillText(item.label, x + 53, h * 0.45);
@@ -647,7 +653,7 @@
       { id: "Q", label: "查询", x: w * 0.5, y: h * 0.5, color: "#d63b1d", score: 100 },
       { id: "A", label: "纹样A", x: w * 0.25, y: h * 0.32, color: art.color, score: clamp(58 + c.motifs * 4, 0, 100) },
       { id: "B", label: "纹样B", x: w * 0.73, y: h * 0.35, color: "#2f7d57", score: clamp(82 - c.motifs * 2, 0, 100) },
-      { id: "C", label: "纹样C", x: w * 0.28, y: h * 0.75, color: "#2f5f9f", score: clamp(48 + c.threshold / 3, 0, 100) },
+      { id: "C", label: "纹样C", x: w * 0.28, y: h * 0.75, color: "#B7791F", score: clamp(48 + c.threshold / 3, 0, 100) },
       { id: "D", label: "纹样D", x: w * 0.72, y: h * 0.72, color: "#c58a1f", score: clamp(96 - c.threshold / 2, 0, 100) }
     ];
     nodes.slice(1).forEach(node => {
@@ -688,7 +694,7 @@
       const y = cy + Math.sin(angle) * radius;
       const hot = (state.term === "r" && op.startsWith("r")) || (state.term === "s" && op.startsWith("s")) || state.term === "G";
       drawLine(ctx, cx, cy, x, y, hot, hot ? "#d63b1d" : "rgba(47,95,159,.25)", hot ? 3 : 1.6);
-      drawNode(ctx, x, y, opName(op), hot ? "#d63b1d" : "#2f5f9f", hot);
+      drawNode(ctx, x, y, opName(op), hot ? "#d63b1d" : "#B7791F", hot);
     });
     drawNode(ctx, cx, cy, "G", "#2f7d57", state.term === "G");
   }
@@ -725,7 +731,7 @@
       const hot = state.term === "V" || state.term === "sim";
       roundRect(ctx, x, y - 80, 68, 160, 8, hot ? "rgba(214, 59, 29,.12)" : "rgba(255,250,242,.9)", hot ? "#d63b1d" : "rgba(116,55,31,.18)");
       drawMeter(ctx, x + 17, y + 48, 34, 12, value, hot);
-      ctx.fillStyle = hot ? "#d63b1d" : "#2f5f9f";
+      ctx.fillStyle = hot ? "#d63b1d" : "#B7791F";
       ctx.font = "800 24px JetBrains Mono, Consolas";
       ctx.textAlign = "center";
       ctx.fillText(["v₁", "v₂", "v₃"][index], x + 34, y - 25);
@@ -754,7 +760,7 @@
     return labels.map((label, index) => {
       if (index === 0) return { label, x: cx, y: cy, color: "#d63b1d" };
       const angle = -Math.PI / 2 + (index - 1) * Math.PI * 2 / Math.max(1, labels.length - 1);
-      return { label, x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r, color: index % 2 ? "#2f5f9f" : "#2f7d57" };
+      return { label, x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r, color: index % 2 ? "#B7791F" : "#2f7d57" };
     });
   }
 
@@ -808,7 +814,7 @@
     channels.forEach(channel => {
       const hot = c.audience === channelId(channel.label) || state.term === "channels";
       drawLine(ctx, hub.x, hub.y, channel.x, channel.y, hot || state.term === "feedback", hot ? "#d63b1d" : "rgba(47,95,159,.26)", hot ? 4 : 2);
-      drawNode(ctx, channel.x, channel.y, channel.label, hot ? "#d63b1d" : "#2f5f9f", hot);
+      drawNode(ctx, channel.x, channel.y, channel.label, hot ? "#d63b1d" : "#B7791F", hot);
       drawMeter(ctx, channel.x - 32, channel.y + 32, 64, 8, channel.score / 100, hot);
     });
     drawNode(ctx, hub.x, hub.y, "R", "#2f7d57", state.term === "R" || state.term === "feedback");
@@ -823,7 +829,7 @@
     drawCanvasTitle(ctx, "闭环评估 Q", "守真 S、传播 R、共创 C 的加权结果");
     const bars = [
       { id: "S", label: "S 守真", value: s, color: "#2f7d57" },
-      { id: "R", label: "R 传播", value: r, color: "#2f5f9f" },
+      { id: "R", label: "R 传播", value: r, color: "#B7791F" },
       { id: "C", label: "C 共创", value: co, color: "#c58a1f" },
       { id: "Q", label: "Q 总评", value: q, color: "#d63b1d" }
     ];
@@ -888,9 +894,9 @@
       r2: "r²",
       r3: "r³",
       s: "s",
-      sr: "sr",
-      sr2: "sr²",
-      sr3: "sr³"
+      sr: "rs",
+      sr2: "r²s",
+      sr3: "r³s"
     }[id] || id;
   }
 
@@ -1063,13 +1069,13 @@
       const x = cx + Math.cos(angle) * r;
       const y = cy + Math.sin(angle) * r;
       const hot = term && label.toLowerCase().includes(term.replace("2", "²"));
-      drawNode(ctx, x, y, label, hot ? "#d63b1d" : "#2f5f9f", hot);
+      drawNode(ctx, x, y, label, hot ? "#d63b1d" : "#B7791F", hot);
     });
   }
 
   function drawRuleBox(ctx, cx, cy, label, sub, hot) {
     roundRect(ctx, cx - 52, cy - 52, 104, 104, 8, hot ? "rgba(214, 59, 29,.13)" : "rgba(255,250,242,.92)", hot ? "#d63b1d" : "rgba(116,55,31,.18)");
-    ctx.fillStyle = hot ? "#d63b1d" : "#2f5f9f";
+    ctx.fillStyle = hot ? "#d63b1d" : "#B7791F";
     ctx.font = "900 30px JetBrains Mono, Consolas";
     ctx.textAlign = "center";
     ctx.fillText(label, cx, cy - 4);
@@ -1095,7 +1101,7 @@
     ctx.strokeStyle = term === "Q" ? "#d63b1d" : "rgba(47,95,159,.5)";
     ctx.lineWidth = term === "Q" ? 4 : 2;
     ctx.stroke();
-    points.forEach(point => drawNode(ctx, point.x, point.y, point.label, point.id === term ? "#d63b1d" : "#2f5f9f", point.id === term || term === "Q"));
+    points.forEach(point => drawNode(ctx, point.x, point.y, point.label, point.id === term ? "#d63b1d" : "#B7791F", point.id === term || term === "Q"));
   }
 
   function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
