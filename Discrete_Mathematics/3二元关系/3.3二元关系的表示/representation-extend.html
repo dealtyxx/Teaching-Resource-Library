@@ -8,25 +8,27 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
-    <meta property="og:title" content="关系表示 · 拓展层 — 稀疏存储与加速">
-    <meta property="og:description" content="离散数学 3.3 拓展层：稠密邻接矩阵 vs 稀疏邻接表的存储权衡互动可视化">
+    <meta property="og:title" content="稀疏存储与加速 · 拓展层｜3.3 二元关系的表示 - 离散数学课程资源库">
+    <meta property="og:description" content="第3章 二元关系 · 3.3 二元关系的表示 · 拓展层：邻接矩阵·邻接表 / CSR / 存储权衡。迁移到稀疏存储与高性能计算。">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/3%E4%BA%8C%E5%85%83%E5%85%B3%E7%B3%BB/3.3%E4%BA%8C%E5%85%83%E5%85%B3%E7%B3%BB%E7%9A%84%E8%A1%A8%E7%A4%BA/representation-extend.html">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="关系表示 · 拓展层 — 稀疏存储与加速">
-    <meta name="twitter:description" content="离散数学 3.3 拓展层：稠密邻接矩阵 vs 稀疏邻接表的存储权衡互动可视化">
+    <meta name="twitter:title" content="稀疏存储与加速 · 拓展层｜3.3 二元关系的表示 - 离散数学课程资源库">
+    <meta name="twitter:description" content="第3章 二元关系 · 3.3 二元关系的表示 · 拓展层：邻接矩阵·邻接表 / CSR / 存储权衡。迁移到稀疏存储与高性能计算。">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>关系表示 · 拓展层 — 稀疏存储与加速</title>
-    <meta name="description" content="离散数学 3.3 拓展层：稠密邻接矩阵 vs 稀疏邻接表的存储权衡互动可视化">
+    <title>稀疏存储与加速 · 拓展层｜3.3 二元关系的表示 - 离散数学课程资源库</title>
+    <meta name="description" content="第3章 二元关系 · 3.3 二元关系的表示 · 拓展层：邻接矩阵·邻接表 / CSR / 存储权衡。迁移到稀疏存储与高性能计算。">
     <link rel="stylesheet" href="representation.css">
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap"></noscript>
     <style>
         .dm-t-field { margin: 8px 0; }
         .dm-t-field .lab { display: flex; justify-content: space-between; font-size: .82rem; color: #b8321a; margin-bottom: 5px; }
@@ -77,7 +79,7 @@
 </head>
 
 <body>
-    <a href="../../index.html" title="返回课程主页" style="position:fixed;top:14px;left:14px;z-index:9999;display:flex;align-items:center;gap:6px;background:rgba(30,30,40,0.82);color:#fff;padding:7px 14px 7px 10px;border-radius:20px;font-size:13px;font-family:'Noto Serif SC', 'Microsoft YaHei', serif;text-decoration:none;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.15);box-shadow:0 2px 12px rgba(0,0,0,0.35);transition:background .2s;" onmouseover="this.style.background='rgba(214,59,29,0.88)'" onmouseout="this.style.background='rgba(30,30,40,0.82)'">🏠 <span>课程主页</span></a>
+    <a class="home-link" href="../../index.html#chapter3">← 返回课程主页</a>
 
     <div class="app-container">
         <aside class="sidebar">
@@ -134,9 +136,9 @@
         </main>
     </div>
 
-    <footer style="position:fixed;bottom:0;left:0;width:100%;background: transparent;color: inherit;
-    opacity: 0.72;padding:15px 10px;text-align:center;box-shadow: none;z-index:9999;">
-        <p style="font-size:0.9rem;line-height:1.6;margin:0;opacity:0.95;">© 2025-2026 湖南信息学院 ｜ 计算机科学与工程课程资源库建设团队<br>版权所有 ｜ 项目总负责人：谢鑫</p>
+    <footer class="site-footer">
+        <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
+        <p>版权所有 · 项目总负责人：谢鑫</p>
     </footer>
 
     <script>
@@ -183,7 +185,7 @@
             { "name": "稀疏存储与加速", "concepts": "邻接矩阵·邻接表 / CSR / 存储权衡", "task": "迁移到稀疏存储与高性能计算。", "page": "representation-extend.html" }
         ],
         chapter: "第3章 二元关系",
-        section: "3.3 二元关系的表示 · 拓展层",
+        section: "3.3 二元关系的表示",
         title: "稀疏存储与加速",
         grounding: "本页（拓展层）主题：关系表示的工程权衡。邻接矩阵恒占 n² 空间、随机访问 O(1)；邻接表只存真实存在的边、约占 |R|+n 空间，关系越稀疏越省。交叉点约在密度 (n²−n)/n²。真实关系（社交关注、网页链接）极稀疏（密度常<1%），故普遍用邻接表 / CSR（压缩稀疏行）；稠密小关系才用矩阵。",
         steps: [
