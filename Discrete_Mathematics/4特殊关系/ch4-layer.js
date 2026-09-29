@@ -1506,6 +1506,102 @@
 })();
 /* @@END */
 
+/* ---------- 4.8 无限集合 ---------- */
+(function () {
+  var C = C4.COL, esc = C4.esc;
+  var MAPS = {
+    even: { name: 'ℕ → 偶数集 E', f: function (n) { return 2 * n; }, fs: 'f(n) = 2n', B: '偶数', note: 'E ⊊ ℕ，却与 ℕ 一样多。' },
+    shift: { name: '希尔伯特旅馆：再来 1 位客人', f: function (n) { return n + 1; }, fs: 'f(n) = n + 1', B: '房号', note: '每位客人搬到下一间，0 号房空出来给新客人。' },
+    bus: { name: '希尔伯特旅馆：再来无穷多位客人', f: function (n) { return 2 * n + 1; }, fs: 'f(n) = 2n + 1', B: '房号', note: '老客人搬进奇数号房，偶数号房全部空出。' },
+    sq: { name: 'ℕ → 完全平方数', f: function (n) { return n * n; }, fs: 'f(n) = n²', B: '平方数', note: '平方数越来越稀疏，但与 ℕ 仍一一对应（伽利略悖论）。' }
+  };
+
+  C4.def('infinite/basic', {
+    badge: '一一配对 · 希尔伯特旅馆',
+    mission: '比较两个无限集合的「大小」，不能逐个去数，只能<b>一一配对</b>。逐步点「下一步」，看 ℕ 的每个元素如何配到另一个集合，而且一个不漏。',
+    controls: [
+      { type: 'select', id: 'm', label: '配对方案', value: 'even', options: Object.keys(MAPS).map(function (k) { return [k, MAPS[k].name]; }) },
+      { label: '逐步配对', type: 'stepper' }
+    ],
+    stages: [
+      { id: 'pair', title: '一一配对' },
+      { id: 'check', title: '检查：是双射吗？' },
+      { id: 'out', title: '结论' }
+    ],
+    points: [
+      '集合 A、B <b>等势</b>（|A| = |B|）⇔ 存在双射 f : A → B。',
+      '有限集的真子集一定比原集合小；<b>无限集可以与自己的真子集等势</b>。',
+      '与 ℕ 等势的集合叫<b>可数无限集</b>，基数记作 ℵ₀。',
+      '希尔伯特旅馆：客满的无限旅馆仍可以再住进 1 位乃至可数无穷多位客人。'
+    ],
+    startStep: 4,
+    prepare: function (S) { S.total = 12; },
+    render: function (S) {
+      var M = MAPS[S.v.m], k = S.step, N = 12;
+      var out = '', w = 640, gx = (w - 60) / N;
+      out += C4.text(20, 40, 'ℕ', { anchor: 'start', size: 15, weight: 700, fill: C.red }) + C4.text(20, 150, M.B, { anchor: 'start', size: 13, weight: 700, fill: C.goldInk });
+      for (var n = 0; n < N; n++) {
+        var x = 60 + n * gx + gx / 2, on = n < k;
+        if (on) out += C4.line(x, 52, x, 128, { color: C.red, width: 2, arrow: 'c4arr' });
+        out += C4.node(x, 36, String(n), { r: 14, fill: on ? C.red : '#fff', textFill: on ? '#fff' : C.ink, size: 11, mono: true });
+        out += C4.node(x, 146, on ? String(M.f(n)) : '?', { r: 14, fill: on ? '#FFF4D6' : '#fff', stroke: on ? C.gold : '#D9C4B8', size: M.f(n) > 99 ? 9 : 11, mono: true });
+      }
+      out += C4.text(w - 18, 94, '…', { size: 18 });
+      S.set('pair', '<div class="c4-svg-wrap">' + C4.svg(w, 175, out, '一一配对') + '</div><p class="c4-note">' + M.fs + '：第 ' + k + ' 步，已配对 0 … ' + Math.max(0, k - 1) + '。</p>');
+      S.set('check', '<div class="c4-verdicts"><div class="c4-verdict ok"><b>单射 ✓</b><span>不同的 n 得到不同的 f(n)（' + M.fs + ' 严格递增）</span></div>' +
+        '<div class="c4-verdict ok"><b>满射 ✓</b><span>目标集合中每个元素 y 都有唯一的 n 与之对应</span></div>' +
+        '<div class="c4-verdict gold"><b>双射 ⇒ 等势</b><span>|ℕ| = |' + M.B + '| = ℵ₀</span></div></div>');
+      S.set('out', '<p>' + M.note + '</p><p class="c4-note">「部分等于整体」在有限世界里不可能，在无限世界里却是常态——这正是戴德金对无限集的定义。</p>');
+      C4.result(M.fs, 'ℕ 与' + M.B + '集等势', M.note);
+    }
+  });
+
+  /* ----- 拓展层：可计算性边界 ----- */
+  var PROGS = ['P₁', 'P₂', 'P₃', 'P₄', 'P₅'];
+  var H0 = [[1, 0, 1, 1, 0], [0, 0, 1, 0, 1], [1, 1, 1, 0, 0], [0, 1, 0, 0, 1], [1, 1, 0, 1, 1]];
+
+  C4.def('infinite/extend', {
+    badge: '停机问题 · 对角线法',
+    mission: '假设存在一个万能判定器 H(P, x)：判断程序 P 在输入 x 上是否停机。沿对角线构造程序 D——「H 说我停机，我就死循环；H 说我不停，我就停」。逐步演示，看 D 为何不可能在表中出现。',
+    controls: [
+      { label: '逐步演示', type: 'stepper' },
+      { label: '换一张停机表', items: [{ type: 'buttons', items: [{ act: 'shuffle', text: '随机停机表', cls: 'primary' }] }] }
+    ],
+    stages: [
+      { id: 'table', title: '停机表 H(Pᵢ, Pⱼ)', hint: '1 = 停机，0 = 不停机' },
+      { id: 'd', title: '构造对角程序 D' },
+      { id: 'out', title: '结论与层次' }
+    ],
+    points: [
+      '程序是有限字符串，全体程序<b>可数</b>；而 ℕ → {0,1} 的函数<b>不可数</b>（对角线法）⇒ 必有不可计算函数。',
+      '<b>停机问题</b>不可判定（图灵，1936）：不存在总能正确判断任意程序是否停机的算法。',
+      '证明与康托对角线法同构：让 D 在第 i 行与 Pᵢ 在对角线上取反。',
+      '|ℕ| = ℵ₀ < |P(ℕ)| = 2^ℵ₀：可计算的只是「可数小角落」。'
+    ],
+    init: function (S) { S.data.H = H0.map(function (r) { return r.slice(); }); },
+    prepare: function (S) { S.total = PROGS.length + 1; },
+    act: function (S, act) {
+      if (act === 'shuffle') { S.data.H = PROGS.map(function () { return PROGS.map(function () { return Math.random() < 0.5 ? 1 : 0; }); }); S.step = 0; }
+    },
+    render: function (S) {
+      var H = S.data.H, k = Math.min(S.step, PROGS.length), n = PROGS.length;
+      var t = '<div class="c4-table-wrap"><table class="c4-table"><tr><th>H</th>' + PROGS.map(function (p) { return '<th>输入 ' + p + '</th>'; }).join('') + '</tr>';
+      PROGS.forEach(function (p, i) {
+        t += '<tr><th>' + p + '</th>' + PROGS.map(function (_, j) { return '<td class="mono ' + (i === j && i < k ? 'hit' : i === j ? 'soft' : '') + '">' + H[i][j] + '</td>'; }).join('') + '</tr>';
+      });
+      var D = PROGS.map(function (_, i) { return 1 - H[i][i]; });
+      t += '<tr><th>D</th>' + D.map(function (v, j) { return '<td class="mono ' + (j < k ? 'bad' : 'dim') + '">' + (j < k ? v : '?') + '</td>'; }).join('') + '</tr></table></div>';
+      S.set('table', t);
+      var msg = k === 0 ? '点「下一步」开始沿对角线构造 D。' : k <= n ? 'D 在输入 ' + PROGS[k - 1] + ' 上：H(' + PROGS[k - 1] + ', ' + PROGS[k - 1] + ') = ' + H[k - 1][k - 1] + '，所以 D ' + (H[k - 1][k - 1] ? '<b>死循环</b>（输出 0）' : '<b>停机</b>（输出 1）') + '——D 与 ' + PROGS[k - 1] + ' 在这一格必然不同。' : '';
+      S.set('d', '<p class="c4-mono">D(P) = 若 H(P, P) = 1 则 死循环 否则 停机</p><p>' + msg + '</p>');
+      var done = S.step > n;
+      S.set('out', done ? '<p><span class="c4-chip bad">矛盾</span> D 本身也是程序，若它是表中的某个 Pₖ，则 H(D, D) 与 D(D) 的行为相反：D 停机 ⇔ D 不停机。故万能判定器 H 不存在。</p><p class="c4-note">无穷的层次：ℵ₀（程序、可计算函数）< 2^ℵ₀（全部函数 ℕ→{0,1}）< …</p>' : '<p class="c4-note">完成全部对角线后给出结论。</p>');
+      C4.result('第 ' + S.step + ' / ' + S.total + ' 步', done ? '停机问题不可判定' : '构造 D 中', '对角线法：从康托集合论走到图灵可计算性。');
+    }
+  });
+})();
+/* @@END */
+
 /* @@UNITS@@ */
 
 C4.boot();

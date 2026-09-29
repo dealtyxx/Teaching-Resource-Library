@@ -23,7 +23,8 @@
     <title>可数与不可数 · 进阶层｜4.8 无限集合 - 离散数学课程资源库</title>
     <meta name="description" content="第4章 特殊关系 · 4.8 无限集合 · 进阶层：ℤ·ℚ可数 / ℝ不可数 / 对角线法。证明可数、用对角线法证不可数。">
 
-    <link rel="stylesheet" href="infinite_sets.css?v=layout-fix-20260617">
+    <link rel="stylesheet" href="infinite_sets.css?v=ch4-20260929">
+    <link rel="stylesheet" href="../ch4.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -71,7 +72,7 @@
                         <span>康托定理</span>
                     </button>
                 </nav>
-                <button id="resetBtn" class="apple-btn">🔄</button>
+                <button id="resetBtn" class="apple-btn secondary-btn"><span class="btn-icon">↺</span><span>重置</span></button>
             </div>
 
             <!-- Insight Panel（移入左侧栏显示） -->
@@ -86,7 +87,7 @@
                 </div>
 
                 <div class="insight-card">
-                    <h4>💡 价值启示</h4>
+                    <h4>💡 案例解读</h4>
                     <p id="insightText">
                         中华民族的复兴之路是一步一个脚印的（可数），但每一步中蕴含的奋斗故事和人民幸福是无限丰富的（不可数）。我们既要珍惜每个里程碑，也要理解进步的深度与广度。
                     </p>
@@ -97,7 +98,7 @@
                     <ul id="mathFacts">
                         <li>$|\mathbb{N}| = |\mathbb{Z}| = |\mathbb{Q}| = \aleph_0$</li>
                         <li>$|\mathbb{R}| = 2^{\aleph_0} > \aleph_0$</li>
-                        <li>康托连续统假设：$2^{\aleph_0} = \aleph_1$</li>
+                        <li>连续统假设 $2^{\aleph_0} = \aleph_1$ 在 ZFC 公理系统中既不能证明也不能否证（哥德尔 1940、科恩 1963）</li>
                     </ul>
                 </div>
             </section>
@@ -107,7 +108,7 @@
             <!-- Countable View -->
             <section class="demo-view active" id="viewCountable">
                 <div class="demo-title">
-                    <h2>可数无限集合 - 年复一年的里程碑</h2>
+                    <h2>可数无限集合 · 能排成一列</h2>
                     <p>自然数、整数、有理数：都是可数的，可以一一列举</p>
                 </div>
 
@@ -115,9 +116,9 @@
                     <div class="set-box">
                         <h3>自然数 $\mathbb{N}$</h3>
                         <div class="elements-list" id="naturalNumbers">
-                            <span>1949</span><span>1950</span><span>1951</span><span>…</span>
+                            <span>0</span><span>1</span><span>2</span><span>3</span><span>…</span>
                         </div>
-                        <div class="set-note">新中国成立以来的每一年</div>
+                        <div class="set-note">可以一个接一个地数下去</div>
                     </div>
 
                     <div class="set-box">
@@ -125,12 +126,13 @@
                         <div class="elements-list" id="integers">
                             <span>…</span><span>-2</span><span>-1</span><span>0</span><span>1</span><span>2</span><span>…</span>
                         </div>
-                        <div class="set-note">正反两方向的历史进程</div>
+                        <div class="set-note">向两个方向无限延伸，却同样可数</div>
                     </div>
                 </div>
 
                 <div class="bijection-builder">
                     <h3>双射验证：$|\mathbb{N}| = |\mathbb{Z}|$</h3>
+                    <p class="bij-formula">$f(n)=\begin{cases} n/2, & n \text{ 为偶数} \\ -(n+1)/2, & n \text{ 为奇数}\end{cases}$</p>
                     <div class="bijection-demo" id="bijectionDemo">
                         <div class="mapping-row">
                             <div class="domain-items">
@@ -159,7 +161,7 @@
             <!-- Uncountable View -->
             <section class="demo-view" id="viewUncountable">
                 <div class="demo-title">
-                    <h2>不可数无限集合 - 无尽的可能性</h2>
+                    <h2>不可数无限集合 · 排不成一列</h2>
                     <p>实数的无限比自然数的无限更大！</p>
                 </div>
 
@@ -174,7 +176,7 @@
                         <div class="step-indicator" id="proofSteps"></div>
                     </div>
                     <div class="proof-conclusion" id="proofConclusion">
-                        新构造的数不在原列表中，∴ 实数不可数
+                        新构造的数 x 与第 n 个数在第 n 位上不同，所以不在列表中 ⇒ 假设矛盾，(0,1) 不可数
                     </div>
                 </div>
             </section>
@@ -182,7 +184,7 @@
             <!-- Equipotence View -->
             <section class="demo-view" id="viewEquipotence">
                 <div class="demo-title">
-                    <h2>等势关系 - 异形同质力量</h2>
+                    <h2>等势关系 · 用双射比大小</h2>
                     <p>不同的集合可以有相同的"大小"（基数）</p>
                 </div>
 
@@ -218,15 +220,15 @@
                 </div>
 
                 <div class="ethnic-analogy">
-                    <h3>价值引领类比：56个民族，一样的力量</h3>
-                    <p>不同民族有不同的文化形态（集合形式不同），但在中华民族大家庭中地位平等（等势关系）。</p>
+                    <h3>反直觉的事实</h3>
+                    <p>偶数集是自然数集的真子集，却与它等势（n ↦ 2n）；区间 (0,1) 与整条实数轴等势（x ↦ tan(π(x − 1/2))）。无限集合的特征正是：能与自己的某个真子集等势。</p>
                 </div>
             </section>
 
             <!-- Cantor's Theorem View -->
             <section class="demo-view" id="viewCantor">
                 <div class="demo-title">
-                    <h2>康托定理 - 永无止境的攀登</h2>
+                    <h2>康托定理 · 没有最大的基数</h2>
                     <p>对任意集合 $S$，其幂集 $\mathcal{P}(S)$ 的基数严格大于 $S$</p>
                 </div>
 
@@ -266,15 +268,15 @@
                     </div>
 
                     <div class="progress-analogy">
-                        <h3>价值引领寓言</h3>
-                        <p>从脱贫攻坚到乡村振兴，从全面小康到共同富裕，我们永不停歇。每个阶段性胜利（集合 $S$）都会衍生出新的奋斗目标（幂集 $\mathcal{P}(S)$）。这就是永无止境的进步观。</p>
+                        <h3>证明思路</h3>
+                        <p>假设有满射 g : S → P(S)，令 D = {x ∈ S | x ∉ g(x)}。若 D = g(d)，则 d ∈ D ⇔ d ∉ D，矛盾——与对角线法同一思路。所以 |P(S)| > |S|，ℵ₀ < 2^ℵ₀ < 2^(2^ℵ₀) < …，无穷没有尽头。</p>
                     </div>
                 </div>
             </section>
         </main>
     </div>
 
-    <script src="infinite_sets.js?v=layout-fix-20260617"></script>
+    <script src="infinite_sets.js?v=ch4-20260929"></script>
 
 <!-- 固定底部版权信息 -->
 <footer class="site-footer">

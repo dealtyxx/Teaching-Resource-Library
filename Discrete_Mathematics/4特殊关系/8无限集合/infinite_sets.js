@@ -11,6 +11,8 @@ function init() {
     setupBijection();
     setupDiagonal();
     updateInsights('countable');
+    // 加载即演示：双射映射与对角线表格
+    animateBijectionMapping().then(() => animateDiagonalProof());
 }
 
 function setupNav() {
@@ -46,7 +48,9 @@ function reset() {
     if (proofTable) proofTable.innerHTML = '';
 
     const proofSteps = document.getElementById('proofSteps');
-    if (proofSteps) proofSteps.textContent = '';
+    if (proofSteps) proofSteps.textContent = '点「开始证明」重新演示对角线论证。';
+    const c = document.getElementById('proofConclusion');
+    if (c) c.classList.remove('shown');
 }
 
 function updateInsights(mode) {
@@ -57,33 +61,33 @@ function updateInsights(mode) {
     const insight = document.getElementById('insightText');
 
     if (mode === 'countable') {
-        card.style.borderLeftColor = '#0984e3';
+        card.style.borderLeftColor = '#FFB400';
         title.textContent = '可数无限集合';
         mathDef.innerHTML = '$|S| = |\\mathbb{N}| = \\aleph_0$';
-        desc.textContent = '存在与自然数的双射，可以"数出来"，如年份、里程碑。';
-        insight.textContent = '中华民族的复兴之路是一步一个脚印的（可数），但每一步中蕴含的奋斗故事和人民幸福是无限丰富的（不可数）。我们既要珍惜每个里程碑，也要理解进步的深度与广度。';
-        if (window.MathJax) window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise([mathDef]);
+        desc.textContent = '与自然数集 ℕ 之间存在双射，即可以排成一列 a₀, a₁, a₂, … 。ℤ、ℚ 都是可数集（ℚ 用对角线蛇形枚举）。';
+        insight.textContent = '面对无限，数学不回避也不畏惧，而是找到一种「编号规则」把它排成一列——化繁为简、有章可循，这正是科学方法的力量。';
+        if (window.MathJax && window.MathJax.typesetPromise) MathJax.typesetPromise([mathDef]).catch(() => {});
     } else if (mode === 'uncountable') {
-        card.style.borderLeftColor = '#d63031';
+        card.style.borderLeftColor = '#D63B1D';
         title.textContent = '不可数无限集合';
         mathDef.innerHTML = '$|\\mathbb{R}| = 2^{\\aleph_0} > \\aleph_0$';
-        desc.textContent = '无法与自然数建立双射，"数不过来"的无限。实数集是典型例子。';
-        insight.textContent = '任意两个历史节点之间，都有无数个可能的发展路径（如实数之于自然数）。历史的丰富性和人民创造力的深度，远超我们能够"数清楚"的范畴。';
-        if (window.MathJax) window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise([mathDef]);
+        desc.textContent = '与 ℕ 之间不存在双射。康托对角线法：任给一列实数，总能构造一个不在列表中的实数，故 (0,1) 与 ℝ 不可数。';
+        insight.textContent = '对角线法用「反证 + 构造」证明了一件看似无法验证的事：无限也分大小。敢于挑战直觉、用严密推理说话，是理性精神的典范。';
+        if (window.MathJax && window.MathJax.typesetPromise) MathJax.typesetPromise([mathDef]).catch(() => {});
     } else if (mode === 'equipotence') {
-        card.style.borderLeftColor = '#f39c12';
+        card.style.borderLeftColor = '#E39B0B';
         title.textContent = '等势关系';
         mathDef.innerHTML = '$|A| = |B| \\Leftrightarrow \\exists$ 双射 $f: A \\to B$';
         desc.textContent = '两个集合具有相同的基数，可以建立一一对应。';
-        insight.textContent = '56个民族虽然人口、文化各异（集合形式不同），但在中华民族大家庭中地位平等（等势）。这是"异形同质"的中国智慧。';
-        if (window.MathJax) window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise([mathDef]);
+        insight.textContent = '「比大小」不必逐个去数，只要能一一配对——等势用双射给出了公平、可验证的比较标准。';
+        if (window.MathJax && window.MathJax.typesetPromise) MathJax.typesetPromise([mathDef]).catch(() => {});
     } else if (mode === 'cantor') {
-        card.style.borderLeftColor = '#8e44ad';
+        card.style.borderLeftColor = '#B8321A';
         title.textContent = '康托定理';
         mathDef.innerHTML = '$|\\mathcal{P}(S)| > |S|$';
         desc.textContent = '任意集合的幂集严格大于原集合。总有更高的层次。';
-        insight.textContent = '从全面小康到共同富裕，从富起来到强起来，每个目标的实现都会衍生出更高远的追求。这是"永无止境"的辩证法，也是"中国梦"的无限展开。';
-        if (window.MathJax) window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise([mathDef]);
+        insight.textContent = '幂集永远比原集合大：每达到一个层次，都有更高的层次在前方。认识无止境，奋斗也无止境。';
+        if (window.MathJax && window.MathJax.typesetPromise) MathJax.typesetPromise([mathDef]).catch(() => {});
     }
 }
 
@@ -119,7 +123,7 @@ async function animateBijectionMapping() {
         line.style.position = 'absolute';
         line.style.width = '90px';
         line.style.height = '2px';
-        line.style.background = '#0984e3';
+        line.style.background = '#D63B1D';
         line.style.top = `${30 + i * 30}px`;
         line.style.left = '5px';
         line.style.transformOrigin = 'left';
@@ -144,49 +148,37 @@ function setupDiagonal() {
     btn.addEventListener('click', animateDiagonalProof);
 }
 
+// 对角线论证：列出 5 个实数，逐位取对角线数字并改写（d ≠ 5 时改为 5，d = 5 时改为 4，避开 0/9 的双重表示）
+const DIAG_NUMS = ['1415926', '2718281', '5772156', '6180339', '7071067'];
 async function animateDiagonalProof() {
     if (animating) return;
     animating = true;
-
     const table = document.getElementById('proofTable');
     const steps = document.getElementById('proofSteps');
-
-    table.innerHTML = '';
-    steps.textContent = '步骤 1: 假设实数可数，列出所有实数...';
-
-    // Simplified diagonal proof visualization
-    const numbers = [
-        '0.1415926...',
-        '0.2718281...',
-        '0.5772156...',
-        '0.6180339...',
-        '0.7071067...'
-    ];
-
-    for (let i = 0; i < numbers.length; i++) {
-        await sleep(500);
-        const row = document.createElement('div');
-        row.style.marginBottom = '8px';
-        row.textContent = `r${i + 1} = ${numbers[i]}`;
-        table.appendChild(row);
-    }
-
-    await sleep(800);
-    steps.textContent = '步骤 2: 构造对角线上的数字...';
-
-    await sleep(1000);
-    steps.textContent = '步骤 3: 修改对角线数字，得到新数 x...';
-
-    await sleep(1000);
-    steps.textContent = '步骤 4: x 与列表中每个数都不同！';
-
-    await sleep(1000);
     const conclusion = document.getElementById('proofConclusion');
-    conclusion.style.background = 'rgba(214, 48, 49, 0.2)';
-
-    await sleep(500);
-    conclusion.style.background = 'rgba(214, 48, 49, 0.1)';
-
+    conclusion.classList.remove('shown');
+    steps.textContent = '步骤 1：假设 (0,1) 中的实数可以排成一列 r₁, r₂, r₃, …';
+    const n = DIAG_NUMS.length;
+    const rowHtml = (i, upto) => `<div class="diag-row"><span class="lab">r${i + 1} = 0.</span>` +
+        DIAG_NUMS[i].split('').map((d, j) => `<span class="dg${j === i && i < upto ? ' on' : ''}">${d}</span>`).join('') + '<span>…</span></div>';
+    table.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+        table.innerHTML = DIAG_NUMS.slice(0, i + 1).map((_, k) => rowHtml(k, 0)).join('');
+        await sleep(260);
+    }
+    steps.textContent = '步骤 2：沿对角线取第 n 个数的第 n 位数字。';
+    let x = '';
+    for (let i = 0; i < n; i++) {
+        const d = DIAG_NUMS[i][i];
+        const nd = d === '5' ? '4' : '5';
+        x += nd;
+        table.innerHTML = DIAG_NUMS.map((_, k) => rowHtml(k, i + 1)).join('') +
+            `<div class="diag-row new"><span class="lab">x = 0.</span>${x.split('').map(c => `<span class="dg on">${c}</span>`).join('')}<span>…</span></div>`;
+        steps.textContent = `步骤 3：r${i + 1} 的第 ${i + 1} 位是 ${d}，x 的第 ${i + 1} 位取 ${nd}（≠ ${d}）。`;
+        await sleep(520);
+    }
+    steps.textContent = '步骤 4：x 与每个 rₙ 至少在第 n 位不同，所以 x 不在列表中。';
+    conclusion.classList.add('shown');
     animating = false;
 }
 
