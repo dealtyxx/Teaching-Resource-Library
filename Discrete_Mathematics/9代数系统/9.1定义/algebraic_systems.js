@@ -69,7 +69,7 @@
             id: "z5-sub",
             layer: "basic",
             type: "binary",
-            name: "Z5 普通减法",
+            name: "{0,1,2,3,4} 上的普通减法",
             short: "反例检查",
             set: [0, 1, 2, 3, 4],
             symbol: "-",
@@ -90,9 +90,9 @@
             symbol: "f",
             operation: (a) => ({ A: "B", B: "C", C: "A" }[a]),
             samples: [["A"], ["B"], ["C"]],
-            properties: { closure: true, identity: false, inverse: true },
-            focus: "inverse",
-            note: "每个状态都有唯一去向，也能沿反向找回来源。",
+            properties: { closure: true, bijective: true },
+            focus: "bijective",
+            note: "每个状态都有唯一去向，也能沿反向找回来源，所以存在逆运算 f⁻¹。",
             feedback: "进阶层开始把“封闭”与“逆向可恢复”等性质一起观察。"
         },
         {
@@ -121,9 +121,9 @@
             arity: 3,
             operation: (...args) => args.filter(x => x === "同意").length >= 2 ? "同意" : "反对",
             samples: [["同意", "同意", "反对"], ["同意", "反对", "反对"], ["反对", "同意", "同意"]],
-            properties: { closure: true, commutative: true, associative: false },
+            properties: { closure: true, commutative: true },
             focus: "commutative",
-            note: "调换投票顺序不改变多数结果，但分批合并可能改变语义。",
+            note: "调换投票顺序不改变多数结果（对输入对称）；结合律是对二元运算而言的，三元多数决不讨论结合律。",
             feedback: "n 元运算把“多个输入合成一个输出”，仍要检查结果是否落在同一集合。"
         },
         {
@@ -183,7 +183,8 @@
         associative: ["结合律", "改变括号位置不改变最终结果。"],
         commutative: ["交换律", "交换输入顺序不改变结果。"],
         identity: ["单位元", "存在 e，使 e∘a=a∘e=a。"],
-        inverse: ["逆元", "元素可与某个元素结合回到单位元。"],
+        inverse: ["逆元", "每个元素 a 都有 b，使 a∘b=b∘a=e。"],
+        bijective: ["可逆（双射）", "一元运算 f 是双射时存在逆运算 f⁻¹，可沿反向找回来源。"],
         homomorphism: ["同态保持", "映射前后的运算结构保持一致。"]
     };
 

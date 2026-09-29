@@ -11,7 +11,7 @@
     --accent-dark: #b8321a;
     --accent-gold: #ffb400;
     --accent-green: #2f9a59;
-    --accent-blue: #2f5f9f;
+    --accent-blue: #B7791F;
     --danger-red: #bd2d19;
     --shadow-sm: 0 8px 24px rgba(139, 0, 0, 0.08);
     --shadow-md: 0 14px 34px rgba(139, 0, 0, 0.12);
@@ -111,6 +111,11 @@ body {
     overflow: auto;
 }
 
+/* 框架三阶卡 #dm-page-layers 注入为首个子元素后，行模板顺延一行，避免任务卡被拉成 290px 高 */
+.glass-pane:has(> #dm-page-layers) {
+    grid-template-rows: auto auto minmax(290px, 1fr) auto minmax(150px, 0.42fr);
+}
+
 .sidebar-header {
     display: flex;
     flex-direction: column;
@@ -121,6 +126,17 @@ body {
     display: flex;
     gap: 8px;
     margin-bottom: 14px;
+}
+
+.sidebar-header .eyebrow {
+    width: fit-content;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(214, 59, 29, 0.22);
+    color: #D63B1D;
+    background: rgba(214, 59, 29, 0.08);
+    font-size: 12px;
+    font-weight: 700;
 }
 
 .dot {
