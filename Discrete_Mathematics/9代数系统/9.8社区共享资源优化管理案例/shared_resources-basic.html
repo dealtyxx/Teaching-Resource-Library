@@ -8,7 +8,7 @@
   <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="资源状态代数 · 基础层｜9.8 社区共享资源优化管理案例 - 离散数学课程资源库">
-  <meta property="og:description" content="第9章 代数系统 · 9.8 社区共享资源优化管理案例 · 基础层：合并·分配运算。把资源调配抽象为代数系统。">
+  <meta property="og:description" content="第9章 代数系统 · 9.8 社区共享资源优化管理案例 · 基础层：资源余量 / 调配运算 / 封闭与守恒。把站点间的资源调配抽象为代数运算，检验封闭性与总量守恒。">
   <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/9%E4%BB%A3%E6%95%B0%E7%B3%BB%E7%BB%9F/9.8%E7%A4%BE%E5%8C%BA%E5%85%B1%E4%BA%AB%E8%B5%84%E6%BA%90%E4%BC%98%E5%8C%96%E7%AE%A1%E7%90%86%E6%A1%88%E4%BE%8B/shared_resources-basic.html">
   <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta property="og:image:width" content="1200">
@@ -16,11 +16,11 @@
   <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="资源状态代数 · 基础层｜9.8 社区共享资源优化管理案例 - 离散数学课程资源库">
-  <meta name="twitter:description" content="第9章 代数系统 · 9.8 社区共享资源优化管理案例 · 基础层：合并·分配运算。把资源调配抽象为代数系统。">
+  <meta name="twitter:description" content="第9章 代数系统 · 9.8 社区共享资源优化管理案例 · 基础层：资源余量 / 调配运算 / 封闭与守恒。把站点间的资源调配抽象为代数运算，检验封闭性与总量守恒。">
   <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>资源状态代数 · 基础层｜9.8 社区共享资源优化管理案例 - 离散数学课程资源库</title>
-  <meta name="description" content="第9章 代数系统 · 9.8 社区共享资源优化管理案例 · 基础层：合并·分配运算。把资源调配抽象为代数系统。">
+  <meta name="description" content="第9章 代数系统 · 9.8 社区共享资源优化管理案例 · 基础层：资源余量 / 调配运算 / 封闭与守恒。把站点间的资源调配抽象为代数运算，检验封闭性与总量守恒。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -30,12 +30,12 @@
 :root{
   --ink:#2c1810; --muted:#6b4a38; --paper:#fff8ec; --card:rgba(255,253,246,0.92);
   --line:rgba(116,55,31,0.18); --red:#d63b1d; --red-2:#de5b3d; --gold:#c58a1f;
-  --green:#2f7d57; --blue:#2f5f9f; --amber:#ffb400;
+  --green:#2f7d57; --blue:#B7791F; --amber:#ffb400;
   --shadow:0 18px 50px rgba(69,31,15,0.14);
 }
 *{box-sizing:border-box;}
 body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Microsoft YaHei",serif;
-  background:radial-gradient(circle at 16% 12%, rgba(222,91,61,.18), transparent 28%),radial-gradient(circle at 82% 8%, rgba(47,95,159,.14), transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
+  background:radial-gradient(circle at 16% 12%, rgba(222,91,61,.18), transparent 28%),radial-gradient(circle at 82% 8%, rgba(183,121,31,.14), transparent 26%),linear-gradient(135deg,#fff7e6 0%,#f8ead3 45%,#f3dfc7 100%);overflow:hidden;}
 .home-link{position:fixed;top:14px;left:14px;z-index:10000;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:rgba(44, 24, 16,.82);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(10px);}
 .app-container{width:min(1440px,calc(100vw - 32px));height:calc(100vh - 166px);min-height:640px;margin:74px auto 0;display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:18px;}
 .side-panel,.glass-pane{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:8px;}
@@ -73,7 +73,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--red);border:2px solid #fff;cursor:pointer;}
 .mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:16px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
 .mission-card b{color:var(--red);} .mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
-.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
+.visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(183,121,31,.1);color:var(--blue);font-size:12px;font-weight:700;}
 .tab-content{display:none;} .tab-content.active{display:block;animation:fade .3s ease;}
 @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 .pane-title{color:var(--red);font-size:1.25rem;margin:0 0 6px;}
@@ -99,7 +99,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .score-label{min-width:108px;font-weight:600;color:var(--muted);font-size:13px;}
 .score-bar{flex:1;height:26px;background:rgba(214, 59, 29,.1);border-radius:999px;overflow:hidden;}
 .score-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--gold));display:flex;align-items:center;justify-content:flex-end;padding-right:10px;color:#fff;font-weight:700;font-size:12px;width:0;transition:width .6s ease;border-radius:999px;white-space:nowrap;}
-.score-fill.blue{background:linear-gradient(90deg,var(--blue),#6fa0d8);}
+.score-fill.blue{background:linear-gradient(90deg,var(--blue),#E0B25A);}
 .formula-box{border-radius:10px;border:2px solid var(--gold);background:linear-gradient(135deg,rgba(214,59,29,.05),rgba(197,138,31,.06));padding:18px;margin:14px 0;text-align:center;}
 .formula-box h3{margin:0 0 8px;color:var(--ink);font-size:1rem;}
 .formula{font-family:"JetBrains Mono", Consolas, monospace;font-size:1.05rem;color:var(--red);font-weight:800;margin:10px 0;line-height:1.6;}
@@ -120,8 +120,10 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   .app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}
   .side-panel,.glass-pane{max-height:none;overflow:visible;} .action-row{margin-top:12px;} .station-row{grid-template-columns:1fr;}
 }
-  </style>
+  .sidebar-header .eyebrow{display:inline-block;width:fit-content;margin:6px 0 4px;padding:5px 10px;border-radius:999px;border:1px solid rgba(214,59,29,.22);color:#D63B1D;background:rgba(214,59,29,.08);font-size:12px;font-weight:700;}
+</style>
   <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <link rel="stylesheet" href="../case-flow.css">
   <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 <body>
@@ -130,16 +132,11 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
     <aside class="side-panel">
       <div class="sidebar-header">
         <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
-        <h1>红色数理 <span class="highlight">基础层</span></h1>
-        <p class="subtitle">共享资源调配面板 · 资源状态代数</p>
+        <span class="eyebrow">基础层 · 第9章 代数系统</span>
+        <h1>资源状态代数</h1>
+        <p class="subtitle">资源余量 / 调配运算 / 封闭与守恒</p>
       </div>
       <p class="intro">把每个站点的资源余量作为代数元素，用「调配」运算在站点间转移资源，观察封闭性与总量守恒。</p>
-
-      <div class="value-panel">
-        <h3>共建共享</h3>
-        <p>让闲置资源在站点间流动起来、惠及更多人；调配规则要不越底线，把好钢用在刀刃上。</p>
-        <div class="dim-list"><span>共建共享</span><span>节约集约</span><span>绿色发展</span></div>
-      </div>
 
       <nav class="tab-nav" id="tabNav">
         <button class="tab-btn active" data-tab="tab1"><span class="ico">📊</span><span>资源台账</span></button>
@@ -219,37 +216,77 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 
   <script>
     window.SECTION_META = {
-      "layers": [
-            { "name": "资源状态代数", "concepts": "合并·分配运算", "task": "把资源调配抽象为代数系统。", "page": "shared_resources-basic.html" },
-            { "name": "良构调配", "concepts": "封闭 / 结合 / 特殊元", "task": "设计公平一致的调配规则。", "page": "shared_resources.html" },
-            { "name": "共享经济调度", "concepts": "库存管理 / 公平与效率", "task": "迁移到共享调度与库存。", "page": "shared_resources-extend.html" }
-      ],
       "chapter": "第9章 代数系统",
       "section": "9.8 社区共享资源优化管理案例",
       "title": "代数系统应用 · 社区共享资源管理",
-      "grounding": "本节主题：用代数系统建模社区共享资源的调配——把资源的合并/分配抽象为运算，用封闭性保证调配不越界、用单位元/零元表示空闲/枯竭状态、用结合律保证多方汇总一致，体会代数结构在资源优化管理中的应用。",
+      "grounding": "本节主题：用代数系统建模社区共享资源的调配——把资源的合并/分配抽象为运算，用封闭性保证调配不越界（余量非负、总量守恒）；把资源组合定义为能力并集 A∗B=A∪B，则结合律、交换律、幂等律成立，∅ 为单位元（不调配）；用结合律保证分级汇总一致，体会代数结构在资源优化管理中的应用。",
       "steps": [
-            { "name": "情境引入", "desc": "社区共享工具、车位、场地如何高效公平地调配共享？" },
-            { "name": "对象抽取", "desc": "把资源状态与调配规则抽象为代数系统。" },
-            { "name": "结构建模", "desc": "用封闭性、结合律、特殊元刻画资源调配。" },
-            { "name": "推理求解", "desc": "设计满足良好性质的资源合成与分配规则。" },
-            { "name": "程序验证", "desc": "用本页交互优化资源调配，验证公平高效。" },
-            { "name": "迁移反思", "desc": "迁移到共享经济、资源调度、库存管理。" }
+        {
+          "name": "情境引入",
+          "desc": "社区共享工具、车位、场地如何高效公平地调配共享？"
+        },
+        {
+          "name": "对象抽取",
+          "desc": "把资源状态与调配规则抽象为代数系统。"
+        },
+        {
+          "name": "结构建模",
+          "desc": "用封闭性、结合律、特殊元刻画资源调配。"
+        },
+        {
+          "name": "推理求解",
+          "desc": "设计满足良好性质的资源合成与分配规则。"
+        },
+        {
+          "name": "程序验证",
+          "desc": "用本页交互优化资源调配，验证公平高效。"
+        },
+        {
+          "name": "迁移反思",
+          "desc": "迁移到共享经济、资源调度、库存管理。"
+        }
       ],
       "ideology": {
-            "title": "共建共享 · 节约集约",
-            "text": "社区共享资源优化体现『共建共治共享』与节约集约的发展理念——让闲置资源流动起来、惠及更多人。用代数系统保证调配规则公平一致、不越底线，把好钢用在刀刃上，彰显以人民为中心、绿色低碳的治理追求。",
-            "dims": [ "共建共享", "节约集约", "绿色发展" ],
-            "quote": "物尽其用、各得其所——科学的调配规则，让共享资源在社区里高效公平地流动。"
+        "title": "共建共享 · 节约集约",
+        "text": "社区共享资源优化体现『共建共治共享』与节约集约的发展理念——让闲置资源流动起来、惠及更多人。用代数系统保证调配规则公平一致、不越底线，把好钢用在刀刃上，彰显以人民为中心、绿色低碳的治理追求。",
+        "dims": [
+          "共建共享",
+          "节约集约",
+          "绿色发展"
+        ],
+        "quote": "物尽其用、各得其所——科学的调配规则，让共享资源在社区里高效公平地流动。"
       },
       "reflect": [
-            "资源调配运算的『封闭性』为什么重要（不能调出超过库存）？",
-            "用『零元』表示资源枯竭状态，它在运算中如何体现『一票否决』？",
-            "多个网格分别汇总再合并，与统一汇总结果应一致——这要求什么定律？"
+        "资源调配运算的『封闭性』为什么重要（不能调出超过库存）？",
+        "用『零元』表示资源枯竭状态，它在运算中如何体现『一票否决』？",
+        "多个网格分别汇总再合并，与统一汇总结果应一致——这要求什么定律？"
       ],
       "transfer": [
-            "共享单车调度、云计算资源分配、库存管理都需良构的调配代数。",
-            { "t": "公平与效率", "d": "资源分配既要效率最优又要兼顾公平，如何在规则中平衡？" }
+        "共享单车调度、云计算资源分配、库存管理都需良构的调配代数。",
+        {
+          "t": "公平与效率",
+          "d": "资源分配既要效率最优又要兼顾公平，如何在规则中平衡？"
+        }
+      ],
+      "layers": [
+        {
+          "name": "资源状态代数",
+          "concepts": "资源余量 / 调配运算 / 封闭与守恒",
+          "task": "把站点间的资源调配抽象为代数运算，检验封闭性与总量守恒。",
+          "page": "shared_resources-basic.html"
+        },
+        {
+          "name": "良构调配",
+          "concepts": "资源组合 / 结合律 / 交换律 / 单位元",
+          "task": "把资源组合定义为能力并集，用运算律设计公平一致的调配规则。",
+          "page": "shared_resources.html"
+        },
+        {
+          "name": "共享经济调度",
+          "concepts": "调度算子 / 公平与效率 / 分级汇总",
+          "task": "比较调度算子的代数性质与公平效率，迁移到共享调度与库存管理。",
+          "page": "shared_resources-extend.html"
+        }
       ]
     };
   </script>
@@ -299,13 +336,13 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
         actionRow.innerHTML=`<button class="action-btn" id="actBtn">进入调配运算</button>`;
         $('resSelect').addEventListener('change',e=>{ const r=resources.find(x=>x.id===e.target.value); if(r) selectResource(r); });
         if(current) $('resSelect').value=current.id;
-        $('actBtn').addEventListener('click',()=>{ if(!current){alert('请先选择一类资源！');return;} switchTab('tab2'); });
+        $('actBtn').addEventListener('click',()=>{ if(!current){dm9Toast('请先选择一类资源！');return;} switchTab('tab2'); });
       } else {
         sidebarDyn.innerHTML=`
           <div class="control-group"><label>当前资源</label><div class="mini-info" id="curRes">${current?`${current.icon} ${current.name}`:'未选择'}</div></div>
           <div class="control-group"><label>站点说明</label><div class="mini-info">把可用余量分到两个站点：站点甲约占 60%，站点乙约占 40%。</div></div>`;
         actionRow.innerHTML=`<button class="action-btn" id="actBtn">最大化调配</button>`;
-        $('actBtn').addEventListener('click',()=>{ if(!current){alert('请先选择资源！');return;} const s=$('kSlider'); s.value=a0; renderTransfer(); });
+        $('actBtn').addEventListener('click',()=>{ if(!current){dm9Toast('请先选择资源！');return;} const s=$('kSlider'); s.value=a0; renderTransfer(); });
         renderTransfer();
       }
     }
@@ -343,5 +380,17 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   })();
   </script>
   <script src="../../shared/ai-tutor.js" defer></script>
+  <script>
+    window.CASE_FLOW = {
+      "stage": "认识模型",
+      "background": "社区里的共享单车、充电宝、工具箱分布在不同站点，有的站点紧缺、有的闲置，需要在站点之间调配。",
+      "model": "把各站点的资源余量看作元素，把“从甲站调 k 件到乙站”看作运算：(a, b) ↦ (a−k, b+k)，要求 0 ≤ k ≤ a。",
+      "solve": "选择一类资源，拖动滑杆设定调配量 k，观察两站余量、封闭性与总量是否守恒。",
+      "result": "只要 k 不超过可用量，调配后的余量仍是非负整数（封闭）；甲乙总量 a+b 不变（守恒）——调配只是在社区内流动。",
+      "value": "共享让资源物尽其用：调配要守住“不凭空多出、不无故丢失”的底线，体现互助共享、精打细算的社区治理理念。",
+      "transfer": "同样的“封闭 + 守恒”检验适用于库存调拨、跨院区床位调配、校园物资借还等场景。"
+    };
+  </script>
+  <script src="../case-flow.js" defer></script>
 </body>
 </html>
