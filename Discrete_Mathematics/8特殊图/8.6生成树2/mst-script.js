@@ -29,6 +29,7 @@ let isRunning = false;
 let nodeElements = new Map();
 let edgeElements = [];
 let mstEdges = [];
+let stopRequested = false; // 运行中点「重置」时中止动画
 
 // Constants
 const NODE_RADIUS = 26;
@@ -94,19 +95,11 @@ function generateGraph() {
         addEdge(i, next);
     }
 
-    // Add additional edges for variety
-    const extraEdges = Math.floor(n * 0.5);
-    for (let i = 0; i < extraEdges; i++) {
-        const u = Math.floor(Math.random() * n);
-        let v = Math.floor(Math.random() * n);
-
-        // Ensure not same, not adjacent
-        while (v === u || Math.abs(u - v) === 1 || (u === 0 && v === n - 1) || (u === n - 1 && v === 0)) {
-            v = Math.floor(Math.random() * n);
-        }
-
-        addEdge(u, v);
-    }
+    // 再加若干条弦（不与环边重复）；候选有限，避免原先 while 随机重抽在小 n 时可能死循环
+    const chords = [];
+    for (let u = 0; u < n; u++) for (let v = u + 2; v < n; v++) if (!(u === 0 && v === n - 1)) chords.push([u, v]);
+    chords.sort(() => Math.random() - 0.5);
+    chords.slice(0, Math.floor(n * 0.5)).forEach(([u, v]) => addEdge(u, v));
 
     renderGraph();
     updateStats();
@@ -190,6 +183,7 @@ async function startAlgorithm() {
     if (isRunning) return;
 
     isRunning = true;
+    stopRequested = false;
     startBtn.disabled = true;
     generateBtn.disabled = true;
 
@@ -204,7 +198,12 @@ async function startAlgorithm() {
     }
 
     updateMSTInfo();
-    statusText.textContent = `MST构建完成! 总权重: ${mstEdges.reduce((sum, e) => sum + e.weight, 0)}`;
+    if (stopRequested) {
+        reset();
+        statusText.textContent = '已重置';
+    } else {
+        statusText.textContent = `MST 构建完成：${mstEdges.length} 条边，总权重 ${mstEdges.reduce((sum, e) => sum + e.weight, 0)}`;
+    }
 
     isRunning = false;
     startBtn.disabled = false;
@@ -219,10 +218,11 @@ async function primMST() {
     const start = 0;
     visited.add(start);
     nodeElements.get(start).circle.classList.add('start');
-    statusText.textContent = `Prim起点: ${nodes[start].name}`;
+    statusText.textContent = `Prim 起点：${nodes[start].name}`;
     await sleep(getDelay());
 
     while (visited.size < nodes.length) {
+        if (stopRequested) return;
         let minEdge = null;
         let minWeight = Infinity;
 
@@ -262,7 +262,7 @@ async function primMST() {
 
         const newEl = nodeElements.get(newNode);
         newEl.circle.classList.add('current');
-        statusText.textContent = `Prim添加边: ${nodes[minEdge.u].name}-${nodes[minEdge.v].name} (权重:${minEdge.weight})`;
+        statusText.textContent = `Prim 加入跨越树内外的最小边：${nodes[minEdge.u].name}–${nodes[minEdge.v].name}（权 ${minEdge.weight}）`;
         await sleep(getDelay());
 
         newEl.circle.classList.remove('current');
@@ -295,6 +295,12 @@ async function kruskalMST() {
     }
 
     for (const edge of sortedEdges) {
+        if (stopRequested) return;
+        if (mstEdges.length === nodes.length - 1) {
+            statusText.textContent = `已选满 n−1 = ${nodes.length - 1} 条边，其余边无需再检查`;
+            await sleep(getDelay());
+            break;
+        }
         const edgeEl = edgeElements.find(e => e.edge.id === edge.id);
         edgeEl.line.classList.add('candidate');
 
@@ -303,7 +309,7 @@ async function kruskalMST() {
         uNode.circle.classList.add('current');
         vNode.circle.classList.add('current');
 
-        statusText.textContent = `Kruskal检查: ${nodes[edge.u].name}-${nodes[edge.v].name} (权重:${edge.weight})`;
+        statusText.textContent = `Kruskal 检查：${nodes[edge.u].name}–${nodes[edge.v].name}（权 ${edge.weight}）`;
         await sleep(getDelay());
 
         if (find(edge.u) !== find(edge.v)) {
@@ -313,14 +319,14 @@ async function kruskalMST() {
             edgeEl.line.classList.add('mst');
             mstEdges.push(edge);
 
-            statusText.textContent = `✓ 接受: ${nodes[edge.u].name}-${nodes[edge.v].name} (${edge.weight})`;
+            statusText.textContent = `✓ 接受：${nodes[edge.u].name}–${nodes[edge.v].name}（${edge.weight}）`;
             updateMSTInfo();
         } else {
             // Reject edge
             edgeEl.line.classList.remove('candidate');
             edgeEl.line.classList.add('rejected');
 
-            statusText.textContent = `✗ 拒绝: ${nodes[edge.u].name}-${nodes[edge.v].name} (形成环)`;
+            statusText.textContent = `✗ 拒绝：${nodes[edge.u].name}–${nodes[edge.v].name}（两端已连通，加入会成圈）`;
         }
 
         await sleep(getDelay());
@@ -371,6 +377,7 @@ generateBtn.addEventListener('click', generateGraph);
 startBtn.addEventListener('click', startAlgorithm);
 
 resetBtn.addEventListener('click', () => {
+    if (isRunning) stopRequested = true;
     reset();
     statusText.textContent = '已重置';
 });
