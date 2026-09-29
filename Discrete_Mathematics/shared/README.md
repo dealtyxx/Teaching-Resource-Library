@@ -18,7 +18,7 @@
 | 🔁 **反思迁移** | 反思追问 + 迁移变式卡片。 |
 | 📊 **能力雷达** | 仅在**重点案例页**出现：六维（情境理解/对象抽象/数学建模/推理计算/工程解释/迁移应用）能力雷达，随**学习行为轻量打点**自动成长，给出"建模能力指数"。 |
 
-外加顶部居中**面包屑**（章 › 节）、**首次访问引导气泡**、Esc 关闭、记忆上次选项卡。所有组件作用域隔离（`dm-` 前缀 + `#dm-assist-root`），**绝不污染各节原有样式**。
+外加顶部居中**面包屑**（章 › 节）、**首次访问引导气泡**（小屏自动缩小，约 8 秒后自动收起）、缺失时兜底注入的**返回课程主页**链接、规范化的**页面标题**、Esc 关闭、记忆上次选项卡。所有组件作用域隔离（`dm-` 前缀 + `#dm-assist-root`），**绝不污染各节原有样式**。
 
 ### 六维能力雷达（行为打点）
 
@@ -36,7 +36,45 @@
 - 密钥**仅保存在用户浏览器的 localStorage**，直接发往 `api.deepseek.com`，**不经过本网站或任何第三方服务器**（本项目是纯静态站，根本没有服务器）。
 - 已验证 DeepSeek API 支持浏览器跨域（CORS），故 GitHub Pages 可正常使用。
 
-## 三、如何给一个小节接入（每节只加两段）
+## 三、如何给一个小节接入
+
+> 完整的页面外壳、命名与验收规范见 [`STYLE-GUIDE.md`](STYLE-GUIDE.md)。下面是接入共享层所需的最小片段。
+
+### 3.1 `<head>`：字体（非阻塞）+ 共享样式 + MathJax
+
+```html
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap"></noscript>
+<link rel="stylesheet" href="本单元.css">
+<link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+<script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+```
+
+- 全站只用这**一个字体 URL**，以 `media="print"` + `onload` 方式非阻塞加载：Google 慢或不通时先用系统字体渲染，不再白屏。
+- `<title>`、`description`、Open Graph / Twitter 标签不要手写，由 `tools/dm_normalize.py` 按 `SECTION_META` 生成：
+  `<title>{层名} · {层级}｜{N.M 节名} - 离散数学课程资源库</title>`；运行时 `ai-tutor.js` 把 `document.title` 设为同一格式。
+
+### 3.2 `<body>`：返回链接与页脚（每页各恰好一个）
+
+```html
+<body>
+    <a class="home-link" href="../../index.html#chapterN">← 返回课程主页</a>
+    …
+    <footer class="site-footer">
+        <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
+        <p>版权所有 · 项目总负责人：谢鑫</p>
+    </footer>
+```
+
+- 样式全部来自 `discrete-ui.css` §10：返回链接是左上角深色胶囊（手机端自动缩小、触控高度 ≥40px），页脚两行透明居中。**不要写内联样式**。
+- 页面缺 `a.home-link` 时，`ai-tutor.js` 会按目录深度注入标准返回链接兜底（`dm_check` 仍会报错提醒补上）。
+
+### 3.3 `</body>` 前：学习助手框架
+
+在该小节 HTML 的 `</body>` 之前插入：
 
 在该小节 HTML 的 `</body>` 之前插入：
 
@@ -77,11 +115,26 @@ window.SECTION_META = {
 <script src="../../shared/ai-tutor.js" defer></script>
 ```
 
-> 路径说明：小节都在 `第N章/小节/xxx.html`（根下两级），故统一用 `../../shared/`。
+> 路径说明：小节都在 `第N章/小节/xxx.html`（根下两级），故统一用 `../../shared/`；三级目录页面（如 3.4 的四个子页）用 `../../../shared/`，返回链接同理。
+> `section` 只写「N.M 节名」，**不要带「· 基础层」等层级后缀**（框架运行时会自动追加到面包屑）。
 > CSS 由 `ai-tutor.js` 自动加载，无需手动引入。
 > `SECTION_META` 全部字段都可省略——省略时模块会从标题/路径自动推断并给出通用内容，但建议逐节填好以获得"定制"效果。
 
-## 四、GitHub Pages 部署
+## 四、MathJax 本地化
+
+- `shared/vendor/mathjax/` 是 MathJax 3.2.2 的本地副本（约 2.6MB，仅含 `tex-mml-chtml.js`、CHTML woff-v2 字体、TeX 扩展、`ui/` 与 `a11y/assistive-mml.js`；不含 SRE 语音引擎）。
+- `mathjax-auto.js` 在页面出现 `$…$`、`\( … \)`、`\[ … \]` 等公式时按需加载：**优先本地副本**（基于自身 `<script src>` 计算路径，两级 / 三级目录都适用），本地加载失败再回退 `cdn.jsdelivr.net`。
+- `ai-tutor.js` 渲染 AI 回答中的公式时也走同一加载器。
+- 页面**不要**再直接写 `<script src="https://cdn.jsdelivr.net/npm/mathjax@3/…">`。
+
+## 五、工具
+
+| 命令 | 作用 |
+|------|------|
+| `python3 tools/dm_normalize.py [--check] [--prefix 路径]` | 机械归一化（幂等）：title/description/OG、返回链接、页脚、字体片段、SECTION_META 章名/节名 |
+| `python3 tools/dm_check.py --prefix 路径 --out 目录 [--sheet]` | 无头浏览器质检：报错、交互、三视口截图、静态一致性 |
+
+## 六、GitHub Pages 部署
 
 1. 仓库根目录已放 `.nojekyll`（禁用 Jekyll，避免忽略文件 / 中文路径问题）。
 2. 仓库 Settings → Pages → Source 选 `main` 分支根目录即可。
