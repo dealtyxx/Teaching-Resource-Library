@@ -8,7 +8,7 @@
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
     <meta property="og:title" content="并行与化简 · 拓展层｜9.2 运算定律 - 离散数学课程资源库">
-    <meta property="og:description" content="第9章 代数系统 · 9.2 运算定律 · 拓展层：MapReduce / 表达式优化。迁移到并行计算与编译优化。">
+    <meta property="og:description" content="第9章 代数系统 · 9.2 运算定律 · 拓展层：并行分块 / 表达式化简 / 反例边界。把运算定律迁移到并行计算与表达式化简，识别成立条件。">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/9%E4%BB%A3%E6%95%B0%E7%B3%BB%E7%BB%9F/9.2%E5%AE%9A%E5%BE%8B/algebraic_laws-extend.html">
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
@@ -16,11 +16,11 @@
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="并行与化简 · 拓展层｜9.2 运算定律 - 离散数学课程资源库">
-    <meta name="twitter:description" content="第9章 代数系统 · 9.2 运算定律 · 拓展层：MapReduce / 表达式优化。迁移到并行计算与编译优化。">
+    <meta name="twitter:description" content="第9章 代数系统 · 9.2 运算定律 · 拓展层：并行分块 / 表达式化简 / 反例边界。把运算定律迁移到并行计算与表达式化简，识别成立条件。">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>并行与化简 · 拓展层｜9.2 运算定律 - 离散数学课程资源库</title>
-    <meta name="description" content="第9章 代数系统 · 9.2 运算定律 · 拓展层：MapReduce / 表达式优化。迁移到并行计算与编译优化。">
+    <meta name="description" content="第9章 代数系统 · 9.2 运算定律 · 拓展层：并行分块 / 表达式化简 / 反例边界。把运算定律迁移到并行计算与表达式化简，识别成立条件。">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -52,8 +52,8 @@
                 <div class="law-control">
                     <label>单步控制</label>
                     <div class="law-step-tools">
-                        <button id="prevStep" class="law-btn ghost" type="button">上步</button>
-                        <button id="nextStep" class="law-btn primary" type="button">下步</button>
+                        <button id="prevStep" class="law-btn ghost" type="button">上一步</button>
+                        <button id="nextStep" class="law-btn primary" type="button">下一步</button>
                         <button id="autoStep" class="law-btn" type="button">自动</button>
                         <button id="resetStep" class="law-btn ghost" type="button">重置</button>
                     </div>
@@ -112,26 +112,78 @@
 
     <script>
         window.SECTION_META = {
-            chapter: "第9章 代数系统",
-            section: "9.2 运算定律",
-            title: "运算定律拓展层",
-            grounding: "本页把运算定律迁移到表达式化简、集合恒等式、消去条件与并行计算场景。",
-            layers: [
-                { name: "结合·交换律", concepts: "可调序 / 可分组", task: "认识运算的基本良好性质。", page: "algebraic_laws-basic.html" },
-                { name: "分配·吸收·消去律", concepts: "分配 / 吸收 / 消去 / 幂等", task: "判定各定律并据此化简。", page: "algebraic_laws.html" },
-                { name: "并行与化简", concepts: "MapReduce / 表达式优化", task: "迁移到并行计算与编译优化。", page: "algebraic_laws-extend.html" }
+          "chapter": "第9章 代数系统",
+          "section": "9.2 运算定律",
+          "title": "运算定律",
+          "grounding": "本节主题：二元运算可能满足的定律。设 ∘、* 是集合 S 上的二元运算：结合律 (a∘b)∘c=a∘(b∘c)；交换律 a∘b=b∘a；分配律 a∘(b*c)=(a∘b)*(a∘c) 且 (b*c)∘a=(b∘a)*(c∘a)；吸收律 a∘(a*b)=a 且 a*(a∘b)=a（∘ 与 * 均可交换时）；幂等律 a∘a=a；消去律：a∘b=a∘c⇒b=c 且 b∘a=c∘a⇒b=c（对非零元）。定律要对 S 中所有元素成立，一个反例即可否定；满足的定律决定代数系统的类型（如半群要求结合律）。",
+          "steps": [
+            {
+              "name": "情境引入",
+              "desc": "为什么有的运算可以随意加括号、调顺序，有的不行？"
+            },
+            {
+              "name": "对象抽取",
+              "desc": "把运算的良好性质抽象为各条运算定律。"
+            },
+            {
+              "name": "结构建模",
+              "desc": "用结合/交换/分配等定律刻画运算品质。"
+            },
+            {
+              "name": "推理求解",
+              "desc": "判定运算满足哪些定律，据此简化计算。"
+            },
+            {
+              "name": "程序验证",
+              "desc": "用本页交互检验运算表是否满足各定律。"
+            },
+            {
+              "name": "迁移反思",
+              "desc": "迁移到结构分类、表达式化简、并行计算。"
+            }
+          ],
+          "ideology": {
+            "title": "规则之治 · 守正有度",
+            "text": "运算定律是代数系统内在的『规矩』，定律越完备，运算越可预期、可化简，正如制度越健全，社会越有序高效。结合律保障『分组不影响结果』，启示我们协作中尊重规则、各环节可靠衔接，方能行稳致远。",
+            "dims": [
+              "规则意识",
+              "系统观念",
+              "辩证思维"
             ],
-            steps: [
-                { name: "迁移建模", desc: "把集合、模运算或并行聚合写成代数表达式。" },
-                { name: "条件检查", desc: "确认定律成立所需的运算前提。" },
-                { name: "表达式变形", desc: "用分配、吸收、结合或消去进行化简。" },
-                { name: "反例检验", desc: "当条件不满足时，寻找具体反例。" },
-                { name: "工程迁移", desc: "解释并行计算、编译优化中为何必须先验证定律。" }
-            ],
-            reflect: [
-                "为什么并行分块计算必须依赖结合律？",
-                "模 6 乘法中为什么不能随意消去公共因子？"
-            ]
+            "quote": "无规矩不成方圆——运算定律正是代数世界里保证运算可靠、可化简的『规矩』。"
+          },
+          "reflect": [
+            "结合律为什么对『并行/分块计算』至关重要（可任意分组求和）？",
+            "消去律成立意味着什么？它和『逆元存在』有何联系？",
+            "矩阵乘法满足结合律但不满足交换律，这带来哪些计算上的注意事项？"
+          ],
+          "transfer": [
+            "MapReduce/并行求和依赖结合律（甚至交换律）才能分块合并。",
+            {
+              "t": "表达式化简",
+              "d": "编译器用结合律、分配律优化算术表达式，为什么必须先确认定律成立？"
+            }
+          ],
+          "layers": [
+            {
+              "name": "结合·交换律",
+              "concepts": "结合律 / 交换律 / 运算表验算",
+              "task": "在小集合上逐步验算，认识结合律与交换律。",
+              "page": "algebraic_laws-basic.html"
+            },
+            {
+              "name": "分配·吸收·消去律",
+              "concepts": "分配律 / 吸收律 / 幂等律 / 消去律",
+              "task": "判定分配、吸收、幂等、消去律是否成立并据此化简。",
+              "page": "algebraic_laws.html"
+            },
+            {
+              "name": "并行与化简",
+              "concepts": "并行分块 / 表达式化简 / 反例边界",
+              "task": "把运算定律迁移到并行计算与表达式化简，识别成立条件。",
+              "page": "algebraic_laws-extend.html"
+            }
+          ]
         };
     </script>
     <script src="algebraic_laws-tier.js"></script>

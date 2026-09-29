@@ -483,11 +483,12 @@
 
     function init() {
         const cfg = DATA[tier];
-        document.title = `${cfg.title} - ${cfg.label}`;
-        $("tierLabel").textContent = cfg.label;
-        $("pageTitle").textContent = cfg.title;
-        $("pageSubtitle").textContent = cfg.subtitle;
-        els.intro.textContent = cfg.intro;
+        const meta = window.SECTION_META || {};
+        const layer = (meta.layers || [])[tier === "basic" ? 0 : 2];
+        $("tierLabel").textContent = `${cfg.label} · 第9章 代数系统`;
+        $("pageTitle").textContent = layer ? layer.name : cfg.title;
+        $("pageSubtitle").textContent = layer ? layer.concepts : cfg.subtitle;
+        els.intro.textContent = layer ? `${cfg.subtitle}${cfg.intro}` : cfg.intro;
         els.caseSelect.innerHTML = cfg.cases.map((c, i) => `<option value="${i}">${esc(c.name)}</option>`).join("");
         els.caseSelect.addEventListener("change", (event) => setCase(Number(event.target.value)));
         els.prev.addEventListener("click", () => {
