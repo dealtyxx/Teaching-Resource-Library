@@ -1,11 +1,11 @@
 /**
- * 素数与最大公因数 - 价值引领可视化
- * 主题：不可分割·求同存异
+ * 1.2.2 素数和最大公因数 · 进阶层：欧几里得算法（辗转相除）
+ * 模式一「欧几里得算法」：逐步演示 gcd(a,b)=gcd(b, a mod b)，给出扩展欧几里得的贝祖系数与最小公倍数；
+ * 模式二「素数分布」：2~N 的素数与合数，点击查看素因子分解（算术基本定理）。
  */
 
 // DOM 元素
 const modeTabs = document.querySelectorAll('.mode-tab');
-const themeSelect = document.getElementById('themeSelect');
 const rangeSlider = document.getElementById('rangeSlider');
 const num1Slider = document.getElementById('num1Slider');
 const num2Slider = document.getElementById('num2Slider');
@@ -26,411 +26,156 @@ const resultPanel = document.getElementById('resultPanel');
 const stageTitle = document.getElementById('stageTitle');
 const stageDescription = document.getElementById('stageDescription');
 
-// 状态
-let currentMode = 'prime';
-let currentTheme = 'core';
-let maxRange = 50;
-let num1 = 48;
-let num2 = 36;
-let isAnimating = false;
+const DEF = { mode: 'gcd', range: 50, a: 252, b: 105 };
+let currentMode = DEF.mode;
+let maxRange = DEF.range;
+let num1 = DEF.a;
+let num2 = DEF.b;
+let shown = Infinity;      // 欧几里得已展示的步数
+let timer = null;
+let picked = 0;
 
-// 价值主题数据
-const themes = {
-    prime: {
-        core: {
-            title: '核心价值观',
-            description: '展示核心价值的不可分割性',
-            items: [
-                '富强', '民主', '文明', '和谐', '自由',
-                '平等', '公正', '法治', '爱国', '敬业',
-                '诚信', '友善', '创新', '协调', '绿色',
-                '开放', '共享', '自信', '包容', '进取'
-            ],
-            meaning: '核心价值观如同素数，不可分割，是社会的基石'
-        },
-        foundation: {
-            title: '基层基础',
-            description: '展示基层组织的基础性',
-            items: [
-                '党支部', '党小组', '工会', '团支部', '妇联',
-                '村委会', '居委会', '人大代表', '政协委员', '基层干部',
-                '社区服务', '志愿者', '党员先锋', '群众骨干', '调解员',
-                '网格员', '协管员', '监督员', '指导员', '联络员'
-            ],
-            meaning: '基层组织如同素数，是最基本的单位，不可再分'
-        },
-        unity: {
-            title: '团结协作',
-            description: '展示团队的独特价值',
-            items: [
-                '张书记', '李部长', '王主任', '赵科长', '孙处长',
-                '周局长', '吴主席', '郑委员', '陈干事', '刘专员',
-                '杨教授', '朱研究员', '徐工程师', '马医生', '胡律师',
-                '林经理', '黄会计', '梁分析师', '韩顾问', '秦策划'
-            ],
-            meaning: '每个人都有独特价值，不可替代'
-        },
-        consensus: {
-            title: '求同存异',
-            description: '展示共识的基础性',
-            items: [
-                '发展理念', '奋斗目标', '价值追求', '使命担当', '责任意识',
-                '大局观念', '服务精神', '创新思维', '实干作风', '廉洁自律',
-                '群众路线', '民主集中', '批评自我', '团结奋进', '改革创新',
-                '依法治国', '以人为本', '科学发展', '和谐社会', '共同富裕'
-            ],
-            meaning: '基本共识如同素数，是合作的基础'
-        }
-    },
-    gcd: {
-        unity: {
-            title: '团结协作',
-            description: '寻找共同基础，团结合作',
-            meaning: '不同团队间寻找最大公约数，实现协同发展'
-        },
-        consensus: {
-            title: '求同存异',
-            description: '求同存异，寻找共识',
-            meaning: '在分歧中寻找最大共识，团结一切可以团结的力量'
-        },
-        core: {
-            title: '核心价值观',
-            description: '提炼共同价值',
-            meaning: '从多元价值中提炼核心价值，形成最大公约数'
-        },
-        foundation: {
-            title: '基层基础',
-            description: '找到共同基础',
-            meaning: '不同基层组织找到共同基础，协调发展'
-        }
-    }
-};
+/* ---------- 数论工具 ---------- */
+function gcd(a, b) { while (b) { [a, b] = [b, a % b]; } return a; }
+function isPrime(n) { if (n < 2) return false; for (let i = 2; i * i <= n; i++) if (n % i === 0) return false; return true; }
+function factorize(n) { const f = []; for (let d = 2; d * d <= n; d++) { let k = 0; while (n % d === 0) { n /= d; k++; } if (k) f.push([d, k]); } if (n > 1) f.push([n, 1]); return f; }
+function factorHtml(f) { return f.map(([p, k]) => p + (k > 1 ? `<sup>${k}</sup>` : '')).join(' × '); }
+function euclidSteps(a, b) { const s = []; while (b) { s.push({ a, b, q: Math.floor(a / b), r: a % b }); [a, b] = [b, a % b]; } return s; }
+function extGcd(a, b) { if (!b) return [a, 1, 0]; const [g, x, y] = extGcd(b, a % b); return [g, y, x - Math.floor(a / b) * y]; }
 
-// 初始化
-function init() {
-    attachEventListeners();
-    updatePrincipleInfo();
-    updateResults();
-}
-
-// 事件监听
-function attachEventListeners() {
-    modeTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            modeTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            currentMode = tab.getAttribute('data-mode');
-            switchMode();
-        });
-    });
-
-    themeSelect.addEventListener('change', () => {
-        currentTheme = themeSelect.value;
-        updatePrincipleInfo();
-        updateResults();
-    });
-
-    rangeSlider.addEventListener('input', () => {
-        maxRange = parseInt(rangeSlider.value);
-        rangeValue.textContent = maxRange;
-        updateResults();
-    });
-
-    num1Slider.addEventListener('input', () => {
-        num1 = parseInt(num1Slider.value);
-        num1Value.textContent = num1;
-        updateResults();
-    });
-
-    num2Slider.addEventListener('input', () => {
-        num2 = parseInt(num2Slider.value);
-        num2Value.textContent = num2;
-        updateResults();
-    });
-
-    visualizeBtn.addEventListener('click', visualize);
-    resetBtn.addEventListener('click', reset);
-}
-
-// 切换模式
-function switchMode() {
-    if (currentMode === 'prime') {
-        primeControls.classList.remove('hidden');
-        gcdControls.classList.add('hidden');
-    } else {
-        primeControls.classList.add('hidden');
-        gcdControls.classList.remove('hidden');
-    }
-
-    updatePrincipleInfo();
-    updateResults();
-    reset();
-}
-
-// 更新原理说明
+/* ---------- 左栏说明与结果 ---------- */
 function updatePrincipleInfo() {
-    if (currentMode === 'prime') {
-        const theme = themes.prime[currentTheme];
-        principleTitle.textContent = `素数与${theme.title}`;
-        principleFormula.textContent = '只能被1和自身整除的自然数';
-        principleExplanation.textContent = theme.description;
-        politicalMeaning.textContent = theme.meaning;
-        stageTitle.textContent = `素数分布 - ${theme.title}`;
-        stageDescription.textContent = theme.description;
+    if (currentMode === 'gcd') {
+        principleTitle.textContent = '欧几里得算法（辗转相除）';
+        principleFormula.textContent = 'gcd(a, b) = gcd(b, a mod b)，gcd(a, 0) = a';
+        principleExplanation.textContent = '每一步用除数去除余数，余数严格变小，必在有限步内变为 0；最后一个非零余数就是最大公因数。';
+        politicalMeaning.textContent = '求同存异：在各自的差异（余数）中不断寻找共同部分，最终得到最大的“公约数”。';
+        stageTitle.textContent = `欧几里得算法：gcd(${num1}, ${num2})`;
+        stageDescription.textContent = '每行一步：a = q·b + r，下一行用 (b, r) 继续，直到余数为 0。';
     } else {
-        const theme = themes.gcd[currentTheme];
-        principleTitle.textContent = `最大公因数与${theme.title}`;
-        principleFormula.textContent = 'GCD(a,b) = 最大的能同时整除a和b的数';
-        principleExplanation.textContent = theme.description;
-        politicalMeaning.textContent = theme.meaning;
-        stageTitle.textContent = `最大公因数 - ${theme.title}`;
-        stageDescription.textContent = theme.description;
+        principleTitle.textContent = '素数与算术基本定理';
+        principleFormula.textContent = '素数：大于 1 且只有 1 和自身两个正因子';
+        principleExplanation.textContent = '每个大于 1 的整数都能唯一地（不计顺序）写成素数之积。点击任一合数查看分解。';
+        politicalMeaning.textContent = '固本培元：素数是构成一切整数的基本元素。';
+        stageTitle.textContent = `素数分布：2 ~ ${maxRange}`;
+        stageDescription.textContent = '红色为素数，浅色为合数；点击任意数字查看它的素因子分解。';
     }
 }
 
-// 更新结果
 function updateResults() {
-    resultPanel.innerHTML = '';
-
-    if (currentMode === 'prime') {
-        const primes = findPrimes(maxRange);
+    if (currentMode === 'gcd') {
+        const g = gcd(num1, num2), steps = euclidSteps(num1, num2);
         resultPanel.innerHTML = `
-            <div class="result-item">
-                <span class="result-label">数值范围</span>
-                <span class="result-value">2 - ${maxRange}</span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">素数个数</span>
-                <span class="result-value">${primes.length}</span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">合数个数</span>
-                <span class="result-value">${maxRange - 1 - primes.length}</span>
-            </div>
-        `;
+            <div class="result-item"><span class="result-label">gcd(${num1}, ${num2})</span><span class="result-value">${g}</span></div>
+            <div class="result-item"><span class="result-label">除法步数</span><span class="result-value">${steps.length}</span></div>
+            <div class="result-item"><span class="result-label">lcm = ab / gcd</span><span class="result-value">${num1 * num2 / g}</span></div>`;
     } else {
-        const gcd = findGCD(num1, num2);
+        let c = 0; for (let i = 2; i <= maxRange; i++) if (isPrime(i)) c++;
         resultPanel.innerHTML = `
-            <div class="result-item">
-                <span class="result-label">第一个数</span>
-                <span class="result-value">${num1}</span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">第二个数</span>
-                <span class="result-value">${num2}</span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">最大公因数</span>
-                <span class="result-value">${gcd}</span>
-            </div>
-        `;
+            <div class="result-item"><span class="result-label">数值范围</span><span class="result-value">2 - ${maxRange}</span></div>
+            <div class="result-item"><span class="result-label">素数个数 π(${maxRange})</span><span class="result-value">${c}</span></div>
+            <div class="result-item"><span class="result-label">合数个数</span><span class="result-value">${maxRange - 1 - c}</span></div>`;
     }
 }
 
-// 判断素数
-function isPrime(n) {
-    if (n < 2) return false;
-    if (n === 2) return true;
-    if (n % 2 === 0) return false;
-    for (let i = 3; i <= Math.sqrt(n); i += 2) {
-        if (n % i === 0) return false;
-    }
-    return true;
+/* ---------- 舞台 ---------- */
+function renderGcd() {
+    const steps = euclidSteps(num1, num2), g = gcd(num1, num2), n = Math.min(shown, steps.length);
+    const max = Math.max(num1, num2);
+    let rows = '';
+    steps.forEach((s, i) => {
+        const vis = i < n, last = i === steps.length - 1;
+        rows += `<div class="eu-row${vis ? '' : ' eu-hide'}${vis && i === n - 1 && n < steps.length ? ' eu-cur' : ''}">
+            <span class="eu-idx">第 ${i + 1} 步</span>
+            <span class="eu-eq">${s.a} = <b>${s.q}</b> × ${s.b} + <em class="${s.r === 0 ? 'zero' : ''}">${s.r}</em></span>
+            <span class="eu-bar"><i class="eu-b" style="width:${(s.b * s.q / max * 100).toFixed(1)}%"></i><i class="eu-r" style="width:${(s.r / max * 100).toFixed(1)}%"></i></span>
+            <span class="eu-note">${vis ? (last ? `余数为 0 ⇒ gcd = ${s.b}` : `gcd(${s.a}, ${s.b}) = gcd(${s.b}, ${s.r})`) : ''}</span>
+        </div>`;
+    });
+    const done = n >= steps.length;
+    const [, x, y] = extGcd(num1, num2);
+    const f1 = factorize(num1), f2 = factorize(num2), fg = factorize(g);
+    vizArea.innerHTML = `
+        <div class="eu-player">
+            <button type="button" class="apple-btn secondary-btn" id="euPrev">◀ 上一步</button>
+            <button type="button" class="apple-btn action-btn" id="euPlay">${timer ? '⏸ 暂停' : '▶ 自动播放'}</button>
+            <button type="button" class="apple-btn secondary-btn" id="euNext">下一步 ▶</button>
+            <span class="eu-tag">${n} / ${steps.length}</span>
+        </div>
+        <div class="eu-table">${rows}</div>
+        <div class="eu-cards">
+            <div class="eu-card ${done ? 'ok' : ''}"><h4>结论</h4><p>${done ? `gcd(${num1}, ${num2}) = <b>${g}</b>${g === 1 ? '，两数<b>互素</b>' : ''}` : '继续下一步，直到余数为 0。'}</p></div>
+            <div class="eu-card"><h4>扩展欧几里得（贝祖等式）</h4><p>${done ? `${g} = ${x} × ${num1} ${y < 0 ? '−' : '+'} ${Math.abs(y)} × ${num2}` : '算完后回代，可把 gcd 写成 a、b 的整数组合。'}</p></div>
+            <div class="eu-card"><h4>对照素因子分解</h4><p>${num1} = ${factorHtml(f1)}<br>${num2} = ${factorHtml(f2)}<br>公共部分 ${g === 1 ? '为空，gcd = 1' : '= ' + factorHtml(fg) + ' = ' + g}</p></div>
+        </div>`;
+    document.getElementById('euPrev').disabled = n <= 1;
+    document.getElementById('euNext').disabled = done;
+    document.getElementById('euPrev').onclick = () => { stop(); shown = Math.max(1, n - 1); renderGcd(); };
+    document.getElementById('euNext').onclick = () => { stop(); shown = n + 1; renderGcd(); };
+    document.getElementById('euPlay').onclick = play;
+    legendPanel.innerHTML = `
+        <div class="legend-item"><div class="legend-color" style="background:#D63B1D"></div><span>q × b（整除部分）</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#FFB400"></div><span>余数 r（进入下一步）</span></div>
+        <div class="legend-item eu-legend-note">💡 余数每两步至少减半，所以步数约与数的位数成正比——两千多年前的算法至今仍在密码学中使用。</div>`;
 }
 
-// 找出范围内的所有素数
-function findPrimes(max) {
-    const primes = [];
-    for (let i = 2; i <= max; i++) {
-        if (isPrime(i)) primes.push(i);
-    }
-    return primes;
+function stop() { if (timer) { clearInterval(timer); timer = null; } }
+function play() {
+    const total = euclidSteps(num1, num2).length;
+    if (timer) { stop(); renderGcd(); return; }
+    if (shown >= total) shown = 1;
+    timer = setInterval(() => {
+        if (shown >= total) { stop(); renderGcd(); return; }
+        shown++; renderGcd();
+    }, 900);
+    renderGcd();
 }
 
-// 计算最大公因数（欧几里得算法）
-function findGCD(a, b) {
-    while (b !== 0) {
-        let temp = b;
-        b = a % b;
-        a = temp;
-    }
-    return a;
-}
-
-// 找出一个数的所有因数
-function findFactors(n) {
-    const factors = [];
-    for (let i = 1; i <= n; i++) {
-        if (n % i === 0) factors.push(i);
-    }
-    return factors;
-}
-
-// 可视化
-async function visualize() {
-    if (isAnimating) return;
-    isAnimating = true;
-    visualizeBtn.disabled = true;
-    visualizeBtn.textContent = '生成中...';
-
-    vizArea.innerHTML = '';
-    legendPanel.innerHTML = '';
-
-    if (currentMode === 'prime') {
-        await visualizePrimes();
-    } else {
-        await visualizeGCD();
-    }
-
-    visualizeBtn.disabled = false;
-    visualizeBtn.textContent = '🎯 开始可视化';
-    isAnimating = false;
-}
-
-// 可视化素数
-async function visualizePrimes() {
-    const theme = themes.prime[currentTheme];
-    const primes = findPrimes(maxRange);
-    const primeSet = new Set(primes);
-
-    const grid = document.createElement('div');
-    grid.className = 'number-grid';
-    vizArea.appendChild(grid);
-
+function renderPrimes() {
+    let html = '<div class="number-grid">';
     for (let i = 2; i <= maxRange; i++) {
-        await sleep(15);
-
-        const card = document.createElement('div');
-        card.className = 'number-card';
-
-        const isPrimeNum = primeSet.has(i);
-        card.classList.add(isPrimeNum ? 'prime' : 'composite');
-        card.style.animationDelay = `${i * 0.01}s`;
-
-        const number = document.createElement('div');
-        number.className = 'card-number';
-        number.textContent = i;
-
-        const label = document.createElement('div');
-        label.className = 'card-label';
-
-        if (isPrimeNum) {
-            const itemIndex = (primes.indexOf(i)) % theme.items.length;
-            label.textContent = theme.items[itemIndex];
-        } else {
-            label.textContent = '合数';
-        }
-
-        card.appendChild(number);
-        card.appendChild(label);
-        grid.appendChild(card);
+        const p = isPrime(i);
+        html += `<button type="button" class="number-card ${p ? 'prime' : 'composite'}${i === picked ? ' picked' : ''}" data-v="${i}"><div class="card-number">${i}</div><div class="card-label">${p ? '素数' : '合数'}</div></button>`;
     }
-
-    // 图例
+    html += '</div>';
+    const info = picked ? (isPrime(picked) ? `${picked} 是素数，只有 1 和 ${picked} 两个正因子。` : `${picked} = ${factorHtml(factorize(picked))}（唯一分解）`) : '点击任意数字查看它的素因子分解。';
+    vizArea.innerHTML = html + `<div class="eu-card ok" style="margin-top:12px"><h4>算术基本定理</h4><p>${info}</p></div>`;
+    vizArea.querySelector('.number-grid').onclick = e => { const b = e.target.closest('[data-v]'); if (!b) return; picked = +b.dataset.v; renderPrimes(); };
+    let c = 0; for (let i = 2; i <= maxRange; i++) if (isPrime(i)) c++;
     legendPanel.innerHTML = `
-        <div class="legend-item">
-            <div class="legend-color" style="background: linear-gradient(135deg, #d63b1d 0%, #b8321a 100%);"></div>
-            <span>✨ 素数（${primes.length}个）- ${theme.title}的基础元素</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background: #ecf0f1;"></div>
-            <span>⚪ 合数（${maxRange - 1 - primes.length}个）- 可分解的复合元素</span>
-        </div>
-        <div class="legend-item" style="width: 100%; justify-content: center; font-weight: 600; color: var(--accent-red);">
-            💡 素数占比: ${(primes.length / (maxRange - 1) * 100).toFixed(1)}%
-        </div>
-    `;
+        <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#D63B1D,#B8321A)"></div><span>素数（${c} 个）</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#f3ebe4"></div><span>合数（${maxRange - 1 - c} 个）</span></div>
+        <div class="legend-item eu-legend-note">💡 素数占比 ${(c / (maxRange - 1) * 100).toFixed(1)}%，范围越大占比越低（素数定理：π(N) ≈ N / ln N）。</div>`;
 }
 
-// 可视化最大公因数
-async function visualizeGCD() {
-    const container = document.createElement('div');
-    container.className = 'gcd-container';
-    vizArea.appendChild(container);
-
-    const factors1 = findFactors(num1);
-    const factors2 = findFactors(num2);
-    const gcd = findGCD(num1, num2);
-
-    // 第一个数的因数
-    const box1 = document.createElement('div');
-    box1.className = 'number-box';
-    box1.innerHTML = `<h3>数值 ${num1} 的因数</h3>`;
-    const grid1 = document.createElement('div');
-    grid1.className = 'factors-grid';
-
-    for (let factor of factors1) {
-        await sleep(50);
-        const badge = document.createElement('div');
-        badge.className = 'factor-badge';
-        if (factors2.includes(factor)) {
-            badge.classList.add('common');
-        }
-        badge.textContent = factor;
-        grid1.appendChild(badge);
-    }
-    box1.appendChild(grid1);
-    container.appendChild(box1);
-
-    // 第二个数的因数
-    const box2 = document.createElement('div');
-    box2.className = 'number-box';
-    box2.innerHTML = `<h3>数值 ${num2} 的因数</h3>`;
-    const grid2 = document.createElement('div');
-    grid2.className = 'factors-grid';
-
-    for (let factor of factors2) {
-        await sleep(50);
-        const badge = document.createElement('div');
-        badge.className = 'factor-badge';
-        if (factors1.includes(factor)) {
-            badge.classList.add('common');
-        }
-        badge.textContent = factor;
-        grid2.appendChild(badge);
-    }
-    box2.appendChild(grid2);
-    container.appendChild(box2);
-
-    // GCD结果
-    await sleep(500);
-    const resultBox = document.createElement('div');
-    resultBox.className = 'gcd-result';
-    resultBox.innerHTML = `
-        <h3>最大公因数</h3>
-        <div class="gcd-value">${gcd}</div>
-        <div class="gcd-explanation">GCD(${num1}, ${num2}) = ${gcd}</div>
-        <div class="gcd-explanation" style="margin-top: 1rem;">这是两个数共有的最大因数，代表最大的共同基础</div>
-    `;
-    container.appendChild(resultBox);
-
-    // 图例
-    const theme = themes.gcd[currentTheme];
-    legendPanel.innerHTML = `
-        <div class="legend-item">
-            <div class="legend-color" style="background: var(--accent-red);"></div>
-            <span>⭐ 共同因数 - ${theme.title}的共同基础</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background: var(--accent-blue);"></div>
-            <span>📌 独有因数 - 各自的特色</span>
-        </div>
-        <div class="legend-item" style="width: 100%; justify-content: center; font-weight: 600; color: var(--accent-red);">
-            💡 ${theme.meaning}
-        </div>
-    `;
+function render() {
+    updatePrincipleInfo();
+    updateResults();
+    if (currentMode === 'gcd') renderGcd(); else renderPrimes();
 }
 
-// 重置
+function switchMode() {
+    stop();
+    primeControls.classList.toggle('hidden', currentMode !== 'prime');
+    gcdControls.classList.toggle('hidden', currentMode !== 'gcd');
+    modeTabs.forEach(t => t.classList.toggle('active', t.getAttribute('data-mode') === currentMode));
+    render();
+}
+
 function reset() {
-    vizArea.innerHTML = '';
-    legendPanel.innerHTML = '';
+    stop();
+    currentMode = DEF.mode; maxRange = DEF.range; num1 = DEF.a; num2 = DEF.b; shown = Infinity; picked = 0;
+    rangeSlider.value = maxRange; rangeValue.textContent = maxRange;
+    num1Slider.value = num1; num1Value.textContent = num1;
+    num2Slider.value = num2; num2Value.textContent = num2;
+    switchMode();
 }
 
-// 工具函数：延迟
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+modeTabs.forEach(tab => tab.addEventListener('click', () => { currentMode = tab.getAttribute('data-mode'); switchMode(); }));
+rangeSlider.addEventListener('input', () => { maxRange = +rangeSlider.value; rangeValue.textContent = maxRange; picked = 0; render(); });
+num1Slider.addEventListener('input', () => { stop(); num1 = +num1Slider.value; num1Value.textContent = num1; shown = Infinity; render(); });
+num2Slider.addEventListener('input', () => { stop(); num2 = +num2Slider.value; num2Value.textContent = num2; shown = Infinity; render(); });
+visualizeBtn.addEventListener('click', () => { if (currentMode !== 'gcd') { currentMode = 'gcd'; switchMode(); } stop(); shown = 1; play(); });
+resetBtn.addEventListener('click', reset);
 
-// 启动应用
-init();
+switchMode();
