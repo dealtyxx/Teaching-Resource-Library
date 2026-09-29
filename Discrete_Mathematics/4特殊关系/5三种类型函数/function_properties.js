@@ -41,7 +41,8 @@ function init() {
     mountConceptCard();
     setupNav();
     renderNodes();
-    updateMode('injective');
+    loadExample();
+    updateMode('bijective');
 
     // Add resize listener to redraw lines
     window.addEventListener('resize', renderConnections);
@@ -54,9 +55,9 @@ function mountConceptCard() {
 
     card.className = 'concept-overlay';
     card.innerHTML = `
-        <h4 id="conceptNameLive">鍗曞皠 (Injective)</h4>
-        <div class="math-def" id="conceptMathLive">f(x1) = f(x2) => x1 = x2</div>
-        <p class="concept-desc" id="conceptDescLive">涓嶅悓鐨勮緭鍏ュ繀椤诲搴斾笉鍚岀殑杈撳嚭銆傚湪鏈嶅姟涓紝杩欐剰鍛崇潃"涓撲汉涓撹矗"锛岄伩鍏嶈亴鑳戒氦鍙夊啿绐併€?</p>
+        <h4 id="conceptNameLive"></h4>
+        <div class="math-def" id="conceptMathLive"></div>
+        <p class="concept-desc" id="conceptDescLive"></p>
     `;
 
     bottomPanel.appendChild(card);
@@ -75,8 +76,9 @@ function setupNav() {
     });
 
     resetBtn.addEventListener('click', () => {
-        mappings.clear();
+        loadExample();
         selectedSource = null;
+        document.querySelectorAll('.node-item').forEach(el => el.classList.remove('selected'));
         renderConnections();
         checkStatus();
     });
@@ -99,24 +101,29 @@ function updateMode(mode) {
         conceptMath.textContent = 'f(x₁) = f(x₂) ⇒ x₁ = x₂';
         conceptDesc.textContent = '不同的输入必须对应不同的输出。在服务中，这意味着"专人专责"，避免职能交叉冲突。';
         insightText.textContent = '单射强调"各司其职"。医疗队专注健康，支教团专注教育，分工明确，责任到人，避免资源浪费和推诿扯皮。';
-        overlay.style.borderLeftColor = '#e17055';
+        overlay.style.borderLeftColor = '#D63B1D';
     } else if (mode === 'surjective') {
         conceptName.textContent = '满射 (Surjective)';
         conceptName.style.textAlign = 'center';
-        conceptMath.textContent = 'Range(f) = Y';
+        conceptMath.textContent = 'ran f = Y，即 ∀y∈Y ∃x∈X, f(x)=y';
         conceptDesc.textContent = '陪域中的每个元素都至少有一个原像。这意味着"全覆盖"，没有遗漏的需求。';
         insightText.textContent = '满射强调"一个都不能少"。无论是健康、教育还是养老，每一项社区需求都有对应的团队负责，实现公共服务的全面覆盖。';
-        overlay.style.borderLeftColor = '#74b9ff';
+        overlay.style.borderLeftColor = '#FFB400';
     } else {
         conceptName.textContent = '双射 (Bijective)';
         conceptName.style.textAlign = 'center';
-        conceptMath.textContent = 'Injective + Surjective';
-        conceptDesc.textContent = '既是单射又是满射。一一对应，完美匹配。';
-        insightText.textContent = '双射代表"精准匹配"。资源配置达到最优状态，既没有职能重叠（单射），也没有需求落空（满射），是供给侧改革的理想目标。';
-        overlay.style.borderLeftColor = '#6c5ce7';
+        conceptMath.textContent = '双射 = 单射 + 满射 ⇔ f⁻¹ 存在';
+        conceptDesc.textContent = '既单又满，一一对应。只有双射才有逆函数 f⁻¹：把每支箭头反向，得到的仍是函数。有限集 |X| = |Y| 时，单射 ⇔ 满射 ⇔ 双射。';
+        insightText.textContent = '双射代表「精准匹配」：既没有职能重叠（单射），也没有需求落空（满射），而且可以反向追溯——每项需求都能找到唯一的负责团队（逆函数）。';
+        overlay.style.borderLeftColor = '#1F9D55';
     }
 
     checkStatus();
+}
+
+// 初始示例：科技组、社工站都连到「数字农业」——不是单射，「养老服务」无人负责——不是满射
+function loadExample() {
+    mappings = new Map([['x1', 'y1'], ['x2', 'y2'], ['x3', 'y3'], ['x4', 'y3']]);
 }
 
 function renderNodes() {
@@ -192,11 +199,12 @@ function renderConnections() {
             const y1 = clamp(sRect.top - svgRect.top + sRect.height / 2, 12, height - 12);
             const x2 = clamp(tRect.left - svgRect.left - 12, 12, width - 12);
             const y2 = clamp(tRect.top - svgRect.top + tRect.height / 2, 12, height - 12);
-            const dx = Math.max(80, Math.abs(x2 - x1) * 0.45);
+            const dx = Math.max(24, Math.abs(x2 - x1) * 0.45);
 
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             line.setAttribute('d', `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`);
-            line.setAttribute('class', 'connection-line');
+            const clash = [...mappings.values()].filter(v => v === targetId).length > 1;
+            line.setAttribute('class', 'connection-line' + (clash ? ' clash' : ''));
 
             // Allow removing connection by clicking line
             line.addEventListener('click', (e) => {
@@ -228,6 +236,15 @@ function checkStatus() {
     // 3. Check Surjective (Onto)
     // Every element in codomain is mapped to
     const isSurjective = uniqueValues.size === NEEDS.length;
+
+    // 陪域节点状态：多个原像（冲突）/ 无原像（遗漏）
+    NEEDS.forEach(n => {
+        const el = codomainNodes.querySelector(`[data-id="${n.id}"]`);
+        const k = values.filter(v => v === n.id).length;
+        el.classList.toggle('clash', k > 1);
+        el.classList.toggle('uncovered', isTotal && k === 0);
+    });
+    renderInverse(isTotal, isInjective, isSurjective);
 
     // Update UI based on mode
     statusBar.className = 'status-bar';
@@ -271,6 +288,38 @@ function checkStatus() {
             statusBar.classList.add('error');
             statusIcon.textContent = '✗';
         }
+    }
+}
+
+// 逆函数面板：双射时列出 f⁻¹；否则说明为何不可逆
+function renderInverse(isTotal, isInjective, isSurjective) {
+    const box = document.getElementById('inverseBox');
+    if (!box) return;
+    const nameX = id => TEAMS.find(t => t.id === id).name;
+    const nameY = id => NEEDS.find(n => n.id === id).name;
+    if (!isTotal) {
+        box.innerHTML = '<b>逆函数 f⁻¹</b>：先让每个团队都有且只有一项任务（f 必须是函数）。';
+        box.className = 'inverse-box';
+        return;
+    }
+    if (isInjective && isSurjective) {
+        const rows = [...mappings.entries()].sort((a, b) => a[1].localeCompare(b[1]))
+            .map(([x, y]) => `<span>f⁻¹(${nameY(y)}) = ${nameX(x)}</span>`).join('');
+        box.innerHTML = `<b>f 是双射，f⁻¹ 存在</b>：把箭头全部反向，仍是函数。<div class="inv-list">${rows}</div>`;
+        box.className = 'inverse-box ok';
+    } else {
+        const why = [];
+        if (!isInjective) {
+            const y = [...mappings.values()].find((v, i, a) => a.indexOf(v) !== i);
+            const xs = [...mappings.entries()].filter(([, v]) => v === y).map(([x]) => nameX(x));
+            why.push(`反向后「${nameY(y)}」会对应 ${xs.join('、')} 两个值（违反单值）`);
+        }
+        if (!isSurjective) {
+            const miss = NEEDS.filter(n => ![...mappings.values()].includes(n.id)).map(n => n.name);
+            why.push(`「${miss.join('、')}」没有原像，反向后无定义（违反全定义）`);
+        }
+        box.innerHTML = `<b>f 不可逆</b>：${why.join('；')}。`;
+        box.className = 'inverse-box bad';
     }
 }
 

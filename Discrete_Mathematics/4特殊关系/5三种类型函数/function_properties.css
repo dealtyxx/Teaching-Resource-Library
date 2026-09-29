@@ -6,10 +6,10 @@
     --text-primary: #2c1810;
     --text-secondary: #6b4a38;
 
-    --service-orange: #e17055;
-    --harmony-blue: #74b9ff;
-    --success-green: #00b894;
-    --error-red: #d63031;
+    --service-orange: #D63B1D;
+    --harmony-blue: #F0A08F;
+    --success-green: #1F9D55;
+    --error-red: #D63B1D;
 
     --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.08);
@@ -33,16 +33,7 @@ color: var(--text-primary);
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #f5f0ff;
-    background-image:
-        radial-gradient(circle at 30% 35%, rgba(108,92,231,0.17) 0 95px, transparent 97px),
-        radial-gradient(circle at 70% 65%, rgba(9,132,227,0.13) 0 82px, transparent 84px),
-        radial-gradient(circle at 50% 50%, rgba(253,203,110,0.08) 0 135px, transparent 137px),
-        repeating-linear-gradient(60deg, rgba(108,92,231,0.10) 0 1px, transparent 1px 48px),
-        repeating-linear-gradient(-60deg, rgba(9,132,227,0.07) 0 1px, transparent 1px 48px),
-        repeating-linear-gradient(0deg, rgba(108,92,231,0.04) 0 1px, transparent 1px 48px),
-        linear-gradient(135deg, #f5f0ff 0%, #eef4ff 50%, #f0f8ff 100%);
-    background-size: auto, auto, auto, 48px 48px, 48px 48px, 48px 48px, cover;
+    background-color: #FFFBF0;
     background-position: center;
     background-repeat: no-repeat;
 }
@@ -156,8 +147,8 @@ color: var(--text-primary);
 }
 
 .nav-btn[data-mode="bijective"].active {
-    background: #6c5ce7;
-    box-shadow: 0 2px 8px rgba(108, 92, 231, 0.3);
+    background: #C58A1F;
+    box-shadow: 0 2px 8px rgba(197, 138, 31, 0.3);
 }
 
 .apple-btn {
@@ -178,7 +169,7 @@ color: var(--text-primary);
 }
 
 .apple-btn:hover {
-    background: #f5f5f5;
+    background: #F7F1EA;
     transform: scale(1.05);
 }
 
@@ -370,7 +361,7 @@ color: var(--text-primary);
 }
 
 .status-bar.success .status-icon {
-    background: rgba(0, 184, 148, 0.1);
+    background: rgba(31, 157, 85, 0.1);
     color: var(--success-green);
 }
 
@@ -573,4 +564,40 @@ color: var(--text-primary);
     .concept-overlay {
         max-height: none;
     }
+}
+
+/* ===== 第4章精修补充 ===== */
+.connection-line.clash { stroke: #C0392B; stroke-dasharray: 7 4; }
+.node-item.clash { border-color: #C0392B !important; background: rgba(192, 57, 43, 0.08) !important; }
+.node-item.uncovered { border-color: #FFB400 !important; border-style: dashed !important; background: rgba(255, 180, 0, 0.1) !important; }
+.inverse-box {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(214, 59, 29, 0.16);
+    border-left: 4px solid #FFB400;
+    font-size: 0.86rem;
+    line-height: 1.7;
+    color: #2C1810;
+}
+.inverse-box b { color: #D63B1D; }
+.inverse-box.ok { border-left-color: #1F9D55; }
+.inverse-box.ok b { color: #1F9D55; }
+.inverse-box.bad { border-left-color: #C0392B; }
+.inv-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.inv-list span { padding: 2px 9px; border-radius: 999px; background: rgba(31, 157, 85, 0.1); border: 1px solid rgba(31, 157, 85, 0.35); font-size: 0.8rem; }
+.node-item { cursor: pointer; }
+/* 底部四块（状态 / 逆函数 / 定义 / 解读）改为 2×2，避免第四块单独掉行 */
+@media (min-width: 981px) {
+    .bottom-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .bottom-panel .concept-overlay { grid-column: auto; max-height: none; }
+}
+/* 手机端：两列各占约 40%，中间留出连线空间；节点文字横排不再被挤成竖排 */
+@media (max-width: 600px) {
+    .mapping-container { padding: 14px 10px !important; min-height: 0; }
+    .set-column { width: 40% !important; min-width: 0; padding: 10px 8px !important; }
+    .column-header h3 { font-size: 0.92rem; }
+    .node-item { padding: 8px 6px; gap: 6px; }
+    .node-item .node-icon { font-size: 1rem; }
+    .node-item .node-label { font-size: 0.82rem; white-space: nowrap; }
 }

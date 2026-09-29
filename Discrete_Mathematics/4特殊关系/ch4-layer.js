@@ -1177,6 +1177,125 @@
 })();
 /* @@END */
 
+/* ---------- 4.5 三种类型函数 ---------- */
+(function () {
+  var C = C4.COL, esc = C4.esc;
+  function judge(f, nB) {
+    var cnt = new Array(nB).fill(0);
+    f.forEach(function (y) { cnt[y]++; });
+    return { cnt: cnt, inj: cnt.every(function (c) { return c <= 1; }), sur: cnt.every(function (c) { return c >= 1; }) };
+  }
+
+  C4.def('funcprop/basic', {
+    badge: '点节点改像 · 即时判定',
+    mission: '点左侧 A 中的元素，把它的箭头依次改指向 B 的下一个元素；观察<b>单射</b>（不同输入不撞车）与<b>满射</b>（每个目标都被覆盖）何时成立。',
+    controls: [
+      { label: '集合大小', items: [
+        { type: 'range', id: 'na', text: '|A|', min: 2, max: 6, value: 4 },
+        { type: 'range', id: 'nb', text: '|B|', min: 2, max: 6, value: 4 }
+      ] },
+      { label: '一键生成', items: [{ type: 'buttons', items: [{ act: 'inj', text: '尽量单射' }, { act: 'sur', text: '尽量满射' }, { act: 'rand', text: '随机函数', cls: 'primary' }] }] }
+    ],
+    stages: [
+      { id: 'map', title: '映射 f : A → B', hint: '点 A 中元素改变它的像' },
+      { id: 'judge', title: '判定' },
+      { id: 'why', title: '规律：看集合大小' }
+    ],
+    points: [
+      '<b>单射</b>：x₁ ≠ x₂ ⇒ f(x₁) ≠ f(x₂)（不同输入不撞车）。',
+      '<b>满射</b>：ran f = B，B 中每个元素都有原像（不漏）。',
+      '<b>双射</b>：既单又满，即一一对应。',
+      '有限集：单射 ⇒ |A| ≤ |B|；满射 ⇒ |A| ≥ |B|；|A| = |B| 时单射 ⇔ 满射。'
+    ],
+    init: function (S) { S.data.f = [0, 1, 1, 3]; },
+    onChange: function (S) { var a = S.v.na, b = S.v.nb; S.data.f = C4.range(a).map(function (i) { return i % b; }); },
+    act: function (S, act, arg) {
+      var a = S.v.na, b = S.v.nb;
+      if (act === 'cyc') { var i = +arg; S.data.f[i] = (S.data.f[i] + 1) % b; }
+      if (act === 'inj') { S.data.f = C4.range(a).map(function (i) { return Math.min(i, b - 1); }); if (a > b) C4.toast('|A| > |B|：由鸽巢原理，不可能是单射。', 'bad'); }
+      if (act === 'sur') { S.data.f = C4.range(a).map(function (i) { return i % b; }); if (a < b) C4.toast('|A| < |B|：像最多 ' + a + ' 个，不可能覆盖 B，不可能是满射。', 'bad'); }
+      if (act === 'rand') S.data.f = C4.range(a).map(function () { return Math.floor(Math.random() * b); });
+    },
+    render: function (S) {
+      var a = S.v.na, b = S.v.nb, f = S.data.f;
+      if (f.length !== a || f.some(function (y) { return y >= b; })) { f = S.data.f = C4.range(a).map(function (i) { return (f[i] || 0) % b; }); }
+      var J = judge(f, b);
+      var A = C4.range(a).map(function (i) { return 'x' + C4.sub(i + 1); }), B = C4.range(b).map(function (j) { return 'y' + C4.sub(j + 1); });
+      var pairs = f.map(function (y, i) { return [i, y, J.cnt[y] > 1 ? C.bad : C.red]; });
+      var bState = J.cnt.map(function (c) { return c > 1 ? 'bad' : c === 0 ? 'gold' : 'ok'; });
+      S.set('map', C4.mapSvg(A, B, pairs, { actA: 'cyc', bState: bState, w: 560, gap: 50 }) +
+        C4.legend([{ color: '#FDECEA', border: C.bad, text: '被多个元素击中（破坏单射）' }, { color: '#FFF4D6', border: C.gold, text: '无原像（破坏满射）' }, { color: '#E8F6EE', border: C.ok, text: '恰一个原像' }]));
+      var hit = J.cnt.map(function (c, j) { return c > 1 ? B[j] : null; }).filter(Boolean), miss = J.cnt.map(function (c, j) { return c === 0 ? B[j] : null; }).filter(Boolean);
+      var type = J.inj && J.sur ? '双射' : J.inj ? '单射（非满射）' : J.sur ? '满射（非单射）' : '既非单射也非满射';
+      S.set('judge', '<div class="c4-verdicts">' +
+        '<div class="c4-verdict ' + (J.inj ? 'ok' : 'bad') + '"><b>单射 ' + (J.inj ? '✓' : '✗') + '</b><span>' + (J.inj ? '没有两个元素撞到同一个像' : hit.join('、') + ' 被重复击中') + '</span></div>' +
+        '<div class="c4-verdict ' + (J.sur ? 'ok' : 'bad') + '"><b>满射 ' + (J.sur ? '✓' : '✗') + '</b><span>' + (J.sur ? 'B 的每个元素都有原像' : miss.join('、') + ' 没有原像') + '</span></div>' +
+        '<div class="c4-verdict gold"><b>' + type + '</b><span>|ran f| = ' + J.cnt.filter(function (c) { return c; }).length + '，|B| = ' + b + '</span></div></div>');
+      S.set('why', '<p>' + (a > b ? '|A| = ' + a + ' > |B| = ' + b + '：' + a + ' 支箭头射向 ' + b + ' 个目标，由<b>鸽巢原理</b>必有两支撞在一起——<b>不可能是单射</b>。'
+        : a < b ? '|A| = ' + a + ' < |B| = ' + b + '：至多 ' + a + ' 个像，覆盖不了 B——<b>不可能是满射</b>。'
+          : '|A| = |B| = ' + a + '：此时单射 ⇔ 满射 ⇔ 双射。试着点节点消除所有冲突，你会发现遗漏也同时消失。') + '</p>');
+      C4.result('f = {' + f.map(function (y, i) { return A[i] + '→' + B[y]; }).join(', ') + '}', type, J.inj && J.sur ? '一一对应：它有逆函数 f⁻¹。' : '点 A 中的元素继续调整。');
+    }
+  });
+
+  /* ----- 拓展层：编码与基数 ----- */
+  var fact = function (n) { var r = 1; for (var i = 2; i <= n; i++) r *= i; return r; };
+  var stir = function (m, n) { var t = [[1]]; for (var i = 1; i <= m; i++) { t[i] = []; for (var k = 0; k <= i; k++) t[i][k] = (k === 0 ? 0 : (t[i - 1][k - 1] || 0)) + k * (t[i - 1][k] || 0); } return t[m][n] || 0; };
+  var ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  var TEXTS = { a: 'DISCRETE', b: 'HUNAN', c: 'FUNCTION' };
+
+  C4.def('funcprop/extend', {
+    badge: '计数 · 凯撒密码 · 压缩',
+    mission: '场景一：数一数从 m 元集到 n 元集有多少个函数、单射、满射、双射；场景二：凯撒移位是字母表上的<b>双射</b>，所以能解密；「字母 mod 5」压缩不是单射，信息就再也还原不回来。',
+    controls: [
+      { type: 'select', id: 'mode', label: '场景', value: 'count', options: [['count', '计数：函数 / 单射 / 满射 / 双射'], ['cipher', '编码：凯撒移位 vs 取模压缩']] },
+      { label: '集合大小', show: function (v) { return v.mode === 'count'; }, items: [
+        { type: 'range', id: 'm', text: '|A| = m', min: 1, max: 6, value: 3 },
+        { type: 'range', id: 'n', text: '|B| = n', min: 1, max: 6, value: 3 }
+      ] },
+      { label: '编码参数', show: function (v) { return v.mode === 'cipher'; }, items: [
+        { type: 'select', id: 'txt', label: '明文', value: 'a', options: [['a', '明文 DISCRETE'], ['b', '明文 HUNAN'], ['c', '明文 FUNCTION']] },
+        { type: 'range', id: 'k', text: '移位密钥 k', min: 1, max: 25, value: 3 }
+      ] }
+    ],
+    stages: [
+      { id: 'model', title: '模型' },
+      { id: 'viz', title: '结果' },
+      { id: 'out', title: '结论' }
+    ],
+    points: [
+      '|A| = m，|B| = n：函数 nᵐ 个；单射 n(n−1)…(n−m+1) 个（m ≤ n）；满射 n!·S(m, n) 个（S 为第二类斯特林数）；双射 n! 个（m = n）。',
+      '<b>可逆 ⇔ 双射</b>：加密函数必须是双射，解密就是它的逆函数。',
+      '凯撒密码 E(x) = (x + k) mod 26 是 ℤ₂₆ 上的双射，逆为 D(y) = (y − k) mod 26。',
+      '哈希、取模压缩把大集合映到小集合，<b>不是单射</b>，只能校验不能还原。'
+    ],
+    render: function (S) {
+      if (S.v.mode === 'count') {
+        var m = S.v.m, n = S.v.n, all = Math.pow(n, m), inj = m <= n ? fact(n) / fact(n - m) : 0, sur = m >= n ? fact(n) * stir(m, n) : 0, bij = m === n ? fact(n) : 0;
+        S.set('model', '<p>A = {1, …, ' + m + '}，B = {1, …, ' + n + '}。每个元素独立选像 ⇒ 函数有 n<sup>m</sup> 个；要求不撞车 ⇒ 依次有 n, n−1, … 种选法。</p>');
+        var mx = Math.max(all, 1), rows = [['全部函数', all, 'n^m = ' + n + '^' + m], ['单射', inj, m <= n ? 'P(n, m) = ' + n + '!/' + (n - m) + '!' : 'm > n，为 0'], ['满射', sur, m >= n ? 'n!·S(m, n) = ' + n + '!×' + stir(m, n) : 'm < n，为 0'], ['双射', bij, m === n ? 'n! = ' + n + '!' : 'm ≠ n，为 0']];
+        S.set('viz', rows.map(function (r) {
+          return '<div style="display:grid;grid-template-columns:78px 1fr 64px;gap:10px;align-items:center;margin:6px 0"><b style="color:#D63B1D">' + r[0] + '</b><div style="height:22px;border-radius:11px;background:rgba(116,55,31,.08);overflow:hidden"><i style="display:block;height:100%;width:' + (r[1] ? Math.max(2, Math.log(r[1] + 1) / Math.log(mx + 1) * 100) : 0) + '%;background:linear-gradient(90deg,#D63B1D,#FFB400)"></i></div><b class="c4-mono">' + r[1] + '</b></div><div class="c4-note" style="margin:-4px 0 4px 88px">' + r[2] + '</div>';
+        }).join('') + '<p class="c4-note">条形长度按对数刻度。</p>');
+        S.set('out', '<p>' + (m === n ? '|A| = |B| 时单射数 = 满射数 = 双射数 = ' + bij + '——再次印证有限等势集上「单 ⇔ 满」。' : m < n ? 'm < n：没有满射，也没有双射——两集合不等势。' : 'm > n：没有单射——鸽巢原理。') + '</p>');
+        C4.result('m = ' + m + '，n = ' + n, '函数 ' + all + '，单射 ' + inj + '，满射 ' + sur + '，双射 ' + bij, '只有 m = n 时才存在双射（等势）。');
+      } else {
+        var k = S.v.k, P = TEXTS[S.v.txt];
+        var enc = P.split('').map(function (c) { return ALPHA[(ALPHA.indexOf(c) + k) % 26]; }).join('');
+        var dec = enc.split('').map(function (c) { return ALPHA[(ALPHA.indexOf(c) - k + 26) % 26]; }).join('');
+        var h = P.split('').map(function (c) { return ALPHA.indexOf(c) % 5; });
+        var pre = {}; ALPHA.split('').forEach(function (c, i) { (pre[i % 5] = pre[i % 5] || []).push(c); });
+        S.set('model', '<p class="c4-mono">E(x) = (x + ' + k + ') mod 26，D(y) = (y − ' + k + ') mod 26</p><p class="c4-mono">h(x) = x mod 5</p><p class="c4-note">字母按 A=0, B=1, …, Z=25 编号；h 把 26 个字母压缩成 5 个数字。</p>');
+        S.set('viz', '<div class="c4-kv"><div><span>明文</span><b>' + P + '</b></div><div><span>凯撒密文 E</span><b>' + enc + '</b></div><div><span>用 D 解密</span><b style="color:#1F9D55">' + dec + '</b></div><div><span>压缩 h</span><b>' + h.join('') + '</b></div></div>' +
+          '<p class="c4-note" style="margin-top:10px">h 的「原像」：' + [0, 1, 2, 3, 4].map(function (r) { return r + ' ← {' + pre[r].join('') + '}'; }).join('；') + '</p>');
+        S.set('out', '<div class="c4-verdicts"><div class="c4-verdict ok"><b>E 是双射 ✓</b><span>解密结果与明文完全一致</span></div><div class="c4-verdict bad"><b>h 不是单射 ✗</b><span>数字「' + h[0] + '」可能来自 ' + pre[h[0]].join('、') + ' 中任一字母，无法唯一还原</span></div></div>');
+        C4.result('k = ' + k, P + ' → ' + enc + ' → ' + dec, '可逆编码必须是双射；有损压缩必然丢失信息。');
+      }
+    }
+  });
+})();
+/* @@END */
+
 /* @@UNITS@@ */
 
 C4.boot();
