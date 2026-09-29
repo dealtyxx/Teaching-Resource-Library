@@ -50,57 +50,60 @@
 
             <div class="controls-wrapper">
                 <div class="control-group">
-                    <label>价值主题</label>
-                    <select id="themeSelect" class="apple-select">
-                        <option value="balance">平衡分配</option>
-                        <option value="coordination">协调发展</option>
-                        <option value="harmony">和谐统一</option>
-                        <option value="resolution">矛盾解决</option>
-                    </select>
+                    <label>演示模式</label>
+                    <div class="mode-tabs">
+                        <button class="mode-tab active" data-mode="inv" aria-label="逆元与一次同余">逆元与一次同余</button>
+                        <button class="mode-tab" data-mode="crt" aria-label="中国剩余定理">中国剩余定理</button>
+                    </div>
                 </div>
-
+                <div id="invControls">
                 <div class="control-group">
-                    <label>同余方程参数</label>
+                    <label>同余方程</label>
                     <div class="equation-display">
                         <span class="eq-text">
-                            <span id="aValue" class="eq-number">3</span>x ≡
-                            <span id="bValue" class="eq-number">2</span> (mod
-                            <span id="mValue" class="eq-number">7</span>)
+                            <span id="aValue" class="eq-number">7</span>x ≡
+                            <span id="bValue" class="eq-number">3</span> (mod
+                            <span id="mValue" class="eq-number">20</span>)
                         </span>
                     </div>
                 </div>
-
                 <div class="control-group">
                     <label>系数 a</label>
                     <div class="slider-container">
-                        <span class="slider-label">a = <span id="aDisplay">3</span></span>
-                        <input type="range" id="aSlider" min="1" max="10" value="3">
+                        <span class="slider-label">a = <span id="aDisplay">7</span></span>
+                        <input type="range" id="aSlider" min="1" max="30" value="7">
                     </div>
                 </div>
-
                 <div class="control-group">
                     <label>常数 b</label>
                     <div class="slider-container">
-                        <span class="slider-label">b = <span id="bDisplay">2</span></span>
-                        <input type="range" id="bSlider" min="0" max="10" value="2">
+                        <span class="slider-label">b = <span id="bDisplay">3</span></span>
+                        <input type="range" id="bSlider" min="0" max="30" value="3">
                     </div>
                 </div>
-
                 <div class="control-group">
                     <label>模数 m</label>
                     <div class="slider-container">
-                        <span class="slider-label">m = <span id="mDisplay">7</span></span>
-                        <input type="range" id="mSlider" min="3" max="12" value="7">
+                        <span class="slider-label">m = <span id="mDisplay">20</span></span>
+                        <input type="range" id="mSlider" min="2" max="40" value="20">
                     </div>
                 </div>
-
+                </div>
+                <div id="crtControls" class="hidden">
+                    <div class="control-group">
+                        <label>同余方程组（余数 / 模数）</label>
+                        <div class="crt-eq">x ≡ <input type="number" id="r0" class="crt-input" min="0" max="12" value="2" aria-label="第1个余数"> (mod <select id="m0" class="crt-select" aria-label="第1个模数"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option></select>)</div>
+                        <div class="crt-eq">x ≡ <input type="number" id="r1" class="crt-input" min="0" max="12" value="3" aria-label="第2个余数"> (mod <select id="m1" class="crt-select" aria-label="第2个模数"><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option></select>)</div>
+                        <div class="crt-eq">x ≡ <input type="number" id="r2" class="crt-input" min="0" max="12" value="2" aria-label="第3个余数"> (mod <select id="m2" class="crt-select" aria-label="第3个模数"><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7" selected>7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option></select>)</div>
+                    </div>
+                </div>
                 <div class="control-group">
                     <label>数学原理</label>
                     <div class="info-panel">
-                        <h3>同余方程</h3>
-                        <p>ax ≡ b (mod m)</p>
-                        <p>求解x，使得等式成立</p>
-                        <p id="politicalMeaning" class="political-text">象征平衡分配，寻找平衡点</p>
+                        <h3>逆元与中国剩余定理</h3>
+                        <p>gcd(a, m) = 1 ⇔ a 在模 m 下有逆元 a⁻¹，此时 ax ≡ b 的唯一解为 x ≡ a⁻¹b。</p>
+                        <p>模数两两互素时，同余方程组在模 M = m₁m₂…mₖ 下有且仅有一个解。</p>
+                        <p id="politicalMeaning" class="political-text">分而治之 · 合而为一：把大问题拆成互素的小问题分别求解，再合成全局唯一答案。</p>
                     </div>
                 </div>
 
@@ -113,8 +116,8 @@
             </div>
 
             <div class="actions-footer">
-                <button id="solveBtn" class="apple-btn action-btn" aria-label="求解方程">🎯 求解方程</button>
-                <button id="resetBtn" class="apple-btn secondary-btn" aria-label="重置">🔄 重置</button>
+                <button id="solveBtn" class="apple-btn action-btn" aria-label="重播求解步骤">▶ 重播求解步骤</button>
+                <button id="resetBtn" class="apple-btn secondary-btn" aria-label="重置">↺ 重置</button>
             </div>
         </aside>
 

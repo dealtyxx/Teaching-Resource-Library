@@ -1,387 +1,120 @@
 /**
- * 同余方程 - 价值引领可视化
- * 主题：平衡协调·和谐统一
+ * 1.2.3 同余方程 · 进阶层：乘法逆元（扩展欧几里得）与中国剩余定理
+ * 模式一：ax ≡ b (mod m) —— 判据 gcd(a,m) | b，扩展欧几里得表求逆元，写出全部解并逐一验证；
+ * 模式二：中国剩余定理 —— 两两互素的模数下构造唯一解 x ≡ Σ rᵢMᵢyᵢ (mod M)。
  */
+const $ = id => document.getElementById(id);
+const modeTabs = document.querySelectorAll('.mode-tab');
+const vizArea = $('vizArea'), legendPanel = $('legendPanel'), resultPanel = $('resultPanel');
+const stageTitle = $('stageTitle'), stageDescription = $('stageDescription');
 
-// DOM 元素
-const themeSelect = document.getElementById('themeSelect');
-const aSlider = document.getElementById('aSlider');
-const bSlider = document.getElementById('bSlider');
-const mSlider = document.getElementById('mSlider');
-const aDisplay = document.getElementById('aDisplay');
-const bDisplay = document.getElementById('bDisplay');
-const mDisplay = document.getElementById('mDisplay');
-const aValue = document.getElementById('aValue');
-const bValue = document.getElementById('bValue');
-const mValue = document.getElementById('mValue');
-const solveBtn = document.getElementById('solveBtn');
-const resetBtn = document.getElementById('resetBtn');
-const vizArea = document.getElementById('vizArea');
-const legendPanel = document.getElementById('legendPanel');
-const resultPanel = document.getElementById('resultPanel');
-const politicalMeaning = document.getElementById('politicalMeaning');
-const stageTitle = document.getElementById('stageTitle');
-const stageDescription = document.getElementById('stageDescription');
+const DEF = { mode: 'inv', a: 7, b: 3, m: 20, crt: [[2, 3], [3, 5], [2, 7]] };
+let mode = DEF.mode;
 
-// 状态
-let a = 3, b = 2, m = 7;
-let currentTheme = 'balance';
-let isAnimating = false;
-
-// 价值主题数据
-const themes = {
-    balance: {
-        name: '平衡分配',
-        description: '在资源有限的情况下寻找平衡点',
-        meaning: '象征平衡分配，寻找满足条件的平衡点x',
-        scenarios: [
-            '资源在各部门间的平衡分配',
-            '任务在各团队间的合理分工',
-            '经费在各项目间的统筹安排',
-            '人员在各岗位间的优化配置',
-            '时间在各事项间的科学规划'
-        ],
-        application: '通过同余方程找到平衡分配方案，确保公平公正'
-    },
-    coordination: {
-        name: '协调发展',
-        description: '多方协调，寻找共同发展路径',
-        meaning: '象征协调发展，找到多方都能接受的解决方案',
-        scenarios: [
-            '东西部地区协调发展',
-            '城乡之间统筹规划',
-            '各行业之间协同推进',
-            '上下级之间高效协作',
-            '新老干部之间平稳过渡'
-        ],
-        application: '寻找协调发展的平衡点，实现多方共赢'
-    },
-    harmony: {
-        name: '和谐统一',
-        description: '在多样性中寻求统一',
-        meaning: '象征和谐统一，在差异中寻找共同点',
-        scenarios: [
-            '不同意见中寻求共识',
-            '多元文化中保持统一',
-            '个人利益与集体利益统一',
-            '经济发展与生态保护和谐',
-            '传统文化与现代文明融合'
-        ],
-        application: '用同余方程找到和谐统一的平衡点'
-    },
-    resolution: {
-        name: '矛盾解决',
-        description: '化解矛盾，找到解决方案',
-        meaning: '象征矛盾解决，通过数学方法化解矛盾',
-        scenarios: [
-            '群众诉求与现实条件的平衡',
-            '发展速度与质量效益的统一',
-            '改革力度与社会承受的协调',
-            '长远目标与当前利益的兼顾',
-            '宏观调控与市场机制的结合'
-        ],
-        application: '通过求解方程找到化解矛盾的关键点'
+function gcd(a, b) { while (b) { [a, b] = [b, a % b]; } return a; }
+function modInv(a, m) { const t = extTable(a, m); return t.g === 1 ? ((t.s % m) + m) % m : null; }
+// 扩展欧几里得表：从 (m, a mod m) 开始辗转相除，逐行记录余数 r、商 q 与系数 s、t，始终满足 r = s·a + t·m
+function extTable(a, m) {
+    const rows = [{ r: m, s: 0, t: 1, q: null }, { r: a % m, s: 1, t: 0, q: null }];
+    while (rows[rows.length - 1].r !== 0) {
+        const p = rows[rows.length - 2], c = rows[rows.length - 1], q = Math.floor(p.r / c.r);
+        c.q = q;
+        rows.push({ r: p.r - q * c.r, s: p.s - q * c.s, t: p.t - q * c.t, q: null });
     }
-};
-
-// 初始化
-function init() {
-    attachEventListeners();
-    updateEquation();
-    updateThemeInfo();
-    updateResults();
+    const last = rows[rows.length - 2];
+    return { rows, g: last.r, s: last.s, t: last.t };
 }
+const signed = v => v < 0 ? `(${v})` : `${v}`;
 
-// 事件监听
-function attachEventListeners() {
-    themeSelect.addEventListener('change', () => {
-        currentTheme = themeSelect.value;
-        updateThemeInfo();
-    });
-
-    aSlider.addEventListener('input', () => {
-        a = parseInt(aSlider.value);
-        aDisplay.textContent = a;
-        updateEquation();
-        updateResults();
-    });
-
-    bSlider.addEventListener('input', () => {
-        b = parseInt(bSlider.value);
-        bDisplay.textContent = b;
-        updateEquation();
-        updateResults();
-    });
-
-    mSlider.addEventListener('input', () => {
-        m = parseInt(mSlider.value);
-        mDisplay.textContent = m;
-        updateEquation();
-        updateResults();
-    });
-
-    solveBtn.addEventListener('click', solve);
-    resetBtn.addEventListener('click', reset);
-}
-
-// 更新方程显示
-function updateEquation() {
-    aValue.textContent = a;
-    bValue.textContent = b;
-    mValue.textContent = m;
-}
-
-// 更新主题信息
-function updateThemeInfo() {
-    const theme = themes[currentTheme];
-    politicalMeaning.textContent = theme.meaning;
-    stageTitle.textContent = `同余方程求解 - ${theme.name}`;
-    stageDescription.textContent = theme.description;
-}
-
-// 计算最大公约数
-function gcd(a, b) {
-    while (b !== 0) {
-        let temp = b;
-        b = a % b;
-        a = temp;
+/* ---------- 模式一：逆元与一次同余 ---------- */
+function renderInv() {
+    const a = +$('aSlider').value, b = +$('bSlider').value, m = +$('mSlider').value;
+    $('aDisplay').textContent = a; $('bDisplay').textContent = b; $('mDisplay').textContent = m;
+    $('aValue').textContent = a; $('bValue').textContent = b; $('mValue').textContent = m;
+    const g = gcd(a, m), ok = b % g === 0, a1 = a / g, b1 = b / g, m1 = m / g;
+    stageTitle.textContent = `求解 ${a}x ≡ ${b} (mod ${m})`;
+    stageDescription.textContent = '先判可解，再用扩展欧几里得求逆元，最后写出模 m 下的全部解并逐一验证。';
+    let html = `<div class="step-card"><div class="step-header"><div class="step-number">1</div><div class="step-title">判断可解性</div></div>
+        <div class="step-content">g = gcd(${a}, ${m}) = <b>${g}</b>；${ok ? `${g} | ${b}，方程<b class="ok">有解</b>，在 0 ~ ${m - 1} 中恰有 ${g} 个解。` : `${g} ∤ ${b}，方程<b class="no">无解</b>。`}</div></div>`;
+    let sols = [];
+    if (ok) {
+        const T = extTable(a1, m1), inv = m1 === 1 ? 0 : ((T.s % m1) + m1) % m1;
+        const rows = T.rows.map((r, i) => `<tr><td>${i}</td><td>${r.r}</td><td>${r.q === null ? '' : r.q}</td><td>${r.s}</td><td>${r.t}</td></tr>`).join('');
+        html += `<div class="step-card"><div class="step-header"><div class="step-number">2</div><div class="step-title">${g > 1 ? `约去 g：${a1}x ≡ ${b1} (mod ${m1})，` : ''}扩展欧几里得求 ${a1} 模 ${m1} 的逆元</div></div>
+            <div class="step-content"><table class="ext-table"><thead><tr><th>行</th><th>余数 r</th><th>商 q</th><th>s</th><th>t</th></tr></thead><tbody>${rows}</tbody></table>
+            <p class="ext-note">每行满足 r = s·${a1} + t·${m1}（第 0、1 行分别是 ${m1} 与 ${a1 % m1}）；最后一个非零余数 1 所在行给出 ${signed(T.s)}·${a1} + ${signed(T.t)}·${m1} = 1，所以 ${a1}<sup>−1</sup> ≡ ${T.s} ≡ <b>${inv}</b> (mod ${m1})。</p></div></div>`;
+        const x0 = (inv * b1) % m1;
+        for (let k = 0; k < g; k++) sols.push(x0 + k * m1);
+        html += `<div class="step-card"><div class="step-header"><div class="step-number">3</div><div class="step-title">写出全部解</div></div>
+            <div class="step-content">x ≡ ${a1}<sup>−1</sup>·${b1} ≡ ${inv} × ${b1} ≡ <b>${x0}</b> (mod ${m1})，回到模 ${m}：x ∈ {<b>${sols.join(', ')}</b>}。</div></div>`;
     }
-    return a;
+    let cells = '';
+    for (let x = 0; x < m; x++) {
+        const l = (a * x) % m, hit = l === b % m;
+        cells += `<div class="test-card ${hit ? 'solution' : 'non-solution'}"><div class="test-number">x = ${x}</div><div class="test-label">${a}x ≡ ${l}</div></div>`;
+    }
+    html += `<div class="step-card"><div class="step-header"><div class="step-number">${ok ? 4 : 2}</div><div class="step-title">逐一验证 x = 0 ~ ${m - 1}（右端 b mod m = ${b % m}）</div></div><div class="solution-grid">${cells}</div></div>`;
+    vizArea.innerHTML = `<div class="solution-container">${html}</div>`;
+    resultPanel.innerHTML = ok
+        ? `<div class="result-item"><span class="result-label">方程状态</span><span class="result-value ok">有解</span></div>
+           <div class="result-item"><span class="result-label">解的个数</span><span class="result-value">${g}</span></div>
+           <div class="result-item"><span class="result-label">全部解</span><span class="result-value">${sols.join(', ')}</span></div>`
+        : `<div class="result-item"><span class="result-label">方程状态</span><span class="result-value no">无解</span></div>
+           <div class="result-item"><span class="result-label">原因</span><span class="result-value small">gcd(${a},${m}) = ${g} ∤ ${b}</span></div>`;
+    legendPanel.innerHTML = `<div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#2FB36B,#1F9D55)"></div><span>满足方程的 x</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#f3ebe4"></div><span>不满足</span></div>`;
 }
 
-// 扩展欧几里得算法
-function extendedGCD(a, b) {
-    if (b === 0) {
-        return { gcd: a, x: 1, y: 0 };
-    }
-    const result = extendedGCD(b, a % b);
-    const x = result.y;
-    const y = result.x - Math.floor(a / b) * result.y;
-    return { gcd: result.gcd, x, y };
-}
-
-// 求解同余方程 ax ≡ b (mod m)
-function solveCongruence(a, b, m) {
-    const g = gcd(a, m);
-
-    // 检查是否有解
-    if (b % g !== 0) {
-        return { hasSolution: false };
-    }
-
-    // 简化方程
-    const a1 = a / g;
-    const b1 = b / g;
-    const m1 = m / g;
-
-    // 使用扩展欧几里得算法求解
-    const result = extendedGCD(a1, m1);
-    let x0 = (result.x * b1) % m1;
-
-    // 确保基础解为非负数
-    if (x0 < 0) x0 += m1;
-
-    // 找出所有解（mod m）
-    const solutions = [];
-    for (let i = 0; i < g; i++) {
-        solutions.push((x0 + i * m1) % m);
-    }
-
-    return {
-        hasSolution: true,
-        gcd: g,
-        solutions: solutions.sort((a, b) => a - b),
-        basicSolution: x0
-    };
-}
-
-// 更新结果
-function updateResults() {
-    const result = solveCongruence(a, b, m);
-
-    resultPanel.innerHTML = '';
-
-    if (result.hasSolution) {
-        resultPanel.innerHTML = `
-            <div class="result-item">
-                <span class="result-label">方程状态</span>
-                <span class="result-value" style="color: var(--accent-green);">有解</span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">解的个数</span>
-                <span class="result-value">${result.solutions.length}</span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">最小非负解</span>
-                <span class="result-value">x = ${result.solutions[0]}</span>
-            </div>
-        `;
+/* ---------- 模式二：中国剩余定理 ---------- */
+function renderCrt() {
+    const eq = [0, 1, 2].map(i => [+$('r' + i).value, +$('m' + i).value]);
+    eq.forEach(([r, m], i) => { if (r >= m) { $('r' + i).value = r % m; eq[i][0] = r % m; } });
+    stageTitle.textContent = '中国剩余定理：拼出唯一解';
+    stageDescription.textContent = '模数两两互素时，令 M = m₁m₂m₃、Mᵢ = M/mᵢ、yᵢ = Mᵢ⁻¹ (mod mᵢ)，则 x ≡ Σ rᵢMᵢyᵢ (mod M)。';
+    const pairs = [[0, 1], [0, 2], [1, 2]].map(([i, j]) => ({ i, j, g: gcd(eq[i][1], eq[j][1]) }));
+    const coprime = pairs.every(p => p.g === 1);
+    let html = `<div class="step-card"><div class="step-header"><div class="step-number">1</div><div class="step-title">方程组与互素检查</div></div><div class="step-content">
+        ${eq.map(([r, m]) => `x ≡ ${r} (mod ${m})`).join('；　')}<div class="crt-checks">${pairs.map(p => `<span class="${p.g === 1 ? 'ok' : 'no'}">gcd(${eq[p.i][1]}, ${eq[p.j][1]}) = ${p.g}</span>`).join('')}</div></div></div>`;
+    let x = null, M = eq.reduce((s, e) => s * e[1], 1);
+    if (coprime) {
+        let sum = 0;
+        const rows = eq.map(([r, m]) => { const Mi = M / m, yi = modInv(Mi % m, m), term = r * Mi * yi; sum += term; return `<tr><td>${m}</td><td>${r}</td><td>${Mi}</td><td>${Mi % m}</td><td>${yi}</td><td>${term}</td></tr>`; }).join('');
+        x = sum % M;
+        html += `<div class="step-card"><div class="step-header"><div class="step-number">2</div><div class="step-title">构造：M = ${eq.map(e => e[1]).join(' × ')} = ${M}</div></div><div class="step-content">
+            <table class="ext-table"><thead><tr><th>mᵢ</th><th>rᵢ</th><th>Mᵢ = M/mᵢ</th><th>Mᵢ mod mᵢ</th><th>yᵢ = Mᵢ⁻¹</th><th>rᵢMᵢyᵢ</th></tr></thead><tbody>${rows}</tbody></table>
+            <p class="ext-note">x ≡ ${sum} ≡ <b>${x}</b> (mod ${M})；逆元 yᵢ 正是用模式一的扩展欧几里得求得。</p></div></div>
+            <div class="step-card"><div class="step-header"><div class="step-number">3</div><div class="step-title">验证</div></div><div class="step-content">${eq.map(([r, m]) => `${x} mod ${m} = ${x % m} ${x % m === r ? '✓' : '✗'}`).join('；　')}。全部解为 x = ${x} + ${M}t（t ∈ ℤ）。</div></div>`;
     } else {
-        resultPanel.innerHTML = `
-            <div class="result-item">
-                <span class="result-label">方程状态</span>
-                <span class="result-value" style="color: #e74c3c;">无解</span>
-            </div>
-            <div class="result-item" style="grid-column: 1 / -1;">
-                <span class="result-label" style="font-size: 0.75rem;">条件：gcd(${a}, ${m}) = ${gcd(a, m)} 不能整除 ${b}</span>
-            </div>
-        `;
+        let found = null; const L = eq.reduce((l, e) => l / gcd(l, e[1]) * e[1], 1);
+        for (let t = 0; t < L; t++) if (eq.every(([r, m]) => t % m === r)) { found = t; break; }
+        html += `<div class="step-card warn"><div class="step-header"><div class="step-number">2</div><div class="step-title">模数不两两互素，定理的构造公式不能直接用</div></div><div class="step-content">
+            ${found === null ? `在模 lcm = ${L} 内逐个检验，<b class="no">方程组无解</b>（约束之间互相矛盾）。` : `逐个检验得到 x ≡ <b>${found}</b> (mod ${L})——解仍可能存在，但只在模 lcm = ${L}（而不是乘积 ${M}）下唯一。`}
+            <br>试着把模数改成两两互素（如 3、5、7），体会定理的“有且仅有一个解”。</div></div>`;
+        x = found; M = L;
     }
+    vizArea.innerHTML = `<div class="solution-container">${html}</div>`;
+    resultPanel.innerHTML = `<div class="result-item"><span class="result-label">模数两两互素</span><span class="result-value ${coprime ? 'ok' : 'no'}">${coprime ? '是' : '否'}</span></div>
+        <div class="result-item"><span class="result-label">解</span><span class="result-value">${x === null ? '无解' : `x ≡ ${x} (mod ${M})`}</span></div>`;
+    legendPanel.innerHTML = `<div class="legend-item"><div class="legend-color" style="background:#1F9D55"></div><span>互素 / 验证通过</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#C0392B"></div><span>不互素</span></div>
+        <div class="legend-item crt-note">💡 默认示例即《孙子算经》“物不知数”：三三数之剩二，五五数之剩三，七七数之剩二，答案 23。</div>`;
 }
 
-// 求解并可视化
-async function solve() {
-    if (isAnimating) return;
-    isAnimating = true;
-    solveBtn.disabled = true;
-    solveBtn.textContent = '求解中...';
-
-    vizArea.innerHTML = '';
-    legendPanel.innerHTML = '';
-
-    const result = solveCongruence(a, b, m);
-    const theme = themes[currentTheme];
-
-    const container = document.createElement('div');
-    container.className = 'solution-container';
-    vizArea.appendChild(container);
-
-    // 步骤1：显示原方程
-    await sleep(300);
-    const step1 = createStepCard(1, '原方程',
-        `求解同余方程：${a}x ≡ ${b} (mod ${m})`,
-        `${a}x ≡ ${b} (mod ${m})`);
-    container.appendChild(step1);
-
-    // 步骤2：检查是否有解
-    await sleep(500);
-    const g = gcd(a, m);
-    const step2 = createStepCard(2, '检查可解性',
-        `计算 gcd(${a}, ${m}) = ${g}<br>检查：${b} ÷ ${g} ${b % g === 0 ? '✓ 可以整除' : '✗ 不能整除'}`,
-        `gcd(${a}, ${m}) = ${g}`);
-    container.appendChild(step2);
-
-    if (!result.hasSolution) {
-        // 无解情况
-        await sleep(500);
-        const noSolution = document.createElement('div');
-        noSolution.className = 'political-application';
-        noSolution.innerHTML = `
-            <h3>⚠️ 方程无解</h3>
-            <p>gcd(${a}, ${m}) = ${g} 不能整除 ${b}</p>
-            <p style="margin-top: 1rem;">价值引领寓意：某些条件下可能没有完美的平衡点，需要调整参数或重新规划方案</p>
-        `;
-        container.appendChild(noSolution);
-    } else {
-        // 有解情况
-        await sleep(500);
-        const step3 = createStepCard(3, '求解过程',
-            `使用扩展欧几里得算法求解<br>基础解：x₀ = ${result.basicSolution}`,
-            `x₀ = ${result.basicSolution}`);
-        container.appendChild(step3);
-
-        // 步骤4：展示所有解
-        await sleep(500);
-        const step4 = document.createElement('div');
-        step4.className = 'step-card';
-        step4.style.animationDelay = '0.3s';
-        step4.innerHTML = `
-            <div class="step-header">
-                <div class="step-number">4</div>
-                <div class="step-title">验证所有解（在 mod ${m} 下）</div>
-            </div>
-            <div class="step-content">
-                共有 ${result.solutions.length} 个解，测试 x = 0 到 ${m - 1}：
-            </div>
-        `;
-
-        const grid = document.createElement('div');
-        grid.className = 'solution-grid';
-
-        for (let x = 0; x < m; x++) {
-            await sleep(50);
-            const card = document.createElement('div');
-            card.className = 'test-card';
-
-            const isSolution = result.solutions.includes(x);
-            card.classList.add(isSolution ? 'solution' : 'non-solution');
-
-            const leftSide = (a * x) % m;
-            const rightSide = b % m;
-            const check = leftSide === rightSide;
-
-            card.innerHTML = `
-                <div class="test-number">x = ${x}</div>
-                <div class="test-label">${leftSide} ${check ? '✓' : '≠'} ${rightSide}</div>
-            `;
-            grid.appendChild(card);
-        }
-
-        step4.appendChild(grid);
-        container.appendChild(step4);
-
-        // 价值引领应用
-        await sleep(500);
-        const scenarioIndex = result.solutions[0] % theme.scenarios.length;
-        const application = document.createElement('div');
-        application.className = 'political-application';
-        application.innerHTML = `
-            <h3>💡 ${theme.name}应用</h3>
-            <p><strong>解：x = ${result.solutions.join(', ')}</strong></p>
-            <p style="margin-top: 1rem;">${theme.scenarios[scenarioIndex]}</p>
-            <p style="margin-top: 0.5rem;">${theme.application}</p>
-        `;
-        container.appendChild(application);
-    }
-
-    // 图例
-    legendPanel.innerHTML = `
-        <div class="legend-item">
-            <div class="legend-color" style="background: linear-gradient(135deg, var(--accent-green) 0%, #20a037 100%);"></div>
-            <span>✅ 方程的解 - 满足平衡条件的点</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background: #ecf0f1;"></div>
-            <span>❌ 不是解 - 不满足平衡条件</span>
-        </div>
-        <div class="legend-item" style="width: 100%; justify-content: center; font-weight: 600; color: var(--accent-purple);">
-            💡 ${theme.meaning}
-        </div>
-    `;
-
-    solveBtn.disabled = false;
-    solveBtn.textContent = '🎯 求解方程';
-    isAnimating = false;
+function render() {
+    $('invControls').classList.toggle('hidden', mode !== 'inv');
+    $('crtControls').classList.toggle('hidden', mode !== 'crt');
+    modeTabs.forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+    if (mode === 'inv') renderInv(); else renderCrt();
 }
-
-// 创建步骤卡片
-function createStepCard(number, title, content, formula) {
-    const card = document.createElement('div');
-    card.className = 'step-card';
-    card.style.animationDelay = `${number * 0.1}s`;
-
-    card.innerHTML = `
-        <div class="step-header">
-            <div class="step-number">${number}</div>
-            <div class="step-title">${title}</div>
-        </div>
-        <div class="step-content">${content}</div>
-        ${formula ? `<div class="step-formula">${formula}</div>` : ''}
-    `;
-
-    return card;
-}
-
-// 重置
 function reset() {
-    vizArea.innerHTML = '';
-    legendPanel.innerHTML = '';
+    mode = DEF.mode;
+    $('aSlider').value = DEF.a; $('bSlider').value = DEF.b; $('mSlider').value = DEF.m;
+    DEF.crt.forEach(([r, m], i) => { $('r' + i).value = r; $('m' + i).value = m; });
+    render();
 }
-
-// 工具函数：延迟
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// 启动应用
-init();
+modeTabs.forEach(t => t.addEventListener('click', () => { mode = t.dataset.mode; render(); }));
+document.querySelectorAll('#invControls input, #crtControls input, #crtControls select').forEach(el => el.addEventListener('input', render));
+document.querySelectorAll('#crtControls select').forEach(el => el.addEventListener('change', render));
+$('solveBtn').addEventListener('click', () => { vizArea.querySelectorAll('.step-card').forEach((c, i) => { c.style.animation = 'none'; void c.offsetWidth; c.style.animation = ''; c.style.animationDelay = (i * 0.25) + 's'; }); });
+$('resetBtn').addEventListener('click', reset);
+reset();
