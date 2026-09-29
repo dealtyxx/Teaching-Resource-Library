@@ -52,23 +52,27 @@
                 <div class="control-group">
                     <label>模式选择</label>
                     <div class="mode-tabs">
-                        <div class="mode-tab active" data-mode="euler">欧拉函数</div>
-                        <div class="mode-tab" data-mode="fermat">费马小定理</div>
+                        <button type="button" class="mode-tab active" data-mode="euler">欧拉定理 · 降幂</button>
+                        <button type="button" class="mode-tab" data-mode="fermat">费马小定理</button>
                     </div>
                 </div>
 
                 <!-- Euler Controls -->
                 <div id="eulerControls" class="control-group">
-                    <label>正整数 n</label>
-                    <input type="range" id="eulerInput" min="2" max="50" value="12">
-                    <div class="slider-label">当前值: <span id="eulerValue">12</span></div>
+                    <label>底数 a</label>
+                    <input type="range" id="eulerBase" min="2" max="30" value="7">
+                    <div class="slider-label">a = <span id="eulerBaseValue">7</span></div>
+                    <label style="margin-top: 8px;">指数 k（可输入很大的数）</label>
+                    <input type="text" id="eulerExp" class="apple-select mono-input" value="2026" inputmode="numeric" maxlength="30" aria-label="指数 k">
+                    <label style="margin-top: 8px;">模数 n</label>
+                    <input type="range" id="eulerMod" min="2" max="60" value="20">
+                    <div class="slider-label">n = <span id="eulerModValue">20</span></div>
                 </div>
-
                 <!-- Fermat Controls -->
                 <div id="fermatControls" class="control-group hidden">
                     <label>底数 a</label>
-                    <input type="range" id="fermatBase" min="2" max="20" value="2">
-                    <div class="slider-label">a = <span id="fermatBaseValue">2</span></div>
+                    <input type="range" id="fermatBase" min="2" max="20" value="3">
+                    <div class="slider-label">a = <span id="fermatBaseValue">3</span></div>
 
                     <label style="margin-top: 10px;">质数 p</label>
                     <select id="fermatPrime" class="apple-select">
@@ -83,17 +87,18 @@
                 </div>
 
                 <div class="control-group">
-                    <label>价值解读</label>
+                    <label>定理要点</label>
                     <div class="info-panel">
-                        <h3 id="szTitle">群众路线</h3>
-                        <p id="szDesc">互质关系象征着党和人民群众的紧密联系，不可分割。</p>
+                        <h3>欧拉定理与费马小定理</h3>
+                        <p>gcd(a, n) = 1 ⇒ a<sup>φ(n)</sup> ≡ 1 (mod n)；p 为素数且 p ∤ a ⇒ a<sup>p−1</sup> ≡ 1 (mod p)。</p>
+                        <p class="political-text">守正创新：费马（1640 年提出）与欧拉（18 世纪给出证明并推广）跨越百年的接力，今天支撑着 RSA 等密码算法。</p>
                     </div>
                 </div>
             </div>
 
             <div class="actions-footer">
-                <button id="startBtn" class="apple-btn action-btn" aria-label="开始演示">开始演示</button>
-                <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置">重置</button>
+                <button id="startBtn" class="apple-btn action-btn" aria-label="重播动画">▶ 重播动画</button>
+                <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置">↺ 重置</button>
             </div>
         </aside>
 
@@ -108,16 +113,7 @@
                     <!-- Dynamic Content Here -->
                 </div>
 
-                <div id="resultPanel" class="result-panel hidden">
-                    <div class="result-item">
-                        <span class="result-label">计算结果</span>
-                        <span id="calcResult" class="result-value">4</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">价值启示</span>
-                        <span id="szResult" class="political-text">紧密团结</span>
-                    </div>
-                </div>
+                <div id="resultPanel" class="result-panel"></div>
             </div>
         </main>
     </div>

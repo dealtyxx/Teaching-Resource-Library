@@ -1,205 +1,90 @@
 /**
- * Red Mathematics - Euler & Fermat Visualizer
+ * 1.2.4 欧拉函数和费马小定理 · 进阶层：欧拉定理降幂 / 费马小定理
+ * 模式一「欧拉定理 · 降幂」：gcd(a,n)=1 时 a^φ(n) ≡ 1 (mod n)，于是 a^k ≡ a^(k mod φ(n)) (mod n)；
+ * 模式二「费马小定理」：p 为素数、p ∤ a 时 a^(p−1) ≡ 1 (mod p)，逐项列出 a^i mod p。
  */
-
-// DOM Elements
-const eulerControls = document.getElementById('eulerControls');
-const fermatControls = document.getElementById('fermatControls');
+const $ = id => document.getElementById(id);
 const modeTabs = document.querySelectorAll('.mode-tab');
-const startBtn = document.getElementById('startBtn');
-const resetBtn = document.getElementById('resetBtn');
-const visualizationArea = document.getElementById('visualizationArea');
-const resultPanel = document.getElementById('resultPanel');
-const vizTitle = document.getElementById('vizTitle');
-const vizSubtitle = document.getElementById('vizSubtitle');
-const szTitle = document.getElementById('szTitle');
-const szDesc = document.getElementById('szDesc');
-const calcResult = document.getElementById('calcResult');
-const szResult = document.getElementById('szResult');
+const area = $('visualizationArea'), resultPanel = $('resultPanel');
+const DEF = { mode: 'euler', a: 7, k: '2026', n: 20, fa: 3, fp: '7' };
+let mode = DEF.mode;
 
-// Inputs
-const eulerInput = document.getElementById('eulerInput');
-const eulerValue = document.getElementById('eulerValue');
-const fermatBase = document.getElementById('fermatBase');
-const fermatBaseValue = document.getElementById('fermatBaseValue');
-const fermatPrime = document.getElementById('fermatPrime');
+function gcd(a, b) { while (b) { [a, b] = [b, a % b]; } return a; }
+function powMod(a, e, m) { let r = 1n, b = BigInt(a) % BigInt(m), E = BigInt(e), M = BigInt(m); while (E > 0n) { if (E & 1n) r = r * b % M; b = b * b % M; E >>= 1n; } return Number(r); }
+function factorize(n) { const f = []; for (let d = 2; d * d <= n; d++) { let k = 0; while (n % d === 0) { n /= d; k++; } if (k) f.push([d, k]); } if (n > 1) f.push([n, 1]); return f; }
+function phi(n) { let r = n; factorize(n).forEach(([p]) => { r = r / p * (p - 1); }); return r; }
+const fh = f => f.map(([p, k]) => p + (k > 1 ? `<sup>${k}</sup>` : '')).join(' × ');
 
-// State
-let currentMode = 'euler';
-let isRunning = false;
-
-// Ideological Keywords (价值引领关键词)
-const SZ_KEYWORDS = {
-    coprime: ['团结', '互助', '平等', '和谐', '友善', '诚信', '敬业', '爱国'],
-    nonCoprime: [],
-    fermat: ['不忘初心', '方得始终', '坚定信念', '砥砺前行', '循环往复', '螺旋上升']
-};
-
-// Helper Functions
-function gcd(a, b) {
-    return b === 0 ? a : gcd(b, a % b);
+function setResult(rows) {
+    resultPanel.innerHTML = rows.map(([l, v, cls]) => `<div class="result-item"><span class="result-label">${l}</span><span class="result-value ${cls || ''}">${v}</span></div>`).join('');
 }
 
-function powerMod(base, exp, mod) {
-    let res = 1;
-    base = base % mod;
-    while (exp > 0) {
-        if (exp % 2 === 1) res = (res * base) % mod;
-        base = (base * base) % mod;
-        exp = Math.floor(exp / 2);
+function renderEuler() {
+    const a = +$('eulerBase').value, n = +$('eulerMod').value;
+    let kStr = ($('eulerExp').value || '').replace(/\D/g, '').replace(/^0+(?=\d)/, '').slice(0, 30) || '0';
+    $('eulerBaseValue').textContent = a; $('eulerModValue').textContent = n;
+    const k = BigInt(kStr), g = gcd(a, n), ph = phi(n), ans = powMod(a, k, n);
+    $('vizTitle').textContent = `计算 ${a}^${kStr} mod ${n}`;
+    $('vizSubtitle').textContent = '指数再大也不怕：先求 φ(n)，把指数对 φ(n) 取余，再算小幂。';
+    let html = `<div class="eu-steps">
+        <div class="eu-step"><b>① 互素？</b>gcd(${a}, ${n}) = ${g}，${g === 1 ? '<span class="ok">互素，可用欧拉定理</span>' : '<span class="no">不互素，欧拉定理不适用</span>'}</div>
+        <div class="eu-step"><b>② 求 φ(n)</b>${n} = ${fh(factorize(n))}，φ(${n}) = <b>${ph}</b></div>`;
+    if (g === 1) {
+        const r = Number(k % BigInt(ph));
+        html += `<div class="eu-step"><b>③ 降幂</b>${a}<sup>${ph}</sup> ≡ ${powMod(a, ph, n)} (mod ${n})，所以指数只看 ${kStr} mod ${ph} = <b>${r}</b></div>
+        <div class="eu-step"><b>④ 小幂</b>${a}<sup>${kStr}</sup> ≡ ${a}<sup>${r}</sup> ≡ <b>${ans}</b> (mod ${n})</div></div>`;
+    } else {
+        html += `<div class="eu-step"><b>③ 改用快速幂</b>把指数写成二进制，反复平方取模：${a}<sup>${kStr}</sup> ≡ <b>${ans}</b> (mod ${n})</div></div>`;
     }
-    return res;
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// Mode Switching
-modeTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-        modeTabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        currentMode = tab.dataset.mode;
-
-        if (currentMode === 'euler') {
-            eulerControls.classList.remove('hidden');
-            fermatControls.classList.add('hidden');
-            vizTitle.textContent = '欧拉函数 φ(n)';
-            vizSubtitle.textContent = '寻找与 n 互质的数';
-            szTitle.textContent = '群众路线';
-            szDesc.textContent = '互质关系象征着党和人民群众的紧密联系，不可分割。';
-        } else {
-            eulerControls.classList.add('hidden');
-            fermatControls.classList.remove('hidden');
-            vizTitle.textContent = '费马小定理';
-            vizSubtitle.textContent = 'a^(p-1) ≡ 1 (mod p)';
-            szTitle.textContent = '理想信念';
-            szDesc.textContent = '无论经历多少次乘方运算（磨砺），最终都要回归本心（余数为1）。';
-        }
-
-        resetViz();
-    });
-});
-
-// Input Listeners
-eulerInput.addEventListener('input', (e) => {
-    eulerValue.textContent = e.target.value;
-    if (!isRunning) resetViz();
-});
-
-fermatBase.addEventListener('input', (e) => {
-    fermatBaseValue.textContent = e.target.value;
-    if (!isRunning) resetViz();
-});
-
-fermatPrime.addEventListener('change', () => {
-    if (!isRunning) resetViz();
-});
-
-// Visualization Logic
-async function runEuler() {
-    const n = parseInt(eulerInput.value);
-    visualizationArea.innerHTML = '';
-    resultPanel.classList.add('hidden');
-
-    const grid = document.createElement('div');
-    grid.className = 'coprime-grid';
-    visualizationArea.appendChild(grid);
-
-    let count = 0;
-
-    for (let i = 1; i < n; i++) {
-        const card = document.createElement('div');
-        card.className = 'number-card';
-        card.innerHTML = `<span class="card-number">${i}</span>`;
-        grid.appendChild(card);
-
-        await sleep(50);
-
-        if (gcd(i, n) === 1) {
-            card.classList.add('coprime');
-            const keyword = SZ_KEYWORDS.coprime[count % SZ_KEYWORDS.coprime.length];
-            card.innerHTML += `<span class="sz-badge">${keyword}</span>`;
-            count++;
-        } else {
-            card.classList.add('non-coprime');
-        }
+    const L = g === 1 ? ph : Math.min(24, n);
+    let cells = '';
+    for (let i = 1; i <= L; i++) {
+        const v = powMod(a, i, n), hit = g === 1 && Number(k % BigInt(ph)) === i % ph;
+        cells += `<div class="sequence-item${v === 1 && g === 1 ? ' highlight' : ''}${hit ? ' target' : ''}"><span class="seq-exp">${a}<sup>${i}</sup></span><span class="seq-val">${v}</span></div>`;
     }
-
-    calcResult.textContent = count;
-    szResult.textContent = "紧密联系";
-    resultPanel.classList.remove('hidden');
-    isRunning = false;
-    startBtn.disabled = false;
+    html += `<h4 class="eu-sub">${g === 1 ? `一个周期：${a}^1 … ${a}^${ph} (mod ${n})，金框为 ${a}^${kStr} 所落的位置` : `${a} 的前 ${L} 次幂 (mod ${n})：永远不会回到 1`}</h4><div class="fermat-sequence">${cells}</div>`;
+    area.innerHTML = html;
+    setResult([[`φ(${n})`, ph], ['化简后指数', g === 1 ? `${kStr} mod ${ph} = ${Number(k % BigInt(ph))}` : '—'], [`${a}^${kStr.length > 8 ? kStr.slice(0, 8) + '…' : kStr} mod ${n}`, ans, 'ok']]);
 }
 
-async function runFermat() {
-    const a = parseInt(fermatBase.value);
-    const p = parseInt(fermatPrime.value);
-
+function renderFermat() {
+    const a = +$('fermatBase').value, p = +$('fermatPrime').value;
+    $('fermatBaseValue').textContent = a;
+    $('vizTitle').textContent = `费马小定理：${a}^${p - 1} ≡ 1 (mod ${p})？`;
+    $('vizSubtitle').textContent = 'p 为素数且 p ∤ a 时，a^(p−1) ≡ 1 (mod p)；它是欧拉定理在 n = p、φ(p) = p − 1 时的特例。';
     if (a % p === 0) {
-        alert(`${a} 和 ${p} 不互质，费马小定理不适用`);
-        isRunning = false;
-        startBtn.disabled = false;
+        area.innerHTML = `<div class="eu-step warn"><b>不适用</b>${p} 整除 ${a}，此时 ${a}^k ≡ 0 (mod ${p})，费马小定理的前提 p ∤ a 不成立。请换一个底数或素数。</div>`;
+        setResult([['前提 p ∤ a', '不满足', 'no']]);
         return;
     }
-
-    visualizationArea.innerHTML = '';
-    resultPanel.classList.add('hidden');
-
-    const container = document.createElement('div');
-    container.className = 'fermat-sequence';
-    visualizationArea.appendChild(container);
-
+    let cells = '', ord = 0;
     for (let i = 1; i < p; i++) {
-        const val = powerMod(a, i, p); // Calculate a^i mod p
-        // Actually we want to show the sequence a^1, a^2 ... a^(p-1)
-        // But for visualization, let's show the power and the result
-
-        const item = document.createElement('div');
-        item.className = 'sequence-item';
-        item.innerHTML = `
-            <span class="seq-exp">${a}^${i} mod ${p}</span>
-            <span class="seq-val">${val}</span>
-        `;
-        container.appendChild(item);
-
-        await sleep(200);
-
-        if (i === p - 1) {
-            item.classList.add('highlight');
-            item.innerHTML += `<span class="sz-badge">回归初心</span>`;
-        }
+        const v = powMod(a, i, p); if (v === 1 && !ord) ord = i;
+        cells += `<div class="sequence-item${i === p - 1 ? ' highlight' : (v === 1 ? ' target' : '')}"><span class="seq-exp">${a}<sup>${i}</sup> mod ${p}</span><span class="seq-val">${v}</span></div>`;
     }
-
-    calcResult.textContent = "1";
-    szResult.textContent = "坚定信念";
-    resultPanel.classList.remove('hidden');
-    isRunning = false;
-    startBtn.disabled = false;
+    area.innerHTML = `<div class="fermat-sequence">${cells}</div>
+        <div class="eu-steps"><div class="eu-step"><b>观察</b>第 ${p - 1} 项必为 1（红框）；${a} 最早在第 <b>${ord}</b> 次幂回到 1（${a} 模 ${p} 的阶），而 ${ord} 整除 ${p - 1}${ord === p - 1 ? `——${a} 是模 ${p} 的原根，幂次取遍 1 ~ ${p - 1}` : '，序列按周期 ' + ord + ' 重复'}。</div>
+        <div class="eu-step"><b>用途</b>${a}<sup>100</sup> mod ${p}：100 mod ${p - 1} = ${100 % (p - 1)}，故 ${a}<sup>100</sup> ≡ ${a}<sup>${100 % (p - 1)}</sup> ≡ ${powMod(a, 100, p)} (mod ${p})。</div></div>`;
+    setResult([[`${a}^${p - 1} mod ${p}`, powMod(a, p - 1, p), 'ok'], [`${a} 模 ${p} 的阶`, ord]]);
 }
 
-function resetViz() {
-    visualizationArea.innerHTML = '';
-    resultPanel.classList.add('hidden');
-    isRunning = false;
-    startBtn.disabled = false;
+function render() {
+    $('eulerControls').classList.toggle('hidden', mode !== 'euler');
+    $('fermatControls').classList.toggle('hidden', mode !== 'fermat');
+    modeTabs.forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+    if (mode === 'euler') renderEuler(); else renderFermat();
 }
-
-startBtn.addEventListener('click', () => {
-    if (isRunning) return;
-    isRunning = true;
-    startBtn.disabled = true;
-
-    if (currentMode === 'euler') {
-        runEuler();
-    } else {
-        runFermat();
-    }
+function reset() {
+    mode = DEF.mode;
+    $('eulerBase').value = DEF.a; $('eulerExp').value = DEF.k; $('eulerMod').value = DEF.n;
+    $('fermatBase').value = DEF.fa; $('fermatPrime').value = DEF.fp;
+    render();
+}
+modeTabs.forEach(t => t.addEventListener('click', () => { mode = t.dataset.mode; render(); }));
+['eulerBase', 'eulerExp', 'eulerMod', 'fermatBase'].forEach(id => $(id).addEventListener('input', render));
+$('fermatPrime').addEventListener('change', render);
+$('startBtn').addEventListener('click', () => {
+    area.querySelectorAll('.sequence-item').forEach((el, i) => { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; el.style.animationDelay = (i * 0.08) + 's'; });
 });
-
-resetBtn.addEventListener('click', resetViz);
-
-// Init
-resetViz();
+$('resetBtn').addEventListener('click', reset);
+reset();
