@@ -47,27 +47,27 @@ const REVOLUTIONARY_SITES = [
 const GRAPH_INFO = {
     'euler-circuit': {
         title: '欧拉回路',
-        description: '从任意顶点出发,经过每条边恰好一次,最终回到起点的闭合回路。',
-        condition: '所有顶点的度数均为偶数。',
-        meaning: '象征革命道路的完整性与必然性,从人民中来,到人民中去。'
+        description: '从某一顶点出发，经过每条边恰好一次，最终回到起点的闭合回路。',
+        condition: '连通图（孤立点除外）且所有顶点的度数均为偶数。',
+        meaning: '走遍每一段路而不重复，最终回到出发点——象征“从群众中来，到群众中去”的工作闭环。'
     },
     'euler-path': {
         title: '欧拉通路',
-        description: '从某一顶点出发,经过每条边恰好一次,到达另一顶点(不回到起点)。',
-        condition: '恰有两个顶点的度数为奇数(起点和终点)。',
-        meaning: '体现革命征程的起点与终点,从旧中国走向新中国。'
+        description: '从某一顶点出发，经过每条边恰好一次，到达另一顶点（不回到起点）。',
+        condition: '连通图且恰有两个奇度顶点，它们分别是通路的起点和终点。',
+        meaning: '有明确的起点与终点，一步不落地走完全程。'
     },
     'semi-euler': {
         title: '半欧拉图',
-        description: '存在欧拉通路但不存在欧拉回路的图。',
-        condition: '恰有2个奇数度顶点,其余为偶数度。',
-        meaning: '代表革命道路的曲折性,有起点有终点,但不回头。'
+        description: '有欧拉通路但没有欧拉回路的图（Fleury 算法必须从奇度顶点出发）。',
+        condition: '连通图，恰有 2 个奇度顶点，其余顶点度数为偶数。',
+        meaning: '道路曲折却方向明确：从一个奇点出发，必在另一个奇点抵达。'
     },
     'non-euler': {
         title: '非欧拉图',
         description: '既不存在欧拉回路也不存在欧拉通路的图。',
-        condition: '有3个及以上奇数度顶点。',
-        meaning: '用于对比学习,理解欧拉图的特殊性与科学性。'
+        condition: '图不连通，或奇度顶点多于 2 个（奇度顶点个数总是偶数，故至少 4 个）。',
+        meaning: '对比学习：条件不满足时，再努力也无法一笔画成——尊重客观规律。'
     }
 };
 
@@ -94,9 +94,9 @@ function getDelay() {
 function updateConceptInfo(type) {
     const info = GRAPH_INFO[type];
     conceptInfo.innerHTML = `
-        <p><strong>${info.title}:</strong> ${info.description}</p>
-        <p><strong>判定条件:</strong> ${info.condition}</p>
-        <p><strong>价值引领寓意:</strong> ${info.meaning}</p>
+        <p><strong>${info.title}：</strong>${info.description}</p>
+        <p><strong>判定条件：</strong>${info.condition}</p>
+        <p><strong>价值寓意：</strong>${info.meaning}</p>
     `;
 }
 
@@ -371,7 +371,7 @@ function checkEulerProperty() {
 
 // Fleury's Algorithm
 async function fleuryAlgorithm(startNode) {
-    statusText.textContent = '使用Fleury算法探索...';
+    statusText.textContent = 'Fleury 算法：能不走桥就不走桥……';
     
     const tempEdges = new Set(edges.map(e => e.id));
     const tempAdj = new Map();
@@ -438,7 +438,7 @@ async function fleuryAlgorithm(startNode) {
         const nextEl = nodeElements.get(currentNode);
         nextEl.classList.add('current');
         
-        statusText.textContent = `访问: ${nodes[currentNode].name} (${nodes[currentNode].meaning})`;
+        statusText.textContent = `访问：${nodes[currentNode].name}（${nodes[currentNode].meaning}）`;
         await sleep(getDelay());
     }
     
@@ -490,7 +490,7 @@ function removeEdge(adj, u, v, edgeId) {
 
 // Hierholzer's Algorithm
 async function hierholzerAlgorithm(startNode) {
-    statusText.textContent = '使用Hierholzer算法探索...';
+    statusText.textContent = 'Hierholzer 算法：走到无路可走再回溯合并子回路……';
     
     const tempAdj = new Map();
     adjacencyList.forEach((neighbors, nodeId) => {
@@ -541,7 +541,7 @@ async function hierholzerAlgorithm(startNode) {
             nextEl.classList.add('current');
             addToPath(nextNode);
             
-            statusText.textContent = `访问: ${nodes[nextNode].name} (${nodes[nextNode].meaning})`;
+            statusText.textContent = `访问：${nodes[nextNode].name}（${nodes[nextNode].meaning}）`;
             await sleep(getDelay());
         } else {
             // Backtrack
@@ -549,7 +549,13 @@ async function hierholzerAlgorithm(startNode) {
         }
     }
     
-    return circuit.reverse();
+    const result = circuit.reverse();
+    // 行走顺序≠最终欧拉序列（回溯时子回路会被拼接），完成后改为展示合并后的序列
+    if (!shouldStop) {
+        clearPath();
+        result.forEach(id => addToPath(id));
+    }
+    return result;
 }
 
 // Main Algorithm Runner
@@ -565,7 +571,7 @@ async function runEulerAlgorithm() {
     const eulerCheck = checkEulerProperty();
     
     if (eulerCheck.type === 'none') {
-        statusText.textContent = `该图有${eulerCheck.oddCount}个奇数度顶点,不存在欧拉回路或通路`;
+        statusText.textContent = `该图有 ${eulerCheck.oddCount} 个奇度顶点，不存在欧拉回路或欧拉通路。`;
         isRunning = false;
         startBtn.disabled = false;
         return;
@@ -583,8 +589,8 @@ async function runEulerAlgorithm() {
     
     if (!shouldStop) {
         statusText.textContent = eulerCheck.type === 'circuit' 
-            ? '欧拉回路探索完成! 革命之路圆满闭环!' 
-            : '欧拉通路探索完成! 从起点到终点,革命征程胜利!';
+            ? `欧拉回路构造完成：${edges.length} 条边各走一次，回到起点。` 
+            : `欧拉通路构造完成：从奇度顶点 ${nodes[eulerCheck.start].name} 出发，到奇度顶点 ${nodes[eulerCheck.end].name} 结束。`;
     } else {
         statusText.textContent = '探索已暂停';
     }

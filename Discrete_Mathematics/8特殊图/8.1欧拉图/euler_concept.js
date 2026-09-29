@@ -121,9 +121,10 @@
     },
     // DNA de Bruijn：有向，含重复节点，欧拉通路
     debruijn: {
-      names: ["CA", "AT", "TG", "GT"], caption: "de Bruijn 图（有向，边=3-mer）", directed: true,
-      nodes: [{ x: 0.12, y: 0.5 }, { x: 0.42, y: 0.18 }, { x: 0.72, y: 0.5 }, { x: 0.42, y: 0.85 }],
-      edges: [[0, 1], [1, 2], [2, 1], [1, 3]]
+      // 序列 ATGATC 的 3-mer：ATG、TGA、GAT、ATC；顶点为 2-mer（前缀/后缀重叠）
+      names: ["AT", "TG", "GA", "TC"], caption: "de Bruijn 图（序列 ATGATC）", directed: true,
+      nodes: [{ x: 0.45, y: 0.5 }, { x: 0.8, y: 0.16 }, { x: 0.8, y: 0.84 }, { x: 0.12, y: 0.5 }],
+      edges: [[0, 1], [1, 2], [2, 0], [0, 3]]
     }
   };
 
@@ -147,7 +148,7 @@
           graph: "konigsberg",
           formula: '七座桥，能否<span class="ft hot">每桥恰走一次</span>回到原地？',
           badge: "1736", tone: "gold",
-          text: "300 年前的名题：一次走遍七桥。欧拉把四块陆地抽象成<b>顶点</b>、七座桥抽象成<b>边</b>（两地间有 2 座桥就是 2 条平行边）——图论由此诞生。"
+          text: "近 300 年前（1736 年）的名题：一次走遍七桥。欧拉把四块陆地抽象成<b>顶点</b>、七座桥抽象成<b>边</b>（两地间有 2 座桥就是 2 条平行边）——图论由此诞生。"
         },
         {
           name: "顶点的度",
@@ -196,7 +197,7 @@
           name: "中国邮路问题",
           graph: "postman", odd: [1, 4], showDeg: true,
           formula: '若有奇点，必须<span class="ft hot">重复走一些边</span>，求总重复最短',
-          badge: "奇点=1,4", tone: "red", viz: "eulercheck",
+          badge: "奇点 B、E", tone: "red", viz: "eulercheck",
           text: "邮递员要走遍每条街再回邮局。这张街网 B、E 是奇点（红圈）——非欧拉图。<b>中国邮路问题</b>：加最少的重复里程，让它变成能一笔画的欧拉图。"
         },
         {
@@ -204,21 +205,21 @@
           graph: "postmanFixed", edges: [[1, 4]], showDeg: true,
           formula: '把两奇点间<span class="ft hot">最短路的边复制一遍</span> ⇒ 奇点消失，全偶',
           badge: "全偶 ✓", tone: "", viz: "eulercheck",
-          text: "沿 B、E 间最短路把边<b>复制一份</b>（红色重边=重复走一次）：B、E 度数各 +1 变偶，全图变欧拉图。管梅谷 1962 年提出的解法，故称“中国邮路”。"
+          text: "沿 B、E 间最短路把边<b>复制一份</b>（红色重边=重复走一次）：B、E 度数各 +1 变偶，全图变欧拉图。管梅谷于 1960 年提出这一问题与解法，故称“中国邮路”。"
         },
         {
           name: "有向欧拉图",
           graph: "debruijn", showDeg: true,
-          formula: '有向图欧拉通路 ⟺ 至多一点 <span class="ft hot">出度−入度=1</span>、一点 =−1，其余相等',
+          formula: '（弱连通时）有向欧拉通路 ⟺ 至多一点 <span class="ft hot">出度−入度=1</span>、一点 =−1，其余相等',
           badge: "入=出", tone: "blue", viz: "direulercheck",
           text: "单行道网络要看<b>入度与出度</b>：欧拉回路要求每点入度=出度；欧拉通路允许一个起点(出−入=1)和一个终点(入−出=1)。方向让判据更精细。"
         },
         {
           name: "DNA 测序 = 欧拉通路",
-          graph: "debruijn", trail: [0, 1, 2, 1, 3],
+          graph: "debruijn", trail: [0, 1, 2, 0, 3],
           formula: '把 k-mer 建成 de Bruijn 图，求<span class="ft hot">欧拉通路</span> ⇒ 拼出原序列',
           badge: "基因组拼接", tone: "gold",
-          text: "测序仪打碎 DNA 成小片段(k-mer)：以重叠部分为顶点、片段为有向边建<b>de Bruijn 图</b>，一条欧拉通路（编号路线，经过节点 AT 两次=重复片段）就<b>重建出完整基因组</b>。"
+          text: "测序仪打碎 DNA 成小片段(k-mer)：以重叠部分为顶点、片段为有向边建<b>de Bruijn 图</b>，一条欧拉通路 AT→TG→GA→AT→TC（经过节点 AT 两次=重复片段）依次拼接就<b>重建出原序列 ATGATC</b>。"
         },
         {
           name: "迁移总结",
@@ -413,8 +414,9 @@
     }
     ctx.fillStyle = "#6b4a38";
     ctx.font = "700 13px 'Noto Serif SC', 'Microsoft YaHei', serif";
-    ctx.textAlign = "center";
-    ctx.fillText(g.caption, size.w / 2, size.h - 18);
+    // 图题放右上角，避免与左下角的操作提示胶囊重叠
+    ctx.textAlign = "right";
+    ctx.fillText(g.caption, size.w - 14, 20);
   }
 
   /* ---- 辅助可视化 ---- */
