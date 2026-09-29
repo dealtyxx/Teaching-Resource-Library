@@ -20,15 +20,19 @@ const insightText = document.getElementById('insightText');
 const statComponents = document.getElementById('statComponents');
 const statEdges = document.getElementById('statEdges');
 const mainHeader = document.querySelector('.main-header h1');
+const statClassLabel = document.getElementById('statClassLabel');
+const classList = document.getElementById('classList');
+const classListTitle = document.getElementById('classListTitle');
+const classNote = document.getElementById('classNote');
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const NODE_RADIUS = 22;
 
 const REGIONS = [
-    { id: 'r1', name: '华北', color: '#ff7675' },
-    { id: 'r2', name: '华东', color: '#74b9ff' },
-    { id: 'r3', name: '西南', color: '#55efc4' },
-    { id: 'r4', name: '西北', color: '#ffeaa7' }
+    { id: 'r1', name: '华北', color: '#F4A38F' },
+    { id: 'r2', name: '华东', color: '#FFD36B' },
+    { id: 'r3', name: '西南', color: '#9ED3B4' },
+    { id: 'r4', name: '西北', color: '#D9B29C' }
 ];
 
 const DELEGATES = [
@@ -44,7 +48,7 @@ const DELEGATES = [
     { id: 10, name: '代表J', region: 'r2', interests: ['教育', '经济'] }
 ];
 
-let currentMode = 'compatibility';
+let currentMode = 'equivalence';
 let nodes = [];
 let links = [];
 let width = 760;
@@ -123,36 +127,55 @@ function updateRelations() {
     }
 
     statEdges.textContent = links.length;
-    statComponents.textContent = countComponents();
+    renderClasses();
 }
 
-function countComponents() {
-    const visited = new Set();
-    let components = 0;
+/* 等价关系 → 等价类（划分）；相容关系 → 极大相容类（覆盖，可重叠） */
+function related(a, b) {
+    if (a === b) return true;
+    return currentMode === 'compatibility'
+        ? a.interests.some(interest => b.interests.includes(interest))
+        : a.region === b.region;
+}
 
-    nodes.forEach(node => {
-        if (visited.has(node.id)) return;
-        components++;
+function maximalClasses() {
+    const result = [];
+    const bk = (R, P, X) => {
+        if (!P.length && !X.length) { result.push(R); return; }
+        P.slice().forEach(v => {
+            bk(R.concat([v]), P.filter(u => u !== v && related(u, v)), X.filter(u => u !== v && related(u, v)));
+            P = P.filter(u => u !== v);
+            X = X.concat([v]);
+        });
+    };
+    bk([], nodes.slice(), []);
+    return result
+        .map(c => c.slice().sort((a, b) => a.id - b.id))
+        .sort((a, b) => b.length - a.length || a[0].id - b[0].id);
+}
 
-        const queue = [node.id];
-        visited.add(node.id);
-
-        while (queue.length > 0) {
-            const current = queue.shift();
-            links.forEach(link => {
-                const neighbor = link.source.id === current
-                    ? link.target.id
-                    : link.target.id === current ? link.source.id : null;
-
-                if (neighbor && !visited.has(neighbor)) {
-                    visited.add(neighbor);
-                    queue.push(neighbor);
-                }
-            });
-        }
-    });
-
-    return components;
+function renderClasses() {
+    const classes = maximalClasses();
+    const short = n => n.name.replace('代表', '');
+    const isEquiv = currentMode !== 'compatibility';
+    statClassLabel.textContent = isEquiv ? '等价类个数' : '极大相容类个数';
+    statComponents.textContent = classes.length;
+    classListTitle.textContent = isEquiv ? '等价类（商集 A/R）' : '极大相容类（覆盖）';
+    classList.innerHTML = classes.map(c => {
+        const label = isEquiv ? '[' + short(c[0]) + ']' : '';
+        return `<span class="class-chip${isEquiv ? ' equiv' : ''}">${label}{${c.map(short).join(', ')}}</span>`;
+    }).join('');
+    const seen = new Map();
+    let overlap = null;
+    classes.forEach((c, i) => c.forEach(n => {
+        if (seen.has(n.id) && overlap === null) overlap = { node: n, a: seen.get(n.id), b: i };
+        seen.set(n.id, i);
+    }));
+    classNote.innerHTML = isEquiv
+        ? `${classes.length} 个等价类两两不交、并为全体代表，构成一个划分；A/R 共 ${classes.length} 个元素。`
+        : overlap
+            ? `极大相容类可以重叠：代表${short(overlap.node)}同时属于第 ${overlap.a + 1} 类与第 ${overlap.b + 1} 类，因此它们构成覆盖而非划分。`
+            : '当前极大相容类恰好两两不交。';
 }
 
 function renderGraph() {
