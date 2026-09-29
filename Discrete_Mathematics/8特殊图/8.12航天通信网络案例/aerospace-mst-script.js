@@ -247,7 +247,7 @@ function updateStats(cost, count) {
 // Kruskal's Algorithm Step
 async function kruskalStep() {
     if (currentEdgeIndex >= sortedEdges.length || mstEdges.length >= nodes.length - 1) {
-        statusText.textContent = "优化完成! 最小生成树已构建。";
+        statusText.textContent = "优化完成：最小生成树已构建。";
         isRunning = false;
         startBtn.disabled = false;
         stepBtn.disabled = true;
@@ -264,7 +264,7 @@ async function kruskalStep() {
     listItem.classList.add('current');
     listItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-    statusText.textContent = `检查链路: ${nodes[edge.u].name} - ${nodes[edge.v].name} (成本: ${edge.weight})`;
+    statusText.textContent = `检查链路：${nodes[edge.u].name}–${nodes[edge.v].name}（成本 ${edge.weight}）`;
     await sleep(getDelay());
 
     // Check cycle using Union-Find
@@ -282,7 +282,7 @@ async function kruskalStep() {
         nodeElements.get(edge.u).circle.classList.add('connected');
         nodeElements.get(edge.v).circle.classList.add('connected');
 
-        statusText.textContent = `链路已建立!`;
+        statusText.textContent = "两端尚未连通：加入骨干树。";
 
         // Calculate current cost
         const currentCost = mstEdges.reduce((sum, e) => sum + e.weight, 0);
@@ -298,13 +298,13 @@ async function kruskalStep() {
         listItem.classList.remove('current');
         listItem.classList.add('rejected');
 
-        statusText.textContent = `检测到环路! 链路冗余，已排除。`;
+        statusText.textContent = "两端已连通，加入会成圈：跳过这条链路。";
     }
 
     currentEdgeIndex++;
 
     if (mstEdges.length === nodes.length - 1) {
-        statusText.textContent = "全网连通! 优化完成。";
+        statusText.textContent = "已选满 n−1 条链路，全网连通：优化完成。";
         isRunning = false;
         startBtn.disabled = false;
         stepBtn.disabled = true;

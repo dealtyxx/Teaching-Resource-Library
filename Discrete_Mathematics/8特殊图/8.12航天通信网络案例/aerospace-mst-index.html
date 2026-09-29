@@ -8,20 +8,20 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
-    <meta property="og:title" content="MST 与最短路 · 进阶层｜8.12 航天通信网络案例 - 离散数学课程资源库">
-    <meta property="og:description" content="第8章 特殊图 · 8.12 航天通信网络案例 · 进阶层：省骨干 / 保时延 / 综合优化。在成本与时效间权衡优化网络。">
+    <meta property="og:title" content="Kruskal 骨干树 · 进阶层｜8.12 航天通信网络案例 - 离散数学课程资源库">
+    <meta property="og:description" content="第8章 特殊图 · 8.12 航天通信网络案例 · 进阶层：边权排序 / 并查集判圈 / 最小生成树。用 Kruskal 构建总成本最低的测控骨干网。">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/8%E7%89%B9%E6%AE%8A%E5%9B%BE/8.12%E8%88%AA%E5%A4%A9%E9%80%9A%E4%BF%A1%E7%BD%91%E7%BB%9C%E6%A1%88%E4%BE%8B/aerospace-mst-index.html">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="MST 与最短路 · 进阶层｜8.12 航天通信网络案例 - 离散数学课程资源库">
-    <meta name="twitter:description" content="第8章 特殊图 · 8.12 航天通信网络案例 · 进阶层：省骨干 / 保时延 / 综合优化。在成本与时效间权衡优化网络。">
+    <meta name="twitter:title" content="Kruskal 骨干树 · 进阶层｜8.12 航天通信网络案例 - 离散数学课程资源库">
+    <meta name="twitter:description" content="第8章 特殊图 · 8.12 航天通信网络案例 · 进阶层：边权排序 / 并查集判圈 / 最小生成树。用 Kruskal 构建总成本最低的测控骨干网。">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MST 与最短路 · 进阶层｜8.12 航天通信网络案例 - 离散数学课程资源库</title>
-    <meta name="description" content="第8章 特殊图 · 8.12 航天通信网络案例 · 进阶层：省骨干 / 保时延 / 综合优化。在成本与时效间权衡优化网络。">
+    <title>Kruskal 骨干树 · 进阶层｜8.12 航天通信网络案例 - 离散数学课程资源库</title>
+    <meta name="description" content="第8章 特殊图 · 8.12 航天通信网络案例 · 进阶层：边权排序 / 并查集判圈 / 最小生成树。用 Kruskal 构建总成本最低的测控骨干网。">
 
     <link rel="stylesheet" href="aerospace-mst-style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -511,79 +511,79 @@
     <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
     <script>
     window.SECTION_META = {
-      "layers": [
-            {
-                  "name": "测控通信网络",
-                  "concepts": "站·星节点 / 链路成本·时延边",
-                  "task": "把测控网抽象为带权图。",
-                  "page": "aerospace-mst-index-basic.html"
-            },
-            {
-                  "name": "MST 与最短路",
-                  "concepts": "省骨干 / 保时延 / 综合优化",
-                  "task": "在成本与时效间权衡优化网络。",
-                  "page": "aerospace-mst-index.html"
-            },
-            {
-                  "name": "卫星星座",
-                  "concepts": "动态拓扑 / 天地一体网",
-                  "task": "迁移到卫星组网与深空通信。",
-                  "page": "aerospace-mst-index-extend.html"
-            }
-      ],
       "chapter": "第8章 特殊图",
       "section": "8.12 航天通信网络案例",
-      "title": "特殊图应用 · 航天通信网络优化",
-      "grounding": "本节主题：用最小生成树/最短路径优化航天测控通信网络——把地面站、中继卫星、航天器抽象为顶点，链路成本/时延为边权，用 MST 构建最省骨干、用最短路径保障时效，体会图论在航天通信中的应用。",
+      "title": "航天通信网络",
+      "grounding": "本节主题：用最小生成树优化航天测控通信网络——把飞控中心、测控中心、中继卫星、航天器、测量船抽象为顶点，链路建设成本（或时延）为边权（示意数据）；Kruskal 按权从小到大选边、用并查集拒绝成圈的边，得到总权最小的骨干树；树中任一边失效都会断网，故工程上还需补充冗余链路。",
+      "layers": [
+        {
+          "name": "测控通信网络",
+          "concepts": "站·星为顶点 / 成本·时延为边权",
+          "task": "把测控网抽象为带权图，比较按成本与按时延建骨干树。",
+          "page": "aerospace-mst-index-basic.html"
+        },
+        {
+          "name": "Kruskal 骨干树",
+          "concepts": "边权排序 / 并查集判圈 / 最小生成树",
+          "task": "用 Kruskal 构建总成本最低的测控骨干网。",
+          "page": "aerospace-mst-index.html"
+        },
+        {
+          "name": "卫星星座拓展",
+          "concepts": "链路故障 / 冗余备份 / 鲁棒性",
+          "task": "模拟链路失效，比较备份链路的恢复策略。",
+          "page": "aerospace-mst-index-extend.html"
+        }
+      ],
       "steps": [
-            {
-                  "name": "情境引入",
-                  "desc": "测控站、中继星、飞行器如何组网，既省成本又保时效？"
-            },
-            {
-                  "name": "对象抽取",
-                  "desc": "把站点/卫星抽象为顶点，把链路成本/时延抽象为边权。"
-            },
-            {
-                  "name": "结构建模",
-                  "desc": "用 MST 建骨干、用最短路径保时延，综合优化网络。"
-            },
-            {
-                  "name": "推理求解",
-                  "desc": "求最省骨干与最快链路，权衡成本与时效。"
-            },
-            {
-                  "name": "程序验证",
-                  "desc": "用本页交互优化通信网络，验证连通与时延。"
-            },
-            {
-                  "name": "迁移反思",
-                  "desc": "迁移到卫星星座、深空通信、天地一体网络。"
-            }
+        {
+          "name": "情境背景",
+          "desc": "飞控中心、测控站、中继卫星与航天器之间要建通信链路：怎样以最低成本保证全网连通？"
+        },
+        {
+          "name": "数学建模",
+          "desc": "站点与航天器→顶点，可建链路→边，建设成本或时延→边权；“连通且总权最小”→最小生成树。"
+        },
+        {
+          "name": "交互求解",
+          "desc": "Kruskal：边按权排序，逐条检查两端是否已连通（并查集），不成圈就加入，凑满 n−1 条为止。"
+        },
+        {
+          "name": "结果解读",
+          "desc": "8 个节点只需 7 条链路；按成本与按时延建出的树可能不同；树无冗余，任一边失效即断网。"
+        },
+        {
+          "name": "价值引领",
+          "desc": "航天工程讲究系统协同与底线思维：既要精打细算，也要为关键链路留足备份。"
+        },
+        {
+          "name": "迁移思考",
+          "desc": "迁移到低轨星座组网、天地一体化网络与深空通信中的动态图优化。"
+        }
       ],
       "ideology": {
-            "title": "航天报国 · 自立自强",
-            "text": "从『东方红』到北斗、空间站，中国航天靠自力更生、协同攻关挺进太空。用图论优化测控通信网络，是把关键核心技术牢牢掌握在自己手中的实践，激励青年传承航天精神，为建设航天强国、探索星辰大海贡献力量。",
-            "dims": [
-                  "航天精神",
-                  "自立自强",
-                  "系统观念"
-            ],
-            "quote": "探索浩瀚宇宙是中华民族不懈追求——优化的通信网络，是航天器与祖国之间最可靠的纽带。"
+        "title": "航天报国 · 自立自强",
+        "text": "从『东方红』到北斗、空间站，中国航天靠自力更生、协同攻关挺进太空。用图论优化测控通信网络，是把关键核心技术牢牢掌握在自己手中的实践，激励青年传承航天精神，为建设航天强国、探索星辰大海贡献力量。",
+        "dims": [
+          "航天精神",
+          "自立自强",
+          "系统观念"
+        ],
+        "quote": "探索浩瀚宇宙是中华民族不懈追求——优化的通信网络，是航天器与祖国之间最可靠的纽带。"
       },
       "reflect": [
-            "航天通信既要『省成本』(MST) 又要『低时延』(最短路)，两者目标如何权衡？",
-            "链路会因轨道运动动态变化，静态 MST 如何适应动态拓扑？",
-            "深空通信时延极大、带宽极小，对网络优化提出了什么特殊挑战？"
+        "按“成本”与按“时延”分别求 MST，得到的骨干树一样吗？两个目标如何权衡？",
+        "链路会因轨道运动动态变化，静态 MST 如何适应动态拓扑？",
+        "MST 中任意一条边失效都会断网，至少要补几条边才能容忍任一单链路故障？"
       ],
       "transfer": [
-            "低轨卫星星座（如组网通信）的链路规划正是动态图优化。",
-            {
-                  "t": "天地一体化",
-                  "d": "卫星+地面融合网络如何用分层图模型统一调度？"
-            }
+        "低轨卫星星座（如组网通信）的链路规划正是动态图优化。",
+        {
+          "t": "天地一体化",
+          "d": "卫星+地面融合网络如何用分层图模型统一调度？"
+        }
       ]
-};
+    };
     </script>
     <script src="../../shared/ai-tutor.js" defer></script>
 

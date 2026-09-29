@@ -8,7 +8,7 @@
   <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="测控通信网络 · 基础层｜8.12 航天通信网络案例 - 离散数学课程资源库">
-  <meta property="og:description" content="第8章 特殊图 · 8.12 航天通信网络案例 · 基础层：顶点 / 带权边 / 连通性。把通信节点抽象为带权图。">
+  <meta property="og:description" content="第8章 特殊图 · 8.12 航天通信网络案例 · 基础层：站·星为顶点 / 成本·时延为边权。把测控网抽象为带权图，比较按成本与按时延建骨干树。">
   <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/8%E7%89%B9%E6%AE%8A%E5%9B%BE/8.12%E8%88%AA%E5%A4%A9%E9%80%9A%E4%BF%A1%E7%BD%91%E7%BB%9C%E6%A1%88%E4%BE%8B/aerospace-mst-index-basic.html">
   <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta property="og:image:width" content="1200">
@@ -16,11 +16,11 @@
   <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="测控通信网络 · 基础层｜8.12 航天通信网络案例 - 离散数学课程资源库">
-  <meta name="twitter:description" content="第8章 特殊图 · 8.12 航天通信网络案例 · 基础层：顶点 / 带权边 / 连通性。把通信节点抽象为带权图。">
+  <meta name="twitter:description" content="第8章 特殊图 · 8.12 航天通信网络案例 · 基础层：站·星为顶点 / 成本·时延为边权。把测控网抽象为带权图，比较按成本与按时延建骨干树。">
   <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>测控通信网络 · 基础层｜8.12 航天通信网络案例 - 离散数学课程资源库</title>
-  <meta name="description" content="第8章 特殊图 · 8.12 航天通信网络案例 · 基础层：顶点 / 带权边 / 连通性。把通信节点抽象为带权图。">
+  <meta name="description" content="第8章 特殊图 · 8.12 航天通信网络案例 · 基础层：站·星为顶点 / 成本·时延为边权。把测控网抽象为带权图，比较按成本与按时延建骨干树。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -28,162 +28,11 @@
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap"></noscript>
   <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
   <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
-  <style>
-    :root {
-      --paper: #fff8ec;
-      --panel: rgba(255, 252, 245, 0.86);
-      --line: rgba(214, 59, 29, 0.16);
-      --red: #d63b1d;
-      --red-dark: #b8321a;
-      --gold: #ffb400;
-      --cyan: #00d8ee;
-      --green: #1f9d55;
-      --ink: #342018;
-      --muted: #7f6f65;
-      --shadow: 0 18px 46px rgba(139, 0, 0, 0.12);
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      overflow: hidden;
-      color: var(--ink);
-      font-family: "Noto Serif SC", "Microsoft YaHei", serif;
-      background:
-        radial-gradient(circle at 16% 16%, rgba(255,180,0,0.16), transparent 26%),
-        radial-gradient(circle at 84% 80%, rgba(214,59,29,0.10), transparent 28%),
-        repeating-linear-gradient(90deg, rgba(255,180,0,0.08) 0 1px, transparent 1px 52px),
-        repeating-linear-gradient(0deg, rgba(214,59,29,0.06) 0 1px, transparent 1px 52px),
-        linear-gradient(160deg, #fffdf5 0%, #fffaec 58%, #fff7e0 100%);
-    }
-    .home-link {
-      position: fixed; top: 14px; left: 14px; z-index: 10000;
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 8px 14px; border-radius: 999px;
-      background: rgba(30,30,40,0.82); color: #fff; text-decoration: none;
-      font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,0.20);
-      backdrop-filter: blur(10px);
-    }
-    .app {
-      width: min(1500px, calc(100vw - 42px));
-      height: calc(100vh - 92px);
-      margin: 58px auto 34px;
-      display: grid;
-      grid-template-columns: 360px minmax(0, 1fr);
-      gap: 18px;
-    }
-    .sidebar, .stage {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(14px);
-      overflow: hidden;
-    }
-    .sidebar {
-      padding: 18px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-    .dots { display: flex; gap: 8px; }
-    .dot { width: 12px; height: 12px; border-radius: 50%; }
-    .dot.red { background: #ff5f56; } .dot.yellow { background: #ffbd2e; } .dot.green { background: #27c93f; }
-    h1 {
-      margin: 4px 0 0;
-      color: var(--red);
-      font-family: "Ma Shan Zheng", "Noto Serif SC", cursive;
-      font-size: 2.2rem;
-      font-weight: 400;
-      letter-spacing: 0;
-    }
-    .subtitle { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
-    .pill {
-      display: inline-flex; width: fit-content; align-items: center; gap: 6px;
-      padding: 4px 10px; border-radius: 999px;
-      background: rgba(214,59,29,0.08); border: 1px solid var(--line);
-      color: var(--red-dark); font-weight: 800; font-size: 0.78rem;
-    }
-    .control-card, .metric-card, .edge-list, .note {
-      border: 1px solid rgba(214,59,29,0.13);
-      border-radius: 8px;
-      background: rgba(255,255,255,0.58);
-      padding: 12px;
-    }
-    .control-card { display: grid; gap: 10px; }
-    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    button, select, input[type="range"] { font: inherit; }
-    button, select {
-      min-height: 38px; border-radius: 8px; border: 1px solid rgba(214,59,29,0.22);
-      background: #fffdf8; color: var(--ink); cursor: pointer;
-    }
-    button.primary { background: linear-gradient(135deg, var(--red), var(--red-dark)); color: #fff; font-weight: 900; }
-    button.secondary { color: var(--red-dark); font-weight: 800; }
-    button:disabled { opacity: 0.48; cursor: not-allowed; }
-    label { display: grid; gap: 6px; color: var(--red-dark); font-size: 0.82rem; font-weight: 800; }
-    input[type="range"] { width: 100%; accent-color: var(--red); }
-    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .metric-card span { display: block; color: var(--muted); font-size: 0.76rem; }
-    .metric-card strong { display: block; margin-top: 4px; color: var(--red); font: 900 1.25rem "JetBrains Mono", Consolas, monospace; }
-    .edge-list { max-height: 220px; overflow-y: auto; display: grid; gap: 6px; }
-    .edge-row {
-      display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center;
-      padding: 7px 9px; border-radius: 7px; color: var(--muted);
-      background: rgba(255,252,245,0.72); font-size: 0.82rem;
-    }
-    .edge-row.current { outline: 2px solid var(--gold); color: #8a5d0b; }
-    .edge-row.accept { background: rgba(0,216,238,0.13); color: #087887; border-left: 3px solid var(--cyan); }
-    .edge-row.reject { background: rgba(214,59,29,0.08); color: var(--red-dark); text-decoration: line-through; }
-    .note { color: var(--muted); line-height: 1.65; font-size: 0.86rem; }
-    .stage {
-      position: relative;
-      padding: 16px;
-      background: radial-gradient(circle at 48% 42%, rgba(255,180,0,0.05), transparent 45%), rgba(255,252,245,0.56);
-    }
-    .stage-head, .legend, .tooltip {
-      position: absolute; z-index: 3;
-      background: rgba(255,252,245,0.82);
-      border: 1px solid rgba(214,59,29,0.14);
-      border-radius: 8px;
-      box-shadow: 0 12px 28px rgba(214,59,29,0.08);
-    }
-    .stage-head { top: 20px; left: 20px; padding: 14px 18px; }
-    .stage-head h2 { margin: 0; color: var(--red); font-size: 1.45rem; }
-    .stage-head p { margin: 4px 0 0; color: var(--muted); font-size: 0.82rem; }
-    .legend { top: 20px; right: 20px; padding: 12px 14px; display: grid; gap: 8px; font-size: 0.78rem; color: var(--muted); }
-    .legend div { display: flex; align-items: center; gap: 8px; }
-    .swatch { width: 22px; height: 3px; border-radius: 3px; background: rgba(0,216,238,0.28); }
-    .swatch.chosen { background: var(--cyan); box-shadow: 0 0 8px rgba(0,216,238,0.9); }
-    .swatch.scan { background: var(--gold); }
-    .swatch.drop { background: var(--red); border-top: 1px dashed var(--red); }
-    svg { width: 100%; height: 100%; display: block; }
-    .edge { stroke: rgba(0,216,238,0.22); stroke-width: 2; transition: all .22s; }
-    .edge.scan { stroke: var(--gold); stroke-width: 4; stroke-dasharray: 7 5; }
-    .edge.chosen { stroke: var(--cyan); stroke-width: 5; filter: drop-shadow(0 0 7px rgba(0,216,238,0.7)); }
-    .edge.drop { stroke: var(--red); stroke-width: 3; stroke-dasharray: 3 4; opacity: .55; }
-    .edge-label { fill: #475569; font: 800 11px "JetBrains Mono", Consolas, monospace; text-anchor: middle; }
-    .label-bg { fill: rgba(255,252,245,0.86); stroke: rgba(214,59,29,0.12); }
-    .node circle { fill: #163248; stroke: var(--cyan); stroke-width: 3; filter: drop-shadow(0 0 6px rgba(0,216,238,.5)); }
-    .node.active circle { fill: rgba(0,216,238,0.24); }
-    .node text.icon { fill: white; font: 900 13px "JetBrains Mono", Consolas, monospace; text-anchor: middle; dominant-baseline: middle; }
-    .node text.name { fill: #6b5d54; font: 800 12px "Noto Serif SC"; text-anchor: middle; }
-    .tooltip { display: none; pointer-events: none; padding: 10px 12px; max-width: 230px; color: var(--ink); font-size: 0.82rem; line-height: 1.5; }
-    .tooltip b { color: var(--red); }
-    .footer {
-      position: fixed; left: 0; bottom: 0; width: 100%; padding: 8px 10px;
-      color: rgba(52,32,24,.72); text-align: center; font-size: .78rem;
-    }
-    @media (max-width: 900px) {
-      body { overflow: auto; }
-      .app { height: auto; grid-template-columns: 1fr; margin-bottom: 70px; }
-      .stage { height: 620px; }
-    }
-  </style>
+  <link rel="stylesheet" href="aero-tier.css">
 </head>
 <body>
   <a class="home-link" href="../../index.html#chapter8">← 返回课程主页</a>
-  <div class="app">
+  <div class="app app-container">
     <aside class="sidebar">
       <div class="dots"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
       <span class="pill">基础层 · 强互动</span>
@@ -246,20 +95,78 @@
 
   <script>
   window.SECTION_META = {
-    chapter: "第8章 特殊图",
-    section: "8.12 航天通信网络案例",
-    title: "测控通信网络 · 基础层",
-    layers: [
-      { name: "测控通信网络", concepts: "顶点 / 带权边 / 连通性", task: "把通信节点抽象为带权图。", page: "aerospace-mst-index-basic.html" },
-      { name: "MST 与最短路", concepts: "Kruskal / 最小生成树 / 并查集", task: "构建低成本通信骨干网。", page: "aerospace-mst-index.html" },
-      { name: "卫星星座拓展", concepts: "故障 / 冗余 / 鲁棒性", task: "模拟链路失效后的恢复策略。", page: "aerospace-mst-index-extend.html" }
+    "chapter": "第8章 特殊图",
+    "section": "8.12 航天通信网络案例",
+    "title": "航天通信网络",
+    "grounding": "本节主题：用最小生成树优化航天测控通信网络——把飞控中心、测控中心、中继卫星、航天器、测量船抽象为顶点，链路建设成本（或时延）为边权（示意数据）；Kruskal 按权从小到大选边、用并查集拒绝成圈的边，得到总权最小的骨干树；树中任一边失效都会断网，故工程上还需补充冗余链路。",
+    "layers": [
+      {
+        "name": "测控通信网络",
+        "concepts": "站·星为顶点 / 成本·时延为边权",
+        "task": "把测控网抽象为带权图，比较按成本与按时延建骨干树。",
+        "page": "aerospace-mst-index-basic.html"
+      },
+      {
+        "name": "Kruskal 骨干树",
+        "concepts": "边权排序 / 并查集判圈 / 最小生成树",
+        "task": "用 Kruskal 构建总成本最低的测控骨干网。",
+        "page": "aerospace-mst-index.html"
+      },
+      {
+        "name": "卫星星座拓展",
+        "concepts": "链路故障 / 冗余备份 / 鲁棒性",
+        "task": "模拟链路失效，比较备份链路的恢复策略。",
+        "page": "aerospace-mst-index-extend.html"
+      }
     ],
-    ideology: {
-      title: "航天报国 · 自立自强",
-      text: "从东方红一号到北斗、空间站，中国航天靠系统协同和自主攻关不断突破。把通信系统抽象为图，是用数学服务国家重大工程的第一步。",
-      dims: ["航天精神", "科学建模", "系统观念"],
-      quote: "先把复杂系统看清楚，才能把关键链路建扎实。"
-    }
+    "steps": [
+      {
+        "name": "情境背景",
+        "desc": "飞控中心、测控站、中继卫星与航天器之间要建通信链路：怎样以最低成本保证全网连通？"
+      },
+      {
+        "name": "数学建模",
+        "desc": "站点与航天器→顶点，可建链路→边，建设成本或时延→边权；“连通且总权最小”→最小生成树。"
+      },
+      {
+        "name": "交互求解",
+        "desc": "Kruskal：边按权排序，逐条检查两端是否已连通（并查集），不成圈就加入，凑满 n−1 条为止。"
+      },
+      {
+        "name": "结果解读",
+        "desc": "8 个节点只需 7 条链路；按成本与按时延建出的树可能不同；树无冗余，任一边失效即断网。"
+      },
+      {
+        "name": "价值引领",
+        "desc": "航天工程讲究系统协同与底线思维：既要精打细算，也要为关键链路留足备份。"
+      },
+      {
+        "name": "迁移思考",
+        "desc": "迁移到低轨星座组网、天地一体化网络与深空通信中的动态图优化。"
+      }
+    ],
+    "ideology": {
+      "title": "航天报国 · 自立自强",
+      "text": "从『东方红』到北斗、空间站，中国航天靠自力更生、协同攻关挺进太空。用图论优化测控通信网络，是把关键核心技术牢牢掌握在自己手中的实践，激励青年传承航天精神，为建设航天强国、探索星辰大海贡献力量。",
+      "dims": [
+        "航天精神",
+        "自立自强",
+        "系统观念"
+      ],
+      "quote": "探索浩瀚宇宙是中华民族不懈追求——优化的通信网络，是航天器与祖国之间最可靠的纽带。"
+    },
+    "reflect": [
+      "按“成本”与按“时延”分别求 MST，得到的骨干树一样吗？两个目标如何权衡？",
+      "链路会因轨道运动动态变化，静态 MST 如何适应动态拓扑？",
+      "MST 中任意一条边失效都会断网，至少要补几条边才能容忍任一单链路故障？"
+    ],
+    "transfer": [
+      "低轨卫星星座（如组网通信）的链路规划正是动态图优化。",
+      {
+        "t": "天地一体化",
+        "d": "卫星+地面融合网络如何用分层图模型统一调度？"
+      }
+    ]
   };
 
   const nodes = [
