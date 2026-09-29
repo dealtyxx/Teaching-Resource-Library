@@ -7,7 +7,7 @@
   <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="对偶原理 · 基础层｜5.5 对偶与范式 - 离散数学课程资源库">
-  <meta property="og:description" content="第5章 命题逻辑 · 5.5 对偶与范式 · 基础层：∧↔∨ / T↔F / 对称之美。用对偶原理简化推导。">
+  <meta property="og:description" content="第5章 命题逻辑 · 5.5 对偶与范式 · 基础层：对偶式 A* / ∧↔∨ 与 0↔1 互换 / 对偶原理。写出对偶式并用真值表验证对偶原理。">
   <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/5%E5%91%BD%E9%A2%98%E9%80%BB%E8%BE%91/5%E5%AF%B9%E5%81%B6%E4%B8%8E%E8%8C%83%E5%BC%8F/normal_forms-basic.html">
   <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta property="og:image:width" content="1200">
@@ -15,11 +15,11 @@
   <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="对偶原理 · 基础层｜5.5 对偶与范式 - 离散数学课程资源库">
-  <meta name="twitter:description" content="第5章 命题逻辑 · 5.5 对偶与范式 · 基础层：∧↔∨ / T↔F / 对称之美。用对偶原理简化推导。">
+  <meta name="twitter:description" content="第5章 命题逻辑 · 5.5 对偶与范式 · 基础层：对偶式 A* / ∧↔∨ 与 0↔1 互换 / 对偶原理。写出对偶式并用真值表验证对偶原理。">
   <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>对偶原理 · 基础层｜5.5 对偶与范式 - 离散数学课程资源库</title>
-  <meta name="description" content="第5章 命题逻辑 · 5.5 对偶与范式 · 基础层：∧↔∨ / T↔F / 对称之美。用对偶原理简化推导。">
+  <meta name="description" content="第5章 命题逻辑 · 5.5 对偶与范式 · 基础层：对偶式 A* / ∧↔∨ 与 0↔1 互换 / 对偶原理。写出对偶式并用真值表验证对偶原理。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -36,15 +36,9 @@
     <aside class="side-panel">
       <div class="eyebrow">基础层 · 第5章 命题逻辑</div>
       <h1>对偶原理</h1>
-      <p class="subtitle">∧↔∨ / T↔F / 对称之美</p>
+      <p class="subtitle">对偶式 A* / ∧↔∨ 与 0↔1 互换 / 对偶原理</p>
       <p class="tier-line">低门槛 · 建立直觉</p>
-      <p class="intro">🎯 用对偶原理简化推导。</p>
-
-      <div class="value-panel">
-        <h3>思想的标准化 · 守正统一</h3>
-        <p>极小项用 ∧、极大项用 ∨，文字极性相反——对偶原理揭示 ∧ 与 ∨、真与假对称共生的辩证之美，启示我们在统一中尊重对立两面。</p>
-        <div class="dim-list"><span>标准意识</span><span>辩证思维</span><span>系统观念</span></div>
-      </div>
+      <p class="intro">🎯 写出对偶式并用真值表验证对偶原理。</p>
 
       <div id="controls"></div>
       <div class="legend-panel" id="legendPanel"></div>
@@ -52,27 +46,26 @@
 
     <main class="glass-pane">
       <section class="mission-card">
-        <span><b>互动任务：</b>逐行扫描真值表，真行提取极小项 m，假行提取极大项 M，看 ∧↔∨、M=¬m 的对偶之美。</span>
-        <div class="visual-badge">真值表 · 对偶提取</div>
+        <span><b>互动任务：</b>写出等值式两边的对偶式（先化去 →、↔，再 ∧↔∨、0↔1 互换，¬ 不变），逐行比对真值，验证对偶原理：若 A⇔B，则 A*⇔B*。</span>
+        <div class="visual-badge">对偶式 · 对偶原理</div>
       </section>
 
       <div class="sym-pipeline">
         <section class="sym-stage-card">
-          <div class="sym-stage-head"><span class="sym-stage-num">1</span><span class="sym-stage-title">真值表 · 目标函数</span><span class="sym-stage-hint">点行可定位</span></div>
+          <div class="sym-stage-head"><span class="sym-stage-num">1</span><span class="sym-stage-title">等值式 · 写出对偶式</span><span class="sym-stage-hint">① 改写 → ② 互换 → ③ 结论</span></div>
+          <div id="duFormula" class="du-formula"></div>
+        </section>
+        <section class="sym-stage-card">
+          <div class="sym-stage-head"><span class="sym-stage-num">2</span><span class="sym-stage-title">真值表 · 四列比对</span><span class="sym-stage-hint">点行可定位</span></div>
           <div id="nfTable" class="nf-table-wrap"></div>
         </section>
         <section class="sym-stage-card">
-          <div class="sym-stage-head"><span class="sym-stage-num">2</span><span class="sym-stage-title">逐行提取 · 小项 / 大项</span><span class="sym-stage-hint">真行→m，假行→M</span></div>
-          <div id="nfTerms" class="nf-terms"></div>
-          <div id="nfEval" class="nf-eval" style="margin-top:12px"></div>
+          <div class="sym-stage-head"><span class="sym-stage-num">3</span><span class="sym-stage-title">逐行判定</span><span class="sym-stage-hint">A 与 B、A* 与 B*</span></div>
+          <div id="nfEval" class="nf-eval"></div>
         </section>
         <section class="sym-stage-card">
-          <div class="sym-stage-head"><span class="sym-stage-num">3</span><span class="sym-stage-title">主范式拼装 · 对偶</span><span class="sym-stage-hint">PDNF / PCNF</span></div>
-          <div id="nfForms" class="nf-forms"></div>
-        </section>
-        <section class="sym-stage-card">
-          <div class="sym-stage-head"><span class="sym-stage-num">4</span><span class="sym-stage-title">真值星图</span><span class="sym-stage-hint">每格一行 · 真/假</span></div>
-          <div id="nfStar" class="nf-star-wrap"></div>
+          <div class="sym-stage-head"><span class="sym-stage-num">4</span><span class="sym-stage-title">真值指纹 · 对偶对称</span><span class="sym-stage-hint">A* 列 = A 列倒序再取反</span></div>
+          <div id="duPrint" class="du-print"></div>
         </section>
       </div>
     </main>
@@ -86,36 +79,36 @@
   <script>
     window.SECTION_META = {
       "layers": [
-        { "name": "对偶原理", "concepts": "∧↔∨ / T↔F / 对称之美", "task": "用对偶原理简化推导。", "page": "normal_forms-basic.html" },
-        { "name": "主范式", "concepts": "DNF/CNF / 极小项·极大项 / 唯一", "task": "把公式化为唯一的主范式。", "page": "normal_forms.html" },
-        { "name": "电路综合与 SAT", "concepts": "逻辑综合 / CNF 预处理", "task": "迁移到电路综合与 SAT 求解。", "page": "normal_forms-extend.html" }
+        { "name": "对偶原理", "concepts": "对偶式 A* / ∧↔∨ 与 0↔1 互换 / 对偶原理", "task": "写出对偶式并用真值表验证对偶原理。", "page": "normal_forms-basic.html" },
+        { "name": "主析取与主合取范式", "concepts": "极小项 m / 极大项 M / 编号互补 / 主范式唯一", "task": "由真值表求公式的主析取范式与主合取范式。", "page": "normal_forms.html" },
+        { "name": "电路综合与 SAT", "concepts": "积之和电路 / CNF 子句 / 可满足性", "task": "把范式迁移到电路综合与 SAT 求解。", "page": "normal_forms-extend.html" }
       ],
       "chapter": "第5章 命题逻辑",
       "section": "5.5 对偶与范式",
       "title": "对偶原理",
-      "grounding": "本节主题：对偶原理（∧↔∨、T↔F 互换）。基础层用 2 变元真值表建立直觉：真行提取极小项（合取 ∧），假行提取极大项（析取 ∨），观察 M_i=¬m_i 与 ∧/∨ 对称共生，体会对偶原理如何简化推导。",
+      "grounding": "本节主题：对偶式与对偶原理。在仅含 ¬、∧、∨ 及常元 0、1 的公式 A 中，把 ∧ 与 ∨ 互换、0 与 1 互换（¬ 与变元不变）得到 A 的对偶式 A*；含 →、↔ 的公式须先等值改写为只含 ¬、∧、∨ 再对偶。对偶原理：若 A⇔B，则 A*⇔B*。另有 ¬A(p₁,…,pₙ) ⇔ A*(¬p₁,…,¬pₙ)。基础层用德摩根律、吸收律、排中律、分配律等等值式逐行验证：A 与 B 真值处处相同，A* 与 B* 也处处相同。",
       "steps": [
-        {"name":"情境引入","desc":"∧ 与 ∨、真与假之间，藏着怎样的对称？"},
-        {"name":"对象抽取","desc":"把真行/假行对应极小项/极大项。"},
-        {"name":"结构建模","desc":"极小项用 ∧、极大项用 ∨，文字极性相反。"},
-        {"name":"推理求解","desc":"观察 M_i=¬m_i，用对偶原理简化推导。"},
-        {"name":"程序验证","desc":"用本页逐行扫描，验证对偶关系。"},
-        {"name":"迁移反思","desc":"为进阶层的主范式唯一性打基础。"}
+        {"name":"情境引入","desc":"∧ 与 ∨、0 与 1 之间，藏着怎样的对称？一条定律能否直接换来另一条？"},
+        {"name":"对象抽取","desc":"找出公式中的 ∧、∨、0、1；含 →、↔ 时先改写。"},
+        {"name":"结构建模","desc":"∧↔∨、0↔1 互换，¬ 与变元不变，写出对偶式 A*、B*。"},
+        {"name":"推理求解","desc":"逐行比较 A、B 与 A*、B* 的真值。"},
+        {"name":"程序验证","desc":"用本页逐行扫描，确认 A⇔B 时 A*⇔B* 同样成立。"},
+        {"name":"迁移反思","desc":"为进阶层的主析取、主合取范式（极小项与极大项互为对偶）打基础。"}
       ],
       "ideology": {
-        "title": "思想的标准化 · 守正统一",
-        "text": "范式把千姿百态的表达统一为唯一标准形，体现『立标准、求统一』的规范化思维——标准统一才能高效协作、互认互通。对偶原理则揭示∧与∨、真与假对称共生的辩证之美，启示我们在统一中尊重对立两面。",
-        "dims": ["标准意识", "辩证思维", "系统观念"],
-        "quote": "车同轨，书同文——主范式的唯一标准形，正是逻辑世界的『统一度量衡』。"
+        "title": "对偶之美 · 对立统一",
+        "text": "对偶原理告诉我们：把 ∧ 与 ∨、0 与 1 这对对立面同时互换，等值关系依然成立——一条定律成立，它的『镜像』定律也随之成立，德摩根律、吸收律、分配律都成对出现。对立的两面不是互相抵消，而是在同一结构中对称共生；学会在统一中尊重对立两面、成对地看问题，常能举一反三、事半功倍。",
+        "dims": ["辩证思维", "对称意识", "系统观念"],
+        "quote": "万物负阴而抱阳，冲气以为和。——《道德经》"
       },
       "reflect": [
-        "为什么极小项用 ∧、极大项用 ∨？它们的文字极性为何相反？",
-        "可以验证 M_i = ¬m_i 吗？这与对偶原理有何关系？",
-        "p∧q 与 p∨q 互为对偶，它们的真值表有什么对称关系？"
+        "为什么对偶前必须先消去 → 和 ↔？直接把 → 保留不变会出什么错？",
+        "¬ 为什么在对偶中保持不变？若把 ¬ 也『对偶』掉会怎样？",
+        "观察真值指纹：A* 的真值列为何恰好是 A 的真值列倒序再取反？"
       ],
       "transfer": [
-        "理解对偶与极小/极大项，是后续主范式与化简的基础。",
-        {"t":"进阶预告","d":"进阶层将用 3 变元真值表构造唯一的主析取/主合取范式。"}
+        "对偶原理让等值式成对出现：记住一半，另一半可由对偶得到。",
+        {"t": "进阶预告", "d": "进阶层用 3 变元真值表求主析取、主合取范式；极小项与极大项同样是一对对偶。"}
       ]
     };
   </script>

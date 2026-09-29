@@ -7,7 +7,7 @@
   <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="电路综合与 SAT · 拓展层｜5.5 对偶与范式 - 离散数学课程资源库">
-  <meta property="og:description" content="第5章 命题逻辑 · 5.5 对偶与范式 · 拓展层：逻辑综合 / CNF 预处理。迁移到电路综合与 SAT 求解。">
+  <meta property="og:description" content="第5章 命题逻辑 · 5.5 对偶与范式 · 拓展层：积之和电路 / CNF 子句 / 可满足性。把范式迁移到电路综合与 SAT 求解。">
   <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/5%E5%91%BD%E9%A2%98%E9%80%BB%E8%BE%91/5%E5%AF%B9%E5%81%B6%E4%B8%8E%E8%8C%83%E5%BC%8F/normal_forms-extend.html">
   <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta property="og:image:width" content="1200">
@@ -15,11 +15,11 @@
   <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="电路综合与 SAT · 拓展层｜5.5 对偶与范式 - 离散数学课程资源库">
-  <meta name="twitter:description" content="第5章 命题逻辑 · 5.5 对偶与范式 · 拓展层：逻辑综合 / CNF 预处理。迁移到电路综合与 SAT 求解。">
+  <meta name="twitter:description" content="第5章 命题逻辑 · 5.5 对偶与范式 · 拓展层：积之和电路 / CNF 子句 / 可满足性。把范式迁移到电路综合与 SAT 求解。">
   <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>电路综合与 SAT · 拓展层｜5.5 对偶与范式 - 离散数学课程资源库</title>
-  <meta name="description" content="第5章 命题逻辑 · 5.5 对偶与范式 · 拓展层：逻辑综合 / CNF 预处理。迁移到电路综合与 SAT 求解。">
+  <meta name="description" content="第5章 命题逻辑 · 5.5 对偶与范式 · 拓展层：积之和电路 / CNF 子句 / 可满足性。把范式迁移到电路综合与 SAT 求解。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -36,15 +36,9 @@
     <aside class="side-panel">
       <div class="eyebrow">拓展层 · 第5章 命题逻辑</div>
       <h1>电路综合与 SAT</h1>
-      <p class="subtitle">逻辑综合 / CNF 预处理</p>
+      <p class="subtitle">积之和电路 / CNF 子句 / 可满足性</p>
       <p class="tier-line">高天花板 · 迁移工程</p>
-      <p class="intro">🎯 迁移到电路综合与 SAT 求解。</p>
-
-      <div class="value-panel">
-        <h3>思想的标准化 · 守正统一</h3>
-        <p>范式标准化让逻辑可综合、可判定：PDNF（积之和）对应门电路综合，PCNF（和之积）的每个极大项就是一条 CNF 子句——正是 SAT 求解器的标准输入。</p>
-        <div class="dim-list"><span>标准意识</span><span>系统观念</span><span>工程思维</span></div>
-      </div>
+      <p class="intro">🎯 把范式迁移到电路综合与 SAT 求解。</p>
 
       <div id="controls"></div>
       <div class="legend-panel" id="legendPanel"></div>
@@ -52,8 +46,8 @@
 
     <main class="glass-pane">
       <section class="mission-card">
-        <span><b>互动任务：</b>逐行扫描电路/约束函数，真行→PDNF（电路综合），假行→极大项=CNF 子句（SAT 输入），看公式项与星图联动高亮。</span>
-        <div class="visual-badge">逻辑综合 · CNF/SAT</div>
+        <span><b>互动任务：</b>逐行扫描电路或约束函数：真行得极小项，拼成积之和（两级与–或电路）；假行得极大项子句，拼成和之积（CNF）；真行即 SAT 的模型。</span>
+        <div class="visual-badge">电路综合 · CNF / SAT</div>
       </section>
 
       <div class="sym-pipeline">
@@ -62,16 +56,16 @@
           <div id="nfTable" class="nf-table-wrap"></div>
         </section>
         <section class="sym-stage-card">
-          <div class="sym-stage-head"><span class="sym-stage-num">2</span><span class="sym-stage-title">逐行提取 · 小项 / 子句</span><span class="sym-stage-hint">真行→m，假行→子句</span></div>
+          <div class="sym-stage-head"><span class="sym-stage-num">2</span><span class="sym-stage-title">逐行提取 · 极小项 / 子句</span><span class="sym-stage-hint">真行→m，假行→子句</span></div>
           <div id="nfTerms" class="nf-terms"></div>
-          <div id="nfEval" class="nf-eval" style="margin-top:12px"></div>
+          <div id="nfEval" class="nf-eval"></div>
         </section>
         <section class="sym-stage-card">
-          <div class="sym-stage-head"><span class="sym-stage-num">3</span><span class="sym-stage-title">PDNF（综合）/ CNF（SAT）</span><span class="sym-stage-hint">积之和 / 和之积</span></div>
+          <div class="sym-stage-head"><span class="sym-stage-num">3</span><span class="sym-stage-title">积之和 / 和之积</span><span class="sym-stage-hint">电路 · SAT 输入</span></div>
           <div id="nfForms" class="nf-forms"></div>
         </section>
         <section class="sym-stage-card">
-          <div class="sym-stage-head"><span class="sym-stage-num">4</span><span class="sym-stage-title">真值星图 · 模型</span><span class="sym-stage-hint">真行=可满足赋值</span></div>
+          <div class="sym-stage-head"><span class="sym-stage-num">4</span><span class="sym-stage-title">真值格局 · 模型</span><span class="sym-stage-hint">真行 = 可满足赋值</span></div>
           <div id="nfStar" class="nf-star-wrap"></div>
         </section>
       </div>
@@ -86,36 +80,36 @@
   <script>
     window.SECTION_META = {
       "layers": [
-        { "name": "对偶原理", "concepts": "∧↔∨ / T↔F / 对称之美", "task": "用对偶原理简化推导。", "page": "normal_forms-basic.html" },
-        { "name": "主范式", "concepts": "DNF/CNF / 极小项·极大项 / 唯一", "task": "把公式化为唯一的主范式。", "page": "normal_forms.html" },
-        { "name": "电路综合与 SAT", "concepts": "逻辑综合 / CNF 预处理", "task": "迁移到电路综合与 SAT 求解。", "page": "normal_forms-extend.html" }
+        { "name": "对偶原理", "concepts": "对偶式 A* / ∧↔∨ 与 0↔1 互换 / 对偶原理", "task": "写出对偶式并用真值表验证对偶原理。", "page": "normal_forms-basic.html" },
+        { "name": "主析取与主合取范式", "concepts": "极小项 m / 极大项 M / 编号互补 / 主范式唯一", "task": "由真值表求公式的主析取范式与主合取范式。", "page": "normal_forms.html" },
+        { "name": "电路综合与 SAT", "concepts": "积之和电路 / CNF 子句 / 可满足性", "task": "把范式迁移到电路综合与 SAT 求解。", "page": "normal_forms-extend.html" }
       ],
       "chapter": "第5章 命题逻辑",
       "section": "5.5 对偶与范式",
       "title": "电路综合与 SAT",
-      "grounding": "本节主题：把范式迁移到工程应用。PDNF（积之和 sum-of-products）对应两级与–或门电路综合；PCNF（和之积）的每个极大项就是一条 CNF 子句，是现代 SAT 求解器的标准输入。真值表的真行即为满足约束的模型（可满足赋值）。",
+      "grounding": "本节主题：把范式迁移到工程应用。主析取范式即『积之和』（sum of products），每个极小项对应一个与门，再由一个或门汇总，得到两级与–或电路，实际综合前通常先用卡诺图、Quine–McCluskey 等方法化简。合取范式即『和之积』，每个析取式是一条子句；SAT 求解器的标准输入是 CNF（如 DIMACS 格式），但不必是主合取范式，工程上常用 Tseitin 变换在线性规模内得到等可满足的 CNF。真值表中使公式为真的赋值就是 SAT 的模型；没有真行则不可满足（UNSAT）。SAT 是第一个被证明为 NP 完全的问题（Cook，1971）。",
       "steps": [
-        {"name":"情境引入","desc":"逻辑函数如何变成门电路？约束系统如何判定可满足？"},
-        {"name":"对象抽取","desc":"把真行/假行对应极小项/极大项（子句）。"},
-        {"name":"结构建模","desc":"PDNF 给电路综合，PCNF 给 CNF 子句集。"},
-        {"name":"推理求解","desc":"由真值表读出 SAT 模型与 CNF 子句。"},
-        {"name":"程序验证","desc":"用本页逐行扫描，得到综合式与子句集。"},
-        {"name":"迁移反思","desc":"迁移到 EDA 逻辑综合、SAT/SMT 求解、形式验证。"}
+        {"name":"情境引入","desc":"逻辑函数如何变成门电路？一组约束能否同时满足？"},
+        {"name":"对象抽取","desc":"把电路输入 / 约束变元列成真值表。"},
+        {"name":"结构建模","desc":"真行 → 极小项（积之和），假行 → 极大项子句（和之积）。"},
+        {"name":"推理求解","desc":"读出电路综合式与 SAT 模型，判断可满足性。"},
+        {"name":"程序验证","desc":"用本页逐行扫描，对照工程解读核对门数与模型。"},
+        {"name":"迁移反思","desc":"迁移到 EDA 逻辑综合、SAT/SMT 求解与形式验证。"}
       ],
       "ideology": {
         "title": "思想的标准化 · 守正统一",
-        "text": "范式把千姿百态的表达统一为唯一标准形，体现『立标准、求统一』的规范化思维——标准统一才能高效协作、互认互通，正是工业级 EDA 与 SAT 工具链的基石。对偶原理则揭示∧与∨、真与假对称共生的辩证之美。",
+        "text": "范式标准化让逻辑可综合、可判定：积之和可直接综合为与–或门电路，合取范式的每个析取式就是一条子句——正是 SAT 求解器通用的标准输入。标准统一才能让不同工具、不同团队高效协作、互认互通，这是 EDA 与 SAT 工具链的基石；同一函数化简后门数更少，也提醒我们在守正的前提下精益求精。",
         "dims": ["标准意识", "系统观念", "工程思维"],
         "quote": "车同轨，书同文——标准化的 CNF，正是 SAT 求解器通行的『统一语言』。"
       },
       "reflect": [
-        "为什么 SAT 求解器统一以 CNF 为输入？标准化带来什么好处？",
-        "PDNF 的『积之和』如何对应两级与–或门电路？",
-        "约束系统的真值表真行，为什么就是它的可满足模型？"
+        "为什么 SAT 求解器统一以 CNF 为输入？把公式展开成主合取范式有什么代价？",
+        "积之和如何对应两级与–或电路？化简为什么能减少门数？",
+        "约束系统没有真行意味着什么？求解器会如何报告？"
       ],
       "transfer": [
-        "数字电路综合先把逻辑函数化为范式，再优化为门电路。",
-        {"t":"SAT 求解","d":"现代 SAT 求解器输入 CNF，本节范式是其工业应用的入口。"}
+        "数字电路综合先得到积之和，再化简、映射为门电路。",
+        {"t": "SAT 求解", "d": "现代 SAT 求解器以 CNF 为输入，广泛用于硬件验证、排程与软件测试。"}
       ]
     };
   </script>
