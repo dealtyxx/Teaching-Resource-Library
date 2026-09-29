@@ -19,8 +19,8 @@ const MODES = {
     'zn': {
         title: 'Zn 探索器 (Modular Arithmetic)',
         ideology: {
-            title: '🔢 循环往复：社会发展的辩证螺旋',
-            content: 'Zn环体现了循环性：加法运算模n后回到起点，如同昼夜交替、四季轮回。这启示我们：社会发展是螺旋上升的过程，每一次"归零"都是新起点。经济周期、历史轮回，都遵循这一规律，但每个周期都包含新的质的飞跃。'
+            title: '🔢 周而复始：有限中的完整秩序',
+            content: 'Zₙ 的加法走满 n 步回到 0，如同钟表的时针周而复始；但它不是简单重复——乘法表里隐藏着零因子与可逆元的差别，素数 n 让每个非零元都可逆。看似循环的表象下有更深的结构，认识事物要透过现象抓住本质。'
         },
         definition: `
             <div class="definition-item">
@@ -49,16 +49,16 @@ const MODES = {
                 <li>选择模数n（2-12）</li>
                 <li>观察加法和乘法运算表</li>
                 <li><strong>点击单元格</strong>查看计算详情</li>
-                <li>零因子标红🔴，单位元标绿🟢</li>
-                <li>当n为素数时，Zn是域✨</li>
+                <li>乘法表中：非零元相乘得 0 标红（零因子对），乘积为 1 标绿（互逆对）</li>
+                <li>当且仅当 n 为素数时，Zₙ 是域</li>
             </ul>
         `
     },
     'polynomial': {
         title: '多项式环 (Polynomial Ring)',
         ideology: {
-            title: '📐 无限可能：从有限到无限的创造',
-            content: '多项式环展示了"有限生成无限"的哲学。从有限的系数和一个变量x，我们可以构建无穷多个多项式。这象征着创新思维：用有限的资源，通过组合和创造，产生无限的价值。社会主义建设正是如此——立足现实条件，创造无限可能。'
+            title: '📐 以简驭繁：有限规则生成无穷对象',
+            content: '多项式环只用一个变量 x、系数环和加乘两种运算，就生成了无穷多个元素，而且加法、乘法始终封闭。用少数清晰的规则组织无穷的对象，是数学抽象的力量，也是创新思维的写照：立足已有条件，通过组合与创造拓展新的可能。'
         },
         definition: `
             <div class="definition-item">
@@ -89,12 +89,12 @@ const MODES = {
         title: '性质检验器 (Property Checker)',
         ideology: {
             title: '🔍 严谨治学：逻辑的完整性',
-            content: '整环的"无零因子"性质体现了逻辑的严密性：若ab=0，则a=0或b=0。这意味着没有"逻辑漏洞"——真理不能从虚假推导。科学研究和理论建设都需要这种严谨：每一步推理都要经得起检验，不能有任何"零因子"式的漏洞。'
+            content: '整环"无零因子"：若 ab = 0，则 a = 0 或 b = 0。正是这条性质保证了消去律（ab = ac 且 a ≠ 0 ⇒ b = c），解方程时才能放心地"约去"非零因子。在 Z₆ 中 2·3 = 0，消去律就失效了。科学推理同样如此：每一步变形都要先确认前提成立，才经得起检验。'
         },
         definition: `
             <div class="definition-item">
                 <strong>整环 (Integral Domain)</strong><br>
-                无零因子的可换环:<br>
+                无零因子的交换含幺环（1 ≠ 0）:<br>
                 ∀ a,b ≠ 0: ab ≠ 0
             </div>
             <div class="definition-item">
@@ -102,20 +102,21 @@ const MODES = {
                 非零元a使得存在非零b满足 ab = 0
             </div>
             <div class="definition-item">
-                <strong>单位 (Unit)</strong><br>
+                <strong>可逆元（单位，Unit）</strong><br>
                 有乘法逆元的元素:<br>
-                ∃ b: ab = 1
+                ∃ b: ab = ba = 1
             </div>
         `,
         controls: [
-            { type: 'label', text: '检验当前环:' },
-            { type: 'info', text: `Z_${currentN}` }
+            { type: 'label', text: 'n =' },
+            { type: 'input', id: 'nInput', value: '5' },
+            { type: 'btn', text: '检验', action: 'generateZn', class: '' }
         ],
         instructions: `
             <ul>
                 <li>自动检测当前环的性质</li>
                 <li>识别所有零因子（若存在）</li>
-                <li>识别所有单位元</li>
+                <li>识别所有可逆元（单位）</li>
                 <li>判定是否为整环/域</li>
             </ul>
         `
@@ -124,18 +125,18 @@ const MODES = {
         title: '结构层次 (Structure Hierarchy)',
         ideology: {
             title: '🏛️ 完整体系：理论的层次性',
-            content: '从环到可换环、整环、域，展示了代数结构的层层递进。每一层都在上一层基础上增加新性质，最终达到"域"的完美状态。这体现了理论体系的建设规律：从简单到复杂，从基础到完善，最终形成完整的、自洽的理论大厦——如同马克思主义理论体系。'
+            content: '从环到交换环、整环、域，每一层都在上一层基础上增加一条性质：交换律、含幺且无零因子、非零元可逆。条件越多，结构越"好用"，适用的对象也越少。理论体系的建设同样循序渐进：先打牢基础，再逐层完善，每一层都自洽、可检验。'
         },
         definition: `
             <div class="definition-item">
                 <strong>层次关系</strong><br>
-                Ring ⊃ Commutative Ring ⊃ Integral Domain ⊃ Field
+                环 ⊃ 交换环 ⊃ 整环 ⊃ 域（按对象类包含）
             </div>
             <div class="definition-item">
                 <strong>性质累加</strong><br>
-                Ring → + 交换律 → Comm. Ring<br>
-                Comm. Ring → + 无零因子 → Domain<br>
-                Domain → + 逆元存在 → Field
+                环 → + 乘法交换 → 交换环<br>
+                交换环 → + 含幺(1≠0)、无零因子 → 整环<br>
+                整环 → + 非零元都可逆 → 域
             </div>
         `,
         controls: [],
@@ -192,7 +193,9 @@ function loadMode(mode) {
             const input = document.createElement('input');
             input.type = 'number';
             input.id = ctrl.id;
-            input.value = ctrl.value;
+            input.value = String(currentN);
+            input.setAttribute('aria-label', '模数 n');
+            input.addEventListener('change', () => executeAction('generateZn'));
             input.min = '2';
             input.max = '12';
             input.className = 'control-input';
@@ -232,9 +235,10 @@ function executeAction(action) {
         if (currentN < 2) currentN = 2;
         if (currentN > 12) currentN = 12;
         input.value = currentN;
-        generateZn();
         if (currentMode === 'properties') {
             loadPropertiesMode();
+        } else {
+            generateZn();
         }
     }
 }
@@ -254,7 +258,7 @@ function generateZn() {
             <h3>乘法表 (Multiplication mod ${currentN})</h3>
             ${generateCayleyTable(currentN, 'mult')}
         </div>
-        <div id="cellDetail" style="margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px; display: none;"></div>
+        <div id="cellDetail" class="cell-detail" style="display: none;"></div>
     `;
 
     // Add click handlers to cells
@@ -319,9 +323,9 @@ function showCellDetail(cell) {
         <p><strong>${i} ${symbol} ${j}</strong> = ${actualResult}</p>
         <p>${actualResult} mod ${currentN} = <strong style="color: var(--ring-blue); font-size: 1.2em;">${result}</strong></p>
         ${parseInt(result) === 0 && i !== '0' && j !== '0' && op === 'mult' ?
-            '<p style="color: #c62828;">⚠️ 这是一对零因子！</p>' : ''}
+            '<p style="color: #c0392b;">⚠️ 这是一对零因子！</p>' : ''}
         ${parseInt(result) === 1 && op === 'mult' ?
-            `<p style="color: var(--domain-green);">✓ ${i} 和 ${j} 互为乘法逆元（单位元）</p>` : ''}
+            `<p style="color: var(--domain-green);">✓ ${i} 与 ${j} 互为乘法逆元（二者都是可逆元）</p>` : ''}
     `;
     detailDiv.style.display = 'block';
 
@@ -499,7 +503,7 @@ function loadPropertiesMode() {
     const isField = isPrime(currentN);
 
     content.innerHTML = `
-        <h3>Z_${currentN} 的性质分析</h3>
+        <h3>Z<sub>${currentN}</sub> 的性质分析</h3>
         
         <div class="definition-item">
             <strong>零因子 (Zero Divisors)</strong><br>
@@ -507,7 +511,7 @@ function loadPropertiesMode() {
         </div>
         
         <div class="definition-item">
-            <strong>单位 (Units)</strong><br>
+            <strong>可逆元 (Units)</strong><br>
             {${units.join(', ')}}
         </div>
         
@@ -531,7 +535,7 @@ function loadPropertiesMode() {
         
         ${isField ? `
         <div class="definition-item" style="border-left-color: var(--field-gold); background: #fffbf0;">
-            <strong>🌟 Z_${currentN} 是域！</strong><br>
+            <strong>🌟 Z<sub>${currentN}</sub> 是域！</strong><br>
             因为${currentN}是素数，所以每个非零元素都有乘法逆元。
         </div>
         ` : ''}
@@ -546,7 +550,7 @@ function loadHierarchyMode() {
     content.innerHTML = `
         <div class="hierarchy-diagram">
             <div class="hierarchy-level">
-                <div class="hierarchy-node" onclick="showHierarchyInfo('ring')">
+                <div class="hierarchy-node" onclick="showHierarchyInfo('ring', this)">
                     <h4>环 (Ring)</h4>
                     <p>加法群 + 乘法半群</p>
                 </div>
@@ -555,7 +559,7 @@ function loadHierarchyMode() {
             <div class="hierarchy-arrow"></div>
             
             <div class="hierarchy-level">
-                <div class="hierarchy-node" onclick="showHierarchyInfo('commutative')">
+                <div class="hierarchy-node" onclick="showHierarchyInfo('commutative', this)">
                     <h4>可换环 (Commutative Ring)</h4>
                     <p>+ 乘法交换律</p>
                 </div>
@@ -564,16 +568,16 @@ function loadHierarchyMode() {
             <div class="hierarchy-arrow"></div>
             
             <div class="hierarchy-level">
-                <div class="hierarchy-node" onclick="showHierarchyInfo('domain')">
+                <div class="hierarchy-node" onclick="showHierarchyInfo('domain', this)">
                     <h4>整环 (Integral Domain)</h4>
-                    <p>+ 无零因子</p>
+                    <p>+ 含幺、无零因子</p>
                 </div>
             </div>
             
             <div class="hierarchy-arrow"></div>
             
             <div class="hierarchy-level">
-                <div class="hierarchy-node" onclick="showHierarchyInfo('field')">
+                <div class="hierarchy-node" onclick="showHierarchyInfo('field', this)">
                     <h4>域 (Field)</h4>
                     <p>+ 所有非零元可逆</p>
                 </div>
@@ -586,26 +590,26 @@ function loadHierarchyMode() {
     updateProperties();
 }
 
-function showHierarchyInfo(type) {
+function showHierarchyInfo(type, nodeEl) {
     const info = {
         'ring': {
             title: '环 (Ring)',
-            desc: '集合R配备两个二元运算（加法和乘法），满足加法交换群、乘法结合性、分配律。',
+            desc: '集合 R 配备加法与乘法：⟨R,+⟩ 是阿贝尔群，⟨R,·⟩ 是半群（结合），乘法对加法满足左右分配律。',
             example: 'Z（整数环）、R[x]（多项式环）'
         },
         'commutative': {
             title: '可换环 (Commutative Ring)',
-            desc: '乘法满足交换律：∀a,b ∈ R, ab = ba。体现平等互惠原则。',
-            example: 'Zn（模n剩余类环）、实数域R'
+            desc: '乘法满足交换律：∀a,b ∈ R, ab = ba。反例：n×n 矩阵环（n≥2）乘法不交换。',
+            example: 'Zₙ（模 n 剩余类环）、偶数环 2Z（无单位元）'
         },
         'domain': {
             title: '整环 (Integral Domain)',
-            desc: '无零因子：若ab=0，则a=0或b=0。逻辑严密，无漏洞。',
-            example: 'Z（整数环）、Z_p (p为素数)'
+            desc: '含幺交换且无零因子：若 ab=0，则 a=0 或 b=0，从而满足消去律。',
+            example: 'Z（整数环）、Z[x]（整系数多项式环）、Zₚ（p 为素数）'
         },
         'field': {
             title: '域 (Field)',
-            desc: '每个非零元都有乘法逆元。完美的代数结构，所有"除法"都有定义。',
+            desc: '交换含幺环中每个非零元都有乘法逆元，于是可以做除以非零元的"除法"。有限整环必是域。',
             example: 'Q（有理数域）、R（实数域）、Z_p (p为素数)'
         }
     };
@@ -620,7 +624,7 @@ function showHierarchyInfo(type) {
     `;
 
     document.querySelectorAll('.hierarchy-node').forEach(node => node.classList.remove('active'));
-    event.target.closest('.hierarchy-node').classList.add('active');
+    if (nodeEl) nodeEl.classList.add('active');
 }
 
 // ===== Update Properties Panel =====
@@ -633,7 +637,7 @@ function updateProperties() {
 
         list.innerHTML = `
             <div class="property-badge">
-                <span class="property-label">可换环</span>
+                <span class="property-label">交换环</span>
                 <span class="property-status true">✓</span>
             </div>
             <div class="property-badge">
@@ -649,7 +653,7 @@ function updateProperties() {
                 <span class="property-status">${zeroDivisors.length}</span>
             </div>
             <div class="property-badge">
-                <span class="property-label">单位数</span>
+                <span class="property-label">可逆元个数</span>
                 <span class="property-status">${units.length}</span>
             </div>
         `;
@@ -679,19 +683,19 @@ function updateProperties() {
                 <span class="property-status">4层</span>
             </div>
             <div class="property-badge">
-                <span class="property-label">Ring</span>
+                <span class="property-label">环</span>
                 <span class="property-status">基础结构</span>
             </div>
             <div class="property-badge">
-                <span class="property-label">Comm. Ring</span>
+                <span class="property-label">交换环</span>
                 <span class="property-status">+ 交换律</span>
             </div>
             <div class="property-badge">
-                <span class="property-label">Domain</span>
-                <span class="property-status">+ 无零因子</span>
+                <span class="property-label">整环</span>
+                <span class="property-status">+ 含幺、无零因子</span>
             </div>
             <div class="property-badge">
-                <span class="property-label">Field</span>
+                <span class="property-label">域</span>
                 <span class="property-status">+ 可逆性</span>
             </div>
         `;

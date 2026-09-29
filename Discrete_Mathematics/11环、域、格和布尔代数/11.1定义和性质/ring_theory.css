@@ -1,16 +1,17 @@
 :root {
-    --primary-red: #de2910;
-    --primary-gold: #ffde00;
-    --ring-blue: #1e88e5;
-    --domain-green: #43a047;
-    --field-gold: #ffa000;
-    --polynomial-purple: #8e24aa;
+    /* 本章统一红金令牌（原蓝/紫/亮黄已收敛到规范配色） */
+    --primary-red: #d63b1d;
+    --primary-gold: #ffb400;
+    --ring-blue: #b8321a;
+    --domain-green: #2f7d57;
+    --field-gold: #c58a1f;
+    --polynomial-purple: #c58a1f;
     --bg-color: #fdfbf7;
     --text-dark: #2c1810;
-    --text-light: #596b7e;
+    --text-light: #6b4a38;
     --glass-bg: rgba(255, 255, 255, 0.92);
     --glass-border: rgba(255, 255, 255, 0.5);
-    --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    --shadow: 0 18px 50px rgba(69, 31, 15, 0.14);
     --font-title: 'Ma Shan Zheng', 'Noto Serif SC', cursive;
     --font-body: 'Noto Serif SC', 'Microsoft YaHei', serif;
     --font-serif: 'Noto Serif SC', 'Microsoft YaHei', serif;
@@ -24,23 +25,10 @@
 }
 
 body {
-background-image:
-        radial-gradient(circle at 10% 20%, rgba(222, 41, 16, 0.03) 0%, transparent 20%),
-        radial-gradient(circle at 90% 80%, rgba(67, 160, 71, 0.03) 0%, transparent 20%);
     color: var(--text-dark);
     font-family: var(--font-body);
     min-height: 100vh;
-    background-color: #120a24;
-    background-image:
-        radial-gradient(circle at 50% 50%, rgba(139,92,246,0.24) 0 85px, transparent 87px),
-        radial-gradient(circle at 20% 30%, rgba(16,185,129,0.15) 0 72px, transparent 74px),
-        radial-gradient(circle at 80% 70%, rgba(245,158,11,0.13) 0 62px, transparent 64px),
-        repeating-linear-gradient(45deg, rgba(139,92,246,0.10) 0 1px, transparent 1px 48px),
-        repeating-linear-gradient(-45deg, rgba(16,185,129,0.07) 0 1px, transparent 1px 48px),
-        linear-gradient(135deg, #120a24 0%, #0d1635 50%, #1a0a2e 100%);
-    background-size: auto, auto, auto, 48px 48px, 48px 48px, cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    background: #fffbf0;
 }
 
 .app-container {
@@ -91,11 +79,11 @@ background-image:
     align-items: center;
     gap: 10px;
     padding: 12px 24px;
-    background: linear-gradient(135deg, var(--ring-blue), var(--domain-green));
+    background: linear-gradient(135deg, #d63b1d, #b8321a);
     color: white;
     border-radius: 25px;
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
+    box-shadow: 0 6px 16px rgba(214, 59, 29, 0.25);
 }
 
 .badge-icon {
@@ -177,9 +165,9 @@ background-image:
 }
 
 .nav-btn.active {
-    background: linear-gradient(135deg, #e3f2fd, #f1f8e9);
+    background: linear-gradient(135deg, #fff4de, #fdebe4);
     border-color: var(--ring-blue);
-    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.2);
+    box-shadow: 0 4px 12px rgba(214, 59, 29, 0.2);
 }
 
 .nav-icon {
@@ -260,7 +248,7 @@ background-image:
 
 .control-btn {
     padding: 8px 16px;
-    background: var(--ring-blue);
+    background: linear-gradient(135deg, #d63b1d, #b8321a);
     color: white;
     border: none;
     border-radius: 6px;
@@ -270,7 +258,8 @@ background-image:
 }
 
 .control-btn:hover {
-    background: #1565c0;
+    filter: brightness(1.06);
+    box-shadow: 0 6px 14px rgba(214, 59, 29, 0.2);
 }
 
 .control-btn.secondary {
@@ -321,7 +310,7 @@ background-image:
 }
 
 .cayley-table th {
-    background: linear-gradient(135deg, #e3f2fd, #f1f8e9);
+    background: linear-gradient(135deg, #fff4de, #fdebe4);
     font-weight: 700;
     color: var(--text-dark);
 }
@@ -340,13 +329,13 @@ background-image:
 
 .cayley-table td.zero-divisor {
     background: #ffebee;
-    color: #c62828;
+    color: #c0392b;
     font-weight: 700;
 }
 
 .cayley-table td.unit {
     background: #e8f5e9;
-    color: #2e7d32;
+    color: #2f7d57;
     font-weight: 700;
 }
 
@@ -418,7 +407,7 @@ background-image:
 }
 
 .hierarchy-node.active {
-    background: linear-gradient(135deg, #e3f2fd, #f1f8e9);
+    background: linear-gradient(135deg, #fff4de, #fdebe4);
     border-color: var(--field-gold);
 }
 
@@ -484,7 +473,7 @@ background-image:
 }
 
 .definition-item {
-    background: #f9f9f9;
+    background: #fffaf2;
     padding: 12px;
     border-radius: 6px;
     margin-bottom: 10px;
@@ -527,7 +516,7 @@ background-image:
 }
 
 .property-status.false {
-    color: #d32f2f;
+    color: #c0392b;
 }
 
 /* ===== Responsive ===== */
@@ -558,3 +547,26 @@ background-image:
         grid-template-areas: "band" "center" "right" !important;
     }
 }
+/* 进阶层眉标（与本章基础层/拓展层一致） */
+.layer-eyebrow {
+    display: inline-block;
+    margin-bottom: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(214, 59, 29, 0.22);
+    background: rgba(214, 59, 29, 0.08);
+    color: var(--primary-red);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+}
+.cell-detail { margin-top: 20px; padding: 15px; background: #fffaf2; border: 1px solid rgba(116, 55, 31, 0.16); border-radius: 8px; }
+
+/* 侧栏化后的页头：眉标、标题与徽标自动换行，徽标不挤压标题 */
+.main-header { flex-wrap: wrap; gap: 10px; }
+.main-header .header-content { flex: 1 1 220px; min-width: 0; }
+.layer-eyebrow { white-space: nowrap; }
+.ideology-badge { padding: 8px 14px; font-size: 0.88rem; white-space: nowrap; }
+.content-container h3 { margin: 0 0 10px; }
+.layer-eyebrow { width: fit-content; max-width: 100%; }
