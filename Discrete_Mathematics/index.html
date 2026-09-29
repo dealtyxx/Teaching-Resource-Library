@@ -207,7 +207,7 @@
             position: relative;
             overflow: hidden;
             min-height: 96px;
-            padding: 16px 18px 15px;
+            padding: 16px 18px 24px;
             border-radius: var(--radius-md);
             border: 1px solid rgba(214, 59, 29, 0.16);
             background: rgba(255, 255, 255, 0.72);
@@ -271,7 +271,7 @@
             overflow: hidden;
             border-radius: var(--radius-md);
             border: 1px solid rgba(214, 59, 29, 0.2);
-            background: rgba(255, 255, 255, 0.82);
+            background: rgba(255, 255, 255, 0.94);
             box-shadow: var(--shadow-sm);
             backdrop-filter: blur(16px) saturate(1.1);
         }
@@ -310,6 +310,48 @@
 
         .search-button:hover {
             filter: brightness(1.04);
+        }
+
+        .search-status {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 8px;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(214, 59, 29, 0.14);
+            background: rgba(255, 253, 247, 0.92);
+            box-shadow: var(--shadow-sm);
+            color: var(--ink-soft);
+            font-size: 0.86rem;
+            backdrop-filter: blur(12px);
+        }
+
+        .search-status.visible {
+            display: flex;
+        }
+
+        .search-status strong {
+            color: var(--primary-red);
+        }
+
+        .search-clear {
+            flex: 0 0 auto;
+            border: 1px solid rgba(214, 59, 29, 0.28);
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--primary-red);
+            border-radius: 999px;
+            padding: 4px 12px;
+            font-family: var(--font-cn);
+            font-size: 0.8rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .search-clear:hover {
+            background: var(--primary-red);
+            color: #fff;
         }
 
         .learning-path,
@@ -368,6 +410,14 @@
         .path-card strong {
             color: var(--primary-red);
             font-size: 1.02rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .path-card strong .layer-chip {
+            pointer-events: none;
         }
 
         .path-card span {
@@ -573,8 +623,13 @@
             flex-direction: column;
             height: 600px;
             min-height: 0;
-            content-visibility: auto;
-            contain-intrinsic-size: 330px;
+            /* 锚点定位时让出吸顶搜索栏的高度 */
+            scroll-margin-top: 84px;
+        }
+
+        .module-card.is-target {
+            border-color: rgba(214, 59, 29, 0.5);
+            box-shadow: 0 0 0 3px rgba(255, 180, 0, 0.32), 0 14px 34px rgba(139, 0, 0, 0.12);
         }
 
         .module-card.hidden {
@@ -605,6 +660,10 @@
                 linear-gradient(135deg, rgba(214,59,29,0.08), rgba(255,180,0,0.13)),
                 rgba(255,255,255,0.8);
             border-bottom: 1px solid rgba(214, 59, 29, 0.12);
+        }
+
+        .module-header:focus-visible {
+            outline-offset: -3px;
         }
 
         .module-header > span:first-child {
@@ -675,23 +734,42 @@
 
         .topic-item {
             margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 42px;
+            padding-right: 8px;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(214, 59, 29, 0.1);
+            background: rgba(255, 255, 255, 0.6);
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .topic-item:hover,
+        .topic-item:focus-within {
+            background: rgba(255, 248, 232, 0.94);
+            border-color: rgba(214, 59, 29, 0.28);
+        }
+
+        .topic-item:hover {
+            transform: translateX(3px);
         }
 
         .topic-link {
+            flex: 1 1 auto;
+            min-width: 0;
+            align-self: stretch;
             color: var(--ink-soft);
             text-decoration: none;
             display: grid;
             grid-template-columns: auto minmax(0, 1fr);
             align-items: center;
             gap: 10px;
-            min-height: 42px;
-            padding: 10px 12px;
+            padding: 10px 4px 10px 12px;
             border-radius: var(--radius-sm);
-            border: 1px solid rgba(214, 59, 29, 0.1);
-            background: rgba(255, 255, 255, 0.6);
             font-size: 0.9rem;
             line-height: 1.45;
-            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+            transition: color 0.2s ease;
         }
 
         .topic-link::before {
@@ -703,11 +781,132 @@
             box-shadow: 0 0 0 4px rgba(255, 180, 0, 0.12);
         }
 
-        .topic-link:hover {
+        .topic-item:hover .topic-link,
+        .topic-link:focus-visible {
             color: var(--primary-red);
-            background: rgba(255, 248, 232, 0.94);
-            border-color: rgba(214, 59, 29, 0.28);
-            transform: translateX(3px);
+        }
+
+        /* 三阶层级入口：基础=金 / 进阶=橙红 / 拓展=深红，与章节页 dm-tier 配色一致 */
+        .layer-chips {
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px;
+            border-radius: 999px;
+            background: rgba(255, 248, 232, 0.7);
+            box-shadow: inset 0 0 0 1px rgba(214, 59, 29, 0.08);
+        }
+
+        .layer-chip {
+            --chip: var(--accent-gold);
+            --chip-soft: rgba(255, 180, 0, 0.14);
+            --chip-ink: #8A5A00;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            height: 22px;
+            padding: 0 7px 0 6px;
+            border-radius: 999px;
+            color: var(--chip-ink);
+            background: var(--chip-soft);
+            font-size: 0.7rem;
+            font-weight: 800;
+            line-height: 1;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        /* 点阵 ●○○ / ●●○ / ●●●：用三枚 4px 圆点表示层级深度 */
+        .layer-chip i {
+            display: inline-block;
+            width: 4px;
+            height: 4px;
+            margin-right: 10px;
+            border-radius: 50%;
+            background: var(--chip);
+            box-shadow: 5px 0 0 var(--chip-dot2, rgba(0, 0, 0, 0.14)), 10px 0 0 var(--chip-dot3, rgba(0, 0, 0, 0.14));
+            opacity: 0.9;
+        }
+
+        .layer-core {
+            --chip: var(--primary-red);
+            --chip-soft: rgba(214, 59, 29, 0.09);
+            --chip-ink: var(--primary-red);
+            --chip-dot2: var(--primary-red);
+        }
+
+        .layer-extend {
+            --chip: var(--primary-red-dark);
+            --chip-soft: rgba(184, 50, 26, 0.13);
+            --chip-ink: var(--primary-red-dark);
+            --chip-dot2: var(--primary-red-dark);
+            --chip-dot3: var(--primary-red-dark);
+        }
+
+        .layer-chip:hover,
+        .layer-chip:focus-visible {
+            color: #fff;
+            background: var(--chip);
+            box-shadow: 0 4px 12px rgba(214, 59, 29, 0.18);
+            --chip-dot2: rgba(255, 255, 255, 0.95);
+            --chip-dot3: rgba(255, 255, 255, 0.45);
+        }
+
+        .layer-chip:hover i,
+        .layer-chip:focus-visible i {
+            background: #fff;
+        }
+
+        .layer-basic:hover,
+        .layer-basic:focus-visible {
+            color: var(--ink);
+            --chip-dot2: rgba(44, 24, 16, 0.3);
+            --chip-dot3: rgba(44, 24, 16, 0.3);
+        }
+
+        .layer-basic:hover i,
+        .layer-basic:focus-visible i {
+            background: var(--ink);
+        }
+
+        .layer-extend:hover,
+        .layer-extend:focus-visible {
+            --chip-dot3: rgba(255, 255, 255, 0.95);
+        }
+
+        /* 卡片较窄时只保留点阵，文字交给 title / aria-label */
+        .module-body {
+            container-type: inline-size;
+        }
+
+        @container (max-width: 360px) {
+            .layer-chip {
+                height: 26px;
+                padding: 0 8px;
+                font-size: 0;
+                gap: 0;
+            }
+
+            .layer-chip i {
+                margin-right: 10px;
+            }
+        }
+
+        /* 搜索命中 / 未命中 */
+        .topic-item.is-match {
+            background: rgba(255, 180, 0, 0.22);
+            border-color: rgba(255, 180, 0, 0.55);
+        }
+
+        .topic-item.is-dim {
+            opacity: 0.5;
+        }
+
+        .topic-item.is-dim:hover,
+        .topic-item.is-dim:focus-within {
+            opacity: 1;
         }
 
         .footer {
@@ -788,16 +987,63 @@
                 display: none;
             }
 
-            .hero-stats,
+            .hero-banner::before {
+                display: none;
+            }
+
+            .hero-stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+            }
+
+            .stat-item {
+                min-height: 84px;
+                padding: 14px 14px 22px;
+            }
+
+            .stat-item::after {
+                inset: auto 14px 11px 14px;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+                margin-bottom: 7px;
+            }
+
+            .stat-label {
+                font-size: 0.84rem;
+            }
+
             .path-grid,
-            .quick-access,
             .modules-grid,
             .ideology-grid {
                 grid-template-columns: 1fr;
             }
 
+            .quick-access {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .quick-link {
+                min-height: 0;
+            }
+
+            .quick-link:last-child {
+                grid-column: 1 / -1;
+            }
+
             .module-card {
                 height: auto;
+                scroll-margin-top: 12px;
+            }
+
+            .path-head > .path-subtitle:last-child {
+                display: none;
+            }
+
+            /* 给右下角返回顶部按钮留出位置，避免遮挡版权信息 */
+            .footer {
+                padding-bottom: 78px;
             }
 
             .search-section {
@@ -871,7 +1117,7 @@
         }
 
         /* 按压反馈：独立 scale 属性，不干扰各自的 hover transform */
-        :where(button, .quick-link, .topic-link):where(:not(:disabled)):active {
+        :where(button, .quick-link, .topic-link, .layer-chip):where(:not(:disabled)):active {
             scale: 0.975;
         }
 
@@ -933,7 +1179,7 @@
                 <span class="stat-label">课程章节</span>
             </div>
             <div class="stat-item">
-                <span class="stat-number" id="caseCount">366</span>
+                <span class="stat-number" id="caseCount">367</span>
                 <span class="stat-label">三阶教学案例页</span>
             </div>
             <div class="stat-item">
@@ -942,7 +1188,7 @@
             </div>
             <div class="stat-item visitor-stat">
                 <span class="stat-number" id="visitorCount">
-                    <span class="stat-icon">⚡</span><span id="busuanzi_value_site_pv">…</span>
+                    <span class="stat-icon">⚡</span><span id="busuanzi_value_site_pv" title="统计服务加载中">…</span>
                 </span>
                 <span class="stat-label">访问人次</span>
             </div>
@@ -954,8 +1200,12 @@
         <!-- 搜索栏 -->
         <div class="search-section">
             <div class="search-box">
-                <input type="text" class="search-input" id="searchInput" placeholder="搜索章节、案例或知识点，例如 容斥、图论、密钥生成...">
+                <input type="text" class="search-input" id="searchInput" placeholder="搜索章节、案例或知识点，例如 容斥、图论、密钥生成..." aria-label="搜索章节、案例或知识点" autocomplete="off">
                 <button class="search-button" onclick="searchContent()" aria-label="搜索">搜索</button>
+            </div>
+            <div class="search-status" id="searchStatus" role="status" aria-live="polite">
+                <span id="searchStatusText"></span>
+                <button type="button" class="search-clear" onclick="clearSearch()">清除搜索</button>
             </div>
         </div>
 
@@ -964,23 +1214,23 @@
             <div class="path-head">
                 <div>
                     <div class="path-title">三阶层次案例导航</div>
-                    <div class="path-subtitle">122 个课程入口统一按基础层、进阶层、拓展层组织，共 366 个三阶案例页，和章节页面的板式语言保持一致。</div>
+                    <div class="path-subtitle"><span data-unit-count>122</span> 个知识单元统一按基础层、进阶层、拓展层组织，共 367 个三阶案例页；每个条目右侧的 ●○○ / ●●○ / ●●● 可直达对应层级。</div>
                 </div>
-                <div class="path-subtitle">122 个知识单元 × 3 阶层 = 366 个案例页</div>
+                <div class="path-subtitle">11 章 · <span data-unit-count>122</span> 个知识单元 · 367 个案例页</div>
             </div>
             <div class="path-grid">
                 <div class="path-card">
-                    <strong>基础层</strong>
+                    <strong>基础层<span class="layer-chip layer-basic" aria-hidden="true"><i></i>基础</span></strong>
                     <span>建立概念直觉，完成对象抽取、符号化和第一步建模。</span>
                     <em>适合课前预习与课堂导入</em>
                 </div>
                 <div class="path-card">
-                    <strong>进阶层</strong>
+                    <strong>进阶层<span class="layer-chip layer-core" aria-hidden="true"><i></i>进阶</span></strong>
                     <span>围绕核心算法、推理链与可视化反馈展开互动演示。</span>
                     <em>适合课堂讲解与动手探索</em>
                 </div>
                 <div class="path-card">
-                    <strong>拓展层</strong>
+                    <strong>拓展层<span class="layer-chip layer-extend" aria-hidden="true"><i></i>拓展</span></strong>
                     <span>迁移到工程系统、文化数字化、智能应用和综合案例。</span>
                     <em>适合项目实践与课程思政延展</em>
                 </div>
@@ -1025,27 +1275,27 @@
 
         <!-- 快速访问 -->
         <div class="quick-access">
-            <a href="#chapter1" class="quick-link" onclick="filterModules('基础')">
+            <a href="#chapter1" class="quick-link" data-filter="基础">
                 <span class="quick-link-icon">📊</span>
                 <div class="quick-link-title">基础理论</div>
                 <div class="quick-link-desc">计数与数论基础</div>
             </a>
-            <a href="#chapter3" class="quick-link" onclick="filterModules('关系')">
+            <a href="#chapter3" class="quick-link" data-filter="关系">
                 <span class="quick-link-icon">🔗</span>
                 <div class="quick-link-title">关系函数</div>
                 <div class="quick-link-desc">二元关系与特殊关系</div>
             </a>
-            <a href="#chapter5" class="quick-link" onclick="filterModules('逻辑')">
+            <a href="#chapter5" class="quick-link" data-filter="逻辑">
                 <span class="quick-link-icon">🧠</span>
                 <div class="quick-link-title">逻辑推理</div>
                 <div class="quick-link-desc">命题与谓词逻辑</div>
             </a>
-            <a href="#chapter7" class="quick-link" onclick="filterModules('图')">
+            <a href="#chapter7" class="quick-link" data-filter="图">
                 <span class="quick-link-icon">🌐</span>
                 <div class="quick-link-title">图论应用</div>
                 <div class="quick-link-desc">图论基础与特殊图</div>
             </a>
-            <a href="#chapter9" class="quick-link" onclick="filterModules('代数')">
+            <a href="#chapter9" class="quick-link" data-filter="代数">
                 <span class="quick-link-icon">🔢</span>
                 <div class="quick-link-title">代数系统</div>
                 <div class="quick-link-desc">群环域格布尔代数</div>
@@ -1066,373 +1316,254 @@
             <div class="modules-grid" id="modulesGrid">
                 <!-- 模块1 -->
                 <div class="module-card" data-category="基础" id="chapter1">
-                    <div class="module-header" onclick="toggleModule(this)">
+                    <div class="module-header" onclick="toggleModule(this)" role="button" tabindex="0" aria-expanded="true">
                         <span>第一章 计数基础与数论基础</span>
                         <span class="module-toggle">▼</span>
                     </div>
                     <div class="module-body">
                         <ul class="topic-list">
-                            <li class="topic-item"><a href="1计数基础与数论基础/1.1.1基本概念/counting.html"
-                                    class="topic-link">计数原理基本概念</a></li>
-                            <li class="topic-item"><a href="1计数基础与数论基础/1.1.2鸽巢原理/pigeonhole.html"
-                                    class="topic-link">鸽巢原理</a></li>
-                            <li class="topic-item"><a href="1计数基础与数论基础/1.2.1整除性和模运算/modular.html"
-                                    class="topic-link">整除性和模运算</a></li>
-                            <li class="topic-item"><a href="1计数基础与数论基础/1.2.2素数和最大公因数/prime.html"
-                                    class="topic-link">素数和最大公因数</a></li>
-                            <li class="topic-item"><a href="1计数基础与数论基础/1.2.3同余方程/congruence.html"
-                                    class="topic-link">同余方程</a></li>
-                            <li class="topic-item"><a href="1计数基础与数论基础/1.2.4欧拉函数和费马小定理/euler.html"
-                                    class="topic-link">欧拉函数和费马小定理</a></li>
-                            <li class="topic-item"><a href="1计数基础与数论基础/1.3.1哈希函数设计/hash.html"
-                                    class="topic-link">哈希函数设计</a></li>
-                            <li class="topic-item"><a href="1计数基础与数论基础/1.3.2伪随机数生成/random.html"
-                                    class="topic-link">伪随机数生成</a></li>
-                            <li class="topic-item"><a href="1计数基础与数论基础/1.3.3校验码设计/checksum.html"
-                                    class="topic-link">校验码设计</a></li>
-                            <li class="topic-item"><a href="1计数基础与数论基础/1.3.4RSA加密算法设计/rsa.html"
-                                    class="topic-link">RSA加密算法设计</a></li>
+                            <li class="topic-item"><a href="1计数基础与数论基础/1.1.1基本概念/counting.html" class="topic-link">计数原理基本概念</a><span class="layer-chips"><a class="layer-chip layer-basic" href="1计数基础与数论基础/1.1.1基本概念/counting-basic.html" title="基础层：计数原理基本概念" aria-label="计数原理基本概念 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="1计数基础与数论基础/1.1.1基本概念/counting.html" title="进阶层：计数原理基本概念" aria-label="计数原理基本概念 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="1计数基础与数论基础/1.1.1基本概念/counting-extend.html" title="拓展层：计数原理基本概念" aria-label="计数原理基本概念 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="1计数基础与数论基础/1.1.2鸽巢原理/pigeonhole.html" class="topic-link">鸽巢原理</a><span class="layer-chips"><a class="layer-chip layer-basic" href="1计数基础与数论基础/1.1.2鸽巢原理/pigeon-basic.html" title="基础层：鸽巢原理" aria-label="鸽巢原理 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="1计数基础与数论基础/1.1.2鸽巢原理/pigeonhole.html" title="进阶层：鸽巢原理" aria-label="鸽巢原理 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="1计数基础与数论基础/1.1.2鸽巢原理/pigeon-extend.html" title="拓展层：鸽巢原理" aria-label="鸽巢原理 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="1计数基础与数论基础/1.2.1整除性和模运算/modular.html" class="topic-link">整除性和模运算</a><span class="layer-chips"><a class="layer-chip layer-basic" href="1计数基础与数论基础/1.2.1整除性和模运算/modular-basic.html" title="基础层：整除性和模运算" aria-label="整除性和模运算 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="1计数基础与数论基础/1.2.1整除性和模运算/modular.html" title="进阶层：整除性和模运算" aria-label="整除性和模运算 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="1计数基础与数论基础/1.2.1整除性和模运算/modular-extend.html" title="拓展层：整除性和模运算" aria-label="整除性和模运算 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="1计数基础与数论基础/1.2.2素数和最大公因数/prime.html" class="topic-link">素数和最大公因数</a><span class="layer-chips"><a class="layer-chip layer-basic" href="1计数基础与数论基础/1.2.2素数和最大公因数/prime-basic.html" title="基础层：素数和最大公因数" aria-label="素数和最大公因数 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="1计数基础与数论基础/1.2.2素数和最大公因数/prime.html" title="进阶层：素数和最大公因数" aria-label="素数和最大公因数 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="1计数基础与数论基础/1.2.2素数和最大公因数/prime-extend.html" title="拓展层：素数和最大公因数" aria-label="素数和最大公因数 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="1计数基础与数论基础/1.2.3同余方程/congruence.html" class="topic-link">同余方程</a><span class="layer-chips"><a class="layer-chip layer-basic" href="1计数基础与数论基础/1.2.3同余方程/congruence-basic.html" title="基础层：同余方程" aria-label="同余方程 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="1计数基础与数论基础/1.2.3同余方程/congruence.html" title="进阶层：同余方程" aria-label="同余方程 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="1计数基础与数论基础/1.2.3同余方程/congruence-extend.html" title="拓展层：同余方程" aria-label="同余方程 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="1计数基础与数论基础/1.2.4欧拉函数和费马小定理/euler.html" class="topic-link">欧拉函数和费马小定理</a><span class="layer-chips"><a class="layer-chip layer-basic" href="1计数基础与数论基础/1.2.4欧拉函数和费马小定理/euler-basic.html" title="基础层：欧拉函数和费马小定理" aria-label="欧拉函数和费马小定理 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="1计数基础与数论基础/1.2.4欧拉函数和费马小定理/euler.html" title="进阶层：欧拉函数和费马小定理" aria-label="欧拉函数和费马小定理 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="1计数基础与数论基础/1.2.4欧拉函数和费马小定理/euler-extend.html" title="拓展层：欧拉函数和费马小定理" aria-label="欧拉函数和费马小定理 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="1计数基础与数论基础/1.3.1哈希函数设计/hash.html" class="topic-link">哈希函数设计</a><span class="layer-chips"><a class="layer-chip layer-basic" href="1计数基础与数论基础/1.3.1哈希函数设计/hash-basic.html" title="基础层：哈希函数设计" aria-label="哈希函数设计 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="1计数基础与数论基础/1.3.1哈希函数设计/hash.html" title="进阶层：哈希函数设计" aria-label="哈希函数设计 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="1计数基础与数论基础/1.3.1哈希函数设计/hash-extend.html" title="拓展层：哈希函数设计" aria-label="哈希函数设计 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="1计数基础与数论基础/1.3.2伪随机数生成/random.html" class="topic-link">伪随机数生成</a><span class="layer-chips"><a class="layer-chip layer-basic" href="1计数基础与数论基础/1.3.2伪随机数生成/random-basic.html" title="基础层：伪随机数生成" aria-label="伪随机数生成 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="1计数基础与数论基础/1.3.2伪随机数生成/random.html" title="进阶层：伪随机数生成" aria-label="伪随机数生成 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="1计数基础与数论基础/1.3.2伪随机数生成/random-extend.html" title="拓展层：伪随机数生成" aria-label="伪随机数生成 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="1计数基础与数论基础/1.3.3校验码设计/checksum.html" class="topic-link">校验码设计</a><span class="layer-chips"><a class="layer-chip layer-basic" href="1计数基础与数论基础/1.3.3校验码设计/checksum-basic.html" title="基础层：校验码设计" aria-label="校验码设计 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="1计数基础与数论基础/1.3.3校验码设计/checksum.html" title="进阶层：校验码设计" aria-label="校验码设计 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="1计数基础与数论基础/1.3.3校验码设计/checksum-extend.html" title="拓展层：校验码设计" aria-label="校验码设计 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="1计数基础与数论基础/1.3.4RSA加密算法设计/rsa.html" class="topic-link">RSA加密算法设计</a><span class="layer-chips"><a class="layer-chip layer-basic" href="1计数基础与数论基础/1.3.4RSA加密算法设计/rsa-basic.html" title="基础层：RSA加密算法设计" aria-label="RSA加密算法设计 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="1计数基础与数论基础/1.3.4RSA加密算法设计/rsa.html" title="进阶层：RSA加密算法设计" aria-label="RSA加密算法设计 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="1计数基础与数论基础/1.3.4RSA加密算法设计/rsa-extend.html" title="拓展层：RSA加密算法设计" aria-label="RSA加密算法设计 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
                         </ul>
                     </div>
                 </div>
 
                 <!-- 模块2 -->
-                <div class="module-card" data-category="基础">
-                    <div class="module-header" onclick="toggleModule(this)">
+                <div class="module-card" data-category="基础" id="chapter2">
+                    <div class="module-header" onclick="toggleModule(this)" role="button" tabindex="0" aria-expanded="true">
                         <span>第二章 集合及其运算</span>
                         <span class="module-toggle">▼</span>
                     </div>
                     <div class="module-body">
                         <ul class="topic-list">
-                            <li class="topic-item"><a href="2集合及其运算/2.1集合概述/sets.html" class="topic-link">集合概述</a></li>
-                            <li class="topic-item"><a href="2集合及其运算/2.2幂集/powerset.html" class="topic-link">幂集</a></li>
-                            <li class="topic-item"><a href="2集合及其运算/2.3集合运算/set-theory.html" class="topic-link">集合运算</a>
-                            </li>
-                            <li class="topic-item"><a href="2集合及其运算/2.4集合运算的性质/setprops.html"
-                                    class="topic-link">集合运算的性质</a></li>
-                            <li class="topic-item"><a href="2集合及其运算/2.5集合的划分与覆盖/partition.html"
-                                    class="topic-link">集合的划分与覆盖</a></li>
-                            <li class="topic-item"><a href="2集合及其运算/2.6容斥原理/inclusion.html" class="topic-link">容斥原理</a>
-                            </li>
-                            <li class="topic-item"><a href="2集合及其运算/2.7中秋案例/midautumn.html" class="topic-link">中秋案例</a>
-                            </li>
-                            <li class="topic-item"><a href="2集合及其运算/2.8园林景观案例/garden.html" class="topic-link">园林景观案例</a>
-                            </li>
-                            <li class="topic-item"><a href="2集合及其运算/2.9社区服务/community.html" class="topic-link">社区服务</a>
-                            </li>
-                            <li class="topic-item"><a href="2集合及其运算/2.10科技创新/tech_team.html" class="topic-link">科技创新</a>
-                            </li>
+                            <li class="topic-item"><a href="2集合及其运算/2.1集合概述/sets.html" class="topic-link">集合概述</a><span class="layer-chips"><a class="layer-chip layer-basic" href="2集合及其运算/2.1集合概述/sets-basic.html" title="基础层：集合概述" aria-label="集合概述 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="2集合及其运算/2.1集合概述/sets.html" title="进阶层：集合概述" aria-label="集合概述 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="2集合及其运算/2.1集合概述/sets-extend.html" title="拓展层：集合概述" aria-label="集合概述 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="2集合及其运算/2.2幂集/powerset.html" class="topic-link">幂集</a><span class="layer-chips"><a class="layer-chip layer-basic" href="2集合及其运算/2.2幂集/powerset-basic.html" title="基础层：幂集" aria-label="幂集 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="2集合及其运算/2.2幂集/powerset.html" title="进阶层：幂集" aria-label="幂集 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="2集合及其运算/2.2幂集/powerset-extend.html" title="拓展层：幂集" aria-label="幂集 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="2集合及其运算/2.3集合运算/set-theory.html" class="topic-link">集合运算</a><span class="layer-chips"><a class="layer-chip layer-basic" href="2集合及其运算/2.3集合运算/set-theory-basic.html" title="基础层：集合运算" aria-label="集合运算 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="2集合及其运算/2.3集合运算/set-theory.html" title="进阶层：集合运算" aria-label="集合运算 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="2集合及其运算/2.3集合运算/set-theory-extend.html" title="拓展层：集合运算" aria-label="集合运算 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="2集合及其运算/2.4集合运算的性质/setprops.html" class="topic-link">集合运算的性质</a><span class="layer-chips"><a class="layer-chip layer-basic" href="2集合及其运算/2.4集合运算的性质/setprops-basic.html" title="基础层：集合运算的性质" aria-label="集合运算的性质 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="2集合及其运算/2.4集合运算的性质/setprops.html" title="进阶层：集合运算的性质" aria-label="集合运算的性质 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="2集合及其运算/2.4集合运算的性质/setprops-extend.html" title="拓展层：集合运算的性质" aria-label="集合运算的性质 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="2集合及其运算/2.5集合的划分与覆盖/partition.html" class="topic-link">集合的划分与覆盖</a><span class="layer-chips"><a class="layer-chip layer-basic" href="2集合及其运算/2.5集合的划分与覆盖/partition-basic.html" title="基础层：集合的划分与覆盖" aria-label="集合的划分与覆盖 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="2集合及其运算/2.5集合的划分与覆盖/partition.html" title="进阶层：集合的划分与覆盖" aria-label="集合的划分与覆盖 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="2集合及其运算/2.5集合的划分与覆盖/partition-extend.html" title="拓展层：集合的划分与覆盖" aria-label="集合的划分与覆盖 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="2集合及其运算/2.6容斥原理/inclusion.html" class="topic-link">容斥原理</a><span class="layer-chips"><a class="layer-chip layer-basic" href="2集合及其运算/2.6容斥原理/inclusion-basic.html" title="基础层：容斥原理" aria-label="容斥原理 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="2集合及其运算/2.6容斥原理/inclusion.html" title="进阶层：容斥原理" aria-label="容斥原理 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="2集合及其运算/2.6容斥原理/inclusion-extend.html" title="拓展层：容斥原理" aria-label="容斥原理 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="2集合及其运算/2.7中秋案例/midautumn.html" class="topic-link">中秋案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="2集合及其运算/2.7中秋案例/midautumn-basic.html" title="基础层：中秋案例" aria-label="中秋案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="2集合及其运算/2.7中秋案例/midautumn.html" title="进阶层：中秋案例" aria-label="中秋案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="2集合及其运算/2.7中秋案例/midautumn-extend.html" title="拓展层：中秋案例" aria-label="中秋案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="2集合及其运算/2.8园林景观案例/garden.html" class="topic-link">园林景观案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="2集合及其运算/2.8园林景观案例/garden-basic.html" title="基础层：园林景观案例" aria-label="园林景观案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="2集合及其运算/2.8园林景观案例/garden.html" title="进阶层：园林景观案例" aria-label="园林景观案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="2集合及其运算/2.8园林景观案例/garden-extend.html" title="拓展层：园林景观案例" aria-label="园林景观案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="2集合及其运算/2.9社区服务/community.html" class="topic-link">社区服务</a><span class="layer-chips"><a class="layer-chip layer-basic" href="2集合及其运算/2.9社区服务/community-basic.html" title="基础层：社区服务" aria-label="社区服务 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="2集合及其运算/2.9社区服务/community.html" title="进阶层：社区服务" aria-label="社区服务 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="2集合及其运算/2.9社区服务/community-extend.html" title="拓展层：社区服务" aria-label="社区服务 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="2集合及其运算/2.10科技创新/tech_team.html" class="topic-link">科技创新</a><span class="layer-chips"><a class="layer-chip layer-basic" href="2集合及其运算/2.10科技创新/tech_team-basic.html" title="基础层：科技创新" aria-label="科技创新 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="2集合及其运算/2.10科技创新/tech_team.html" title="进阶层：科技创新" aria-label="科技创新 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="2集合及其运算/2.10科技创新/tech_team-extend.html" title="拓展层：科技创新" aria-label="科技创新 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
                         </ul>
                     </div>
                 </div>
 
                 <!-- 模块3 -->
-                <div class="module-card" data-category="关系">
-                    <div class="module-header" onclick="toggleModule(this)">
+                <div class="module-card" data-category="关系" id="chapter3">
+                    <div class="module-header" onclick="toggleModule(this)" role="button" tabindex="0" aria-expanded="true">
                         <span>第三章 二元关系</span>
                         <span class="module-toggle">▼</span>
                     </div>
                     <div class="module-body">
                         <ul class="topic-list">
-                            <li class="topic-item"><a href="3二元关系/3.1笛卡尔积和二元关系/relations.html"
-                                    class="topic-link">笛卡尔积和二元关系</a></li>
-                            <li class="topic-item"><a href="3二元关系/3.2特殊关系/special_relations.html"
-                                    class="topic-link">特殊关系</a></li>
-                            <li class="topic-item"><a href="3二元关系/3.3二元关系的表示/representation.html"
-                                    class="topic-link">二元关系的表示</a></li>
-                            <li class="topic-item"><a href="3二元关系/3.4二元关系的运算/1）整体综合/relation_ops.html"
-                                    class="topic-link">二元关系的运算</a></li>
-                            <li class="topic-item"><a href="3二元关系/3.5二元关系的性质/properties.html"
-                                    class="topic-link">二元关系的性质</a></li>
-                            <li class="topic-item"><a href="3二元关系/3.6二元关系的闭包/closures.html"
-                                    class="topic-link">二元关系的闭包</a></li>
-                            <li class="topic-item"><a href="3二元关系/3.7社区案例/community_service.html"
-                                    class="topic-link">社区案例</a></li>
-                            <li class="topic-item"><a href="3二元关系/3.8祖先案例/ancestry.html" class="topic-link">祖先案例</a>
-                            </li>
-                            <li class="topic-item"><a href="3二元关系/3.9湖湘知识图谱案例/hunan_culture.html"
-                                    class="topic-link">湖湘知识图谱案例</a></li>
-                            <li class="topic-item"><a href="3二元关系/3.10大学生职业规划/career_path.html"
-                                    class="topic-link">大学生职业规划</a></li>
+                            <li class="topic-item"><a href="3二元关系/3.1笛卡尔积和二元关系/relations.html" class="topic-link">笛卡尔积和二元关系</a><span class="layer-chips"><a class="layer-chip layer-basic" href="3二元关系/3.1笛卡尔积和二元关系/relations-basic.html" title="基础层：笛卡尔积和二元关系" aria-label="笛卡尔积和二元关系 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="3二元关系/3.1笛卡尔积和二元关系/relations.html" title="进阶层：笛卡尔积和二元关系" aria-label="笛卡尔积和二元关系 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="3二元关系/3.1笛卡尔积和二元关系/relations-extend.html" title="拓展层：笛卡尔积和二元关系" aria-label="笛卡尔积和二元关系 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="3二元关系/3.2特殊关系/special_relations.html" class="topic-link">特殊关系</a><span class="layer-chips"><a class="layer-chip layer-basic" href="3二元关系/3.2特殊关系/special_relations-basic.html" title="基础层：特殊关系" aria-label="特殊关系 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="3二元关系/3.2特殊关系/special_relations.html" title="进阶层：特殊关系" aria-label="特殊关系 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="3二元关系/3.2特殊关系/special_relations-extend.html" title="拓展层：特殊关系" aria-label="特殊关系 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="3二元关系/3.3二元关系的表示/representation.html" class="topic-link">二元关系的表示</a><span class="layer-chips"><a class="layer-chip layer-basic" href="3二元关系/3.3二元关系的表示/representation-basic.html" title="基础层：二元关系的表示" aria-label="二元关系的表示 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="3二元关系/3.3二元关系的表示/representation.html" title="进阶层：二元关系的表示" aria-label="二元关系的表示 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="3二元关系/3.3二元关系的表示/representation-extend.html" title="拓展层：二元关系的表示" aria-label="二元关系的表示 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="3二元关系/3.4二元关系的运算/1）整体综合/relation_ops.html" class="topic-link">二元关系的运算</a><span class="layer-chips"><a class="layer-chip layer-basic" href="3二元关系/3.4二元关系的运算/2）逆运算/inverse.html" title="基础层：二元关系的运算" aria-label="二元关系的运算 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="3二元关系/3.4二元关系的运算/1）整体综合/relation_ops.html" title="进阶层：二元关系的运算" aria-label="二元关系的运算 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="3二元关系/3.4二元关系的运算/4）幂运算/power.html" title="拓展层：二元关系的运算" aria-label="二元关系的运算 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="3二元关系/3.5二元关系的性质/properties.html" class="topic-link">二元关系的性质</a><span class="layer-chips"><a class="layer-chip layer-basic" href="3二元关系/3.5二元关系的性质/properties-basic.html" title="基础层：二元关系的性质" aria-label="二元关系的性质 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="3二元关系/3.5二元关系的性质/properties.html" title="进阶层：二元关系的性质" aria-label="二元关系的性质 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="3二元关系/3.5二元关系的性质/properties-extend.html" title="拓展层：二元关系的性质" aria-label="二元关系的性质 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="3二元关系/3.6二元关系的闭包/closures.html" class="topic-link">二元关系的闭包</a><span class="layer-chips"><a class="layer-chip layer-basic" href="3二元关系/3.6二元关系的闭包/closures-basic.html" title="基础层：二元关系的闭包" aria-label="二元关系的闭包 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="3二元关系/3.6二元关系的闭包/closures.html" title="进阶层：二元关系的闭包" aria-label="二元关系的闭包 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="3二元关系/3.6二元关系的闭包/closures-extend.html" title="拓展层：二元关系的闭包" aria-label="二元关系的闭包 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="3二元关系/3.7社区案例/community_service.html" class="topic-link">社区案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="3二元关系/3.7社区案例/community_service-basic.html" title="基础层：社区案例" aria-label="社区案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="3二元关系/3.7社区案例/community_service.html" title="进阶层：社区案例" aria-label="社区案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="3二元关系/3.7社区案例/community_service-extend.html" title="拓展层：社区案例" aria-label="社区案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="3二元关系/3.8祖先案例/ancestry.html" class="topic-link">祖先案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="3二元关系/3.8祖先案例/ancestry-basic.html" title="基础层：祖先案例" aria-label="祖先案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="3二元关系/3.8祖先案例/ancestry.html" title="进阶层：祖先案例" aria-label="祖先案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="3二元关系/3.8祖先案例/ancestry-extend.html" title="拓展层：祖先案例" aria-label="祖先案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="3二元关系/3.9湖湘知识图谱案例/hunan_culture.html" class="topic-link">湖湘知识图谱案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="3二元关系/3.9湖湘知识图谱案例/hunan_culture-basic.html" title="基础层：湖湘知识图谱案例" aria-label="湖湘知识图谱案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="3二元关系/3.9湖湘知识图谱案例/hunan_culture.html" title="进阶层：湖湘知识图谱案例" aria-label="湖湘知识图谱案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="3二元关系/3.9湖湘知识图谱案例/hunan_culture-extend.html" title="拓展层：湖湘知识图谱案例" aria-label="湖湘知识图谱案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="3二元关系/3.10大学生职业规划/career_path.html" class="topic-link">大学生职业规划</a><span class="layer-chips"><a class="layer-chip layer-basic" href="3二元关系/3.10大学生职业规划/career_path-basic.html" title="基础层：大学生职业规划" aria-label="大学生职业规划 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="3二元关系/3.10大学生职业规划/career_path.html" title="进阶层：大学生职业规划" aria-label="大学生职业规划 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="3二元关系/3.10大学生职业规划/career_path-extend.html" title="拓展层：大学生职业规划" aria-label="大学生职业规划 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
                         </ul>
                     </div>
                 </div>
 
                 <!-- 模块4 -->
-                <div class="module-card" data-category="关系">
-                    <div class="module-header" onclick="toggleModule(this)">
+                <div class="module-card" data-category="关系" id="chapter4">
+                    <div class="module-header" onclick="toggleModule(this)" role="button" tabindex="0" aria-expanded="true">
                         <span>第四章 特殊关系</span>
                         <span class="module-toggle">▼</span>
                     </div>
                     <div class="module-body">
                         <ul class="topic-list">
-                            <li class="topic-item"><a href="4特殊关系/1.相容和等价关系/compatibility.html"
-                                    class="topic-link">相容和等价关系</a></li>
-                            <li class="topic-item"><a href="4特殊关系/2.偏序关系/hasse_diagram.html" class="topic-link">偏序关系</a>
-                            </li>
-                            <li class="topic-item"><a href="4特殊关系/3全序、良序和拟序/order_relations.html"
-                                    class="topic-link">全序、良序和拟序</a></li>
-                            <li class="topic-item"><a href="4特殊关系/4函数基本概念/functions.html" class="topic-link">函数基本概念</a>
-                            </li>
-                            <li class="topic-item"><a href="4特殊关系/5三种类型函数/function_properties.html"
-                                    class="topic-link">三种类型函数</a></li>
-                            <li class="topic-item"><a href="4特殊关系/6特殊类型的函数/special_functions.html"
-                                    class="topic-link">特殊类型的函数</a></li>
-                            <li class="topic-item"><a href="4特殊关系/7函数的运算/function_operations.html"
-                                    class="topic-link">函数的运算</a></li>
-                            <li class="topic-item"><a href="4特殊关系/8无限集合/infinite_sets.html" class="topic-link">无限集合</a>
-                            </li>
-                            <li class="topic-item"><a href="4特殊关系/9社会网络群体案例/social_network.html"
-                                    class="topic-link">社会网络群体案例</a></li>
-                            <li class="topic-item"><a href="4特殊关系/10官职排序案例/official_hierarchy.html"
-                                    class="topic-link">官职排序案例</a></li>
-                            <li class="topic-item"><a href="4特殊关系/11春节返乡人口流动案例/chunyun_migration.html"
-                                    class="topic-link">春节返乡人口流动案例</a></li>
-                            <li class="topic-item"><a href="4特殊关系/12地理信息处理系统案例/heritage_gis.html"
-                                    class="topic-link">地理信息处理系统案例</a></li>
-                            <li class="topic-item"><a href="4特殊关系/13探索宇宙边界的天文模拟案例/universe_exploration.html"
-                                    class="topic-link">探索宇宙边界的天文模拟案例</a></li>
+                            <li class="topic-item"><a href="4特殊关系/1.相容和等价关系/compatibility.html" class="topic-link">相容和等价关系</a><span class="layer-chips"><a class="layer-chip layer-basic" href="4特殊关系/1.相容和等价关系/compatibility-basic.html" title="基础层：相容和等价关系" aria-label="相容和等价关系 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="4特殊关系/1.相容和等价关系/compatibility.html" title="进阶层：相容和等价关系" aria-label="相容和等价关系 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="4特殊关系/1.相容和等价关系/compatibility-extend.html" title="拓展层：相容和等价关系" aria-label="相容和等价关系 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="4特殊关系/2.偏序关系/hasse_diagram.html" class="topic-link">偏序关系</a><span class="layer-chips"><a class="layer-chip layer-basic" href="4特殊关系/2.偏序关系/hasse_diagram-basic.html" title="基础层：偏序关系" aria-label="偏序关系 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="4特殊关系/2.偏序关系/hasse_diagram.html" title="进阶层：偏序关系" aria-label="偏序关系 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="4特殊关系/2.偏序关系/hasse_diagram-extend.html" title="拓展层：偏序关系" aria-label="偏序关系 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="4特殊关系/3全序、良序和拟序/order_relations.html" class="topic-link">全序、良序和拟序</a><span class="layer-chips"><a class="layer-chip layer-basic" href="4特殊关系/3全序、良序和拟序/order_relations-basic.html" title="基础层：全序、良序和拟序" aria-label="全序、良序和拟序 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="4特殊关系/3全序、良序和拟序/order_relations.html" title="进阶层：全序、良序和拟序" aria-label="全序、良序和拟序 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="4特殊关系/3全序、良序和拟序/order_relations-extend.html" title="拓展层：全序、良序和拟序" aria-label="全序、良序和拟序 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="4特殊关系/4函数基本概念/functions.html" class="topic-link">函数基本概念</a><span class="layer-chips"><a class="layer-chip layer-basic" href="4特殊关系/4函数基本概念/functions-basic.html" title="基础层：函数基本概念" aria-label="函数基本概念 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="4特殊关系/4函数基本概念/functions.html" title="进阶层：函数基本概念" aria-label="函数基本概念 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="4特殊关系/4函数基本概念/functions-extend.html" title="拓展层：函数基本概念" aria-label="函数基本概念 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="4特殊关系/5三种类型函数/function_properties.html" class="topic-link">三种类型函数</a><span class="layer-chips"><a class="layer-chip layer-basic" href="4特殊关系/5三种类型函数/function_properties-basic.html" title="基础层：三种类型函数" aria-label="三种类型函数 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="4特殊关系/5三种类型函数/function_properties.html" title="进阶层：三种类型函数" aria-label="三种类型函数 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="4特殊关系/5三种类型函数/function_properties-extend.html" title="拓展层：三种类型函数" aria-label="三种类型函数 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="4特殊关系/6特殊类型的函数/special_functions.html" class="topic-link">特殊类型的函数</a><span class="layer-chips"><a class="layer-chip layer-basic" href="4特殊关系/6特殊类型的函数/special_functions-basic.html" title="基础层：特殊类型的函数" aria-label="特殊类型的函数 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="4特殊关系/6特殊类型的函数/special_functions.html" title="进阶层：特殊类型的函数" aria-label="特殊类型的函数 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="4特殊关系/6特殊类型的函数/special_functions-extend.html" title="拓展层：特殊类型的函数" aria-label="特殊类型的函数 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="4特殊关系/7函数的运算/function_operations.html" class="topic-link">函数的运算</a><span class="layer-chips"><a class="layer-chip layer-basic" href="4特殊关系/7函数的运算/function_operations-basic.html" title="基础层：函数的运算" aria-label="函数的运算 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="4特殊关系/7函数的运算/function_operations.html" title="进阶层：函数的运算" aria-label="函数的运算 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="4特殊关系/7函数的运算/function_operations-extend.html" title="拓展层：函数的运算" aria-label="函数的运算 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="4特殊关系/8无限集合/infinite_sets.html" class="topic-link">无限集合</a><span class="layer-chips"><a class="layer-chip layer-basic" href="4特殊关系/8无限集合/infinite_sets-basic.html" title="基础层：无限集合" aria-label="无限集合 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="4特殊关系/8无限集合/infinite_sets.html" title="进阶层：无限集合" aria-label="无限集合 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="4特殊关系/8无限集合/infinite_sets-extend.html" title="拓展层：无限集合" aria-label="无限集合 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="4特殊关系/9社会网络群体案例/social_network.html" class="topic-link">社会网络群体案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="4特殊关系/9社会网络群体案例/social_network-basic.html" title="基础层：社会网络群体案例" aria-label="社会网络群体案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="4特殊关系/9社会网络群体案例/social_network.html" title="进阶层：社会网络群体案例" aria-label="社会网络群体案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="4特殊关系/9社会网络群体案例/social_network-extend.html" title="拓展层：社会网络群体案例" aria-label="社会网络群体案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="4特殊关系/10官职排序案例/official_hierarchy.html" class="topic-link">官职排序案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="4特殊关系/10官职排序案例/official_hierarchy-basic.html" title="基础层：官职排序案例" aria-label="官职排序案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="4特殊关系/10官职排序案例/official_hierarchy.html" title="进阶层：官职排序案例" aria-label="官职排序案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="4特殊关系/10官职排序案例/official_hierarchy-extend.html" title="拓展层：官职排序案例" aria-label="官职排序案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="4特殊关系/11春节返乡人口流动案例/chunyun_migration.html" class="topic-link">春节返乡人口流动案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="4特殊关系/11春节返乡人口流动案例/chunyun_migration-basic.html" title="基础层：春节返乡人口流动案例" aria-label="春节返乡人口流动案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="4特殊关系/11春节返乡人口流动案例/chunyun_migration.html" title="进阶层：春节返乡人口流动案例" aria-label="春节返乡人口流动案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="4特殊关系/11春节返乡人口流动案例/chunyun_migration-extend.html" title="拓展层：春节返乡人口流动案例" aria-label="春节返乡人口流动案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="4特殊关系/12地理信息处理系统案例/heritage_gis.html" class="topic-link">地理信息处理系统案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="4特殊关系/12地理信息处理系统案例/heritage_gis-basic.html" title="基础层：地理信息处理系统案例" aria-label="地理信息处理系统案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="4特殊关系/12地理信息处理系统案例/heritage_gis.html" title="进阶层：地理信息处理系统案例" aria-label="地理信息处理系统案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="4特殊关系/12地理信息处理系统案例/heritage_gis-extend.html" title="拓展层：地理信息处理系统案例" aria-label="地理信息处理系统案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="4特殊关系/13探索宇宙边界的天文模拟案例/universe_exploration.html" class="topic-link">探索宇宙边界的天文模拟案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="4特殊关系/13探索宇宙边界的天文模拟案例/universe_exploration-basic.html" title="基础层：探索宇宙边界的天文模拟案例" aria-label="探索宇宙边界的天文模拟案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="4特殊关系/13探索宇宙边界的天文模拟案例/universe_exploration.html" title="进阶层：探索宇宙边界的天文模拟案例" aria-label="探索宇宙边界的天文模拟案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="4特殊关系/13探索宇宙边界的天文模拟案例/universe_exploration-extend.html" title="拓展层：探索宇宙边界的天文模拟案例" aria-label="探索宇宙边界的天文模拟案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
                         </ul>
                     </div>
                 </div>
 
                 <!-- 模块5 -->
                 <div class="module-card" data-category="逻辑" id="chapter5">
-                    <div class="module-header" onclick="toggleModule(this)">
+                    <div class="module-header" onclick="toggleModule(this)" role="button" tabindex="0" aria-expanded="true">
                         <span>第五章 命题逻辑</span>
                         <span class="module-toggle">▼</span>
                     </div>
                     <div class="module-body">
                         <ul class="topic-list">
-                            <li class="topic-item"><a href="5命题逻辑/1命题与联结词/logic_propositions.html"
-                                    class="topic-link">命题与联结词</a></li>
-                            <li class="topic-item"><a href="5命题逻辑/2命题公式定义与符号化/propositional_formulas.html"
-                                    class="topic-link">命题公式定义与符号化</a></li>
-                            <li class="topic-item"><a href="5命题逻辑/3命题公式解释与真值表/formula_interpretation.html"
-                                    class="topic-link">命题公式解释与真值表</a></li>
-                            <li class="topic-item"><a href="5命题逻辑/4命题公式之间的关系/compatibility_equivalence.html"
-                                    class="topic-link">命题公式之间的关系</a></li>
-                            <li class="topic-item"><a href="5命题逻辑/5对偶与范式/normal_forms.html" class="topic-link">对偶与范式</a>
-                            </li>
-                            <li class="topic-item"><a href="5命题逻辑/6命题演算推证/inference_proof.html"
-                                    class="topic-link">命题演算推证</a></li>
-                            <li class="topic-item"><a href="5命题逻辑/7命题推理系统及性质/system_properties.html"
-                                    class="topic-link">命题推理系统及性质</a></li>
-                            <li class="topic-item"><a href="5命题逻辑/8两弹一星案例/two_bombs_logic.html"
-                                    class="topic-link">两弹一星案例</a></li>
-                            <li class="topic-item"><a href="5命题逻辑/9人工智能创新/deep_learning_logic.html"
-                                    class="topic-link">人工智能创新</a></li>
+                            <li class="topic-item"><a href="5命题逻辑/1命题与联结词/logic_propositions.html" class="topic-link">命题与联结词</a><span class="layer-chips"><a class="layer-chip layer-basic" href="5命题逻辑/1命题与联结词/logic_propositions-basic.html" title="基础层：命题与联结词" aria-label="命题与联结词 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="5命题逻辑/1命题与联结词/logic_propositions.html" title="进阶层：命题与联结词" aria-label="命题与联结词 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="5命题逻辑/1命题与联结词/logic_propositions-extend.html" title="拓展层：命题与联结词" aria-label="命题与联结词 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="5命题逻辑/2命题公式定义与符号化/propositional_formulas.html" class="topic-link">命题公式定义与符号化</a><span class="layer-chips"><a class="layer-chip layer-basic" href="5命题逻辑/2命题公式定义与符号化/propositional_formulas-basic.html" title="基础层：命题公式定义与符号化" aria-label="命题公式定义与符号化 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="5命题逻辑/2命题公式定义与符号化/propositional_formulas.html" title="进阶层：命题公式定义与符号化" aria-label="命题公式定义与符号化 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="5命题逻辑/2命题公式定义与符号化/propositional_formulas-extend.html" title="拓展层：命题公式定义与符号化" aria-label="命题公式定义与符号化 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="5命题逻辑/3命题公式解释与真值表/formula_interpretation.html" class="topic-link">命题公式解释与真值表</a><span class="layer-chips"><a class="layer-chip layer-basic" href="5命题逻辑/3命题公式解释与真值表/formula_interpretation-basic.html" title="基础层：命题公式解释与真值表" aria-label="命题公式解释与真值表 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="5命题逻辑/3命题公式解释与真值表/formula_interpretation.html" title="进阶层：命题公式解释与真值表" aria-label="命题公式解释与真值表 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="5命题逻辑/3命题公式解释与真值表/formula_interpretation-extend.html" title="拓展层：命题公式解释与真值表" aria-label="命题公式解释与真值表 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="5命题逻辑/4命题公式之间的关系/compatibility_equivalence.html" class="topic-link">命题公式之间的关系</a><span class="layer-chips"><a class="layer-chip layer-basic" href="5命题逻辑/4命题公式之间的关系/compatibility_equivalence-basic.html" title="基础层：命题公式之间的关系" aria-label="命题公式之间的关系 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="5命题逻辑/4命题公式之间的关系/compatibility_equivalence.html" title="进阶层：命题公式之间的关系" aria-label="命题公式之间的关系 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="5命题逻辑/4命题公式之间的关系/compatibility_equivalence-extend.html" title="拓展层：命题公式之间的关系" aria-label="命题公式之间的关系 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="5命题逻辑/5对偶与范式/normal_forms.html" class="topic-link">对偶与范式</a><span class="layer-chips"><a class="layer-chip layer-basic" href="5命题逻辑/5对偶与范式/normal_forms-basic.html" title="基础层：对偶与范式" aria-label="对偶与范式 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="5命题逻辑/5对偶与范式/normal_forms.html" title="进阶层：对偶与范式" aria-label="对偶与范式 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="5命题逻辑/5对偶与范式/normal_forms-extend.html" title="拓展层：对偶与范式" aria-label="对偶与范式 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="5命题逻辑/6命题演算推证/inference_proof.html" class="topic-link">命题演算推证</a><span class="layer-chips"><a class="layer-chip layer-basic" href="5命题逻辑/6命题演算推证/inference_proof-basic.html" title="基础层：命题演算推证" aria-label="命题演算推证 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="5命题逻辑/6命题演算推证/inference_proof.html" title="进阶层：命题演算推证" aria-label="命题演算推证 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="5命题逻辑/6命题演算推证/inference_proof-extend.html" title="拓展层：命题演算推证" aria-label="命题演算推证 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="5命题逻辑/7命题推理系统及性质/system_properties.html" class="topic-link">命题推理系统及性质</a><span class="layer-chips"><a class="layer-chip layer-basic" href="5命题逻辑/7命题推理系统及性质/system_properties-basic.html" title="基础层：命题推理系统及性质" aria-label="命题推理系统及性质 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="5命题逻辑/7命题推理系统及性质/system_properties.html" title="进阶层：命题推理系统及性质" aria-label="命题推理系统及性质 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="5命题逻辑/7命题推理系统及性质/system_properties-extend.html" title="拓展层：命题推理系统及性质" aria-label="命题推理系统及性质 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="5命题逻辑/8两弹一星案例/two_bombs_logic.html" class="topic-link">两弹一星案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="5命题逻辑/8两弹一星案例/two_bombs_logic-basic.html" title="基础层：两弹一星案例" aria-label="两弹一星案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="5命题逻辑/8两弹一星案例/two_bombs_logic.html" title="进阶层：两弹一星案例" aria-label="两弹一星案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="5命题逻辑/8两弹一星案例/two_bombs_logic-extend.html" title="拓展层：两弹一星案例" aria-label="两弹一星案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="5命题逻辑/9人工智能创新/deep_learning_logic.html" class="topic-link">人工智能创新</a><span class="layer-chips"><a class="layer-chip layer-basic" href="5命题逻辑/9人工智能创新/deep_learning_logic-basic.html" title="基础层：人工智能创新" aria-label="人工智能创新 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="5命题逻辑/9人工智能创新/deep_learning_logic.html" title="进阶层：人工智能创新" aria-label="人工智能创新 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="5命题逻辑/9人工智能创新/deep_learning_logic-extend.html" title="拓展层：人工智能创新" aria-label="人工智能创新 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
                         </ul>
                     </div>
                 </div>
 
                 <!-- 模块6 -->
-                <div class="module-card" data-category="逻辑">
-                    <div class="module-header" onclick="toggleModule(this)">
+                <div class="module-card" data-category="逻辑" id="chapter6">
+                    <div class="module-header" onclick="toggleModule(this)" role="button" tabindex="0" aria-expanded="true">
                         <span>第六章 谓词逻辑</span>
                         <span class="module-toggle">▼</span>
                     </div>
                     <div class="module-body">
                         <ul class="topic-list">
-                            <li class="topic-item"><a href="6谓词逻辑/6.1自然语言的谓词符号化/tokenization.html"
-                                    class="topic-link">自然语言的谓词符号化</a></li>
-                            <li class="topic-item"><a href="6谓词逻辑/6.2谓词公式之间的解释/predicate_formula.html"
-                                    class="topic-link">谓词公式之间的解释</a></li>
-                            <li class="topic-item"><a href="6谓词逻辑/6.3谓词公式之间的类型/formula_interpretation.html"
-                                    class="topic-link">谓词公式之间的类型</a></li>
-                            <li class="topic-item"><a href="6谓词逻辑/6.4谓词公式之间的关系/formula_relations.html"
-                                    class="topic-link">谓词公式之间的关系</a></li>
-                            <li class="topic-item"><a href="6谓词逻辑/6.5前束范式/prenex_normal_form.html"
-                                    class="topic-link">前束范式</a></li>
-                            <li class="topic-item"><a href="6谓词逻辑/6.6谓词逻辑有效推理/inference_rules.html"
-                                    class="topic-link">谓词逻辑有效推理</a></li>
-                            <li class="topic-item"><a href="6谓词逻辑/6.7谓词逻辑推理系统及性质/inference_system_properties.html"
-                                    class="topic-link">谓词逻辑推理系统及性质</a></li>
-                            <li class="topic-item"><a href="6谓词逻辑/6.8个人进步和国家发展案例/career_recommend.html"
-                                    class="topic-link">个人进步和国家发展案例</a></li>
-                            <li class="topic-item"><a href="6谓词逻辑/6.9国家历史文化遗产保护/heritage_protection.html"
-                                    class="topic-link">国家历史文化遗产保护</a></li>
+                            <li class="topic-item"><a href="6谓词逻辑/6.1自然语言的谓词符号化/tokenization.html" class="topic-link">自然语言的谓词符号化</a><span class="layer-chips"><a class="layer-chip layer-basic" href="6谓词逻辑/6.1自然语言的谓词符号化/tokenization-basic.html" title="基础层：自然语言的谓词符号化" aria-label="自然语言的谓词符号化 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="6谓词逻辑/6.1自然语言的谓词符号化/tokenization.html" title="进阶层：自然语言的谓词符号化" aria-label="自然语言的谓词符号化 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="6谓词逻辑/6.1自然语言的谓词符号化/tokenization-extend.html" title="拓展层：自然语言的谓词符号化" aria-label="自然语言的谓词符号化 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="6谓词逻辑/6.2谓词公式之间的解释/predicate_formula.html" class="topic-link">谓词公式之间的解释</a><span class="layer-chips"><a class="layer-chip layer-basic" href="6谓词逻辑/6.2谓词公式之间的解释/predicate_formula-basic.html" title="基础层：谓词公式之间的解释" aria-label="谓词公式之间的解释 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="6谓词逻辑/6.2谓词公式之间的解释/predicate_formula.html" title="进阶层：谓词公式之间的解释" aria-label="谓词公式之间的解释 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="6谓词逻辑/6.2谓词公式之间的解释/predicate_formula-extend.html" title="拓展层：谓词公式之间的解释" aria-label="谓词公式之间的解释 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="6谓词逻辑/6.3谓词公式之间的类型/formula_interpretation.html" class="topic-link">谓词公式之间的类型</a><span class="layer-chips"><a class="layer-chip layer-basic" href="6谓词逻辑/6.3谓词公式之间的类型/formula_interpretation-basic.html" title="基础层：谓词公式之间的类型" aria-label="谓词公式之间的类型 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="6谓词逻辑/6.3谓词公式之间的类型/formula_interpretation.html" title="进阶层：谓词公式之间的类型" aria-label="谓词公式之间的类型 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="6谓词逻辑/6.3谓词公式之间的类型/formula_interpretation-extend.html" title="拓展层：谓词公式之间的类型" aria-label="谓词公式之间的类型 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="6谓词逻辑/6.4谓词公式之间的关系/formula_relations.html" class="topic-link">谓词公式之间的关系</a><span class="layer-chips"><a class="layer-chip layer-basic" href="6谓词逻辑/6.4谓词公式之间的关系/formula_relations-basic.html" title="基础层：谓词公式之间的关系" aria-label="谓词公式之间的关系 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="6谓词逻辑/6.4谓词公式之间的关系/formula_relations.html" title="进阶层：谓词公式之间的关系" aria-label="谓词公式之间的关系 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="6谓词逻辑/6.4谓词公式之间的关系/formula_relations-extend.html" title="拓展层：谓词公式之间的关系" aria-label="谓词公式之间的关系 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="6谓词逻辑/6.5前束范式/prenex_normal_form.html" class="topic-link">前束范式</a><span class="layer-chips"><a class="layer-chip layer-basic" href="6谓词逻辑/6.5前束范式/prenex_normal_form-basic.html" title="基础层：前束范式" aria-label="前束范式 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="6谓词逻辑/6.5前束范式/prenex_normal_form.html" title="进阶层：前束范式" aria-label="前束范式 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="6谓词逻辑/6.5前束范式/prenex_normal_form-extend.html" title="拓展层：前束范式" aria-label="前束范式 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="6谓词逻辑/6.6谓词逻辑有效推理/inference_rules.html" class="topic-link">谓词逻辑有效推理</a><span class="layer-chips"><a class="layer-chip layer-basic" href="6谓词逻辑/6.6谓词逻辑有效推理/inference_rules-basic.html" title="基础层：谓词逻辑有效推理" aria-label="谓词逻辑有效推理 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="6谓词逻辑/6.6谓词逻辑有效推理/inference_rules.html" title="进阶层：谓词逻辑有效推理" aria-label="谓词逻辑有效推理 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="6谓词逻辑/6.6谓词逻辑有效推理/inference_rules-extend.html" title="拓展层：谓词逻辑有效推理" aria-label="谓词逻辑有效推理 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="6谓词逻辑/6.7谓词逻辑推理系统及性质/inference_system_properties.html" class="topic-link">谓词逻辑推理系统及性质</a><span class="layer-chips"><a class="layer-chip layer-basic" href="6谓词逻辑/6.7谓词逻辑推理系统及性质/inference_system_properties-basic.html" title="基础层：谓词逻辑推理系统及性质" aria-label="谓词逻辑推理系统及性质 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="6谓词逻辑/6.7谓词逻辑推理系统及性质/inference_system_properties.html" title="进阶层：谓词逻辑推理系统及性质" aria-label="谓词逻辑推理系统及性质 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="6谓词逻辑/6.7谓词逻辑推理系统及性质/inference_system_properties-extend.html" title="拓展层：谓词逻辑推理系统及性质" aria-label="谓词逻辑推理系统及性质 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="6谓词逻辑/6.8个人进步和国家发展案例/career_recommend.html" class="topic-link">个人进步和国家发展案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="6谓词逻辑/6.8个人进步和国家发展案例/career_recommend-basic.html" title="基础层：个人进步和国家发展案例" aria-label="个人进步和国家发展案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="6谓词逻辑/6.8个人进步和国家发展案例/career_recommend.html" title="进阶层：个人进步和国家发展案例" aria-label="个人进步和国家发展案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="6谓词逻辑/6.8个人进步和国家发展案例/career_recommend-extend.html" title="拓展层：个人进步和国家发展案例" aria-label="个人进步和国家发展案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="6谓词逻辑/6.9国家历史文化遗产保护/heritage_protection.html" class="topic-link">国家历史文化遗产保护</a><span class="layer-chips"><a class="layer-chip layer-basic" href="6谓词逻辑/6.9国家历史文化遗产保护/heritage_protection-basic.html" title="基础层：国家历史文化遗产保护" aria-label="国家历史文化遗产保护 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="6谓词逻辑/6.9国家历史文化遗产保护/heritage_protection.html" title="进阶层：国家历史文化遗产保护" aria-label="国家历史文化遗产保护 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="6谓词逻辑/6.9国家历史文化遗产保护/heritage_protection-extend.html" title="拓展层：国家历史文化遗产保护" aria-label="国家历史文化遗产保护 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
                         </ul>
                     </div>
                 </div>
 
                 <!-- 模块7 -->
                 <div class="module-card" data-category="图" id="chapter7">
-                    <div class="module-header" onclick="toggleModule(this)">
+                    <div class="module-header" onclick="toggleModule(this)" role="button" tabindex="0" aria-expanded="true">
                         <span>第七章 图论基础</span>
                         <span class="module-toggle">▼</span>
                     </div>
                     <div class="module-body">
                         <ul class="topic-list">
-                            <li class="topic-item"><a href="7图论基础/7.1图的基本概念/graph_theory.html"
-                                    class="topic-link">图的基本概念</a></li>
-                            <li class="topic-item"><a href="7图论基础/7.2顶点的度/vertex_degree.html"
-                                    class="topic-link">顶点的度</a></li>
-                            <li class="topic-item"><a href="7图论基础/7.3图同构/graph_isomorphism.html"
-                                    class="topic-link">图同构</a></li>
-                            <li class="topic-item"><a href="7图论基础/7.4几种典型的图/typical_graphs.html"
-                                    class="topic-link">几种典型的图</a></li>
-                            <li class="topic-item"><a href="7图论基础/7.5图的运算/graph_operations.html"
-                                    class="topic-link">图的运算</a></li>
-                            <li class="topic-item"><a href="7图论基础/7.6连通性基础/graph_paths_circuits.html"
-                                    class="topic-link">连通性基础</a></li>
-                            <li class="topic-item"><a href="7图论基础/7.7图的矩阵表示/graph_matrix_representation.html"
-                                    class="topic-link">图的矩阵表示</a></li>
-                            <li class="topic-item"><a href="7图论基础/7.8最短通路/shortest_path_algorithms.html"
-                                    class="topic-link">最短通路</a></li>
-                            <li class="topic-item"><a href="7图论基础/7.9连通性进阶/graph_connectivity.html"
-                                    class="topic-link">连通性进阶</a></li>
-                            <li class="topic-item"><a href="7图论基础/7.10灾害响应调度案例/rescue-dijkstra-index.html"
-                                    class="topic-link">灾害响应调度案例</a></li>
-                            <li class="topic-item"><a href="7图论基础/7.11城市交通网络优化案例/traffic-optimization-index.html"
-                                    class="topic-link">城市交通网络优化案例</a></li>
-                            <li class="topic-item"><a href="7图论基础/7.12智能制造网络分析案例/manufacturing-matrix-index.html"
-                                    class="topic-link">智能制造网络分析案例</a></li>
-                            <li class="topic-item"><a href="7图论基础/7.13智慧城市综合管理系统设计案例/smart-city-index.html"
-                                    class="topic-link">智慧城市综合管理系统设计案例</a></li>
+                            <li class="topic-item"><a href="7图论基础/7.1图的基本概念/graph_theory.html" class="topic-link">图的基本概念</a><span class="layer-chips"><a class="layer-chip layer-basic" href="7图论基础/7.1图的基本概念/graph_theory-basic.html" title="基础层：图的基本概念" aria-label="图的基本概念 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="7图论基础/7.1图的基本概念/graph_theory.html" title="进阶层：图的基本概念" aria-label="图的基本概念 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="7图论基础/7.1图的基本概念/graph_theory-extend.html" title="拓展层：图的基本概念" aria-label="图的基本概念 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="7图论基础/7.2顶点的度/vertex_degree.html" class="topic-link">顶点的度</a><span class="layer-chips"><a class="layer-chip layer-basic" href="7图论基础/7.2顶点的度/vertex_degree-basic.html" title="基础层：顶点的度" aria-label="顶点的度 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="7图论基础/7.2顶点的度/vertex_degree.html" title="进阶层：顶点的度" aria-label="顶点的度 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="7图论基础/7.2顶点的度/vertex_degree-extend.html" title="拓展层：顶点的度" aria-label="顶点的度 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="7图论基础/7.3图同构/graph_isomorphism.html" class="topic-link">图同构</a><span class="layer-chips"><a class="layer-chip layer-basic" href="7图论基础/7.3图同构/graph_isomorphism-basic.html" title="基础层：图同构" aria-label="图同构 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="7图论基础/7.3图同构/graph_isomorphism.html" title="进阶层：图同构" aria-label="图同构 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="7图论基础/7.3图同构/graph_isomorphism-extend.html" title="拓展层：图同构" aria-label="图同构 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="7图论基础/7.4几种典型的图/typical_graphs.html" class="topic-link">几种典型的图</a><span class="layer-chips"><a class="layer-chip layer-basic" href="7图论基础/7.4几种典型的图/typical_graphs-basic.html" title="基础层：几种典型的图" aria-label="几种典型的图 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="7图论基础/7.4几种典型的图/typical_graphs.html" title="进阶层：几种典型的图" aria-label="几种典型的图 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="7图论基础/7.4几种典型的图/typical_graphs-extend.html" title="拓展层：几种典型的图" aria-label="几种典型的图 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="7图论基础/7.5图的运算/graph_operations.html" class="topic-link">图的运算</a><span class="layer-chips"><a class="layer-chip layer-basic" href="7图论基础/7.5图的运算/graph_operations-basic.html" title="基础层：图的运算" aria-label="图的运算 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="7图论基础/7.5图的运算/graph_operations.html" title="进阶层：图的运算" aria-label="图的运算 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="7图论基础/7.5图的运算/graph_operations-extend.html" title="拓展层：图的运算" aria-label="图的运算 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="7图论基础/7.6连通性基础/graph_paths_circuits.html" class="topic-link">连通性基础</a><span class="layer-chips"><a class="layer-chip layer-basic" href="7图论基础/7.6连通性基础/graph_paths_circuits-basic.html" title="基础层：连通性基础" aria-label="连通性基础 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="7图论基础/7.6连通性基础/graph_paths_circuits.html" title="进阶层：连通性基础" aria-label="连通性基础 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="7图论基础/7.6连通性基础/graph_paths_circuits-extend.html" title="拓展层：连通性基础" aria-label="连通性基础 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="7图论基础/7.7图的矩阵表示/graph_matrix_representation.html" class="topic-link">图的矩阵表示</a><span class="layer-chips"><a class="layer-chip layer-basic" href="7图论基础/7.7图的矩阵表示/graph_matrix_representation-basic.html" title="基础层：图的矩阵表示" aria-label="图的矩阵表示 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="7图论基础/7.7图的矩阵表示/graph_matrix_representation.html" title="进阶层：图的矩阵表示" aria-label="图的矩阵表示 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="7图论基础/7.7图的矩阵表示/graph_matrix_representation-extend.html" title="拓展层：图的矩阵表示" aria-label="图的矩阵表示 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="7图论基础/7.8最短通路/shortest_path_algorithms.html" class="topic-link">最短通路</a><span class="layer-chips"><a class="layer-chip layer-basic" href="7图论基础/7.8最短通路/shortest_path_algorithms-basic.html" title="基础层：最短通路" aria-label="最短通路 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="7图论基础/7.8最短通路/shortest_path_algorithms.html" title="进阶层：最短通路" aria-label="最短通路 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="7图论基础/7.8最短通路/shortest_path_algorithms-extend.html" title="拓展层：最短通路" aria-label="最短通路 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="7图论基础/7.9连通性进阶/graph_connectivity.html" class="topic-link">连通性进阶</a><span class="layer-chips"><a class="layer-chip layer-basic" href="7图论基础/7.9连通性进阶/graph_connectivity-basic.html" title="基础层：连通性进阶" aria-label="连通性进阶 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="7图论基础/7.9连通性进阶/graph_connectivity.html" title="进阶层：连通性进阶" aria-label="连通性进阶 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="7图论基础/7.9连通性进阶/graph_connectivity-extend.html" title="拓展层：连通性进阶" aria-label="连通性进阶 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="7图论基础/7.10灾害响应调度案例/rescue-dijkstra-index.html" class="topic-link">灾害响应调度案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="7图论基础/7.10灾害响应调度案例/rescue-dijkstra-index-basic.html" title="基础层：灾害响应调度案例" aria-label="灾害响应调度案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="7图论基础/7.10灾害响应调度案例/rescue-dijkstra-index.html" title="进阶层：灾害响应调度案例" aria-label="灾害响应调度案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="7图论基础/7.10灾害响应调度案例/rescue-dijkstra-index-extend.html" title="拓展层：灾害响应调度案例" aria-label="灾害响应调度案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="7图论基础/7.11城市交通网络优化案例/traffic-optimization-index.html" class="topic-link">城市交通网络优化案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="7图论基础/7.11城市交通网络优化案例/traffic-optimization-index-basic.html" title="基础层：城市交通网络优化案例" aria-label="城市交通网络优化案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="7图论基础/7.11城市交通网络优化案例/traffic-optimization-index.html" title="进阶层：城市交通网络优化案例" aria-label="城市交通网络优化案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="7图论基础/7.11城市交通网络优化案例/traffic-optimization-index-extend.html" title="拓展层：城市交通网络优化案例" aria-label="城市交通网络优化案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="7图论基础/7.12智能制造网络分析案例/manufacturing-matrix-index.html" class="topic-link">智能制造网络分析案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="7图论基础/7.12智能制造网络分析案例/manufacturing-matrix-index-basic.html" title="基础层：智能制造网络分析案例" aria-label="智能制造网络分析案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="7图论基础/7.12智能制造网络分析案例/manufacturing-matrix-index.html" title="进阶层：智能制造网络分析案例" aria-label="智能制造网络分析案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="7图论基础/7.12智能制造网络分析案例/manufacturing-matrix-index-extend.html" title="拓展层：智能制造网络分析案例" aria-label="智能制造网络分析案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="7图论基础/7.13智慧城市综合管理系统设计案例/smart-city-index.html" class="topic-link">智慧城市综合管理系统设计案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="7图论基础/7.13智慧城市综合管理系统设计案例/smart-city-index-basic.html" title="基础层：智慧城市综合管理系统设计案例" aria-label="智慧城市综合管理系统设计案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="7图论基础/7.13智慧城市综合管理系统设计案例/smart-city-index.html" title="进阶层：智慧城市综合管理系统设计案例" aria-label="智慧城市综合管理系统设计案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="7图论基础/7.13智慧城市综合管理系统设计案例/smart-city-index-extend.html" title="拓展层：智慧城市综合管理系统设计案例" aria-label="智慧城市综合管理系统设计案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
                         </ul>
                     </div>
                 </div>
 
                 <!-- 模块8 -->
-                <div class="module-card" data-category="图">
-                    <div class="module-header" onclick="toggleModule(this)">
+                <div class="module-card" data-category="图" id="chapter8">
+                    <div class="module-header" onclick="toggleModule(this)" role="button" tabindex="0" aria-expanded="true">
                         <span>第八章 特殊图</span>
                         <span class="module-toggle">▼</span>
                     </div>
                     <div class="module-body">
                         <ul class="topic-list">
-                            <li class="topic-item"><a href="8特殊图/8.1欧拉图/euler-index.html" class="topic-link">欧拉图</a>
-                            </li>
-                            <li class="topic-item"><a href="8特殊图/8.2哈密顿图/hamiton.html" class="topic-link">哈密顿图</a></li>
-                            <li class="topic-item"><a href="8特殊图/8.3二部图/partgraph-index.html" class="topic-link">二部图</a>
-                            </li>
-                            <li class="topic-item"><a href="8特殊图/8.4平面图/index.html" class="topic-link">平面图</a></li>
-                            <li class="topic-item"><a href="8特殊图/8.5树的基本概念/index.html" class="topic-link">树的基本概念</a>
-                            </li>
-                            <li class="topic-item"><a href="8特殊图/8.6生成树1/bfs-index.html" class="topic-link">生成树(BFS)</a>
-                            </li>
-                            <li class="topic-item"><a href="8特殊图/8.6生成树2/mst-index.html" class="topic-link">生成树(MST)</a>
-                            </li>
-                            <li class="topic-item"><a href="8特殊图/8.7根树1/tree-types-index.html"
-                                    class="topic-link">根树(基础)</a></li>
-                            <li class="topic-item"><a href="8特殊图/8.7根树2/huffman-index.html"
-                                    class="topic-link">根树(哈夫曼)</a></li>
-                            <li class="topic-item"><a href="8特殊图/8.8古镇修复路径案例/index.html" class="topic-link">古镇修复路径案例</a>
-                            </li>
-                            <li class="topic-item"><a href="8特殊图/8.9大学生志愿配对案例/index.html"
-                                    class="topic-link">大学生志愿配对案例</a></li>
-                            <li class="topic-item"><a href="8特殊图/8.10智慧城市交通规划案例/planar-index.html"
-                                    class="topic-link">智慧城市交通规划案例</a></li>
-                            <li class="topic-item"><a href="8特殊图/8.11湖南省文化遗产数字化案例/hunan-mst-index.html"
-                                    class="topic-link">湖南省文化遗产数字化案例</a></li>
-                            <li class="topic-item"><a href="8特殊图/8.12航天通信网络案例/aerospace-mst-index.html"
-                                    class="topic-link">航天通信网络案例</a></li>
-                            <li class="topic-item"><a href="8特殊图/8.13智能农业监测案例/agriculture-index.html"
-                                    class="topic-link">智能农业监测案例</a></li>
+                            <li class="topic-item"><a href="8特殊图/8.1欧拉图/euler-index.html" class="topic-link">欧拉图</a><span class="layer-chips"><a class="layer-chip layer-basic" href="8特殊图/8.1欧拉图/euler-index-basic.html" title="基础层：欧拉图" aria-label="欧拉图 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="8特殊图/8.1欧拉图/euler-index.html" title="进阶层：欧拉图" aria-label="欧拉图 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="8特殊图/8.1欧拉图/euler-index-extend.html" title="拓展层：欧拉图" aria-label="欧拉图 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="8特殊图/8.2哈密顿图/hamiton.html" class="topic-link">哈密顿图</a><span class="layer-chips"><a class="layer-chip layer-basic" href="8特殊图/8.2哈密顿图/hamiton-basic.html" title="基础层：哈密顿图" aria-label="哈密顿图 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="8特殊图/8.2哈密顿图/hamiton.html" title="进阶层：哈密顿图" aria-label="哈密顿图 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="8特殊图/8.2哈密顿图/hamiton-extend.html" title="拓展层：哈密顿图" aria-label="哈密顿图 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="8特殊图/8.3二部图/partgraph-index.html" class="topic-link">二部图</a><span class="layer-chips"><a class="layer-chip layer-basic" href="8特殊图/8.3二部图/partgraph-index-basic.html" title="基础层：二部图" aria-label="二部图 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="8特殊图/8.3二部图/partgraph-index.html" title="进阶层：二部图" aria-label="二部图 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="8特殊图/8.3二部图/partgraph-index-extend.html" title="拓展层：二部图" aria-label="二部图 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="8特殊图/8.4平面图/index.html" class="topic-link">平面图</a><span class="layer-chips"><a class="layer-chip layer-basic" href="8特殊图/8.4平面图/index-basic.html" title="基础层：平面图" aria-label="平面图 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="8特殊图/8.4平面图/index.html" title="进阶层：平面图" aria-label="平面图 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="8特殊图/8.4平面图/index-extend.html" title="拓展层：平面图" aria-label="平面图 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="8特殊图/8.5树的基本概念/index.html" class="topic-link">树的基本概念</a><span class="layer-chips"><a class="layer-chip layer-basic" href="8特殊图/8.5树的基本概念/index-basic.html" title="基础层：树的基本概念" aria-label="树的基本概念 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="8特殊图/8.5树的基本概念/index.html" title="进阶层：树的基本概念" aria-label="树的基本概念 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="8特殊图/8.5树的基本概念/index-extend.html" title="拓展层：树的基本概念" aria-label="树的基本概念 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="8特殊图/8.6生成树1/bfs-index.html" class="topic-link">生成树(BFS)</a><span class="layer-chips"><a class="layer-chip layer-basic" href="8特殊图/8.6生成树1/bfs-index-basic.html" title="基础层：生成树(BFS)" aria-label="生成树(BFS) · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="8特殊图/8.6生成树1/bfs-index.html" title="进阶层：生成树(BFS)" aria-label="生成树(BFS) · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="8特殊图/8.6生成树1/bfs-index-extend.html" title="拓展层：生成树(BFS)" aria-label="生成树(BFS) · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="8特殊图/8.6生成树2/mst-index.html" class="topic-link">生成树(MST)</a><span class="layer-chips"><a class="layer-chip layer-basic" href="8特殊图/8.6生成树2/mst-index-basic.html" title="基础层：生成树(MST)" aria-label="生成树(MST) · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="8特殊图/8.6生成树2/mst-index.html" title="进阶层：生成树(MST)" aria-label="生成树(MST) · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="8特殊图/8.6生成树2/mst-index-extend.html" title="拓展层：生成树(MST)" aria-label="生成树(MST) · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="8特殊图/8.7根树1/tree-types-index.html" class="topic-link">根树(基础)</a><span class="layer-chips"><a class="layer-chip layer-basic" href="8特殊图/8.7根树1/tree-types-index-basic.html" title="基础层：根树(基础)" aria-label="根树(基础) · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="8特殊图/8.7根树1/tree-types-index.html" title="进阶层：根树(基础)" aria-label="根树(基础) · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="8特殊图/8.7根树1/tree-types-index-extend.html" title="拓展层：根树(基础)" aria-label="根树(基础) · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="8特殊图/8.7根树2/huffman-index.html" class="topic-link">根树(哈夫曼)</a><span class="layer-chips"><a class="layer-chip layer-basic" href="8特殊图/8.7根树2/huffman-index-basic.html" title="基础层：根树(哈夫曼)" aria-label="根树(哈夫曼) · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="8特殊图/8.7根树2/huffman-index.html" title="进阶层：根树(哈夫曼)" aria-label="根树(哈夫曼) · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="8特殊图/8.7根树2/huffman-index-extend.html" title="拓展层：根树(哈夫曼)" aria-label="根树(哈夫曼) · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="8特殊图/8.8古镇修复路径案例/index.html" class="topic-link">古镇修复路径案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="8特殊图/8.8古镇修复路径案例/index-basic.html" title="基础层：古镇修复路径案例" aria-label="古镇修复路径案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="8特殊图/8.8古镇修复路径案例/index.html" title="进阶层：古镇修复路径案例" aria-label="古镇修复路径案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="8特殊图/8.8古镇修复路径案例/index-extend.html" title="拓展层：古镇修复路径案例" aria-label="古镇修复路径案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="8特殊图/8.9大学生志愿配对案例/index.html" class="topic-link">大学生志愿配对案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="8特殊图/8.9大学生志愿配对案例/index-basic.html" title="基础层：大学生志愿配对案例" aria-label="大学生志愿配对案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="8特殊图/8.9大学生志愿配对案例/index.html" title="进阶层：大学生志愿配对案例" aria-label="大学生志愿配对案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="8特殊图/8.9大学生志愿配对案例/index-extend.html" title="拓展层：大学生志愿配对案例" aria-label="大学生志愿配对案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="8特殊图/8.10智慧城市交通规划案例/planar-index.html" class="topic-link">智慧城市交通规划案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="8特殊图/8.10智慧城市交通规划案例/planar-index-basic.html" title="基础层：智慧城市交通规划案例" aria-label="智慧城市交通规划案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="8特殊图/8.10智慧城市交通规划案例/planar-index.html" title="进阶层：智慧城市交通规划案例" aria-label="智慧城市交通规划案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="8特殊图/8.10智慧城市交通规划案例/planar-index-extend.html" title="拓展层：智慧城市交通规划案例" aria-label="智慧城市交通规划案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="8特殊图/8.11湖南省文化遗产数字化案例/hunan-mst-index.html" class="topic-link">湖南省文化遗产数字化案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="8特殊图/8.11湖南省文化遗产数字化案例/hunan-mst-index-basic.html" title="基础层：湖南省文化遗产数字化案例" aria-label="湖南省文化遗产数字化案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="8特殊图/8.11湖南省文化遗产数字化案例/hunan-mst-index.html" title="进阶层：湖南省文化遗产数字化案例" aria-label="湖南省文化遗产数字化案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="8特殊图/8.11湖南省文化遗产数字化案例/hunan-mst-index-extend.html" title="拓展层：湖南省文化遗产数字化案例" aria-label="湖南省文化遗产数字化案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="8特殊图/8.12航天通信网络案例/aerospace-mst-index.html" class="topic-link">航天通信网络案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="8特殊图/8.12航天通信网络案例/aerospace-mst-index-basic.html" title="基础层：航天通信网络案例" aria-label="航天通信网络案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="8特殊图/8.12航天通信网络案例/aerospace-mst-index.html" title="进阶层：航天通信网络案例" aria-label="航天通信网络案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="8特殊图/8.12航天通信网络案例/aerospace-mst-index-extend.html" title="拓展层：航天通信网络案例" aria-label="航天通信网络案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="8特殊图/8.13智能农业监测案例/agriculture-index.html" class="topic-link">智能农业监测案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="8特殊图/8.13智能农业监测案例/agriculture-index-basic.html" title="基础层：智能农业监测案例" aria-label="智能农业监测案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="8特殊图/8.13智能农业监测案例/agriculture-index.html" title="进阶层：智能农业监测案例" aria-label="智能农业监测案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="8特殊图/8.13智能农业监测案例/agriculture-index-extend.html" title="拓展层：智能农业监测案例" aria-label="智能农业监测案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
                         </ul>
                     </div>
                 </div>
 
                 <!-- 模块9 -->
                 <div class="module-card" data-category="代数" id="chapter9">
-                    <div class="module-header" onclick="toggleModule(this)">
+                    <div class="module-header" onclick="toggleModule(this)" role="button" tabindex="0" aria-expanded="true">
                         <span>第九章 代数系统</span>
                         <span class="module-toggle">▼</span>
                     </div>
                     <div class="module-body">
                         <ul class="topic-list">
-                            <li class="topic-item"><a href="9代数系统/9.1定义/algebraic_systems.html"
-                                    class="topic-link">代数系统定义</a></li>
-                            <li class="topic-item"><a href="9代数系统/9.2定律/algebraic_laws.html" class="topic-link">代数定律</a>
-                            </li>
-                            <li class="topic-item"><a href="9代数系统/9.3特殊元素/special_elements.html"
-                                    class="topic-link">特殊元素</a></li>
-                            <li class="topic-item"><a href="9代数系统/9.4代数系统/algebraic_system_types.html"
-                                    class="topic-link">代数系统类型</a></li>
-                            <li class="topic-item"><a href="9代数系统/9.5子代数和积代数/isomorphism_and_homomorphism.html"
-                                    class="topic-link">子代数和积代数</a></li>
-                            <li class="topic-item"><a href="9代数系统/9.6同态与同构/homomorphism_types.html"
-                                    class="topic-link">同态与同构（层次体系）</a></li>
-                            <li class="topic-item"><a href="9代数系统/9.6同态与同构/homomorphism_isomorphism_system.html"
-                                    class="topic-link">同态与同构（映射体系）</a></li>
-                            <li class="topic-item"><a href="9代数系统/9.7劳动教育成效评估案例/labor_education_evaluation.html"
-                                    class="topic-link">劳动教育成效评估案例</a></li>
-                            <li class="topic-item"><a href="9代数系统/9.8社区共享资源优化管理案例/shared_resources.html"
-                                    class="topic-link">社区共享资源优化管理案例</a></li>
-                            <li class="topic-item"><a href="9代数系统/9.9湖湘织锦数字化保护案例/huxiang_brocade_complete.html"
-                                    class="topic-link">湖湘织锦数字化保护案例</a></li>
-                            <li class="topic-item"><a href="9代数系统/9.10智能制造工艺流程案例/smart_manufacturing_optimization.html"
-                                    class="topic-link">智能制造工艺流程案例</a></li>
-                            <li class="topic-item"><a
-                                    href="9代数系统/9.11传统文化艺术品数字化案例/cultural_heritage_digitalization.html"
-                                    class="topic-link">传统文化艺术品数字化案例</a></li>
+                            <li class="topic-item"><a href="9代数系统/9.1定义/algebraic_systems.html" class="topic-link">代数系统定义</a><span class="layer-chips"><a class="layer-chip layer-basic" href="9代数系统/9.1定义/algebraic_systems-basic.html" title="基础层：代数系统定义" aria-label="代数系统定义 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="9代数系统/9.1定义/algebraic_systems.html" title="进阶层：代数系统定义" aria-label="代数系统定义 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="9代数系统/9.1定义/algebraic_systems-extend.html" title="拓展层：代数系统定义" aria-label="代数系统定义 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="9代数系统/9.2定律/algebraic_laws.html" class="topic-link">代数定律</a><span class="layer-chips"><a class="layer-chip layer-basic" href="9代数系统/9.2定律/algebraic_laws-basic.html" title="基础层：代数定律" aria-label="代数定律 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="9代数系统/9.2定律/algebraic_laws.html" title="进阶层：代数定律" aria-label="代数定律 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="9代数系统/9.2定律/algebraic_laws-extend.html" title="拓展层：代数定律" aria-label="代数定律 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="9代数系统/9.3特殊元素/special_elements.html" class="topic-link">特殊元素</a><span class="layer-chips"><a class="layer-chip layer-basic" href="9代数系统/9.3特殊元素/special_elements-basic.html" title="基础层：特殊元素" aria-label="特殊元素 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="9代数系统/9.3特殊元素/special_elements.html" title="进阶层：特殊元素" aria-label="特殊元素 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="9代数系统/9.3特殊元素/special_elements-extend.html" title="拓展层：特殊元素" aria-label="特殊元素 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="9代数系统/9.4代数系统/algebraic_system_types.html" class="topic-link">代数系统类型</a><span class="layer-chips"><a class="layer-chip layer-basic" href="9代数系统/9.4代数系统/algebraic_system_types-basic.html" title="基础层：代数系统类型" aria-label="代数系统类型 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="9代数系统/9.4代数系统/algebraic_system_types.html" title="进阶层：代数系统类型" aria-label="代数系统类型 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="9代数系统/9.4代数系统/algebraic_system_types-extend.html" title="拓展层：代数系统类型" aria-label="代数系统类型 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="9代数系统/9.5子代数和积代数/isomorphism_and_homomorphism.html" class="topic-link">子代数和积代数</a><span class="layer-chips"><a class="layer-chip layer-basic" href="9代数系统/9.5子代数和积代数/isomorphism_and_homomorphism-basic.html" title="基础层：子代数和积代数" aria-label="子代数和积代数 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="9代数系统/9.5子代数和积代数/isomorphism_and_homomorphism.html" title="进阶层：子代数和积代数" aria-label="子代数和积代数 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="9代数系统/9.5子代数和积代数/isomorphism_and_homomorphism-extend.html" title="拓展层：子代数和积代数" aria-label="子代数和积代数 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="9代数系统/9.6同态与同构/homomorphism_types.html" class="topic-link">同态与同构（层次体系）</a><span class="layer-chips"><a class="layer-chip layer-basic" href="9代数系统/9.6同态与同构/homomorphism_types-basic.html" title="基础层：同态与同构（层次体系）" aria-label="同态与同构（层次体系） · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="9代数系统/9.6同态与同构/homomorphism_types.html" title="进阶层：同态与同构（层次体系）" aria-label="同态与同构（层次体系） · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="9代数系统/9.6同态与同构/homomorphism_types-extend.html" title="拓展层：同态与同构（层次体系）" aria-label="同态与同构（层次体系） · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="9代数系统/9.6同态与同构/homomorphism_isomorphism_system.html" class="topic-link">同态与同构（映射体系）</a><span class="layer-chips"><a class="layer-chip layer-basic" href="9代数系统/9.6同态与同构/homomorphism_isomorphism_system-basic.html" title="基础层：同态与同构（映射体系）" aria-label="同态与同构（映射体系） · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="9代数系统/9.6同态与同构/homomorphism_isomorphism_system.html" title="进阶层：同态与同构（映射体系）" aria-label="同态与同构（映射体系） · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="9代数系统/9.6同态与同构/homomorphism_isomorphism_system-extend.html" title="拓展层：同态与同构（映射体系）" aria-label="同态与同构（映射体系） · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="9代数系统/9.7劳动教育成效评估案例/labor_education_evaluation.html" class="topic-link">劳动教育成效评估案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="9代数系统/9.7劳动教育成效评估案例/labor_education_evaluation-basic.html" title="基础层：劳动教育成效评估案例" aria-label="劳动教育成效评估案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="9代数系统/9.7劳动教育成效评估案例/labor_education_evaluation.html" title="进阶层：劳动教育成效评估案例" aria-label="劳动教育成效评估案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="9代数系统/9.7劳动教育成效评估案例/labor_education_evaluation-extend.html" title="拓展层：劳动教育成效评估案例" aria-label="劳动教育成效评估案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="9代数系统/9.8社区共享资源优化管理案例/shared_resources.html" class="topic-link">社区共享资源优化管理案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="9代数系统/9.8社区共享资源优化管理案例/shared_resources-basic.html" title="基础层：社区共享资源优化管理案例" aria-label="社区共享资源优化管理案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="9代数系统/9.8社区共享资源优化管理案例/shared_resources.html" title="进阶层：社区共享资源优化管理案例" aria-label="社区共享资源优化管理案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="9代数系统/9.8社区共享资源优化管理案例/shared_resources-extend.html" title="拓展层：社区共享资源优化管理案例" aria-label="社区共享资源优化管理案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="9代数系统/9.9湖湘织锦数字化保护案例/huxiang_brocade_complete.html" class="topic-link">湖湘织锦数字化保护案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="9代数系统/9.9湖湘织锦数字化保护案例/huxiang_brocade_complete-basic.html" title="基础层：湖湘织锦数字化保护案例" aria-label="湖湘织锦数字化保护案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="9代数系统/9.9湖湘织锦数字化保护案例/huxiang_brocade_complete.html" title="进阶层：湖湘织锦数字化保护案例" aria-label="湖湘织锦数字化保护案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="9代数系统/9.9湖湘织锦数字化保护案例/huxiang_brocade_complete-extend.html" title="拓展层：湖湘织锦数字化保护案例" aria-label="湖湘织锦数字化保护案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="9代数系统/9.10智能制造工艺流程案例/smart_manufacturing_optimization.html" class="topic-link">智能制造工艺流程案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="9代数系统/9.10智能制造工艺流程案例/smart_manufacturing_optimization-basic.html" title="基础层：智能制造工艺流程案例" aria-label="智能制造工艺流程案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="9代数系统/9.10智能制造工艺流程案例/smart_manufacturing_optimization.html" title="进阶层：智能制造工艺流程案例" aria-label="智能制造工艺流程案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="9代数系统/9.10智能制造工艺流程案例/smart_manufacturing_optimization-extend.html" title="拓展层：智能制造工艺流程案例" aria-label="智能制造工艺流程案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="9代数系统/9.11传统文化艺术品数字化案例/cultural_heritage_digitalization.html" class="topic-link">传统文化艺术品数字化案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="9代数系统/9.11传统文化艺术品数字化案例/cultural_heritage_digitalization-basic.html" title="基础层：传统文化艺术品数字化案例" aria-label="传统文化艺术品数字化案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="9代数系统/9.11传统文化艺术品数字化案例/cultural_heritage_digitalization.html" title="进阶层：传统文化艺术品数字化案例" aria-label="传统文化艺术品数字化案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="9代数系统/9.11传统文化艺术品数字化案例/cultural_heritage_digitalization-extend.html" title="拓展层：传统文化艺术品数字化案例" aria-label="传统文化艺术品数字化案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
                         </ul>
                     </div>
                 </div>
 
                 <!-- 模块10 -->
-                <div class="module-card" data-category="代数">
-                    <div class="module-header" onclick="toggleModule(this)">
+                <div class="module-card" data-category="代数" id="chapter10">
+                    <div class="module-header" onclick="toggleModule(this)" role="button" tabindex="0" aria-expanded="true">
                         <span>第十章 群论基础</span>
                         <span class="module-toggle">▼</span>
                     </div>
                     <div class="module-body">
                         <ul class="topic-list">
-                            <li class="topic-item"><a href="10群论基础/10.1群定义及性质/algebra-index.html"
-                                    class="topic-link">群定义及性质</a></li>
-                            <li class="topic-item"><a href="10群论基础/10.2群的阶和子群/group-order-index.html"
-                                    class="topic-link">群的阶和子群</a></li>
-                            <li class="topic-item"><a href="10群论基础/10.3群同态和同构/homomorphism-index.html"
-                                    class="topic-link">群同态和同构</a></li>
-                            <li class="topic-item"><a href="10群论基础/10.4特殊类型群1/special-groups-index.html"
-                                    class="topic-link">特殊类型群(基础)</a></li>
-                            <li class="topic-item"><a href="10群论基础/10.4特殊类型群2/permutation-index.html"
-                                    class="topic-link">特殊类型群(置换)</a></li>
-                            <li class="topic-item"><a href="10群论基础/10.5陪集和拉格朗日定理/cosets-index.html"
-                                    class="topic-link">陪集和拉格朗日定理</a></li>
-                            <li class="topic-item"><a href="10群论基础/10.6正规子群和商群/normal-subgroups-index.html"
-                                    class="topic-link">正规子群和商群</a></li>
-                            <li class="topic-item"><a href="10群论基础/10.7北斗导航加密算法案例/beidou-rs-index.html"
-                                    class="topic-link">北斗导航加密算法案例</a></li>
-                            <li class="topic-item"><a href="10群论基础/10.8密码学中对称群应用案例/coset-crypto-index.html"
-                                    class="topic-link">密码学中对称群应用案例</a></li>
-                            <li class="topic-item"><a href="10群论基础/10.9密钥生成方案案例/key-generation-index.html"
-                                    class="topic-link">密钥生成方案案例</a></li>
+                            <li class="topic-item"><a href="10群论基础/10.1群定义及性质/algebra-index.html" class="topic-link">群定义及性质</a><span class="layer-chips"><a class="layer-chip layer-basic" href="10群论基础/10.1群定义及性质/algebra-index-basic.html" title="基础层：群定义及性质" aria-label="群定义及性质 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="10群论基础/10.1群定义及性质/algebra-index.html" title="进阶层：群定义及性质" aria-label="群定义及性质 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="10群论基础/10.1群定义及性质/algebra-index-extend.html" title="拓展层：群定义及性质" aria-label="群定义及性质 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="10群论基础/10.2群的阶和子群/group-order-index.html" class="topic-link">群的阶和子群</a><span class="layer-chips"><a class="layer-chip layer-basic" href="10群论基础/10.2群的阶和子群/group-order-index-basic.html" title="基础层：群的阶和子群" aria-label="群的阶和子群 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="10群论基础/10.2群的阶和子群/group-order-index.html" title="进阶层：群的阶和子群" aria-label="群的阶和子群 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="10群论基础/10.2群的阶和子群/group-order-index-extend.html" title="拓展层：群的阶和子群" aria-label="群的阶和子群 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="10群论基础/10.3群同态和同构/homomorphism-index.html" class="topic-link">群同态和同构</a><span class="layer-chips"><a class="layer-chip layer-basic" href="10群论基础/10.3群同态和同构/homomorphism-index-basic.html" title="基础层：群同态和同构" aria-label="群同态和同构 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="10群论基础/10.3群同态和同构/homomorphism-index.html" title="进阶层：群同态和同构" aria-label="群同态和同构 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="10群论基础/10.3群同态和同构/homomorphism-index-extend.html" title="拓展层：群同态和同构" aria-label="群同态和同构 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="10群论基础/10.4特殊类型群1/special-groups-index.html" class="topic-link">特殊类型群(基础)</a><span class="layer-chips"><a class="layer-chip layer-basic" href="10群论基础/10.4特殊类型群1/special-groups-index-basic.html" title="基础层：特殊类型群(基础)" aria-label="特殊类型群(基础) · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="10群论基础/10.4特殊类型群1/special-groups-index.html" title="进阶层：特殊类型群(基础)" aria-label="特殊类型群(基础) · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="10群论基础/10.4特殊类型群1/special-groups-index-extend.html" title="拓展层：特殊类型群(基础)" aria-label="特殊类型群(基础) · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="10群论基础/10.4特殊类型群2/permutation-index.html" class="topic-link">特殊类型群(置换)</a><span class="layer-chips"><a class="layer-chip layer-basic" href="10群论基础/10.4特殊类型群2/permutation-index-basic.html" title="基础层：特殊类型群(置换)" aria-label="特殊类型群(置换) · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="10群论基础/10.4特殊类型群2/permutation-index.html" title="进阶层：特殊类型群(置换)" aria-label="特殊类型群(置换) · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="10群论基础/10.4特殊类型群2/permutation-index-extend.html" title="拓展层：特殊类型群(置换)" aria-label="特殊类型群(置换) · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="10群论基础/10.5陪集和拉格朗日定理/cosets-index.html" class="topic-link">陪集和拉格朗日定理</a><span class="layer-chips"><a class="layer-chip layer-basic" href="10群论基础/10.5陪集和拉格朗日定理/cosets-index-basic.html" title="基础层：陪集和拉格朗日定理" aria-label="陪集和拉格朗日定理 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="10群论基础/10.5陪集和拉格朗日定理/cosets-index.html" title="进阶层：陪集和拉格朗日定理" aria-label="陪集和拉格朗日定理 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="10群论基础/10.5陪集和拉格朗日定理/cosets-index-extend.html" title="拓展层：陪集和拉格朗日定理" aria-label="陪集和拉格朗日定理 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="10群论基础/10.6正规子群和商群/normal-subgroups-index.html" class="topic-link">正规子群和商群</a><span class="layer-chips"><a class="layer-chip layer-basic" href="10群论基础/10.6正规子群和商群/normal-subgroups-index-basic.html" title="基础层：正规子群和商群" aria-label="正规子群和商群 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="10群论基础/10.6正规子群和商群/normal-subgroups-index.html" title="进阶层：正规子群和商群" aria-label="正规子群和商群 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="10群论基础/10.6正规子群和商群/normal-subgroups-index-extend.html" title="拓展层：正规子群和商群" aria-label="正规子群和商群 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="10群论基础/10.7北斗导航加密算法案例/beidou-rs-index.html" class="topic-link">北斗导航加密算法案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="10群论基础/10.7北斗导航加密算法案例/beidou-rs-index-basic.html" title="基础层：北斗导航加密算法案例" aria-label="北斗导航加密算法案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="10群论基础/10.7北斗导航加密算法案例/beidou-rs-index.html" title="进阶层：北斗导航加密算法案例" aria-label="北斗导航加密算法案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="10群论基础/10.7北斗导航加密算法案例/beidou-rs-index-extend.html" title="拓展层：北斗导航加密算法案例" aria-label="北斗导航加密算法案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="10群论基础/10.8密码学中对称群应用案例/coset-crypto-index.html" class="topic-link">密码学中对称群应用案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="10群论基础/10.8密码学中对称群应用案例/coset-crypto-index-basic.html" title="基础层：密码学中对称群应用案例" aria-label="密码学中对称群应用案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="10群论基础/10.8密码学中对称群应用案例/coset-crypto-index.html" title="进阶层：密码学中对称群应用案例" aria-label="密码学中对称群应用案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="10群论基础/10.8密码学中对称群应用案例/coset-crypto-index-extend.html" title="拓展层：密码学中对称群应用案例" aria-label="密码学中对称群应用案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="10群论基础/10.9密钥生成方案案例/key-generation-index.html" class="topic-link">密钥生成方案案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="10群论基础/10.9密钥生成方案案例/key-generation-index-basic.html" title="基础层：密钥生成方案案例" aria-label="密钥生成方案案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="10群论基础/10.9密钥生成方案案例/key-generation-index.html" title="进阶层：密钥生成方案案例" aria-label="密钥生成方案案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="10群论基础/10.9密钥生成方案案例/key-generation-index-extend.html" title="拓展层：密钥生成方案案例" aria-label="密钥生成方案案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
                         </ul>
                     </div>
                 </div>
 
                 <!-- 模块11 -->
-                <div class="module-card" data-category="代数">
-                    <div class="module-header" onclick="toggleModule(this)">
+                <div class="module-card" data-category="代数" id="chapter11">
+                    <div class="module-header" onclick="toggleModule(this)" role="button" tabindex="0" aria-expanded="true">
                         <span>第十一章 环、域、格和布尔代数</span>
                         <span class="module-toggle">▼</span>
                     </div>
                     <div class="module-body">
                         <ul class="topic-list">
-                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.1定义和性质/ring_theory.html"
-                                    class="topic-link">环的定义和性质</a></li>
-                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.2子环、理想和商环/ring-theory.html"
-                                    class="topic-link">子环、理想和商环</a></li>
-                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.3环同态和同构/homomorphism.html"
-                                    class="topic-link">环同态和同构</a></li>
-                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.4格定义及性质/lattice.html"
-                                    class="topic-link">格定义及性质</a></li>
-                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.5子格和格同态/lattice-index.html"
-                                    class="topic-link">子格和格同态</a></li>
-                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.6特殊格/lattice-types.html"
-                                    class="topic-link">特殊格</a></li>
-                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.7布尔代数/boolean_algebra.html"
-                                    class="topic-link">布尔代数</a></li>
-                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.8基于环的纠错线性码案例/linear-code-index.html"
-                                    class="topic-link">基于环的纠错线性码案例</a></li>
-                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.9环同态加密系统案例/homomorphic_encryption.html"
-                                    class="topic-link">环同态加密系统案例</a></li>
-                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.10格在形式概念分析案例/fca_visualization.html"
-                                    class="topic-link">格在形式概念分析案例</a></li>
-                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.11逻辑电路表达式案例/boolean-circuit-index.html"
-                                    class="topic-link">逻辑电路表达式案例</a></li>
+                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.1定义和性质/ring_theory.html" class="topic-link">环的定义和性质</a><span class="layer-chips"><a class="layer-chip layer-basic" href="11环、域、格和布尔代数/11.1定义和性质/ring_theory-basic.html" title="基础层：环的定义和性质" aria-label="环的定义和性质 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="11环、域、格和布尔代数/11.1定义和性质/ring_theory.html" title="进阶层：环的定义和性质" aria-label="环的定义和性质 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="11环、域、格和布尔代数/11.1定义和性质/ring_theory-extend.html" title="拓展层：环的定义和性质" aria-label="环的定义和性质 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.2子环、理想和商环/ring-theory.html" class="topic-link">子环、理想和商环</a><span class="layer-chips"><a class="layer-chip layer-basic" href="11环、域、格和布尔代数/11.2子环、理想和商环/ring-theory-basic.html" title="基础层：子环、理想和商环" aria-label="子环、理想和商环 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="11环、域、格和布尔代数/11.2子环、理想和商环/ring-theory.html" title="进阶层：子环、理想和商环" aria-label="子环、理想和商环 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="11环、域、格和布尔代数/11.2子环、理想和商环/ring-theory-extend.html" title="拓展层：子环、理想和商环" aria-label="子环、理想和商环 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.3环同态和同构/homomorphism.html" class="topic-link">环同态和同构</a><span class="layer-chips"><a class="layer-chip layer-basic" href="11环、域、格和布尔代数/11.3环同态和同构/homomorphism-basic.html" title="基础层：环同态和同构" aria-label="环同态和同构 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="11环、域、格和布尔代数/11.3环同态和同构/homomorphism.html" title="进阶层：环同态和同构" aria-label="环同态和同构 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="11环、域、格和布尔代数/11.3环同态和同构/homomorphism-extend.html" title="拓展层：环同态和同构" aria-label="环同态和同构 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.4格定义及性质/lattice.html" class="topic-link">格定义及性质</a><span class="layer-chips"><a class="layer-chip layer-basic" href="11环、域、格和布尔代数/11.4格定义及性质/lattice-basic.html" title="基础层：格定义及性质" aria-label="格定义及性质 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="11环、域、格和布尔代数/11.4格定义及性质/lattice.html" title="进阶层：格定义及性质" aria-label="格定义及性质 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="11环、域、格和布尔代数/11.4格定义及性质/lattice-extend.html" title="拓展层：格定义及性质" aria-label="格定义及性质 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.5子格和格同态/lattice-index.html" class="topic-link">子格和格同态</a><span class="layer-chips"><a class="layer-chip layer-basic" href="11环、域、格和布尔代数/11.5子格和格同态/lattice-index-basic.html" title="基础层：子格和格同态" aria-label="子格和格同态 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="11环、域、格和布尔代数/11.5子格和格同态/lattice-index.html" title="进阶层：子格和格同态" aria-label="子格和格同态 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="11环、域、格和布尔代数/11.5子格和格同态/lattice-index-extend.html" title="拓展层：子格和格同态" aria-label="子格和格同态 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.6特殊格/lattice-types.html" class="topic-link">特殊格</a><span class="layer-chips"><a class="layer-chip layer-basic" href="11环、域、格和布尔代数/11.6特殊格/lattice-types-basic.html" title="基础层：特殊格" aria-label="特殊格 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="11环、域、格和布尔代数/11.6特殊格/lattice-types.html" title="进阶层：特殊格" aria-label="特殊格 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="11环、域、格和布尔代数/11.6特殊格/lattice-types-extend.html" title="拓展层：特殊格" aria-label="特殊格 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.7布尔代数/boolean_algebra.html" class="topic-link">布尔代数</a><span class="layer-chips"><a class="layer-chip layer-basic" href="11环、域、格和布尔代数/11.7布尔代数/boolean_algebra-basic.html" title="基础层：布尔代数" aria-label="布尔代数 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="11环、域、格和布尔代数/11.7布尔代数/boolean_algebra.html" title="进阶层：布尔代数" aria-label="布尔代数 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="11环、域、格和布尔代数/11.7布尔代数/boolean_algebra-extend.html" title="拓展层：布尔代数" aria-label="布尔代数 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.8基于环的纠错线性码案例/linear-code-index.html" class="topic-link">基于环的纠错线性码案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="11环、域、格和布尔代数/11.8基于环的纠错线性码案例/linear-code-index-basic.html" title="基础层：基于环的纠错线性码案例" aria-label="基于环的纠错线性码案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="11环、域、格和布尔代数/11.8基于环的纠错线性码案例/linear-code-index.html" title="进阶层：基于环的纠错线性码案例" aria-label="基于环的纠错线性码案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="11环、域、格和布尔代数/11.8基于环的纠错线性码案例/linear-code-index-extend.html" title="拓展层：基于环的纠错线性码案例" aria-label="基于环的纠错线性码案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.9环同态加密系统案例/homomorphic_encryption.html" class="topic-link">环同态加密系统案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="11环、域、格和布尔代数/11.9环同态加密系统案例/homomorphic_encryption-basic.html" title="基础层：环同态加密系统案例" aria-label="环同态加密系统案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="11环、域、格和布尔代数/11.9环同态加密系统案例/homomorphic_encryption.html" title="进阶层：环同态加密系统案例" aria-label="环同态加密系统案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="11环、域、格和布尔代数/11.9环同态加密系统案例/homomorphic_encryption-extend.html" title="拓展层：环同态加密系统案例" aria-label="环同态加密系统案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.10格在形式概念分析案例/fca_visualization.html" class="topic-link">格在形式概念分析案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="11环、域、格和布尔代数/11.10格在形式概念分析案例/fca_visualization-basic.html" title="基础层：格在形式概念分析案例" aria-label="格在形式概念分析案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="11环、域、格和布尔代数/11.10格在形式概念分析案例/fca_visualization.html" title="进阶层：格在形式概念分析案例" aria-label="格在形式概念分析案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="11环、域、格和布尔代数/11.10格在形式概念分析案例/fca_visualization-extend.html" title="拓展层：格在形式概念分析案例" aria-label="格在形式概念分析案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
+                            <li class="topic-item"><a href="11环、域、格和布尔代数/11.11逻辑电路表达式案例/boolean-circuit-index.html" class="topic-link">逻辑电路表达式案例</a><span class="layer-chips"><a class="layer-chip layer-basic" href="11环、域、格和布尔代数/11.11逻辑电路表达式案例/boolean-circuit-index-basic.html" title="基础层：逻辑电路表达式案例" aria-label="逻辑电路表达式案例 · 基础层"><i aria-hidden="true"></i>基础</a><a class="layer-chip layer-core" href="11环、域、格和布尔代数/11.11逻辑电路表达式案例/boolean-circuit-index.html" title="进阶层：逻辑电路表达式案例" aria-label="逻辑电路表达式案例 · 进阶层"><i aria-hidden="true"></i>进阶</a><a class="layer-chip layer-extend" href="11环、域、格和布尔代数/11.11逻辑电路表达式案例/boolean-circuit-index-extend.html" title="拓展层：逻辑电路表达式案例" aria-label="逻辑电路表达式案例 · 拓展层"><i aria-hidden="true"></i>拓展</a></span></li>
                         </ul>
                     </div>
                 </div>
@@ -1475,15 +1606,31 @@
         }
 
         // 切换模块展开/折叠
+        function setModuleCollapsed(card, collapsed) {
+            card.classList.toggle('collapsed', collapsed);
+            const header = card.querySelector('.module-header');
+            if (header) header.setAttribute('aria-expanded', String(!collapsed));
+        }
+
         function toggleModule(header) {
             const moduleCard = header.closest('.module-card');
-            moduleCard.classList.toggle('collapsed');
+            setModuleCollapsed(moduleCard, !moduleCard.classList.contains('collapsed'));
         }
+
+        document.querySelectorAll('.module-header').forEach(header => {
+            header.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleModule(header);
+                }
+            });
+        });
 
         // 筛选模块
         function filterModules(category, source) {
             const cards = document.querySelectorAll('.module-card');
             const buttons = document.querySelectorAll('.filter-btn');
+            resetSearchMarks();
 
             buttons.forEach(btn => {
                 const label = btn.textContent.trim();
@@ -1495,70 +1642,140 @@
             cards.forEach(card => {
                 const visible = category === 'all' || card.dataset.category === category;
                 card.classList.toggle('hidden', !visible);
-                if (visible) card.classList.remove('collapsed');
+                if (visible) setModuleCollapsed(card, false);
             });
         }
 
+        document.querySelectorAll('.quick-link[data-filter]').forEach(link => {
+            link.addEventListener('click', function () {
+                filterModules(link.dataset.filter);
+            });
+        });
+
         // 搜索功能
+        const searchInput = document.getElementById('searchInput');
+        const searchStatus = document.getElementById('searchStatus');
+        const searchStatusText = document.getElementById('searchStatusText');
+
+        function resetSearchMarks() {
+            document.querySelectorAll('.topic-item.is-match, .topic-item.is-dim').forEach(item => {
+                item.classList.remove('is-match', 'is-dim');
+            });
+            searchStatus.classList.remove('visible');
+        }
+
+        function showSearchStatus(html) {
+            searchStatusText.innerHTML = html;
+            searchStatus.classList.add('visible');
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+        }
+
+        function clearSearch() {
+            searchInput.value = '';
+            filterModules('all');
+            searchInput.focus();
+        }
+
         function searchContent() {
-            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const raw = searchInput.value.trim();
+            const searchText = raw.toLowerCase();
             if (!searchText) {
-                alert('请输入搜索内容');
+                filterModules('all');
+                searchInput.focus();
                 return;
             }
 
+            filterModules('all');
             const cards = document.querySelectorAll('.module-card');
-            let foundCount = 0;
+            let foundCards = 0;
+            let foundTopics = 0;
+            let firstMatch = null;
 
             cards.forEach(card => {
-                const topics = card.querySelectorAll('.topic-link');
+                const title = card.querySelector('.module-header span:first-child').textContent.toLowerCase();
+                const titleMatch = title.includes(searchText);
+                const items = card.querySelectorAll('.topic-item');
                 let hasMatch = false;
 
-                topics.forEach(topic => {
-                    const text = topic.textContent.toLowerCase();
-                    if (text.includes(searchText)) {
+                items.forEach(item => {
+                    const text = item.querySelector('.topic-link').textContent.toLowerCase();
+                    const match = text.includes(searchText);
+                    item.classList.toggle('is-match', match);
+                    item.classList.toggle('is-dim', !match && !titleMatch);
+                    if (match) {
                         hasMatch = true;
-                        topic.style.backgroundColor = 'rgba(255, 180, 0, 0.3)';
-                    } else {
-                        topic.style.backgroundColor = '';
+                        foundTopics++;
+                        if (!firstMatch) firstMatch = item;
                     }
                 });
 
-                if (hasMatch) {
+                // 章节标题命中时整章都算作结果
+                if (titleMatch) foundTopics += items.length - card.querySelectorAll('.topic-item.is-match').length;
+                if (hasMatch || titleMatch) {
                     card.classList.remove('hidden');
-                    card.classList.remove('collapsed');
-                    foundCount++;
+                    setModuleCollapsed(card, false);
+                    foundCards++;
+                    if (!firstMatch) firstMatch = card;
                 } else {
                     card.classList.add('hidden');
                 }
             });
 
-            if (foundCount === 0) {
-                alert('未找到匹配的内容');
-            } else {
-                // 滚动到第一个结果
-                const firstMatch = document.querySelector('.module-card:not(.hidden)');
-                if (firstMatch) {
-                    firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
+            const q = escapeHtml(raw);
+            if (foundCards === 0) {
+                filterModules('all');
+                showSearchStatus('未找到与“<strong>' + q + '</strong>”相关的内容，换个关键词试试');
+                return;
+            }
+
+            showSearchStatus('“<strong>' + q + '</strong>”：' + foundCards + ' 章 · ' + foundTopics + ' 个知识单元');
+            if (firstMatch) {
+                firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
 
-        // 回车搜索
-        document.getElementById('searchInput').addEventListener('keypress', function (e) {
+        // 回车搜索；清空输入框时恢复全部章节
+        searchInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter') {
                 searchContent();
+            } else if (e.key === 'Escape' && searchInput.value) {
+                clearSearch();
+            }
+        });
+        searchInput.addEventListener('input', function () {
+            if (!searchInput.value.trim() && searchStatus.classList.contains('visible')) {
+                filterModules('all');
             }
         });
 
+        // 章节锚点：index.html#chapterN 进入或切换时，展开该章并平滑滚动到位
+        function revealChapter(behavior) {
+            const match = /^#chapter(\d+)$/.exec(location.hash);
+            if (!match) return;
+            const card = document.getElementById('chapter' + match[1]);
+            if (!card) return;
+            if (card.classList.contains('hidden') || searchStatus.classList.contains('visible')) {
+                filterModules('all');
+            }
+            setModuleCollapsed(card, false);
+            document.querySelectorAll('.module-card.is-target').forEach(c => c.classList.remove('is-target'));
+            card.classList.add('is-target');
+            clearTimeout(revealChapter.timer);
+            revealChapter.timer = setTimeout(() => card.classList.remove('is-target'), 2400);
+            requestAnimationFrame(() => card.scrollIntoView({ behavior: behavior || 'smooth', block: 'start' }));
+        }
+        window.addEventListener('hashchange', () => revealChapter('smooth'));
+
         document.addEventListener('DOMContentLoaded', function () {
             document.body.classList.add('ready');
-            const topicCount = document.querySelectorAll('.topic-link').length;
-            const caseCount = document.getElementById('caseCount');
-            if (caseCount) caseCount.textContent = topicCount * 3;
+            const unitCount = document.querySelectorAll('.topic-item').length;
+            document.querySelectorAll('[data-unit-count]').forEach(el => { el.textContent = unitCount; });
             document.querySelectorAll('.module-card').forEach(card => {
                 const title = card.querySelector('.module-header span:first-child');
-                const count = card.querySelectorAll('.topic-link').length;
+                const count = card.querySelectorAll('.topic-item').length;
                 if (title && count && !title.querySelector('.module-count')) {
                     const badge = document.createElement('span');
                     badge.className = 'module-count';
@@ -1566,7 +1783,29 @@
                     title.appendChild(badge);
                 }
             });
+            revealChapter('smooth');
         });
+
+        // 字体晚到导致版面位移时，再校准一次锚点位置
+        window.addEventListener('load', function () {
+            if (/^#chapter\d+$/.test(location.hash)) {
+                setTimeout(() => {
+                    const card = document.querySelector(location.hash);
+                    if (card && Math.abs(card.getBoundingClientRect().top - parseFloat(getComputedStyle(card).scrollMarginTop)) > 24) {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 150);
+            }
+        });
+
+        // 访问计数：统计服务长时间无响应时给出占位，避免一直显示省略号
+        setTimeout(function () {
+            const pv = document.getElementById('busuanzi_value_site_pv');
+            if (pv && pv.textContent.trim() === '…') {
+                pv.textContent = '—';
+                pv.title = '统计服务暂不可用';
+            }
+        }, 12000);
     </script>
 </body>
 
