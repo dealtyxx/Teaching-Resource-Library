@@ -24,6 +24,17 @@ let originalCheckDigit = null;
 let isGenerated = false;
 let isTampered = false;
 
+const weightFormula = document.getElementById('weightFormula');
+const hintBox = document.getElementById('hintBox');
+function showHint(t) { hintBox.textContent = t; hintBox.classList.toggle('hidden', !t); }
+// 等价的加权和写法：Wᵢ = 2^(n+1−i) mod 11，S = Σ aᵢWᵢ，校验字符 C 满足 S + C ≡ 1 (mod 11)
+function weightedView(digits, data) {
+    const n = digits.length;
+    let S = 0;
+    const terms = digits.map((d, i) => { const w = Math.pow(2, n - i) % 11; S += d * w; return `${d}×${w}`; });
+    return `S = ${terms.join(' + ')} = ${S}，S mod 11 = ${S % 11}（与递推终止状态一致），C = (12 − ${S % 11}) mod 11 = ${data.checkDigit}`;
+}
+
 // Helper Functions
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -104,10 +115,11 @@ function renderCode(digits, checkDigit = null) {
 
 async function generateChecksum() {
     const input = codeInput.value.trim();
-    if (!/^\d{6}$/.test(input)) {
-        alert("请输入6位数字主体码");
+    if (!/^\d{1,17}$/.test(input)) {
+        showHint('请输入 1 ~ 17 位数字作为主体码（身份证本体码为 17 位）。');
         return;
     }
+    showHint('');
 
     currentCode = input.split('').map(Number);
     isGenerated = true;
@@ -115,8 +127,6 @@ async function generateChecksum() {
 
     // 1. Render initial code
     renderCode(currentCode);
-    generateBtn.disabled = true;
-    codeInput.disabled = true;
 
     // 2. Calculate
     const checkData = calculateCheckCode(currentCode);
@@ -134,7 +144,8 @@ async function generateChecksum() {
     modFormula.textContent = `P${checkData.steps.length} = ${checkData.finalState}`;
     await sleep(500);
 
-    mapFormula.textContent = `C = (12 - ${checkData.finalState}) mod 11 = ${checkData.checkValue}${checkData.checkValue === 10 ? '，记为 X' : ''}`;
+    mapFormula.textContent = `C = (12 − ${checkData.finalState}) mod 11 = ${checkData.checkValue}${checkData.checkValue === 10 ? '，记为 X' : ''}`;
+    weightFormula.innerHTML = weightedView(currentCode, checkData);
     await sleep(500);
 
     // 4. Append Check Digit
@@ -144,7 +155,7 @@ async function generateChecksum() {
     tamperBtn.disabled = false;
     verifyBtn.disabled = false;
 
-    szTitle.textContent = '铁的纪律';
+    szTitle.textContent = '严谨把关';
     szDesc.textContent = '校验码已生成。主体码按照 ISO 7064 MOD 11-2 的递推规则生成校验字符，用于核验信息是否保持完整。';
 }
 
@@ -165,7 +176,7 @@ function tamperCode() {
     resultStamp.className = 'result-stamp hidden';
 
     szTitle.textContent = '发现偏差';
-    szDesc.textContent = '指令代码已被篡改！这象征着在执行过程中出现了偏差（形式主义、官僚主义），必须立即纠正。';
+    szDesc.textContent = `第 ${idx + 1} 位被改动（${oldVal} → ${newVal}）。点击“核验”，看校验字符能否当场发现这处差错。`;
 }
 
 async function verifyIntegrity() {
@@ -190,14 +201,14 @@ async function verifyIntegrity() {
         // Success
         resultStamp.className = 'result-stamp visible success';
         stampText.textContent = '核验通过';
-        szTitle.textContent = '政令畅通';
-        szDesc.textContent = '经核验，指令完整无误。体现了严格的纪律性和执行力，确保了党中央的决策部署不折不扣地落实。';
+        szTitle.textContent = '核验通过';
+        szDesc.textContent = '重新计算的校验字符与收到的一致，数据完整无误——一道低成本的模运算关卡守住了信息的准确。';
     } else {
         // Fail
         resultStamp.className = 'result-stamp visible fail';
         stampText.textContent = '核验驳回';
-        szTitle.textContent = '纪律审查';
-        szDesc.textContent = '核验失败！检测到指令内容与校验码不符。必须严明纪律，追究责任，确保信息的真实性和准确性。';
+        szTitle.textContent = '差错拦截';
+        szDesc.textContent = 'MOD 11-2 能查出任意单个数字错误和相邻两位换位：重算结果与校验字符不符，差错被当场拦下。';
     }
 }
 
@@ -218,9 +229,13 @@ resetBtn.addEventListener('click', () => {
     codeInput.disabled = false;
     tamperBtn.disabled = true;
     verifyBtn.disabled = true;
-    codeInput.value = '192107';
-    szTitle.textContent = '铁的纪律';
-    szDesc.textContent = '革命指令的传达必须准确无误（完整性），任何微小的偏差（错误）都可能导致严重的后果。校验码机制象征着严格的纪律审查，确保政令畅通。';
+    codeInput.value = '11010519491231002';
+    weightFormula.textContent = '';
+    showHint('');
+    szTitle.textContent = '严谨把关';
+    szDesc.textContent = '信息传递必须准确无误，任何微小的偏差都可能导致严重后果。校验字符以一位冗余守住数据的完整性。';
+    generateChecksum();
 });
 
 // Init
+generateChecksum();
