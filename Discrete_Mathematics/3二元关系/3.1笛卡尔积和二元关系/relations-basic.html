@@ -43,35 +43,17 @@
         .prod-grid { display: inline-grid; gap: 6px; background: rgba(255,255,255,.5); padding: 12px; border-radius: 12px; border: 1px solid rgba(214,59,29,.15); }
         .pcell { min-width: 64px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 7px; font-family: 'JetBrains Mono', Consolas, monospace; font-size: .8rem; transition: all .18s; }
         .pcell.hdr { background: #d63b1d; color: #fff; font-weight: 700; }
-        .pcell.corner { background: transparent; }
+        .pcell.corner { background: transparent; color: #6b4a38; font-size: .72rem; }
+        button.pcell { border: none; font-family: 'JetBrains Mono', Consolas, monospace; }
+        .dm-t-btn { width: 100%; min-height: 42px; padding: 10px; border: none; border-radius: 10px; cursor: pointer; font-family: inherit; font-weight: 600; color: #fff; background: linear-gradient(135deg, #d63b1d, #b8321a); margin-top: 6px; }
+        .dm-t-btn.ghost { background: transparent; color: #6b4a38; border: 1px solid rgba(107, 74, 56, .3); }
         .pcell.pair { background: rgba(214,59,29,.07); color: #b8321a; cursor: pointer; }
         .pcell.pair:hover { background: #ffb400; transform: scale(1.06); }
         .pcell.pair.sel { background: #d63b1d; color: #fff; }
         .dm-t-note { font-size: .82rem; color: #6b4a38; max-width: 560px; text-align: center; line-height: 1.65; }
         .dm-t-note b { color: #d63b1d; }
+        @media (max-width: 768px) { .prod-grid { gap: 4px; padding: 8px; } .pcell { min-width: 44px; height: 34px; font-size: .66rem; } }
     
-        .value-panel {
-            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
-            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
-            box-shadow: var(--shadow-sm);
-        }
-        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
-        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
-        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
-        .value-dims span {
-            padding: 3px 8px; border-radius: 999px; color: #b8321a;
-            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
-            font-size: .74rem; font-weight: 700;
-        }
-        .value-quote {
-            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
-            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
-        }
-        .value-inline {
-            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
-            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
-            color: var(--text-primary); line-height: 1.5;
-        }
     </style>
     <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
@@ -91,16 +73,6 @@
                 
                 
                 
-                <div class="control-group value-consistency-group">
-                    <label>价值映射（与进阶层一致）</label>
-                    <div class="value-panel" data-value-source="SECTION_META.ideology">
-                        <h3>联系的观点 · 普遍联系</h3>
-                        <p>二元关系把『事物普遍联系』这一唯物辩证法基本观点数学化——世界不是孤立个体的堆砌，而是由关系编织的网络。从笛卡尔积的『一切可能』到关系 R 的『真实存在』，启示我们既要看到联系的广泛性，也要尊重客观实际、不臆造联系。</p>
-                        <div class="value-dims"><span>辩证思维</span><span>联系观点</span><span>实事求是</span></div>
-                            <div class="value-quote">事物的普遍联系——二元关系正是把这一哲学命题写成精确数学语言的起点。</div>
-                    </div>
-                </div>
-
                 <div class="control-group">
                     <label>集合 A 的元素个数</label>
                     <div class="dm-t-field"><div class="lab"><span>|A|（地区）</span><span class="v" id="aVal">3</span></div><input type="range" id="aRange" min="1" max="5" value="3"></div>
@@ -110,15 +82,21 @@
                     <div class="dm-t-field"><div class="lab"><span>|B|（项目）</span><span class="v" id="bVal">3</span></div><input type="range" id="bRange" min="1" max="5" value="3"></div>
                 </div>
                 <div class="control-group">
+                    <label>操作</label>
+                    <button class="dm-t-btn" id="swapBtn" type="button">⇄ 交换次序：看 B×A</button>
+                    <button class="dm-t-btn ghost" id="resetBtn" type="button">重置</button>
+                </div>
+                <div class="control-group">
                     <label>原理说明</label>
                     <div class="dm-t-info">
                         <b>有序对</b> (a,b) 讲究次序：(a,b) 与 (b,a) 一般不同。<br><b>笛卡尔积</b> A×B = 所有 (a,b) 的集合，<b>|A×B| = |A|·|B|</b>。
+                        <br>一般 <b>A×B ≠ B×A</b>，但 |A×B| = |B×A|。
                         <div class="pol">每个「地区 × 项目」配对，正是结对帮扶的一种可能联系。</div>
                     </div>
                 </div>
                 <div class="control-group">
                     <label>结果</label>
-                    <div class="dm-t-info" style="text-align:center"><span class="dm-t-eq" id="eqOut">3 × 3 = 9</span><div style="font-size:.76rem;color:#6b4a38;margin-top:4px">有序对总数 |A×B|</div></div>
+                    <div class="dm-t-info" style="text-align:center"><span class="dm-t-eq" id="eqOut">3 × 3 = 9</span><div style="font-size:.76rem;color:#6b4a38;margin-top:4px" id="eqLabel">有序对总数 |A×B|</div></div>
                 </div>
             </div>
         </aside>
@@ -143,29 +121,42 @@
     <script>
         var $ = function (id) { return document.getElementById(id); };
         function sub(s) { return '<sub>' + s + '</sub>'; }
+        var swapped = false;   // false: 显示 A×B；true: 显示 B×A
         function render() {
             var na = +$('aRange').value, nb = +$('bRange').value;
             $('aVal').textContent = na; $('bVal').textContent = nb;
-            $('eqOut').innerHTML = na + ' × ' + nb + ' = <b>' + (na * nb) + '</b>';
+            // 行集合 X、列集合 Y：A×B 时 X=A、Y=B；B×A 时对调
+            var X = swapped ? 'b' : 'a', Y = swapped ? 'a' : 'b';
+            var nx = swapped ? nb : na, ny = swapped ? na : nb;
+            var prod = swapped ? 'B×A' : 'A×B';
+            $('eqOut').innerHTML = '|' + prod + '| = ' + nx + ' × ' + ny + ' = <b>' + (nx * ny) + '</b>';
+            $('eqLabel').textContent = '有序对总数 |' + prod + '|';
+            $('swapBtn').textContent = swapped ? '⇄ 交换次序：回到 A×B' : '⇄ 交换次序：看 B×A';
             var g = $('grid');
-            g.style.gridTemplateColumns = 'repeat(' + (nb + 1) + ', auto)';
-            var html = '<div class="pcell corner"></div>';
-            for (var j = 1; j <= nb; j++) html += '<div class="pcell hdr">b' + sub(j) + '</div>';
-            for (var i = 1; i <= na; i++) {
-                html += '<div class="pcell hdr">a' + sub(i) + '</div>';
-                for (var j2 = 1; j2 <= nb; j2++) html += '<div class="pcell pair" data-p="(a' + i + ',b' + j2 + ')">(a' + sub(i) + ',b' + sub(j2) + ')</div>';
+            g.style.gridTemplateColumns = 'repeat(' + (ny + 1) + ', auto)';
+            var html = '<div class="pcell corner">' + prod + '</div>';
+            for (var j = 1; j <= ny; j++) html += '<div class="pcell hdr">' + Y + sub(j) + '</div>';
+            for (var i = 1; i <= nx; i++) {
+                html += '<div class="pcell hdr">' + X + sub(i) + '</div>';
+                for (var j2 = 1; j2 <= ny; j2++) html += '<button type="button" class="pcell pair" data-p="(' + X + i + ',' + Y + j2 + ')" data-q="(' + Y + j2 + ',' + X + i + ')">(' + X + sub(i) + ',' + Y + sub(j2) + ')</button>';
             }
             g.innerHTML = html;
+            $('note').innerHTML = '点任一格看有序对。行 = ' + (swapped ? 'B' : 'A') + ' 的元素，列 = ' + (swapped ? 'A' : 'B') + ' 的元素，每个交叉格 = 一个有序对，共 ' + (nx * ny) + ' 个。';
             [].forEach.call(g.querySelectorAll('.pcell.pair'), function (c) {
                 c.onclick = function () {
                     var was = c.classList.contains('sel');
                     [].forEach.call(g.querySelectorAll('.pcell.pair'), function (x) { x.classList.remove('sel'); });
-                    if (!was) { c.classList.add('sel'); $('note').innerHTML = '选中有序对 <b>' + c.dataset.p.replace(/(\d)/g, '<sub>$1</sub>') + '</b>。注意它与交换次序后的对一般不同——这就是「有序」。'; }
-                    else $('note').innerHTML = '点任一格看有序对 (aᵢ, bⱼ)。共 ' + (na * nb) + ' 个。';
+                    if (!was) {
+                        c.classList.add('sel');
+                        $('note').innerHTML = '选中有序对 <b>' + c.dataset.p.replace(/(\d)/g, '<sub>$1</sub>') + '</b> ∈ ' + prod + '。交换次序得到的 '
+                            + c.dataset.q.replace(/(\d)/g, '<sub>$1</sub>') + ' 属于 ' + (swapped ? 'A×B' : 'B×A') + '，而不属于 ' + prod + '——这就是「有序」。';
+                    } else $('note').innerHTML = '点任一格看有序对。共 ' + (nx * ny) + ' 个。';
                 };
             });
         }
         $('aRange').oninput = render; $('bRange').oninput = render;
+        $('swapBtn').onclick = function () { swapped = !swapped; render(); };
+        $('resetBtn').onclick = function () { swapped = false; $('aRange').value = 3; $('bRange').value = 3; render(); };
         render();
     </script>
 
@@ -204,55 +195,6 @@
     };
     </script>
     
-    <script data-dm-ideology-bridge="1">
-    (function () {
-        function esc(s) {
-            return String(s || '').replace(/[&<>"']/g, function (c) {
-                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
-            });
-        }
-        function noteHtml() {
-            var ideology = (window.SECTION_META && window.SECTION_META.ideology) || {};
-            var title = ideology.title || '价值引领';
-            var text = ideology.text || '本层延续进阶层的价值主线，在操作中体会数学结构与价值判断的一致性。';
-            return '<span class="value-inline" data-ideology-inline="1"><strong>价值观察：</strong>本层沿用进阶层“'
-                + esc(title) + '”主线。' + esc(text) + '</span>';
-        }
-        function appendIdeologyNote() {
-            if (document.querySelector('[data-ideology-inline="1"]')) return;
-            var resultExtra = document.getElementById('resultExtra');
-            if (resultExtra) {
-                resultExtra.insertAdjacentHTML('beforeend', noteHtml());
-                return;
-            }
-            var anchor = document.querySelector('.result-panel, #eqOut, #note, .visualization-area');
-            if (!anchor) return;
-            if (anchor.id === 'eqOut' || anchor.id === 'note') anchor.insertAdjacentHTML('afterend', noteHtml());
-            else anchor.insertAdjacentHTML('beforeend', noteHtml());
-        }
-        function wrapSetResult() {
-            var original = window.setResult;
-            if (typeof original !== 'function' || original.__ideologyWrapped) return;
-            window.setResult = function () {
-                var ret = original.apply(this, arguments);
-                appendIdeologyNote();
-                return ret;
-            };
-            window.setResult.__ideologyWrapped = true;
-        }
-        function boot() {
-            wrapSetResult();
-            appendIdeologyNote();
-            ['input', 'change', 'click'].forEach(function (eventName) {
-                document.addEventListener(eventName, function () {
-                    setTimeout(appendIdeologyNote, 0);
-                }, true);
-            });
-        }
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-        else boot();
-    })();
-    </script>
     <script src="../../shared/ai-tutor.js" defer></script>
 </body>
 

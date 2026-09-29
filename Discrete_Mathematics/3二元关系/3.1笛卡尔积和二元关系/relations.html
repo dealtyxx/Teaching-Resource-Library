@@ -88,7 +88,7 @@
                     <label>理论解析 (Theory)</label>
                     <div class="insight-card">
                         <h3 id="insightTitle">笛卡尔积 (Cartesian Product)</h3>
-                        <p id="insightText">A × B 代表了所有可能的协作配对。点击右侧连线，建立具体的二元关系 R ⊆ A × B。</p>
+                        <p id="insightText">A × B 是全部可能的协作配对。点击右侧连线或左侧矩阵格子，选出有序对，构成二元关系 R ⊆ A × B。</p>
                     </div>
                 </div>
             </div>
@@ -97,9 +97,14 @@
                 <button id="toggleProductBtn" class="apple-btn secondary-btn" aria-label="显示所有可能 (A×B)">
                     <span class="btn-icon">🌐</span> 显示所有可能 (A×B)
                 </button>
-                <button id="resetBtn" class="apple-btn secondary-btn" aria-label="重置关系">
-                    <span class="btn-icon">🔄</span> 重置关系
-                </button>
+                <div class="btn-row">
+                    <button id="clearBtn" class="apple-btn secondary-btn" aria-label="清空关系">
+                        <span class="btn-icon">🧹</span> 清空关系
+                    </button>
+                    <button id="resetBtn" class="apple-btn secondary-btn" aria-label="重置为示例关系">
+                        <span class="btn-icon">🔄</span> 重置示例
+                    </button>
+                </div>
             </div>
         </aside>
 
@@ -107,7 +112,7 @@
             <div class="glass-pane">
                 <div class="stage-header">
                     <h2 id="stageTitle">东西部协作网络</h2>
-                    <p id="stageSubtitle">构建有序对 (a, b) · 实现共同富裕</p>
+                    <p id="stageSubtitle">从 A × B 中选出有序对 (a, b) · 先富带后富、实现共同富裕</p>
                 </div>
 
                 <div class="graph-container" id="graphContainer">
@@ -132,6 +137,8 @@
                         <!-- Nodes B -->
                     </div>
                 </div>
+
+                <div class="rel-status" id="relStatus" aria-live="polite"></div>
             </div>
         </main>
     </div>

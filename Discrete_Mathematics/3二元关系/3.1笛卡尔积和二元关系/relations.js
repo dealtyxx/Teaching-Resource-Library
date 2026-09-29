@@ -1,5 +1,5 @@
 /**
- * Red Mathematics - Binary Relations Visualizer
+ * 3.1 笛卡尔积和二元关系 · 进阶层：东西部协作网络（二元关系 R ⊆ A×B）
  */
 
 // DOM Elements
@@ -11,6 +11,7 @@ const graphSvg = document.getElementById('graphSvg');
 const matrixContainer = document.getElementById('matrixContainer');
 const toggleProductBtn = document.getElementById('toggleProductBtn');
 const resetBtn = document.getElementById('resetBtn');
+const clearBtn = document.getElementById('clearBtn');
 const insightTitle = document.getElementById('insightTitle');
 const insightText = document.getElementById('insightText');
 
@@ -28,14 +29,16 @@ const SET_B = [
 ];
 
 // State
-let relations = new Set(); // Set of "aId-bId" strings
+// 加载即给出一个示例关系：贵州同时与两地相关，说明关系允许「一对多 / 多对一」
+const DEFAULT_RELATION = ['a1-b1', 'a2-b2', 'a3-b2'];
+let relations = new Set(DEFAULT_RELATION); // Set of "aId-bId" strings
 let showCartesian = false;
 
 // Initialization
 function init() {
     renderNodes();
     renderMatrix();
-    renderLines(); // Initial lines (hidden or faint)
+    renderLines(); // 连线在布局完成后生成，生成后再同步状态
     updateUI();
 }
 
@@ -81,7 +84,7 @@ function renderNodes() {
 function renderMatrix() {
     // Grid template: Header row + A rows
     // Columns: Header col + B cols
-    matrixContainer.style.gridTemplateColumns = `auto repeat(${SET_B.length}, 1fr)`;
+    matrixContainer.style.gridTemplateColumns = `auto repeat(${SET_B.length}, 40px)`;
     matrixContainer.innerHTML = '';
 
     // Top-Left Empty
@@ -162,12 +165,22 @@ function renderLines() {
                 line.setAttribute('class', 'relation-line hidden'); // Default hidden
                 line.id = `line-${a.id}-${b.id}`;
 
-                // Click handler
-                line.addEventListener('click', () => toggleRelation(a.id, b.id));
+                // 透明的宽描边作为点击热区（细线难以点中；未建立的关系线不可见时也能点）
+                const hit = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                hit.setAttribute('d', d);
+                hit.setAttribute('class', 'relation-hit');
+                hit.addEventListener('click', () => toggleRelation(a.id, b.id));
+                hit.addEventListener('mouseenter', () => line.classList.add('hover'));
+                hit.addEventListener('mouseleave', () => line.classList.remove('hover'));
+                const tip = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                tip.textContent = `(${a.name}, ${b.name})：点击建立 / 解除`;
+                hit.appendChild(tip);
 
                 graphSvg.appendChild(line);
+                graphSvg.appendChild(hit);
             });
         });
+        lastLayoutSig = layoutSignature();
         updateUI(); // Apply initial state
     }, 100);
 }
@@ -209,32 +222,49 @@ function updateUI() {
                     line.setAttribute('opacity', '1');
                 } else {
                     line.removeAttribute('marker-end');
-                    line.setAttribute('stroke', '#e0e0e0');
+                    line.setAttribute('stroke', '#a8775a');
                     line.setAttribute('stroke-width', '2');
                     if (showCartesian) {
                         line.setAttribute('class', 'relation-line faint');
-                        line.setAttribute('opacity', '0.1');
+                        line.setAttribute('opacity', '0.4');
                     } else {
                         line.setAttribute('class', 'relation-line hidden');
                         line.setAttribute('opacity', '0');
                     }
                 }
-            } else {
-                console.error(`Line ${key} not found!`);
             }
         });
     });
+    renderStatus();
+}
+
+// 关系的集合写法与规模统计
+function renderStatus() {
+    const box = document.getElementById('relStatus');
+    if (!box) return;
+    const name = id => (SET_A.find(x => x.id === id) || SET_B.find(x => x.id === id)).name;
+    const pairs = [];
+    SET_A.forEach(a => SET_B.forEach(b => {
+        if (relations.has(`${a.id}-${b.id}`)) pairs.push(`(${name(a.id)}, ${name(b.id)})`);
+    }));
+    const total = SET_A.length * SET_B.length;
+    box.innerHTML = `<div class="rel-set">R = ${pairs.length ? '{ ' + pairs.join(', ') + ' }' : '∅（空关系）'}</div>`
+        + `<div class="rel-stats"><span>|R| = <b>${pairs.length}</b></span>`
+        + `<span>|A×B| = ${SET_A.length}×${SET_B.length} = <b>${total}</b></span>`
+        + `<span>A 到 B 的关系共 2<sup>${total}</sup> = <b>${Math.pow(2, total)}</b> 个</span></div>`;
 }
 
 function updateInsight(aId, bId, added) {
     if (added) {
         const a = SET_A.find(i => i.id === aId);
         const b = SET_B.find(i => i.id === bId);
-        insightTitle.textContent = "建立协作关系 (Relation Established)";
+        insightTitle.textContent = "建立协作关系";
         insightText.textContent = `有序对 (${a.name}, ${b.name}) 已加入关系集合 R。这意味着 ${a.name} 将向 ${b.name} 提供资源或技术支持，体现了先富带后富的战略思想。`;
     } else {
         insightTitle.textContent = "关系解除";
-        insightText.textContent = "该协作关系已从集合 R 中移除。";
+        const a = SET_A.find(i => i.id === aId);
+        const b = SET_B.find(i => i.id === bId);
+        insightText.textContent = `有序对 (${a.name}, ${b.name}) 已从 R 中移除，但它仍在 A × B 之中——笛卡尔积不变，变的只是我们选出的子集。`;
     }
 }
 
@@ -246,23 +276,46 @@ toggleProductBtn.addEventListener('click', () => {
 
     if (showCartesian) {
         insightTitle.textContent = "笛卡尔积 (A × B)";
-        insightText.textContent = "当前视图显示了 A 和 B 之间所有可能的 9 种配对 (虚线)。这是构建具体关系的'可能性空间'。";
+        insightText.textContent = `虚线给出 A 与 B 之间全部 ${SET_A.length * SET_B.length} 个有序对，这是构建关系的「可能性空间」；实线是已选入 R 的有序对。`;
     } else {
         insightTitle.textContent = "当前关系 (R)";
-        insightText.textContent = "仅显示已建立的协作关系 (实线)。R 是 A × B 的子集。";
+        insightText.textContent = "仅显示已建立的协作关系（实线）。R 是 A × B 的子集。";
     }
 });
 
 resetBtn.addEventListener('click', () => {
-    relations.clear();
+    relations = new Set(DEFAULT_RELATION);
     updateUI();
-    insightTitle.textContent = "系统重置";
-    insightText.textContent = "所有关系已清空。请重新规划协作路径。";
+    insightTitle.textContent = "恢复示例关系";
+    insightText.textContent = "已恢复示例 R = {(上海, 云南), (浙江, 贵州), (广东, 贵州)}。贵州与两地都有关系——二元关系允许一对多、多对一。";
 });
 
-// Handle window resize
+clearBtn.addEventListener('click', () => {
+    relations.clear();
+    updateUI();
+    insightTitle.textContent = "空关系 ∅";
+    insightText.textContent = "R = ∅ 也是 A × B 的子集，称为空关系。请点击连线或矩阵格子重新选出有序对。";
+});
+
+// 窗口尺寸变化时重算连线；只有布局真的变了才重绘
+// （共享框架会在 DOM 变化后派发 resize，无条件重绘会形成「重绘→resize→重绘」循环，连线永远停在淡入起点而不可见）
+let lastLayoutSig = '';
+function layoutSignature() {
+    const r = graphSvg.getBoundingClientRect();
+    const ids = ['a1', 'a3', 'b1', 'b3'].map(id => {
+        const n = document.getElementById(`node-${id}`);
+        const q = n ? n.getBoundingClientRect() : { left: 0, top: 0 };
+        return Math.round(q.left - r.left) + ',' + Math.round(q.top - r.top);
+    });
+    return Math.round(r.width) + 'x' + Math.round(r.height) + ':' + ids.join(';');
+}
+let resizeTimer = null;
 window.addEventListener('resize', () => {
-    renderLines();
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+        const sig = layoutSignature();
+        if (sig !== lastLayoutSig) renderLines();
+    }, 120);
 });
 
 // Init

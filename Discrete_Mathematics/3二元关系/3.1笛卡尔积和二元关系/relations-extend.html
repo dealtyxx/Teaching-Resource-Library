@@ -48,32 +48,21 @@
         .mcell.b0 { background: rgba(214,59,29,.06); color: #c9a; cursor: pointer; }
         .mcell.b1 { background: #d63b1d; color: #fff; cursor: pointer; font-weight: 700; }
         .mcell.b0:hover, .mcell.b1:hover { outline: 2px solid #ffb400; }
-        .rset { font-family: 'JetBrains Mono', Consolas, monospace; font-size: .82rem; color: #b8321a; max-width: 520px; text-align: center; line-height: 1.7; margin-top: 4px; }
+        .rset { font-family: 'JetBrains Mono', Consolas, monospace; font-size: .82rem; color: #b8321a; max-width: 760px; margin-left: auto; margin-right: auto; text-align: center; line-height: 1.7; margin-top: 4px; }
         .rset b { color: #d63b1d; }
-        svg.bip text { font-family: 'JetBrains Mono', Consolas, monospace; font-size: 12px; fill: #b8321a; }
+        svg.bip text { font-family: 'JetBrains Mono', Consolas, monospace; font-size: 12px; fill: #2c1810; font-weight: 700; }
+        svg.bip text.on-red { fill: #fff; }
+        .dm-t-btn { min-height: 42px; }
+        .dm-t-btn.ghost { background: transparent; color: #6b4a38; border: 1px solid rgba(107, 74, 56, .3); }
+        .db-table { border-collapse: collapse; font-family: 'JetBrains Mono', Consolas, monospace; font-size: .8rem; min-width: 150px; margin: 0 auto; }
+        .db-table th { background: #d63b1d; color: #fff; padding: 5px 12px; font-weight: 700; }
+        .db-table td { padding: 4px 12px; border-bottom: 1px solid rgba(214,59,29,.12); text-align: center; color: #2c1810; }
+        .db-table tr:nth-child(even) td { background: rgba(255,180,0,.08); }
+        .db-wrap { max-height: 250px; overflow-y: auto; }
+        .db-empty { color: #6b4a38; font-size: .8rem; text-align: center; padding: 8px; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; font-size: .8rem; color: #6b4a38; text-align: left; }
+        .stat-grid b { font-family: 'JetBrains Mono', Consolas, monospace; color: #d63b1d; }
     
-        .value-panel {
-            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
-            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
-            box-shadow: var(--shadow-sm);
-        }
-        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
-        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
-        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
-        .value-dims span {
-            padding: 3px 8px; border-radius: 999px; color: #b8321a;
-            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
-            font-size: .74rem; font-weight: 700;
-        }
-        .value-quote {
-            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
-            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
-        }
-        .value-inline {
-            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
-            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
-            color: var(--text-primary); line-height: 1.5;
-        }
     </style>
     <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
@@ -93,16 +82,6 @@
                 
                 
                 
-                <div class="control-group value-consistency-group">
-                    <label>价值映射（与进阶层一致）</label>
-                    <div class="value-panel" data-value-source="SECTION_META.ideology">
-                        <h3>联系的观点 · 普遍联系</h3>
-                        <p>二元关系把『事物普遍联系』这一唯物辩证法基本观点数学化——世界不是孤立个体的堆砌，而是由关系编织的网络。从笛卡尔积的『一切可能』到关系 R 的『真实存在』，启示我们既要看到联系的广泛性，也要尊重客观实际、不臆造联系。</p>
-                        <div class="value-dims"><span>辩证思维</span><span>联系观点</span><span>实事求是</span></div>
-                            <div class="value-quote">事物的普遍联系——二元关系正是把这一哲学命题写成精确数学语言的起点。</div>
-                    </div>
-                </div>
-
                 <div class="control-group">
                     <label>集合 A 元素数</label>
                     <div class="dm-t-field"><div class="lab"><span>|A|</span><span class="v" id="aVal">4</span></div><input type="range" id="aRange" min="2" max="5" value="4"></div>
@@ -114,17 +93,23 @@
                 <div class="control-group">
                     <label>操作</label>
                     <button class="dm-t-btn" id="randBtn">🎲 随机生成一个关系</button>
-                    <button class="dm-t-btn ghost" id="clearBtn">清空</button>
+                    <button class="dm-t-btn ghost" id="clearBtn">清空（空关系 ∅）</button>
+                    <button class="dm-t-btn ghost" id="resetBtn">重置示例</button>
                 </div>
                 <div class="control-group">
                     <label>原理说明</label>
                     <div class="dm-t-info">
-                        <b>二元关系 R 就是 A×B 的一个子集</b>：从「一切可能的有序对」中，挑出真实存在的联系。<br>同一个 R 可看成 <b>0-1 矩阵</b>，也可看成 <b>有向图的边集</b>。
+                        <b>二元关系 R 就是 A×B 的一个子集</b>：从「一切可能的有序对」中，挑出真实存在的联系。<br>同一个 R 有三种等价的工程形态：<b>0-1 矩阵</b>（邻接矩阵）、<b>二部图的边集</b>、<b>两列的数据表</b>（关系数据库中的一张表）。<br>定义域 dom R = 出现在第一分量的元素；值域 ran R = 出现在第二分量的元素。
                     </div>
                 </div>
                 <div class="control-group">
                     <label>统计</label>
-                    <div class="dm-t-info" style="text-align:center"><span style="font-family:'JetBrains Mono', Consolas, monospace;font-size:1.3rem;color:#d63b1d;font-weight:700" id="cardOut">0</span><div style="font-size:.76rem;color:#6b4a38">|R|（选中的有序对数）｜ A×B 共 <span id="totOut">16</span> 个</div></div>
+                    <div class="dm-t-info"><div class="stat-grid">
+                        <span>|R| = <b id="cardOut">0</b></span><span>|A×B| = <b id="totOut">16</b></span>
+                        <span>密度 = <b id="densOut">0%</b></span><span>关系总数 = <b id="numOut">2^16</b></span>
+                        <span style="grid-column:1/-1">dom R = <b id="domOut">∅</b></span>
+                        <span style="grid-column:1/-1">ran R = <b id="ranOut">∅</b></span>
+                    </div></div>
                 </div>
             </div>
         </aside>
@@ -140,6 +125,10 @@
                         <div class="dm-t-card">
                             <h3>② 二部有向图（A → B）</h3>
                             <svg id="bip" class="bip" width="240" height="260" viewBox="0 0 240 260"></svg>
+                        </div>
+                        <div class="dm-t-card">
+                            <h3>③ 数据表视图（关系 = 一张表）</h3>
+                            <div class="db-wrap" id="dbTable"></div>
                         </div>
                     </div>
                     <div class="rset" id="rset"></div>
@@ -184,20 +173,37 @@
             var svg = '';
             for (var k in R) { var p = k.split('_'); var i = +p[0], j = +p[1]; var y1 = top + (i - 1) * gap, y2 = top + (j - 1) * gap; svg += '<line x1="' + lx + '" y1="' + y1 + '" x2="' + rx + '" y2="' + y2 + '" stroke="#d63b1d" stroke-width="2" opacity="0.7"/>'; }
             for (var i2 = 1; i2 <= na; i2++) { var y = top + (i2 - 1) * gap; svg += '<circle cx="' + lx + '" cy="' + y + '" r="13" fill="#ffb400"/><text x="' + lx + '" y="' + (y + 4) + '" text-anchor="middle">a' + i2 + '</text>'; }
-            for (var j3 = 1; j3 <= nb; j3++) { var y3 = top + (j3 - 1) * gap; svg += '<circle cx="' + rx + '" cy="' + y3 + '" r="13" fill="#d63b1d"/><text x="' + rx + '" y="' + (y3 + 4) + '" text-anchor="middle" fill="#fff">b' + j3 + '</text>'; }
+            for (var j3 = 1; j3 <= nb; j3++) { var y3 = top + (j3 - 1) * gap; svg += '<circle cx="' + rx + '" cy="' + y3 + '" r="13" fill="#d63b1d"/><text class="on-red" x="' + rx + '" y="' + (y3 + 4) + '" text-anchor="middle">b' + j3 + '</text>'; }
             $('bip').setAttribute('viewBox', '0 0 ' + W + ' ' + (top + Math.max(na, nb) * gap + 10));
             $('bip').innerHTML = svg;
         }
+        function sortKeys() {
+            return Object.keys(R).sort(function (x, y) { var p = x.split('_'), q = y.split('_'); return (p[0] - q[0]) || (p[1] - q[1]); });
+        }
         function renderStats() {
-            var ks = Object.keys(R); $('cardOut').textContent = ks.length;
+            var ks = sortKeys(); $('cardOut').textContent = ks.length;
+            var tot = na * nb, dom = {}, ran = {};
+            ks.forEach(function (k) { var p = k.split('_'); dom[p[0]] = 1; ran[p[1]] = 1; });
+            function setStr(o, c) { var a = Object.keys(o).sort(); return a.length ? '{' + a.map(function (x) { return c + x; }).join(', ') + '}' : '∅'; }
+            $('densOut').textContent = Math.round(ks.length * 100 / tot) + '%';
+            $('numOut').innerHTML = '2<sup>' + tot + '</sup>';
+            $('domOut').innerHTML = setStr(dom, 'a').replace(/(\d)/g, '<sub>$1</sub>');
+            $('ranOut').innerHTML = setStr(ran, 'b').replace(/(\d)/g, '<sub>$1</sub>');
+            $('dbTable').innerHTML = ks.length
+                ? '<table class="db-table"><thead><tr><th>A</th><th>B</th></tr></thead><tbody>' + ks.map(function (k) { var p = k.split('_'); return '<tr><td>a' + sub(p[0]) + '</td><td>b' + sub(p[1]) + '</td></tr>'; }).join('') + '</tbody></table>'
+                : '<div class="db-empty">空表：R = ∅</div>';
             var pairs = ks.map(function (k) { var p = k.split('_'); return '(a' + p[0] + ',b' + p[1] + ')'; });
             $('rset').innerHTML = ks.length ? 'R = { ' + pairs.join(', ').replace(/(\d)/g, '<sub>$1</sub>') + ' } ⊆ A×B' : 'R = ∅（空关系）。点矩阵格子或「随机生成」来选出有序对，组成一个二元关系。';
         }
         $('aRange').oninput = renderAll; $('bRange').oninput = renderAll;
         $('randBtn').onclick = function () { R = {}; for (var i = 1; i <= na; i++) for (var j = 1; j <= nb; j++) if (Math.random() < 0.4) R[key(i, j)] = 1; renderMtx(); renderBip(); renderStats(); };
         $('clearBtn').onclick = function () { R = {}; renderMtx(); renderBip(); renderStats(); };
+        // 固定的示例关系：加载与重置时展示（随机生成仍可用）
+        var SAMPLE = ['1_1', '2_1', '3_1', '3_4', '4_2', '4_3', '4_4'];
+        function loadSample() { R = {}; SAMPLE.forEach(function (k) { R[k] = 1; }); }
+        $('resetBtn').onclick = function () { $('aRange').value = 4; $('bRange').value = 4; loadSample(); renderAll(); };
+        loadSample();
         renderAll();
-        $('randBtn').onclick();
     </script>
 
     <!-- ===== 共享升级框架：学习助手 + 三阶导航 ===== -->
@@ -235,55 +241,6 @@
     };
     </script>
     
-    <script data-dm-ideology-bridge="1">
-    (function () {
-        function esc(s) {
-            return String(s || '').replace(/[&<>"']/g, function (c) {
-                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
-            });
-        }
-        function noteHtml() {
-            var ideology = (window.SECTION_META && window.SECTION_META.ideology) || {};
-            var title = ideology.title || '价值引领';
-            var text = ideology.text || '本层延续进阶层的价值主线，在操作中体会数学结构与价值判断的一致性。';
-            return '<span class="value-inline" data-ideology-inline="1"><strong>价值观察：</strong>本层沿用进阶层“'
-                + esc(title) + '”主线。' + esc(text) + '</span>';
-        }
-        function appendIdeologyNote() {
-            if (document.querySelector('[data-ideology-inline="1"]')) return;
-            var resultExtra = document.getElementById('resultExtra');
-            if (resultExtra) {
-                resultExtra.insertAdjacentHTML('beforeend', noteHtml());
-                return;
-            }
-            var anchor = document.querySelector('.result-panel, #eqOut, #note, .visualization-area');
-            if (!anchor) return;
-            if (anchor.id === 'eqOut' || anchor.id === 'note') anchor.insertAdjacentHTML('afterend', noteHtml());
-            else anchor.insertAdjacentHTML('beforeend', noteHtml());
-        }
-        function wrapSetResult() {
-            var original = window.setResult;
-            if (typeof original !== 'function' || original.__ideologyWrapped) return;
-            window.setResult = function () {
-                var ret = original.apply(this, arguments);
-                appendIdeologyNote();
-                return ret;
-            };
-            window.setResult.__ideologyWrapped = true;
-        }
-        function boot() {
-            wrapSetResult();
-            appendIdeologyNote();
-            ['input', 'change', 'click'].forEach(function (eventName) {
-                document.addEventListener(eventName, function () {
-                    setTimeout(appendIdeologyNote, 0);
-                }, true);
-            });
-        }
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-        else boot();
-    })();
-    </script>
     <script src="../../shared/ai-tutor.js" defer></script>
 </body>
 

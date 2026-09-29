@@ -192,7 +192,7 @@ label {
 .matrix-container {
     display: grid;
     /* Grid template set by JS */
-    gap: 4px;
+    gap: 6px;
     background: #f0f0f0;
     padding: 8px;
     border-radius: 8px;
@@ -200,8 +200,8 @@ label {
 }
 
 .matrix-cell {
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 32px;
     background: #fff;
     display: flex;
     justify-content: center;
@@ -273,21 +273,40 @@ label {
 
 .secondary-btn {
     width: 100%;
-    padding: 12px;
+    min-height: 42px;
+    padding: 10px 12px;
     background: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(214, 59, 29, 0.55);
     border-radius: 12px;
-    color: var(--text-primary);
+    color: var(--accent-red);
+    font-family: inherit;
     font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
+    transition: all 0.2s;
 }
 
 .secondary-btn:hover {
-    background: #f5f5f5;
+    background: rgba(214, 59, 29, 0.06);
+}
+
+.secondary-btn.active {
+    background: linear-gradient(135deg, #d63b1d, #b8321a);
+    border-color: transparent;
+    color: #fff;
+}
+
+.btn-row .secondary-btn {
+    background: transparent;
+    border-color: rgba(107, 74, 56, 0.3);
+    color: var(--text-secondary);
+}
+
+.btn-row .secondary-btn:hover {
+    background: rgba(107, 74, 56, 0.06);
 }
 
 /* Main Stage */
@@ -325,8 +344,7 @@ label {
 .stage-header p {
     font-size: 1rem;
     color: var(--text-secondary);
-    font-family: var(--font-mono);
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
 }
 
 /* Graph Container */
@@ -406,14 +424,26 @@ label {
     stroke: #e0e0e0;
     stroke-width: 2;
     fill: none;
-    cursor: pointer;
-    pointer-events: auto;
+    pointer-events: none;
     transition: all 0.3s;
 }
 
-.relation-line:hover {
-    stroke: #ccc;
+.relation-hit {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 16;
+    cursor: pointer;
+    pointer-events: stroke;
+}
+
+.relation-line.hover {
+    opacity: 0.55 !important;
     stroke-width: 4;
+    stroke-dasharray: none;
+}
+
+.relation-line.active.hover {
+    opacity: 1 !important;
 }
 
 .relation-line.active {
@@ -425,10 +455,65 @@ label {
 
 .relation-line.hidden {
     opacity: 0;
-    pointer-events: none;
 }
 
 .relation-line.faint {
-    opacity: 0.1;
-    stroke-dasharray: 5, 5;
+    stroke-dasharray: 6, 5;
+}
+
+/* 关系的集合写法与规模统计 */
+.btn-row {
+    display: flex;
+    gap: 8px;
+}
+
+.rel-status {
+    margin-top: 0.8rem;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: rgba(255, 251, 240, 0.9);
+    border: 1px solid rgba(214, 59, 29, 0.15);
+    text-align: center;
+    line-height: 1.7;
+}
+
+.rel-set {
+    font-weight: 600;
+    color: var(--accent-red);
+}
+
+.rel-stats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 18px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.rel-stats b {
+    font-family: var(--font-mono);
+    color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+    .graph-container {
+        padding: 0 4px;
+        height: 330px;
+        flex-grow: 0;
+    }
+
+    .column {
+        height: 92%;
+    }
+
+    .glass-pane {
+        padding: 1rem 0.8rem;
+    }
+
+    .node {
+        width: 96px;
+        padding: 8px 6px;
+        font-size: 0.82rem;
+    }
 }
