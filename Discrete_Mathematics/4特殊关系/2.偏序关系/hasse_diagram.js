@@ -49,6 +49,7 @@ const NODE_GAP = 18;
 let nodes = [];
 let edges = [];
 let selectedNodes = new Set();
+const highlightState = new Map(); // id -> 'red' | 'gold' | 'green'（窗口重排时保留高亮）
 let width, height;
 
 // Initialization
@@ -57,12 +58,19 @@ function init() {
     calculateLayout();
     renderDiagram();
     setupInteractions();
+    centerScroll();
+}
+
+// 手机端图区可横向滑动：初始居中显示
+function centerScroll() {
+    const c = document.getElementById('diagramContainer');
+    if (c && c.scrollWidth > c.clientWidth) c.scrollLeft = (c.scrollWidth - c.clientWidth) / 2;
 }
 
 function calculateLayout() {
     const container = document.getElementById('diagramContainer');
     const rect = container.getBoundingClientRect();
-    width = Math.max(620, Math.round(rect.width || container.clientWidth || 760));
+    width = Math.max(760, Math.round(rect.width || container.clientWidth || 760)); // 5 个并列节点至少需要约 740px
     height = Math.max(430, Math.round(rect.height || container.clientHeight || 520));
 
     diagramSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
@@ -128,6 +136,9 @@ function renderDiagram() {
         g.dataset.id = node.id;
         if (selectedNodes.has(node.id)) {
             g.classList.add('selected');
+        }
+        if (highlightState.has(node.id)) {
+            g.classList.add(`highlight-${highlightState.get(node.id)}`);
         }
 
         const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -243,7 +254,7 @@ function showExtremes() {
     highlightNode('s8', 'gold');
 
     updateConcept('极值元 (Extremal Elements)',
-        '最小元(Minimum)：集合中所有元素都以其为基础，即"党的领导"是各项事业的根本保证。<br>最大元(Maximum)：集合中所有元素都指向的最终目标，即"伟大复兴"。',
+        '本偏序集只有一个极小元「党的领导」、一个极大元「伟大复兴」，且它们与所有元素都可比，所以分别也是<b>最小元</b>与<b>最大元</b>。<br>注意区分：极小元是「没有比它更小的」，最小元是「比所有元素都小」；最小元若存在必唯一，极小元可以有多个。',
         'Min: ∀x∈S, min≼x; Max: ∀x∈S, x≼max',
         '🏔️',
         '办好中国的事情，关键在党。党的领导是复兴大业的定海神针（最小元）；中华民族伟大复兴是近代以来最伟大的梦想（最大元）。'
@@ -264,7 +275,7 @@ function showAntichain() {
 
 function showBounds(type) {
     if (selectedNodes.size === 0) {
-        alert('请先选择至少一个节点');
+        ch4Toast('请先在哈斯图中点击选择至少一个元素，再求上界或下界。');
         return;
     }
 
@@ -293,6 +304,14 @@ function showBounds(type) {
 
     let bounds = null;
 
+    // 子集 B 自身的极大/极小元与最大/最小元（与上下界区分）
+    const nameOf = id => nodes.find(n => n.id === id).name;
+    const below = (x, y) => descendants[x].includes(y); // x ≺ y
+    const maxEl = selectedIds.filter(x => !selectedIds.some(y => below(x, y)));
+    const minEl = selectedIds.filter(x => !selectedIds.some(y => below(y, x)));
+    const subsetNote = `<br><span class="subset-note">子集 B = {${selectedIds.map(nameOf).join('，')}}：极大元 {${maxEl.map(nameOf).join('，')}}，` +
+        `最大元 ${maxEl.length === 1 ? nameOf(maxEl[0]) : '不存在'}；极小元 {${minEl.map(nameOf).join('，')}}，最小元 ${minEl.length === 1 ? nameOf(minEl[0]) : '不存在'}。</span>`;
+
     if (type === 'lower') {
         // Intersection of ancestors (plus self)
         selectedIds.forEach(id => {
@@ -307,7 +326,7 @@ function showBounds(type) {
             const glb = Array.from(bounds).sort((a, b) => nodes.find(n => n.id === b).level - nodes.find(n => n.id === a).level)[0];
 
             updateConcept('下界与最大下界 (Lower Bound & GLB)',
-                '下界是所有选定元素的共同基础。最大下界(GLB)是其中最"紧"的基础。',
+                `下界：比 B 中每个元素都小（≼）的元素，共 ${bounds.size} 个（红色）。最大下界（下确界）${nodes.find(n => n.id === glb).name} 是其中最大的一个。` + subsetNote,
                 'GLB(S) = max{x | ∀s∈S, x≼s}',
                 '⬇️',
                 `对于选定的战略，${nodes.find(n => n.id === glb).name}是它们共同的、最直接的支撑基础。`
@@ -327,7 +346,7 @@ function showBounds(type) {
             const lub = Array.from(bounds).sort((a, b) => nodes.find(n => n.id === a).level - nodes.find(n => n.id === b).level)[0];
 
             updateConcept('上界与最小上界 (Upper Bound & LUB)',
-                '上界是所有选定元素的共同目标。最小上界(LUB)是其中最"近"的目标。',
+                `上界：比 B 中每个元素都大（≽）的元素，共 ${bounds.size} 个（金色）。最小上界（上确界）${nodes.find(n => n.id === lub).name} 是其中最小的一个。` + subsetNote,
                 'LUB(S) = min{x | ∀s∈S, s≼x}',
                 '⬆️',
                 `选定的战略最终都汇聚于${nodes.find(n => n.id === lub).name}，这是它们共同的奋斗指向。`
@@ -338,11 +357,13 @@ function showBounds(type) {
 
 // Helpers
 function highlightNode(id, color) {
+    highlightState.set(id, color);
     const el = document.querySelector(`.node-group[data-id="${id}"]`);
     if (el) el.classList.add(`highlight-${color}`);
 }
 
 function clearHighlights() {
+    highlightState.clear();
     document.querySelectorAll('.node-group').forEach(el => {
         el.classList.remove('highlight-gold', 'highlight-red', 'highlight-green');
     });
