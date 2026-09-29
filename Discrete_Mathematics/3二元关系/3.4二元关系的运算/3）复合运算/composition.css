@@ -6,14 +6,13 @@
     --text-primary: #2c1810;
     --text-secondary: #6b4a38;
 
-    --accent-blue: #2f5f9f;
-    /* Goal */
     --accent-red: #d63b1d;
-    /* Action */
-    --accent-green: #1f9d55;
-    /* Result */
     --accent-gold: #c58a1f;
-    /* Composite */
+    /* 三层配色统一为本站红金墨：目标=主红、举措=金、成果=墨褐、复合=深红 */
+    --layer-a: #d63b1d;
+    --layer-b: #c58a1f;
+    --layer-c: #6b4a38;
+    --layer-comp: #b8321a;
 
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
@@ -23,85 +22,14 @@
     --font-title: "Ma Shan Zheng", "Noto Serif SC", cursive;
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 
-body {
-    font-family: var(--font-family);
-color: var(--text-primary);
-    height: 100vh;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-/* Blueprint/Planning abstract */
-background-position: center;
-    background-color: #f0f4ff;
-    background-image:
-        radial-gradient(circle at 20% 20%, rgba(47, 95, 159,0.16) 0 95px, transparent 97px),
-        radial-gradient(circle at 80% 80%, rgba(214,59,29,0.13) 0 75px, transparent 77px),
-        radial-gradient(circle at 50% 50%, rgba(0,82,204,0.07) 0 155px, transparent 157px),
-        repeating-linear-gradient(45deg, rgba(47, 95, 159,0.10) 0 1px, transparent 1px 44px),
-        repeating-linear-gradient(-45deg, rgba(0,82,204,0.07) 0 1px, transparent 1px 44px),
-        linear-gradient(160deg, #f0f4ff 0%, #e8eeff 50%, #f4f0ff 100%);
-    background-size: auto, auto, auto, 44px 44px, 44px 44px, cover;
-    background-position: center;
-    background-repeat: no-repeat;
-}
 
-.app-container {
-    width: 95vw;
-    height: 90vh;
-    max-width: 1600px;
-    background: rgba(255, 252, 245, 0.95);
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
-    border-radius: 24px;
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-md);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
 
 /* Header */
-.main-header {
-    padding: 1.5rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--glass-border);
-    background: rgba(255, 255, 255, 0.5);
-}
 
-.header-content h1 {
-    font-family: var(--font-title);
-    font-size: 2rem;
-    font-weight: 400;
-    color: var(--text-primary);
-}
 
-.highlight {
-    background: linear-gradient(45deg, var(--accent-blue), var(--accent-red), var(--accent-green));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
 
-.subtitle {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    font-style: italic;
-    margin-top: -5px;
-}
 
-.header-controls {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
 
 .apple-btn {
     padding: 10px 20px;
@@ -117,7 +45,7 @@ background-position: center;
 }
 
 .primary-btn {
-    background: var(--accent-gold);
+    background: var(--layer-comp);
     color: white;
     box-shadow: 0 4px 12px rgba(197, 160, 89, 0.3);
 }
@@ -196,15 +124,15 @@ background-position: center;
 }
 
 .dot.blue {
-    background: var(--accent-blue);
+    background: var(--layer-a);
 }
 
 .dot.red {
-    background: var(--accent-red);
+    background: var(--layer-b);
 }
 
 .dot.green {
-    background: var(--accent-green);
+    background: var(--layer-c);
 }
 
 .arrow {
@@ -261,18 +189,18 @@ background-position: center;
 }
 
 .graph-node.layer-a {
-    border-color: var(--accent-blue);
-    color: var(--accent-blue);
+    border-color: var(--layer-a);
+    color: var(--layer-a);
 }
 
 .graph-node.layer-b {
-    border-color: var(--accent-red);
-    color: var(--accent-red);
+    border-color: var(--layer-b);
+    color: var(--layer-b);
 }
 
 .graph-node.layer-c {
-    border-color: var(--accent-green);
-    color: var(--accent-green);
+    border-color: var(--layer-c);
+    color: var(--layer-c);
 }
 
 .node-icon {
@@ -289,22 +217,22 @@ background-position: center;
 }
 
 .edge-r {
-    stroke: var(--accent-blue);
+    stroke: var(--layer-a);
     marker-end: url(#arrowhead-blue);
     opacity: 0.6;
 }
 
 .edge-s {
-    stroke: var(--accent-red);
+    stroke: var(--layer-b);
     marker-end: url(#arrowhead-red);
     opacity: 0.6;
 }
 
 .edge-comp {
-    stroke: var(--accent-gold);
+    stroke: var(--layer-comp);
     marker-end: url(#arrowhead-gold);
     stroke-width: 3;
-    filter: drop-shadow(0 0 4px var(--accent-gold));
+    filter: drop-shadow(0 0 4px rgba(255, 180, 0, 0.8));
     stroke-dasharray: 1000;
     stroke-dashoffset: 1000;
     animation: draw 1.5s forwards ease-in-out;
@@ -368,15 +296,15 @@ background-position: center;
 }
 
 #gridR .matrix-cell.active {
-    background: var(--accent-blue);
+    background: var(--layer-a);
 }
 
 #gridS .matrix-cell.active {
-    background: var(--accent-red);
+    background: var(--layer-b);
 }
 
 #gridRes .matrix-cell.active {
-    background: var(--accent-gold);
+    background: var(--layer-comp);
 }
 
 .matrix-op {
@@ -386,19 +314,76 @@ background-position: center;
 }
 
 /* Footer */
-.insight-footer {
-    padding: 1rem 2rem;
-    background: #fff;
-    border-top: 1px solid var(--glass-border);
-}
 
 .insight-content h4 {
     font-size: 1.1rem;
-    color: var(--accent-gold);
+    color: var(--layer-comp);
     margin-bottom: 4px;
 }
 
 .insight-content p {
     font-size: 0.95rem;
     color: var(--text-secondary);
+}
+
+/* 侧栏中的解读块（原 <footer class="insight-footer">，已改为 section） */
+.insight-footer {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px;
+    background: #fffdf5;
+    border: 1px solid rgba(197, 160, 89, 0.25);
+    border-left: 4px solid var(--accent-gold, #c58a1f);
+    border-radius: 12px;
+}
+
+.atomic-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.atomic-controls .apple-btn {
+    width: 100%;
+    min-height: 42px;
+    justify-content: center;
+}
+
+.split-stage {
+    min-height: 0;
+}
+
+/* 侧栏窗口圆点保持统一的红黄绿（本页图例也用 .dot） */
+.window-controls .dot.red { background: #ff5f56; }
+.window-controls .dot.yellow { background: #ffbd2e; }
+.window-controls .dot.green { background: #27c93f; }
+.window-controls .dot { width: 12px; height: 12px; }
+
+.matrix-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    padding: 0 3px;
+}
+
+/* 放入 glass-pane 后按内容撑开（原为固定视口高度的上下 60% / 40%） */
+.split-stage {
+    grid-template-rows: auto auto;
+    overflow: visible;
+    border-radius: 14px;
+}
+
+.graph-container {
+    min-height: 340px;
+}
+
+.matrix-stage {
+    flex-wrap: wrap;
+    background: rgba(255, 251, 240, 0.8);
 }

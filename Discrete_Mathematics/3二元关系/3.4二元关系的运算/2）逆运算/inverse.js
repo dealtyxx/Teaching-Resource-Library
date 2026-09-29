@@ -1,5 +1,5 @@
 /**
- * Red Mathematics - Inverse Relation Visualizer
+ * 3.4 二元关系的运算 · 逆运算专项练习：关系图箭头反向 + 矩阵转置
  */
 
 // DOM Elements
@@ -176,13 +176,22 @@ function renderEdge(u, v, isGhost, isInverseDisplay) {
 function renderMatrix() {
     matrixGrid.innerHTML = '';
     const size = NODES.length;
-    matrixGrid.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+    matrixGrid.style.gridTemplateColumns = `auto repeat(${size}, 1fr)`;
+    const hdr = (text, extra) => {
+        const h = document.createElement('div');
+        h.className = 'matrix-hdr' + (extra ? ' ' + extra : '');
+        h.textContent = text;
+        matrixGrid.appendChild(h);
+    };
+    hdr(isInverted ? 'R⁻¹' : 'R', 'corner');
+    NODES.forEach(nd => hdr(nd.label));
 
     // We render the matrix of the CURRENT view (R or R^-1)
     // If R has (1,2), M[1][2] = 1.
     // If Inverted, we show M^T. So M[2][1] = 1.
 
     for (let i = 0; i < size; i++) {
+        hdr(NODES[i].label);
         for (let j = 0; j < size; j++) {
             const u = NODES[i].id;
             const v = NODES[j].id;
@@ -244,10 +253,10 @@ function toggleInversion() {
     // Update UI
     if (isInverted) {
         invertBtn.classList.add('inverted');
-        invertBtn.querySelector('.btn-text').textContent = "重返未来 (Return)";
+        invertBtn.querySelector('.btn-text').textContent = "再求逆：回到 R";
     } else {
         invertBtn.classList.remove('inverted');
-        invertBtn.querySelector('.btn-text').textContent = "回望历史 (Invert Time)";
+        invertBtn.querySelector('.btn-text').textContent = "求逆：回望历史";
     }
 
     // Re-render
@@ -258,14 +267,14 @@ function toggleInversion() {
 
 function updateInsight() {
     if (isInverted) {
-        insightTitle.textContent = "当前状态: 回望 (Inverse)";
+        insightTitle.textContent = "当前：逆关系 R⁻¹（回望历史）";
         insightTitle.style.color = "var(--accent-blue)";
-        insightText.textContent = "关系 R⁻¹ 指向过去 (Mᵀ)。通过转置矩阵与反转箭头，我们追溯发展的源头，铭记历史的馈赠。";
+        insightText.textContent = "R⁻¹ 的每条箭头都指向过去，矩阵是 M_R 的转置。饮水思源：从今天回望来时路，追溯发展的源头。再求一次逆又回到 R，即 (R⁻¹)⁻¹ = R。";
         mathBadge.textContent = "R⁻¹";
     } else {
-        insightTitle.textContent = "当前状态: 发展 (Forward)";
+        insightTitle.textContent = "当前：关系 R（向前发展）";
         insightTitle.style.color = "var(--accent-red)";
-        insightText.textContent = "关系 R 指向未来 (M)。象征着从先辈到吾辈，薪火相传，不断开拓新的征程。";
+        insightText.textContent = "R 的每条箭头都从先指向后：从先辈到吾辈，薪火相传。按「求逆」观察箭头掉头、矩阵沿主对角线翻转。";
         mathBadge.textContent = "R";
     }
 }
@@ -291,12 +300,18 @@ window.addEventListener('resize', () => {
     relayoutGraph();
 });
 
+// 只有容器尺寸真的变化才重排：共享框架会反复派发 resize，无条件重绘会让连线的描绘动画永远重播
+let lastGraphSize = '';
 function relayoutGraph() {
     if (layoutFrame) cancelAnimationFrame(layoutFrame);
     layoutFrame = requestAnimationFrame(() => {
+        layoutFrame = null;
+        const c = document.getElementById('graphContainer');
+        const size = Math.round(c.clientWidth) + 'x' + Math.round(c.clientHeight);
+        if (size === lastGraphSize) return;
+        lastGraphSize = size;
         calculateLayout();
         renderGraph();
-        layoutFrame = null;
     });
 }
 

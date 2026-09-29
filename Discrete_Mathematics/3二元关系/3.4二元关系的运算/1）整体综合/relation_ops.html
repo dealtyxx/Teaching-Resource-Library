@@ -8,20 +8,20 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
-    <meta property="og:title" content="关系运算综合 · 进阶层｜3.4 二元关系的运算（综合） - 离散数学课程资源库">
-    <meta property="og:description" content="第3章 二元关系 · 3.4 二元关系的运算（综合） · 进阶层：R⁻¹ / R∘S / Rⁿ / 布尔矩阵。进阶层：在整体综合页中联动理解逆、复合与幂运算。">
+    <meta property="og:title" content="复合运算与关系矩阵 · 进阶层｜3.4 二元关系的运算 - 离散数学课程资源库">
+    <meta property="og:description" content="第3章 二元关系 · 3.4 二元关系的运算 · 进阶层：R∘S / 布尔积 / 不满足交换律 / (R∘S)⁻¹。按定义与布尔矩阵乘法两种方法计算关系的复合。">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/3%E4%BA%8C%E5%85%83%E5%85%B3%E7%B3%BB/3.4%E4%BA%8C%E5%85%83%E5%85%B3%E7%B3%BB%E7%9A%84%E8%BF%90%E7%AE%97/1%EF%BC%89%E6%95%B4%E4%BD%93%E7%BB%BC%E5%90%88/relation_ops.html">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="关系运算综合 · 进阶层｜3.4 二元关系的运算（综合） - 离散数学课程资源库">
-    <meta name="twitter:description" content="第3章 二元关系 · 3.4 二元关系的运算（综合） · 进阶层：R⁻¹ / R∘S / Rⁿ / 布尔矩阵。进阶层：在整体综合页中联动理解逆、复合与幂运算。">
+    <meta name="twitter:title" content="复合运算与关系矩阵 · 进阶层｜3.4 二元关系的运算 - 离散数学课程资源库">
+    <meta name="twitter:description" content="第3章 二元关系 · 3.4 二元关系的运算 · 进阶层：R∘S / 布尔积 / 不满足交换律 / (R∘S)⁻¹。按定义与布尔矩阵乘法两种方法计算关系的复合。">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>关系运算综合 · 进阶层｜3.4 二元关系的运算（综合） - 离散数学课程资源库</title>
-    <meta name="description" content="第3章 二元关系 · 3.4 二元关系的运算（综合） · 进阶层：R⁻¹ / R∘S / Rⁿ / 布尔矩阵。进阶层：在整体综合页中联动理解逆、复合与幂运算。">
+    <title>复合运算与关系矩阵 · 进阶层｜3.4 二元关系的运算 - 离散数学课程资源库</title>
+    <meta name="description" content="第3章 二元关系 · 3.4 二元关系的运算 · 进阶层：R∘S / 布尔积 / 不满足交换律 / (R∘S)⁻¹。按定义与布尔矩阵乘法两种方法计算关系的复合。">
 
     <link rel="stylesheet" href="relation_ops.css">
     <link rel="stylesheet" href="../../../shared/discrete-ui.css" data-dm-ui="1">
@@ -39,197 +39,175 @@
     <div class="app-container">
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="window-controls">
-                    <span class="dot red"></span>
-                    <span class="dot yellow"></span>
-                    <span class="dot green"></span>
-                </div>
-                <h1>红色数理 <span class="highlight">伟大的接力</span></h1>
-                <p class="subtitle">The Great Relay & Relation Ops</p>
+                <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+                <h1>复合运算与关系矩阵</h1>
+                <p class="subtitle">R∘S / 布尔积 / 不满足交换律 / (R∘S)⁻¹</p>
             </div>
-
             <div class="controls-wrapper">
                 <div class="control-group">
-                    <label>基础属性 (Properties)</label>
-                    <div class="ops-grid">
-                        <button class="apple-btn op-btn" data-op="domain" aria-label="定义域 (Domain)">
-                            <span class="btn-icon">🚩</span>
-                            <span>定义域 (Domain)</span>
-                        </button>
-                        <button class="apple-btn op-btn" data-op="range" aria-label="值域 (Range)">
-                            <span class="btn-icon">🏁</span>
-                            <span>值域 (Range)</span>
-                        </button>
-                        <button class="apple-btn op-btn full-width" data-op="field" aria-label="域 (Field)">
-                            <span class="btn-icon">🌍</span>
-                            <span>域 (Field)</span>
-                        </button>
+                    <label>选择复合</label>
+                    <div class="seg" id="opSeg" style="grid-template-columns:repeat(3,1fr)">
+                        <button type="button" data-op="RS" class="active">R∘S</button>
+                        <button type="button" data-op="SR">S∘R</button>
+                        <button type="button" data-op="RR">R∘R</button>
                     </div>
                 </div>
-
                 <div class="control-group">
-                    <label>关系运算 (Operations)</label>
-                    <div class="ops-list">
-                        <button class="apple-btn op-btn" data-op="inverse" aria-label="逆运算 (Inverse) R⁻¹: 回望历史">
-                            <div class="btn-content">
-                                <span class="btn-icon">🔄</span>
-                                <div class="btn-text">
-                                    <span>逆运算 (Inverse)</span>
-                                    <span class="btn-sub">R⁻¹: 回望历史</span>
-                                </div>
-                            </div>
-                        </button>
-                        <button class="apple-btn op-btn" data-op="composition" aria-label="复合运算 (Composition) R ∘ R: 接力传递">
-                            <div class="btn-content">
-                                <span class="btn-icon">🔗</span>
-                                <div class="btn-text">
-                                    <span>复合运算 (Composition)</span>
-                                    <span class="btn-sub">R ∘ R: 接力传递</span>
-                                </div>
-                            </div>
-                        </button>
-                        <button class="apple-btn op-btn" data-op="power" aria-label="幂运算 (Power) R³: 深远影响">
-                            <div class="btn-content">
-                                <span class="btn-icon">🌟</span>
-                                <div class="btn-text">
-                                    <span>幂运算 (Power)</span>
-                                    <span class="btn-sub">R³: 深远影响</span>
-                                </div>
-                            </div>
-                        </button>
+                    <label>记号约定（以所用教材为准）</label>
+                    <div class="seg" id="convSeg">
+                        <button type="button" data-conv="right" class="active">右复合<small>R∘S：先 R 后 S</small></button>
+                        <button type="button" data-conv="left">左复合<small>R∘S：先 S 后 R</small></button>
                     </div>
+                    <div class="note-small" id="convNote"></div>
                 </div>
-
                 <div class="control-group">
-                    <label>运算日志 (Operation Log)</label>
-                    <div class="log-card">
-                        <h3 id="logTitle">就绪 Ready</h3>
-                        <p id="logText">点击上方按钮，探索二元关系的运算性质及其在"薪火相传"中的体现。</p>
-                        <div class="math-display" id="mathDisplay">R = {(1,2), (2,3), (3,4), (4,5)}</div>
+                    <label>分步演示：布尔积逐格计算</label>
+                    <div class="step-ctrl">
+                        <button type="button" class="dm-t-btn secondary" id="prevBtn">上一步</button>
+                        <button type="button" class="dm-t-btn" id="nextBtn">下一步</button>
+                        <button type="button" class="dm-t-btn secondary" id="autoBtn">自动播放</button>
+                    </div>
+                    <div class="speed-row"><span>速度</span><input type="range" id="speed" min="1" max="10" value="6" aria-label="播放速度"><span class="step-info" id="stepInfo"></span></div>
+                    <div class="btn-grid">
+                        <button type="button" class="dm-t-btn secondary" id="allBtn">一步算完</button>
+                        <button type="button" class="dm-t-btn ghost" id="resetBtn">重置</button>
                     </div>
                 </div>
-            </div>
-
-            <div class="actions-footer">
-                <button id="resetBtn" class="apple-btn secondary-btn" aria-label="重置视图 (Reset)">重置视图 (Reset)</button>
+                <div class="control-group">
+                    <label>解读</label>
+                    <section class="insight-panel" aria-live="polite">
+                        <div class="insight-icon">💡</div>
+                        <div><h4 id="stepTitle">准备开始</h4><p id="stepText"></p></div>
+                    </section>
+                </div>
+                <div class="control-group">
+                    <label>知识要点</label>
+                    <div class="dm-t-info">
+                        ① 复合刻画「经中间点 y 的两步联系」：(x, z) 在复合中 ⇔ 存在 y 使 x→y→z。<br>
+                        ② 矩阵上是<b>布尔积</b>：(x, z) 元 = ∨<sub>y</sub>（第一步矩阵的 m<sub>xy</sub> ∧ 第二步矩阵的 m<sub>yz</sub>）。<br>
+                        ③ 复合满足<b>结合律</b>，一般<b>不满足交换律</b>；(R∘S)⁻¹ = S⁻¹∘R⁻¹（像「先穿袜子再穿鞋，脱时先脱鞋」）。
+                    </div>
+                </div>
             </div>
         </aside>
 
         <main class="visualizer-stage">
             <div class="glass-pane">
-                <div class="stage-header">
-                    <h2 id="stageTitle">接力网络</h2>
-                    <p id="stageSubtitle">Relay Network Topology</p>
-                </div>
-
-                <div class="graph-container" id="graphContainer">
-                    <svg class="graph-svg" id="graphSvg">
-                        <defs>
-                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
-                                <polygon points="0 0, 10 3.5, 0 7" fill="#d63b1d" />
-                            </marker>
-                            <marker id="arrowhead-gold" markerWidth="10" markerHeight="7" refX="28" refY="3.5"
-                                orient="auto">
-                                <polygon points="0 0, 10 3.5, 0 7" fill="#c58a1f" />
-                            </marker>
-                            <marker id="arrowhead-blue" markerWidth="10" markerHeight="7" refX="28" refY="3.5"
-                                orient="auto">
-                                <polygon points="0 0, 10 3.5, 0 7" fill="#2f5f9f" />
-                            </marker>
-                            <filter id="glow">
-                                <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
-                                <feMerge>
-                                    <feMergeNode in="coloredBlur" />
-                                    <feMergeNode in="SourceGraphic" />
-                                </feMerge>
-                            </filter>
-                        </defs>
-                        <!-- Edges injected here -->
-                    </svg>
-
-                    <div class="nodes-layer" id="nodesLayer">
-                        <!-- Nodes injected here -->
+                <header class="stage-header">
+                    <h2>复合：从一步联系到两步联系</h2>
+                    <p id="formula"></p>
+                </header>
+                <div class="dm-t-wrap">
+                    <div class="dm-t-card">
+                        <h3>按定义：找中间点 y 的两步路径</h3>
+                        <svg class="rg" id="gLayers"></svg>
+                        <div class="legend"><span><i style="background:#d63b1d"></i>第一步关系</span><span><i style="background:#c58a1f"></i>第二步关系</span><span><i style="background:#1f9d55"></i>当前格的路径</span></div>
+                    </div>
+                    <div class="dm-t-card">
+                        <h3>已求出的复合关系图</h3>
+                        <svg class="rg" id="gT"></svg>
                     </div>
                 </div>
+                <div class="dm-t-wrap" style="margin-top:1rem">
+                    <div class="dm-t-card"><h3 id="tF"></h3><div class="mtx" id="mF"></div></div>
+                    <div class="op-sign">⊙</div>
+                    <div class="dm-t-card"><h3 id="tG"></h3><div class="mtx" id="mG"></div></div>
+                    <div class="op-sign">=</div>
+                    <div class="dm-t-card"><h3 id="tT"></h3><div class="mtx" id="mT"></div></div>
+                </div>
+                <div class="legend" style="margin-top:8px"><span><i style="background:#fff;box-shadow:0 0 0 2px #ffb400"></i>当前参与计算的行 / 列</span><span><i style="background:#fff;box-shadow:0 0 0 3px #1f9d55"></i>同时为 1 的位置（找到中间点）</span><span>格子可点击编辑 R、S</span></div>
+                <div class="set-line" id="setLine"></div>
+                <div class="legend" id="checks" style="margin-top:8px"></div>
             </div>
         </main>
     </div>
 
+    <footer class="site-footer">
+        <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
+        <p>版权所有 · 项目总负责人：谢鑫</p>
+    </footer>
+
+    <script src="relation_ops-core.js"></script>
     <script src="relation_ops.js"></script>
-
-<!-- 固定底部版权信息 -->
-<footer class="site-footer">
-    <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
-    <p>版权所有 · 项目总负责人：谢鑫</p>
-</footer>
-
-
 
     <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
     <script>
     window.SECTION_META = {
-      "ideologyPanel": true,
-      "layers": [
-        {"name": "逆运算基础", "concepts": "R⁻¹ / 方向反转 / 矩阵转置", "task": "基础层：先掌握关系求逆，理解有序对方向反转与矩阵转置。", "page": "../2）逆运算/inverse.html"},
-        {"name": "关系运算综合", "concepts": "R⁻¹ / R∘S / Rⁿ / 布尔矩阵", "task": "进阶层：在整体综合页中联动理解逆、复合与幂运算。", "page": "../1）整体综合/relation_ops.html"},
-        {"name": "幂运算与可达", "concepts": "Rⁿ / n 步可达 / 传递闭包", "task": "拓展层：研究关系幂、可达性与传递闭包等多步结构。", "page": "../4）幂运算/power.html"}
-      ],
       "chapter": "第3章 二元关系",
-      "section": "3.4 二元关系的运算（综合）",
-      "title": "二元关系的运算 · 综合",
-      "grounding": "本节主题：关系运算综合——逆 R⁻¹={(b,a)|(a,b)∈R}、合成 R∘S（先 S 后 R 或按约定）、幂 Rⁿ=R∘R∘…∘R（R⁰=I_A）。运算可叠加，矩阵上对应转置、布尔乘、布尔幂。这些运算是构造闭包、分析可达性的工具。",
+      "section": "3.4 二元关系的运算",
+      "title": "复合运算与关系矩阵",
+      "grounding": "本页（进阶层）主题：关系的复合。右复合约定 R∘S={(x,z)|∃y, (x,y)∈R 且 (y,z)∈S}（先 R 后 S），M_{R∘S}=M_R⊙M_S（布尔积）；左复合约定（先 S 后 R）则 M_{R∘S}=M_S⊙M_R，不同教材书写次序不同，请以学生所用教材为准。复合满足结合律，一般不满足交换律；(R∘S)⁻¹=S⁻¹∘R⁻¹；dom(R∘S)⊆dom R（右复合）。布尔积第 (x,z) 元为 ∨_y(m_xy∧m_yz)，等于 1 当且仅当存在长度为 2 的路径 x→y→z。",
       "steps": [
         {
           "name": "情境引入",
-          "desc": "由『直接联系』如何推出『间接联系』『多跳可达』？"
+          "desc": "『朋友的朋友』『上级的上级』——两步联系如何由一步联系合成？"
         },
         {
           "name": "对象抽取",
-          "desc": "把反向、串联、多步联系抽象为逆、合成、幂运算。"
+          "desc": "把『经过中间点 y』的联系抽象为关系的复合。"
         },
         {
           "name": "结构建模",
-          "desc": "用 R⁻¹、R∘S、Rⁿ 建模反向/传递/多跳关系。"
+          "desc": "用 R∘S 的定义与布尔矩阵乘法建模两步联系。"
         },
         {
           "name": "推理求解",
-          "desc": "用布尔矩阵转置/乘/幂计算各运算结果。"
+          "desc": "逐格计算布尔积，比较 R∘S 与 S∘R，验证 (R∘S)⁻¹=S⁻¹∘R⁻¹。"
         },
         {
           "name": "程序验证",
-          "desc": "用本页交互组合运算，观察结果矩阵/图。"
+          "desc": "用本页分步演示核对每个 1 对应的中间点。"
         },
         {
           "name": "迁移反思",
-          "desc": "迁移到可达性、传递闭包、最短路径。"
+          "desc": "迁移到关系的幂、知识图谱多跳推理与推荐系统。"
         }
       ],
       "ideology": {
-        "title": "由表及里 · 见微知著",
-        "text": "关系运算让我们从直接联系推演出间接、多跳的深层联系——正是透过现象看本质、由表及里的认识规律。事物的联系往往不是一步直达，而需多次传递；掌握运算之道，方能洞察网络背后的全局结构。",
+        "title": "搭桥联通 · 接力传承",
+        "text": "复合靠中间点 y 把 x 与 z 联通：事业的传承往往不是一步到位，而是一棒接一棒——前人把接力棒交到中间一代手中，再由他们交给后来者。理解复合，就能理解组织中信息与资源如何层层传导、形成合力。",
         "dims": [
-          "辩证思维",
           "系统观念",
-          "由表及里"
+          "协同观念",
+          "辩证思维"
         ],
-        "quote": "不积跬步，无以至千里——关系的『幂』正是把一步步联系累积为可达全局的过程。"
+        "quote": "穿针引线、牵线搭桥——复合正是靠中间环节把分散的联系串成网络。"
       },
       "reflect": [
-        "(R⁻¹)⁻¹=R 吗？合成运算满足结合律但一般不满足交换律，为什么？",
-        "Rⁿ 的含义是『恰好 n 步可达』还是『n 步内可达』？如何用并集得到『若干步可达』？",
-        "为什么 R⁰ 规定为恒等关系 I_A？这与数的零次幂有何类比？"
+        "R∘S 与 S∘R 一般不相等——请在本页找一个具体例子。",
+        "为什么复合对应布尔矩阵乘法？『行列对应相乘再求和』对应什么逻辑？",
+        "复合满足结合律，这为什么保证了 Rⁿ 的定义没有歧义？"
       ],
       "transfer": [
-        "传递闭包 R⁺=R∪R²∪… 正是『若干步可达』，本节运算是它的构件。",
+        "知识图谱的多跳推理（A→B→C）正是关系的连续复合。",
         {
-          "t": "可达性矩阵",
-          "d": "用布尔矩阵幂求图的可达性，Warshall 算法如何把它做到 O(n³)？"
+          "t": "推荐系统",
+          "d": "『买了又买』『看了又看』本质是关系复合，如何用它做协同推荐？"
+        }
+      ],
+      "layers": [
+        {
+          "name": "集合运算与逆运算",
+          "concepts": "R∪S / R∩S / R−S / ∼R / R⁻¹ / 矩阵转置",
+          "task": "会做关系的集合运算与求逆，理解逆关系就是矩阵转置。",
+          "page": "relation_ops-basic.html"
+        },
+        {
+          "name": "复合运算与关系矩阵",
+          "concepts": "R∘S / 布尔积 / 不满足交换律 / (R∘S)⁻¹",
+          "task": "按定义与布尔矩阵乘法两种方法计算关系的复合。",
+          "page": "relation_ops.html"
+        },
+        {
+          "name": "关系的幂与可达",
+          "concepts": "Rⁿ / R⁰=I_A / 幂的周期性 / R∪R²∪…∪Rⁿ",
+          "task": "研究关系幂的周期性，为传递闭包做准备并迁移到网络可达分析。",
+          "page": "relation_ops-extend.html"
         }
       ]
     };
     </script>
     <script src="../../../shared/ai-tutor.js" defer></script>
-
 </body>
 
 </html>

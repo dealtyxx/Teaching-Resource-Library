@@ -2,13 +2,13 @@
     /* River Blue & Red Theme */
     --app-bg: #fdfbf7;
     --panel-bg: rgba(255, 255, 255, 0.6);
-    --glass-border: rgba(47, 95, 159, 0.1);
+    --glass-border: rgba(139, 0, 0, 0.1);
     --text-primary: #2c1810;
     --text-secondary: #6b4a38;
 
     --accent-red: #d63b1d;
     /* Forward / Future */
-    --accent-blue: #2f5f9f;
+    --accent-blue: #c58a1f; /* 逆关系 R⁻¹ 统一用金色（与本单元基础层一致；变量名沿用旧名） */
     /* Backward / Past */
     --accent-gold: #c58a1f;
 
@@ -20,83 +20,17 @@
     --font-title: "Ma Shan Zheng", "Noto Serif SC", cursive;
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 
-body {
-    font-family: var(--font-family);
-color: var(--text-primary);
-    height: 100vh;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-/* River/Flow abstract */
-background-position: center;
-    background-color: #f0f4ff;
-    background-image:
-        radial-gradient(circle at 20% 20%, rgba(47, 95, 159,0.16) 0 95px, transparent 97px),
-        radial-gradient(circle at 80% 80%, rgba(214,59,29,0.13) 0 75px, transparent 77px),
-        radial-gradient(circle at 50% 50%, rgba(0,82,204,0.07) 0 155px, transparent 157px),
-        repeating-linear-gradient(45deg, rgba(47, 95, 159,0.10) 0 1px, transparent 1px 44px),
-        repeating-linear-gradient(-45deg, rgba(0,82,204,0.07) 0 1px, transparent 1px 44px),
-        linear-gradient(160deg, #f0f4ff 0%, #e8eeff 50%, #f4f0ff 100%);
-    background-size: auto, auto, auto, 44px 44px, 44px 44px, cover;
-    background-position: center;
-    background-repeat: no-repeat;
-}
 
-.app-container {
-    width: 95vw;
-    height: 90vh;
-    max-width: 1600px;
-    background: rgba(255, 252, 245, 0.92);
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
-    border-radius: 24px;
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-md);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
 
 /* Header */
-.main-header {
-    padding: 1.5rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--glass-border);
-    background: rgba(255, 255, 255, 0.5);
-}
 
-.header-content h1 {
-    font-family: var(--font-title);
-    font-size: 2rem;
-    font-weight: 400;
-    color: var(--accent-blue);
-}
 
-.subtitle {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    font-style: italic;
-    margin-top: -5px;
-}
 
-.header-controls {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
 
 .primary-btn {
     padding: 12px 24px;
-    background: var(--accent-blue);
+    background: linear-gradient(135deg, #d63b1d, #b8321a);
     color: white;
     border: none;
     border-radius: 12px;
@@ -107,17 +41,17 @@ background-position: center;
     display: flex;
     align-items: center;
     gap: 8px;
-    box-shadow: 0 4px 12px rgba(47, 95, 159, 0.3);
+    box-shadow: 0 4px 12px rgba(214, 59, 29, 0.3);
 }
 
 .primary-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(47, 95, 159, 0.4);
+    box-shadow: 0 6px 16px rgba(214, 59, 29, 0.4);
 }
 
 .primary-btn.inverted {
-    background: var(--accent-red);
-    box-shadow: 0 4px 12px rgba(214, 59, 29, 0.3);
+    background: linear-gradient(135deg, #c58a1f, #a06d12);
+    box-shadow: 0 4px 12px rgba(197, 138, 31, 0.3);
 }
 
 .mode-switch {
@@ -380,18 +314,10 @@ input:checked+.slider:before {
 
 .matrix-cell.active.inverted {
     background: var(--accent-blue);
-    box-shadow: 0 4px 12px rgba(47, 95, 159, 0.3);
+    box-shadow: 0 4px 12px rgba(214, 59, 29, 0.3);
 }
 
 /* Footer */
-.insight-footer {
-    padding: 1.5rem 2rem;
-    background: #fff;
-    border-top: 1px solid var(--glass-border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
 
 .insight-content h4 {
     font-size: 1.1rem;
@@ -412,4 +338,64 @@ input:checked+.slider:before {
     background: #f0f0f0;
     border-radius: 8px;
     color: var(--text-primary);
+}
+
+/* 侧栏中的解读块（原 <footer class="insight-footer">，已改为 section） */
+.insight-footer {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px;
+    background: #fffdf5;
+    border: 1px solid rgba(197, 160, 89, 0.25);
+    border-left: 4px solid var(--accent-gold, #c58a1f);
+    border-radius: 12px;
+}
+
+.atomic-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.atomic-controls .apple-btn {
+    width: 100%;
+    min-height: 42px;
+    justify-content: center;
+}
+
+.split-stage {
+    min-height: 0;
+}
+
+.matrix-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono, "JetBrains Mono", Consolas, monospace);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-secondary, #6b4a38);
+    padding: 0 4px;
+}
+
+.matrix-hdr.corner {
+    color: var(--accent-red, #d63b1d);
+}
+
+/* 放入 glass-pane 后按内容撑开；窄屏改为上下排列 */
+.split-stage {
+    overflow: visible;
+    border-radius: 14px;
+}
+
+@media (max-width: 1100px) {
+    .split-stage {
+        grid-template-columns: 1fr;
+    }
+
+    .matrix-container {
+        padding: 20px 10px;
+    }
 }

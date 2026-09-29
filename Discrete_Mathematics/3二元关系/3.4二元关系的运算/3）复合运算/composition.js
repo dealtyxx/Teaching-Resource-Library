@@ -1,5 +1,5 @@
 /**
- * Red Mathematics - Relation Composition Visualizer
+ * 3.4 二元关系的运算 · 复合运算专项练习（左复合记法：S∘R 表示先 R 后 S）
  */
 
 // DOM Elements
@@ -186,9 +186,14 @@ function renderMatrices() {
 
 function renderMatrix(container, rows, cols, relation, type, isVisible = true) {
     container.innerHTML = '';
-    container.style.gridTemplateColumns = `repeat(${cols.length}, 1fr)`;
+    container.style.gridTemplateColumns = `auto repeat(${cols.length}, 1fr)`;
+    const sub = id => id[0] + '₁₂₃₄₅₆₇₈₉'[+id.slice(1) - 1];
+    const hdr = text => { const h = document.createElement('div'); h.className = 'matrix-hdr'; h.textContent = text; container.appendChild(h); };
+    hdr('');
+    cols.forEach(c => hdr(sub(c.id)));
 
     rows.forEach(r => {
+        hdr(sub(r.id));
         cols.forEach(c => {
             const key = `${r.id}-${c.id}`;
             const isActive = relation.has(key);
@@ -198,6 +203,7 @@ function renderMatrix(container, rows, cols, relation, type, isVisible = true) {
             cell.textContent = isActive && isVisible ? '1' : '0';
             cell.dataset.key = key;
 
+            cell.title = `(${sub(r.id)} ${r.label}, ${sub(c.id)} ${c.label})`;
             // Interaction: Toggle R or S
             if (type !== 'Res') {
                 cell.style.cursor = 'pointer';
@@ -311,11 +317,13 @@ function highlightPath(nodeId) {
 
 function updateInsight(synthesized) {
     if (synthesized) {
-        insightTitle.textContent = "愿景实现 (Realized)";
-        insightText.textContent = "通过复合运算 S ∘ R，我们将战略目标与现实成果直接关联。每一条金色连线，都代表着从蓝图到现实的成功跨越。";
+        const comp = calculateComposition();
+        const names = Object.fromEntries([...SET_A, ...SET_C].map(n => [n.id, n.label]));
+        insightTitle.textContent = "愿景实现：S∘R 共 " + comp.size + " 个有序对";
+        insightText.textContent = "复合 S∘R 把战略目标与现实成果直接联系起来：" + [...comp].map(k => { const [a, c] = k.split('-'); return names[a] + ' → ' + names[c]; }).join('，') + "。每条金色弧线都对应一条「目标 → 举措 → 成果」的两步路径。";
     } else {
-        insightTitle.textContent = "准备就绪 (Ready)";
-        insightText.textContent = "点击矩阵单元格可调整部署(R)或落实(S)方案。点击'实现愿景'查看最终成效。";
+        insightTitle.textContent = "准备就绪";
+        insightText.textContent = "点击矩阵格子可调整部署方案 R 或落实方案 S；点击「求复合 S∘R」查看目标与成果之间的复合关系。";
     }
 }
 
@@ -336,7 +344,13 @@ resetBtn.addEventListener('click', () => {
     updateInsight(false);
 });
 
+// 尺寸真的变化才重排（共享框架会反复派发 resize，否则点击高亮会被立即清掉）
+let lastGraphSize = '';
 window.addEventListener('resize', () => {
+    const panel = document.querySelector('.graph-panel');
+    const size = panel.clientWidth + 'x' + panel.clientHeight;
+    if (size === lastGraphSize) return;
+    lastGraphSize = size;
     calculateLayout();
     renderNodes();
     renderEdges();

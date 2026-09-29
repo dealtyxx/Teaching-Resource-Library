@@ -1,5 +1,5 @@
 /**
- * Red Mathematics - Relation Power Visualizer
+ * 3.4 二元关系的运算 · 幂运算专项练习：Rⁿ 与布尔矩阵幂
  */
 
 // DOM Elements
@@ -236,9 +236,13 @@ function renderEdge(u, v, className, isCurved = false) {
 function renderMatrixGrid(matrix, prevMatrix) {
     matrixGrid.innerHTML = '';
     const size = NODES.length;
-    matrixGrid.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+    matrixGrid.style.gridTemplateColumns = `auto repeat(${size}, 1fr)`;
+    const hdr = text => { const h = document.createElement('div'); h.className = 'matrix-hdr'; h.textContent = text; matrixGrid.appendChild(h); };
+    hdr(`R${toSuperscript(currentPower)}`);
+    NODES.forEach(v => hdr(v));
 
     for (let i = 0; i < size; i++) {
+        hdr(NODES[i]);
         for (let j = 0; j < size; j++) {
             const val = matrix[i][j];
             const cell = document.createElement('div');
@@ -270,16 +274,16 @@ function renderMatrixGrid(matrix, prevMatrix) {
 function updateInsight() {
     const n = currentPower;
     if (n === 1) {
-        insightTitle.textContent = "初始阶段 (Initial Stage)";
+        insightTitle.textContent = "R¹：直接影响";
         insightText.textContent = "R¹ 代表直接的影响力。思想的火种刚刚点燃，开始照亮周围。";
     } else if (n === 2) {
-        insightTitle.textContent = "次级传播 (Secondary Propagation)";
+        insightTitle.textContent = "R²：经一个中间人";
         insightText.textContent = "R² 代表影响力的延伸。通过一个中间人，思想传达给了更远的人。";
     } else if (n >= 3 && n < 6) {
-        insightTitle.textContent = "深远影响 (Deep Reach)";
+        insightTitle.textContent = `R${toSuperscript(n)}：恰好 ${n} 步`;
         insightText.textContent = `R${toSuperscript(n)} 代表跨越 ${n} 代的传承。思想在时间的长河中流淌，历久弥新。`;
     } else {
-        insightTitle.textContent = "生生不息 (Infinite Cycle)";
+        insightTitle.textContent = "生生不息：回路让幂序列循环";
         insightText.textContent = "随着迭代的继续，如果存在回路，影响力将生生不息，形成闭环。";
     }
 }
@@ -318,8 +322,7 @@ autoBtn.addEventListener('click', () => {
 function startAutoPlay() {
     isAutoPlaying = true;
     autoBtn.classList.add('active'); // Add visual state if needed
-    autoBtn.querySelector('.btn-text').textContent = "暂停 (Pause)";
-    autoBtn.querySelector('.btn-icon').textContent = "⏸️";
+    autoBtn.querySelector('.btn-text').textContent = "暂停";
 
     if (currentPower >= maxPower) currentPower = 0; // Loop
 
@@ -338,20 +341,25 @@ function startAutoPlay() {
 function stopAutoPlay() {
     isAutoPlaying = false;
     clearInterval(autoInterval);
-    autoBtn.querySelector('.btn-text').textContent = "演进 (Auto)";
-    autoBtn.querySelector('.btn-icon').textContent = "▶️";
+    autoBtn.querySelector('.btn-text').textContent = "自动播放";
 }
 
 window.addEventListener('resize', () => {
     relayoutGraph();
 });
 
+// 只有容器尺寸真的变化才重排（共享框架会反复派发 resize）
+let lastGraphSize = '';
 function relayoutGraph() {
     if (layoutFrame) cancelAnimationFrame(layoutFrame);
     layoutFrame = requestAnimationFrame(() => {
+        layoutFrame = null;
+        const c = document.getElementById('graphContainer');
+        const size = Math.round(c.clientWidth) + 'x' + Math.round(c.clientHeight);
+        if (size === lastGraphSize) return;
+        lastGraphSize = size;
         calculateLayout();
         updateView();
-        layoutFrame = null;
     });
 }
 

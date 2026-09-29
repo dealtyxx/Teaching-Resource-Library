@@ -8,21 +8,22 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
-    <meta property="og:title" content="逆运算基础 · 基础层｜3.4 二元关系的运算 · 逆运算 - 离散数学课程资源库">
-    <meta property="og:description" content="第3章 二元关系 · 3.4 二元关系的运算 · 逆运算 · 基础层：R⁻¹ / 方向反转 / 矩阵转置。基础层：先掌握关系求逆，理解有序对方向反转与矩阵转置。">
+    <meta property="og:title" content="逆运算专项练习 · 进阶层｜3.4 二元关系的运算 - 离散数学课程资源库">
+    <meta property="og:description" content="第3章 二元关系 · 3.4 二元关系的运算 · 进阶层：逆运算专项练习。">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/3%E4%BA%8C%E5%85%83%E5%85%B3%E7%B3%BB/3.4%E4%BA%8C%E5%85%83%E5%85%B3%E7%B3%BB%E7%9A%84%E8%BF%90%E7%AE%97/2%EF%BC%89%E9%80%86%E8%BF%90%E7%AE%97/inverse.html">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="逆运算基础 · 基础层｜3.4 二元关系的运算 · 逆运算 - 离散数学课程资源库">
-    <meta name="twitter:description" content="第3章 二元关系 · 3.4 二元关系的运算 · 逆运算 · 基础层：R⁻¹ / 方向反转 / 矩阵转置。基础层：先掌握关系求逆，理解有序对方向反转与矩阵转置。">
+    <meta name="twitter:title" content="逆运算专项练习 · 进阶层｜3.4 二元关系的运算 - 离散数学课程资源库">
+    <meta name="twitter:description" content="第3章 二元关系 · 3.4 二元关系的运算 · 进阶层：逆运算专项练习。">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>逆运算基础 · 基础层｜3.4 二元关系的运算 · 逆运算 - 离散数学课程资源库</title>
-    <meta name="description" content="第3章 二元关系 · 3.4 二元关系的运算 · 逆运算 · 基础层：R⁻¹ / 方向反转 / 矩阵转置。基础层：先掌握关系求逆，理解有序对方向反转与矩阵转置。">
+    <title>逆运算专项练习 · 进阶层｜3.4 二元关系的运算 - 离散数学课程资源库</title>
+    <meta name="description" content="第3章 二元关系 · 3.4 二元关系的运算 · 进阶层：逆运算专项练习。">
 
+    <link rel="stylesheet" href="../1）整体综合/relation_ops.css">
     <link rel="stylesheet" href="inverse.css">
     <link rel="stylesheet" href="../../../shared/discrete-ui.css" data-dm-ui="1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,32 +38,63 @@
     <a class="home-link" href="../../../index.html#chapter3">← 返回课程主页</a>
 
     <div class="app-container">
-        <header class="main-header">
-            <div class="header-content">
-                <h1>红色数理 <span class="highlight">饮水思源</span></h1>
-                <p class="subtitle">Tracing Roots & Inverse Relations</p>
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+                <!-- 专项练习页不在三阶 layers 中：标题不用 h1，避免被框架改写成进阶层层名 -->
+                <div class="atomic-title" role="heading" aria-level="1">逆运算专项练习</div>
+                <p class="subtitle">R⁻¹ / 有序对反向 / 矩阵转置</p>
             </div>
-            <div class="header-controls">
-                <button id="invertBtn" class="apple-btn primary-btn" aria-label="回望历史 (Invert Time)">
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>操作</label>
+                    <div class="atomic-controls">
+                <button id="invertBtn" class="apple-btn primary-btn" aria-label="求逆">
                     <span class="btn-icon">🔄</span>
-                    <span class="btn-text">回望历史 (Invert Time)</span>
+                    <span class="btn-text">求逆：回望历史</span>
                 </button>
                 <div class="mode-switch">
-                    <label class="switch-label">编辑模式 (Edit)</label>
+                    <label class="switch-label" for="editModeToggle">编辑模式（点连线增删有序对）</label>
                     <label class="switch">
                         <input type="checkbox" id="editModeToggle">
                         <span class="slider round"></span>
                     </label>
                 </div>
             </div>
-        </header>
+                </div>
+                <div class="control-group">
+                    <label>当前解读</label>
+                    <section class="insight-footer" aria-live="polite">
+            <div class="insight-content">
+                <h4 id="insightTitle">当前：关系 R（向前发展）</h4>
+                <p id="insightText">关系 R 指向未来，象征着前人的奉献与时代的进步。</p>
+            </div>
+            <div class="math-badge" id="mathBadge">R</div>
+        </section>
+                </div>
+                <div class="control-group">
+                    <label>知识要点</label>
+                    <div class="dm-t-info">R⁻¹ = {(y, x) | (x, y) ∈ R}。关系图中每条边掉头；矩阵上 M<sub>R⁻¹</sub> = M<sub>R</sub><sup>T</sup>（转置）。<br>性质：(R⁻¹)⁻¹ = R；dom R⁻¹ = ran R；R 对称 ⇔ R = R⁻¹。</div>
+                </div>
+                <div class="control-group">
+                    <label>专项练习 · 所属单元</label>
+                    <div class="note-small">本页是 3.4 二元关系的运算的专项练习页，系统学习请进入上方三阶卡：基础层「集合运算与逆运算」、进阶层「复合运算与关系矩阵」、拓展层「关系的幂与可达」。</div>
+                </div>
+            </div>
+        </aside>
 
-        <main class="split-stage">
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <header class="stage-header">
+                    <h2>逆关系：换个方向看联系</h2>
+                    <p>R = {(1921, 1949), (1949, 1978), (1978, 2025)} 表示「先 → 后」的传承；R⁻¹ 把每个有序对反向，得到「后 → 先」的溯源。</p>
+                </header>
+                <div class="split-stage">
             <!-- Left: Topology View -->
             <section class="view-panel topology-panel">
                 <div class="panel-header">
-                    <h3>历史长河 (Topology)</h3>
-                    <p class="panel-sub">Graph View G(V, E)</p>
+                    <h3>关系图：历史长河</h3>
+                    <p class="panel-sub">结点 = 历史节点，箭头 = 有序对</p>
                 </div>
                 <div class="graph-container" id="graphContainer">
                     <svg class="graph-svg" id="graphSvg">
@@ -73,7 +105,7 @@
                             </marker>
                             <marker id="arrowhead-blue" markerWidth="12" markerHeight="8" refX="12" refY="4"
                                 orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 12 8">
-                                <polygon points="0 0, 12 4, 0 8" fill="#2f5f9f" />
+                                <polygon points="0 0, 12 4, 0 8" fill="#c58a1f" />
                             </marker>
                         </defs>
                         <!-- Edges injected here -->
@@ -87,51 +119,33 @@
             <!-- Right: Algebra View -->
             <section class="view-panel algebra-panel">
                 <div class="panel-header">
-                    <h3>关系矩阵 (Algebra)</h3>
-                    <p class="panel-sub">Adjacency Matrix M</p>
+                    <h3>关系矩阵</h3>
+                    <p class="panel-sub">R⁻¹ 的矩阵 = R 的矩阵转置</p>
                 </div>
                 <div class="matrix-container">
                     <div class="matrix-grid" id="matrixGrid">
                         <!-- Matrix Cells injected here -->
                     </div>
-                    <div class="matrix-labels" id="matrixLabels">
-                        <!-- Row/Col labels -->
-                    </div>
                 </div>
             </section>
-        </main>
-
-        <footer class="insight-footer">
-            <div class="insight-content">
-                <h4 id="insightTitle">当前状态: 发展 (Forward)</h4>
-                <p id="insightText">关系 R 指向未来，象征着前人的奉献与时代的进步。</p>
+        </div>
             </div>
-            <div class="math-badge" id="mathBadge">R</div>
-        </footer>
+        </main>
     </div>
 
+    <footer class="site-footer">
+        <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
+        <p>版权所有 · 项目总负责人：谢鑫</p>
+    </footer>
+
     <script src="inverse.js"></script>
-
-<!-- 固定底部版权信息 -->
-<footer class="site-footer">
-    <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
-    <p>版权所有 · 项目总负责人：谢鑫</p>
-</footer>
-
-
 
     <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
     <script>
     window.SECTION_META = {
-      "ideologyPanel": true,
-      "layers": [
-        {"name": "逆运算基础", "concepts": "R⁻¹ / 方向反转 / 矩阵转置", "task": "基础层：先掌握关系求逆，理解有序对方向反转与矩阵转置。", "page": "../2）逆运算/inverse.html"},
-        {"name": "关系运算综合", "concepts": "R⁻¹ / R∘S / Rⁿ / 布尔矩阵", "task": "进阶层：在整体综合页中联动理解逆、复合与幂运算。", "page": "../1）整体综合/relation_ops.html"},
-        {"name": "幂运算与可达", "concepts": "Rⁿ / n 步可达 / 传递闭包", "task": "拓展层：研究关系幂、可达性与传递闭包等多步结构。", "page": "../4）幂运算/power.html"}
-      ],
       "chapter": "第3章 二元关系",
-      "section": "3.4 二元关系的运算 · 逆运算",
-      "title": "关系的逆运算",
+      "section": "3.4 二元关系的运算",
+      "title": "逆运算专项练习",
       "grounding": "本节主题：逆关系 R⁻¹={(b,a)|(a,b)∈R}，即把每个有序对反向。性质：(R⁻¹)⁻¹=R；(R∪S)⁻¹=R⁻¹∪S⁻¹；(R∘S)⁻¹=S⁻¹∘R⁻¹。矩阵上 M_{R⁻¹}=M_Rᵀ（转置）。R 对称 ⇔ R=R⁻¹。",
       "steps": [
         {
@@ -180,11 +194,30 @@
           "t": "对称判定",
           "d": "判断一个关系是否对称，只需比较 M_R 与其转置——如何快速实现？"
         }
+      ],
+      "layers": [
+        {
+          "name": "集合运算与逆运算",
+          "concepts": "R∪S / R∩S / R−S / ∼R / R⁻¹ / 矩阵转置",
+          "task": "会做关系的集合运算与求逆，理解逆关系就是矩阵转置。",
+          "page": "../1）整体综合/relation_ops-basic.html"
+        },
+        {
+          "name": "复合运算与关系矩阵",
+          "concepts": "R∘S / 布尔积 / 不满足交换律 / (R∘S)⁻¹",
+          "task": "按定义与布尔矩阵乘法两种方法计算关系的复合。",
+          "page": "../1）整体综合/relation_ops.html"
+        },
+        {
+          "name": "关系的幂与可达",
+          "concepts": "Rⁿ / R⁰=I_A / 幂的周期性 / R∪R²∪…∪Rⁿ",
+          "task": "研究关系幂的周期性，为传递闭包做准备并迁移到网络可达分析。",
+          "page": "../1）整体综合/relation_ops-extend.html"
+        }
       ]
     };
     </script>
     <script src="../../../shared/ai-tutor.js" defer></script>
-
 </body>
 
 </html>

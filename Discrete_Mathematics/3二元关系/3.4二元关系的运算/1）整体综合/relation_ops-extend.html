@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
+    <!-- Open Graph / 社交分享（微信、钉钉、Telegram 等）。部署域名变更时全局替换下方 BASE 即可 -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
+    <meta property="og:locale" content="zh_CN">
+    <meta property="og:title" content="关系的幂与可达 · 拓展层｜3.4 二元关系的运算 - 离散数学课程资源库">
+    <meta property="og:description" content="第3章 二元关系 · 3.4 二元关系的运算 · 拓展层：Rⁿ / R⁰=I_A / 幂的周期性 / R∪R²∪…∪Rⁿ。研究关系幂的周期性，为传递闭包做准备并迁移到网络可达分析。">
+    <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/3%E4%BA%8C%E5%85%83%E5%85%B3%E7%B3%BB/3.4%E4%BA%8C%E5%85%83%E5%85%B3%E7%B3%BB%E7%9A%84%E8%BF%90%E7%AE%97/1%EF%BC%89%E6%95%B4%E4%BD%93%E7%BB%BC%E5%90%88/relation_ops-extend.html">
+    <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="关系的幂与可达 · 拓展层｜3.4 二元关系的运算 - 离散数学课程资源库">
+    <meta name="twitter:description" content="第3章 二元关系 · 3.4 二元关系的运算 · 拓展层：Rⁿ / R⁰=I_A / 幂的周期性 / R∪R²∪…∪Rⁿ。研究关系幂的周期性，为传递闭包做准备并迁移到网络可达分析。">
+    <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关系的幂与可达 · 拓展层｜3.4 二元关系的运算 - 离散数学课程资源库</title>
+    <meta name="description" content="第3章 二元关系 · 3.4 二元关系的运算 · 拓展层：Rⁿ / R⁰=I_A / 幂的周期性 / R∪R²∪…∪Rⁿ。研究关系幂的周期性，为传递闭包做准备并迁移到网络可达分析。">
+
+    <link rel="stylesheet" href="relation_ops.css">
+    <link rel="stylesheet" href="../../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap"></noscript>
+    <script src="../../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+</head>
+
+<body>
+    <a class="home-link" href="../../../index.html#chapter3">← 返回课程主页</a>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+                <h1>关系的幂与可达</h1>
+                <p class="subtitle">Rⁿ / R⁰=I_A / 幂的周期性 / R∪R²∪…∪Rⁿ</p>
+            </div>
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <label>选择关系（A = {1, 2, 3, 4, 5, 6}）</label>
+                    <div class="seg" id="preset">
+                        <button type="button" data-p="spread" class="active">传播网络<small>含回路的有向网络</small></button>
+                        <button type="button" data-p="chain">接力链<small>1→2→…→6</small></button>
+                        <button type="button" data-p="cycle">两个回路<small>长 3 与长 2 的回路 + 自环</small></button>
+                        <button type="button" data-p="rho">先链后环<small>2 步「引线」进入长 3 回路</small></button>
+                    </div>
+                    <div class="note-small">也可以直接点击舞台上 M<sub>R</sub> 的格子自定义关系。</div>
+                </div>
+                <div class="control-group">
+                    <label>幂次 n</label>
+                    <div class="speed-row"><span>n</span><input type="range" id="nRange" min="0" max="12" value="2" aria-label="幂次"><span class="step-info" id="nVal">2</span></div>
+                    <div class="step-ctrl">
+                        <button type="button" class="dm-t-btn secondary" id="prevBtn">上一步</button>
+                        <button type="button" class="dm-t-btn" id="nextBtn">下一步</button>
+                        <button type="button" class="dm-t-btn secondary" id="autoBtn">自动播放</button>
+                    </div>
+                    <div class="speed-row"><span>速度</span><input type="range" id="speed" min="1" max="10" value="5" aria-label="播放速度"></div>
+                    <button type="button" class="dm-t-btn ghost" id="resetBtn">重置</button>
+                </div>
+                <div class="control-group">
+                    <label>解读</label>
+                    <section class="insight-panel" aria-live="polite">
+                        <div class="insight-icon">💡</div>
+                        <div><h4 id="insTitle"></h4><p id="insText"></p></div>
+                    </section>
+                </div>
+                <div class="control-group">
+                    <label>知识要点</label>
+                    <div class="dm-t-info">
+                        ① R⁰ = I<sub>A</sub>，Rⁿ⁺¹ = Rⁿ∘R；R<sup>m</sup>∘R<sup>n</sup> = R<sup>m+n</sup>，(R<sup>m</sup>)<sup>n</sup> = R<sup>mn</sup>。<br>
+                        ② (x, y) ∈ Rⁿ ⇔ 关系图中有从 x 到 y、<b>恰好 n 步</b>的通路；R ∪ R² ∪ … ∪ Rⁿ 表示 <b>n 步以内</b>可达。<br>
+                        ③ <b>周期性</b>：A 有限时，A 上的关系只有有限个，幂序列必然出现 R<sup>s</sup> = R<sup>t</sup>（s &lt; t），此后以 p = t − s 为周期循环。<br>
+                        ④ <b>传递闭包预备</b>：|A| = n 时，t(R) = R ∪ R² ∪ … ∪ Rⁿ（3.6 节详学）。
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="visualizer-stage">
+            <div class="glass-pane">
+                <header class="stage-header">
+                    <h2>关系的幂：一步步走远</h2>
+                    <p id="formula"></p>
+                </header>
+                <div class="dm-t-wrap">
+                    <div class="dm-t-card">
+                        <h3 id="gTitle"></h3>
+                        <svg class="rg" id="gPow"></svg>
+                        <div class="legend"><span><i style="background:#d9c6b8"></i>R（一步）</span><span><i style="background:#d63b1d"></i>Rⁿ（恰好 n 步）</span></div>
+                    </div>
+                    <div class="dm-t-card"><h3>M<sub>R</sub>（可编辑）</h3><div class="mtx" id="mR"></div></div>
+                    <div class="dm-t-card"><h3 id="tPow"></h3><div class="mtx" id="mPow"></div></div>
+                    <div class="dm-t-card"><h3 id="tUni"></h3><div class="mtx" id="mUni"></div>
+                        <div class="legend"><span><i style="background:#c58a1f"></i>本次新增</span></div></div>
+                </div>
+                <div class="dm-t-card" style="margin-top:1rem">
+                    <h3>幂序列 R⁰, R¹, R², …, R¹²（点击缩略图跳转）</h3>
+                    <div class="pow-strip" id="strip"></div>
+                    <div class="legend" id="period" style="margin-top:10px"></div>
+                </div>
+                <div class="dm-t-card" style="margin-top:1rem">
+                    <h3>工程迁移：n 步可达</h3>
+                    <div class="dm-t-info" id="engBox"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="site-footer">
+        <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
+        <p>版权所有 · 项目总负责人：谢鑫</p>
+    </footer>
+
+    <script src="relation_ops-core.js"></script>
+    <script>
+    (function () {
+        var $ = function (id) { return document.getElementById(id); };
+        var O = RelOps, N = 6, names = ['1', '2', '3', '4', '5', '6'], MAXP = 12;
+        var PRESETS = {
+            spread: [[0, 1], [0, 2], [1, 3], [2, 3], [2, 4], [3, 5], [4, 5], [5, 0]],
+            chain: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]],
+            cycle: [[0, 1], [1, 2], [2, 0], [3, 4], [4, 3], [5, 5]],
+            rho: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 2], [5, 0]]
+        };
+        var R = O.fromPairs(PRESETS.spread), n = 2, timer = null;
+        function sup(k) { return String(k).split('').map(function (d) { return '⁰¹²³⁴⁵⁶⁷⁸⁹'[+d]; }).join(''); }
+        function powers() { var arr = [O.identity(N)]; for (var k = 1; k <= MAXP; k++) arr.push(O.compose(arr[k - 1], R, N)); return arr; }
+        // 第一次重复：最小的 t 使 R^t = R^s（s < t）
+        function firstRepeat(P) {
+            for (var t = 1; t < P.length; t++) for (var s = 0; s < t; s++) if (O.equal(P[s], P[t])) return { s: s, t: t };
+            return null;
+        }
+        function render() {
+            var P = powers(), Rn = P[n];
+            var U = new Set(), Uprev = new Set();
+            for (var k = 1; k <= n; k++) { if (k === n) Uprev = O.clone(U); P[k].forEach(function (x) { U.add(x); }); }
+            $('nRange').value = n; $('nVal').textContent = n;
+            $('prevBtn').disabled = n <= 0; $('nextBtn').disabled = n >= MAXP;
+            $('formula').innerHTML = 'R' + sup(n) + (n === 0 ? ' = I<sub>A</sub>（恒等关系）' : n === 1 ? ' = R' : ' = R' + sup(n - 1) + '∘R，M<sub>R' + sup(n) + '</sub> = M<sub>R</sub> 的 ' + n + ' 次布尔幂');
+            $('gTitle').innerHTML = 'R' + sup(n) + ' 的关系图';
+            $('tPow').innerHTML = 'M<sub>R' + sup(n) + '</sub>（恰好 ' + n + ' 步）';
+            $('tUni').innerHTML = n === 0 ? '（n ≥ 1 时显示 n 步内可达）' : 'R ∪ … ∪ R' + sup(n) + '（' + n + ' 步以内）';
+            O.renderGraph($('gPow'), { n: N, names: names, width: 270, height: 250, layers: [{ R: R, color: '#d9c6b8', width: 1.6 }, { R: Rn, color: '#d63b1d', width: 2.6, curve: 0.2 }] });
+            O.renderMatrix($('mR'), { n: N, names: names, R: R, editable: true, corner: 'R', onToggle: function (i, j) {
+                var kk = O.key(i, j); if (R.has(kk)) R.delete(kk); else R.add(kk);
+                Array.prototype.forEach.call(document.querySelectorAll('#preset button'), function (x) { x.classList.remove('active'); });
+                render();
+            } });
+            O.renderMatrix($('mPow'), { n: N, names: names, R: Rn, corner: 'R' + sup(n) });
+            O.renderMatrix($('mUni'), { n: N, names: names, R: n === 0 ? new Set() : U, corner: '∪',
+                cellClass: function (i, j, on) { return on && n > 1 && !Uprev.has(O.key(i, j)) ? 'gold' : ''; } });
+            // 幂序列缩略图
+            var rep = firstRepeat(P);
+            var html = '';
+            P.forEach(function (M, k) {
+                var cells = '';
+                for (var i = 0; i < N; i++) for (var j = 0; j < N; j++) cells += '<span class="' + (M.has(O.key(i, j)) ? 'on' : '') + '"></span>';
+                var isRep = rep && k >= rep.s;
+                html += '<button type="button" class="pow-item' + (k === n ? ' cur' : '') + (isRep ? ' rep' : '') + '" data-k="' + k + '"><div class="t">R' + sup(k) + '</div>'
+                    + '<div class="mini" style="grid-template-columns:repeat(' + N + ',9px)">' + cells + '</div></button>';
+            });
+            $('strip').innerHTML = html;
+            Array.prototype.forEach.call($('strip').querySelectorAll('.pow-item'), function (b) { b.addEventListener('click', function () { stop(); n = +b.dataset.k; render(); }); });
+            var closureAt = null;
+            var acc = new Set();
+            for (var k2 = 1; k2 <= N; k2++) { var before = acc.size; P[k2].forEach(function (x) { acc.add(x); }); if (acc.size === before && closureAt === null) closureAt = k2 - 1; }
+            $('period').innerHTML = rep
+                ? '<span class="badge info">首次重复：R' + sup(rep.s) + ' = R' + sup(rep.t) + '</span><span class="badge info">此后周期 p = ' + (rep.t - rep.s) + '：R' + sup(rep.s) + '⁺ᵏ = R' + sup(rep.t) + '⁺ᵏ</span>'
+                    + (O.equal(P[rep.s], new Set()) ? '<span class="badge no">幂最终为 ∅：没有回路，走不了更远</span>' : '<span class="badge yes">含回路：幂序列永远循环、不会消失</span>')
+                : '<span class="badge info">R⁰ ~ R¹² 内尚未出现重复</span>';
+            $('period').innerHTML += '<span class="badge yes">t(R) = R ∪ … ∪ R⁶，含 ' + acc.size + ' 个有序对' + (closureAt ? '（从第 ' + (closureAt + 1) + ' 次幂起不再新增）' : '') + '</span>';
+            // 解读
+            var added = n > 1 ? U.size - Uprev.size : 0;
+            $('insTitle').textContent = n === 0 ? 'R⁰：原地不动' : 'R' + sup(n) + '：恰好走 ' + n + ' 步';
+            $('insText').innerHTML = n === 0
+                ? '规定 R⁰ = I<sub>A</sub>，每个元素只与自身相关——相当于数的零次幂等于 1，是幂运算的起点。'
+                : 'R' + sup(n) + ' 含 ' + Rn.size + ' 个有序对：(x, y) ∈ R' + sup(n) + ' 当且仅当从 x 出发恰好走 ' + n + ' 步能到 y。'
+                    + (n > 1 ? ' 与前 ' + (n - 1) + ' 次相比，「' + n + ' 步以内可达」新增 ' + added + ' 个有序对' + (added === 0 ? '，可达范围已不再扩大。' : '。') : '')
+                    + (rep && n >= rep.s && rep.t - rep.s > 0 && !O.equal(P[rep.s], new Set()) ? ' 已进入周期段：R' + sup(n) + ' = R' + sup(n + rep.t - rep.s) + '。' : '');
+            // 工程迁移：从结点 1 出发 n 步内可达
+            var reach = [];
+            U.forEach(function (x) { var p = O.parse(x); if (p[0] === 0 && reach.indexOf(p[1]) < 0) reach.push(p[1]); });
+            reach.sort();
+            $('engBox').innerHTML = '以结点 1 为信息源：' + (n === 0 ? '尚未传播。' : n + ' 轮以内能传到 ' + O.listText(reach, names) + '（' + reach.length + ' 个结点）。')
+                + '<br>社交网络的「n 度人脉」、网络路由的最大跳数（TTL）、疫情与舆情的 n 轮扩散模型，本质上都在计算 R ∪ R² ∪ … ∪ Rⁿ；'
+                + '当 n 增大而可达集合不再变化时，就得到全部可达关系——即传递闭包，3.6 节的 Warshall 算法可以更快地求出它。';
+        }
+        function stop() { if (timer) { clearInterval(timer); timer = null; } $('autoBtn').textContent = '自动播放'; }
+        $('nRange').addEventListener('input', function () { stop(); n = +this.value; render(); });
+        $('prevBtn').addEventListener('click', function () { stop(); if (n > 0) { n--; render(); } });
+        $('nextBtn').addEventListener('click', function () { stop(); if (n < MAXP) { n++; render(); } });
+        $('resetBtn').addEventListener('click', function () {
+            stop(); n = 2; R = O.fromPairs(PRESETS.spread);
+            Array.prototype.forEach.call(document.querySelectorAll('#preset button'), function (x) { x.classList.toggle('active', x.dataset.p === 'spread'); });
+            render();
+        });
+        $('autoBtn').addEventListener('click', function () {
+            if (timer) { stop(); return; }
+            if (n >= MAXP) n = 0;
+            $('autoBtn').textContent = '暂停';
+            timer = setInterval(function () { if (n >= MAXP) { stop(); return; } n++; render(); }, 1800 - (+$('speed').value) * 150);
+        });
+        $('speed').addEventListener('input', function () { if (timer) { stop(); $('autoBtn').click(); } });
+        Array.prototype.forEach.call(document.querySelectorAll('#preset button'), function (b) {
+            b.addEventListener('click', function () {
+                stop(); R = O.fromPairs(PRESETS[b.dataset.p]);
+                Array.prototype.forEach.call(document.querySelectorAll('#preset button'), function (x) { x.classList.toggle('active', x === b); });
+                render();
+            });
+        });
+        render();
+    })();
+    </script>
+
+    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
+    <script>
+    window.SECTION_META = {
+      "chapter": "第3章 二元关系",
+      "section": "3.4 二元关系的运算",
+      "title": "关系的幂与可达",
+      "grounding": "本页（拓展层）主题：关系的幂 R⁰=I_A，Rⁿ⁺¹=Rⁿ∘R，R^m∘R^n=R^(m+n)，(R^m)^n=R^(mn)。(x,y)∈Rⁿ 当且仅当关系图中有从 x 到 y 恰好 n 步的通路；R∪R²∪…∪Rⁿ 表示 n 步以内可达。A 有限时 A 上的关系只有有限个，幂序列必出现 R^s=R^t（s<t），此后以 p=t−s 为周期。|A|=n 时传递闭包 t(R)=R∪R²∪…∪Rⁿ。无回路的关系幂最终为空关系。",
+      "steps": [
+        {
+          "name": "情境引入",
+          "desc": "信息从一个人出发，一轮、两轮……能传到哪些人？"
+        },
+        {
+          "name": "对象抽取",
+          "desc": "把『恰好 n 步可达』抽象为关系的 n 次幂。"
+        },
+        {
+          "name": "结构建模",
+          "desc": "用 Rⁿ 与布尔矩阵幂、R∪…∪Rⁿ 建模多步可达。"
+        },
+        {
+          "name": "推理求解",
+          "desc": "计算幂序列，找出首次重复与周期，判断可达范围何时不再扩大。"
+        },
+        {
+          "name": "程序验证",
+          "desc": "用本页切换不同关系、逐次求幂，观察周期与闭包。"
+        },
+        {
+          "name": "迁移反思",
+          "desc": "迁移到传递闭包、社交网络 n 度人脉、路由跳数与传播模型。"
+        }
+      ],
+      "ideology": {
+        "title": "积厚成势 · 久久为功",
+        "text": "关系的幂是一步步联系的累积：从局部可达走向全局贯通，正如事业发展需要积厚成势、久久为功。可达范围由量的积累到不再扩大（得到传递闭包），也让我们体会量变与质变的关系。",
+        "dims": [
+          "辩证思维",
+          "量变质变",
+          "持续奋斗"
+        ],
+        "quote": "积土成山，积水成渊——关系的幂次累积，终将分散的结点连成可达的整体。"
+      },
+      "reflect": [
+        "为什么 A 有限时，幂序列 R, R², R³, … 必然出现重复？",
+        "『恰好 n 步可达』(Rⁿ) 与『n 步以内可达』(R∪…∪Rⁿ) 有何区别？",
+        "若 R∪…∪Rᵏ 与 R∪…∪Rᵏ⁺¹ 相同，能否断定传递闭包已经求完？为什么？"
+      ],
+      "transfer": [
+        "马尔可夫链的 n 步转移概率是转移矩阵的 n 次幂——布尔幂的概率版本。",
+        {
+          "t": "传递闭包",
+          "d": "把 1 到 |A| 次幂取并即得传递闭包，Warshall 算法如何把计算量降到 O(n³)？"
+        }
+      ],
+      "layers": [
+        {
+          "name": "集合运算与逆运算",
+          "concepts": "R∪S / R∩S / R−S / ∼R / R⁻¹ / 矩阵转置",
+          "task": "会做关系的集合运算与求逆，理解逆关系就是矩阵转置。",
+          "page": "relation_ops-basic.html"
+        },
+        {
+          "name": "复合运算与关系矩阵",
+          "concepts": "R∘S / 布尔积 / 不满足交换律 / (R∘S)⁻¹",
+          "task": "按定义与布尔矩阵乘法两种方法计算关系的复合。",
+          "page": "relation_ops.html"
+        },
+        {
+          "name": "关系的幂与可达",
+          "concepts": "Rⁿ / R⁰=I_A / 幂的周期性 / R∪R²∪…∪Rⁿ",
+          "task": "研究关系幂的周期性，为传递闭包做准备并迁移到网络可达分析。",
+          "page": "relation_ops-extend.html"
+        }
+      ]
+    };
+    </script>
+    <script src="../../../shared/ai-tutor.js" defer></script>
+</body>
+
+</html>
