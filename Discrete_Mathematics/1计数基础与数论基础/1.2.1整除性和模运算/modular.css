@@ -481,3 +481,21 @@ input[type="range"]::-webkit-slider-runnable-track {
         grid-template-columns: repeat(5, 1fr);
     }
 }
+
+/* 剩余类与先取模再算 */
+.residue-panel { width: 100%; margin-top: 8px; padding: 10px 14px; border-radius: 12px; background: rgba(255,255,255,.7); border: 1px solid rgba(214,59,29,.16); text-align: left; }
+.residue-panel h4 { margin: 0 0 6px; font-size: .86rem; color: var(--accent-red); }
+.residue-row { display: flex; gap: 10px; font-size: .8rem; line-height: 1.6; color: #2C1810; }
+.residue-row b { font-family: 'JetBrains Mono', Consolas, monospace; color: var(--accent-red); min-width: 34px; }
+.residue-note { margin: 6px 0 0; font-size: .82rem; line-height: 1.6; color: #2C1810; }
+
+/* 精修：日历按周期分列（同列 = 同一剩余类），图例改为随内容流动，避免压住日历 */
+.glass-pane .visualization-area { flex: 0 0 auto; overflow: visible; padding: .5rem 0; }
+.calendar-grid { grid-template-columns: repeat(var(--cols, 7), minmax(0, 1fr)); max-width: 880px; gap: 6px; }
+.day-card { aspect-ratio: auto; min-height: 58px; padding: 6px 4px; }
+.day-number { font-size: .9rem; margin-bottom: 2px; }
+.day-person { font-size: .72rem; }
+.legend-panel { position: static; margin-top: 10px; box-shadow: var(--shadow-sm); }
+@media (max-width: 1024px) {
+    .calendar-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

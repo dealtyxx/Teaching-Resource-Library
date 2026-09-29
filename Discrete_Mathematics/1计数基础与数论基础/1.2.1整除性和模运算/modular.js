@@ -30,28 +30,19 @@ let isAnimating = false;
 // 价值主题数据
 const themes = {
     rotation: {
-        name: '干部轮岗制度',
-        description: '展示轮岗岗位如何按周期顺序重复',
+        name: '志愿服务岗位轮换',
+        description: '展示志愿者岗位如何按周期顺序轮换',
         people: [
-            '党委书记',
-            '副书记',
-            '组织部长',
-            '宣传部长',
-            '纪检书记',
-            '统战部长',
-            '政法书记',
-            '工会主席',
-            '团委书记',
-            '妇联主席',
-            '人大主任',
-            '政协主席'
+            '社区服务', '图书整理', '环境清洁', '交通引导',
+            '敬老助残', '文明宣讲', '应急值守', '实验室值日',
+            '校园巡查', '心理互助', '学业帮扶', '活动保障'
         ],
         colors: [
-            '#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24',
-            '#6c5ce7', '#fd79a8', '#00b894', '#e17055',
-            '#fab1a0', '#a29bfe', '#55efc4', '#fdcb6e'
+            '#D63B1D', '#E09E00', '#1F9D55', '#8B5A3C',
+            '#B8321A', '#C8641E', '#2F7D57', '#A0522D',
+            '#C0392B', '#B7791F', '#3F8F5F', '#6B4A38'
         ],
-        politicalMeaning: '体现轮岗制度的周期性，岗位按固定顺序重复出现'
+        politicalMeaning: '体现轮换安排的周期性，岗位按固定顺序重复出现，人人参与、机会均等'
     },
     scheduling: {
         name: '任务周期安排',
@@ -71,9 +62,9 @@ const themes = {
             '会议组织'
         ],
         colors: [
-            '#3498db', '#2ecc71', '#e74c3c', '#f39c12',
-            '#9b59b6', '#1abc9c', '#34495e', '#16a085',
-            '#27ae60', '#2980b9', '#8e44ad', '#d35400'
+            '#D63B1D', '#E09E00', '#1F9D55', '#8B5A3C',
+            '#B8321A', '#C8641E', '#2F7D57', '#A0522D',
+            '#C0392B', '#B7791F', '#3F8F5F', '#6B4A38'
         ],
         politicalMeaning: '体现任务安排的周期性，确保工作有序推进'
     },
@@ -95,9 +86,9 @@ const themes = {
             '自贸区'
         ],
         colors: [
-            '#e67e22', '#3498db', '#2ecc71', '#e74c3c',
-            '#9b59b6', '#f39c12', '#1abc9c', '#34495e',
-            '#d35400', '#c0392b', '#8e44ad', '#27ae60'
+            '#D63B1D', '#E09E00', '#1F9D55', '#8B5A3C',
+            '#B8321A', '#C8641E', '#2F7D57', '#A0522D',
+            '#C0392B', '#B7791F', '#3F8F5F', '#6B4A38'
         ],
         politicalMeaning: '体现资源分配的循环性，投放位置按固定周期重复出现'
     }
@@ -137,18 +128,21 @@ function attachEventListeners() {
         currentTheme = themeSelect.value;
         updateThemeInfo();
         updateValues();
+        visualize(true);
     });
 
     periodSlider.addEventListener('input', () => {
         period = parseInt(periodSlider.value);
         periodValue.textContent = period;
         updateValues();
+        visualize(true);
     });
 
     daysSlider.addEventListener('input', () => {
         totalDays = parseInt(daysSlider.value);
         daysValue.textContent = totalDays;
         updateValues();
+        visualize(true);
     });
 
     visualizeBtn.addEventListener('click', visualize);
@@ -176,9 +170,12 @@ function updateValues() {
 }
 
 // 可视化
-async function visualize() {
-    if (isAnimating) return;
+let pendingViz = false;
+let instantViz = false;
+async function visualize(instant) {
+    if (isAnimating) { pendingViz = true; return; }
     isAnimating = true;
+    instantViz = instant === true;
     visualizeBtn.disabled = true;
     visualizeBtn.textContent = '生成中...';
 
@@ -191,6 +188,7 @@ async function visualize() {
     // 创建日历网格
     const grid = document.createElement('div');
     grid.className = 'calendar-grid';
+    grid.style.setProperty('--cols', cycle.length); // 每列恰为一个剩余类
     vizArea.appendChild(grid);
 
     // 生成每一天的卡片
@@ -224,8 +222,9 @@ async function visualize() {
     generateLegend(cycle);
 
     visualizeBtn.disabled = false;
-    visualizeBtn.textContent = '🎯 开始可视化';
+    visualizeBtn.textContent = '▶ 逐日演示';
     isAnimating = false;
+    if (pendingViz) { pendingViz = false; visualize(true); }
 }
 
 // 生成图例
@@ -257,19 +256,43 @@ function generateLegend(cycle) {
     explanation.style.color = 'var(--accent-red)';
     explanation.innerHTML = `💡 当前周期长度为 ${cycle.length}，第 n 天落在第 ((n - 1) mod ${cycle.length}) + 1 个位置`;
     legendPanel.appendChild(explanation);
+    renderResidueClasses(cycle.length);
+}
+
+// 剩余类与「先取模再算」
+function renderResidueClasses(m) {
+    const box = document.createElement('div');
+    box.className = 'residue-panel';
+    let rows = '';
+    for (let r = 0; r < m; r++) {
+        const days = [];
+        for (let d = 1; d <= totalDays; d++) if ((d - 1) % m === r) days.push(d);
+        rows += `<div class="residue-row"><b>[${r}]</b><span>${days.join('、')}</span></div>`;
+    }
+    const big = 20260101;
+    const a = 2025, b = 2026;
+    box.innerHTML = `<h4>剩余类：按 (n − 1) mod ${m} 把 ${totalDays} 天分成 ${m} 类，同类的天数彼此同余</h4>${rows}`
+        + `<p class="residue-note">① 第 ${big} 天轮到谁？只需算 (${big} − 1) mod ${m} = ${(big - 1) % m}，即第 ${(big - 1) % m + 1} 个岗位——不必真的数两千万天。</p>`
+        + `<p class="residue-note">② 先取模再算：(${a} × ${b}) mod ${m} = ((${a} mod ${m}) × (${b} mod ${m})) mod ${m} = (${a % m} × ${b % m}) mod ${m} = ${(a * b) % m}。</p>`;
+    legendPanel.appendChild(box);
 }
 
 // 重置
 function reset() {
-    vizArea.innerHTML = '';
-    legendPanel.innerHTML = '';
+    currentTheme = 'rotation'; themeSelect.value = 'rotation';
+    period = 7; periodSlider.value = 7; periodValue.textContent = 7;
+    totalDays = 30; daysSlider.value = 30; daysValue.textContent = 30;
+    updateValues();
+    visualize(true);
 }
 
 // 工具函数：延迟
 function sleep(ms) {
+    if (instantViz) return Promise.resolve();
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // 启动应用
 init();
 updateThemeInfo();
+visualize(true);
