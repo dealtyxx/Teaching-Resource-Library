@@ -50,6 +50,22 @@
     return dist;
   }
   // 度序列可图化的两个必要条件：Σ 为偶、max ≤ n-1（简单图）
+  // Havel–Hakimi：返回每一轮的序列（非增排列后）与结论
+  function havelHakimi(seq) {
+    let s = seq.slice().sort((a, b) => b - a);
+    const trace = [s.slice()];
+    while (s.length && s[0] > 0) {
+      const d = s.shift();
+      if (d > s.length) return { ok: false, trace, reason: "首项 " + d + " 大于剩余项数 " + s.length };
+      for (let i = 0; i < d; i++) s[i]--;
+      trace.push(s.slice());
+      if (s.some(x => x < 0)) return { ok: false, trace, reason: "出现负数" };
+      const before = s.join(",");
+      s.sort((a, b) => b - a);
+      if (s.join(",") !== before) trace.push(s.slice());
+    }
+    return { ok: true, trace };
+  }
   function graphicalQuickCheck(seq) {
     const sum = seq.reduce((a, b) => a + b, 0);
     const n = seq.length;
@@ -61,7 +77,7 @@
     basic: {
       label: "基础层",
       directed: false,
-      mission: "选顶点、数关联边，算出 deg(v)，再用度数表看懂出度与入度。",
+      mission: "逐个顶点数关联边，算出 deg(v)，发现度数和等于边数两倍，再认识出度与入度。",
       badge: "deg(v) = 关联边数",
       names: ["A", "B", "C", "D", "E"],
       nodes: [
@@ -86,7 +102,7 @@
           nodes: [0,1,2,3,4], edges: [],
           badge: "度数表", tone: "blue",
           showDeg: "deg", viz: "degree",
-          text: "给每个顶点都数一遍关联边。图上每个顶点旁的<b>金色小徽标</b>就是它的度。"
+          text: "给每个顶点都数一遍关联边。图上每个顶点右上角的<b>金色小徽标</b>就是它的度。"
         },
         {
           name: "把度数加起来",
@@ -126,7 +142,7 @@
     advanced: {
       label: "进阶层",
       directed: false,
-      mission: "用握手定理推算边数、解释奇度顶点推论、判定度序列可图化。",
+      mission: "用握手定理推算边数、解释奇度顶点推论，判定度数列能否（简单）图化。",
       badge: "Σdeg = 2|E|",
       names: ["A", "B", "C", "D", "E", "F"],
       nodes: [
@@ -145,7 +161,7 @@
           nodes: [2], edges: [],
           badge: "Δ=4, δ=2", tone: "",
           showDeg: "deg", viz: "degree",
-          text: "全图最大的度记作 <b>Δ(G)</b>，最小的记作 <b>δ(G)</b>。C 的度最高（4），是这张网络的“枢纽”。"
+          text: "全图最大的度记作 <b>Δ(G)</b>，最小的记作 <b>δ(G)</b>。C 的度最高（4，其中自环贡献 2）。"
         },
         {
           name: "自环计 2",
@@ -153,7 +169,7 @@
           nodes: [2], edges: [[2,2],[1,2],[2,3]],
           badge: "loop +2", tone: "red",
           showDeg: "deg",
-          text: "C 上有一个<b>自环</b>：边的两端都落在 C，进出各算一次，所以给 deg(C) 贡献 <b>2</b>。"
+          text: "C 上有一个<b>自环</b>：一条边有两个端点，自环的两个端点都是 C，所以它给 deg(C) 贡献 <b>2</b>（不是 1）。"
         },
         {
           name: "握手定理为什么成立",
@@ -165,7 +181,7 @@
         },
         {
           name: "用握手定理求边数",
-          formula: '已知度序列 (2,3,4,2,3,2)：|E| = <span class="ft hot">Σdeg / 2</span> = 16/2 = <span class="ft hot-blue hot">8</span>',
+          formula: '已知度数列 (2,3,4,2,3,2)：|E| = <span class="ft hot">Σdeg / 2</span> = 16/2 = <span class="ft hot-blue hot">8</span>',
           nodes: [0,1,2,3,4,5], edges: [],
           badge: "|E|=8", tone: "blue",
           showDeg: "deg",
@@ -180,20 +196,20 @@
           text: "若奇度顶点有奇数个，度数总和就会是奇数，与 Σdeg=2|E|（偶数）矛盾。所以<b>奇度顶点必成对出现</b>——B 和 E 正好一对。"
         },
         {
-          name: "可图化判定 ①",
-          formula: '序列 (3,2,1)：Σ=6 偶 ✓，但 <span class="ft hot">max 3 &gt; n−1 = 2</span> ✗',
+          name: "可图化 vs 可简单图化",
+          formula: '(3,2,1)：Σ=6 偶 ⇒ <span class="ft hot-green hot">可图化</span>；但 <span class="ft hot">max 3 &gt; n−1 = 2</span> ⇒ 不可简单图化',
           nodes: [], edges: [],
-          badge: "不可图化", tone: "red",
+          badge: "非简单", tone: "red",
           viz: "graphical1",
-          text: "判断一个度序列能否画成<b>简单图</b>：先查两个必要条件——①Σ 为偶数；②最大度 ≤ n−1。序列 (3,2,1) 只有 3 个点，却要求某点连 3 条边，不可能。"
+          text: "<b>可图化</b>（允许平行边、自环）当且仅当度数和为偶数，所以 (3,2,1) 可图化。但要画成<b>简单图</b>，每个顶点最多连其余 n−1 个点：3 个顶点却要求某点度为 3，<b>不可简单图化</b>。"
         },
         {
-          name: "可图化判定 ②",
-          formula: '序列 (2,2,2,1,1)：Σ=8 偶 ✓，max 2 ≤ 4 ✓ ⇒ <span class="ft hot-green hot">可图化</span>',
+          name: "Havel–Hakimi 判定",
+          formula: '(3,3,2,2,2) ⇒ (2,1,1,2) ⇒ (2,2,1,1) ⇒ (1,0,1) ⇒ (1,1,0) ⇒ (0,0) ⇒ <span class="ft hot-green hot">可简单图化</span>',
           nodes: [], edges: [],
-          badge: "可图化", tone: "",
-          viz: "graphical2",
-          text: "序列 (2,2,2,1,1) 通过两个必要条件，且可以构造出来：一条 5 点路径 P₅ 的度序列正是 (1,2,2,2,1)。严格判定可用 Havel–Hakimi 算法逐步归约。"
+          badge: "H–H 归约", tone: "",
+          viz: "havel",
+          text: "两个必要条件（Σ 为偶、max ≤ n−1）只能排除，不能确认。<b>Havel–Hakimi 定理</b>给出充要判定：非增排列后删去首项 d₁，把后面 d₁ 项各减 1，得到的新序列可简单图化 ⇔ 原序列可简单图化。逐步归约到全 0 即成功，出现负数或项不够减即失败。"
         },
         {
           name: "有向图的握手",
@@ -227,11 +243,11 @@
       steps: [
         {
           name: "度中心性",
-          formula: 'C_D(v) = <span class="ft hot">deg(v) / (n−1)</span>  ⇒  C_D(A) = 5/7 ≈ <span class="ft hot-blue hot">0.71</span>',
+          formula: 'C<sub>D</sub>(v) = <span class="ft hot">deg(v) / (n−1)</span>  ⇒  C<sub>D</sub>(A) = 5/7 ≈ <span class="ft hot-blue hot">0.71</span>',
           nodes: [0], edges: [[0,1],[0,2],[0,3],[0,4],[0,5]],
-          badge: "C_D(A)=0.71", tone: "",
+          badge: "中心性 0.71", tone: "",
           showDeg: "deg", viz: "centrality",
-          text: "把度数除以最大可能连接数 n−1，得到归一化的<b>度中心性</b>——网络分析中最基本的影响力指标。A 与 8 个点中的 5 个直连，中心性遥遥领先。"
+          text: "把度数除以最大可能连接数 n−1，得到归一化的<b>度中心性</b>——网络分析中最基本的影响力指标。A 与其余 7 个点中的 5 个直连，中心性遥遥领先。"
         },
         {
           name: "识别枢纽 Hub",
@@ -239,7 +255,7 @@
           nodes: [0], edges: [[0,1],[0,2],[0,3],[0,4],[0,5]],
           badge: "枢纽=A", tone: "gold",
           showDeg: "deg",
-          text: "度数远高于平均值的节点是<b>枢纽(hub)</b>。真实网络里：航空网的北上广、社交网的大V、互联网的骨干路由器。"
+          text: "度数远高于平均值的节点是<b>枢纽(hub)</b>。真实网络里：航空网的枢纽机场、社交网的大V、互联网的骨干路由器。本图平均度 = 18/8 = 2.25，而 deg(A)=5。"
         },
         {
           name: "度分布 P(k)",
@@ -247,15 +263,15 @@
           nodes: [0,1,2,3,4,5,6,7], edges: [],
           badge: "长尾分布", tone: "blue",
           showDeg: "deg", viz: "distribution",
-          text: "统计“度为 k 的顶点有几个”得到<b>度分布</b>。本网大量低度节点 + 一个高度枢纽，分布拖着长尾——这是真实网络的普遍形态。"
+          text: "统计“度为 k 的顶点有几个”得到<b>度分布</b>。本网大量低度节点 + 一个高度枢纽，分布拖着长尾——许多真实网络都呈现这种“少数高度、多数低度”的形态。"
         },
         {
           name: "无标度网络",
-          formula: '<span class="ft hot">P(k) ∼ k^(−γ)</span>，γ ≈ 2~3（幂律）',
+          formula: '<span class="ft hot">P(k) ∝ k<sup>−γ</sup></span>，经典模型中常见 2 &lt; γ &lt; 3（幂律）',
           nodes: [0], edges: [],
           badge: "幂律", tone: "red",
           showDeg: "deg",
-          text: "互联网、引文网、蛋白质网络的度分布近似<b>幂律</b>：没有“典型度数”（无标度）。成因之一是<b>优先连接</b>——新节点更愿意连向已有的枢纽（马太效应）。"
+          text: "许多实证研究发现，互联网、引文网等真实网络的度分布近似<b>幂律</b>（也有研究认为并不严格）：没有“典型度数”（无标度）。成因之一是<b>优先连接</b>——新节点更愿意连向已有的枢纽（马太效应）。"
         },
         {
           name: "鲁棒 vs 脆弱",
@@ -279,7 +295,7 @@
 
   /* 供 Node 测试 */
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = { LEVELS, degrees, handshakeOK, oddVertices, components, degreeDistribution, graphicalQuickCheck };
+    module.exports = { LEVELS, degrees, handshakeOK, oddVertices, components, degreeDistribution, graphicalQuickCheck, havelHakimi };
   }
   if (typeof document === "undefined") return;
 
@@ -299,6 +315,12 @@
   let step = 0;
   let playTimer = null;
   const R = 20;
+  // 全章统一配色：普通顶点=主红白字，当前/关注=金，已确认=绿，删除=灰虚线；普通边=淡褐灰细线，高亮边=主红加粗
+  const C = {
+    node: "#d63b1d", cur: "#ffb400", ok: "#1f9d55", dimNode: "#eed8cc",
+    edge: "rgba(107,74,56,0.5)", edgeDim: "rgba(107,74,56,0.16)", edgeHot: "#d63b1d", gone: "#9a8a80",
+    text: "#fff", curText: "#2c1810", dimText: "#9a7a6a", ring: "#fff8ec", badge: "#fff4d6", badgeText: "#8a5d0b"
+  };
 
   function esc(v) {
     return String(v == null ? "" : v).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch]));
@@ -311,7 +333,7 @@
   function resize() {
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
-    const w = Math.max(360, Math.floor(rect.width));
+    const w = Math.max(240, Math.floor(rect.width));  // 不强行放大到 360，否则窄屏上画布被 CSS 横向压缩、文字变形
     const h = Math.max(300, Math.floor(rect.height));
     canvas.width = Math.floor(w * dpr);
     canvas.height = Math.floor(h * dpr);
@@ -339,7 +361,7 @@
     ctx.fill();
   }
   function drawLoop(p, hot, dim) {
-    const color = hot ? "#d63b1d" : dim ? "rgba(47,95,159,0.2)" : "rgba(47,95,159,0.62)";
+    const color = hot ? C.edgeHot : dim ? C.edgeDim : C.edge;
     ctx.strokeStyle = color;
     ctx.lineWidth = hot ? 4 : 2;
     ctx.beginPath();
@@ -365,7 +387,7 @@
       const dim = (anyHl && !hot) || isGhost;
       if (e.u === e.v) { drawLoop(P[e.u], hot, dim); return; }
       const a = P[e.u], b = P[e.v];
-      const color = hot ? "#d63b1d" : dim ? "rgba(47,95,159,0.16)" : "rgba(47,95,159,0.62)";
+      const color = isGhost ? C.gone : hot ? C.edgeHot : dim ? C.edgeDim : C.edge;
       ctx.strokeStyle = color;
       ctx.lineWidth = hot ? 4 : 2.2;
       ctx.setLineDash(isGhost ? [6, 6] : []);
@@ -390,21 +412,21 @@
       ctx.beginPath();
       ctx.arc(p.x, p.y, hot ? R + 2 : R, 0, Math.PI * 2);
       if (isGhost) {
-        ctx.fillStyle = "rgba(214, 59, 29,0.10)";
+        ctx.fillStyle = "rgba(154,138,128,0.10)";
         ctx.fill();
         ctx.setLineDash([5, 5]);
-        ctx.strokeStyle = "#d63b1d";
+        ctx.strokeStyle = C.gone;
         ctx.lineWidth = 2;
         ctx.stroke();
         ctx.setLineDash([]);
-        ctx.fillStyle = "#d63b1d";
+        ctx.fillStyle = C.gone;
       } else {
-        ctx.fillStyle = hot ? "#d63b1d" : dim ? "#cdbfae" : "#2f7d57";
+        ctx.fillStyle = hot ? C.cur : dim ? C.dimNode : C.node;
         ctx.fill();
-        ctx.strokeStyle = "#fff8ec";
+        ctx.strokeStyle = C.ring;
         ctx.lineWidth = 3;
         ctx.stroke();
-        ctx.fillStyle = "#fff";
+        ctx.fillStyle = hot ? C.curText : dim ? C.dimText : C.text;
       }
       ctx.font = "800 14px 'JetBrains Mono', Consolas, monospace";
       ctx.textAlign = "center";
@@ -417,12 +439,12 @@
         const bx = p.x + R + 4, by = p.y - R - 2;
         ctx.beginPath();
         ctx.arc(bx, by, 11, 0, Math.PI * 2);
-        ctx.fillStyle = "#c58a1f";
+        ctx.fillStyle = C.cur;
         ctx.fill();
-        ctx.strokeStyle = "#fff8ec";
+        ctx.strokeStyle = C.ring;
         ctx.lineWidth = 2;
         ctx.stroke();
-        ctx.fillStyle = "#fff";
+        ctx.fillStyle = C.curText;
         ctx.font = "800 11px 'JetBrains Mono', Consolas, monospace";
         ctx.fillText(String(v), bx, by);
       }
@@ -443,7 +465,14 @@
     const rows = level.names.map((nm, i) =>
       '<span class="pill">' + nm + (directed ? "：出" + d.out[i] + " / 入" + d.inn[i] : "：deg " + d.deg[i]) + '</span>'
     ).join("");
-    return '<div class="graph-summary"><b>度数表：</b><div class="pill-row">' + rows + '</div></div>';
+    let sumLine = "";
+    if (directed) {
+      const so = d.out.reduce((a, b) => a + b, 0), si = d.inn.reduce((a, b) => a + b, 0);
+      sumLine = "Σdeg⁺=" + so + "，Σdeg⁻=" + si + "，|E|=" + level.edges.length + (so === si && si === level.edges.length ? " ✓" : "");
+    } else {
+      sumLine = "Σdeg=" + d.deg.reduce((a, b) => a + b, 0) + "，2|E|=" + 2 * level.edges.length;
+    }
+    return '<div class="graph-summary"><b>度数表：</b>' + sumLine + '<div class="pill-row">' + rows + '</div></div>';
   }
   function handshakeHtml() {
     const d = degrees(N, level.edges, false);
@@ -458,7 +487,7 @@
     const rows = level.names.map((nm, i) =>
       '<span class="pill">' + nm + '：' + (d.deg[i] / (N - 1)).toFixed(2) + '</span>'
     ).join("");
-    return '<div class="graph-summary"><b>度中心性 C_D(v)=deg(v)/(n−1)：</b><div class="pill-row">' + rows + '</div></div>';
+    return '<div class="graph-summary"><b>度中心性 C<sub>D</sub>(v)=deg(v)/(n−1)：</b><div class="pill-row">' + rows + '</div></div>';
   }
   function distributionHtml() {
     const dist = degreeDistribution(N, level.edges);
@@ -466,7 +495,7 @@
     const maxC = Math.max.apply(null, ks.map(k => dist[k]));
     const bars = ks.map(k =>
       '<div style="display:flex;align-items:center;gap:8px"><span class="pill" style="min-width:52px;text-align:center">k=' + k + '</span>' +
-      '<div style="height:14px;border-radius:7px;background:linear-gradient(90deg,#d63b1d,#c58a1f);width:' + Math.round(dist[k] / maxC * 220) + 'px"></div>' +
+      '<div style="height:14px;border-radius:7px;background:linear-gradient(90deg,#d63b1d,#ffb400);width:' + Math.round(dist[k] / maxC * 220) + 'px"></div>' +
       '<b>' + dist[k] + ' 个</b></div>'
     ).join("");
     return '<div class="graph-summary"><b>度分布 P(k)：</b><div style="display:grid;gap:6px;margin-top:8px">' + bars + '</div></div>';
@@ -479,11 +508,14 @@
   }
   function graphical1Html() {
     const q = graphicalQuickCheck([3, 2, 1]);
-    return '<div class="graph-summary"><b>检查 (3,2,1)：</b>Σ=' + q.sum + '（偶 ' + (q.sumEven ? "✓" : "✗") + '）；max=3 ≤ n−1=2？' + (q.maxOK ? "✓" : "<b>✗ 不满足</b>") + ' ⇒ 不可图化（简单图中一个点最多连 n−1 个点）。</div>';
+    return '<div class="graph-summary"><b>检查 (3,2,1)：</b>Σ=' + q.sum + '（偶 ' + (q.sumEven ? "✓" : "✗") + '）⇒ <b>可图化</b>（例如 v₁ 带一个自环并与 v₂ 相连，v₂ 再与 v₃ 相连）；' +
+      'max=3 ≤ n−1=2？' + (q.maxOK ? "✓" : "<b>✗ 不满足</b>") + ' ⇒ <b>不可简单图化</b>（简单图中一个点最多连 n−1 个点）。</div>';
   }
-  function graphical2Html() {
-    const q = graphicalQuickCheck([2, 2, 2, 1, 1]);
-    return '<div class="graph-summary"><b>检查 (2,2,2,1,1)：</b>Σ=' + q.sum + '（偶 ✓）；max=2 ≤ 4 ✓ ⇒ 通过必要条件，且路径 P₅（端点度1、中间度2）恰好实现它 ⇒ <b>可图化</b>。</div>';
+  function havelHtml() {
+    const r = havelHakimi([3, 3, 2, 2, 2]);
+    const chain = r.trace.map((t, i) => '<span class="pill">' + (i === 0 ? "排序 " : (r.trace[i].length < r.trace[i - 1].length ? "删首减1 " : "重排 ")) + "(" + t.join(",") + ")" + '</span>').join("");
+    return '<div class="graph-summary"><b>Havel–Hakimi 逐步归约 (3,3,2,2,2)：</b><div class="pill-row">' + chain + '</div>' +
+      (r.ok ? "归约到全 0 ⇒ <b>可简单图化</b>；例如 5 圈 v₁v₂v₃v₄v₅ 再加弦 v₁v₃，度数列即 (3,2,3,2,2)。" : "失败：" + r.reason + " ⇒ 不可简单图化。") + '</div>';
   }
   function networksHtml() {
     return '<div class="graph-summary"><b>迁移对照：</b>' +
@@ -500,7 +532,7 @@
       case "distribution": html = distributionHtml(); break;
       case "attack": html = attackHtml(); break;
       case "graphical1": html = graphical1Html(); break;
-      case "graphical2": html = graphical2Html(); break;
+      case "havel": html = havelHtml(); break;
       case "networks": html = networksHtml(); break;
       default: html = "";
     }
@@ -552,7 +584,7 @@
   /* ---- 构建控件 ---- */
   function buildControls() {
     const listItems = level.steps.map((s, i) =>
-      '<div class="step-item" data-i="' + i + '"><span class="num">' + (i + 1) + '</span><span>' + esc(s.name) + '</span></div>'
+      '<button type="button" class="step-item" data-i="' + i + '"><span class="num">' + (i + 1) + '</span><span>' + esc(s.name) + '</span></button>'
     ).join("");
     controls.innerHTML =
       '<div class="step-controller">' +
@@ -576,7 +608,20 @@
     });
   }
 
+  function buildLegend() {
+    const board = canvas.parentNode;
+    if (!board || board.querySelector(".graph-legend")) return;
+    const lg = document.createElement("div");
+    lg.className = "graph-legend";
+    lg.setAttribute("aria-hidden", "true");
+    lg.innerHTML = '<span><i class="lg-node"></i>顶点</span><span><i class="lg-node lg-cur"></i>本步关注 / 度数</span>' +
+      '<span><i class="lg-edge lg-hot"></i>高亮边</span>' +
+      (level.steps.some(st => st.ghost) ? '<span><i class="lg-edge lg-gone"></i>已移除</span>' : '');
+    board.appendChild(lg);
+  }
+
   buildControls();
+  buildLegend();
   renderStep();
   window.addEventListener("resize", draw);
 })();

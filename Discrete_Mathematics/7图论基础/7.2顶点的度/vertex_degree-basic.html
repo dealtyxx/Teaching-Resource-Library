@@ -8,7 +8,7 @@
   <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="顶点的度 · 基础层｜7.2 顶点的度 - 离散数学课程资源库">
-  <meta property="og:description" content="第7章 图论基础 · 7.2 顶点的度 · 基础层：deg(v)=关联边数 / 出·入度。计算顶点的度。">
+  <meta property="og:description" content="第7章 图论基础 · 7.2 顶点的度 · 基础层：度 deg(v) / 度数之和 / 出度与入度。逐点数出顶点的度，初识握手定理与出入度。">
   <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/7%E5%9B%BE%E8%AE%BA%E5%9F%BA%E7%A1%80/7.2%E9%A1%B6%E7%82%B9%E7%9A%84%E5%BA%A6/vertex_degree-basic.html">
   <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta property="og:image:width" content="1200">
@@ -16,11 +16,11 @@
   <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="顶点的度 · 基础层｜7.2 顶点的度 - 离散数学课程资源库">
-  <meta name="twitter:description" content="第7章 图论基础 · 7.2 顶点的度 · 基础层：deg(v)=关联边数 / 出·入度。计算顶点的度。">
+  <meta name="twitter:description" content="第7章 图论基础 · 7.2 顶点的度 · 基础层：度 deg(v) / 度数之和 / 出度与入度。逐点数出顶点的度，初识握手定理与出入度。">
   <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>顶点的度 · 基础层｜7.2 顶点的度 - 离散数学课程资源库</title>
-  <meta name="description" content="第7章 图论基础 · 7.2 顶点的度 · 基础层：deg(v)=关联边数 / 出·入度。计算顶点的度。">
+  <meta name="description" content="第7章 图论基础 · 7.2 顶点的度 · 基础层：度 deg(v) / 度数之和 / 出度与入度。逐点数出顶点的度，初识握手定理与出入度。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -36,14 +36,14 @@
     <aside class="side-panel">
       <div class="eyebrow">基础层 · 第7章 图论基础</div>
       <h1>顶点<span class="highlight">的度</span></h1>
-      <p class="subtitle">deg(v)=关联边数 / 出·入度</p>
+      <p class="subtitle">度 deg(v) / 度数之和 / 出度与入度</p>
       <p class="tier-line">低门槛 · 建立直觉</p>
-      <p class="intro">🎯 计算顶点的度。</p>
+      <p class="intro">🎯 逐点数出顶点的度，初识握手定理与出入度。</p>
 
       <div class="value-panel">
         <h3>贡献与影响 · 担当作为</h3>
-        <p>顶点的度衡量其连接与影响，启示我们：一个人对集体的价值，在于他承担了多少联系、传递了多少正能量。握手定理『奇度顶点成对出现』，则隐喻责任与协作的平衡——多一分担当，网络就多一分坚韧。</p>
-        <div class="dim-list"><span>责任担当</span><span>奉献精神</span><span>系统观念</span></div>
+        <p>每条边连着两个端点，给两端各记 1 度——握手定理 Σdeg=2|E| 说的正是：联系总是双向的，由双方共同维系。度数高的枢纽承担着更多连接，一旦失效网络就可能碎裂（见拓展层的攻击实验）：关键位置意味着关键责任。守好自己这一端，整张网络才更坚韧。</p>
+        <div class="dim-list"><span>责任担当</span><span>协作共担</span><span>系统观念</span></div>
       </div>
 
       <div id="controls"></div>
@@ -51,7 +51,7 @@
 
     <main class="glass-pane">
       <section class="mission-card">
-        <span id="missionText"><b>互动任务：</b>选顶点、数关联边，算出 deg(v)。</span>
+        <span id="missionText"><b>互动任务：</b>逐个顶点数关联边，算出 deg(v)，发现度数和等于边数两倍，再认识出度与入度。</span>
         <div class="visual-badge" id="visualBadge">deg(v) = 关联边数</div>
       </section>
 
@@ -78,27 +78,27 @@
       "layers": [
             {
                   "name": "顶点的度",
-                  "concepts": "deg(v)=关联边数 / 出·入度",
-                  "task": "计算顶点的度。",
+                  "concepts": "度 deg(v) / 度数之和 / 出度与入度",
+                  "task": "逐点数出顶点的度，初识握手定理与出入度。",
                   "page": "vertex_degree-basic.html"
             },
             {
                   "name": "握手定理",
-                  "concepts": "Σdeg=2|E| / 奇度顶点偶数个",
-                  "task": "用握手定理推算边数、判可图化。",
+                  "concepts": "Σdeg=2|E| / 奇度顶点偶数个 / 可图化与可简单图化",
+                  "task": "用握手定理推算边数，判定度数列能否（简单）图化。",
                   "page": "vertex_degree.html"
             },
             {
                   "name": "中心性与无标度",
-                  "concepts": "度中心性 / 枢纽 / 幂律分布",
-                  "task": "迁移到网络影响力与鲁棒性。",
+                  "concepts": "度中心性 / 枢纽 / 度分布与幂律 / 鲁棒性",
+                  "task": "把度数迁移到网络影响力与鲁棒性分析。",
                   "page": "vertex_degree-extend.html"
             }
       ],
       "chapter": "第7章 图论基础",
       "section": "7.2 顶点的度",
       "title": "顶点的度",
-      "grounding": "本节主题：顶点的度 deg(v)=关联边数（自环计2）；握手定理 Σdeg(v)=2|E|，推论：奇度顶点个数为偶。有向图分出度/入度，Σ出度=Σ入度=|E|。度数刻画顶点的『连接强度/影响力』。",
+      "grounding": "本节主题：顶点的度 deg(v)=关联边数（自环计2）；握手定理 Σdeg(v)=2|E|，推论：奇度顶点个数为偶。度数列可图化⇔度数和为偶；可简单图化用 Havel–Hakimi 定理判定。有向图分出度/入度，Σ出度=Σ入度=|E|。度数刻画顶点的『连接强度/影响力』。",
       "steps": [
             { "name": "情境引入", "desc": "网络中谁是『关键人物』？如何量化一个节点的影响力？" },
             { "name": "对象抽取", "desc": "把『连接多少』抽象为顶点的度。" },
@@ -109,14 +109,14 @@
       ],
       "ideology": {
             "title": "贡献与影响 · 担当作为",
-            "text": "顶点的度衡量其连接与影响，启示我们：一个人对集体的价值，在于他承担了多少联系、传递了多少正能量。握手定理『奇度顶点成对出现』，则隐喻责任与协作的平衡——多一分担当，网络就多一分坚韧。",
-            "dims": [ "责任担当", "奉献精神", "系统观念" ],
-            "quote": "我将无我，不负人民——度数越高，连接越多，意味着越大的担当与影响。"
+            "text": "每条边连着两个端点，给两端各记 1 度——握手定理 Σdeg=2|E| 说的正是：联系总是双向的，由双方共同维系。度数高的枢纽承担着更多连接，一旦失效网络就可能碎裂（见拓展层的攻击实验）：关键位置意味着关键责任。守好自己这一端，整张网络才更坚韧。",
+            "dims": [ "责任担当", "协作共担", "系统观念" ],
+            "quote": "每条边都有两个端点——联系是双向的，责任也是。"
       },
       "reflect": [
             "握手定理 Σdeg(v)=2|E| 为什么成立？每条边对度数和贡献几次？",
             "为什么任何图中『奇度顶点』的个数必为偶数？",
-            "给定一个度序列，如何判断是否存在对应的简单图（可图化）？"
+            "给定一个度序列，如何判断是否存在对应的简单图（可简单图化）？Havel–Hakimi 算法怎样逐步归约？"
       ],
       "transfer": [
             "社交网络的『度中心性』用度数衡量影响力，是网络分析的基本指标。",
