@@ -188,7 +188,7 @@ function handleNodeClick(nodeId) {
                 const vName = nodes.find(n => n.id === nodeId).name;
                 statusText.textContent = `通道已添加: ${uName}-${vName}`;
             } else {
-                statusText.textContent = '该通道已存在!';
+                statusText.textContent = '该通道已存在。';
             }
         }
     }
@@ -474,13 +474,11 @@ function checkEulerianGraph() {
     connectivityStatus.className = isConnected ? 'check-value valid' : 'check-value invalid';
 
     // 2. Check degree
-    let allEvenDegree = true;
-    for (const [nodeId, neighbors] of adjacency) {
-        if (neighbors.length % 2 !== 0) {
-            allEvenDegree = false;
-            break;
-        }
+    let oddCount = 0;
+    for (const [, neighbors] of adjacency) {
+        if (neighbors.length % 2 !== 0) oddCount++;
     }
+    const allEvenDegree = oddCount === 0;
 
     degreeStatus.textContent = allEvenDegree ? '✓ 全偶' : '✗ 有奇度';
     degreeStatus.className = allEvenDegree ? 'check-value valid' : 'check-value invalid';
@@ -491,10 +489,14 @@ function checkEulerianGraph() {
     eulerStatus.className = isEulerian ? 'result-value valid' : 'result-value invalid';
 
     if (isEulerian) {
-        statusText.textContent = '欧拉回路存在! 可以进行路径规划';
+        statusText.textContent = '连通且全为偶度：存在欧拉回路，可以规划闭合巡检路线。';
         startBtn.disabled = false;
     } else {
-        statusText.textContent = '不是欧拉图, 无法形成闭合回路';
+        statusText.textContent = !isConnected
+            ? '街巷网络不连通，无法一次巡检完成。'
+            : oddCount === 2
+                ? '有 2 个奇度路口：只有欧拉通路（从一个奇点走到另一个），不能闭合回到起点。'
+                : `有 ${oddCount} 个奇度路口：不能一笔巡检，需要按中国邮路思想补走重复街巷。`;
         startBtn.disabled = true;
     }
 }
@@ -503,8 +505,11 @@ function checkEulerianGraph() {
 function isGraphConnected() {
     if (nodes.length === 0) return false;
 
+    // 欧拉性只要求“有边的顶点”彼此连通，孤立路口不影响
+    const withEdges = nodes.filter(n => adjacency.get(n.id).length > 0);
+    if (withEdges.length === 0) return false;
     const visited = new Set();
-    const stack = [nodes[0].id];
+    const stack = [withEdges[0].id];
 
     while (stack.length > 0) {
         const current = stack.pop();
@@ -519,7 +524,7 @@ function isGraphConnected() {
         }
     }
 
-    return visited.size === nodes.length;
+    return withEdges.every(n => visited.has(n.id));
 }
 
 // Find Euler Circuit (Hierholzer's Algorithm)
@@ -581,7 +586,7 @@ async function animateEulerCircuit() {
     eulerCircuit = findEulerCircuit();
 
     if (eulerCircuit.length === 0) {
-        statusText.textContent = '无法找到欧拉回路!';
+        statusText.textContent = '无法找到欧拉回路。';
         isRunning = false;
         startBtn.disabled = false;
         checkBtn.disabled = false;
@@ -589,7 +594,7 @@ async function animateEulerCircuit() {
         return;
     }
 
-    statusText.textContent = '开始修复路径规划...';
+    statusText.textContent = '开始修复路径规划……';
 
     // Animate
     for (let i = 0; i < eulerCircuit.length - 1; i++) {
@@ -636,7 +641,7 @@ async function animateEulerCircuit() {
     pathNode.textContent = nodes.find(n => n.id === finalNode).name;
     pathList.appendChild(pathNode);
 
-    statusText.textContent = `修复路径规划完成! 共走${eulerCircuit.length}个点, ${edges.length}条通道`;
+    statusText.textContent = `修复路径规划完成：${edges.length} 条通道各走一次，回到出发路口。`;
 
     isRunning = false;
     startBtn.disabled = false;
