@@ -9,7 +9,7 @@
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
     <meta property="og:title" content="基准与对照 · 拓展层｜3.2 特殊关系 - 离散数学课程资源库">
-    <meta property="og:description" content="第3章 二元关系 · 3.2 特殊关系 · 拓展层：单位阵 / 自环 / 特例验证。用特殊关系做算法的特例校验。">
+    <meta property="og:description" content="第3章 二元关系 · 3.2 特殊关系 · 拓展层：单位矩阵 / 复合单位元 / 特例校验。用特殊关系做关系运算的特例校验。">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/3%E4%BA%8C%E5%85%83%E5%85%B3%E7%B3%BB/3.2%E7%89%B9%E6%AE%8A%E5%85%B3%E7%B3%BB/special_relations-extend.html">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta property="og:image:width" content="1200">
@@ -17,11 +17,11 @@
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="基准与对照 · 拓展层｜3.2 特殊关系 - 离散数学课程资源库">
-    <meta name="twitter:description" content="第3章 二元关系 · 3.2 特殊关系 · 拓展层：单位阵 / 自环 / 特例验证。用特殊关系做算法的特例校验。">
+    <meta name="twitter:description" content="第3章 二元关系 · 3.2 特殊关系 · 拓展层：单位矩阵 / 复合单位元 / 特例校验。用特殊关系做关系运算的特例校验。">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>基准与对照 · 拓展层｜3.2 特殊关系 - 离散数学课程资源库</title>
-    <meta name="description" content="第3章 二元关系 · 3.2 特殊关系 · 拓展层：单位阵 / 自环 / 特例验证。用特殊关系做算法的特例校验。">
+    <meta name="description" content="第3章 二元关系 · 3.2 特殊关系 · 拓展层：单位矩阵 / 复合单位元 / 特例校验。用特殊关系做关系运算的特例校验。">
     <link rel="stylesheet" href="special_relations.css">
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -51,35 +51,15 @@
         .props { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
         .prop { display: flex; align-items: center; gap: 8px; font-size: .84rem; color: #b8321a; }
         .lt { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: .7rem; font-weight: 700; }
-        .lt.y { background: #27c93f; } .lt.n { background: #c0392b; }
+        .lt.y { background: #1F9D55; } .lt.n { background: #c0392b; }
         table.cmp { border-collapse: collapse; font-size: .78rem; }
         table.cmp th, table.cmp td { border: 1px solid rgba(214,59,29,.18); padding: 5px 8px; text-align: center; font-family: 'JetBrains Mono', Consolas, monospace; }
         table.cmp th { background: #d63b1d; color: #fff; }
         table.cmp td.name { background: rgba(214,59,29,.06); color: #b8321a; font-weight: 700; }
         table.cmp td.y { color: #27c93f; font-weight: 700; } table.cmp td.n { color: #c0392b; }
     
-        .value-panel {
-            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
-            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
-            box-shadow: var(--shadow-sm);
-        }
-        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
-        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
-        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
-        .value-dims span {
-            padding: 3px 8px; border-radius: 999px; color: #b8321a;
-            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
-            font-size: .74rem; font-weight: 700;
-        }
-        .value-quote {
-            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
-            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
-        }
-        .value-inline {
-            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
-            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
-            color: var(--text-primary); line-height: 1.5;
-        }
+        .tests { display: flex; flex-direction: column; gap: 4px; min-width: 190px; }
+        .tests-sum { margin-top: 6px; font-size: .8rem; font-weight: 700; color: #1F7A45; }
     </style>
     <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
@@ -99,28 +79,19 @@
                 
                 
                 
-                <div class="control-group value-consistency-group">
-                    <label>价值映射（与进阶层一致）</label>
-                    <div class="value-panel" data-value-source="SECTION_META.ideology">
-                        <h3>把握基准 · 守正辨极</h3>
-                        <p>空关系与全关系是两个极端，恒等关系是中正的基准——认识事物常需先把握其边界与原点。正如治理既要防『一盘散沙』（空），也要防『一刀切齐』（全），在恒等的『守正』与适度联系之间求得平衡，体现执两用中的辩证智慧。</p>
-                        <div class="value-dims"><span>辩证思维</span><span>执中守正</span><span>科学精神</span></div>
-                            <div class="value-quote">执其两端，用其中于民——理解了空、全、恒等三种极端，才能在它们之间稳健建模。</div>
-                    </div>
-                </div>
-
                 <div class="control-group">
                     <label>集合 A 元素个数</label>
                     <div class="dm-t-field"><div class="lab"><span>|A|</span><span class="v" id="nVal">4</span></div><input type="range" id="nRange" min="2" max="5" value="4"></div>
                 </div>
                 <div class="control-group">
                     <label>自建关系 R（点矩阵切换）</label>
-                    <button class="dm-t-btn" id="idBtn">设为恒等关系 Iₐ</button>
+                    <button class="dm-t-btn" id="idBtn">设为恒等关系 I<sub>A</sub></button>
+                    <button class="dm-t-btn ghost" id="sampleBtn">载入示例关系</button>
                     <button class="dm-t-btn ghost" id="clearBtn">清空</button>
                 </div>
                 <div class="control-group">
                     <label>说明</label>
-                    <div class="dm-t-info">恒等关系 Iₐ 同时满足全部性质，是关系合成的<b>单位元</b>，常用作算法的<b>特例验证基准</b>：用 ∅、A×A、Iₐ 检验你的关系运算实现是否正确。</div>
+                    <div class="dm-t-info">恒等关系 I<sub>A</sub> 自反、对称、反对称、传递同时成立，是关系复合的<b>单位元</b>。写关系运算程序时，∅、E<sub>A</sub>、I<sub>A</sub> 是最好的<b>特例校验基准</b>：对任意 R，结果必须满足 ④ 中的恒等式——这正是软件工程中「单元测试」的思想。</div>
                 </div>
             </div>
         </aside>
@@ -140,6 +111,10 @@
                         <div class="dm-t-card">
                             <h3>③ 特殊关系性质对照</h3>
                             <table class="cmp" id="cmp"></table>
+                        </div>
+                        <div class="dm-t-card">
+                            <h3>④ 特例校验：对当前 R 自动测试</h3>
+                            <div class="tests" id="tests"></div>
                         </div>
                     </div>
                 </div>
@@ -174,7 +149,7 @@
             for (var j = 1; j <= n; j++) html += '<div class="mcell hdr">' + j + '</div>';
             for (var i = 1; i <= n; i++) { html += '<div class="mcell hdr">' + i + '</div>'; for (var j2 = 1; j2 <= n; j2++) { var on = has(R, i, j2); html += '<div class="mcell ' + (on ? 'b1' : 'b0') + '" data-i="' + i + '" data-j="' + j2 + '">' + (on ? 1 : 0) + '</div>'; } }
             g.innerHTML = html;
-            [].forEach.call(g.querySelectorAll('.mcell[data-i]'), function (c) { c.onclick = function () { var k = key(+c.dataset.i, +c.dataset.j); if (R[k]) delete R[k]; else R[k] = 1; renderMtx(); renderProps(); }; });
+            [].forEach.call(g.querySelectorAll('.mcell[data-i]'), function (c) { c.onclick = function () { var k = key(+c.dataset.i, +c.dataset.j); if (R[k]) delete R[k]; else R[k] = 1; renderMtx(); renderProps(); renderTests(); }; });
         }
         function renderProps() {
             var p = checkProps(R), html = '';
@@ -183,16 +158,39 @@
         }
         function buildRel(kind) { var r = {}; for (var i = 1; i <= n; i++) for (var j = 1; j <= n; j++) { if (kind === 'full') r[key(i, j)] = 1; else if (kind === 'id' && i === j) r[key(i, j)] = 1; } return r; }
         function renderCmp() {
-            var names = [['∅ 空', {}], ['A×A 全', buildRel('full')], ['Iₐ 恒等', buildRel('id')]];
+            var names = [['∅ 空关系', {}], ['E<sub>A</sub> 全域', buildRel('full')], ['I<sub>A</sub> 恒等', buildRel('id')]];
             var cols = ['自反', '反自反', '对称', '反对称', '传递'];
             var html = '<tr><th>关系</th>' + cols.map(function (c) { return '<th>' + c + '</th>'; }).join('') + '</tr>';
             names.forEach(function (nm) { var p = checkProps(nm[1]); html += '<tr><td class="name">' + nm[0] + '</td>' + cols.map(function (c) { return '<td class="' + (p[c] ? 'y' : 'n') + '">' + (p[c] ? '✓' : '✗') + '</td>'; }).join('') + '</tr>'; });
             $('cmp').innerHTML = html;
         }
-        function renderAll() { n = +$('nRange').value; $('nVal').textContent = n; Object.keys(R).forEach(function (k) { var p = k.split('_'); if (+p[0] > n || +p[1] > n) delete R[k]; }); renderMtx(); renderProps(); renderCmp(); }
+        // 用矩阵布尔运算实现关系运算，再用特殊关系做特例校验
+        function compose(r, s) { var t = {}; for (var i = 1; i <= n; i++) for (var k = 1; k <= n; k++) if (has(r, i, k)) for (var j = 1; j <= n; j++) if (has(s, k, j)) t[key(i, j)] = 1; return t; }
+        function inv(r) { var t = {}; for (var k in r) { var p = k.split('_'); t[key(+p[1], +p[0])] = 1; } return t; }
+        function uni(r, s) { var t = {}; for (var k in r) t[k] = 1; for (var k2 in s) t[k2] = 1; return t; }
+        function inter(r, s) { var t = {}; for (var k in r) if (s[k]) t[k] = 1; return t; }
+        function eq(r, s) { var a = Object.keys(r).sort().join(','), b = Object.keys(s).sort().join(','); return a === b; }
+        function renderTests() {
+            var I = buildRel('id'), E = buildRel('full'), Z = {};
+            var cases = [
+                ['R∘I<sub>A</sub> = R', eq(compose(R, I), R)],
+                ['I<sub>A</sub>∘R = R', eq(compose(I, R), R)],
+                ['R∘∅ = ∅', eq(compose(R, Z), Z)],
+                ['R ∪ ∅ = R', eq(uni(R, Z), R)],
+                ['R ∩ E<sub>A</sub> = R', eq(inter(R, E), R)],
+                ['R ∪ E<sub>A</sub> = E<sub>A</sub>', eq(uni(R, E), E)],
+                ['(R<sup>−1</sup>)<sup>−1</sup> = R', eq(inv(inv(R)), R)],
+                ['I<sub>A</sub><sup>−1</sup> = I<sub>A</sub>', eq(inv(I), I)]
+            ];
+            var pass = cases.filter(function (c) { return c[1]; }).length;
+            $('tests').innerHTML = cases.map(function (c) { return '<div class="prop">' + lt(c[1]) + ' ' + c[0] + '</div>'; }).join('')
+                + '<div class="tests-sum">通过 ' + pass + ' / ' + cases.length + ' 项（|R| = ' + Object.keys(R).length + '）</div>';
+        }
+        function renderAll() { n = +$('nRange').value; $('nVal').textContent = n; Object.keys(R).forEach(function (k) { var p = k.split('_'); if (+p[0] > n || +p[1] > n) delete R[k]; }); renderMtx(); renderProps(); renderCmp(); renderTests(); }
         $('nRange').oninput = renderAll;
-        $('idBtn').onclick = function () { R = buildRel('id'); renderMtx(); renderProps(); };
-        $('clearBtn').onclick = function () { R = {}; renderMtx(); renderProps(); };
+        $('idBtn').onclick = function () { R = buildRel('id'); renderMtx(); renderProps(); renderTests(); };
+        $('clearBtn').onclick = function () { R = {}; renderMtx(); renderProps(); renderTests(); };
+        $('sampleBtn').onclick = function () { R = {}; ['1_2', '2_3', '1_3', '3_3', '4_1'].forEach(function (k) { var p = k.split('_'); if (+p[0] <= n && +p[1] <= n) R[k] = 1; }); renderMtx(); renderProps(); renderTests(); };
         R = buildRel('id'); renderAll();
     </script>
 
@@ -200,25 +198,25 @@
     <script>
     window.SECTION_META = {
         layers: [
-            { "name": "空关系与全关系", "concepts": "∅ / A×A / 极端联系", "task": "认识关系世界的两个边界。", "page": "special_relations-basic.html" },
-            { "name": "恒等关系", "concepts": "Iₐ / 自反·对称·传递", "task": "理解恒等关系作为基准与单位元。", "page": "special_relations.html" },
-            { "name": "基准与对照", "concepts": "单位阵 / 自环 / 特例验证", "task": "用特殊关系做算法的特例校验。", "page": "special_relations-extend.html" }
+          {"name": "空·全域·恒等关系", "concepts": "∅ / \\(E_A\\) / \\(I_A\\) / 关系矩阵与关系图", "task": "认识关系世界的两个边界与恒等基准。", "page": "special_relations-basic.html"},
+          {"name": "常用特殊关系", "concepts": "\\(I_A\\) / \\(L_A\\) / \\(D_A\\) / 性质画像", "task": "在具体集合上写出特殊关系并观察其性质。", "page": "special_relations.html"},
+          {"name": "基准与对照", "concepts": "单位矩阵 / 复合单位元 / 特例校验", "task": "用特殊关系做关系运算的特例校验。", "page": "special_relations-extend.html"}
         ],
         chapter: "第3章 二元关系",
         section: "3.2 特殊关系",
         title: "性质对照与特例验证",
-        grounding: "本页（拓展层）主题：用空/全/恒等关系作为『基准与对照』。恒等关系 Iₐ 同时满足自反·反对称·对称·传递（是等价关系，也是关系合成的单位元）；全关系 A×A 自反·对称·传递但 n≥2 时不反对称；空关系平凡满足对称·反对称·传递。它们是检验关系运算实现是否正确的特例基准。可自建关系实时检验五性质（自反/反自反/对称/反对称/传递）。",
+        grounding: "本页（拓展层）主题：用空/全/恒等关系作为『基准与对照』。恒等关系 I_A 同时满足自反·反对称·对称·传递（是等价关系，也是关系合成的单位元）；全域关系 A×A 自反·对称·传递但 n≥2 时不反对称；空关系平凡满足对称·反对称·传递。它们是检验关系运算实现是否正确的特例基准。可自建关系实时检验五性质（自反/反自反/对称/反对称/传递）。",
         steps: [
             { name: "情境引入", desc: "写了一个判断『关系性质』的程序，怎么验证它对不对？用特例！" },
             { name: "对象抽取", desc: "把五条性质抽象为对矩阵/有序对的逻辑判定。" },
-            { name: "结构建模", desc: "用 ∅、A×A、Iₐ 作为已知性质的特例基准。" },
+            { name: "结构建模", desc: "用 ∅、A×A、I_A 作为已知性质的特例基准。" },
             { name: "推理求解", desc: "自建关系，实时看五性质灯；对照三种特殊关系的性质表。" },
-            { name: "程序验证", desc: "验证恒等=全性质、全关系 n≥2 不反对称等结论。" },
+            { name: "程序验证", desc: "验证恒等=全性质、全域关系 n≥2 不反对称等结论。" },
             { name: "迁移反思", desc: "迁移到单元测试的『边界/特例』思想与关系合成单位元。" }
         ],
         ideology: {
         "title": "把握基准 · 守正辨极",
-        "text": "空关系与全关系是两个极端，恒等关系是中正的基准——认识事物常需先把握其边界与原点。正如治理既要防『一盘散沙』（空），也要防『一刀切齐』（全），在恒等的『守正』与适度联系之间求得平衡，体现执两用中的辩证智慧。",
+        "text": "空关系与全域关系是两个极端，恒等关系是中正的基准——认识事物常需先把握其边界与原点。正如治理既要防『一盘散沙』（空），也要防『一刀切齐』（全），在恒等的『守正』与适度联系之间求得平衡，体现执两用中的辩证智慧。",
         "dims": [
                 "辩证思维",
                 "执中守正",
@@ -226,60 +224,11 @@
         ],
         "quote": "执其两端，用其中于民——理解了空、全、恒等三种极端，才能在它们之间稳健建模。"
 },
-        reflect: ["全关系 A×A 在 |A|≥2 时为何不反对称？|A|=1 时呢？", "为什么恒等关系是关系合成的单位元（R∘I=I∘R=R）？"],
+        reflect: ["全域关系 A×A 在 |A|≥2 时为何不反对称？|A|=1 时呢？", "为什么恒等关系是关系合成的单位元（R∘I=I∘R=R）？"],
         transfer: ["用空/全/恒等作特例验证算法，正是软件测试的『边界用例』思想。"]
     };
     </script>
     
-    <script data-dm-ideology-bridge="1">
-    (function () {
-        function esc(s) {
-            return String(s || '').replace(/[&<>"']/g, function (c) {
-                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
-            });
-        }
-        function noteHtml() {
-            var ideology = (window.SECTION_META && window.SECTION_META.ideology) || {};
-            var title = ideology.title || '价值引领';
-            var text = ideology.text || '本层延续进阶层的价值主线，在操作中体会数学结构与价值判断的一致性。';
-            return '<span class="value-inline" data-ideology-inline="1"><strong>价值观察：</strong>本层沿用进阶层“'
-                + esc(title) + '”主线。' + esc(text) + '</span>';
-        }
-        function appendIdeologyNote() {
-            if (document.querySelector('[data-ideology-inline="1"]')) return;
-            var resultExtra = document.getElementById('resultExtra');
-            if (resultExtra) {
-                resultExtra.insertAdjacentHTML('beforeend', noteHtml());
-                return;
-            }
-            var anchor = document.querySelector('.result-panel, #eqOut, #note, .visualization-area');
-            if (!anchor) return;
-            if (anchor.id === 'eqOut' || anchor.id === 'note') anchor.insertAdjacentHTML('afterend', noteHtml());
-            else anchor.insertAdjacentHTML('beforeend', noteHtml());
-        }
-        function wrapSetResult() {
-            var original = window.setResult;
-            if (typeof original !== 'function' || original.__ideologyWrapped) return;
-            window.setResult = function () {
-                var ret = original.apply(this, arguments);
-                appendIdeologyNote();
-                return ret;
-            };
-            window.setResult.__ideologyWrapped = true;
-        }
-        function boot() {
-            wrapSetResult();
-            appendIdeologyNote();
-            ['input', 'change', 'click'].forEach(function (eventName) {
-                document.addEventListener(eventName, function () {
-                    setTimeout(appendIdeologyNote, 0);
-                }, true);
-            });
-        }
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-        else boot();
-    })();
-    </script>
     <script src="../../shared/ai-tutor.js" defer></script>
 </body>
 

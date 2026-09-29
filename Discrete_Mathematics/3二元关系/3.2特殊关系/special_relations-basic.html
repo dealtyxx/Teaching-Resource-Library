@@ -8,20 +8,20 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
-    <meta property="og:title" content="空关系与全关系 · 基础层｜3.2 特殊关系 - 离散数学课程资源库">
-    <meta property="og:description" content="第3章 二元关系 · 3.2 特殊关系 · 基础层：∅ / A×A / 极端联系。认识关系世界的两个边界。">
+    <meta property="og:title" content="空·全域·恒等关系 · 基础层｜3.2 特殊关系 - 离散数学课程资源库">
+    <meta property="og:description" content="第3章 二元关系 · 3.2 特殊关系 · 基础层：∅ / \(E_A\) / \(I_A\) / 关系矩阵与关系图。认识关系世界的两个边界与恒等基准。">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/3%E4%BA%8C%E5%85%83%E5%85%B3%E7%B3%BB/3.2%E7%89%B9%E6%AE%8A%E5%85%B3%E7%B3%BB/special_relations-basic.html">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="空关系与全关系 · 基础层｜3.2 特殊关系 - 离散数学课程资源库">
-    <meta name="twitter:description" content="第3章 二元关系 · 3.2 特殊关系 · 基础层：∅ / A×A / 极端联系。认识关系世界的两个边界。">
+    <meta name="twitter:title" content="空·全域·恒等关系 · 基础层｜3.2 特殊关系 - 离散数学课程资源库">
+    <meta name="twitter:description" content="第3章 二元关系 · 3.2 特殊关系 · 基础层：∅ / \(E_A\) / \(I_A\) / 关系矩阵与关系图。认识关系世界的两个边界与恒等基准。">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>空关系与全关系 · 基础层｜3.2 特殊关系 - 离散数学课程资源库</title>
-    <meta name="description" content="第3章 二元关系 · 3.2 特殊关系 · 基础层：∅ / A×A / 极端联系。认识关系世界的两个边界。">
+    <title>空·全域·恒等关系 · 基础层｜3.2 特殊关系 - 离散数学课程资源库</title>
+    <meta name="description" content="第3章 二元关系 · 3.2 特殊关系 · 基础层：∅ / \(E_A\) / \(I_A\) / 关系矩阵与关系图。认识关系世界的两个边界与恒等基准。">
     <link rel="stylesheet" href="special_relations.css">
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,6 +34,8 @@
         .dm-t-field .lab { display: flex; justify-content: space-between; font-size: .82rem; color: #b8321a; margin-bottom: 5px; }
         .dm-t-field .v { font-weight: 700; color: #d63b1d; font-family: 'JetBrains Mono', Consolas, monospace; }
         .dm-t-field input[type=range] { width: 100%; accent-color: #d63b1d; }
+        .dm-t-btn { width: 100%; min-height: 42px; padding: 10px; border: none; border-radius: 10px; cursor: pointer; font-family: inherit; font-weight: 600; color: #fff; background: linear-gradient(135deg, #d63b1d, #b8321a); }
+        .dm-t-btn.ghost { background: transparent; color: #6b4a38; border: 1px solid rgba(107, 74, 56, .3); }
         .dm-t-seg { display: flex; flex-direction: column; gap: 8px; }
         .dm-t-seg button { padding: 10px; border-radius: 10px; border: 1.5px solid rgba(214,59,29,.25); background: #fff; cursor: pointer; font-family: inherit; font-weight: 600; color: #b8321a; transition: all .18s; text-align: left; }
         .dm-t-seg button.active { background: linear-gradient(135deg, #d63b1d, #b8321a); color: #fff; border-color: #d63b1d; }
@@ -54,28 +56,6 @@
         .dm-t-desc { font-size: .86rem; color: #b8321a; max-width: 540px; text-align: center; line-height: 1.7; }
         .dm-t-desc b { color: #d63b1d; }
     
-        .value-panel {
-            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
-            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
-            box-shadow: var(--shadow-sm);
-        }
-        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
-        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
-        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
-        .value-dims span {
-            padding: 3px 8px; border-radius: 999px; color: #b8321a;
-            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
-            font-size: .74rem; font-weight: 700;
-        }
-        .value-quote {
-            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
-            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
-        }
-        .value-inline {
-            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
-            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
-            color: var(--text-primary); line-height: 1.5;
-        }
     </style>
     <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
@@ -95,16 +75,6 @@
                 
                 
                 
-                <div class="control-group value-consistency-group">
-                    <label>价值映射（与进阶层一致）</label>
-                    <div class="value-panel" data-value-source="SECTION_META.ideology">
-                        <h3>把握基准 · 守正辨极</h3>
-                        <p>空关系与全关系是两个极端，恒等关系是中正的基准——认识事物常需先把握其边界与原点。正如治理既要防『一盘散沙』（空），也要防『一刀切齐』（全），在恒等的『守正』与适度联系之间求得平衡，体现执两用中的辩证智慧。</p>
-                        <div class="value-dims"><span>辩证思维</span><span>执中守正</span><span>科学精神</span></div>
-                            <div class="value-quote">执其两端，用其中于民——理解了空、全、恒等三种极端，才能在它们之间稳健建模。</div>
-                    </div>
-                </div>
-
                 <div class="control-group">
                     <label>集合 A 元素个数</label>
                     <div class="dm-t-field"><div class="lab"><span>|A|</span><span class="v" id="nVal">4</span></div><input type="range" id="nRange" min="2" max="6" value="4"></div>
@@ -113,9 +83,12 @@
                     <label>选择特殊关系</label>
                     <div class="dm-t-seg" id="seg">
                         <button data-t="empty">空关系 ∅<small>没有任何有序对</small></button>
-                        <button data-t="full" class="active">全关系 A×A<small>所有有序对都在</small></button>
-                        <button data-t="id">恒等关系 I_A<small>只有 (a,a) 自反对</small></button>
+                        <button data-t="full" class="active">全域关系 E<sub>A</sub> = A×A<small>所有有序对都在</small></button>
+                        <button data-t="id">恒等关系 I<sub>A</sub><small>只有形如 (a,a) 的有序对</small></button>
                     </div>
+                </div>
+                <div class="control-group">
+                    <button class="dm-t-btn ghost" id="resetBtn" type="button">重置</button>
                 </div>
                 <div class="control-group">
                     <label>说明</label>
@@ -146,9 +119,9 @@
         var $ = function (id) { return document.getElementById(id); };
         var type = 'full';
         var TXT = {
-            empty: { info: '<b>空关系 ∅</b>：不含任何有序对，矩阵全 0、图无边。它「平凡地」满足对称、反对称、传递。', desc: '空关系是关系世界的一个<b>边界</b>——什么联系都没有。' },
-            full: { info: '<b>全关系 A×A</b>：包含所有有序对，矩阵全 1、任两点（含自身）都有边。自反、对称、传递，但不反对称（n≥2）。', desc: '全关系是另一个<b>边界</b>——人人两两相联。' },
-            id: { info: '<b>恒等关系 I_A</b>：只含 (a,a)，矩阵为<b>单位阵</b>、图只有自环。同时自反+对称+传递+反对称，是一种等价关系，也是关系合成的<b>单位元</b>。', desc: '恒等关系是中正的<b>基准</b>——只与自身相联，犹如运算里的「1」。' }
+            empty: { info: '<b>空关系 ∅</b>：不含任何有序对，矩阵全 0、图无边。它是反自反的，并「平凡地」满足对称、反对称、传递（没有有序对可以违反），但不自反。', desc: '空关系是关系世界的一个<b>边界</b>——什么联系都没有。' },
+            full: { info: '<b>全域关系 E<sub>A</sub> = A×A</b>：包含所有有序对，矩阵全 1、任两点（含自身）都有边。自反、对称、传递，但不反对称（n≥2）。', desc: '全域关系是另一个<b>边界</b>——人人两两相联。' },
+            id: { info: '<b>恒等关系 I<sub>A</sub></b>：只含 (a,a)，矩阵为<b>单位矩阵</b>、图只有自环。同时自反、对称、反对称、传递，既是等价关系又是偏序关系，也是关系复合的<b>单位元</b>：R∘I<sub>A</sub> = I<sub>A</sub>∘R = R。', desc: '恒等关系是中正的<b>基准</b>——只与自身相联，犹如运算里的「1」。' }
         };
         function has(i, j) { if (type === 'empty') return false; if (type === 'full') return true; return i === j; }
         function render() {
@@ -181,6 +154,7 @@
             b.onclick = function () { type = b.dataset.t; [].forEach.call($('seg').querySelectorAll('button'), function (x) { x.classList.remove('active'); }); b.classList.add('active'); render(); };
         });
         $('nRange').oninput = render;
+        $('resetBtn').onclick = function () { $('nRange').value = 4; type = 'full'; [].forEach.call($('seg').querySelectorAll('button'), function (x) { x.classList.toggle('active', x.dataset.t === 'full'); }); render(); };
         render();
     </script>
 
@@ -188,14 +162,14 @@
     <script>
     window.SECTION_META = {
         layers: [
-            { "name": "空关系与全关系", "concepts": "∅ / A×A / 极端联系", "task": "认识关系世界的两个边界。", "page": "special_relations-basic.html" },
-            { "name": "恒等关系", "concepts": "I_A / 自反·对称·传递", "task": "理解恒等关系作为基准与单位元。", "page": "special_relations.html" },
-            { "name": "基准与对照", "concepts": "单位阵 / 自环 / 特例验证", "task": "用特殊关系做算法的特例校验。", "page": "special_relations-extend.html" }
+          {"name": "空·全域·恒等关系", "concepts": "∅ / \\(E_A\\) / \\(I_A\\) / 关系矩阵与关系图", "task": "认识关系世界的两个边界与恒等基准。", "page": "special_relations-basic.html"},
+          {"name": "常用特殊关系", "concepts": "\\(I_A\\) / \\(L_A\\) / \\(D_A\\) / 性质画像", "task": "在具体集合上写出特殊关系并观察其性质。", "page": "special_relations.html"},
+          {"name": "基准与对照", "concepts": "单位矩阵 / 复合单位元 / 特例校验", "task": "用特殊关系做关系运算的特例校验。", "page": "special_relations-extend.html"}
         ],
         chapter: "第3章 二元关系",
         section: "3.2 特殊关系",
-        title: "空关系 / 全关系 / 恒等关系",
-        grounding: "本页（基础层）主题：三种特殊二元关系——空关系 ∅（无任何有序对，矩阵全0）、全关系 A×A（所有有序对，矩阵全1）、恒等关系 I_A={(a,a)}（矩阵为单位阵、图只有自环）。它们是关系世界的边界与基准：空/全是两个极端，恒等是中正基准，也是关系合成的单位元。",
+        title: "空关系 / 全域关系 / 恒等关系",
+        grounding: "本页（基础层）主题：三种特殊二元关系——空关系 ∅（无任何有序对，矩阵全0）、全域关系 A×A（所有有序对，矩阵全1）、恒等关系 I_A={(a,a)}（矩阵为单位阵、图只有自环）。它们是关系世界的边界与基准：空/全是两个极端，恒等是中正基准，也是关系合成的单位元。",
         steps: [
             { name: "情境引入", desc: "『谁也不联系谁』『人人相联』『只联系自己』——三种极端如何刻画？" },
             { name: "对象抽取", desc: "把极端联系模式抽象为空/全/恒等关系。" },
@@ -206,7 +180,7 @@
         ],
         ideology: {
         "title": "把握基准 · 守正辨极",
-        "text": "空关系与全关系是两个极端，恒等关系是中正的基准——认识事物常需先把握其边界与原点。正如治理既要防『一盘散沙』（空），也要防『一刀切齐』（全），在恒等的『守正』与适度联系之间求得平衡，体现执两用中的辩证智慧。",
+        "text": "空关系与全域关系是两个极端，恒等关系是中正的基准——认识事物常需先把握其边界与原点。正如治理既要防『一盘散沙』（空），也要防『一刀切齐』（全），在恒等的『守正』与适度联系之间求得平衡，体现执两用中的辩证智慧。",
         "dims": [
                 "辩证思维",
                 "执中守正",
@@ -219,55 +193,6 @@
     };
     </script>
     
-    <script data-dm-ideology-bridge="1">
-    (function () {
-        function esc(s) {
-            return String(s || '').replace(/[&<>"']/g, function (c) {
-                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
-            });
-        }
-        function noteHtml() {
-            var ideology = (window.SECTION_META && window.SECTION_META.ideology) || {};
-            var title = ideology.title || '价值引领';
-            var text = ideology.text || '本层延续进阶层的价值主线，在操作中体会数学结构与价值判断的一致性。';
-            return '<span class="value-inline" data-ideology-inline="1"><strong>价值观察：</strong>本层沿用进阶层“'
-                + esc(title) + '”主线。' + esc(text) + '</span>';
-        }
-        function appendIdeologyNote() {
-            if (document.querySelector('[data-ideology-inline="1"]')) return;
-            var resultExtra = document.getElementById('resultExtra');
-            if (resultExtra) {
-                resultExtra.insertAdjacentHTML('beforeend', noteHtml());
-                return;
-            }
-            var anchor = document.querySelector('.result-panel, #eqOut, #note, .visualization-area');
-            if (!anchor) return;
-            if (anchor.id === 'eqOut' || anchor.id === 'note') anchor.insertAdjacentHTML('afterend', noteHtml());
-            else anchor.insertAdjacentHTML('beforeend', noteHtml());
-        }
-        function wrapSetResult() {
-            var original = window.setResult;
-            if (typeof original !== 'function' || original.__ideologyWrapped) return;
-            window.setResult = function () {
-                var ret = original.apply(this, arguments);
-                appendIdeologyNote();
-                return ret;
-            };
-            window.setResult.__ideologyWrapped = true;
-        }
-        function boot() {
-            wrapSetResult();
-            appendIdeologyNote();
-            ['input', 'change', 'click'].forEach(function (eventName) {
-                document.addEventListener(eventName, function () {
-                    setTimeout(appendIdeologyNote, 0);
-                }, true);
-            });
-        }
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-        else boot();
-    })();
-    </script>
     <script src="../../shared/ai-tutor.js" defer></script>
 </body>
 

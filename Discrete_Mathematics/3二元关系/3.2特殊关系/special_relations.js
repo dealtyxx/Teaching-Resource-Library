@@ -1,5 +1,5 @@
 /**
- * Red Mathematics - Special Binary Relations Visualizer
+ * 3.2 特殊关系 · 进阶层：空关系、全域关系、恒等关系、小于等于关系、整除关系
  */
 
 // DOM Elements
@@ -20,6 +20,7 @@ const NODE_RADIUS = 25;
 // State
 let currentType = null;
 let nodePositions = {}; // { id: {x, y} }
+let currentLayout = 'circular';
 
 // Initialization
 function init() {
@@ -27,8 +28,8 @@ function init() {
     calculateLayout('circular');
     renderNodes();
 
-    // Default to Empty
-    selectRelation('empty');
+    // 默认展示本层主角：恒等关系 I<sub>A</sub>
+    selectRelation('identity');
 }
 
 // Layout Logic
@@ -61,7 +62,7 @@ function calculateLayout(type) {
         sorted.forEach((val, idx) => {
             nodePositions[val] = {
                 x: startX + idx * step,
-                y: centerY
+                y: height * 0.3   // 弧线向下展开，结点行放在上部
             };
         });
     } else if (type === 'hierarchical') {
@@ -120,13 +121,11 @@ function renderEdges(pairs) {
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 
         if (u === v) {
-            // Self Loop
-            // Draw a loop above the node
+            // 自环：从结点左上方出发、绕到右上方回到结点
             const r = NODE_RADIUS;
-            const d = `M ${posU.x} ${posU.y - r} 
-                       C ${posU.x - 30} ${posU.y - r - 50}, 
-                         ${posU.x + 30} ${posU.y - r - 50}, 
-                         ${posU.x + 5} ${posU.y - r - 2}`;
+            const sx = posU.x - r * 0.6, sy = posU.y - r * 0.8;
+            const ex = posU.x + r * 0.6, ey = posU.y - r * 0.8;
+            const d = `M ${sx} ${sy} C ${posU.x - r * 1.9} ${posU.y - r * 3}, ${posU.x + r * 1.9} ${posU.y - r * 3}, ${ex} ${ey}`;
             path.setAttribute('class', 'edge loop');
             path.setAttribute('d', d);
         } else {
@@ -149,8 +148,10 @@ function renderEdges(pairs) {
             const midX = (startX + endX) / 2;
             const midY = (startY + endY) / 2;
             // Perpendicular offset for curve
-            const perpX = -dy * 0.1;
-            const perpY = dx * 0.1;
+            // 线性排列时所有边共线，改用按距离加大的弧线（嵌套弧，互不遮挡）
+            const bend = currentLayout === 'linear' ? 0.28 : 0.1;
+            const perpX = -dy * bend;
+            const perpY = dx * bend;
 
             const d = `M ${startX} ${startY} Q ${midX + perpX} ${midY + perpY} ${endX} ${endY}`;
 
@@ -205,6 +206,7 @@ function selectRelation(type) {
     if (type === 'leq') layoutType = 'linear';
     if (type === 'divides') layoutType = 'hierarchical';
 
+    currentLayout = layoutType;
     calculateLayout(layoutType);
     updateNodePositions();
 
@@ -224,39 +226,64 @@ function selectRelation(type) {
     updateInsight(type);
 }
 
-function updateInsight(type) {
-    const insights = {
-        'empty': {
-            title: "一张白纸 (Empty Relation)",
-            text: "空关系 R = ∅。没有任何元素发生联系。这象征着发展的起点，虽然当前是一张白纸，但蕴含着无限的建设潜力和可能性。",
-            def: "R = {}"
-        },
-        'universal': {
-            title: "天下大同 (Universal Relation)",
-            text: "全域关系 R = A × A。所有元素之间都建立了联系。象征着高度融合、全面互通的理想社会状态，万物互联。",
-            def: "R = {(x,y) | x,y ∈ A}"
-        },
-        'identity': {
-            title: "不忘初心 (Identity Relation)",
-            text: "恒等关系 I_A。每个元素只与自己发生联系。象征着个体的自省与坚守，'反求诸己'，是构建复杂关系的基石。",
-            def: "R = {(x,x) | x ∈ A}"
-        },
-        'leq': {
-            title: "循序渐进 (Less Than or Equal)",
-            text: "小于等于关系 (≤)。体现了线性增长和积累的过程。事物的发展往往是由小到大、由弱到强，每一步都是前一步的积累。",
-            def: "R = {(1,1), (1,2)... (1,6), (2,2)...}"
-        },
-        'divides': {
-            title: "薪火相传 (Divisibility)",
-            text: "整除关系 (|)。体现了结构化的传承与支撑。1是所有数的根基，大数包含小数的因子。象征着文化与精神的代代相传、根深叶茂。",
-            def: "R = {(1,1), (1,2), (1,3), (1,4), (1,6), (2,2), (2,4), (2,6), (3,3), (3,6)...}"
-        }
-    };
+const INSIGHTS = {
+    'empty': {
+        title: "空关系 ∅（一张白纸）",
+        text: "空关系不含任何有序对，是 A×A 的最小子集。它是关系世界的下边界：一张白纸，一切联系尚待建立。",
+        def: "∅ = { }",
+        stage: "空关系 ∅：没有任何边"
+    },
+    'universal': {
+        title: "全域关系 E<sub>A</sub>（天下一家）",
+        text: "全域关系 E<sub>A</sub> = A×A 包含全部有序对，是 A×A 的最大子集，也是关系世界的上边界：任意两个元素（包括自身）都有联系。",
+        def: "E<sub>A</sub> = {(x,y) | x,y ∈ A} = A×A",
+        stage: "全域关系 E<sub>A</sub>：每两点之间都有双向边，每点都有自环"
+    },
+    'identity': {
+        title: "恒等关系 I<sub>A</sub>（不忘初心）",
+        text: "恒等关系 I<sub>A</sub> 中每个元素只与自身相关，关系图只有自环、关系矩阵是单位矩阵。它在关系复合中充当单位元：R∘I<sub>A</sub> = I<sub>A</sub>∘R = R，就像坚守初心，是一切变化的基准。",
+        def: "I<sub>A</sub> = {(x,x) | x ∈ A}",
+        stage: "恒等关系 I<sub>A</sub>：只有自环（单位矩阵）"
+    },
+    'leq': {
+        title: "小于等于关系 L<sub>A</sub>（循序渐进）",
+        text: "L<sub>A</sub> = {(x,y) | x ≤ y}。按大小排成一行，所有边都从小指向大：发展由小到大、步步积累，既不能倒退，也不能跳过前面的每一级。",
+        def: "L<sub>A</sub> = {(x,y) | x,y ∈ A, x ≤ y}",
+        stage: "小于等于关系 L<sub>A</sub>：从小指向大"
+    },
+    'divides': {
+        title: "整除关系 D<sub>A</sub>（薪火相传）",
+        text: "D<sub>A</sub> = {(x,y) | x 整除 y}。1 整除一切元素，是整个结构的根基；1 | 2 | 4、1 | 3 | 6 层层相连，如同薪火一代代传递。注意 4 与 6 互不整除——整除关系不是每两个元素都可比较。",
+        def: "D<sub>A</sub> = {(x,y) | x,y ∈ A, x | y}",
+        stage: "整除关系 D<sub>A</sub>：按整除层次排列"
+    }
+};
 
-    const info = insights[type];
-    insightTitle.textContent = info.title;
-    insightText.textContent = info.text;
-    mathDef.textContent = info.def;
+// 关系的五种基本性质（3.5 节会系统学习，这里先观察特殊关系的「性质画像」）
+function relationProps(pairs) {
+    const has = (x, y) => pairs.some(([u, v]) => u === x && v === y);
+    const reflexive = SET_A.every(x => has(x, x));
+    const irreflexive = SET_A.every(x => !has(x, x));
+    const symmetric = pairs.every(([x, y]) => has(y, x));
+    const antisymmetric = pairs.every(([x, y]) => x === y || !has(y, x));
+    const transitive = pairs.every(([x, y]) => pairs.every(([u, v]) => u !== y || has(x, v)));
+    return [['自反', reflexive], ['反自反', irreflexive], ['对称', symmetric], ['反对称', antisymmetric], ['传递', transitive]];
+}
+
+function updateInsight(type) {
+    const info = INSIGHTS[type];
+    const pairs = getRelationPairs(type);
+    insightTitle.innerHTML = info.title;
+    insightText.innerHTML = info.text;
+    const list = pairs.length ? '{' + pairs.map(([x, y]) => `(${x},${y})`).join(', ') + '}' : '∅';
+    mathDef.innerHTML = `<div>${info.def}</div><div class="def-list">R = ${list}</div><div class="def-count">|R| = ${pairs.length}（A×A 共 ${SET_A.length * SET_A.length} 个有序对）</div>`;
+    const badges = document.getElementById('propBadges');
+    if (badges) {
+        badges.innerHTML = relationProps(pairs).map(([name, ok]) =>
+            `<span class="prop-badge ${ok ? 'yes' : 'no'}">${ok ? '✓' : '✗'} ${name}</span>`).join('');
+    }
+    const sub = document.getElementById('stageSubtitle');
+    if (sub) sub.innerHTML = `${info.stage} · |R| = ${pairs.length}`;
 }
 
 // Event Listeners
@@ -266,8 +293,12 @@ relationBtns.forEach(btn => {
     });
 });
 
-// Handle resize
+// 窗口尺寸变化时重新布局（尺寸未变则跳过，避免共享框架派发的 resize 反复重绘）
+let lastSize = '';
 window.addEventListener('resize', () => {
+    const size = graphContainer.clientWidth + 'x' + graphContainer.clientHeight;
+    if (size === lastSize) return;
+    lastSize = size;
     // Re-calculate current layout
     let layoutType = 'circular';
     if (currentType === 'leq') layoutType = 'linear';
