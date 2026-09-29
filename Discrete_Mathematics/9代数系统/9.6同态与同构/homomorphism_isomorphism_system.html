@@ -3,9 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>第9章 代数系统 - 同态与同构判定台（进阶层）</title>
+  <title>同态与同构判定台 · 进阶层｜9.6 同态与同构 - 离散数学课程资源库</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
-  <meta name="description" content="9.6 同态与同构进阶层：hom、inj、surj、iso 的公式高亮与图高亮互动判定。">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:title" content="同态与同构判定台 · 进阶层｜9.6 同态与同构 - 离散数学课程资源库">
+  <meta property="og:description" content="第9章 代数系统 · 9.6 同态与同构 · 进阶层：同态 / 单同态 / 满同态 / 同构。按步骤检验保运算、单射与满射，判定同态类型与同构。">
+  <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/9%E4%BB%A3%E6%95%B0%E7%B3%BB%E7%BB%9F/9.6%E5%90%8C%E6%80%81%E4%B8%8E%E5%90%8C%E6%9E%84/homomorphism_isomorphism_system.html">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="同态与同构判定台 · 进阶层｜9.6 同态与同构 - 离散数学课程资源库">
+  <meta name="twitter:description" content="第9章 代数系统 · 9.6 同态与同构 · 进阶层：同态 / 单同态 / 满同态 / 同构。按步骤检验保运算、单射与满射，判定同态类型与同构。">
+  <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
+  <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
+  <meta name="description" content="第9章 代数系统 · 9.6 同态与同构 · 进阶层：同态 / 单同态 / 满同态 / 同构。按步骤检验保运算、单射与满射，判定同态类型与同构。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -17,12 +31,49 @@
 </head>
 <body>
   <a class="home-link" href="../../index.html#chapter9">← 返回课程主页</a>
-  <div id="dm-crumb"><a class="dm-cb-ch" href="../../index.html">第9章 代数系统</a><span class="dm-cb-sep">›</span><span class="dm-cb-sec">9.6 同态与同构 · 进阶层</span></div>
   <div id="homoApp" data-layer="advanced"></div>
   <footer class="site-footer">
       <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
       <p>版权所有 · 项目总负责人：谢鑫</p>
   </footer>
   <script src="homomorphism-unified.js"></script>
+  <script>
+    window.SECTION_META = {
+      chapter: "第9章 代数系统",
+      section: "9.6 同态与同构",
+      title: "同态与同构 · 映射体系",
+      grounding: "本节主题：代数系统之间的同态与同构（映射体系：从“映射桥”看保运算）。设 ⟨A,∘⟩ 与 ⟨B,∗⟩ 为同类型代数系统，映射 f:A→B 若对任意 x,y∈A 满足 f(x∘y)=f(x)∗f(y)，则称 f 为同态；单射的同态称单同态，满射的同态称满同态，双射的同态称同构，记 A≅B；A 到自身的同构称自同构。判定同态要比较“先运算再映射”与“先映射再运算”两条路径，一个反例即可否定同态。例：x↦x mod 2 是 Z4→Z2 的满同态；x↦x mod 3 是 Z6→Z3 的满同态；k↦R_{90k} 是 Z4 到四阶旋转群的同构；x↦2x mod 5 是 Z5 的自同构；x↦x+1 mod 2 满射但不是同态。",
+      steps: [
+        { name: "情境引入", desc: "把两个系统之间的“对应关系”想成一座映射桥，问：过桥后运算规则还成立吗？" },
+        { name: "对象抽取", desc: "写出源结构 ⟨A,∘⟩、目标结构 ⟨B,∗⟩ 与映射 f。" },
+        { name: "结构建模", desc: "写出同态条件 f(x∘y)=f(x)∗f(y)，以及单射、满射的判定条件。" },
+        { name: "推理求解", desc: "对选定元素分别走“先运算再映射”和“先映射再运算”两条路，比较结果。" },
+        { name: "程序验证", desc: "用映射图、公式高亮和状态标签核对 hom / inj / surj / iso。" },
+        { name: "迁移反思", desc: "把保结构映射迁移到流程数字化、商结构分类与奇偶校验编码。" }
+      ],
+      ideology: {
+        title: "结构互鉴 · 保真迁移",
+        text: "把一个系统的经验迁移到另一个系统时，既要看到共性结构，也要尊重差异表达：同态告诉我们“有条件地借鉴”，同构提醒我们何时才能“无损照搬”。学习先进经验要先检验结构是否对得上，不能生搬硬套。",
+        dims: ["结构意识", "实事求是", "实践迁移"],
+        quote: "他山之石，可以攻玉。——《诗经·小雅·鹤鸣》"
+      },
+      reflect: [
+        "为什么“满射”不足以保证同态？用 f(x)=x+1 mod 2 说明。",
+        "同态 x↦x mod 3 把 Z6 的哪些元素合并了？这对“能否还原”意味着什么？",
+        "两个有限代数系统元素个数相同，它们一定同构吗？"
+      ],
+      transfer: [
+        { t: "流程数字化", d: "线下办事流程映射到平台状态流转，检验衔接关系是否被保持。" },
+        { t: "商结构", d: "按余数分类得到商结构，核刻画了被合并的信息。" },
+        { t: "奇偶校验", d: "校验位映射 p 对异或保运算，是检错编码的代数基础。" }
+      ],
+      layers: [
+        { name: "同态保结构入门", concepts: "映射 / 保运算 / 反例", task: "点选元素，比较先运算再映射与先映射再运算是否一致。", page: "homomorphism_isomorphism_system-basic.html" },
+        { name: "同态与同构判定台", concepts: "同态 / 单同态 / 满同态 / 同构", task: "按步骤检验保运算、单射与满射，判定同态类型与同构。", page: "homomorphism_isomorphism_system.html" },
+        { name: "结构迁移实验室", concepts: "同构迁移 / 商结构 / 编码校验", task: "把同态与同构用于流程迁移、商结构与编码校验。", page: "homomorphism_isomorphism_system-extend.html" }
+      ]
+    };
+  </script>
+  <script src="../../shared/ai-tutor.js" defer></script>
 </body>
 </html>

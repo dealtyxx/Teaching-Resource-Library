@@ -9,31 +9,22 @@
       tag: "基础层",
       title: "同态保结构入门",
       concept: "映射 / 保运算 / 反例",
-      sub: "低门槛 · 先看懂桥",
-      task: "点选元素，比较先运算再映射与先映射再运算是否一致。",
-      dots: "●○○",
-      page: "homomorphism_isomorphism_system-basic.html",
-      badge: "桥梁直觉"
+      sub: "低门槛 · 建立直觉",
+      task: "点选元素，比较先运算再映射与先映射再运算是否一致。"
     },
     advanced: {
       tag: "进阶层",
       title: "同态与同构判定台",
-      concept: "hom / inj / surj / iso",
-      sub: "核心掌握 · 结构判定",
-      task: "按步骤检验同态、单射、满射与同构，追踪公式项和图高亮。",
-      dots: "●●○",
-      page: "homomorphism_isomorphism_system.html",
-      badge: "公式判定"
+      concept: "同态 / 单同态 / 满同态 / 同构",
+      sub: "核心掌握 · 建模求解",
+      task: "按步骤检验保运算、单射与满射，判定同态类型与同构。"
     },
     extend: {
       tag: "拓展层",
       title: "结构迁移实验室",
-      concept: "同构迁移 / 商结构 / 编码",
-      sub: "高天花板 · 迁移应用",
-      task: "把同态与同构用于编码、治理流程和结构复用的迁移分析。",
-      dots: "●●●",
-      page: "homomorphism_isomorphism_system-extend.html",
-      badge: "迁移应用"
+      concept: "同构迁移 / 商结构 / 编码校验",
+      sub: "高天花板 · 迁移工程",
+      task: "把同态与同构用于流程迁移、商结构与编码校验。"
     }
   };
 
@@ -64,7 +55,7 @@
           { title: "观察映射", formula: "f: Z4 -> Z2, f(x)=x+1 mod 2", activeTerms: [0], domainFocus: [0,1,2,3], codomainFocus: [0,1], mapFocus: [0,1,2,3], feedback: "先看桥是否连通：四个源元素都被送入 Z2，目标两个元素都被覆盖。" },
           { title: "左路计算", formula: "f(1+1)=f(2)=1", activeTerms: [0,1,2,3], domainFocus: [1,2], codomainFocus: [1], mapFocus: [2], opFocusDomain: [1,1,2], feedback: "先在源结构中运算，1+1=2，再映射得到 f(2)=1。" },
           { title: "右路计算", formula: "f(1)+f(1)=0+0=0", activeTerms: [4,5,6,7], domainFocus: [1], codomainFocus: [0], mapFocus: [1], opFocusCodomain: [0,0,0], feedback: "先映射再在目标结构中运算，得到 0，与左路结果不同。" },
-          { title: "形成判定", formula: "1 != 0, hom=false", activeTerms: [3,4,7], domainFocus: [1,2], codomainFocus: [0,1], mapFocus: [1,2], feedback: "一个反例足以判定不保结构：它是满射映射，但不是同态。" }
+          { title: "形成判定", formula: "1 ≠ 0, hom=false", activeTerms: [3,4,7], domainFocus: [1,2], codomainFocus: [0,1], mapFocus: [1,2], feedback: "一个反例足以判定不保结构：它是满射映射，但不是同态。" }
         ]
       },
       {
@@ -155,9 +146,9 @@
       },
       {
         id: "bad-structure",
-        mode: "反例诊断",
-        title: "看似顺眼但破坏结构的映射",
-        summary: "一个覆盖目标的映射，如果公式两边不一致，就不能承担结构迁移。",
+        mode: "自同构",
+        title: "看似打乱、实则保结构的重排",
+        summary: "η(x)=2x mod 5 把 Z5 的元素重新排列；逐项比较公式两边，判断它是否为 Z5 的自同构。",
         visual: "失真桥梁诊断",
         domainName: "源结构 A=Z5",
         codomainName: "目标结构 B=Z5",
@@ -178,7 +169,7 @@
           { title: "观察重排", formula: "η(x)=2x mod 5", activeTerms: [0], domainFocus: [0,1,2,3,4], codomainFocus: [0,1,2,3,4], mapFocus: [0,1,2,3,4], feedback: "它看起来在重排元素，但每个目标元素都恰好被命中一次。" },
           { title: "左路计算", formula: "η(1+1)=η(2)=4", activeTerms: [0,1,2,3], domainFocus: [1,2], codomainFocus: [4], mapFocus: [2], opFocusDomain: [1,1,2], feedback: "先在源结构加法，1+1=2，再映射到 4。" },
           { title: "右路计算", formula: "η(1)+η(1)=2+2=4", activeTerms: [4,5,6,7], domainFocus: [1], codomainFocus: [2,4], mapFocus: [1], opFocusCodomain: [2,2,4], feedback: "先映射再加法，也得到 4，结构被保留下来。" },
-          { title: "同构结论", formula: "hom=true, inj=true, surj=true", activeTerms: [0,3,4], domainFocus: [0,1,2,3,4], codomainFocus: [0,1,2,3,4], mapFocus: [0,1,2,3,4], feedback: "它不只是同态，还是 Z5 到自身的同构。" }
+          { title: "同构结论", formula: "hom=true, inj=true, surj=true", activeTerms: [0,3,4], domainFocus: [0,1,2,3,4], codomainFocus: [0,1,2,3,4], mapFocus: [0,1,2,3,4], feedback: "它不只是同态，还是 Z5 到自身的同构，即自同构。" }
         ]
       }
     ],
@@ -215,7 +206,7 @@
         id: "quotient-code",
         mode: "商结构",
         title: "按余数分类的商结构同态",
-        summary: "把整数按模 3 余数归类，理解核与信息压缩如何服务编码。",
+        summary: "把 Z6 的元素按模 3 余数归类，理解核与信息压缩如何服务编码。",
         visual: "商映射 + 核",
         domainName: "源结构 A=Z6",
         codomainName: "商结构 B=Z3",
@@ -276,8 +267,7 @@
     step: 0,
     activeIndex: 0,
     speed: 900,
-    autoTimer: null,
-    tierCollapsed: false
+    autoTimer: null
   };
 
   function detectLayer() {
@@ -322,12 +312,20 @@
     if (state.activeIndex >= caseData.domain.length) state.activeIndex = caseData.pair[0] || 0;
     const step = currentStep(caseData);
     document.body.dataset.layer = state.layer;
-    document.title = `第9章 代数系统 - ${layer.title}（${layer.tag}）`;
-    app.className = "homo-app";
-    app.innerHTML = `
-      <aside class="sidebar">${renderSidebar(layer, caseData)}</aside>
-      <main class="visualizer-stage">
-        ${renderTierBoard()}
+    app.classList.add("homo-app");
+    let side = app.querySelector(":scope > aside.sidebar");
+    let content = app.querySelector(":scope > main > .homo-content");
+    if (!side || !content) {
+      app.innerHTML = `
+      <aside class="sidebar"></aside>
+      <main class="visualizer-stage"><div class="homo-content"></div></main>
+    `;
+      side = app.querySelector(":scope > aside.sidebar");
+      content = app.querySelector(":scope > main > .homo-content");
+    }
+    // 只刷新侧栏与主舞台内容，保留 ai-tutor.js 注入到主舞台顶部的三阶卡 #dm-page-layers
+    side.innerHTML = renderSidebar(layer, caseData);
+    content.innerHTML = `
         ${renderMission(caseData)}
         <div class="workspace">
           <section class="graph-pane">
@@ -356,7 +354,6 @@
             </div>
           </section>
         </div>
-      </main>
     `;
   }
 
@@ -366,12 +363,11 @@
     return `
       <div class="layer-summary">
         <div class="window-controls" aria-hidden="true"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
-        <span class="tier-pill">${esc(layer.tag)} · ${esc(layer.badge)}</span>
+        <span class="tier-pill">${esc(layer.tag)} · 第9章 代数系统</span>
         <h1>${esc(layer.title)}</h1>
         <p class="subtitle">${esc(layer.concept)}</p>
         <p class="goal">${esc(layer.sub)}<br>目标：${esc(layer.task)}</p>
       </div>
-      ${renderValuePanel()}
       <div class="control-stack">
         <div class="control-group">
           <label>案例类型</label>
@@ -409,16 +405,6 @@
         ${renderSidebarStatus(caseData, currentStep(caseData))}
       </div>
       ${renderLegend()}
-    `;
-  }
-
-  function renderValuePanel() {
-    return `
-      <section class="value-panel">
-        <h3>结构互鉴 · 保真迁移</h3>
-        <p>把一个系统的关系映到另一个系统时，既要看到共性结构，也要尊重差异表达；同态帮助我们有条件地迁移经验，同构提醒我们何时可以无损互鉴。</p>
-        <div class="dim-list"><span>结构意识</span><span>协同互通</span><span>实践迁移</span></div>
-      </section>
     `;
   }
 
@@ -467,38 +453,6 @@
           `).join("")}
         </div>
       </section>
-    `;
-  }
-
-  function renderTierBoard() {
-    const collapsed = state.tierCollapsed ? " collapsed" : "";
-    return `
-      <section class="tier-board${collapsed}">
-        <div class="tier-board-head">
-          <div class="tier-board-title">三阶层次案例<span class="tier-board-sub">低门槛 · 高天花板 · 一点一点推演</span></div>
-          <button class="tier-board-toggle" type="button" data-action="toggle-tier">${state.tierCollapsed ? "展开" : "收起"}</button>
-        </div>
-        <div class="tier-ladder">
-          ${Object.entries(LAYERS).map(([key, item]) => renderTierCard(key, item)).join("")}
-        </div>
-      </section>
-    `;
-  }
-
-  function renderTierCard(key, item) {
-    const current = key === state.layer;
-    return `
-      <a class="tier-card ${esc(key)}${current ? " current" : ""}" href="${esc(item.page)}">
-        <div class="tier-card-top">
-          <span class="tier-tag">${esc(item.tag)}</span>
-          <span class="tier-dots">${esc(item.dots)}</span>
-        </div>
-        <h3>${esc(item.title)}</h3>
-        <div class="concept">${esc(item.concept)}</div>
-        <p>${esc(item.sub)}</p>
-        <p>目标：${esc(item.task)}</p>
-        <span class="tier-card-btn">${current ? "你在本层" : "进入本层互动页"}</span>
-      </a>
     `;
   }
 
@@ -888,8 +842,6 @@
       state.step = Number(actionButton.dataset.step) || 0;
     } else if (action === "mode") {
       setMode(actionButton.dataset.mode);
-    } else if (action === "toggle-tier") {
-      state.tierCollapsed = !state.tierCollapsed;
     } else if (action === "auto") {
       if (state.autoTimer) {
         stopAuto();
