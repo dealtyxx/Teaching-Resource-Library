@@ -1,5 +1,5 @@
 /* =====================================================================
-   6.1 自然语言的谓词符号化 —— 三层统一交互引擎样式
+   5.2 命题公式定义与符号化 —— 三层统一交互引擎样式
    基础层 / 进阶层 / 拓展层 共用此样式（红色数理 · 暖纸主题）
    - 外壳（app-container / side-panel / glass-pane）与 shared/discrete-ui.css 协同
    - sym-* 前缀为本节交互组件，避免与共享框架冲突
@@ -14,16 +14,18 @@
   --red: #d63b1d;
   --red-2: #de5b3d;
   --gold: #c58a1f;
+  --gold-ink: #8a5d0b;
+  --gold-hi: #ffb400;
   --green: #2f7d57;
+  --false: #c0392b;
   --blue: #2f5f9f;
   --shadow: 0 18px 50px rgba(69, 31, 15, 0.14);
 
-  /* 词类配色：量词/个体词/谓词/联结词 */
-  --cat-quant: #d63b1d;
-  --cat-ind: #2f5f9f;
-  --cat-pred: #c58a1f;
-  --cat-conn: #2f7d57;
-  --hl: #de5b3d;
+  /* 词类配色（与引擎 CATS 一致）：原子命题 金 / 联结词 红 / 否定 次墨；当前步骤 = 金 */
+  --cat-prop: #8a5d0b;
+  --cat-conn: #d63b1d;
+  --cat-neg: #6b4a38;
+  --hl: #ffb400;
 }
 
 * { box-sizing: border-box; }
@@ -35,7 +37,7 @@ body {
   font-family: "Noto Serif SC", "Microsoft YaHei", serif;
   background:
     radial-gradient(circle at 16% 12%, rgba(222, 91, 61, 0.18), transparent 28%),
-    radial-gradient(circle at 82% 8%, rgba(47, 95, 159, 0.14), transparent 26%),
+    radial-gradient(circle at 82% 8%, rgba(255, 180, 0, 0.14), transparent 26%),
     linear-gradient(135deg, #fff7e6 0%, #f8ead3 45%, #f3dfc7 100%);
   overflow: hidden;
 }
@@ -138,27 +140,6 @@ body {
   font-size: 14px;
 }
 
-/* ===== 价值面板（思政） ===== */
-.value-panel {
-  border-radius: 8px;
-  border: 1px solid rgba(116, 55, 31, 0.16);
-  background: rgba(255, 255, 255, 0.66);
-  padding: 13px 14px;
-  margin: 4px 0 14px;
-  border-left: 4px solid var(--red);
-}
-.value-panel h3 { margin: 0 0 6px; font-size: 16px; color: var(--red); }
-.value-panel p { margin: 0; line-height: 1.7; color: #563c31; font-size: 13.5px; }
-.dim-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
-.dim-list span {
-  border-radius: 999px;
-  background: rgba(197, 138, 31, 0.13);
-  color: #8a5d0b;
-  padding: 4px 9px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
 /* ===== 控制区 ===== */
 #controls { display: grid; gap: 10px; }
 .control-group {
@@ -179,7 +160,7 @@ body {
 .control-group small { color: var(--muted); font-weight: 400; }
 select {
   width: 100%;
-  min-height: 38px;
+  min-height: 40px;
   border-radius: 8px;
   border: 1px solid rgba(116, 55, 31, 0.22);
   background: #fffaf2;
@@ -188,26 +169,32 @@ select {
   font: inherit;
 }
 
-/* 逐步控制按钮 */
+/* 逐步控制按钮：主操作红色渐变实心 / 次操作白底红边 / 重置描边 */
 .sym-step-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .sym-step-btn {
   appearance: none;
-  border: 1px solid rgba(116, 55, 31, 0.22);
-  background: #fffaf2;
-  color: #4e362d;
+  min-height: 40px;
+  border: 1px solid rgba(214, 59, 29, 0.55);
+  background: #fff;
+  color: var(--red);
   font: inherit;
   font-weight: 700;
   font-size: 13.5px;
-  padding: 9px 8px;
+  padding: 8px 8px;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.16s ease;
 }
-.sym-step-btn:hover:not(:disabled) { border-color: var(--red); color: var(--red); transform: translateY(-1px); }
+.sym-step-btn:hover:not(:disabled) { border-color: var(--red); background: rgba(214, 59, 29, 0.06); transform: translateY(-1px); }
 .sym-step-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.sym-step-btn.sym-primary { background: var(--red); border-color: var(--red); color: #fff; }
-.sym-step-btn.sym-primary:hover:not(:disabled) { background: #97180f; color: #fff; }
-.sym-step-btn.sym-playing { background: var(--gold); border-color: var(--gold); color: #fff; }
+.sym-step-btn.sym-primary { background: linear-gradient(135deg, #d63b1d, #b8321a); border-color: #b8321a; color: #fff; }
+.sym-step-btn.sym-primary:hover:not(:disabled) { background: linear-gradient(135deg, #b8321a, #97180f); color: #fff; }
+.sym-step-btn.sym-reset { background: transparent; border-color: rgba(116, 55, 31, 0.3); color: #4e362d; }
+.sym-step-btn.sym-reset:hover:not(:disabled) { border-color: var(--red); color: var(--red); background: transparent; }
+.sym-step-btn.sym-playing { background: #fff4d6; border-color: var(--gold); color: var(--gold-ink); }
+.sym-speed-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 13px; color: var(--muted); font-weight: 700; }
+.sym-speed-row label { white-space: nowrap; }
+.sym-speed-row select { flex: 1; }
 
 /* 进度条 */
 .sym-progress-wrap { display: flex; align-items: center; gap: 10px; }
@@ -280,6 +267,22 @@ select {
   color: var(--red);
 }
 .legend-item .desc { font-size: 12.5px; color: var(--muted); }
+.legend-cats { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.legend-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1.5px solid var(--c, var(--red));
+  color: var(--c, var(--red));
+  font-size: 12px;
+  font-weight: 700;
+}
+.legend-cat::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--red)); }
+.legend-cat.is-cur { --c: var(--gold-ink); border-color: var(--hl); box-shadow: 0 0 0 2px rgba(255, 180, 0, 0.35); }
+.legend-cat.is-cur::before { background: var(--hl); }
 
 /* ===== 任务卡 ===== */
 .mission-card {
@@ -299,8 +302,8 @@ select {
   white-space: nowrap;
   border-radius: 999px;
   padding: 7px 11px;
-  background: rgba(47, 95, 159, 0.1);
-  color: var(--blue);
+  background: rgba(197, 138, 31, 0.14);
+  color: var(--gold-ink);
   font-size: 12px;
   font-weight: 700;
 }
@@ -353,7 +356,7 @@ select {
   cursor: pointer;
 }
 .sym-otok.sym-cur {
-  background: rgba(222, 91, 61, 0.16);
+  background: rgba(255, 180, 0, 0.22);
   box-shadow: inset 0 -3px 0 var(--hl);
   font-weight: 700;
 }
@@ -362,7 +365,7 @@ select {
 /* 符号序列：词类积木 */
 .sym-tokens { display: flex; flex-wrap: wrap; gap: 12px; min-height: 86px; }
 .sym-tok {
-  --c: var(--cat-ind);
+  --c: var(--cat-prop);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -389,7 +392,7 @@ select {
 .sym-tok.sym-pending { opacity: 0.34; filter: grayscale(0.35); transform: scale(0.96); }
 .sym-tok.sym-cur {
   transform: translateY(-3px) scale(1.07);
-  box-shadow: 0 12px 26px rgba(222, 91, 61, 0.32);
+  box-shadow: 0 12px 26px rgba(197, 138, 31, 0.32);
   outline: 3px solid var(--hl);
   outline-offset: 2px;
 }
@@ -410,7 +413,7 @@ select {
   transition: all 0.2s ease;
 }
 .sym-atom.sym-pending { opacity: 0.3; transform: translateX(-6px); }
-.sym-atom.sym-cur { box-shadow: 0 10px 22px rgba(222, 91, 61, 0.26); outline: 2px solid var(--hl); outline-offset: 1px; }
+.sym-atom.sym-cur { box-shadow: 0 10px 22px rgba(197, 138, 31, 0.28); outline: 2px solid var(--hl); outline-offset: 1px; }
 .sym-atom .a-word { font-weight: 800; color: var(--ink); }
 .sym-atom .a-arrow { color: var(--gold); font-weight: 800; font-size: 1.2rem; text-align: center; }
 .sym-atom .a-sym {
@@ -431,8 +434,8 @@ select {
   transition: all 0.22s ease;
 }
 .sym-syn.sym-pending { display: none; }
-.sym-syn.sym-cur { border-color: var(--hl); box-shadow: 0 8px 20px rgba(222, 91, 61, 0.16); }
-.sym-syn .syn-label { font-size: 12.5px; font-weight: 800; color: var(--blue); margin-bottom: 5px; }
+.sym-syn.sym-cur { border-color: var(--hl); box-shadow: 0 8px 20px rgba(197, 138, 31, 0.2); }
+.sym-syn .syn-label { font-size: 12.5px; font-weight: 800; color: var(--red); margin-bottom: 5px; }
 .sym-syn .syn-body {
   font-family: "JetBrains Mono", Consolas, monospace;
   font-weight: 700;
@@ -444,7 +447,7 @@ select {
 .sym-syn .syn-note { margin-top: 5px; font-size: 12.5px; color: var(--muted); line-height: 1.6; font-family: "Noto Serif SC", "Microsoft YaHei", serif; font-weight: 400; }
 /* 最终整句公式内可高亮的项 */
 .sym-seg { padding: 0 1px; border-radius: 4px; transition: all 0.18s ease; }
-.sym-seg.sym-hl { background: var(--hl); color: #fff; box-shadow: 0 0 0 2px rgba(222, 91, 61, 0.35); }
+.sym-seg.sym-hl { background: var(--hl); color: var(--ink); box-shadow: 0 0 0 2px rgba(255, 180, 0, 0.4); }
 
 /* 树状图 */
 .sym-tree-wrap {
@@ -459,22 +462,48 @@ select {
 .sym-leaf rect { transition: all 0.18s ease; }
 .sym-leaf.sym-pending { opacity: 0.34; }
 .sym-leaf.sym-cur rect { stroke: var(--hl); stroke-width: 3; }
-.sym-group.sym-cur circle { stroke: var(--hl); stroke-width: 3; }
+.sym-group rect { transition: all 0.18s ease; }
+.sym-group.sym-cur rect { stroke: var(--hl); stroke-width: 4; }
 
-/* ===== 页脚 ===== */
-.footer {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 9998;
-  min-height: 64px;
-  padding: 12px 10px;
-  text-align: center;
-  color: inherit;
-  opacity: 0.72;
-  background: transparent;
-  font-size: 13px;
-  line-height: 1.7;
+/* 合式公式判定（基础层） */
+.wff-rules { margin: 0 0 6px; padding-left: 1.6em; color: #4e362d; font-size: 13.5px; line-height: 1.8; }
+.wff-rules li::marker { color: var(--red); font-weight: 800; }
+.wff-conv { margin: 0 0 12px; font-size: 12.5px; color: var(--muted); }
+.wff-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.wff-item {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: #fff;
+  border: 1px solid rgba(116, 55, 31, 0.16);
+  border-left: 4px solid rgba(116, 55, 31, 0.25);
+  transition: border-color 0.18s ease;
 }
+.wff-item.is-right { border-left-color: var(--green); }
+.wff-item.is-wrong { border-left-color: var(--false); }
+.wff-f { font-family: "JetBrains Mono", Consolas, monospace; font-weight: 700; font-size: 1.08rem; color: var(--ink); }
+.wff-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.wff-btn {
+  min-height: 40px;
+  border-radius: 8px;
+  border: 1px solid rgba(214, 59, 29, 0.5);
+  background: #fff;
+  color: var(--red);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.wff-btn:hover { background: rgba(214, 59, 29, 0.06); }
+.wff-btn.is-picked { background: linear-gradient(135deg, #d63b1d, #b8321a); color: #fff; border-color: #b8321a; }
+.wff-fb { font-size: 12.5px; line-height: 1.65; color: #4e362d; }
+.wff-fb:empty { display: none; }
+.wff-fb .ok { color: var(--green); }
+.wff-fb .bad { color: var(--false); }
+.wff-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
+.wff-score { font-size: 13px; color: var(--muted); font-weight: 700; }
+.wff-reset { min-width: 128px; }
 
 /* ===== 响应式 ===== */
 @media (max-width: 1000px) {
@@ -488,4 +517,16 @@ select {
   }
   .side-panel, .glass-pane { max-height: none; }
   .mission-card { grid-template-columns: 1fr; }
+  .visual-badge { justify-self: start; }
+}
+@media (max-width: 560px) {
+  .sym-stage-card { padding: 12px 12px; }
+  .sym-stage-head { flex-wrap: wrap; gap: 6px 10px; }
+  .sym-stage-hint { margin-left: 36px; width: 100%; }
+  .sym-original { font-size: 1.05rem; }
+  .sym-tokens { gap: 8px; }
+  .sym-tok { min-width: 0; padding: 7px 10px; }
+  .sym-atom { grid-template-columns: minmax(0, 1fr) 22px auto; gap: 8px; padding: 8px 10px; }
+  .sym-atom .a-word { overflow-wrap: anywhere; }
+  .wff-list { grid-template-columns: 1fr; }
 }

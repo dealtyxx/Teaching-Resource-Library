@@ -40,19 +40,13 @@
       <p class="tier-line">低门槛 · 建立直觉</p>
       <p class="intro">🎯 判断并写出合式公式。</p>
 
-      <div class="value-panel">
-        <h3>政策形式化 · 字斟句酌</h3>
-        <p>把『坚持党的领导并且依法治国』这样的陈述精确符号化，既训练严谨表达，也体会一个联结词的差错就可能改变含义。</p>
-        <div class="dim-list"><span>严谨求实</span><span>规则意识</span><span>依法治理</span></div>
-      </div>
-
       <div id="controls"></div>
       <div class="legend-panel" id="legendPanel"></div>
     </aside>
 
     <main class="glass-pane">
       <section class="mission-card">
-        <span><b>互动任务：</b>点「下一步」逐段识别命题与联结词，看符号序列与公式同步高亮。</span>
+        <span><b>互动任务：</b>点「下一步」逐段识别命题与联结词，看符号序列与公式同步高亮；再用递归定义判断符号串是否为合式公式。</span>
         <div class="visual-badge">语句卡片 · 逐步识别</div>
       </section>
 
@@ -76,6 +70,10 @@
           <div class="sym-stage-head"><span class="sym-stage-num">4</span><span class="sym-stage-title">结构树状图</span><span class="sym-stage-hint">词类 → 结构</span></div>
           <div id="symTreeWrap" class="sym-tree-wrap"></div>
         </section>
+        <section class="sym-stage-card">
+          <div class="sym-stage-head"><span class="sym-stage-num">5</span><span class="sym-stage-title">合式公式判定</span><span class="sym-stage-hint">递归定义 · 点选判断</span></div>
+          <div id="symWff" class="sym-wff"></div>
+        </section>
       </div>
     </main>
   </div>
@@ -89,13 +87,13 @@
     window.SECTION_META = {
       "layers": [
         { "name": "合式公式", "concepts": "命题变元 / 联结词 / 优先级括号", "task": "判断并写出合式公式。", "page": "propositional_formulas-basic.html" },
-        { "name": "自然语言符号化", "concepts": "除非/只有才 / 辖域 / 消歧", "task": "把日常语句精确翻译成命题公式。", "page": "propositional_formulas.html" },
+        { "name": "自然语言符号化", "concepts": "只有…才 / 除非 / 否定辖域 / 括号消歧", "task": "把日常语句精确翻译成命题公式。", "page": "propositional_formulas.html" },
         { "name": "需求与合同形式化", "concepts": "形式规约 / 合同条款 / 形式验证", "task": "迁移到需求规约与条款矛盾检测。", "page": "propositional_formulas-extend.html" }
       ],
       "chapter": "第5章 命题逻辑",
       "section": "5.2 命题公式定义与符号化",
       "title": "合式公式",
-      "grounding": "本节主题：命题公式（合式公式 wff）由命题变元、联结词、括号按规则递归生成。基础层先认识构件：从一句陈述中识别原子命题 p/q 与联结词 ∧ ∨ →，并拼出形如 p∧q、p→q、p∨q 的命题公式。",
+      "grounding": "本节主题：命题公式（合式公式 wff）由命题变元、联结词、括号按规则递归生成：①单个命题变元与常元 0、1 是合式公式；②A 是则 (¬A) 是；③A、B 是则 (A∧B)、(A∨B)、(A→B)、(A↔B) 是；④只有有限次应用①～③得到的才是。基础层先认识构件：从一句陈述中识别原子命题 p/q 与联结词（并且、虽然…但是 → ∧；或者 → 相容或 ∨；如果…那么、只要…就 → →），拼出 p∧q、p∨q、p→q，并判断符号串是否为合式公式。",
       "steps": [
         {"name": "情境引入", "desc": "一句话怎样精确翻译成逻辑公式？第一步该怎么做？"},
         {"name": "对象抽取", "desc": "提取原子命题，识别其中的逻辑联结词。"},
@@ -106,7 +104,7 @@
       ],
       "ideology": {
         "title": "政策形式化 · 字斟句酌",
-        "text": "把政策、条文精确符号化，要求字斟句酌、消除歧义——这正是依法治国、严谨立法的语言纪律。一个括号、一个联结词的差错就可能改变含义，启示我们对文件、对承诺都应严谨准确、表里如一。",
+        "text": "把『坚持党的领导并且依法治国』这样的陈述符号化为 p∧q，意味着两者缺一不可；若误写成 p∨q，含义就变成『至少做到一条』。把政策、条文精确符号化，要求字斟句酌、消除歧义——这正是依法治国、严谨立法的语言纪律，也启示我们对文件、对承诺都应严谨准确、表里如一。",
         "dims": ["严谨求实", "规则意识", "依法治理"],
         "quote": "一字之差，谬以千里——符号化的字斟句酌，是把原则讲准确的基本功。"
       },
