@@ -26,138 +26,9 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap"></noscript>
-  <style>
-
-:root {
-  --ink: #2c1810; --muted: #6b4a38; --paper: #fff8ec; --card: rgba(255, 253, 246, 0.92);
-  --line: rgba(116, 55, 31, 0.18); --red: #d63b1d; --red-2: #de5b3d; --gold: #c58a1f;
-  --green: #2f7d57; --blue: #2f5f9f; --shadow: 0 18px 50px rgba(69, 31, 15, 0.14);
-}
-* { box-sizing: border-box; }
-body {
-  margin: 0; min-height: 100vh; color: var(--ink);
-  font-family: "Noto Serif SC", "Microsoft YaHei", serif;
-  background:
-    radial-gradient(circle at 16% 12%, rgba(222, 91, 61, 0.18), transparent 28%),
-    radial-gradient(circle at 82% 8%, rgba(47, 95, 159, 0.14), transparent 26%),
-    linear-gradient(135deg, #fff7e6 0%, #f8ead3 45%, #f3dfc7 100%);
-  overflow: hidden;
-}
-.home-link {
-  position: fixed; top: 14px; left: 14px; z-index: 10000;
-  display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.5); background: rgba(44, 24, 16, 0.82); color: #fff;
-  text-decoration: none; font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); backdrop-filter: blur(10px);
-}
-.app-container {
-  width: min(1440px, calc(100vw - 32px)); height: calc(100vh - 166px); min-height: 640px;
-  margin: 74px auto 0; display: grid; grid-template-columns: minmax(300px, 360px) minmax(0, 1fr); gap: 18px;
-}
-.side-panel, .glass-pane {
-  border: 1px solid var(--line); background: var(--card); box-shadow: var(--shadow); backdrop-filter: blur(12px);
-}
-.side-panel { border-radius: 8px; padding: 20px; overflow: auto; display: flex; flex-direction: column; }
-.glass-pane { border-radius: 8px; padding: 18px; overflow: auto; }
-.eyebrow {
-  display: inline-flex; align-items: center; gap: 8px; padding: 5px 10px; border-radius: 999px;
-  border: 1px solid rgba(214, 59, 29, 0.22); color: var(--red); background: rgba(214, 59, 29, 0.08);
-  font-size: 12px; font-weight: 700; align-self: flex-start; margin-bottom: 10px;
-}
-h1 { margin: 0 0 8px; font-family: "Ma Shan Zheng", "Noto Serif SC", cursive; font-size: 2.1rem; line-height: 1.2; font-weight: 400; color: #d63b1d; }
-h1 .highlight { color: #ffb400; }
-.subtitle { margin: 0 0 10px; color: #6b4a38; font-size: 0.95rem; line-height: 1.6; font-family: "JetBrains Mono", "Noto Serif SC", monospace; }
-.tier-line { display: inline-flex; align-self: flex-start; gap: 6px; margin: 0 0 12px; padding: 4px 11px; border-radius: 999px; font-size: 12.5px; font-weight: 800; color: #8a5d0b; background: rgba(197,138,31,0.14); border: 1px solid rgba(197,138,31,0.28); letter-spacing: .03em; }
-.intro { margin: 0 0 16px; color: var(--muted); line-height: 1.7; font-size: 15px; }
-.value-panel {
-  padding: 14px; margin: 4px 0 16px; border-radius: 8px; border: 1px solid rgba(116, 55, 31, 0.16);
-  background: rgba(255,255,255,0.66); border-left: 4px solid var(--red);
-}
-.value-panel h3 { margin: 0 0 8px; font-size: 17px; color: var(--red); }
-.value-panel p { margin: 0; line-height: 1.7; color: #563c31; font-size: 14px; }
-.dim-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.dim-list span { border-radius: 999px; background: rgba(197, 138, 31, 0.13); color: #8a5d0b; padding: 4px 9px; font-size: 12px; font-weight: 700; }
-.control-group {
-  padding: 12px; border-radius: 8px; border: 1px solid rgba(116, 55, 31, 0.16);
-  background: rgba(255,255,255,0.66); margin-bottom: 10px;
-}
-.control-group label { display: flex; justify-content: space-between; gap: 12px; color: #4e362d; font-weight: 700; font-size: 14px; margin-bottom: 8px; }
-.control-group small { color: var(--muted); font-weight: 400; }
-select { width: 100%; min-height: 38px; border-radius: 8px; border: 1px solid rgba(116,55,31,0.22); background: #fffaf2; color: var(--ink); padding: 0 10px; font: inherit; cursor: pointer; }
-.speed-row { display: flex; align-items: center; gap: 10px; }
-input[type="range"] { width: 100%; accent-color: var(--red); }
-
-/* atom switches */
-.sw { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
-  border: 1px solid rgba(116,55,31,0.22); border-radius: 8px; background: #fffaf2; color: #4e362d;
-  padding: 9px 12px; font: inherit; font-size: 13.5px; cursor: pointer; margin-bottom: 8px; transition: all .15s ease; }
-.sw:last-child { margin-bottom: 0; }
-.sw:hover { border-color: var(--red); }
-.sw .atom { font-family: "JetBrains Mono", Consolas, monospace; font-weight: 800; }
-.sw .stmt { flex: 1; text-align: left; color: var(--muted); font-size: 12.5px; }
-.sw .pill { font-family: "JetBrains Mono", Consolas, monospace; font-weight: 800; border-radius: 999px; padding: 2px 10px; font-size: 12px; }
-.sw.on .pill { background: rgba(47,125,87,0.16); color: var(--green); }
-.sw.off .pill { background: rgba(214, 59, 29,0.12); color: var(--red); }
-.sw.hidden { display: none; }
-
-.mission-card {
-  padding: 14px 16px; margin-bottom: 14px; border-radius: 8px; border: 1px solid rgba(116, 55, 31, 0.16);
-  background: rgba(255,255,255,0.66); display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
-}
-.mission-card b { color: var(--red); }
-.mission-card span { color: var(--muted); line-height: 1.6; }
-.visual-badge { white-space: nowrap; border-radius: 999px; padding: 7px 10px; background: rgba(47,95,159,0.1); color: var(--blue); font-size: 12px; font-weight: 700; }
-
-.stage { display: grid; gap: 14px; }
-.il-panel { border-radius: 10px; border: 1px solid rgba(116,55,31,0.16); background: rgba(255,255,255,0.62); padding: 14px 16px; }
-.il-panel-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; color: var(--red); margin: 0 0 12px; letter-spacing: 0.02em; }
-.il-panel-title .num { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--red); color: #fff; font-size: 12px; font-family: "JetBrains Mono", Consolas, monospace; }
-.il-panel-title .badge { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--blue); background: rgba(47,95,159,0.1); border-radius: 999px; padding: 3px 10px; }
-
-.il-formula { font-family: "JetBrains Mono", Consolas, monospace; font-size: 30px; font-weight: 800; letter-spacing: 1px; text-align: center; padding: 10px 8px; color: #2c1810; }
-.il-term { display: inline-block; padding: 2px 6px; margin: 0 1px; border-radius: 8px; transition: all .28s ease; }
-.il-term.dim { opacity: 0.34; }
-.il-term.hot { background: linear-gradient(135deg, rgba(255,180,0,0.32), rgba(222,91,61,0.22)); box-shadow: 0 0 0 2px rgba(197,138,31,0.45); color: var(--red); transform: translateY(-2px) scale(1.06); }
-.il-sub { margin-top: 4px; min-height: 24px; text-align: center; font-size: 15px; color: #5e4338; font-family: "JetBrains Mono", Consolas, monospace; }
-.il-sub .t { color: var(--green); font-weight: 800; } .il-sub .f { color: var(--red); font-weight: 800; }
-
-.il-graph-wrap { border-radius: 8px; background: linear-gradient(90deg, rgba(116,55,31,0.05) 1px, transparent 1px), linear-gradient(0deg, rgba(116,55,31,0.05) 1px, transparent 1px), rgba(255,255,255,0.5); background-size: 26px 26px; border: 1px solid rgba(116,55,31,0.12); padding: 6px; }
-#treeSvg { width: 100%; height: auto; display: block; }
-.il-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; font-size: 12.5px; color: var(--muted); }
-.il-legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; margin-right: 5px; vertical-align: -2px; }
-
-table.il-tbl { width: 100%; border-collapse: collapse; font-size: 14px; font-family: "JetBrains Mono", Consolas, monospace; }
-table.il-tbl th, table.il-tbl td { border: 1px solid rgba(116,55,31,0.16); padding: 7px 10px; text-align: center; }
-table.il-tbl th { background: rgba(214, 59, 29,0.08); color: var(--red); font-weight: 800; }
-table.il-tbl tr.cur td { background: rgba(255,180,0,0.2); outline: 2px solid var(--gold); outline-offset: -2px; }
-.cell-t { color: var(--green); font-weight: 800; } .cell-f { color: var(--red); font-weight: 800; }
-
-.il-stepbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-.il-btn { border: 1px solid rgba(116,55,31,0.22); background: #fffaf2; color: #4e362d; border-radius: 8px; padding: 8px 14px; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; transition: all .18s ease; }
-.il-btn:hover { border-color: var(--red); color: var(--red); transform: translateY(-1px); }
-.il-btn:disabled { opacity: .42; cursor: not-allowed; transform: none; }
-.il-btn.primary { background: var(--red); color: #fff; border-color: var(--red); }
-.il-btn.primary:hover { background: #9a1d12; color: #fff; }
-.il-btn.ghost { background: rgba(47,95,159,0.08); border-color: rgba(47,95,159,0.25); color: var(--blue); }
-.il-status { border-radius: 8px; background: rgba(255,250,242,0.9); border: 1px dashed rgba(116,55,31,0.28); padding: 12px 14px; line-height: 1.7; font-size: 14.5px; color: #4a342b; min-height: 52px; }
-.il-status b { color: var(--red); }
-.il-footer-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
-.il-progress { font-size: 12px; color: var(--muted); font-family: "JetBrains Mono", Consolas, monospace; }
-.il-verdict { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 15px; padding: 8px 16px; border-radius: 999px; border: 1px solid transparent; background: rgba(107, 74, 56,0.1); color: var(--muted); }
-.il-verdict.true { background: rgba(47,125,87,0.14); color: var(--green); border-color: rgba(47,125,87,0.4); }
-.il-verdict.false { background: rgba(214, 59, 29,0.1); color: var(--red); border-color: rgba(214, 59, 29,0.4); }
-
-.footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 9998; min-height: 72px; padding: 14px 10px; text-align: center; color: inherit; opacity: 0.72; background: transparent; font-size: 13px; line-height: 1.7; }
-@media (max-width: 920px) {
-  body { overflow: auto; }
-  .app-container { width: min(100vw - 22px, 760px); height: auto; min-height: 0; grid-template-columns: 1fr; margin-bottom: 96px; }
-  .side-panel, .glass-pane { max-height: none; }
-  .mission-card { grid-template-columns: 1fr; }
-  .il-formula { font-size: 24px; }
-}
-
-  </style>
-    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
-    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+  <link rel="stylesheet" href="logic_propositions.css">
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 <body>
   <a class="home-link" href="../../index.html#chapter5">← 返回课程主页</a>
@@ -169,78 +40,95 @@ table.il-tbl tr.cur td { background: rgba(255,180,0,0.2); outline: 2px solid var
       <p class="tier-line">低门槛 · 建立直觉</p>
       <p class="intro">🎯 识别命题、认识五个联结词的真值表。</p>
 
-      <div class="value-panel">
-        <h3>治理的逻辑 · 旗帜鲜明</h3>
-        <p>命题要求『非真即假、立场分明』。模糊其辞、似是而非为逻辑所不容——讲原则首先要讲清晰、讲一致。</p>
-        <div class="dim-list"><span>逻辑严谨</span><span>实事求是</span><span>立场坚定</span></div>
+      <div class="controls">
+        <div class="control-group">
+          <label for="connSel">选择联结词 <small>五选一</small></label>
+          <select id="connSel">
+            <option value="not">否定 ¬p（并非 p）</option>
+            <option value="and" selected>合取 p ∧ q（既…又…）</option>
+            <option value="or">析取 p ∨ q（相容或）</option>
+            <option value="implies">蕴含 p → q（如果…则…）</option>
+            <option value="iff">等价 p ↔ q（当且仅当）</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <div class="cg-label">原子命题真值 <small>点击切换</small></div>
+          <button type="button" class="sw on" id="sw-p"><span class="atom">p</span><span class="stmt">方案经过科学论证</span><span class="pill">真 T</span></button>
+          <button type="button" class="sw on" id="sw-q"><span class="atom">q</span><span class="stmt">方案依法依规审批</span><span class="pill">真 T</span></button>
+        </div>
+        <div class="control-group">
+          <div class="cg-label">逐步演示 <small>点一步 · 看反馈</small></div>
+          <div class="step-row">
+            <button type="button" class="il-btn" id="prevBtn">◀ 上一步</button>
+            <button type="button" class="il-btn primary" id="nextBtn">下一步 ▶</button>
+            <button type="button" class="il-btn" id="autoBtn">▶ 自动播放</button>
+            <button type="button" class="il-btn reset" id="resetBtn">重置</button>
+          </div>
+          <div class="speed-row" style="margin-top:10px"><span>慢</span><input type="range" id="speed" min="1" max="100" value="55" aria-label="自动播放速度"><span>快</span></div>
+        </div>
+        <div class="control-group">
+          <div class="cg-label">进度</div>
+          <div class="progress-wrap"><div class="progress"><i id="progressBar"></i></div><span class="progress-num" id="progressNum">0 / 0</span></div>
+        </div>
+        <div class="control-group">
+          <div class="cg-label">当前反馈</div>
+          <div id="statusText" class="il-status"></div>
+          <span id="verdict" class="il-verdict">真值待定</span>
+        </div>
       </div>
 
-      <div class="control-group">
-        <label><span>选择联结词</span></label>
-        <select id="connSel">
-          <option value="not">否定 ¬p</option>
-          <option value="and" selected>合取 p ∧ q（既要…又要…）</option>
-          <option value="or">析取 p ∨ q（相容或）</option>
-          <option value="implies">蕴含 p → q（若…则…）</option>
-          <option value="iff">等价 p ↔ q（当且仅当）</option>
-        </select>
-      </div>
-      <div class="control-group">
-        <label><span>原子命题真值（点击切换）</span></label>
-        <button class="sw on" id="sw-p" data-atom="p"><span class="atom">p</span><span class="stmt">坚持党的领导</span><span class="pill">真 T</span></button>
-        <button class="sw on" id="sw-q" data-atom="q"><span class="atom">q</span><span class="stmt">依法治国</span><span class="pill">真 T</span></button>
-      </div>
-      <div class="control-group">
-        <label><span>自动播放速度</span></label>
-        <div class="speed-row"><span style="font-size:12px;color:var(--muted)">慢</span><input type="range" id="speed" min="1" max="100" value="55"><span style="font-size:12px;color:var(--muted)">快</span></div>
+      <div class="legend-panel">
+        <div class="legend-title">五个联结词速记</div>
+        <div class="legend-grid">
+          <div class="legend-item"><span class="sym">¬p</span><span class="desc">否定：真假互换</span></div>
+          <div class="legend-item"><span class="sym">p∧q</span><span class="desc">合取：两者同真才真</span></div>
+          <div class="legend-item"><span class="sym">p∨q</span><span class="desc">析取（相容或）：至少一真即真</span></div>
+          <div class="legend-item"><span class="sym">p→q</span><span class="desc">蕴含：仅当 p 真 q 假时为假（前假则真）</span></div>
+          <div class="legend-item"><span class="sym">p↔q</span><span class="desc">等价：两者同真或同假时为真</span></div>
+        </div>
       </div>
     </aside>
 
     <main class="glass-pane">
       <section class="mission-card">
-        <span><b>互动任务：</b>先定原子命题真假，再用联结词组合，逐步读出复合命题真值。</span>
-        <div class="visual-badge">真值开关 + 表达式树 + 真值表</div>
+        <span><b>互动任务：</b>给原子命题定真假、用联结词组合，逐步读出复合命题的真值；再到第 4 张卡片辨一辨哪些语句才是命题。</span>
+        <div class="visual-badge">命题判定 · 真值开关 · 表达式树 · 真值表</div>
       </section>
 
-      <section class="stage">
-        <div class="il-panel">
-          <h2 class="il-panel-title"><span class="num">F</span>复合命题 · Formula<span class="badge" id="connBadge">—</span></h2>
+      <div class="sym-pipeline">
+        <section class="sym-stage-card">
+          <div class="sym-stage-head"><span class="sym-stage-num">1</span><span class="sym-stage-title">复合命题 · 公式</span><span class="il-badge" id="connBadge">—</span><span class="sym-stage-hint">原子命题经联结词组合</span></div>
           <div id="formulaBox" class="il-formula"></div>
           <div id="subBox" class="il-sub"></div>
-        </div>
+        </section>
 
-        <div class="il-panel">
-          <h2 class="il-panel-title"><span class="num">T</span>表达式树（原子 → 联结词 → 真值）</h2>
+        <section class="sym-stage-card">
+          <div class="sym-stage-head"><span class="sym-stage-num">2</span><span class="sym-stage-title">表达式树 · 原子到联结词</span><span class="sym-stage-hint">叶子先定真值，根节点得结论</span></div>
           <div class="il-graph-wrap">
-            <svg id="treeSvg" viewBox="0 0 720 240" preserveAspectRatio="xMidYMid meet" role="img" aria-label="表达式树"></svg>
+            <svg id="treeSvg" viewBox="0 0 760 240" preserveAspectRatio="xMidYMid meet" role="img" aria-label="表达式树"></svg>
           </div>
           <div class="il-legend">
-            <span><i style="background:#2f7d57"></i>真 T</span>
-            <span><i style="background:#e7d8cc;border:1px solid #c9a99a"></i>假 F</span>
-            <span><i style="background:transparent;box-shadow:0 0 0 2px #c58a1f"></i>当前节点</span>
+            <span><i class="lg-t"></i>真 T</span>
+            <span><i class="lg-f"></i>假 F</span>
+            <span><i class="lg-idle"></i>待求值</span>
+            <span><i class="lg-cur"></i>当前节点</span>
           </div>
-        </div>
+        </section>
 
-        <div class="il-panel">
-          <h2 class="il-panel-title"><span class="num">≣</span>该联结词的真值表（当前行高亮）</h2>
-          <div id="ttable"></div>
-        </div>
-
-        <div class="il-panel">
-          <h2 class="il-panel-title"><span class="num">▶</span>逐步推演 · 反馈</h2>
-          <div class="il-stepbar">
-            <button class="il-btn" id="prevBtn">◀ 上一步</button>
-            <button class="il-btn primary" id="nextBtn">下一步 ▶</button>
-            <button class="il-btn ghost" id="autoBtn">自动播放</button>
-            <button class="il-btn" id="resetBtn">重置</button>
+        <section class="sym-stage-card">
+          <div class="sym-stage-head"><span class="sym-stage-num">3</span><span class="sym-stage-title">五联结词真值表</span><span class="sym-stage-hint">金色列 = 所选联结词 · 金色行 = 当前 p、q</span></div>
+          <div id="ttable" class="il-table-wrap"></div>
+        </section>
+        <section class="sym-stage-card">
+          <div class="sym-stage-head"><span class="sym-stage-num">4</span><span class="sym-stage-title">命题判定 · 先辨是非</span><span class="sym-stage-hint">能判断真假的陈述句才是命题</span></div>
+          <div id="judgeList" class="judge-list"></div>
+          <div class="judge-bar">
+            <span class="judge-score" id="judgeScore"></span>
+            <button type="button" class="il-btn" id="judgeReveal">显示全部答案</button>
+            <button type="button" class="il-btn reset" id="judgeReset">重新判定</button>
           </div>
-          <div id="statusText" class="il-status">点击 <b>下一步</b>：先读原子命题，再看联结词如何决定真值。也可直接点左侧开关切换 p、q。</div>
-          <div class="il-footer-row">
-            <span id="verdict" class="il-verdict">真值待定</span>
-            <span id="stepLabel" class="il-progress">步骤 0 / 0</span>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   </div>
 
@@ -258,8 +146,8 @@ table.il-tbl tr.cur td { background: rgba(255,180,0,0.2); outline: 2px solid var
       ],
       "chapter": "第5章 命题逻辑",
       "section": "5.1 命题与联结词",
-      "title": "命题与联结词",
-      "grounding": "本节主题：命题是有确定真假的陈述句；五个联结词——否定¬、合取∧、析取∨、蕴含→、等价↔，各有真值表。注意蕴含『前假则真』、析取为相容或。原子命题经联结词组合成复合命题。",
+      "title": "命题与五联结词",
+      "grounding": "本节主题：命题是能判断真假（且真值唯一）的陈述句；疑问句、祈使句、感叹句、含未赋值变量的语句（如 x+1>3）以及悖论（如『本句话是假的』）都不是命题；真值暂时未知但客观确定的陈述句（如哥德巴赫猜想）是命题。五个联结词——否定¬、合取∧、析取∨、蕴含→、等价↔，各有真值表。注意蕴含『前假则真』、析取为相容或。本页定位为基础层：先辨认命题，再用真值表认识五个联结词。",
       "steps": [
             { "name": "情境引入", "desc": "政策表述要『非真即假、不含糊』，如何把日常判断形式化？" },
             { "name": "对象抽取", "desc": "辨认哪些陈述是命题，提取原子命题并用字母表示。" },
@@ -270,286 +158,171 @@ table.il-tbl tr.cur td { background: rgba(255,180,0,0.2); outline: 2px solid var
       ],
       "ideology": {
             "title": "治理的逻辑 · 旗帜鲜明",
-            "text": "命题要求『非真即假、立场分明』，联结词使复杂判断条理化，正是科学决策、依法治理所需的逻辑严谨与旗帜鲜明。模糊其辞、似是而非为逻辑所不容——讲政治、讲原则首先要讲清晰、讲一致。",
+            "text": "命题要求『非真即假、立场分明』：疑问、祈使、似是而非的语句都不能充当命题。联结词使复杂判断条理化，正是科学决策、依法治理所需的逻辑严谨与旗帜鲜明——模糊其辞、似是而非为逻辑所不容，讲原则首先要讲清晰、讲一致。",
             "dims": [ "逻辑严谨", "实事求是", "立场坚定" ],
             "quote": "是就是是，非就是非——命题逻辑的二值性，正是旗帜鲜明讲原则的数学底色。"
       },
       "reflect": [
-            "蕴含 p→q 在 p 为假时恒为真（空真），这反直觉的约定有什么合理性？",
+            "蕴含 p→q 在 p 为假时恒为真（前假则真），这反直觉的约定有什么合理性？",
             "『或』在逻辑中默认是相容或(∨)还是排斥或？日常语言里如何区分？",
-            "为什么疑问句、祈使句不是命题？命题的本质特征是什么？"
+            "为什么疑问句、祈使句、悖论都不是命题？命题的本质特征是什么？"
       ],
       "transfer": [
             "数字电路的与门、或门、非门正是合取、析取、否定的物理实现。",
             { "t": "规则引擎", "d": "业务系统的『若…则…』规则正是蕴含命题，如何保证规则集无矛盾？" }
       ]
-};
+    };
   </script>
 
+  <script src="logic_propositions.js"></script>
   <script>
 (function () {
   "use strict";
+  const P = window.PropCore;
+  const $ = id => document.getElementById(id);
 
-  /* ===== AST 引擎 ===== */
-  const A = n => ({ op: "atom", name: n });
-  const NOT = c => ({ op: "not", child: c });
-  const BIN = (op, l, r) => ({ op, left: l, right: r });
-  const SYM = { not: "¬", and: "∧", or: "∨", implies: "→", iff: "↔" };
-  const GATE = { not: "非", and: "与", or: "或", implies: "条件", iff: "等价" };
-  const isBin = n => ["and", "or", "implies", "iff"].includes(n.op);
-  let _id = 0;
-  function annotate(n) {
-    n.id = _id++; n.desc = new Set([n.id]);
-    const kids = n.op === "atom" ? [] : (n.op === "not" ? [n.child] : [n.left, n.right]);
-    kids.forEach(k => { annotate(k); k.desc.forEach(d => n.desc.add(d)); });
-    return n;
+  /* ===== 命题判定练习（舞台卡 4） ===== */
+  const JUDGE = [
+    { s: "北京是中华人民共和国的首都。", ans: true, why: "陈述句，真值确定（真）。" },
+    { s: "2 + 3 = 6。", ans: true, why: "陈述句，真值确定（假）——假命题也是命题。" },
+    { s: "任何大于 2 的偶数都可以写成两个素数之和。", ans: true, why: "哥德巴赫猜想：目前尚不知真假，但真值客观唯一，是命题。" },
+    { s: "x + 1 > 3。", ans: false, why: "x 未取定值，真假随 x 而变，不是命题（到第 6 章用谓词刻画）。" },
+    { s: "你今天复习离散数学了吗？", ans: false, why: "疑问句，无所谓真假。" },
+    { s: "请把手机调成静音。", ans: false, why: "祈使句，无所谓真假。" },
+    { s: "这道题太妙了！", ans: false, why: "感叹句，表达情感而非判断。" },
+    { s: "本句话是假的。", ans: false, why: "悖论：若它为真则为假、若为假则为真，无法确定真值，不是命题。" }
+  ];
+  const picks = JUDGE.map(() => null);
+  const judgeList = $("judgeList"), judgeScore = $("judgeScore");
+  function renderJudge() {
+    judgeList.innerHTML = JUDGE.map((j, i) => {
+      const pk = picks[i], answered = pk !== null, right = answered && pk === j.ans;
+      const fb = !answered ? "先想一想：它能判断真假吗？"
+        : (right ? '<b class="ok">✓ 判断正确。</b>' : '<b class="bad">✗ 再想想：' + (j.ans ? "它是命题。" : "它不是命题。") + "</b>") + j.why;
+      return '<div class="judge-item' + (answered ? (right ? " ok" : " bad") : "") + '">' +
+        '<div class="judge-sent">' + (i + 1) + ". " + P.esc(j.s) + "</div>" +
+        '<div class="judge-btns">' +
+        '<button type="button" class="il-btn' + (pk === true ? " picked" : "") + '" data-i="' + i + '" data-v="1">是命题</button>' +
+        '<button type="button" class="il-btn' + (pk === false ? " picked" : "") + '" data-i="' + i + '" data-v="0">不是命题</button>' +
+        "</div>" +
+        '<div class="judge-fb">' + fb + "</div></div>";
+    }).join("");
+    const done = picks.filter(x => x !== null).length;
+    const ok = picks.filter((x, i) => x !== null && x === JUDGE[i].ans).length;
+    judgeScore.innerHTML = "已判定 <b>" + done + "/" + JUDGE.length + "</b> · 答对 <b>" + ok + "</b>";
   }
-  function ev(n, e) {
-    switch (n.op) {
-      case "atom": return e[n.name];
-      case "not": return !ev(n.child, e);
-      case "and": return ev(n.left, e) && ev(n.right, e);
-      case "or": return ev(n.left, e) || ev(n.right, e);
-      case "implies": return !ev(n.left, e) || ev(n.right, e);
-      case "iff": return ev(n.left, e) === ev(n.right, e);
-    }
-  }
-  function toks(n, top) {
-    if (n.op === "atom") return [{ t: n.name, nid: n.id }];
-    if (n.op === "not") return [{ t: "¬", nid: n.id }].concat(toks(n.child, false));
-    let arr = toks(n.left, false).concat([{ t: SYM[n.op], nid: n.id }], toks(n.right, false));
-    if (!top && isBin(n)) arr = [{ t: "(", nid: n.id }].concat(arr, [{ t: ")", nid: n.id }]);
-    return arr;
-  }
-  function postorder(n, acc) { acc = acc || []; if (n.op === "atom") { acc.push(n); return acc; } if (n.op === "not") postorder(n.child, acc); else { postorder(n.left, acc); postorder(n.right, acc); } acc.push(n); return acc; }
+  judgeList.addEventListener("click", e => {
+    const b = e.target.closest("button[data-i]");
+    if (!b) return;
+    picks[+b.dataset.i] = b.dataset.v === "1";
+    renderJudge();
+  });
+  $("judgeReveal").addEventListener("click", () => { JUDGE.forEach((j, i) => { picks[i] = j.ans; }); renderJudge(); });
+  $("judgeReset").addEventListener("click", () => { picks.fill(null); renderJudge(); });
+  renderJudge();
 
-  /* ===== 树布局（top-down） ===== */
-  function layout(root) {
-    const leaves = [];
-    (function c(n) { if (n.op === "atom") leaves.push(n); else if (n.op === "not") c(n.child); else { c(n.left); c(n.right); } })(root);
-    let maxDepth = 0; const depth = {};
-    (function d(n, dp) { depth[n.id] = dp; maxDepth = Math.max(maxDepth, dp); if (n.op === "not") d(n.child, dp + 1); else if (n.op !== "atom") { d(n.left, dp + 1); d(n.right, dp + 1); } })(root, 0);
-    leaves.forEach((lf, i) => lf._u = leaves.length === 1 ? 0.5 : i / (leaves.length - 1));
-    (function u(n) { if (n.op === "atom") return n._u; if (n.op === "not") { n._u = u(n.child); return n._u; } const a = u(n.left), b = u(n.right); n._u = (a + b) / 2; return n._u; })(root);
-    return { maxDepth, depth };
-  }
-
-  /* ===== DOM ===== */
-  const connSel = document.getElementById("connSel");
-  const speed = document.getElementById("speed");
-  const connBadge = document.getElementById("connBadge");
-  const formulaBox = document.getElementById("formulaBox");
-  const subBox = document.getElementById("subBox");
-  const treeSvg = document.getElementById("treeSvg");
-  const ttable = document.getElementById("ttable");
-  const statusText = document.getElementById("statusText");
-  const verdict = document.getElementById("verdict");
-  const stepLabel = document.getElementById("stepLabel");
-  const prevBtn = document.getElementById("prevBtn");
-  const nextBtn = document.getElementById("nextBtn");
-  const autoBtn = document.getElementById("autoBtn");
-  const resetBtn = document.getElementById("resetBtn");
-  const swp = document.getElementById("sw-p");
-  const swq = document.getElementById("sw-q");
-
-  const SVGNS = "http://www.w3.org/2000/svg";
+  /* ===== 联结词求值（舞台卡 1–3） ===== */
+  const GATE = { not: "否定", and: "合取", or: "析取", implies: "蕴含", iff: "等价" };
+  const MEANING = {
+    not: "否定 ¬p：把 p 的真假<b>反转</b>。",
+    and: "合取 p∧q：<b>两者同真才真</b>，体现『既要…又要…』的全面要求。",
+    or: "析取 p∨q（<b>相容或</b>）：<b>至少一个真就真</b>，两个都真也为真。",
+    implies: "蕴含 p→q：『如果 p，则 q』。<b>只有 p 真而 q 假时才为假</b>；前件 p 为假时整体为真（前假则真）。",
+    iff: "等价 p↔q：『p 当且仅当 q』，<b>两者真值相同才为真</b>。"
+  };
+  const STMT = { p: "方案经过科学论证", q: "方案依法依规审批" };
   const env = { p: true, q: true };
-  const STMT = { p: "坚持党的领导", q: "依法治国" };
-  let ast = null, atoms = [], steps = [], idx = 0, timer = null;
+  const connSel = $("connSel"), sw = { p: $("sw-p"), q: $("sw-q") };
+  const statusText = $("statusText"), verdict = $("verdict");
+  let ast = null, atoms = [];
 
-  function tm(v) { return v ? "T" : "F"; }
-  function tf(v) { return v ? '<span class="t">真</span>' : '<span class="f">假</span>'; }
-  function esc(s) { return String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
-  function delay() { return Math.max(280, 1500 - Number(speed.value) * 12); }
-
-  function buildAst() {
-    _id = 0;
+  function build() {
     const c = connSel.value;
-    ast = c === "not" ? NOT(A("p")) : BIN(c, A("p"), A("q"));
-    annotate(ast);
+    ast = c === "not" ? P.NOT(P.A("p")) : { op: c, left: P.A("p"), right: P.A("q") };
+    P.annotate(ast);
     atoms = c === "not" ? ["p"] : ["p", "q"];
-    layout(ast);
-    swq.classList.toggle("hidden", c === "not");
+    sw.q.classList.toggle("hidden", c === "not");
   }
+  const ROWS = [[true, true], [true, false], [false, true], [false, false]];
+  function rowIndex() { return ROWS.findIndex(r => r[0] === env.p && r[1] === env.q); }
 
-  /* ===== 步骤 ===== */
   function buildSteps() {
-    const c = connSel.value;
-    const order = postorder(ast);
-    const result = ev(ast, env);
-    const list = [];
-    list.push({
-      status: "命题是<b>能判断真假</b>的陈述句。原子命题 <b>p</b>、" + (c === "not" ? "" : "<b>q</b> ") + "各有真值，联结词 <b>" + SYM[c] + "</b> 把它们组合成复合命题。",
-      terms: [], active: null, evaluated: [], sub: "原子命题：p = " + STMT.p + (c === "not" ? "" : "；q = " + STMT.q)
-    });
-    // read atoms
-    atoms.forEach(a => {
+    const c = connSel.value, order = P.postorder(ast), result = P.ev(ast, env);
+    const atomIds = order.filter(n => n.op === "atom").map(n => n.id);
+    const list = [{
+      status: "命题是<b>能判断真假</b>的陈述句。原子命题 <b>p</b>" + (c === "not" ? "" : "、<b>q</b>") + " 各有确定的真值，联结词 <b>" + P.SYM[c] + "</b> 把它们组合成复合命题。",
+      terms: [], active: null, evaluated: [],
+      sub: '<span class="note">p：' + STMT.p + (c === "not" ? "" : "；q：" + STMT.q) + "</span>"
+    }];
+    atoms.forEach((a, i) => {
       const node = order.find(n => n.op === "atom" && n.name === a);
       list.push({
-        status: "读原子命题 <b>" + a + "</b>（" + esc(STMT[a]) + "）：取真值 = " + (env[a] ? "真" : "假") + "。命题非真即假，没有第三种可能。",
-        terms: [node.id], active: node.id, evaluated: atoms.slice(0, atoms.indexOf(a) + 1).map(x => order.find(n => n.op === "atom" && n.name === x).id),
-        sub: a + " = " + tf(env[a])
+        status: "读原子命题 <b>" + a + "</b>（" + STMT[a] + "）：真值为 " + P.tf(env[a]) + "。命题非真即假，没有第三种可能。",
+        terms: [node.id], active: node.id, evaluated: atomIds.slice(0, i + 1),
+        sub: a + " = " + P.tf(env[a])
       });
     });
-    // read connective meaning
-    const meaning = {
-      not: "否定 ¬p：把 p 的真假<b>反转</b>。",
-      and: "合取 p∧q：<b>两个都真才真</b>，体现『既要…又要…』的全面要求。",
-      or: "析取 p∨q（<b>相容或</b>）：<b>至少一个真就真</b>，两个都真也真。",
-      implies: "蕴含 p→q：『若 p 则 q』。注意<b>前件 p 为假时整体恒为真</b>（空真）。",
-      iff: "等价 p↔q：<b>两者真值相同才真</b>，体现『当且仅当』。"
-    }[c];
     list.push({
-      status: "读联结词 <b>" + SYM[c] + "（" + GATE[c] + "）</b>：" + meaning + " 下方真值表给出它对所有输入的规定。",
-      terms: [ast.id], active: ast.id, evaluated: atoms.map(a => order.find(n => n.op === "atom" && n.name === a).id),
-      sub: "查真值表第 " + (rowIndex() + 1) + " 行"
+      status: "读联结词 <b>" + P.SYM[c] + "（" + GATE[c] + "）</b>：" + MEANING[c] + " 真值表的金色列给出它对所有输入的规定。",
+      terms: [ast.id], active: ast.id, evaluated: atomIds,
+      sub: "查真值表第 " + (rowIndex() + 1) + " 行（p=" + P.tm(env.p) + (c === "not" ? "" : "，q=" + P.tm(env.q)) + "）"
     });
-    // evaluate root
-    const opStr = c === "not" ? ("¬" + tm(env.p)) : (tm(env.p) + " " + SYM[c] + " " + tm(env.q));
+    const opStr = c === "not" ? "¬" + P.tm(env.p) : P.tm(env.p) + " " + P.SYM[c] + " " + P.tm(env.q);
     list.push({
-      status: "按真值表求值：<b>" + opStr + " = " + (result ? "真" : "假") + "</b>。表达式树的根节点点亮，真值表对应行高亮。",
+      status: "按真值表求值：<b>" + opStr + " = " + P.tm(result) + "</b>。表达式树根节点点亮，真值表对应行高亮。",
       terms: ast.desc, active: ast.id, evaluated: order.map(n => n.id),
-      sub: opStr + " = " + tf(result)
+      sub: opStr + " = " + P.tf(result)
     });
     list.push({
-      status: "<b>结论：该复合命题 = " + (result ? "真" : "假") + "。</b> 点左侧开关切换 p" + (c === "not" ? "" : "、q") + " 的真假，真值表行与结论会立刻随之改变——是就是是、非就是非。",
-      terms: ast.desc, active: null, evaluated: order.map(n => n.id), verdict: result,
-      sub: "复合命题 = " + tf(result)
+      status: "<b>结论：该复合命题为" + (result ? "真" : "假") + "。</b>点左侧开关切换 p" + (c === "not" ? "" : "、q") + " 的真假，真值表高亮行与结论随之改变——是就是是，非就是非。",
+      terms: [], active: null, evaluated: order.map(n => n.id), verdict: result,
+      sub: P.strOf(ast) + " = " + P.tf(result)
     });
     return list;
   }
 
-  function rowIndex() {
-    if (connSel.value === "not") return env.p ? 0 : 1;
-    // rows order: TT, TF, FT, FF
-    const map = { "truetrue": 0, "truefalse": 1, "falsetrue": 2, "falsefalse": 3 };
-    return map[String(env.p) + String(env.q)];
-  }
-
-  /* ===== 渲染公式 ===== */
-  function renderFormula(activeIds) {
-    const list = toks(ast, true);
-    const set = activeIds && (activeIds.size || activeIds.length) ? (activeIds.size ? activeIds : new Set(activeIds)) : null;
-    formulaBox.innerHTML = list.map(tk => {
-      let cls = "il-term";
-      if (set) cls += set.has(tk.nid) ? " hot" : " dim";
-      return '<span class="' + cls + '">' + esc(tk.t) + "</span>";
-    }).join("");
-  }
-
-  /* ===== SVG 树 ===== */
-  function makeEl(tag, attrs) { const el = document.createElementNS(SVGNS, tag); for (const k in attrs) el.setAttribute(k, attrs[k]); return el; }
-  function renderTree(st) {
-    treeSvg.innerHTML = "";
-    const W = 720, H = 240, mx = 70, my = 40;
-    const lay = layout(ast);
-    const pos = {};
-    (function walk(n) {
-      const x = mx + n._u * (W - 2 * mx);
-      const y = my + (lay.maxDepth === 0 ? 0 : lay.depth[n.id] / lay.maxDepth) * (H - 2 * my);
-      pos[n.id] = { x, y };
-      if (n.op === "not") walk(n.child); else if (n.op !== "atom") { walk(n.left); walk(n.right); }
-    })(ast);
-    const evd = new Set(st.evaluated || []);
-    // edges
-    (function edges(n) {
-      const kids = n.op === "not" ? [n.child] : (n.op === "atom" ? [] : [n.left, n.right]);
-      kids.forEach(k => {
-        const a = pos[n.id], b = pos[k.id];
-        const lit = evd.has(k.id);
-        treeSvg.appendChild(makeEl("path", { d: "M " + a.x + " " + a.y + " L " + b.x + " " + b.y, stroke: lit ? (ev(k, env) ? "#2f7d57" : "#c9a99a") : "#d8c4b4", "stroke-width": lit ? 3 : 2, fill: "none", opacity: 0.85 }));
-        edges(k);
-      });
-    })(ast);
-    // nodes
-    (function nodes(n) {
-      const p = pos[n.id], val = ev(n, env), evaluated = evd.has(n.id), active = st.active === n.id;
-      if (active) {
-        const ring = makeEl("circle", { cx: p.x, cy: p.y, r: 34, fill: "none", stroke: "#c58a1f", "stroke-width": 4, opacity: 0.9 });
-        ring.appendChild(makeEl("animate", { attributeName: "r", values: "32;40;32", dur: "1.4s", repeatCount: "indefinite" }));
-        treeSvg.appendChild(ring);
-      }
-      if (n.op === "atom") {
-        const fill = evaluated ? (val ? "#2f7d57" : "#e7d8cc") : "#ece0d4";
-        treeSvg.appendChild(makeEl("circle", { cx: p.x, cy: p.y, r: 26, fill, stroke: evaluated ? (val ? "#256346" : "#c9a99a") : "#cbb6a6", "stroke-width": 2, filter: "drop-shadow(0 3px 6px rgba(69,31,15,0.16))" }));
-        const tx = makeEl("text", { x: p.x, y: p.y + 6, "text-anchor": "middle", fill: evaluated && val ? "#fff" : "#3a2a22", "font-size": 18, "font-weight": "800", "font-family": "JetBrains Mono, monospace" });
-        tx.textContent = n.name; treeSvg.appendChild(tx);
-        if (evaluated) { const b = makeEl("text", { x: p.x, y: p.y + 44, "text-anchor": "middle", fill: val ? "#2f7d57" : "#a05a4a", "font-size": 12, "font-weight": "800", "font-family": "JetBrains Mono, monospace" }); b.textContent = tm(val); treeSvg.appendChild(b); }
-      } else {
-        const fill = evaluated ? (val ? "#2f7d57" : "#e7d8cc") : "#fff4e6";
-        treeSvg.appendChild(makeEl("rect", { x: p.x - 30, y: p.y - 22, width: 60, height: 44, rx: 10, fill, stroke: evaluated ? (val ? "#256346" : "#c9a99a") : "#e0a020", "stroke-width": 2, filter: "drop-shadow(0 3px 6px rgba(69,31,15,0.16))" }));
-        const s = makeEl("text", { x: p.x, y: p.y - 1, "text-anchor": "middle", fill: evaluated && val ? "#fff" : "#d63b1d", "font-size": 18, "font-weight": "800", "font-family": "JetBrains Mono, monospace" }); s.textContent = SYM[n.op]; treeSvg.appendChild(s);
-        const g = makeEl("text", { x: p.x, y: p.y + 14, "text-anchor": "middle", fill: evaluated && val ? "rgba(255,255,255,.85)" : "#9a6a3a", "font-size": 10, "font-weight": "700" }); g.textContent = GATE[n.op] + "门"; treeSvg.appendChild(g);
-      }
-      const kids = n.op === "not" ? [n.child] : (n.op === "atom" ? [] : [n.left, n.right]);
-      kids.forEach(nodes);
-    })(ast);
-  }
-
-  /* ===== 真值表 ===== */
   function renderTable() {
-    const c = connSel.value;
-    let rows;
-    if (c === "not") rows = [[true], [false]];
-    else rows = [[true, true], [true, false], [false, true], [false, false]];
-    const cur = rowIndex();
-    let head = c === "not" ? "<th>p</th><th>¬p</th>" : "<th>p</th><th>q</th><th>p " + SYM[c] + " q</th>";
-    let body = rows.map((r, i) => {
-      const e = c === "not" ? { p: r[0] } : { p: r[0], q: r[1] };
-      const res = ev(ast, e);
-      const cells = r.map(v => '<td class="' + (v ? "cell-t" : "cell-f") + '">' + tm(v) + "</td>").join("");
-      return '<tr class="' + (i === cur ? "cur" : "") + '">' + cells + '<td class="' + (res ? "cell-t" : "cell-f") + '">' + tm(res) + "</td></tr>";
-    }).join("");
-    ttable.innerHTML = '<table class="il-tbl"><thead><tr>' + head + "</tr></thead><tbody>" + body + "</tbody></table>";
+    const c = connSel.value, cur = rowIndex();
+    const cols = [
+      { k: "not", h: "¬p", f: r => !r[0] }, { k: "and", h: "p∧q", f: r => r[0] && r[1] },
+      { k: "or", h: "p∨q", f: r => r[0] || r[1] }, { k: "implies", h: "p→q", f: r => !r[0] || r[1] },
+      { k: "iff", h: "p↔q", f: r => r[0] === r[1] }
+    ];
+    const cell = (v, sel) => '<td class="' + (v ? "cell-t" : "cell-f") + (sel ? " col-sel" : "") + '">' + P.tm(v) + "</td>";
+    let html = '<table class="il-tbl"><thead><tr><th>p</th><th>q</th>' +
+      cols.map(o => '<th class="' + (o.k === c ? "col-sel" : "") + '">' + o.h + "</th>").join("") + "</tr></thead><tbody>";
+    ROWS.forEach((r, i) => {
+      html += '<tr class="' + (i === cur ? "cur" : "") + '">' + cell(r[0]) + cell(r[1]) + cols.map(o => cell(o.f(r), o.k === c)).join("") + "</tr>";
+    });
+    $("ttable").innerHTML = html + "</tbody></table>";
   }
 
-  /* ===== 应用步骤 ===== */
-  function applyStep() {
-    const st = steps[idx];
-    renderFormula(st.terms);
-    renderTree(st);
+  function render(st) {
+    $("formulaBox").innerHTML = P.formulaHTML(ast, { hot: st.terms });
+    $("subBox").innerHTML = st.sub || "";
+    $("connBadge").textContent = P.SYM[connSel.value] + " " + GATE[connSel.value];
+    P.drawTree($("treeSvg"), ast, { env, evaluated: new Set(st.evaluated), active: st.active, H: 240 });
     renderTable();
     statusText.innerHTML = st.status;
-    subBox.innerHTML = st.sub || "";
-    connBadge.textContent = SYM[connSel.value] + " " + GATE[connSel.value];
-    stepLabel.textContent = "步骤 " + idx + " / " + (steps.length - 1);
     if (typeof st.verdict === "boolean") {
       verdict.className = "il-verdict " + (st.verdict ? "true" : "false");
       verdict.textContent = st.verdict ? "✓ 复合命题为真 T" : "✗ 复合命题为假 F";
     } else { verdict.className = "il-verdict"; verdict.textContent = "真值待定"; }
-    prevBtn.disabled = idx === 0;
-    nextBtn.disabled = idx >= steps.length - 1;
-  }
-  function go(to) { idx = Math.max(0, Math.min(steps.length - 1, to)); applyStep(); }
-  function rebuild(resetIdx, jumpEnd) {
-    buildAst(); steps = buildSteps();
-    idx = jumpEnd ? steps.length - 1 : (resetIdx ? 0 : Math.min(idx, steps.length - 1));
-    applyStep();
-  }
-  function stopAuto() { if (timer) { clearInterval(timer); timer = null; autoBtn.textContent = "自动播放"; autoBtn.classList.remove("primary"); } }
-  function toggleAuto() {
-    if (timer) { stopAuto(); return; }
-    if (idx >= steps.length - 1) go(0);
-    autoBtn.textContent = "暂停"; autoBtn.classList.add("primary");
-    timer = setInterval(() => { if (idx >= steps.length - 1) { stopAuto(); return; } go(idx + 1); }, delay());
-  }
-  function updateSwitch(btn, atom) {
-    const on = env[atom];
-    btn.classList.toggle("on", on); btn.classList.toggle("off", !on);
-    btn.querySelector(".pill").textContent = on ? "真 T" : "假 F";
   }
 
-  connSel.addEventListener("change", () => { stopAuto(); rebuild(true); });
-  swp.addEventListener("click", () => { stopAuto(); env.p = !env.p; updateSwitch(swp, "p"); rebuild(false, true); statusText.innerHTML = "你把 <b>p</b> 切换为 " + (env.p ? "真" : "假") + "。真值表行与复合命题真值已随之更新——可点「上一步」回看推演。"; });
-  swq.addEventListener("click", () => { stopAuto(); env.q = !env.q; updateSwitch(swq, "q"); rebuild(false, true); statusText.innerHTML = "你把 <b>q</b> 切换为 " + (env.q ? "真" : "假") + "。真值表行与复合命题真值已随之更新——可点「上一步」回看推演。"; });
-  nextBtn.addEventListener("click", () => { stopAuto(); go(idx + 1); });
-  prevBtn.addEventListener("click", () => { stopAuto(); go(idx - 1); });
-  resetBtn.addEventListener("click", () => { stopAuto(); go(0); });
-  autoBtn.addEventListener("click", toggleAuto);
-  speed.addEventListener("input", () => { if (timer) { stopAuto(); toggleAuto(); } });
-
-  updateSwitch(swp, "p"); updateSwitch(swq, "q");
-  rebuild(true);
+  const stepper = P.Stepper({ render });
+  function rebuild(toEnd) { build(); const s = buildSteps(); stepper.set(s, toEnd ? s.length - 1 : 0); }
+  function paintSwitch(a) {
+    sw[a].classList.toggle("on", env[a]); sw[a].classList.toggle("off", !env[a]);
+    sw[a].querySelector(".pill").textContent = env[a] ? "真 T" : "假 F";
+  }
+  connSel.addEventListener("change", () => { stepper.stop(); rebuild(false); });
+  ["p", "q"].forEach(a => sw[a].addEventListener("click", () => {
+    stepper.stop(); env[a] = !env[a]; paintSwitch(a); rebuild(true);
+    statusText.innerHTML = "你把 <b>" + a + "</b> 切换为" + P.tf(env[a]) + "。真值表高亮行与复合命题真值已随之更新：" + P.strOf(ast) + " = " + P.tf(P.ev(ast, env)) + "。可点「上一步」回看推演。";
+  }));
+  ["p", "q"].forEach(paintSwitch);
+  rebuild(false);
 })();
   </script>
   <script src="../../shared/ai-tutor.js" defer></script>
