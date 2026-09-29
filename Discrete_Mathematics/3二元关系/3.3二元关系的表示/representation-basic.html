@@ -52,28 +52,6 @@
         .rset { font-family: 'JetBrains Mono', Consolas, monospace; font-size: .82rem; color: #b8321a; line-height: 1.8; max-width: 220px; }
         .rset b { color: #d63b1d; }
     
-        .value-panel {
-            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
-            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
-            box-shadow: var(--shadow-sm);
-        }
-        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
-        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
-        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
-        .value-dims span {
-            padding: 3px 8px; border-radius: 999px; color: #b8321a;
-            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
-            font-size: .74rem; font-weight: 700;
-        }
-        .value-quote {
-            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
-            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
-        }
-        .value-inline {
-            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
-            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
-            color: var(--text-primary); line-height: 1.5;
-        }
     </style>
     <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
@@ -93,16 +71,6 @@
                 
                 
                 
-                <div class="control-group value-consistency-group">
-                    <label>价值映射（与进阶层一致）</label>
-                    <div class="value-panel" data-value-source="SECTION_META.ideology">
-                        <h3>一体多面 · 各取所长</h3>
-                        <p>同一个关系可用集合、矩阵、图三种形式表达，恰如同一事物可从不同角度认识——『横看成岭侧成峰』。善于在表示之间切换、各取所长，正是具体问题具体分析、灵活务实的方法论体现。</p>
-                        <div class="value-dims"><span>辩证思维</span><span>灵活务实</span><span>系统观念</span></div>
-                            <div class="value-quote">横看成岭侧成峰——三种表示是同一关系的不同侧面，切换视角方能事半功倍。</div>
-                    </div>
-                </div>
-
                 <div class="control-group">
                     <label>集合元素个数 n</label>
                     <div class="dm-t-field"><div class="lab"><span>n</span><span class="v" id="nVal">4</span></div><input type="range" id="nRange" min="2" max="6" value="4"></div>
@@ -123,9 +91,9 @@
             <div class="glass-pane">
                 <div class="visualization-area" id="vizArea">
                     <div class="dm-t-wrap">
+                        <div class="dm-t-card"><h3>① 集合表示</h3><div class="rset" id="rset"></div></div>
                         <div class="dm-t-card"><h3>② 关系矩阵（点格切换）</h3><div class="mtx" id="mtx"></div></div>
                         <div class="dm-t-card"><h3>③ 关系图（有向）</h3><svg id="cg" class="cg" width="220" height="220" viewBox="0 0 220 220"></svg></div>
-                        <div class="dm-t-card"><h3>① 集合表示</h3><div class="rset" id="rset"></div></div>
                     </div>
                 </div>
             </div>
@@ -208,55 +176,6 @@
     };
     </script>
     
-    <script data-dm-ideology-bridge="1">
-    (function () {
-        function esc(s) {
-            return String(s || '').replace(/[&<>"']/g, function (c) {
-                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
-            });
-        }
-        function noteHtml() {
-            var ideology = (window.SECTION_META && window.SECTION_META.ideology) || {};
-            var title = ideology.title || '价值引领';
-            var text = ideology.text || '本层延续进阶层的价值主线，在操作中体会数学结构与价值判断的一致性。';
-            return '<span class="value-inline" data-ideology-inline="1"><strong>价值观察：</strong>本层沿用进阶层“'
-                + esc(title) + '”主线。' + esc(text) + '</span>';
-        }
-        function appendIdeologyNote() {
-            if (document.querySelector('[data-ideology-inline="1"]')) return;
-            var resultExtra = document.getElementById('resultExtra');
-            if (resultExtra) {
-                resultExtra.insertAdjacentHTML('beforeend', noteHtml());
-                return;
-            }
-            var anchor = document.querySelector('.result-panel, #eqOut, #note, .visualization-area');
-            if (!anchor) return;
-            if (anchor.id === 'eqOut' || anchor.id === 'note') anchor.insertAdjacentHTML('afterend', noteHtml());
-            else anchor.insertAdjacentHTML('beforeend', noteHtml());
-        }
-        function wrapSetResult() {
-            var original = window.setResult;
-            if (typeof original !== 'function' || original.__ideologyWrapped) return;
-            window.setResult = function () {
-                var ret = original.apply(this, arguments);
-                appendIdeologyNote();
-                return ret;
-            };
-            window.setResult.__ideologyWrapped = true;
-        }
-        function boot() {
-            wrapSetResult();
-            appendIdeologyNote();
-            ['input', 'change', 'click'].forEach(function (eventName) {
-                document.addEventListener(eventName, function () {
-                    setTimeout(appendIdeologyNote, 0);
-                }, true);
-            });
-        }
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-        else boot();
-    })();
-    </script>
     <script src="../../shared/ai-tutor.js" defer></script>
 </body>
 

@@ -34,6 +34,8 @@
         .dm-t-field .lab { display: flex; justify-content: space-between; font-size: .82rem; color: #b8321a; margin-bottom: 5px; }
         .dm-t-field .v { font-weight: 700; color: #d63b1d; font-family: 'JetBrains Mono', Consolas, monospace; }
         .dm-t-field input[type=range] { width: 100%; accent-color: #d63b1d; }
+        .dm-t-btn { width: 100%; min-height: 42px; padding: 10px; border-radius: 10px; cursor: pointer; font-family: inherit; font-weight: 600; }
+        .dm-t-btn.ghost { background: transparent; color: #6b4a38; border: 1px solid rgba(107, 74, 56, .3); }
         .dm-t-info { background: rgba(255,255,255,.6); border: 1px solid rgba(214,59,29,.14); border-radius: 10px; padding: 12px; font-size: .84rem; line-height: 1.7; color: #b8321a; }
         .dm-t-info b { color: #d63b1d; }
         .dm-t-wrap { display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center; align-items: flex-start; width: 100%; }
@@ -46,34 +48,16 @@
         .bar-row .lbl { width: 64px; color: #b8321a; }
         .bar-track { flex: 1; background: rgba(214,59,29,.08); border-radius: 6px; height: 22px; overflow: hidden; }
         .bar-fill { height: 100%; border-radius: 6px; transition: width .35s; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; color: #fff; font-family: 'JetBrains Mono', Consolas, monospace; font-size: .72rem; }
-        .bar-fill.mtx { background: linear-gradient(90deg, #f0a, #d63b1d); }
+        .bar-fill.mtx { background: linear-gradient(90deg, #d63b1d, #b8321a); }
+        .bar-fill.csr { background: linear-gradient(90deg, #c58a1f, #8a5a00); }
+        .csr-row { font-family: 'JetBrains Mono', Consolas, monospace; font-size: .74rem; line-height: 1.6; color: #2c1810; word-break: break-all; margin: 4px 0; }
+        .csr-row b { color: #d63b1d; }
+        .model-note { font-size: .74rem; color: #6b4a38; margin-top: 6px; line-height: 1.55; }
         .bar-fill.adj { background: linear-gradient(90deg, #ffb400, #e8920a); }
         .winner { font-size: .9rem; font-weight: 700; padding: 10px 14px; border-radius: 10px; text-align: center; margin-top: 8px; }
         .winner.adj { background: rgba(255,180,0,.18); color: #8a5a00; }
         .winner.mtx { background: rgba(214,59,29,.12); color: #9c2b1e; }
     
-        .value-panel {
-            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
-            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
-            box-shadow: var(--shadow-sm);
-        }
-        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
-        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
-        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
-        .value-dims span {
-            padding: 3px 8px; border-radius: 999px; color: #b8321a;
-            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
-            font-size: .74rem; font-weight: 700;
-        }
-        .value-quote {
-            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
-            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
-        }
-        .value-inline {
-            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
-            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
-            color: var(--text-primary); line-height: 1.5;
-        }
     </style>
     <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
@@ -93,23 +77,16 @@
                 
                 
                 
-                <div class="control-group value-consistency-group">
-                    <label>价值映射（与进阶层一致）</label>
-                    <div class="value-panel" data-value-source="SECTION_META.ideology">
-                        <h3>一体多面 · 各取所长</h3>
-                        <p>同一个关系可用集合、矩阵、图三种形式表达，恰如同一事物可从不同角度认识——『横看成岭侧成峰』。善于在表示之间切换、各取所长，正是具体问题具体分析、灵活务实的方法论体现。</p>
-                        <div class="value-dims"><span>辩证思维</span><span>灵活务实</span><span>系统观念</span></div>
-                            <div class="value-quote">横看成岭侧成峰——三种表示是同一关系的不同侧面，切换视角方能事半功倍。</div>
-                    </div>
-                </div>
-
                 <div class="control-group">
                     <label>规模 n（n×n 关系）</label>
                     <div class="dm-t-field"><div class="lab"><span>n</span><span class="v" id="nVal">12</span></div><input type="range" id="nRange" min="4" max="20" value="12"></div>
                 </div>
                 <div class="control-group">
                     <label>密度（关系稠密程度）</label>
-                    <div class="dm-t-field"><div class="lab"><span>density</span><span class="v" id="dVal">15%</span></div><input type="range" id="dRange" min="1" max="100" value="15"></div>
+                    <div class="dm-t-field"><div class="lab"><span>密度 |R| / n²</span><span class="v" id="dVal">15%</span></div><input type="range" id="dRange" min="1" max="100" value="15"></div>
+                </div>
+                <div class="control-group">
+                    <button class="dm-t-btn ghost" id="resetBtn" type="button">重置</button>
                 </div>
                 <div class="control-group">
                     <label>原理说明</label>
@@ -127,8 +104,16 @@
                             <h3>存储开销对比</h3>
                             <div class="bar-row"><span class="lbl">邻接矩阵</span><div class="bar-track"><div class="bar-fill mtx" id="barM"></div></div></div>
                             <div class="bar-row"><span class="lbl">邻接表</span><div class="bar-track"><div class="bar-fill adj" id="barA"></div></div></div>
+                            <div class="bar-row"><span class="lbl">CSR</span><div class="bar-track"><div class="bar-fill csr" id="barC"></div></div></div>
+                            <div class="model-note">计数模型（存储单元个数）：邻接矩阵 n² 个 0/1 单元；邻接表 n 个表头 + |R| 个表项；CSR 为 n+1 个行指针 + |R| 个列下标。若矩阵按位压缩，每单元只占 1 bit，交叉点会大幅后移。</div>
                             <div class="winner" id="winner"></div>
                             <div class="dm-t-info" style="margin-top:10px" id="note"></div>
+                        </div>
+                        <div class="dm-t-card" style="max-width:420px">
+                            <h3>CSR（压缩稀疏行）存储</h3>
+                            <div class="csr-row"><b>row_ptr</b> = [<span id="csrPtr"></span>]</div>
+                            <div class="csr-row"><b>col_idx</b> = [<span id="csrIdx"></span>]</div>
+                            <div class="model-note">第 i 行的后继存放在 col_idx[row_ptr[i] .. row_ptr[i+1]−1]；判定 (i, j) ∈ R 只需扫描这一段。图计算框架与稀疏矩阵库普遍采用这种格式。</div>
                         </div>
                     </div>
                 </div>
@@ -144,10 +129,13 @@
     <script>
         var $ = function (id) { return document.getElementById(id); };
         var seedR = {};
+        // 固定种子的伪随机数：同一规模下每格的随机值不变，调大密度时关系只增不减
+        function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
         function rebuild() {
             var n = +$('nRange').value, d = +$('dRange').value / 100;
+            var rnd = mulberry32(20250 + n);
             seedR = {};
-            for (var i = 0; i < n; i++) for (var j = 0; j < n; j++) { var h = ((i * 73 + j * 31 + 17) % 100) / 100; if (h < d) seedR[i + '_' + j] = 1; }
+            for (var i = 0; i < n; i++) for (var j = 0; j < n; j++) { if (rnd() < d) seedR[i + '_' + j] = 1; }
         }
         function render() {
             var n = +$('nRange').value, d = +$('dRange').value;
@@ -161,10 +149,15 @@
             for (var i = 0; i < n; i++) for (var j = 0; j < n; j++) html += '<div class="hc' + (seedR[i + '_' + j] ? ' on' : '') + '"></div>';
             h.innerHTML = html;
             // storage
-            var mtx = n * n, adj = card + n;
-            var mx = Math.max(mtx, adj);
+            var mtx = n * n, adj = card + n, csr = card + n + 1;
+            var mx = Math.max(mtx, adj, csr);
             $('barM').style.width = (mtx / mx * 100) + '%'; $('barM').textContent = mtx;
             $('barA').style.width = (adj / mx * 100) + '%'; $('barA').textContent = adj;
+            $('barC').style.width = (csr / mx * 100) + '%'; $('barC').textContent = csr;
+            // CSR 数组（结点编号 0..n-1）
+            var ptr = [0], idx = [];
+            for (var r = 0; r < n; r++) { for (var c = 0; c < n; c++) if (seedR[r + '_' + c]) idx.push(c); ptr.push(idx.length); }
+            $('csrPtr').textContent = ptr.join(', '); $('csrIdx').textContent = idx.join(', ');
             var w = $('winner');
             if (adj < mtx) { w.className = 'winner adj'; w.innerHTML = '✅ 稀疏 → <b>邻接表更省</b>（' + adj + ' vs ' + mtx + '，省 ' + (100 - Math.round(adj / mtx * 100)) + '%）'; }
             else { w.className = 'winner mtx'; w.innerHTML = '🟠 稠密 → <b>邻接矩阵不吃亏</b>（' + mtx + ' vs ' + adj + '），且随机访问 O(1)。'; }
@@ -173,6 +166,7 @@
             $('note').innerHTML = '交叉点：密度 < <b>' + cross + '%</b> 时邻接表更省。真实关系（社交关注、网页链接）密度常 <1%，故几乎都用邻接表 / CSR；稠密小关系才用矩阵。';
         }
         $('nRange').oninput = render; $('dRange').oninput = render;
+        $('resetBtn').onclick = function () { $('nRange').value = 12; $('dRange').value = 15; render(); };
         render();
     </script>
 
@@ -211,55 +205,6 @@
     };
     </script>
     
-    <script data-dm-ideology-bridge="1">
-    (function () {
-        function esc(s) {
-            return String(s || '').replace(/[&<>"']/g, function (c) {
-                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
-            });
-        }
-        function noteHtml() {
-            var ideology = (window.SECTION_META && window.SECTION_META.ideology) || {};
-            var title = ideology.title || '价值引领';
-            var text = ideology.text || '本层延续进阶层的价值主线，在操作中体会数学结构与价值判断的一致性。';
-            return '<span class="value-inline" data-ideology-inline="1"><strong>价值观察：</strong>本层沿用进阶层“'
-                + esc(title) + '”主线。' + esc(text) + '</span>';
-        }
-        function appendIdeologyNote() {
-            if (document.querySelector('[data-ideology-inline="1"]')) return;
-            var resultExtra = document.getElementById('resultExtra');
-            if (resultExtra) {
-                resultExtra.insertAdjacentHTML('beforeend', noteHtml());
-                return;
-            }
-            var anchor = document.querySelector('.result-panel, #eqOut, #note, .visualization-area');
-            if (!anchor) return;
-            if (anchor.id === 'eqOut' || anchor.id === 'note') anchor.insertAdjacentHTML('afterend', noteHtml());
-            else anchor.insertAdjacentHTML('beforeend', noteHtml());
-        }
-        function wrapSetResult() {
-            var original = window.setResult;
-            if (typeof original !== 'function' || original.__ideologyWrapped) return;
-            window.setResult = function () {
-                var ret = original.apply(this, arguments);
-                appendIdeologyNote();
-                return ret;
-            };
-            window.setResult.__ideologyWrapped = true;
-        }
-        function boot() {
-            wrapSetResult();
-            appendIdeologyNote();
-            ['input', 'change', 'click'].forEach(function (eventName) {
-                document.addEventListener(eventName, function () {
-                    setTimeout(appendIdeologyNote, 0);
-                }, true);
-            });
-        }
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-        else boot();
-    })();
-    </script>
     <script src="../../shared/ai-tutor.js" defer></script>
 </body>
 

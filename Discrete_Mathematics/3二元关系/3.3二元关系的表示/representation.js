@@ -1,5 +1,5 @@
 /**
- * Red Mathematics - Relation Representations Visualizer
+ * 3.3 二元关系的表示 · 进阶层：集合 / 关系矩阵 / 关系图 三视图联动 + 布尔积计算 R∘R
  */
 
 // DOM Elements
@@ -11,13 +11,19 @@ const clearBtn = document.getElementById('clearBtn');
 const randomBtn = document.getElementById('randomBtn');
 const closureBtn = document.getElementById('closureBtn');
 const insightText = document.getElementById('insightText');
+const sampleBtn = document.getElementById('sampleBtn');
+const powerBtn = document.getElementById('powerBtn');
+const powerPanel = document.getElementById('powerPanel');
+const graphContent = document.getElementById('graphContent');
 
 // Data
 const ELEMENTS = [1, 2, 3, 4];
 const SIZE = ELEMENTS.length;
 
 // State
-let relation = new Set(); // Set of strings "u-v"
+const SAMPLE = ['1-2', '2-3', '3-1', '3-3', '4-2'];
+let relation = new Set(SAMPLE); // Set of strings "u-v"
+let showPower = false;
 
 // Config
 const NODE_RADIUS = 20;
@@ -32,10 +38,10 @@ function toggleRelation(u, v) {
     const key = `${u}-${v}`;
     if (relation.has(key)) {
         relation.delete(key);
-        updateInsight(`移除关系 (${u}, ${v})`, `Set: 删除记录 | Matrix: 置0 | Graph: 移除连线`);
+        updateInsight(`删除有序对 (${u}, ${v})`, `集合中去掉该元素；矩阵第 ${u} 行第 ${v} 列置 0；关系图删去边 ${u} → ${v}${u === v ? '（自环）' : ''}。`);
     } else {
         relation.add(key);
-        updateInsight(`添加关系 (${u}, ${v})`, `Set: 新增记录 | Matrix: 置1 | Graph: 添加连线`);
+        updateInsight(`加入有序对 (${u}, ${v})`, `集合中新增该元素；矩阵第 ${u} 行第 ${v} 列置 1；关系图添加边 ${u} → ${v}${u === v ? '（自环）' : ''}。`);
     }
     renderAll();
 }
@@ -44,6 +50,50 @@ function renderAll() {
     renderSet();
     renderMatrix();
     renderGraph();
+    renderPower();
+}
+
+// R∘R：布尔矩阵乘法 (M⊙M)_ij = ∨_k (m_ik ∧ m_kj)，并记录中间点 k
+function composeSelf() {
+    const out = new Map(); // "i-j" -> [k...]
+    ELEMENTS.forEach(i => ELEMENTS.forEach(j => {
+        const ks = ELEMENTS.filter(k => relation.has(`${i}-${k}`) && relation.has(`${k}-${j}`));
+        if (ks.length) out.set(`${i}-${j}`, ks);
+    }));
+    return out;
+}
+
+function renderPower() {
+    powerPanel.hidden = !showPower;
+    powerBtn.textContent = showPower ? '收起 R∘R' : '计算 R∘R（布尔积 M·M）';
+    if (!showPower) return;
+    const r2 = composeSelf();
+    const pm = document.getElementById('powerMatrix');
+    pm.innerHTML = '';
+    pm.style.gridTemplateColumns = `auto repeat(${SIZE}, 40px)`;
+    pm.appendChild(createMatrixHeader('M²'));
+    ELEMENTS.forEach(el => pm.appendChild(createMatrixHeader(el)));
+    ELEMENTS.forEach(i => {
+        pm.appendChild(createMatrixHeader(i));
+        ELEMENTS.forEach(j => {
+            const key = `${i}-${j}`;
+            const cell = document.createElement('div');
+            const on = r2.has(key);
+            cell.className = 'matrix-cell static' + (on ? (relation.has(key) ? ' active' : ' new2') : '');
+            cell.textContent = on ? '1' : '0';
+            if (on) cell.title = r2.get(key).map(k => `${i} → ${k} → ${j}`).join('；');
+            pm.appendChild(cell);
+        });
+    });
+    const list = document.getElementById('powerList');
+    const keys = Array.from(r2.keys()).map(k => k.split('-').map(Number)).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    if (!keys.length) {
+        list.innerHTML = 'R∘R = ∅：图中不存在长度为 2 的通路。';
+        return;
+    }
+    list.innerHTML = `<div><b>R∘R</b> = {${keys.map(([i, j]) => `(${i},${j})`).join(', ')}}，共 ${keys.length} 个有序对。</div>`
+        + '<div style="margin-top:6px">每个 1 都对应至少一条长度为 2 的通路：</div>'
+        + keys.map(([i, j]) => r2.get(`${i}-${j}`).map(k => `<span class="path">${i}→${k}→${j}</span>`).join('')).join('');
 }
 
 // View 1: Set Renderer
@@ -80,7 +130,7 @@ function renderSet() {
 // View 2: Matrix Renderer
 function renderMatrix() {
     matrixWrapper.innerHTML = '';
-    matrixWrapper.style.gridTemplateColumns = `auto repeat(${SIZE}, 1fr)`;
+    matrixWrapper.style.gridTemplateColumns = `auto repeat(${SIZE}, 40px)`;
 
     // Header Row
     matrixWrapper.appendChild(createMatrixHeader('M'));
@@ -120,11 +170,11 @@ function createMatrixHeader(text) {
 // View 3: Graph Renderer
 function renderGraph() {
     // Calculate Layout (Circular)
-    const width = document.querySelector('.graph-panel').clientWidth;
-    const height = document.querySelector('.graph-panel').clientHeight - 60; // minus header
+    const width = graphContent.clientWidth;
+    const height = graphContent.clientHeight;
     const centerX = width / 2;
     const centerY = height / 2;
-    const radius = Math.min(width, height) * 0.35;
+    const radius = Math.min(width, height) * 0.32;
 
     const nodePositions = {};
     const angleStep = (2 * Math.PI) / SIZE;
@@ -245,14 +295,14 @@ function highlightPair(u, v, active) {
 }
 
 function updateInsight(action, detail) {
-    insightText.innerHTML = `<strong>${action}</strong>: ${detail}<br>辩证统一：三种表示法虽然形式不同，但描述的是同一个客观实体。`;
+    insightText.innerHTML = `<strong>${action}</strong>：${detail}<br>三种表示形式不同，描述的是同一个关系——改动任一视图，其余视图同步变化。`;
 }
 
 // Buttons
 clearBtn.addEventListener('click', () => {
     relation.clear();
     renderAll();
-    updateInsight("清空", "所有关系已移除");
+    updateInsight("清空", "R = ∅：集合为空、矩阵全 0、关系图没有边。");
 });
 
 randomBtn.addEventListener('click', () => {
@@ -263,7 +313,7 @@ randomBtn.addEventListener('click', () => {
         });
     });
     renderAll();
-    updateInsight("随机生成", "创建了新的随机关系网络");
+    updateInsight("随机生成", `得到含 ${relation.size} 个有序对的关系。`);
 });
 
 closureBtn.addEventListener('click', () => {
@@ -275,11 +325,32 @@ closureBtn.addEventListener('click', () => {
     });
     relation = newR;
     renderAll();
-    updateInsight("对称化", "添加了所有逆关系，使图变为无向图(双向)");
+    updateInsight("对称化", "补上每条边的反向边，得到 R ∪ R⁻¹（包含 R 的最小对称关系，即对称闭包）：矩阵关于主对角线对称，边都成对出现。");
 });
 
-// Handle Resize
-window.addEventListener('resize', renderGraph);
+sampleBtn.addEventListener('click', () => {
+    relation = new Set(SAMPLE);
+    renderAll();
+    updateInsight("载入示例", "R = {(1,2), (2,3), (3,1), (3,3), (4,2)}。");
+});
+
+powerBtn.addEventListener('click', () => {
+    showPower = !showPower;
+    renderAll();
+    if (showPower) {
+        updateInsight("计算 R∘R", "按行乘列做布尔运算：第 i 行与第 j 列对应位置同时为 1（存在 k 使 i→k 且 k→j）时结果为 1。金色格是 R 中没有、经两步才连通的新有序对。");
+        powerPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+});
+
+// Handle Resize：尺寸真的变化才重绘（规避共享框架 resize 循环）
+let lastGraphSize = '';
+window.addEventListener('resize', () => {
+    const size = graphContent.clientWidth + 'x' + graphContent.clientHeight;
+    if (size === lastGraphSize) return;
+    lastGraphSize = size;
+    renderGraph();
+});
 
 // Init
 init();
