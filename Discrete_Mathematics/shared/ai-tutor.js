@@ -45,6 +45,8 @@
   }
   var d = deriveFromPath();
   var META = window.SECTION_META || {};
+  var RAW_SECTION = String(META.section || '');
+  var RAW_TITLE = String(META.title || '');
   META.chapter = META.chapter || d.chapter || '离散数学';
   META.section = META.section || d.section || '';
   META.title = META.title || (document.title || '').split(/[-–|·]/)[0].trim() || META.section;
@@ -204,11 +206,25 @@
 
   /* ---------- MathJax 自动加载（用于渲染 AI 回答里的公式） ---------- */
   var _mjLoading = false;
+  function waitMathJax(cb) {
+    var n = 0;
+    var iv = setInterval(function () {
+      if (window.MathJax && window.MathJax.typesetPromise) { clearInterval(iv); _mjLoading = false; cb && cb(); }
+      else if (++n > 40) { clearInterval(iv); _mjLoading = false; cb && cb(); }
+    }, 200);
+  }
   function ensureMathJax(cb) {
     if (window.MathJax && window.MathJax.typesetPromise) { cb && cb(); return; }
     if (_mjLoading) { setTimeout(function () { ensureMathJax(cb); }, 400); return; }
+    // 优先交给 shared/mathjax-auto.js（本地副本 + CDN 回退）
+    if (window.DMMathJax && window.DMMathJax.ensure) {
+      _mjLoading = true;
+      try { window.DMMathJax.ensure(); } catch (e) {}
+      waitMathJax(cb);
+      return;
+    }
     // 页面已有 MathJax 脚本但尚未就绪：等待
-    if (document.querySelector('script[src*="mathjax"]')) {
+    if (document.querySelector('script[src*="tex-mml-chtml"], script[src*="tex-chtml"], script[src*="tex-svg"]')) {
       _mjLoading = true; var n = 0;
       var iv = setInterval(function () {
         if (window.MathJax && window.MathJax.typesetPromise) { clearInterval(iv); cb && cb(); }
@@ -220,9 +236,15 @@
     _mjLoading = true;
     if (!window.MathJax) window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] }, svg: { fontCache: 'global' } };
     var s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'; s.async = true;
-    s.onload = function () { var n = 0; var iv = setInterval(function () { if (window.MathJax && window.MathJax.typesetPromise) { clearInterval(iv); cb && cb(); } else if (++n > 25) { clearInterval(iv); cb && cb(); } }, 200); };
-    s.onerror = function () { cb && cb(); };
+    var CDN = 'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js';
+    s.src = SHARED_BASE + 'vendor/mathjax/es5/tex-mml-chtml.js'; s.async = true;
+    s.onload = function () { waitMathJax(cb); };
+    s.onerror = function () {
+      var f = document.createElement('script'); f.src = CDN; f.async = true;
+      f.onload = function () { waitMathJax(cb); };
+      f.onerror = function () { _mjLoading = false; cb && cb(); };
+      document.head.appendChild(f);
+    };
     document.head.appendChild(s);
   }
 
@@ -455,14 +477,43 @@
     }
   }
 
+  /* 规范返回链接兜底：页面缺 a.home-link 时注入「← 返回课程主页」（按目录深度算相对路径，锚点 #chapterN） */
+  function chapterNo() {
+    var m = String(META.chapter || '').match(/第\s*(\d+)\s*章/) || String(RAW_SECTION || '').match(/^\s*(\d+)\./);
+    if (m) return m[1];
+    try {
+      var seg = decodeURIComponent(location.pathname).split('/');
+      var k = seg.indexOf('Discrete_Mathematics');
+      var mm = k >= 0 && seg[k + 1] ? seg[k + 1].match(/^(\d+)/) : null;
+      if (mm) return mm[1];
+    } catch (e) {}
+    return '';
+  }
+  function homeIndexHref() {
+    var src = selfScript && selfScript.getAttribute('src');
+    var base = (src && /shared\/ai-tutor\.js/.test(src)) ? src.replace(/shared\/ai-tutor\.js(?:[?#].*)?$/, '') : '../../';
+    var n = chapterNo();
+    return base + 'index.html' + (n ? '#chapter' + n : '');
+  }
+  function ensureHomeLink() {
+    if (document.querySelector('a.home-link, a[title="返回课程主页"]')) return;
+    var a = document.createElement('a');
+    a.className = 'home-link';
+    a.href = homeIndexHref();
+    a.textContent = '← 返回课程主页';
+    a.setAttribute('data-dm-injected', '1');
+    document.body.insertBefore(a, document.body.firstChild);
+  }
+
   function build() {
     injectUnifiedFrameStyle();
+    ensureHomeLink();
     root = el('div'); root.id = 'dm-assist-root';
 
     /* 面包屑（章名可点击返回课程首页，复用页内主页浮标的相对链接） */
     var crumb = el('div'); crumb.id = 'dm-crumb';
     var homeAnchor = document.querySelector('a.home-link, a[title="返回课程主页"]');
-    var homeHref = (homeAnchor && homeAnchor.getAttribute('href')) || '../../index.html';
+    var homeHref = (homeAnchor && homeAnchor.getAttribute('href')) || homeIndexHref();
     var cbCh = el('a', 'dm-cb-ch', esc(META.chapter));
     cbCh.href = homeHref; cbCh.title = '返回课程首页';
     crumb.appendChild(cbCh);
@@ -535,7 +586,12 @@
     /* 首次访问：显示引导气泡 */
     try {
       if (!localStorage.getItem('dm_onboard_seen')) {
-        setTimeout(function () { if (onboard && panel.classList.contains('dm-hidden')) onboard.classList.remove('dm-hidden'); }, 1200);
+        setTimeout(function () {
+          if (!onboard || !panel.classList.contains('dm-hidden')) return;
+          onboard.classList.remove('dm-hidden');
+          // 约 8 秒后自动收起（视为已看过，不再在后续页面反复弹出）
+          setTimeout(function () { if (onboard && !onboard.classList.contains('dm-hidden')) dismissOnboard(); }, 8000);
+        }, 1200);
       }
     } catch (e) {}
 
@@ -544,7 +600,7 @@
       var _lastTick = 0;
       document.addEventListener('click', function (e) {
         if (root.contains(e.target)) return;            // 忽略助手自身
-        if (e.target.closest && e.target.closest('#homeBtn, .site-footer, footer')) return;
+        if (e.target.closest && e.target.closest('#homeBtn, a.home-link, .site-footer, footer')) return;
         var now = Date.now(); if (now - _lastTick < 1500) return; _lastTick = now;
         bump({ reason: 3, engineer: 3 });
       }, true);
@@ -743,7 +799,37 @@
     var layers = getLayers();
     return layers[currentLayerIndex()] || null;
   }
+  /* 规范标题：「{层名} · {层级}｜{N.M 节名} - 离散数学课程资源库」
+     与 tools/dm_normalize.py 的算法保持一致：
+     - 本页文件名出现在 layers[i].page → 层名 = layers[i].name，层级 = 第 i 层；
+     - 否则层级按文件名 -basic / -extend 推断；layers 未写 page 时取对应层 name，写了 page 却都不匹配时取 META.title。 */
+  var TIER_NAMES = ['基础层', '进阶层', '拓展层'];
+  function specTitleInfo() {
+    var file = curFile();
+    var L = (META.layers && META.layers.length === 3) ? META.layers : null;
+    var idx = -1, hasPages = false;
+    if (L) for (var i = 0; i < 3; i++) {
+      var pg = L[i] && L[i].page ? String(L[i].page).split('/').pop() : '';
+      if (pg) hasPages = true;
+      if (pg && pg === file && idx < 0) idx = i;
+    }
+    var tierIdx = idx >= 0 ? idx : (/-basic\.html$/i.test(file) ? 0 : /-extend\.html$/i.test(file) ? 2 : 1);
+    var name = '';
+    if (L && idx >= 0) name = L[idx].name;
+    else if (L && !hasPages) name = L[tierIdx] && L[tierIdx].name;
+    if (!name) name = stripTierText(RAW_TITLE) || stripTierText(META.title);
+    return { name: String(name || '').trim(), tier: TIER_NAMES[tierIdx], section: stripTierText(RAW_SECTION || META.section) };
+  }
+  function specDocTitle() {
+    var t = specTitleInfo();
+    var head = t.name ? t.name + ' · ' + t.tier : t.tier;
+    return head + (t.section ? '｜' + t.section : '') + ' - 离散数学课程资源库';
+  }
+  function syncDocTitle() {
+    try { var t = specDocTitle(); if (document.title !== t) document.title = t; } catch (e) {}
+  }
   function syncPageTitleWithLayer() {
+    syncDocTitle();
     var layer = currentLayerInfo();
     if (!layer || !layer.name) return;
     var appc = document.querySelector('.app-container') || document.querySelector('.dashboard-container') || document;
@@ -774,7 +860,6 @@
     }
     sub.textContent = layer.concepts || '';
     sub.setAttribute('data-dm-layer-title-sub', '1');
-    try { document.title = layer.name + (layer.concepts ? ' — ' + layer.concepts : ''); } catch (e) {}
   }
   function openPanel() {
     if (onboard) dismissOnboard();

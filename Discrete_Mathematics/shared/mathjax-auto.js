@@ -55,7 +55,19 @@
   if (window.__DM_MATHJAX_AUTO__) return;
   window.__DM_MATHJAX_AUTO__ = true;
 
-  var SRC = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+  /* MathJax 3.2.2 本地副本（shared/vendor/mathjax/），基于本脚本自身 src 计算路径，
+     两级/三级目录页面都适用；本地加载失败时回退 jsdelivr CDN。 */
+  var CDN_SRC = 'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js';
+  var SHARED_BASE = (function () {
+    var me = document.currentScript;
+    if (!me || !/mathjax-auto\.js/.test(me.src || '')) {
+      var list = document.querySelectorAll('script[src*="mathjax-auto.js"]');
+      me = list[list.length - 1];
+    }
+    return me && me.src ? me.src.replace(/mathjax-auto\.js(?:[?#].*)?$/, '') : '';
+  })();
+  var LOCAL_SRC = SHARED_BASE ? SHARED_BASE + 'vendor/mathjax/es5/tex-mml-chtml.js' : '';
+  var SRC = LOCAL_SRC || CDN_SRC;
   var pending = false;
   var waiting = false;
   var observer = null;
@@ -86,6 +98,12 @@
     cfg.chtml.matchFontHeight = false;
     cfg.startup = cfg.startup || {};
     if (cfg.startup.typeset == null) cfg.startup.typeset = false;
+    // 本地副本不含 SRE（语音/无障碍探索器，默认本就关闭）：若读者在右键菜单里手动开启，
+    // 缺失组件只给出警告，不抛错、不影响公式显示。
+    cfg.loader = cfg.loader || {};
+    if (!cfg.loader.failed) cfg.loader.failed = function (err) {
+      if (window.console && console.warn) console.warn('MathJax(' + (err && err.package || '?') + '): ' + (err && err.message));
+    };
     window.MathJax = cfg;
   }
 
@@ -244,11 +262,19 @@
       waitForReady(document.body);
       return;
     }
+    injectScript(SRC, SRC !== CDN_SRC);
+  }
+
+  function injectScript(src, allowFallback) {
     var s = document.createElement('script');
     s.id = 'MathJax-script';
     s.async = true;
-    s.src = SRC;
+    s.src = src;
     s.onload = function () { waitForReady(document.body); };
+    s.onerror = function () {
+      if (s.parentNode) s.parentNode.removeChild(s);
+      if (allowFallback) injectScript(CDN_SRC, false);   // 本地副本失败 → 回退 CDN
+    };
     document.head.appendChild(s);
   }
 
@@ -301,6 +327,8 @@
   }
 
   window.DMMathJax = {
+    src: SRC,
+    cdn: CDN_SRC,
     ensure: ensureScript,
     typeset: function (root) {
       normalizePlainMath(root || document.body);
