@@ -9,7 +9,7 @@
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
     <meta property="og:title" content="带权最短路 · 进阶层｜7.8 最短通路 - 离散数学课程资源库">
-    <meta property="og:description" content="第7章 图论基础 · 7.8 最短通路 · 进阶层：Dijkstra 非负 / Floyd 全源。执行最短路算法、理解贪心与DP。">
+    <meta property="og:description" content="第7章 图论基础 · 7.8 最短通路 · 进阶层：Dijkstra 非负 / Floyd 全源。执行最短路算法、理解贪心与 DP。">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/7%E5%9B%BE%E8%AE%BA%E5%9F%BA%E7%A1%80/7.8%E6%9C%80%E7%9F%AD%E9%80%9A%E8%B7%AF/shortest_path_algorithms.html">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta property="og:image:width" content="1200">
@@ -17,11 +17,11 @@
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="带权最短路 · 进阶层｜7.8 最短通路 - 离散数学课程资源库">
-    <meta name="twitter:description" content="第7章 图论基础 · 7.8 最短通路 · 进阶层：Dijkstra 非负 / Floyd 全源。执行最短路算法、理解贪心与DP。">
+    <meta name="twitter:description" content="第7章 图论基础 · 7.8 最短通路 · 进阶层：Dijkstra 非负 / Floyd 全源。执行最短路算法、理解贪心与 DP。">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>带权最短路 · 进阶层｜7.8 最短通路 - 离散数学课程资源库</title>
-    <meta name="description" content="第7章 图论基础 · 7.8 最短通路 · 进阶层：Dijkstra 非负 / Floyd 全源。执行最短路算法、理解贪心与DP。">
+    <meta name="description" content="第7章 图论基础 · 7.8 最短通路 · 进阶层：Dijkstra 非负 / Floyd 全源。执行最短路算法、理解贪心与 DP。">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,11 +41,11 @@
             <h1>带权<span class="highlight">最短路</span></h1>
             <p class="subtitle">Dijkstra 非负 / Floyd 全源</p>
             <p class="tier-line">核心掌握 · 建模求解</p>
-            <p class="intro">🎯 执行最短路算法、理解贪心与DP。</p>
+            <p class="intro">🎯 执行最短路算法、理解贪心与 DP。</p>
 
             <div class="value-panel">
                 <h3>找准路径 · 行稳致远</h3>
-                <p>最短路径算法体现『找准方向、优化路径、提质增效』的方法论智慧。Dijkstra 的贪心『步步择优』，启示我们立足当下、稳扎稳打；全局最优来自每一步的可靠选择——发展之路，正需既看脚下、又谋长远。</p>
+                <p>Dijkstra 每一轮只把『已经不可能再改进』的顶点定案，全局最优正是由一步步可靠的局部结论累积而成；而它要求边权非负、A* 要求启发值不高估，又提醒我们：方法都有适用前提，看清条件、选对方法，才能既走得快又走得稳。</p>
                 <div class="dim-list"><span>科学决策</span><span>效率观念</span><span>系统观念</span></div>
             </div>
 
@@ -58,15 +58,16 @@
                 <div class="visual-badge" id="visualBadge">Dijkstra / Floyd</div>
             </section>
 
-            <section class="logic-board" id="vizArea">
-                <canvas id="graphCanvas" class="graph-canvas"></canvas>
-                <div class="canvas-hint">点“下一步”，看距离标签、已定区扩张与松弛边高亮</div>
-            </section>
-
+            <div class="board-row">
+                <section class="logic-board" id="vizArea">
+                    <div class="graph-legend" id="stageLegend" aria-label="图例"></div>
+                    <canvas id="graphCanvas" class="graph-canvas" role="img" aria-label="当前步骤的图示"></canvas>
+                </section>
+                <aside class="viz-note side-viz" id="vizText" aria-live="polite"></aside>
+            </div>
             <section class="step-card">
                 <div class="formula-line" id="formulaText">等待交互</div>
                 <div class="step-status" id="stepStatus"></div>
-                <div class="viz-note" id="vizText" style="display:none"></div>
             </section>
         </main>
     </div>
@@ -89,7 +90,7 @@
             {
                   "name": "带权最短路",
                   "concepts": "Dijkstra 非负 / Floyd 全源",
-                  "task": "执行最短路算法、理解贪心与DP。",
+                  "task": "执行最短路算法、理解贪心与 DP。",
                   "page": "shortest_path_algorithms.html"
             },
             {
@@ -113,7 +114,7 @@
       ],
       "ideology": {
             "title": "找准路径 · 行稳致远",
-            "text": "最短路径算法体现『找准方向、优化路径、提质增效』的方法论智慧。Dijkstra 的贪心『步步择优』，启示我们立足当下、稳扎稳打；全局最优来自每一步的可靠选择——发展之路，正需既看脚下、又谋长远。",
+            "text": "Dijkstra 每一轮只把『已经不可能再改进』的顶点定案，全局最优正是由一步步可靠的局部结论累积而成；而它要求边权非负、A* 要求启发值不高估，又提醒我们：方法都有适用前提，看清条件、选对方法，才能既走得快又走得稳。",
             "dims": [ "科学决策", "效率观念", "系统观念" ],
             "quote": "积跬步以至千里——最短路径的每一次『松弛』，都是向最优目标稳健的一步。"
       },
