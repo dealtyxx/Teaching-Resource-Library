@@ -335,6 +335,15 @@
 
     function traversalIn(node, out = []) {
         if (!node) return out;
+        // 二叉树按 side 区分左右：只有右孩子时，根应先于右子树访问
+        if (node.children.some(child => child.side)) {
+            const left = node.children.find(child => child.side === "left");
+            const right = node.children.find(child => child.side === "right");
+            if (left) traversalIn(left, out);
+            out.push(node);
+            if (right) traversalIn(right, out);
+            return out;
+        }
         const children = orderedChildren(node);
         if (children[0]) traversalIn(children[0], out);
         out.push(node);
