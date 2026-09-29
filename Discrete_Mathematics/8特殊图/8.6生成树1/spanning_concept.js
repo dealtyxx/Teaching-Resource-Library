@@ -103,7 +103,7 @@
         {
           name: "连通图有冗余",
           graph: "g8",
-          formula: '连通图 G：<span class="ft hot">|V|=8, |E|=10</span>，含 3 个圈（有冗余）',
+          formula: '连通图 G：<span class="ft hot">|V|=8, |E|=10</span>，比树多 3 条边（有冗余）',
           badge: "有圈", tone: "",
           text: "这张网络有 10 条边、若干回路——要把所有点连通，其实用不了这么多边。<b>去掉冗余、保留骨架</b>，就得到“生成树”。"
         },
@@ -133,7 +133,7 @@
           graph: "g8", tree: "bfs", chord: [3, 7],
           formula: '每条被去掉的<span class="ft hot">弦</span>加回生成树，恰好形成<b>一个圈</b>',
           badge: "弦=1圈", tone: "red",
-          text: "把去掉的一条弦（红色 D–H）加回绿色生成树，就会闭合出唯一一个圈。<b>弦的条数 = |E|−(n−1) = 圈的个数</b>——生成树把冗余量化了。"
+          text: "把去掉的一条弦（红色 D–H）加回绿色生成树，就会闭合出唯一一个圈。<b>弦的条数 = |E|−(n−1) = 基本圈（独立圈）的个数</b>，这里 10−7=3——生成树把冗余量化了。"
         },
         {
           name: "怎样系统地生成",
@@ -329,8 +329,9 @@
 
     ctx.fillStyle = "#6b4a38";
     ctx.font = "700 13px 'Noto Serif SC', 'Microsoft YaHei', serif";
-    ctx.textAlign = "center";
-    ctx.fillText(g.caption, size.w / 2, size.h - 16);
+    // 图题放右上角，避免与左下角的操作提示胶囊重叠
+    ctx.textAlign = "right";
+    ctx.fillText(g.caption, size.w - 14, 20);
   }
 
   /* ---- 辅助可视化 ---- */

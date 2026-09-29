@@ -30,6 +30,7 @@ let isRunning = false;
 let nodeElements = new Map();
 let edgeElements = [];
 let spanningTreeEdges = [];
+let stopRequested = false; // 运行中点「重置」时中止动画
 
 // Constants
 const NODE_RADIUS = 26;
@@ -87,10 +88,9 @@ function generateGraph() {
 function generateRandomConnected(width, height, n) {
     const margin = 80;
 
-    // 随机位置生成节点
+    // 随机位置生成节点（与已有节点保持最小间距，避免重叠）
     for (let i = 0; i < n; i++) {
-        const x = margin + Math.random() * (width - 2 * margin);
-        const y = margin + Math.random() * (height - 2 * margin);
+        const { x, y } = placeNode(margin, width - margin, margin, height - margin);
 
         nodes.push({
             id: i,
@@ -129,14 +129,34 @@ function generateRandomConnected(width, height, n) {
     // 添加MST边
     mstEdges.forEach(({ u, v }) => addEdge(u, v));
 
-    // 添加额外的随机边
-    const extraEdges = Math.floor(n * (0.3 + Math.random() * 0.4));
-    for (let i = 0; i < extraEdges; i++) {
-        const u = Math.floor(Math.random() * n);
-        const v = Math.floor(Math.random() * n);
-        if (u !== v) {
-            addEdge(u, v);
-        }
+    // 添加额外的边（连向较近的顶点），保证图中有圈，生成树才需要“舍弃”边
+    addExtraEdges([...Array(n).keys()], Math.max(2, Math.floor(n * (0.3 + Math.random() * 0.3))));
+}
+
+// 在矩形内随机取点，尽量与已有节点保持 2.8 倍半径以上的间距
+function placeNode(x0, x1, y0, y1) {
+    let best = null, bestGap = -1;
+    for (let t = 0; t < 60; t++) {
+        const x = x0 + Math.random() * (x1 - x0);
+        const y = y0 + Math.random() * (y1 - y0);
+        const gap = nodes.reduce((m, nd) => Math.min(m, Math.hypot(nd.x - x, nd.y - y)), Infinity);
+        if (gap > bestGap) { best = { x, y }; bestGap = gap; }
+        if (gap >= NODE_RADIUS * 2.8) break;
+    }
+    return best;
+}
+
+// 在给定顶点集合内加 count 条新边：随机选一点，连向离它最近的若干个未相邻顶点之一
+function addExtraEdges(ids, count) {
+    let added = 0;
+    for (let tries = 0; added < count && tries < count * 20; tries++) {
+        const u = ids[Math.floor(Math.random() * ids.length)];
+        const cand = ids.filter(v => v !== u && !adjacency.get(u).includes(v))
+            .sort((a, b) => distance(nodes[u], nodes[a]) - distance(nodes[u], nodes[b]))
+            .slice(0, 3);
+        if (!cand.length) continue;
+        addEdge(u, cand[Math.floor(Math.random() * cand.length)]);
+        added++;
     }
 }
 
@@ -166,8 +186,7 @@ function generateRandomDisconnected(width, height, n) {
 
         // 在区域内随机放置节点
         for (let i = 0; i < size; i++) {
-            const x = regionX + Math.random() * regionWidth * 0.8;
-            const y = margin + Math.random() * (height - 2 * margin);
+            const { x, y } = placeNode(regionX, regionX + regionWidth * 0.8, margin, height - margin);
 
             nodes.push({
                 id: nodeId,
@@ -203,15 +222,8 @@ function generateRandomDisconnected(width, height, n) {
             }
         }
 
-        // 添加随机边
-        const extraEdges = Math.floor(size * 0.3);
-        for (let i = 0; i < extraEdges; i++) {
-            const u = compNodes[Math.floor(Math.random() * compNodes.length)];
-            const v = compNodes[Math.floor(Math.random() * compNodes.length)];
-            if (u !== v) {
-                addEdge(u, v);
-            }
-        }
+        // 添加额外的边，使每个分量（≥3 点时）都含圈
+        if (size >= 3) addExtraEdges(compNodes, Math.max(1, Math.floor(size * 0.3)));
     }
 }
 
@@ -283,6 +295,7 @@ async function startAlgorithm() {
     if (isRunning) return;
 
     isRunning = true;
+    stopRequested = false;
     startBtn.disabled = true;
     generateBtn.disabled = true;
 
@@ -297,7 +310,16 @@ async function startAlgorithm() {
     }
 
     updateTreeInfo();
-    statusText.textContent = '搜索完成!';
+    if (stopRequested) {
+        reset();
+        statusText.textContent = '已重置';
+    } else {
+        const k = Number(forestCount.textContent);
+        const name = algorithm === 'bfs' ? 'BFS' : 'DFS';
+        statusText.textContent = k === 1
+            ? `${name} 完成：得到一棵生成树，树边 ${spanningTreeEdges.length} = n − 1 条。`
+            : `${name} 完成：图有 ${k} 个连通分支，得到由 ${k} 棵树组成的生成森林，树边 ${spanningTreeEdges.length} = n − ${k} 条。`;
+    }
 
     isRunning = false;
     startBtn.disabled = false;
@@ -310,6 +332,7 @@ async function bfsSpanningTree() {
     let componentCount = 0;
 
     for (let start = 0; start < nodes.length; start++) {
+        if (stopRequested) return;
         if (visited.has(start)) continue;
 
         componentCount++;
@@ -317,16 +340,17 @@ async function bfsSpanningTree() {
         visited.add(start);
 
         nodeElements.get(start).circle.classList.add('start');
-        statusText.textContent = `BFS第${componentCount}棵树: 起点 ${nodes[start].name}`;
+        statusText.textContent = `BFS 第 ${componentCount} 棵树：起点 ${nodes[start].name}`;
         await sleep(getDelay());
 
         while (queue.length > 0) {
+            if (stopRequested) return;
             const u = queue.shift();
             const uEl = nodeElements.get(u);
             uEl.circle.classList.add('current');
             uEl.circle.classList.remove('queue');
 
-            statusText.textContent = `BFS访问: ${nodes[u].name}`;
+            statusText.textContent = `BFS 出队访问：${nodes[u].name}`;
             await sleep(getDelay());
 
             for (const v of adjacency.get(u)) {
@@ -362,11 +386,12 @@ async function dfsSpanningTree() {
     let componentCount = 0;
 
     for (let start = 0; start < nodes.length; start++) {
+        if (stopRequested) return;
         if (visited.has(start)) continue;
 
         componentCount++;
         nodeElements.get(start).circle.classList.add('start');
-        statusText.textContent = `DFS第${componentCount}棵树: 起点 ${nodes[start].name}`;
+        statusText.textContent = `DFS 第 ${componentCount} 棵树：起点 ${nodes[start].name}`;
         await sleep(getDelay());
 
         await dfsRecursive(start, visited);
@@ -376,12 +401,13 @@ async function dfsSpanningTree() {
 }
 
 async function dfsRecursive(u, visited) {
+    if (stopRequested) return;
     visited.add(u);
 
     const uEl = nodeElements.get(u);
     uEl.circle.classList.add('current');
 
-    statusText.textContent = `DFS访问: ${nodes[u].name}`;
+    statusText.textContent = `DFS 访问：${nodes[u].name}`;
     await sleep(getDelay());
 
     for (const v of adjacency.get(u)) {
@@ -438,6 +464,7 @@ generateBtn.addEventListener('click', generateGraph);
 startBtn.addEventListener('click', startAlgorithm);
 
 resetBtn.addEventListener('click', () => {
+    if (isRunning) stopRequested = true;
     reset();
     statusText.textContent = '已重置';
 });
