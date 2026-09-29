@@ -1,11 +1,10 @@
 /**
- * Red Mathematics - Relation Properties Visualizer
+ * 3.5 二元关系的性质 · 进阶层：五性质实时判定（给出反例）
  */
 
 // DOM Elements
-const analyzeBtn = document.getElementById('analyzeBtn');
-const exampleSelect = document.getElementById('exampleSelect');
 const resetBtn = document.getElementById('resetBtn');
+const clearBtn = document.getElementById('clearBtn');
 const graphSvg = document.getElementById('graphSvg');
 const nodesLayer = document.getElementById('nodesLayer');
 
@@ -23,8 +22,7 @@ const NODE_RADIUS = 20;
 // Initialization
 function init() {
     calculateLayout();
-    renderEdges();
-    updateAllProperties();
+    loadExample('partial');
 }
 
 // Layout (Circular)
@@ -136,7 +134,8 @@ function renderEdge(u, v) {
         const reverseExists = edges.has(`${v}-${u}`);
         const pairSign = u < v ? 1 : -1;
         const hop = Math.abs(NODES.indexOf(u) - NODES.indexOf(v));
-        const arc = reverseExists ? 34 * pairSign : (hop > 1 ? 26 : 18) * pairSign;
+        // 互逆的一对边：弧度同号，由于方向相反会自动分到两侧，互不重叠
+        const arc = reverseExists ? 30 : (hop > 1 ? 26 : 18) * pairSign;
         const perpX = -dy / dist * arc;
         const perpY = dx / dist * arc;
 
@@ -195,7 +194,13 @@ function toggleEdge(u, v) {
     } else {
         edges.add(key);
     }
+    markCustom();
     renderEdges();
+    updateAllProperties();
+}
+
+function markCustom() {
+    document.querySelectorAll('#exampleSeg button').forEach(b => b.classList.remove('active'));
 }
 
 // Property Checking
@@ -300,6 +305,31 @@ function updateAllProperties() {
     updateProperty('symmetric', checkSymmetric);
     updateProperty('antisymmetric', checkAntisymmetric);
     updateProperty('transitive', checkTransitive);
+    renderMiniMatrix();
+    const r = checkReflexive().satisfied, sy = checkSymmetric().satisfied;
+    const an = checkAntisymmetric().satisfied, tr = checkTransitive().satisfied;
+    const kinds = [];
+    if (r && sy && tr) kinds.push('等价关系');
+    if (r && an && tr) kinds.push('偏序关系');
+    const sub = document.getElementById('stageSub');
+    if (sub) sub.textContent = `当前 |R| = ${edges.size}：` + (kinds.length ? `这是${kinds.join('，也是')}。` : '既不是等价关系，也不是偏序关系。') + ' 修改关系图，五张卡片实时更新。';
+}
+
+// 侧栏：关系矩阵（对角线高亮）与集合表示
+function renderMiniMatrix() {
+    const box = document.getElementById('miniMatrix');
+    if (!box) return;
+    let html = '<span class="h"></span>' + NODES.map(v => `<span class="h">${v}</span>`).join('');
+    NODES.forEach(u => {
+        html += `<span class="h">${u}</span>`;
+        NODES.forEach(v => {
+            const on = edges.has(`${u}-${v}`);
+            html += `<span class="c${on ? ' on' : ''}${u === v ? ' diag' : ''}">${on ? 1 : 0}</span>`;
+        });
+    });
+    box.innerHTML = html;
+    const pairs = [...edges].map(k => k.split('-').map(Number)).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    document.getElementById('relSet').textContent = 'R = ' + (pairs.length ? '{' + pairs.map(p => `(${p[0]},${p[1]})`).join(', ') + '}' : '∅');
 }
 
 // Examples
@@ -323,39 +353,38 @@ function loadExample(type) {
     } else if (type === 'empty') {
         // Empty relation
         edges.clear();
+    } else if (type === 'identity') {
+        NODES.forEach(n => edges.add(`${n}-${n}`));
+    } else if (type === 'none') {
+        // 五性质都不满足：缺自环 2,3,4（不自反）、有自环 1（不反自反）、(2,3) 无反向（不对称）、
+        // (1,2)(2,1) 成对（不反对称）、(2,1)(1,2) 却无 (2,2)（不传递）
+        ['1-1', '1-2', '2-1', '2-3'].forEach(k => edges.add(k));
     }
+    document.querySelectorAll('#exampleSeg button').forEach(b => b.classList.toggle('active', b.dataset.ex === type));
 
     renderEdges();
     updateAllProperties();
 }
 
 // Event Listeners
-analyzeBtn.addEventListener('click', updateAllProperties);
+document.querySelectorAll('#exampleSeg button').forEach(btn => {
+    btn.addEventListener('click', () => {
+        selectedNode = null;
+        loadExample(btn.dataset.ex);
+    });
+});
 
-exampleSelect.addEventListener('change', (e) => {
-    if (e.target.value) {
-        loadExample(e.target.value);
-        e.target.value = '';
-    }
+clearBtn.addEventListener('click', () => {
+    edges.clear();
+    selectedNode = null;
+    markCustom();
+    renderEdges();
+    updateAllProperties();
 });
 
 resetBtn.addEventListener('click', () => {
-    edges.clear();
     selectedNode = null;
-    document.querySelectorAll('.svg-node').forEach(n => n.classList.remove('selecting'));
-    renderEdges();
-
-    // Reset all cards
-    document.querySelectorAll('.property-card').forEach(card => {
-        card.classList.remove('satisfied', 'violated');
-    });
-    document.querySelectorAll('.card-status').forEach(s => {
-        s.textContent = '—';
-        s.className = 'card-status';
-    });
-    document.querySelectorAll('.card-feedback').forEach(f => {
-        f.classList.remove('show');
-    });
+    loadExample('partial');
 });
 
 window.addEventListener('resize', () => {
@@ -367,12 +396,18 @@ init();
 setTimeout(relayoutGraph, 80);
 setTimeout(relayoutGraph, 320);
 
+// 只有容器尺寸真的变化才重排（共享框架会反复派发 resize）
+let lastGraphSize = '';
 function relayoutGraph() {
     if (layoutFrame) cancelAnimationFrame(layoutFrame);
     layoutFrame = requestAnimationFrame(() => {
+        layoutFrame = null;
+        const c = document.getElementById('graphContainer');
+        const size = Math.round(c.clientWidth) + 'x' + Math.round(c.clientHeight);
+        if (size === lastGraphSize) return;
+        lastGraphSize = size;
         calculateLayout();
         renderEdges();
-        layoutFrame = null;
     });
 }
 
