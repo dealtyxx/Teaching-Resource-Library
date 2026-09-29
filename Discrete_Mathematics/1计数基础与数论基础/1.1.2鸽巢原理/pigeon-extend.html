@@ -102,6 +102,9 @@
                     <div class="slider-container"><span class="slider-label">人数 = <span id="pVal">23</span></span><input type="range" id="pSlider" min="2" max="80" value="23"></div>
                 </div>
             </div>
+            <div class="actions-footer">
+                <button id="resetBtn" class="apple-btn secondary-btn" aria-label="重置">↺ 重置</button>
+            </div>
         </aside>
 
         <main class="visualizer-stage">
@@ -136,7 +139,7 @@
             var k = +$('kSlider').value, m = +$('mSlider').value;
             $('kVal').textContent = k; $('mVal').textContent = m;
             var buckets = []; for (var i = 0; i < m; i++) buckets.push([]);
-            for (var key = 1; key <= k; key++) { var h = (key * 7 + 3) % m; buckets[h].push(key); }
+            for (var key = 1; key <= k; key++) { var h = (key * 13 + 5) % m; buckets[h].push(key); }
             var collisions = 0, html = '';
             buckets.forEach(function (arr, i) {
                 if (arr.length >= 2) collisions += arr.length - 1;
@@ -163,6 +166,16 @@
     </script>
 
     <!-- ===== 共享升级框架：学习助手 + 三阶导航 ===== -->
+    <script>
+        /* 重置：把左栏控件恢复为页面初始值并触发重绘 */
+        document.getElementById('resetBtn').addEventListener('click', function () {
+            document.querySelectorAll('.sidebar input, .sidebar select').forEach(function (el) {
+                if (el.tagName === 'SELECT') Array.prototype.forEach.call(el.options, function (o) { o.selected = o.defaultSelected; });
+                else el.value = el.defaultValue;
+                el.dispatchEvent(new Event('input')); el.dispatchEvent(new Event('change'));
+            });
+        });
+    </script>
     <script>
     window.SECTION_META = {
         layers: [

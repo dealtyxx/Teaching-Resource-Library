@@ -87,8 +87,8 @@ const scenarios = {
 
 // 鸽子颜色
 const pigeonColors = [
-    '#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24',
-    '#6c5ce7', '#fd79a8', '#00b894', '#e17055'
+    '#D63B1D', '#B8321A', '#C8641E', '#1F9D55',
+    '#8B5A3C', '#C0392B', '#2F7D57', '#A0522D'
 ];
 
 // 初始化

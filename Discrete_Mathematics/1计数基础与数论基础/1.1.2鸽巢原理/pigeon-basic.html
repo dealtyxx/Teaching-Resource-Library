@@ -111,6 +111,7 @@
 
             <div class="actions-footer">
                 <button id="placeBtn" class="apple-btn action-btn">🕊️ 最均匀地放一次</button>
+                <button id="resetBtn" class="apple-btn secondary-btn" aria-label="重置">↺ 重置</button>
             </div>
         </aside>
 
@@ -164,6 +165,16 @@
     </script>
 
     <!-- ===== 共享升级框架：学习助手 + 三阶导航 ===== -->
+    <script>
+        /* 重置：把左栏控件恢复为页面初始值并触发重绘 */
+        document.getElementById('resetBtn').addEventListener('click', function () {
+            document.querySelectorAll('.sidebar input, .sidebar select').forEach(function (el) {
+                if (el.tagName === 'SELECT') Array.prototype.forEach.call(el.options, function (o) { o.selected = o.defaultSelected; });
+                else el.value = el.defaultValue;
+                el.dispatchEvent(new Event('input')); el.dispatchEvent(new Event('change'));
+            });
+        });
+    </script>
     <script>
     window.SECTION_META = {
         layers: [
