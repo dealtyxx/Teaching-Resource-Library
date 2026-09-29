@@ -1,8 +1,9 @@
 /**
- * Red Mathematics - Power Set Visualizer (Enhanced)
+ * 2.2 幂集 · 进阶层：幂集规模 2ⁿ
+ * 勾选基础集合 A 的元素 → 按二进制编码 0…2ⁿ−1 列出全部子集（每位 1=取、0=不取），推导 |P(A)| = 2ⁿ；
+ * 「组建工作专班」任务：按要求在幂集中找出对应子集。
  */
 
-// DOM Elements
 const checkboxes = document.querySelectorAll('.checkbox-item input');
 const mobilizeBtn = document.getElementById('mobilizeBtn');
 const resetBtn = document.getElementById('resetBtn');
@@ -13,264 +14,176 @@ const powersetValue = document.getElementById('powersetValue');
 const scoreValue = document.getElementById('scoreValue');
 const missionBanner = document.getElementById('missionBanner');
 const missionTarget = document.getElementById('missionTarget');
+const deriveRow = document.getElementById('deriveRow');
+const codeHead = document.getElementById('codeHead');
+const pickInfo = document.getElementById('pickInfo');
 const szTitle = document.getElementById('szTitle');
 const szDesc = document.getElementById('szDesc');
 
-// Data
-const ELEMENT_MAP = {
-    'worker': '👷',
-    'farmer': '🌾',
-    'soldier': '🪖',
-    'scholar': '🎓'
-};
-
-const ELEMENT_POWER = {
-    'worker': 10,
-    'farmer': 10,
-    'soldier': 12,
-    'scholar': 15
-};
-
+const ORDER = ['worker', 'farmer', 'soldier', 'scholar'];
+const ICON = { worker: '👷', farmer: '🌾', soldier: '🪖', scholar: '🎓' };
+const NAME = { worker: '工人', farmer: '农民', soldier: '军人', scholar: '知识分子' };
 const NAMED_COMBOS = {
-    'worker,farmer': '工农联盟',
-    'worker,soldier': '军民融合',
-    'worker,scholar': '产学研结合',
-    'farmer,scholar': '乡村振兴',
-    'worker,farmer,soldier': '钢铁长城',
-    'worker,farmer,scholar': '科教兴国',
-    'worker,farmer,soldier,scholar': '民族复兴'
+    'farmer,worker': '工农联盟',
+    'soldier,worker': '军民融合',
+    'scholar,worker': '产学研结合',
+    'farmer,scholar': '科技兴农',
+    'farmer,soldier,worker': '工农兵',
+    'farmer,scholar,worker': '科教兴国',
+    'farmer,scholar,soldier,worker': '全体力量'
 };
-
 const MISSIONS = [
-    { title: '需要巩固工农联盟基础', target: ['worker', 'farmer'] },
-    { title: '需要推进乡村振兴战略', target: ['farmer', 'scholar'] },
-    { title: '需要加强军民融合发展', target: ['worker', 'soldier'] },
-    { title: '需要构建钢铁长城', target: ['worker', 'farmer', 'soldier'] },
-    { title: '需要实现科教兴国', target: ['worker', 'farmer', 'scholar'] },
-    { title: '需要实现中华民族伟大复兴', target: ['worker', 'farmer', 'soldier', 'scholar'] }
+    { title: '巩固工农联盟：需要 {工人, 农民}', target: ['worker', 'farmer'] },
+    { title: '推动科技兴农：需要 {农民, 知识分子}', target: ['farmer', 'scholar'] },
+    { title: '推进军民融合：需要 {工人, 军人}', target: ['worker', 'soldier'] },
+    { title: '抢险救灾先锋：只需要 {军人}', target: ['soldier'] },
+    { title: '科教兴国专班：需要 {工人, 农民, 知识分子}', target: ['worker', 'farmer', 'scholar'] },
+    { title: '全面动员：需要 A 中全部力量', target: 'ALL' }
 ];
 
-// State
-let selectedForces = [];
-let generatedSubsets = [];
+let selected = [];
+let subsets = [];          // 每项 { mask, members }
 let isAnimating = false;
 let currentMission = null;
 let totalScore = 0;
 
-// Helper Functions
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const code = (mask, n) => Array.from({ length: n }, (_, i) => (mask >> i) & 1 ? '1' : '0').join('');
+const setText = arr => arr.length ? '{' + arr.map(k => NAME[k]).join(', ') + '}' : '∅';
+function comboTitle(members) {
+    if (!members.length) return '空集 ∅';
+    if (members.length === selected.length && members.length > 1) return 'A 本身';
+    return NAMED_COMBOS[members.slice().sort().join(',')] || (members.length === 1 ? '单一力量' : '联合行动');
 }
 
-function updateStats() {
-    const n = Array.from(checkboxes).filter(cb => cb.checked).length;
+function readSelection() {
+    selected = ORDER.filter(k => [...checkboxes].some(cb => cb.value === k && cb.checked));
+    const n = selected.length;
     nValue.textContent = n;
     powersetValue.textContent = Math.pow(2, n);
+    subsets = [];
+    for (let m = 0; m < (1 << n); m++) subsets.push({ mask: m, members: selected.filter((_, i) => (m >> i) & 1) });
+    // 推导条：每个元素两种选择，相乘
+    deriveRow.innerHTML = n
+        ? selected.map(k => '<div class="derive-chip"><span>' + ICON[k] + ' ' + NAME[k] + '</span><small>取 / 不取</small><b>× 2</b></div>').join('') +
+          '<div class="derive-eq">= ' + Array(n).fill('2').join(' × ') + ' = 2<sup>' + n + '</sup> = <b>' + (1 << n) + '</b></div>'
+        : '<div class="derive-eq">A = ∅ 时只有一个子集 ∅：2<sup>0</sup> = <b>1</b></div>';
+    codeHead.innerHTML = n ? '编码位（从左到右）：' + selected.map(k => '<span>' + ICON[k] + NAME[k] + '</span>').join('') : '';
 }
 
-function calculateSynergy(subset) {
-    if (subset.length === 0) return 0;
-
-    let baseScore = subset.reduce((acc, key) => acc + ELEMENT_POWER[key], 0);
-
-    // Synergy Bonus: (Size - 1) * 20%
-    // 1 element: 0% bonus
-    // 2 elements: 20% bonus
-    // 3 elements: 40% bonus
-    // 4 elements: 60% bonus
-
-    let multiplier = 1 + (subset.length - 1) * 0.2;
-    return Math.round(baseScore * multiplier);
+function boxHtml(s, n) {
+    const full = n > 0 && s.members.length === n;
+    return '<button type="button" class="subset-box' + (full ? ' full-set' : '') + (s.members.length === 0 ? ' empty-set' : '') + '" data-mask="' + s.mask + '">' +
+        '<span class="subset-code">' + (n ? code(s.mask, n) : '—') + '</span>' +
+        '<span class="subset-elements">' + (s.members.length ? s.members.map(k => '<span class="element-icon" title="' + NAME[k] + '">' + ICON[k] + '</span>').join('') : '<span class="empty-set-symbol">∅</span>') + '</span>' +
+        '<span class="combo-title">' + comboTitle(s.members) + '</span></button>';
 }
 
-function getComboTitle(subset) {
-    if (subset.length === 0) return '基础/零点';
-    const key = subset.sort().join(',');
-    return NAMED_COMBOS[key] || '联合行动';
+function renderAll() {
+    const n = selected.length;
+    subsetsContainer.innerHTML = subsets.map(s => boxHtml(s, n)).join('');
+    subsetsContainer.querySelectorAll('.subset-box').forEach(b => b.classList.add('shown'));
 }
 
-// Logic
-async function mobilizeForces() {
+async function animateAll() {
     if (isAnimating) return;
     isAnimating = true;
     mobilizeBtn.disabled = true;
-    startMissionBtn.disabled = true;
-
-    // Get selected
-    selectedForces = Array.from(checkboxes)
-        .filter(cb => cb.checked)
-        .map(cb => cb.value);
-
-    const n = selectedForces.length;
-    const totalSubsets = Math.pow(2, n);
-
-    subsetsContainer.innerHTML = '';
-    generatedSubsets = [];
-
-    // Generate Power Set
-    let subsets = [];
-    for (let i = 0; i < totalSubsets; i++) {
-        let subset = [];
-        for (let j = 0; j < n; j++) {
-            if ((i >> j) & 1) {
-                subset.push(selectedForces[j]);
-            }
-        }
-        subsets.push(subset);
+    const n = selected.length;
+    subsetsContainer.innerHTML = subsets.map(s => boxHtml(s, n)).join('');
+    const boxes = subsetsContainer.querySelectorAll('.subset-box');
+    for (let i = 0; i < boxes.length; i++) {
+        boxes[i].classList.add('shown');
+        pickInfo.innerHTML = '生成第 ' + (i + 1) + ' / ' + boxes.length + ' 个子集：编码 <b>' + (n ? code(subsets[i].mask, n) : '—') + '</b> → ' + setText(subsets[i].members);
+        await sleep(n >= 4 ? 120 : 220);
     }
-
-    subsets.sort((a, b) => a.length - b.length);
-    generatedSubsets = subsets;
-
-    // Render Animation
-    for (let i = 0; i < subsets.length; i++) {
-        const subset = subsets[i];
-        const power = calculateSynergy(subset);
-        const title = getComboTitle(subset);
-
-        const box = document.createElement('div');
-        box.className = 'subset-box';
-        box.dataset.index = i; // Store index for validation
-
-        // Header
-        const header = document.createElement('div');
-        header.className = 'subset-header';
-        header.innerHTML = `
-            <span class="subset-label">方案 ${i + 1}</span>
-            <span class="power-badge">⚡${power}</span>
-        `;
-        box.appendChild(header);
-
-        // Content
-        const content = document.createElement('div');
-        content.className = 'subset-elements';
-
-        if (subset.length === 0) {
-            content.innerHTML = '<span class="empty-set-symbol">∅</span>';
-        } else {
-            subset.forEach(key => {
-                const icon = document.createElement('span');
-                icon.className = 'element-icon';
-                icon.textContent = ELEMENT_MAP[key];
-                content.appendChild(icon);
-            });
-        }
-        box.appendChild(content);
-
-        // Footer Title
-        const titleDiv = document.createElement('div');
-        titleDiv.className = 'combo-title';
-        titleDiv.textContent = title;
-        box.appendChild(titleDiv);
-
-        if (subset.length === n && n > 0) {
-            box.classList.add('full-set');
-        }
-
-        // Click Handler for Mission
-        box.addEventListener('click', () => checkMission(i, box));
-
-        subsetsContainer.appendChild(box);
-
-        // Staggered animation
-        await sleep(80);
-    }
-
-    // Final Message
-    szTitle.textContent = '力量倍增';
-    szDesc.textContent = `${n}种基础力量，通过统筹组合，衍生出了${totalSubsets}种工作方案。这生动体现了“团结就是力量”的倍增效应（1+1>2），构建了全覆盖的治理体系。`;
-
+    pickInfo.innerHTML = '共生成 <b>' + boxes.length + '</b> 个子集，恰好是 2<sup>' + n + '</sup>。每个 n 位 0/1 编码对应唯一一个子集，反之亦然。';
     isAnimating = false;
     mobilizeBtn.disabled = false;
-    startMissionBtn.disabled = false;
+}
+
+function explainPick(s) {
+    const n = selected.length;
+    if (!n) { pickInfo.innerHTML = 'A = ∅，唯一的子集就是 ∅。'; return; }
+    const parts = selected.map((k, i) => NAME[k] + ((s.mask >> i) & 1 ? '<b class="take">取</b>' : '<span class="skip">不取</span>'));
+    pickInfo.innerHTML = '编码 <b>' + code(s.mask, n) + '</b>：' + parts.join('，') + ' → ' + setText(s.members) + '（' + comboTitle(s.members) + '）';
 }
 
 function startMission() {
-    if (generatedSubsets.length === 0) return;
-
-    // Filter available missions based on selected forces
-    const availableMissions = MISSIONS.filter(m => {
-        return m.target.every(t => selectedForces.includes(t));
-    });
-
-    if (availableMissions.length === 0) {
-        alert("当前选择的力量不足以执行高级任务，请增加更多力量！");
+    const available = MISSIONS.filter(m => m.target === 'ALL' ? selected.length > 0 : m.target.every(t => selected.includes(t)));
+    missionBanner.classList.remove('hidden', 'success', 'warn');
+    if (!available.length) {
+        currentMission = null;
+        missionBanner.classList.add('warn');
+        missionTarget.textContent = '当前 A 中的力量不足以组建任何专班，请先勾选更多元素。';
         return;
     }
-
-    const mission = availableMissions[Math.floor(Math.random() * availableMissions.length)];
-    currentMission = mission;
-
-    missionBanner.classList.remove('hidden', 'success');
-    missionTarget.textContent = mission.title;
-
-    szTitle.textContent = '任务发布';
-    szDesc.textContent = '上级发布了新的治理任务。请在下方的力量组合中，点击选择最适合该任务的“工作专班”（子集）。';
+    let m = available[Math.floor(Math.random() * available.length)];
+    if (available.length > 1 && currentMission && m.title === currentMission.title) m = available.find(x => x !== m);
+    currentMission = m;
+    missionTarget.textContent = m.title;
+    szTitle.textContent = '精准调配';
+    szDesc.textContent = '任务明确了需要哪些力量：在全部 ' + subsets.length + ' 种组合中找到恰好对应的那一个子集，多一个、少一个都不行。';
 }
 
-function checkMission(index, boxElement) {
-    if (!currentMission) return;
-
-    const subset = generatedSubsets[index];
-    const target = currentMission.target;
-
-    // Check if subset matches target (order independent)
-    const isMatch = subset.length === target.length &&
-        subset.every(val => target.includes(val));
-
-    if (isMatch) {
-        // Success
-        boxElement.classList.add('correct');
+function checkMission(s, box) {
+    if (!currentMission) return false;
+    const target = currentMission.target === 'ALL' ? selected : currentMission.target;
+    const ok = s.members.length === target.length && s.members.every(v => target.includes(v));
+    if (ok) {
+        box.classList.add('correct');
         missionBanner.classList.add('success');
-        missionTarget.textContent = '任务完成！';
-
-        const points = calculateSynergy(subset);
-        totalScore += points;
+        missionTarget.textContent = '任务完成：' + setText(s.members) + ' ✓';
+        totalScore += 10;
         scoreValue.textContent = totalScore;
-
         currentMission = null;
-
         szTitle.textContent = '任务完成';
-        szDesc.textContent = `祝贺！你正确选择了“${getComboTitle(subset)}”来完成任务。这体现了精准施策、科学调配力量的治理智慧。`;
-
-        setTimeout(() => {
-            boxElement.classList.remove('correct');
-            missionBanner.classList.add('hidden');
-        }, 2000);
-
+        szDesc.textContent = '你在 ' + subsets.length + ' 个子集中准确找到了「' + comboTitle(s.members) + '」。子集编码 ' + code(s.mask, selected.length) + ' 精确记录了每种力量的取舍。';
+        setTimeout(() => box.classList.remove('correct'), 1600);
     } else {
-        // Fail
-        boxElement.classList.add('wrong');
-        setTimeout(() => boxElement.classList.remove('wrong'), 500);
+        box.classList.add('wrong');
+        missionTarget.textContent = currentMission.title + '　（' + setText(s.members) + ' 不对，再找找）';
+        setTimeout(() => box.classList.remove('wrong'), 500);
     }
+    return true;
 }
 
-// Event Listeners
-checkboxes.forEach(cb => {
-    cb.addEventListener('change', updateStats);
+subsetsContainer.addEventListener('click', e => {
+    const box = e.target.closest('.subset-box');
+    if (!box || isAnimating) return;
+    const s = subsets[+box.dataset.mask];
+    subsetsContainer.querySelectorAll('.subset-box').forEach(b => b.classList.toggle('picked', b === box));
+    explainPick(s);
+    checkMission(s, box);
 });
 
-mobilizeBtn.addEventListener('click', mobilizeForces);
-startMissionBtn.addEventListener('click', startMission);
+checkboxes.forEach(cb => cb.addEventListener('change', () => {
+    if (isAnimating) { cb.checked = !cb.checked; return; }
+    currentMission = null;
+    missionBanner.classList.add('hidden');
+    readSelection();
+    renderAll();
+    pickInfo.textContent = '点任一子集，查看它的二进制编码含义。';
+    szTitle.textContent = '统揽全局 · 不漏一隅';
+    szDesc.textContent = selected.length + ' 种基础力量各有「参加 / 不参加」两种选择，组合出 ' + subsets.length + ' 种方案。n 每增加 1，方案数翻一倍——可能性空间增长极快，统筹谋划必须抓住主要矛盾。';
+}));
 
+mobilizeBtn.addEventListener('click', animateAll);
+startMissionBtn.addEventListener('click', startMission);
 resetBtn.addEventListener('click', () => {
     if (isAnimating) return;
-    subsetsContainer.innerHTML = '';
-    checkboxes.forEach(cb => {
-        if (cb.value === 'worker' || cb.value === 'farmer') cb.checked = true;
-        else cb.checked = false;
-    });
-    updateStats();
-
+    checkboxes.forEach(cb => { cb.checked = cb.value !== 'scholar'; });
     currentMission = null;
     missionBanner.classList.add('hidden');
     totalScore = 0;
     scoreValue.textContent = 0;
-    startMissionBtn.disabled = true;
-
-    szTitle.textContent = '系统治理';
-    szDesc.textContent = '幂集象征着国家治理体系的丰富性。每一个子集代表一种特定的力量组合（工作专班），通过统筹兼顾，可以形成全方位、多层次的治理效能。';
+    readSelection();
+    renderAll();
+    pickInfo.textContent = '点任一子集，查看它的二进制编码含义。';
+    szTitle.textContent = '统揽全局 · 不漏一隅';
+    szDesc.textContent = '幂集把全部可能的力量组合纳入统一视野：每个子集是一种工作专班，一个都不遗漏，才能做到统筹兼顾。';
 });
 
-// Init
-updateStats();
+// 初始化：直接展示 3 元集合的全部 8 个子集
+readSelection();
+renderAll();
