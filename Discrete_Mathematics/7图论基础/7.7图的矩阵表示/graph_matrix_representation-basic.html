@@ -55,15 +55,16 @@
         <div class="visual-badge" id="visualBadge">0-1 矩阵</div>
       </section>
 
-      <section class="logic-board" id="vizArea">
-        <canvas id="graphCanvas" class="graph-canvas"></canvas>
-        <div class="canvas-hint">点“下一步”，图上高亮与矩阵单元格同步点亮</div>
-      </section>
-
+      <div class="board-row">
+          <section class="logic-board" id="vizArea">
+              <div class="graph-legend" id="stageLegend" aria-label="图例"></div>
+              <canvas id="graphCanvas" class="graph-canvas" role="img" aria-label="当前步骤的图示"></canvas>
+          </section>
+          <aside class="viz-note side-viz" id="vizText" aria-live="polite"></aside>
+      </div>
       <section class="step-card">
-        <div class="formula-line" id="formulaText">等待交互</div>
-        <div class="step-status" id="stepStatus"></div>
-        <div class="viz-note" id="vizText" style="display:none"></div>
+          <div class="formula-line" id="formulaText">等待交互</div>
+          <div class="step-status" id="stepStatus"></div>
       </section>
     </main>
   </div>
@@ -84,7 +85,7 @@
             },
             {
                   "name": "矩阵幂数通路",
-                  "concepts": "Aⁿ 通路数 / 可达矩阵",
+                  "concepts": "Aᵏ 通路数 / 可达矩阵",
                   "task": "用矩阵幂数通路、求可达性。",
                   "page": "graph_matrix_representation.html"
             },
@@ -98,12 +99,12 @@
       "chapter": "第7章 图论基础",
       "section": "7.7 图的矩阵表示",
       "title": "图的矩阵表示",
-      "grounding": "本节主题：邻接矩阵 A（A[i][j]=边数/0-1）、关联矩阵、可达矩阵。关键性质：Aⁿ 的 (i,j) 元=长度为 n 的通路数；A+A²+…+Aⁿ⁻¹ 判可达。矩阵把图论问题转化为线性代数计算。",
+      "grounding": "本节主题：邻接矩阵 A（A[i][j]=边数/0-1）、关联矩阵、可达矩阵。关键性质：Aᵏ 的 (i,j) 元=从 vᵢ 到 vⱼ 长度为 k 的通路数；B(A+A²+…+Aⁿ⁻¹) 并令对角线为 1 得可达矩阵 P（亦可用 Warshall 算法）。矩阵把图论问题转化为线性代数计算。",
       "steps": [
             { "name": "情境引入", "desc": "如何把『图』交给计算机高效存储与计算？" },
             { "name": "对象抽取", "desc": "把图抽象为邻接矩阵/关联矩阵。" },
             { "name": "结构建模", "desc": "用矩阵幂刻画通路计数与可达性。" },
-            { "name": "推理求解", "desc": "用 Aⁿ 数通路、用布尔幂求可达矩阵。" },
+            { "name": "推理求解", "desc": "用 Aᵏ 数通路、用布尔运算求可达矩阵。" },
             { "name": "程序验证", "desc": "用本页交互在图与矩阵间切换，验证通路计数。" },
             { "name": "迁移反思", "desc": "迁移到 PageRank、谱聚类、网络计算。" }
       ],
@@ -114,7 +115,7 @@
             "quote": "运筹于帷幄之中——把网络化为矩阵，便能用计算精准把握其全局结构。"
       },
       "reflect": [
-            "为什么邻接矩阵的 n 次幂 Aⁿ 的 (i,j) 元正好是长度为 n 的通路数？",
+            "为什么邻接矩阵的 k 次幂 Aᵏ 的 (i,j) 元正好是长度为 k 的通路数？",
             "无向图的邻接矩阵为何对称？这对存储和计算有何好处？",
             "稠密图用邻接矩阵、稀疏图用邻接表，如何权衡空间与效率？"
       ],
