@@ -24,7 +24,6 @@
     <meta name="description" content="第1章 计数基础与数论基础 · 1.1.1 基本概念 · 基础层：分类相加 / 分步相乘。辨清『分类』与『分步』，数清简单事件方案数。">
     <link rel="stylesheet" href="counting.css">
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
-    <link rel="stylesheet" href="../chapter1-compact.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -41,29 +40,6 @@
         .mini-row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; max-width: 130px; }
         .mini-box { width: 18px; height: 18px; border-radius: 5px; background: linear-gradient(135deg, var(--accent-red), var(--accent-gold)); animation: fadeIn .35s ease; }
         .add-stage { display: flex; gap: 1rem; align-items: flex-end; justify-content: center; flex-wrap: wrap; }
-    
-        .value-panel {
-            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
-            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
-            box-shadow: var(--shadow-sm);
-        }
-        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
-        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
-        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
-        .value-dims span {
-            padding: 3px 8px; border-radius: 999px; color: #b8321a;
-            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
-            font-size: .74rem; font-weight: 700;
-        }
-        .value-quote {
-            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
-            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
-        }
-        .value-inline {
-            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
-            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
-            color: var(--text-primary); line-height: 1.5;
-        }
 
         /* 修复：让内容自然流动，图例不再绝对定位浮在内容之上（避免与注入的“价值观察”说明重叠） */
         .glass-pane {
@@ -103,19 +79,6 @@
             </div>
 
             <div class="controls-wrapper">
-                
-                
-                
-                
-                <div class="control-group value-consistency-group">
-                    <label>价值映射（与进阶层一致）</label>
-                    <div class="value-panel" data-value-source="SECTION_META.ideology">
-                        <h3>多元一体 · 求同存异</h3>
-                        <p>加法法则包容并列的多元路径，乘法法则刻画协同递进的系统工程——正如中国式现代化既尊重道路的多样选择，又强调各环节协同发力。计数的『不重不漏』，也是一种实事求是、严谨周密的治理智慧。</p>
-                        <div class="value-dims"><span>辩证思维</span><span>系统观念</span><span>家国情怀</span></div>
-                            <div class="value-quote">团结一切可以团结的力量——把每一种可能都数清、用好，正是统一战线的数学注脚。</div>
-                    </div>
-                </div>
 
                 <div class="control-group">
                     <label>选择法则</label>
@@ -166,6 +129,9 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="actions-footer">
+                <button id="resetBtn" class="apple-btn secondary-btn" aria-label="重置">↺ 重置</button>
             </div>
         </aside>
 
@@ -267,6 +233,11 @@
         $('kRange').oninput = function () { $('kVal').textContent = this.value; buildPer('addPer', +this.value, addCounts, '第'); render(); };
         $('sRange').oninput = function () { $('sVal').textContent = this.value; buildPer('mulPer', +this.value, mulCounts, '步'); render(); };
 
+        $('resetBtn').onclick = function () {
+            addCounts.splice(0, 5, 2, 3, 4, 2, 3); mulCounts.splice(0, 4, 2, 3, 2, 3);
+            $('kRange').value = 3; $('kVal').textContent = 3; $('sRange').value = 3; $('sVal').textContent = 3;
+            buildPer('addPer', 3, addCounts, '第'); buildPer('mulPer', 3, mulCounts, '步'); setMode('add');
+        };
         buildPer('addPer', 3, addCounts, '第');
         buildPer('mulPer', 3, mulCounts, '步');
         render();
@@ -305,56 +276,6 @@
         reflect: ["同一问题，什么时候『相加』、什么时候『相乘』？判据是什么？", "把一个『加法』情境改成『分步』，结果会怎样剧变？"],
         transfer: ["进阶层将引入『顺序是否要紧』，区分排列与组合。"]
     };
-    </script>
-    
-    <script data-dm-ideology-bridge="1">
-    (function () {
-        function esc(s) {
-            return String(s || '').replace(/[&<>"']/g, function (c) {
-                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
-            });
-        }
-        function noteHtml() {
-            var ideology = (window.SECTION_META && window.SECTION_META.ideology) || {};
-            var title = ideology.title || '价值引领';
-            var text = ideology.text || '本层延续进阶层的价值主线，在操作中体会数学结构与价值判断的一致性。';
-            return '<span class="value-inline" data-ideology-inline="1"><strong>价值观察：</strong>本层沿用进阶层“'
-                + esc(title) + '”主线。' + esc(text) + '</span>';
-        }
-        function appendIdeologyNote() {
-            if (document.querySelector('[data-ideology-inline="1"]')) return;
-            var resultExtra = document.getElementById('resultExtra');
-            if (resultExtra) {
-                resultExtra.insertAdjacentHTML('beforeend', noteHtml());
-                return;
-            }
-            var anchor = document.querySelector('.result-panel, #eqOut, #note, .visualization-area');
-            if (!anchor) return;
-            if (anchor.id === 'eqOut' || anchor.id === 'note') anchor.insertAdjacentHTML('afterend', noteHtml());
-            else anchor.insertAdjacentHTML('beforeend', noteHtml());
-        }
-        function wrapSetResult() {
-            var original = window.setResult;
-            if (typeof original !== 'function' || original.__ideologyWrapped) return;
-            window.setResult = function () {
-                var ret = original.apply(this, arguments);
-                appendIdeologyNote();
-                return ret;
-            };
-            window.setResult.__ideologyWrapped = true;
-        }
-        function boot() {
-            wrapSetResult();
-            appendIdeologyNote();
-            ['input', 'change', 'click'].forEach(function (eventName) {
-                document.addEventListener(eventName, function () {
-                    setTimeout(appendIdeologyNote, 0);
-                }, true);
-            });
-        }
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-        else boot();
-    })();
     </script>
     <script src="../../shared/ai-tutor.js" defer></script>
 </body>

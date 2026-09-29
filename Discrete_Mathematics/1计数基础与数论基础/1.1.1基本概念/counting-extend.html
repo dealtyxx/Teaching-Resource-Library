@@ -24,7 +24,6 @@
     <meta name="description" content="第1章 计数基础与数论基础 · 1.1.1 基本概念 · 拓展层：古典概率 / 口令强度 / 组合爆炸。把计数迁移到概率、密码空间与复杂度。">
     <link rel="stylesheet" href="counting.css">
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
-    <link rel="stylesheet" href="../chapter1-compact.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -50,29 +49,6 @@
         .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent-gold), var(--accent-red)); border-radius: 6px; transition: width 0.4s; }
         .bar-row .v { width: 84px; text-align: right; font-family: 'JetBrains Mono', Consolas, monospace; color: var(--accent-hover); font-size: 0.72rem; }
         .mulexpr { font-family: 'JetBrains Mono', Consolas, monospace; font-size: 0.82rem; color: var(--text-primary); margin-top: 4px; word-break: break-all; }
-    
-        .value-panel {
-            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
-            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
-            box-shadow: var(--shadow-sm);
-        }
-        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
-        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
-        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
-        .value-dims span {
-            padding: 3px 8px; border-radius: 999px; color: #b8321a;
-            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
-            font-size: .74rem; font-weight: 700;
-        }
-        .value-quote {
-            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
-            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
-        }
-        .value-inline {
-            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
-            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
-            color: var(--text-primary); line-height: 1.5;
-        }
 
         /* 修复：让内容自然流动，图例不再绝对定位浮在内容之上（避免与注入的“价值观察”说明重叠） */
         .glass-pane {
@@ -112,19 +88,6 @@
             </div>
 
             <div class="controls-wrapper">
-                
-                
-                
-                
-                <div class="control-group value-consistency-group">
-                    <label>价值映射（与进阶层一致）</label>
-                    <div class="value-panel" data-value-source="SECTION_META.ideology">
-                        <h3>多元一体 · 求同存异</h3>
-                        <p>加法法则包容并列的多元路径，乘法法则刻画协同递进的系统工程——正如中国式现代化既尊重道路的多样选择，又强调各环节协同发力。计数的『不重不漏』，也是一种实事求是、严谨周密的治理智慧。</p>
-                        <div class="value-dims"><span>辩证思维</span><span>系统观念</span><span>家国情怀</span></div>
-                            <div class="value-quote">团结一切可以团结的力量——把每一种可能都数清、用好，正是统一战线的数学注脚。</div>
-                    </div>
-                </div>
 
                 <div class="control-group">
                     <label>口令长度</label>
@@ -161,6 +124,9 @@
                         <p class="political-text">分子分母都是计数问题。</p>
                     </div>
                 </div>
+            </div>
+            <div class="actions-footer">
+                <button id="resetBtn" class="apple-btn secondary-btn" aria-label="重置">↺ 重置</button>
             </div>
         </aside>
 
@@ -213,7 +179,7 @@
         }
         function humanTime(seconds) {
             if (seconds < 1) return '不到 1 秒';
-            if (seconds > 3.15e16) { var yrs = seconds / 31536000, e = Math.floor(Math.log10(yrs)); return (yrs / Math.pow(10, e)).toFixed(2) + ' × 10' + sup(e) + ' 年（远超宇宙年龄）'; }
+            if (seconds > 3.15e13) { var yrs = seconds / 31536000, e = Math.floor(Math.log10(yrs)); return (yrs / Math.pow(10, e)).toFixed(2) + ' × 10' + sup(e) + ' 年' + (yrs > 1.38e10 ? '（超过宇宙年龄约 1.38 × 10' + sup(10) + ' 年）' : ''); }
             var units = [['年', 31536000], ['天', 86400], ['小时', 3600], ['分', 60], ['秒', 1]];
             for (var i = 0; i < units.length; i++) if (seconds >= units[i][1]) return (seconds / units[i][1]).toFixed(1) + ' ' + units[i][0];
             return '不到 1 秒';
@@ -243,6 +209,11 @@
         $('rateRange').oninput = function () { $('rateVal').innerHTML = '10' + sup(this.value); render(); };
         $('charset').onchange = render;
         $('fav').oninput = renderProb; $('tot').oninput = renderProb;
+        $('resetBtn').onclick = function () {
+            $('lenRange').value = 8; $('lenVal').textContent = 8; $('charset').value = '1';
+            $('rateRange').value = 9; $('rateVal').innerHTML = '10' + sup(9); $('fav').value = 1; $('tot').value = 10;
+            render(); renderProb();
+        };
         render(); renderProb();
     </script>
 
@@ -279,56 +250,6 @@
         reflect: ["为什么口令空间是 base^L 而不是 base×L？", "把『枚举不可行』变成『可行』需要降低哪个量级？这对密码设计意味着什么？"],
         transfer: ["RSA 的安全也建立在『某些计数/分解在算力下不可行』——本层如何为第 1.3.4 节 RSA 埋下伏笔？"]
     };
-    </script>
-    
-    <script data-dm-ideology-bridge="1">
-    (function () {
-        function esc(s) {
-            return String(s || '').replace(/[&<>"']/g, function (c) {
-                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
-            });
-        }
-        function noteHtml() {
-            var ideology = (window.SECTION_META && window.SECTION_META.ideology) || {};
-            var title = ideology.title || '价值引领';
-            var text = ideology.text || '本层延续进阶层的价值主线，在操作中体会数学结构与价值判断的一致性。';
-            return '<span class="value-inline" data-ideology-inline="1"><strong>价值观察：</strong>本层沿用进阶层“'
-                + esc(title) + '”主线。' + esc(text) + '</span>';
-        }
-        function appendIdeologyNote() {
-            if (document.querySelector('[data-ideology-inline="1"]')) return;
-            var resultExtra = document.getElementById('resultExtra');
-            if (resultExtra) {
-                resultExtra.insertAdjacentHTML('beforeend', noteHtml());
-                return;
-            }
-            var anchor = document.querySelector('.result-panel, #eqOut, #note, .visualization-area');
-            if (!anchor) return;
-            if (anchor.id === 'eqOut' || anchor.id === 'note') anchor.insertAdjacentHTML('afterend', noteHtml());
-            else anchor.insertAdjacentHTML('beforeend', noteHtml());
-        }
-        function wrapSetResult() {
-            var original = window.setResult;
-            if (typeof original !== 'function' || original.__ideologyWrapped) return;
-            window.setResult = function () {
-                var ret = original.apply(this, arguments);
-                appendIdeologyNote();
-                return ret;
-            };
-            window.setResult.__ideologyWrapped = true;
-        }
-        function boot() {
-            wrapSetResult();
-            appendIdeologyNote();
-            ['input', 'change', 'click'].forEach(function (eventName) {
-                document.addEventListener(eventName, function () {
-                    setTimeout(appendIdeologyNote, 0);
-                }, true);
-            });
-        }
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-        else boot();
-    })();
     </script>
     <script src="../../shared/ai-tutor.js" defer></script>
 </body>

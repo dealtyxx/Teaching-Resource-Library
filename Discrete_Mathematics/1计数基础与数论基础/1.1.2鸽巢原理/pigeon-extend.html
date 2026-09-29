@@ -24,7 +24,6 @@
     <meta name="description" content="第1章 计数基础与数论基础 · 1.1.2 鸽巢原理 · 拓展层：哈希冲突 / 生日悖论 / 系统必然性。用鸽巢证明真实系统中的必然冲突。">
     <link rel="stylesheet" href="pigeonhole.css">
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
-    <link rel="stylesheet" href="../chapter1-compact.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -47,29 +46,6 @@
         .bd-bar { height: 16px; border-radius: 8px; background: rgba(214, 59, 29, .1); overflow: hidden; margin: 8px 0; }
         .bd-fill { height: 100%; background: linear-gradient(90deg, #ffb400, #d63b1d); transition: width .4s; }
         .sub2 { font-size: .78rem; color: #6b4a38; line-height: 1.6; }
-    
-        .value-panel {
-            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
-            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
-            box-shadow: var(--shadow-sm);
-        }
-        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
-        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
-        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
-        .value-dims span {
-            padding: 3px 8px; border-radius: 999px; color: #b8321a;
-            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
-            font-size: .74rem; font-weight: 700;
-        }
-        .value-quote {
-            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
-            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
-        }
-        .value-inline {
-            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
-            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
-            color: var(--text-primary); line-height: 1.5;
-        }
 
         /* 修复：内容自然流动，三阶层次案例 band 固定在顶部，下方内容紧贴上移 */
         .glass-pane {
@@ -104,19 +80,6 @@
                 <p class="subtitle">●●● 哈希冲突 · 生日悖论 · 存在性威力</p>
             </div>
             <div class="controls-wrapper">
-                
-                
-                
-                
-                <div class="control-group value-consistency-group">
-                    <label>价值映射（与进阶层一致）</label>
-                    <div class="value-panel" data-value-source="SECTION_META.ideology">
-                        <h3>统筹兼顾 · 实事求是</h3>
-                        <p>鸽巢原理告诉我们：当资源（鸽巢）有限而需求（鸽子）增长，矛盾必然出现——这正是统筹兼顾、未雨绸缪的科学决策依据。它不靠枚举而靠严密推理就能断定『必然』，体现了实事求是、透过现象看本质的辩证唯物主义思维。</p>
-                        <div class="value-dims"><span>辩证思维</span><span>统筹观念</span><span>科学精神</span></div>
-                            <div class="value-quote">不谋全局者，不足谋一域——鸽巢原理用最朴素的计数，揭示资源约束下的必然规律。</div>
-                    </div>
-                </div>
 
                 <div class="control-group">
                     <label>哈希：键数 k</label>
@@ -232,56 +195,6 @@
         reflect: ["既然 k>m 时冲突必然，那么哈希设计真正能优化的是什么？", "生日悖论说明『碰撞』比直觉容易——这对密码学哈希的安全有何警示？"],
         transfer: ["生日攻击利用碰撞概率破解哈希——本层如何连接到密码学安全？"]
     };
-    </script>
-    
-    <script data-dm-ideology-bridge="1">
-    (function () {
-        function esc(s) {
-            return String(s || '').replace(/[&<>"']/g, function (c) {
-                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
-            });
-        }
-        function noteHtml() {
-            var ideology = (window.SECTION_META && window.SECTION_META.ideology) || {};
-            var title = ideology.title || '价值引领';
-            var text = ideology.text || '本层延续进阶层的价值主线，在操作中体会数学结构与价值判断的一致性。';
-            return '<span class="value-inline" data-ideology-inline="1"><strong>价值观察：</strong>本层沿用进阶层“'
-                + esc(title) + '”主线。' + esc(text) + '</span>';
-        }
-        function appendIdeologyNote() {
-            if (document.querySelector('[data-ideology-inline="1"]')) return;
-            var resultExtra = document.getElementById('resultExtra');
-            if (resultExtra) {
-                resultExtra.insertAdjacentHTML('beforeend', noteHtml());
-                return;
-            }
-            var anchor = document.querySelector('.result-panel, #eqOut, #note, .visualization-area');
-            if (!anchor) return;
-            if (anchor.id === 'eqOut' || anchor.id === 'note') anchor.insertAdjacentHTML('afterend', noteHtml());
-            else anchor.insertAdjacentHTML('beforeend', noteHtml());
-        }
-        function wrapSetResult() {
-            var original = window.setResult;
-            if (typeof original !== 'function' || original.__ideologyWrapped) return;
-            window.setResult = function () {
-                var ret = original.apply(this, arguments);
-                appendIdeologyNote();
-                return ret;
-            };
-            window.setResult.__ideologyWrapped = true;
-        }
-        function boot() {
-            wrapSetResult();
-            appendIdeologyNote();
-            ['input', 'change', 'click'].forEach(function (eventName) {
-                document.addEventListener(eventName, function () {
-                    setTimeout(appendIdeologyNote, 0);
-                }, true);
-            });
-        }
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-        else boot();
-    })();
     </script>
     <script src="../../shared/ai-tutor.js" defer></script>
 </body>

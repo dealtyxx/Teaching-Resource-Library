@@ -29,7 +29,7 @@ const scenarios = {
         addition: {
             categories: ['经济发展', '社会进步', '生态保护'],
             items: {
-                '经济发展': ['市场经济', '计划经济', '混合经济'],
+                '经济发展': ['科技创新', '先进制造', '数字经济'],
                 '社会进步': ['教育优先', '医疗优先', '就业优先'],
                 '生态保护': ['绿色能源', '循环经济', '碳中和']
             }
@@ -126,15 +126,15 @@ const principleInfo = {
     },
     permutation: {
         title: '排列',
-        desc: '有序选择：从 n 个元素中选出 m 个进行排列，顺序不同算不同方案',
+        desc: '有序选择：从 n 个不同元素中取出 k 个排成一列，顺序不同算不同方案',
         meaning: '象征有序组织与优先级设定，合理安排、统筹兼顾',
-        formula: 'Pₙᵐ = n!/(n-m)!'
+        formula: 'P(n,k) = n!/(n−k)!'
     },
     combination: {
         title: '组合',
-        desc: '无序选择：从 n 个元素中选出 m 个进行组合，顺序相同算相同方案',
+        desc: '无序选择：从 n 个不同元素中取出 k 个组成一组，只看选了谁、不看顺序',
         meaning: '象征团队协作与人才选拔，不分先后、共同发展',
-        formula: 'Cₙᵐ = n!/[m!(n-m)!]'
+        formula: 'C(n,k) = n!/[k!(n−k)!]'
     }
 };
 
@@ -153,7 +153,7 @@ function init() {
 function updatePrincipleInfo() {
     const info = principleInfo[currentPrinciple];
     principleTitle.textContent = info.title;
-    principleDesc.textContent = info.desc;
+    principleDesc.textContent = info.desc + '。一般式：' + info.formula;
     politicalMeaning.textContent = info.meaning;
     formulaText.textContent = info.formula;
 }
@@ -171,7 +171,7 @@ function updateParameterControls() {
 
         const label = document.createElement('div');
         label.className = 'param-label';
-        label.innerHTML = `选取数量 m: <span class="value" id="mValue">2</span>`;
+        label.innerHTML = `选取数量 k（共 n = ${n} 个）: <span class="value" id="mValue">2</span>`;
 
         const slider = document.createElement('input');
         slider.type = 'range';
@@ -183,6 +183,7 @@ function updateParameterControls() {
         slider.addEventListener('input', (e) => {
             document.getElementById('mValue').textContent = e.target.value;
             calculate();
+            visualize(true);
         });
 
         paramDiv.appendChild(label);
@@ -230,6 +231,22 @@ function calculate() {
     }
 
     resultValue.textContent = result;
+    formulaText.textContent = formulaWithNumbers(scenarioData, result);
+}
+
+// 代入具体数值的算式
+function formulaWithNumbers(data, result) {
+    switch (currentPrinciple) {
+        case 'addition':
+            return Object.values(data.items).map(a => a.length).join(' + ') + ' = ' + result;
+        case 'multiplication':
+            return data.step1.items.length + ' × ' + data.step2.items.length + ' = ' + result;
+        case 'permutation':
+            return `P(${parameters.n},${parameters.m}) = ${parameters.n}!/${parameters.n - parameters.m}! = ${result}`;
+        case 'combination':
+            return `C(${parameters.n},${parameters.m}) = ${parameters.n}!/(${parameters.m}!·${parameters.n - parameters.m}!) = ${result}`;
+    }
+    return '';
 }
 
 // 阶乘
@@ -251,9 +268,12 @@ function combination(n, m) {
 }
 
 // 可视化
-async function visualize() {
-    if (isAnimating) return;
+let pendingRender = false;
+let instantMode = false;
+async function visualize(instant) {
+    if (isAnimating) { pendingRender = true; return; }
     isAnimating = true;
+    instantMode = instant === true;
 
     vizArea.innerHTML = '';
     legendContent.innerHTML = '';
@@ -276,11 +296,12 @@ async function visualize() {
     }
 
     isAnimating = false;
+    if (pendingRender) { pendingRender = false; visualize(true); }
 }
 
 // 加法可视化
 async function visualizeAddition(data) {
-    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24'];
+    const colors = ['#D63B1D', '#E09E00', '#1F9D55', '#8B5A3C'];
     let colorIndex = 0;
 
     for (const [category, items] of Object.entries(data.items)) {
@@ -350,7 +371,7 @@ async function visualizeMultiplication(data) {
         const box = document.createElement('div');
         box.className = 'item-box';
         box.textContent = item;
-        box.style.background = '#ff6b6b';
+        box.style.background = '#D63B1D';
         step1Row.appendChild(box);
     }
 
@@ -380,7 +401,7 @@ async function visualizeMultiplication(data) {
         const box = document.createElement('div');
         box.className = 'item-box';
         box.textContent = item;
-        box.style.background = '#4ecdc4';
+        box.style.background = '#E09E00';
         step2Row.appendChild(box);
     }
 
@@ -390,11 +411,11 @@ async function visualizeMultiplication(data) {
     // 图例
     legendContent.innerHTML = `
         <div class="legend-item">
-            <div class="legend-color" style="background: #ff6b6b"></div>
+            <div class="legend-color" style="background: #D63B1D"></div>
             <span>${data.step1.name}</span>
         </div>
         <div class="legend-item">
-            <div class="legend-color" style="background: #4ecdc4"></div>
+            <div class="legend-color" style="background: #E09E00"></div>
             <span>${data.step2.name}</span>
         </div>
     `;
@@ -414,7 +435,7 @@ async function visualizePermutation(data) {
 
     const title = document.createElement('div');
     title.className = 'category-title';
-    title.textContent = `从 ${items.length} 个元素中选 ${m} 个的排列示例`;
+    title.textContent = `从 ${items.length} 个中取 ${m} 个排列：共 ${permutation(items.length, m)} 种，列出前 ${examples.length} 种`;
     container.appendChild(title);
 
     for (const example of examples) {
@@ -459,7 +480,7 @@ async function visualizeCombination(data) {
 
     const title = document.createElement('div');
     title.className = 'category-title';
-    title.textContent = `从 ${items.length} 个元素中选 ${m} 个的组合示例`;
+    title.textContent = `从 ${items.length} 个中取 ${m} 个组合：共 ${combination(items.length, m)} 种，列出前 ${examples.length} 种`;
     container.appendChild(title);
 
     for (const example of examples) {
@@ -538,6 +559,7 @@ function generateCombinations(arr, m, count) {
 
 // 工具函数：延迟
 function sleep(ms) {
+    if (instantMode) return Promise.resolve();
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -552,7 +574,7 @@ function attachEventListeners() {
             updatePrincipleInfo();
             updateParameterControls();
             calculate();
-            vizArea.innerHTML = '';
+            visualize();
         });
     });
 
@@ -561,7 +583,7 @@ function attachEventListeners() {
         currentScenario = scenarioSelect.value;
         updateParameterControls();
         calculate();
-        vizArea.innerHTML = '';
+        visualize();
     });
 
     // 计算按钮
@@ -569,9 +591,14 @@ function attachEventListeners() {
 
     // 重置按钮
     resetBtn.addEventListener('click', () => {
-        vizArea.innerHTML = '';
+        currentPrinciple = 'addition';
+        currentScenario = 'development';
+        scenarioSelect.value = 'development';
+        principleBtns.forEach(b => b.classList.toggle('active', b.getAttribute('data-principle') === 'addition'));
+        updatePrincipleInfo();
         updateParameterControls();
         calculate();
+        visualize();
     });
 }
 

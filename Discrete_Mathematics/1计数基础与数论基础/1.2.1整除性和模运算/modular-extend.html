@@ -24,7 +24,6 @@
     <meta name="description" content="第1章 计数基础与数论基础 · 1.2.1 整除性和模运算 · 拓展层：时钟模运算 / 快速幂 / 模指数。迁移到校验、散列与密码学模幂。">
     <link rel="stylesheet" href="modular.css">
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
-    <link rel="stylesheet" href="../chapter1-compact.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -51,29 +50,6 @@
         .pc.one { background: #27c93f; color: #fff; font-weight: 700; }
         .sub2 { font-size: .78rem; color: #6b4a38; line-height: 1.65; margin-top: 8px; }
         .sub2 b { color: #d63b1d; }
-    
-        .value-panel {
-            background: linear-gradient(135deg, rgba(214,59,29,.1), rgba(255,180,0,.13));
-            padding: 13px; border-radius: 14px; border: 1px solid rgba(214,59,29,.18);
-            box-shadow: var(--shadow-sm);
-        }
-        .value-panel h3 { margin: 0 0 7px; color: var(--accent-red); font-size: 1rem; }
-        .value-panel p { margin: 0; color: var(--text-primary); font-size: .84rem; line-height: 1.55; }
-        .value-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
-        .value-dims span {
-            padding: 3px 8px; border-radius: 999px; color: #b8321a;
-            background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16);
-            font-size: .74rem; font-weight: 700;
-        }
-        .value-quote {
-            margin-top: 9px; padding-left: 10px; border-left: 3px solid var(--accent-red);
-            color: var(--text-secondary); font-size: .78rem; line-height: 1.5;
-        }
-        .value-inline {
-            display: inline-block; margin-top: 8px; padding: 7px 9px; border-radius: 10px;
-            background: rgba(255,180,0,.13); border: 1px solid rgba(214,59,29,.14);
-            color: var(--text-primary); line-height: 1.5;
-        }
     </style>
     <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
@@ -89,19 +65,6 @@
                 <p class="subtitle">●●● 模运算时钟 · 幂循环 · 工程迁移</p>
             </div>
             <div class="controls-wrapper">
-                
-                
-                
-                
-                <div class="control-group value-consistency-group">
-                    <label>价值映射（与进阶层一致）</label>
-                    <div class="value-panel" data-value-source="SECTION_META.ideology">
-                        <h3>周而复始 · 守正循环</h3>
-                        <p>模运算把无限的整数收束进有限的剩余类，正如周期与节律之于自然和社会——日月轮转、四季更替、制度循环往复又螺旋上升。在『取模』的约束中保持运算的严整与封闭，恰似在规矩之内行稳致远。</p>
-                        <div class="value-dims"><span>规则意识</span><span>辩证思维</span><span>严谨求实</span></div>
-                            <div class="value-quote">不以规矩，不能成方圆——模运算正是在『余数』的规矩里，保证了计算的可靠与可循环。</div>
-                    </div>
-                </div>
 
                 <div class="control-group">
                     <label>模数 m（时钟刻度）</label>
@@ -228,56 +191,6 @@
         reflect: ["为什么 g^k mod m 一定会进入循环？（提示：剩余类有限）", "g 与 m 互素时幂会回到 1——这与欧拉定理有何关系？"],
         transfer: ["快速幂把 7^100 mod 13 变得轻而易举；幂循环直通 1.2.4 欧拉/费马定理。"]
     };
-    </script>
-    
-    <script data-dm-ideology-bridge="1">
-    (function () {
-        function esc(s) {
-            return String(s || '').replace(/[&<>"']/g, function (c) {
-                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
-            });
-        }
-        function noteHtml() {
-            var ideology = (window.SECTION_META && window.SECTION_META.ideology) || {};
-            var title = ideology.title || '价值引领';
-            var text = ideology.text || '本层延续进阶层的价值主线，在操作中体会数学结构与价值判断的一致性。';
-            return '<span class="value-inline" data-ideology-inline="1"><strong>价值观察：</strong>本层沿用进阶层“'
-                + esc(title) + '”主线。' + esc(text) + '</span>';
-        }
-        function appendIdeologyNote() {
-            if (document.querySelector('[data-ideology-inline="1"]')) return;
-            var resultExtra = document.getElementById('resultExtra');
-            if (resultExtra) {
-                resultExtra.insertAdjacentHTML('beforeend', noteHtml());
-                return;
-            }
-            var anchor = document.querySelector('.result-panel, #eqOut, #note, .visualization-area');
-            if (!anchor) return;
-            if (anchor.id === 'eqOut' || anchor.id === 'note') anchor.insertAdjacentHTML('afterend', noteHtml());
-            else anchor.insertAdjacentHTML('beforeend', noteHtml());
-        }
-        function wrapSetResult() {
-            var original = window.setResult;
-            if (typeof original !== 'function' || original.__ideologyWrapped) return;
-            window.setResult = function () {
-                var ret = original.apply(this, arguments);
-                appendIdeologyNote();
-                return ret;
-            };
-            window.setResult.__ideologyWrapped = true;
-        }
-        function boot() {
-            wrapSetResult();
-            appendIdeologyNote();
-            ['input', 'change', 'click'].forEach(function (eventName) {
-                document.addEventListener(eventName, function () {
-                    setTimeout(appendIdeologyNote, 0);
-                }, true);
-            });
-        }
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-        else boot();
-    })();
     </script>
     <script src="../../shared/ai-tutor.js" defer></script>
 </body>
