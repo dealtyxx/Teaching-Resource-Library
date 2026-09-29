@@ -7,7 +7,7 @@
   <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="专家系统与归结 · 拓展层｜6.6 谓词逻辑有效推理 - 离散数学课程资源库">
-  <meta property="og:description" content="第6章 谓词逻辑 · 6.6 谓词逻辑有效推理 · 拓展层：前向/后向链 / 归结反演。迁移到自动推理与专家系统。">
+  <meta property="og:description" content="第6章 谓词逻辑 · 6.6 谓词逻辑有效推理 · 拓展层：前向链 / 后向链 / 归结反演 / Skolem 化。迁移到自动推理与专家系统。">
   <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/6%E8%B0%93%E8%AF%8D%E9%80%BB%E8%BE%91/6.6%E8%B0%93%E8%AF%8D%E9%80%BB%E8%BE%91%E6%9C%89%E6%95%88%E6%8E%A8%E7%90%86/inference_rules-extend.html">
   <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta property="og:image:width" content="1200">
@@ -15,11 +15,11 @@
   <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="专家系统与归结 · 拓展层｜6.6 谓词逻辑有效推理 - 离散数学课程资源库">
-  <meta name="twitter:description" content="第6章 谓词逻辑 · 6.6 谓词逻辑有效推理 · 拓展层：前向/后向链 / 归结反演。迁移到自动推理与专家系统。">
+  <meta name="twitter:description" content="第6章 谓词逻辑 · 6.6 谓词逻辑有效推理 · 拓展层：前向链 / 后向链 / 归结反演 / Skolem 化。迁移到自动推理与专家系统。">
   <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>专家系统与归结 · 拓展层｜6.6 谓词逻辑有效推理 - 离散数学课程资源库</title>
-  <meta name="description" content="第6章 谓词逻辑 · 6.6 谓词逻辑有效推理 · 拓展层：前向/后向链 / 归结反演。迁移到自动推理与专家系统。">
+  <meta name="description" content="第6章 谓词逻辑 · 6.6 谓词逻辑有效推理 · 拓展层：前向链 / 后向链 / 归结反演 / Skolem 化。迁移到自动推理与专家系统。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -36,15 +36,10 @@
     <aside class="side-panel">
       <div class="eyebrow">拓展层 · 第6章 谓词逻辑</div>
       <h1>专家系统与归结</h1>
-      <p class="subtitle">前向/后向链 / 归结反演</p>
+      <p class="subtitle">前向链 / 后向链 / 归结反演 / Skolem 化</p>
       <p class="tier-line">高天花板 · 迁移工程</p>
       <p class="intro">🎯 迁移到自动推理与专家系统。</p>
 
-      <div class="value-panel">
-        <h3>逻辑的力量 · 机器可推</h3>
-        <p>专家系统用前向/后向链在知识库上自动应用谓词规则；归结反演把结论取否定、与前提归结出空子句。机械化的严谨推理，正是『讲科学、讲规矩』的工程延伸。</p>
-        <div class="dim-list"><span>逻辑严谨</span><span>求真务实</span><span>工程思维</span></div>
-      </div>
 
       <div id="controls"></div>
       <div class="legend-panel" id="legendPanel"></div>
@@ -52,7 +47,7 @@
 
     <main class="glass-pane">
       <section class="mission-card">
-        <span><b>互动任务：</b>逐步执行机械推理——专家系统前向链触发规则，或归结反演（Skolem + 合一）归结出空子句，看记录与推理图依赖联动。</span>
+        <span><b>互动任务：</b>逐步执行机械推理——专家系统前向链 / 后向链，或归结反演（Skolem 化 + 合一）归结出空子句，看记录与推理图依赖联动。</span>
         <div class="visual-badge">前向链 / 归结 · 机械推理</div>
       </section>
 
@@ -66,7 +61,7 @@
           <div id="ipTable" class="ip-table-wrap"></div>
         </section>
         <section class="sym-stage-card">
-          <div class="sym-stage-head"><span class="sym-stage-num">3</span><span class="sym-stage-title">当前步 · 推理反馈</span><span class="sym-stage-hint">前向链 / 归结合一</span></div>
+          <div class="sym-stage-head"><span class="sym-stage-num">3</span><span class="sym-stage-title">当前步 · 推理反馈</span><span class="sym-stage-hint">推理链 / 归结合一</span></div>
           <div id="ipEval" class="ip-eval"></div>
         </section>
         <section class="sym-stage-card">
@@ -85,14 +80,14 @@
   <script>
     window.SECTION_META = {
       "layers": [
-            { "name": "全称指定", "concepts": "∀xP(x)⊢P(c) / UI", "task": "从普遍原则推出个别情形。", "page": "inference_rules-basic.html" },
-            { "name": "四条量词规则", "concepts": "UI/UG/EI/EG 及其限制", "task": "严守限制完成谓词推理。", "page": "inference_rules.html" },
-            { "name": "专家系统与归结", "concepts": "前向/后向链 / 归结反演", "task": "迁移到自动推理与专家系统。", "page": "inference_rules-extend.html" }
+            { "name": "全称指定", "concepts": "全称指定 UI / 假言推理 MP / 三段论", "task": "从普遍原则推出个别情形。", "page": "inference_rules-basic.html" },
+            { "name": "四条量词规则", "concepts": "UI·EI·UG·EG / EI 新常项 / UG 任意变项", "task": "严守使用限制完成谓词推理。", "page": "inference_rules.html" },
+            { "name": "专家系统与归结", "concepts": "前向链 / 后向链 / 归结反演 / Skolem 化", "task": "迁移到自动推理与专家系统。", "page": "inference_rules-extend.html" }
       ],
       "chapter": "第6章 谓词逻辑",
       "section": "6.6 谓词逻辑有效推理",
-      "title": "专家系统与归结",
-      "grounding": "本节主题：把谓词推理规则迁移到自动推理。专家系统的前向链（数据驱动：事实触发规则推出新事实）与后向链（目标驱动：分解子目标）本质是谓词规则在知识库上的自动应用；归结反演把待证结论取否定，与前提子句反复归结（互补文字 + 合一），导出空子句即证明结论。Skolem 化把存在量词化为常项/函数。",
+      "title": "谓词逻辑有效推理",
+      "grounding": "本节主题：把谓词推理规则迁移到自动推理。专家系统的前向链（数据驱动：事实触发规则推出新事实）与后向链（目标驱动：分解子目标）本质是谓词规则在知识库上的自动应用；归结反演把待证结论取否定，与前提子句反复归结（互补文字 + 合一），导出空子句即证明结论。Skolem 化把存在量词化为新常项或 Skolem 函数，只保持可满足性、不保持等价，恰好满足反演的需要。归结反演是可靠且反驳完备的：子句集不可满足时一定能归结出空子句；但一阶逻辑不可判定（丘奇–图灵），只是半可判定——结论不成立时搜索可能永不终止。",
       "steps": [
             { "name": "情境引入", "desc": "机器如何在知识库上自动做谓词推理？" },
             { "name": "对象抽取", "desc": "把规则与事实化为子句，识别待证目标。" },
@@ -103,7 +98,7 @@
       ],
       "ideology": {
             "title": "逻辑的力量 · 明辨笃行",
-            "text": "从普遍原则到个别情形、从个别事实到合理推广，谓词推理是『一般与个别相结合』的逻辑化；把它机械化为专家系统与归结，让严谨推理可被机器执行与复核，体现讲科学、讲规矩、明辨笃行。",
+            "text": "从普遍原则到个别情形、从个别实例到存在断言，谓词推理是『一般与个别相结合』的逻辑化；把它机械化为专家系统与归结，让严谨推理可被机器执行与复核，体现讲科学、讲规矩、明辨笃行。",
             "dims": [ "逻辑严谨", "求真务实", "工程思维" ],
             "quote": "知者行之始，行者知之成——机械化的严谨推理，让明辨是非可被自动复核。"
       },
