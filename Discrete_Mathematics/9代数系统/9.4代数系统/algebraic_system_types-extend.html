@@ -7,7 +7,7 @@
   <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="环、域与布尔代数 · 拓展层｜9.4 代数系统的分类 - 离散数学课程资源库">
-  <meta property="og:description" content="第9章 代数系统 · 9.4 代数系统的分类 · 拓展层：双运算结构 / 公理复核。迁移到环、域、布尔代数等更复杂结构。">
+  <meta property="og:description" content="第9章 代数系统 · 9.4 代数系统的分类 · 拓展层：双运算结构 / 分配律 / 公理复核。迁移到环、域、布尔代数等双运算结构并复核公理。">
   <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/9%E4%BB%A3%E6%95%B0%E7%B3%BB%E7%BB%9F/9.4%E4%BB%A3%E6%95%B0%E7%B3%BB%E7%BB%9F/algebraic_system_types-extend.html">
   <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta property="og:image:width" content="1200">
@@ -15,11 +15,11 @@
   <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="环、域与布尔代数 · 拓展层｜9.4 代数系统的分类 - 离散数学课程资源库">
-  <meta name="twitter:description" content="第9章 代数系统 · 9.4 代数系统的分类 · 拓展层：双运算结构 / 公理复核。迁移到环、域、布尔代数等更复杂结构。">
+  <meta name="twitter:description" content="第9章 代数系统 · 9.4 代数系统的分类 · 拓展层：双运算结构 / 分配律 / 公理复核。迁移到环、域、布尔代数等双运算结构并复核公理。">
   <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>环、域与布尔代数 · 拓展层｜9.4 代数系统的分类 - 离散数学课程资源库</title>
-  <meta name="description" content="第9章 代数系统 · 9.4 代数系统的分类 · 拓展层：双运算结构 / 公理复核。迁移到环、域、布尔代数等更复杂结构。">
+  <meta name="description" content="第9章 代数系统 · 9.4 代数系统的分类 · 拓展层：双运算结构 / 分配律 / 公理复核。迁移到环、域、布尔代数等双运算结构并复核公理。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -35,9 +35,9 @@
   <div class="app-container">
     <aside class="side-panel">
       <div class="sidebar-header">
-        <span class="eyebrow">9.4 代数系统的分类</span>
-        <h1>红色数理 <span class="highlight">拓展层</span></h1>
-        <p class="subtitle">环、域与布尔代数</p>
+        <span class="eyebrow">拓展层 · 第9章 代数系统</span>
+        <h1>环、域与布尔代数</h1>
+        <p class="subtitle">双运算结构 / 分配律 / 公理复核</p>
       </div>
       <p class="intro">把单运算层级扩展到双运算系统，比较加法群、乘法结构、分配律和增强条件的组合。</p>
       <div id="controls"></div>
@@ -84,24 +84,77 @@
 
   <script>
     window.SECTION_META = {
-      "layers": [
-        { "name": "广群与半群", "concepts": "封闭 / 结合", "task": "认识最基础的代数结构层级。", "page": "algebraic_system_types-basic.html" },
-        { "name": "独异点与群", "concepts": "单位元 / 逆元", "task": "判定系统属于哪一层级。", "page": "algebraic_system_types.html" },
-        { "name": "环、域与布尔代数", "concepts": "双运算结构 / 公理复核", "task": "迁移到环、域、布尔代数等更复杂结构。", "page": "algebraic_system_types-extend.html" }
-      ],
       "chapter": "第9章 代数系统",
       "section": "9.4 代数系统的分类",
       "title": "代数系统的分类",
-      "grounding": "本节主题：按公理强弱分类代数结构。拓展层聚焦双运算结构，比较环、域、布尔代数的公理组合与升级条件。",
+      "grounding": "本节主题：代数系统的分类。按单个二元运算满足的公理逐级加强：广群（封闭）→ 半群（+结合律）→ 独异点/含幺半群（+单位元）→ 群（+每个元素有逆元），交换的群称阿贝尔群。按载体规模可分为有限代数系统与无限代数系统（如 ⟨Z₅,+₅⟩ 与 ⟨N,+⟩）；常见的具体系统有集合代数 ⟨P(U),∪,∩,∼⟩ 与命题代数 ⟨{T,F},∧,∨,¬⟩。含两个运算的系统进一步有环、域、格与布尔代数：环要求 ⟨R,+⟩ 为阿贝尔群、⟨R,·⟩ 为半群且乘法对加法可分配；域还要求非零元对乘法构成阿贝尔群。",
       "steps": [
-        { "name": "双运算拆解", "desc": "把结构拆成加法部分、乘法部分与连接它们的分配律。" },
-        { "name": "公理复核", "desc": "逐项检查单位元、逆元、无零因子、补元等增强条件。" },
-        { "name": "结构迁移", "desc": "把分类方法迁移到代数、逻辑与计算结构中。" }
+        {
+          "name": "情境引入",
+          "desc": "从『只要封闭』到『人人可逆』，代数结构是如何一级级加强的？"
+        },
+        {
+          "name": "对象抽取",
+          "desc": "把公理的逐级增加抽象为结构的层级。"
+        },
+        {
+          "name": "结构建模",
+          "desc": "用公理链与载体规模两条线索刻画分类。"
+        },
+        {
+          "name": "推理求解",
+          "desc": "判定给定系统属于哪一层级、哪一类型。"
+        },
+        {
+          "name": "程序验证",
+          "desc": "用本页交互检验公理，定位结构类型。"
+        },
+        {
+          "name": "迁移反思",
+          "desc": "迁移到群论、字符串半群、变换群。"
+        }
       ],
+      "ideology": {
+        "title": "循序渐进 · 积厚成势",
+        "text": "代数结构从广群到群层层加强，正如事业发展由基础到高级、循序渐进、积厚成势。每一级公理都是更高结构的根基，启示我们打牢基础、稳扎稳打，方能在更高层次实现质的飞跃——量的积累成就质的跃升。",
+        "dims": [
+          "循序渐进",
+          "量变质变",
+          "系统观念"
+        ],
+        "quote": "不积小流，无以成江海——从半群到群，结构的每一级加强都建立在前一级的坚实之上。"
+      },
       "reflect": [
-        "环比群多了怎样的双运算关系？",
-        "域为什么必须强调非零元可逆？",
-        "布尔代数的补元与德摩根律如何强化结构？"
+        "半群、独异点、群分别多了哪条公理？少一条会退化为什么？",
+        "字符串拼接构成半群还是独异点？空串扮演什么角色？",
+        "为什么『群』是其中性质最丰富、应用最广的结构？"
+      ],
+      "transfer": [
+        "字符串拼接（独异点）、变换复合（群）在计算机科学中无处不在。",
+        {
+          "t": "Monad 与幺半群",
+          "d": "函数式编程的 Monoid/Monad 正源于独异点，如何用于可结合的聚合？"
+        }
+      ],
+      "layers": [
+        {
+          "name": "单运算结构阶梯",
+          "concepts": "广群 / 半群 / 独异点 / 群",
+          "task": "按封闭、结合、单位元、逆元逐级判定单运算结构。",
+          "page": "algebraic_system_types-basic.html"
+        },
+        {
+          "name": "代数系统的类型",
+          "concepts": "有限 / 无限 / 集合代数 / 命题代数",
+          "task": "按载体规模与运算对象给代数系统分类，读出各类的结构特征。",
+          "page": "algebraic_system_types.html"
+        },
+        {
+          "name": "环、域与布尔代数",
+          "concepts": "双运算结构 / 分配律 / 公理复核",
+          "task": "迁移到环、域、布尔代数等双运算结构并复核公理。",
+          "page": "algebraic_system_types-extend.html"
+        }
       ]
     };
   </script>
