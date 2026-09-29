@@ -1,0 +1,64 @@
+/* =============================================================================
+ * case-flow.css —— 第2章 案例单元（2.7–2.10）六段式统一样式
+ * 情境背景 → 数学建模 → 交互求解 → 结果解读 → 价值引领 → 迁移思考
+ * 由 case-flow.js 渲染到 #cfTop（导航 + ①②）与 #cfBottom（④⑤⑥），③ 为页面原有交互区。
+ * ========================================================================== */
+
+.cf-top, .cf-bottom { display: flex; flex-direction: column; gap: 12px; flex: 0 0 auto; }
+.cf-nav { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.cf-nav .cf-tier {
+  padding: 5px 12px; border-radius: 999px; font-size: .78rem; font-weight: 800; color: #fff;
+  background: linear-gradient(135deg, #D63B1D, #B8321A); box-shadow: 0 4px 12px rgba(214, 59, 29, .2);
+}
+.cf-nav a {
+  display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 4px 10px; border-radius: 999px;
+  border: 1px solid rgba(214, 59, 29, .2); background: rgba(255, 255, 255, .78); color: #6B4A38;
+  font-size: .78rem; font-weight: 700; text-decoration: none; transition: background .15s, color .15s;
+}
+.cf-nav a:hover, .cf-nav a:focus-visible { background: rgba(255, 180, 0, .18); color: #B8321A; }
+.cf-nav a i {
+  font-style: normal; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  background: #D63B1D; color: #fff; font-size: .68rem; font-family: 'JetBrains Mono', Consolas, monospace;
+}
+.cf-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 12px; }
+.cf-row3 { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.cf-sec {
+  background: rgba(255, 255, 255, .8); border: 1px solid rgba(214, 59, 29, .16); border-radius: 14px;
+  padding: 12px 14px; box-shadow: 0 2px 8px rgba(139, 0, 0, .05); scroll-margin-top: 16px; min-width: 0;
+}
+.cf-sec h3, .cf-solve-head {
+  display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: .95rem; color: #D63B1D; font-weight: 800;
+  font-family: 'Noto Serif SC', 'Microsoft YaHei', serif;
+}
+.cf-sec h3 .n, .cf-solve-head .n {
+  width: 22px; height: 22px; flex: 0 0 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  background: #D63B1D; color: #fff; font-size: .74rem; font-family: 'JetBrains Mono', Consolas, monospace;
+}
+.cf-sec h3 small, .cf-solve-head small { font-weight: 400; color: #6B4A38; font-size: .76rem; }
+.cf-sec p, #cfRead { margin: 0; font-size: .85rem; line-height: 1.7; color: #2C1810; }
+.cf-sec p + p { margin-top: 6px; }
+.cf-sec b { color: #B8321A; }
+.cf-map { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.cf-map th, .cf-map td { padding: 5px 8px; border-bottom: 1px dashed rgba(214, 59, 29, .18); text-align: left; vertical-align: top; line-height: 1.5; }
+.cf-map th { color: #6B4A38; font-weight: 700; font-size: .76rem; }
+.cf-map td:first-child { color: #2C1810; white-space: nowrap; }
+.cf-map td:last-child { font-family: 'JetBrains Mono', Consolas, monospace; color: #B8321A; font-weight: 700; }
+.cf-map td.arrow { color: #C98A00; width: 20px; text-align: center; }
+.cf-solve-head { margin: 2px 0 -2px; }
+.cf-read { border-left: 4px solid #FFB400; }
+.cf-value { background: linear-gradient(135deg, rgba(214, 59, 29, .07), rgba(255, 180, 0, .13)); }
+.cf-value .cf-dims { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.cf-value .cf-dims span { padding: 2px 9px; border-radius: 999px; font-size: .72rem; font-weight: 700; color: #B8321A; background: rgba(255, 255, 255, .8); border: 1px solid rgba(214, 59, 29, .16); }
+.cf-sec ul { margin: 0; padding-left: 1.1rem; }
+.cf-sec li { font-size: .84rem; line-height: 1.65; color: #2C1810; }
+.cf-sec li + li { margin-top: 4px; }
+
+@media (max-width: 1100px) {
+  .cf-row3 { grid-template-columns: 1fr 1fr; }
+  .cf-row3 > :first-child { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .cf-row, .cf-row3 { grid-template-columns: 1fr; }
+  .cf-nav { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+  .cf-nav a, .cf-nav .cf-tier { flex: 0 0 auto; }
+}
