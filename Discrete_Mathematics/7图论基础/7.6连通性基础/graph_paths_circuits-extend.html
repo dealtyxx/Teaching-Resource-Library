@@ -8,7 +8,7 @@
   <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="强连通分量应用 · 拓展层｜7.6 连通性基础 - 离散数学课程资源库">
-  <meta property="og:description" content="第7章 图论基础 · 7.6 连通性基础 · 拓展层：爬虫遍历 / 死锁检测。迁移到遍历与死锁分析。">
+  <meta property="og:description" content="第7章 图论基础 · 7.6 连通性基础 · 拓展层：爬虫可达集 / 缩点成 DAG / 死锁检测 / Tarjan·Kosaraju。把可达性与强连通分量迁移到网页抓取、依赖分析与死锁检测。">
   <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/7%E5%9B%BE%E8%AE%BA%E5%9F%BA%E7%A1%80/7.6%E8%BF%9E%E9%80%9A%E6%80%A7%E5%9F%BA%E7%A1%80/graph_paths_circuits-extend.html">
   <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta property="og:image:width" content="1200">
@@ -16,11 +16,11 @@
   <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="强连通分量应用 · 拓展层｜7.6 连通性基础 - 离散数学课程资源库">
-  <meta name="twitter:description" content="第7章 图论基础 · 7.6 连通性基础 · 拓展层：爬虫遍历 / 死锁检测。迁移到遍历与死锁分析。">
+  <meta name="twitter:description" content="第7章 图论基础 · 7.6 连通性基础 · 拓展层：爬虫可达集 / 缩点成 DAG / 死锁检测 / Tarjan·Kosaraju。把可达性与强连通分量迁移到网页抓取、依赖分析与死锁检测。">
   <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>强连通分量应用 · 拓展层｜7.6 连通性基础 - 离散数学课程资源库</title>
-  <meta name="description" content="第7章 图论基础 · 7.6 连通性基础 · 拓展层：爬虫遍历 / 死锁检测。迁移到遍历与死锁分析。">
+  <meta name="description" content="第7章 图论基础 · 7.6 连通性基础 · 拓展层：爬虫可达集 / 缩点成 DAG / 死锁检测 / Tarjan·Kosaraju。把可达性与强连通分量迁移到网页抓取、依赖分析与死锁检测。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -36,9 +36,9 @@
     <aside class="side-panel">
       <div class="eyebrow">拓展层 · 第7章 图论基础</div>
       <h1>强连通分量<span class="highlight">应用</span></h1>
-      <p class="subtitle">爬虫遍历 / 死锁检测</p>
+      <p class="subtitle">爬虫可达集 / 缩点成 DAG / 死锁检测 / Tarjan·Kosaraju</p>
       <p class="tier-line">高天花板 · 迁移工程</p>
-      <p class="intro">🎯 迁移到遍历与死锁分析。</p>
+      <p class="intro">🎯 把可达性与强连通分量迁移到网页抓取、依赖分析与死锁检测。</p>
 
       <div class="value-panel">
         <h3>红色征程 · 道路自信</h3>
@@ -51,8 +51,8 @@
 
     <main class="glass-pane">
       <section class="mission-card">
-        <span id="missionText"><b>互动任务：</b>把连通性迁移到爬虫遍历、SCC 缩点与死锁检测。</span>
-        <div class="visual-badge" id="visualBadge">遍历 / 死锁</div>
+        <span id="missionText"><b>互动任务：</b>把连通性迁移到工程：爬虫遍历网页图、强连通分量缩点与死锁检测。</span>
+        <div class="visual-badge" id="visualBadge">遍历 / 缩点 / 死锁</div>
       </section>
 
       <section class="logic-board" id="vizArea">
@@ -78,27 +78,27 @@
       "layers": [
             {
                   "name": "通路与回路",
-                  "concepts": "walk/path / 简单·初级通路",
-                  "task": "区分通路、简单通路、路径。",
+                  "concepts": "通路 / 回路 / 简单通路 / 初级通路（路径） / 初级回路（圈）",
+                  "task": "沿编号走图，区分通路、回路、简单通路与初级通路。",
                   "page": "graph_paths_circuits-basic.html"
             },
             {
-                  "name": "连通与分支",
-                  "concepts": "连通分支 / 强·弱连通 / 可达",
-                  "task": "判定连通性、求连通分支。",
+                  "name": "连通性判定",
+                  "concepts": "连通分支 p(G) / 强连通 / 单向连通 / 弱连通 / 强连通分量",
+                  "task": "数出连通分支，判定有向图的强、单向、弱连通并求强连通分量。",
                   "page": "graph_paths_circuits.html"
             },
             {
                   "name": "强连通分量应用",
-                  "concepts": "爬虫遍历 / 死锁检测",
-                  "task": "迁移到遍历与死锁分析。",
+                  "concepts": "爬虫可达集 / 缩点成 DAG / 死锁检测 / Tarjan·Kosaraju",
+                  "task": "把可达性与强连通分量迁移到网页抓取、依赖分析与死锁检测。",
                   "page": "graph_paths_circuits-extend.html"
             }
       ],
       "chapter": "第7章 图论基础",
       "section": "7.6 连通性基础",
       "title": "通路、回路与连通性",
-      "grounding": "本节主题：通路（walk/path)、回路（closed walk/circuit）、简单通路、初级通路（路径）；无向图连通、连通分支；有向图强连通/弱连通。可达性=存在通路。连通性刻画网络『是否畅通、能否抵达』。",
+      "grounding": "本节主题（术语同屈婉玲《离散数学》）：通路（顶点与边交替的序列，长度=边数）、回路（起点=终点）、简单通路/简单回路（边互不相同）、初级通路（路径，顶点互不相同）、初级回路（圈）、复杂通路（有重复边）；n 阶图中若 u 到 v 有通路则有长度 ≤ n−1 的初级通路。无向图：连通、距离 d(u,v)、连通分支及其个数 p(G)。有向图：强连通（任意两点互相可达，⟺ 存在经过每个顶点的回路）、单向连通（任意两点至少一个方向可达，⟺ 存在经过每个顶点的通路）、弱连通（基图连通）；强连通⇒单向连通⇒弱连通；强连通分量是互相可达关系的等价类。",
       "steps": [
             { "name": "情境引入", "desc": "网络中任意两点是否都能互达？哪些是『孤岛』？" },
             { "name": "对象抽取", "desc": "把『能否走到』抽象为通路与可达性。" },
@@ -114,9 +114,9 @@
             "quote": "雄关漫道真如铁，而今迈步从头越——通路与连通，正是把征程一步步走通的数学写照。"
       },
       "reflect": [
-            "『通路』『简单通路』『初级通路（路径）』三者的区别是什么？",
-            "有向图『强连通』比『弱连通』强在哪里？双向可达为何更难？",
-            "如何用图遍历（BFS/DFS）求连通分支？"
+            "『通路』『简单通路』『初级通路（路径）』三者的区别是什么？为什么有通路就一定有初级通路？",
+            "有向图的强连通、单向连通、弱连通各要求什么？各举一个恰好满足其一的例子。",
+            "如何用图遍历（BFS/DFS）求连通分支个数？如何判定有向图强连通？"
       ],
       "transfer": [
             "网络爬虫、社交圈发现、电路连通性检测都依赖连通性分析。",
