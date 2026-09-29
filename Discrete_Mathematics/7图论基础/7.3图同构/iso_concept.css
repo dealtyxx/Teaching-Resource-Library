@@ -1,5 +1,5 @@
 /* ============================================================
-   7.1 图的基本概念 · 三层统一交互引擎样式（暖纸风）
+   第7章 图论基础 · 概念单元三层统一交互引擎样式（公共段，7.1–7.8 逐字相同）
    basic / advanced / extend 共用：点一步、看反馈、看公式项高亮、看图高亮
    ============================================================ */
 :root {
@@ -10,9 +10,14 @@
   --line: rgba(116, 55, 31, 0.18);
   --red: #d63b1d;
   --red-2: #de5b3d;
-  --gold: #c58a1f;
+  --red-deep: #b8321a;
+  --gold: #ffb400;
+  --gold-ink: #8a5d0b;
   --green: #2f7d57;
-  --blue: #2f5f9f;
+  --green-2: #1f9d55;
+  --bad: #c0392b;
+  /* 历史变量名：原为蓝色，现统一映射为次墨，避免引入调色板外的主色 */
+  --blue: #6b4a38;
   --shadow: 0 18px 50px rgba(69, 31, 15, 0.14);
 }
 * { box-sizing: border-box; }
@@ -23,27 +28,8 @@ body {
   font-family: "Noto Serif SC", "Microsoft YaHei", serif;
   background:
     radial-gradient(circle at 16% 12%, rgba(222, 91, 61, 0.18), transparent 28%),
-    radial-gradient(circle at 82% 8%, rgba(47, 95, 159, 0.14), transparent 26%),
+    radial-gradient(circle at 82% 8%, rgba(255, 180, 0, 0.14), transparent 26%),
     linear-gradient(135deg, #fff7e6 0%, #f8ead3 45%, #f3dfc7 100%);
-  overflow: hidden;
-}
-.home-link {
-  position: fixed;
-  top: 14px;
-  left: 14px;
-  z-index: 10000;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.5);
-  background: rgba(44, 24, 16, 0.82);
-  color: #fff;
-  text-decoration: none;
-  font-size: 13px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  backdrop-filter: blur(10px);
 }
 .app-container {
   width: min(1440px, calc(100vw - 32px));
@@ -117,8 +103,8 @@ body {
   gap: 6px;
   padding: 4px 11px;
   border-radius: 999px;
-  background: rgba(47, 95, 159, 0.1);
-  color: var(--blue);
+  background: rgba(255, 180, 0, 0.16);
+  color: var(--muted);
   font-size: 12.5px;
   font-weight: 700;
 }
@@ -147,8 +133,8 @@ body {
 .dim-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .dim-list span {
   border-radius: 999px;
-  background: rgba(197, 138, 31, 0.13);
-  color: #8a5d0b;
+  background: rgba(255, 180, 0, 0.16);
+  color: var(--gold-ink);
   padding: 4px 9px;
   font-size: 12px;
   font-weight: 700;
@@ -188,26 +174,36 @@ body {
 }
 .step-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .step-btn {
+  min-height: 40px;
   border-radius: 8px;
-  border: 1px solid rgba(116,55,31,0.22);
-  background: #fffaf2;
-  color: var(--ink);
+  border: 1px solid rgba(214, 59, 29, 0.55);
+  background: #fff;
+  color: var(--red);
   padding: 9px 10px;
   font: inherit;
   font-weight: 700;
   cursor: pointer;
   transition: all .18s ease;
 }
-.step-btn:hover { background: #fff; border-color: var(--red); transform: translateY(-1px); }
+.step-btn:hover { background: rgba(214, 59, 29, 0.06); border-color: var(--red); transform: translateY(-1px); }
 .step-btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
-.step-btn.primary { background: var(--red); color: #fff; border-color: var(--red); }
-.step-btn.primary:hover { background: #9c1c13; }
+.step-btn.primary { background: linear-gradient(135deg, var(--red), var(--red-deep)); color: #fff; border-color: var(--red-deep); }
+.step-btn.primary:hover { background: var(--red-deep); }
+.step-btn#resetBtn,
+.step-btn.ghost { background: transparent; color: var(--muted); border-color: rgba(116,55,31,0.3); }
+.step-btn#resetBtn:hover,
+.step-btn.ghost:hover { color: var(--red); border-color: var(--red); background: transparent; }
 .step-btn.wide { grid-column: 1 / -1; }
-.step-btn.playing { background: var(--gold); color: #fff; border-color: var(--gold); }
+.step-btn.playing { background: var(--gold); color: var(--ink); border-color: var(--gold); }
 
 /* ---- 步骤清单 ---- */
 .step-list { display: grid; gap: 6px; }
 .step-item {
+  width: 100%;
+  margin: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
   display: grid;
   grid-template-columns: 24px 1fr;
   gap: 8px;
@@ -258,8 +254,8 @@ body {
   white-space: nowrap;
   border-radius: 999px;
   padding: 7px 10px;
-  background: rgba(47,95,159,0.1);
-  color: var(--blue);
+  background: rgba(214, 59, 29, 0.08);
+  color: var(--red);
   font-size: 12px;
   font-weight: 700;
 }
@@ -323,9 +319,9 @@ body {
   box-shadow: 0 0 0 1px rgba(214, 59, 29,0.3) inset;
 }
 .formula-line .ft.hot-blue {
-  background: rgba(47,95,159,0.14);
-  color: var(--blue);
-  box-shadow: 0 0 0 1px rgba(47,95,159,0.3) inset;
+  background: rgba(255, 180, 0, 0.2);
+  color: var(--gold-ink);
+  box-shadow: 0 0 0 1px rgba(255, 180, 0, 0.55) inset;
 }
 .formula-line .ft.hot-green {
   background: rgba(47,125,87,0.14);
@@ -360,7 +356,7 @@ body {
   background: var(--green);
 }
 .step-status .badge.blue { background: var(--blue); }
-.step-status .badge.gold { background: var(--gold); }
+.step-status .badge.gold { background: var(--gold); color: var(--ink); }
 .step-status .badge.red { background: var(--red); }
 
 .viz-note { display: grid; gap: 8px; }
@@ -378,7 +374,7 @@ body {
   border-radius: 999px;
   padding: 6px 10px;
   color: #53362c;
-  background: rgba(197,138,31,0.14);
+  background: rgba(255, 180, 0, 0.16);
   font-family: "JetBrains Mono", Consolas, monospace;
   font-weight: 700;
   font-size: 12px;
@@ -401,8 +397,8 @@ body {
   place-items: center;
   border-radius: 5px;
   font-family: "JetBrains Mono", Consolas, monospace;
-  background: rgba(47,95,159,0.08);
-  color: #253447;
+  background: rgba(107, 74, 56, 0.08);
+  color: var(--ink);
   font-weight: 800;
   font-size: 12px;
 }
@@ -410,22 +406,37 @@ body {
 .matrix-cell.hot { background: rgba(214, 59, 29,0.16); color: var(--red); box-shadow: 0 0 0 1px rgba(214, 59, 29,0.35) inset; }
 .matrix-cell.head { background: transparent; color: var(--muted); font-weight: 700; }
 
-.footer {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 9998;
-  min-height: 72px;
-  padding: 14px 10px;
-  text-align: center;
-  color: inherit;
-  opacity: 0.72;
-  background: transparent;
-  font-size: 13px;
-  line-height: 1.7;
+/* ---- 舞台图例（全章统一节点/边配色） ---- */
+.graph-legend {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px 10px;
+  max-width: calc(100% - 24px);
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 250, 242, 0.9);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+  pointer-events: none;
 }
+.graph-legend span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.graph-legend i { display: inline-block; flex: 0 0 auto; }
+.graph-legend .lg-node { width: 11px; height: 11px; border-radius: 50%; background: var(--red); }
+.graph-legend .lg-cur { background: var(--gold); }
+.graph-legend .lg-ok { background: var(--green-2); }
+.graph-legend .lg-edge { width: 18px; height: 0; border-top: 2px solid rgba(107, 74, 56, 0.5); }
+.graph-legend .lg-hot { border-top: 4px solid var(--red); }
+.graph-legend .lg-res { border-top: 4px solid var(--green-2); }
+.graph-legend .lg-gone { border-top: 2px dashed #9a8a80; }
+.graph-legend .lg-map { border-top: 2px dashed #d69600; }
 
 @media (max-width: 920px) {
-  body { overflow: auto; }
   .app-container {
     width: min(100vw - 22px, 720px);
     height: auto;
@@ -438,4 +449,55 @@ body {
   .graph-canvas { min-height: 300px; }
   .mission-card { grid-template-columns: 1fr; }
   .step-btns { grid-template-columns: 1fr 1fr; }
+
+  /* 手机/窄屏：压缩左栏说明，让舞台更早出现（桌面布局不受影响） */
+  .side-panel,
+  .app-container:has(> aside.side-panel) > aside.side-panel { padding: 14px; gap: 8px; }
+  .side-panel > .eyebrow { margin-bottom: 6px; }
+  .side-panel > h1 { font-size: 1.75rem; margin-bottom: 2px; }
+  .side-panel > .subtitle { font-size: 14px; margin-bottom: 4px; }
+  .side-panel > .tier-line { margin-bottom: 6px; }
+  .side-panel > .intro { margin-bottom: 10px; font-size: 14px; line-height: 1.6; }
+  .side-panel > #controls { order: 6; }
+  .side-panel > #dm-ideo-page,
+  .side-panel > .value-panel { order: 7; margin: 12px 0 0; padding: 10px 12px; }
+  .value-panel h3 { font-size: 15px; margin-bottom: 4px; }
+  .value-panel p { font-size: 13px; line-height: 1.6; }
+  .dim-list { margin-top: 6px; }
+  /* 步骤清单改为一行可横向滑动的“步骤条” */
+  .step-list {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+  .step-item {
+    flex: 0 0 auto;
+    width: auto;
+    min-height: 40px;
+    grid-template-columns: 22px auto;
+    gap: 6px;
+    padding: 6px 10px;
+    border-color: rgba(116, 55, 31, 0.14);
+    background: rgba(255, 255, 255, 0.6);
+    white-space: nowrap;
+  }
+  .step-item .num { width: 22px; height: 22px; }
+  .glass-pane { padding: 12px; gap: 10px; }
+  .mission-card { padding: 10px 12px; gap: 6px; font-size: 14px; }
+  .visual-badge { justify-self: start; }
+  .graph-legend { top: 6px; right: 6px; border-radius: 10px; font-size: 11px; padding: 4px 8px; }
+  .canvas-hint { display: none; }
+  .step-card { padding: 12px; }
+  .formula-line { font-size: 14.5px; }
+  .step-status { flex-direction: column; gap: 6px; }
+}
+/* ==== 公共段结束：单元专属样式请写在此行之后 ==== */
+
+/* ---- 7.3 专属：窄屏时两图上下排布，画布加高 ---- */
+@media (max-width: 600px) {
+  .graph-canvas { min-height: 560px; }
+  .graph-legend { top: auto; bottom: 6px; }
 }

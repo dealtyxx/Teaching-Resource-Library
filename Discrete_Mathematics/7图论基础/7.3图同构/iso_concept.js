@@ -188,13 +188,14 @@
           pair: "square", showMap: true,
           gEdges: [[0, 1], [1, 2], [2, 3], [3, 0], [0, 2]], hEdges: [[0, 2], [2, 1], [1, 3], [3, 0], [0, 1]],
           formula: '<span class="ft hot">5 / 5</span> 条边全部保持相邻 ✓',
-          badge: "5/5 ✓", tone: "", viz: "mapcheck",
-          text: "把 G 的每条边都映射过去检查：5 条边全部落在 H 的边上，一条不多、一条不少。"
+          badge: "5/5 ✓", tone: "", viz: "mapcheck", good: true,
+          text: "把 G 的每条边都映射过去检查：5 条边全部落在 H 的边上。两图边数相同，而 f 是双射，所以这 5 条像恰好就是 H 的全部 5 条边——<b>一条不多、一条不少</b>，反方向也保持相邻。"
         },
         {
           name: "结论：同构",
-          pair: "square", showMap: true,
+          pair: "square", showMap: true, good: true, rel: "≅",
           gNodes: [0, 1, 2, 3], hNodes: [0, 1, 2, 3],
+          gEdges: [[0, 1], [1, 2], [2, 3], [3, 0], [0, 2]], hEdges: [[0, 2], [2, 1], [1, 3], [3, 0], [0, 1]],
           formula: '<span class="ft hot-green hot">G ≅ H</span>：存在保相邻的双射',
           badge: "同构", tone: "",
           text: "存在这样一个<b>保相邻的双射</b>，就说 G 与 H <b>同构</b>——画法不同，<b>本质相同</b>。这正是“透过现象看本质”。"
@@ -224,7 +225,7 @@
         {
           name: "构造映射 f(vᵢ)=w₂ᵢ",
           pair: "penta", showMap: true,
-          formula: 'f(v_i) = <span class="ft hot">w_(2i mod 5)</span>：v₀→w₀, v₁→w₂, v₂→w₄, v₃→w₁, v₄→w₃',
+          formula: 'f(v<sub>i</sub>) = <span class="ft hot">w<sub>2i mod 5</sub></span>：v₀→w₀, v₁→w₂, v₂→w₄, v₃→w₁, v₄→w₃',
           badge: "隔位映射", tone: "",
           text: "妙招：把 vᵢ 映到 w₂ᵢ（下标模 5）。五边形的“相邻”经过<b>乘 2</b> 变成五角星的“隔位相连”——金色虚线就是这个双射。"
         },
@@ -233,7 +234,7 @@
           pair: "penta", showMap: true,
           gEdges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 0]], hEdges: [[0, 2], [2, 4], [4, 1], [1, 3], [3, 0]],
           formula: '{vᵢ, vᵢ₊₁} ↦ {w₂ᵢ, w₂ᵢ₊₂}：<span class="ft hot">5/5 保持</span> ⇒ <span class="ft hot-green hot">C₅ ≅ 五角星</span>',
-          badge: "同构 ✓", tone: "", viz: "mapcheck",
+          badge: "同构 ✓", tone: "", viz: "mapcheck", good: true, rel: "≅",
           text: "每条五边形的边都映到一条五角星的边。<b>五角星就是 C₅ 换个画法</b>——结构不变量（全 2 度、一个 5 圈）完全一致。"
         },
         {
@@ -246,7 +247,7 @@
         {
           name: "不变量②：连通性",
           pair: "noniso",
-          gNodes: [0, 1, 2, 3, 4, 5], hNodes: [0, 1, 2],
+          gNodes: [0, 1, 2, 3, 4, 5], hNodes: [0, 1, 2], rel: "≇", viz: "invariants",
           formula: '连通分量：G = <span class="ft hot-green hot">1</span>，H = <span class="ft hot">2</span>  ⇒  G ≇ H',
           badge: "非同构", tone: "red",
           text: "C₆ 是一整块，2C₃ 分成两块——<b>连通分量数是同构不变量</b>，不同即可宣判非同构。圈长也是：G 有 6-圈，H 只有 3-圈。"
@@ -255,15 +256,15 @@
           name: "判别流程",
           pair: "noniso",
           formula: '不变量不同 ⇒ <span class="ft hot">必不同构</span>；不变量全同 ⇒ 仍需<span class="ft hot-blue hot">构造双射</span>',
-          badge: "方法论", tone: "blue", viz: "checklist",
+          badge: "方法论", tone: "blue", viz: "checklist", rel: "≇",
           text: "记住不对称性：<b>不变量只能否定，不能肯定</b>。排除靠不变量（快），证明靠构造（慢）。这就是“大胆假设、小心求证”。"
         },
         {
           name: "同构判定有多难",
-          pair: "penta", showMap: true,
-          formula: '图同构 GI：<span class="ft hot">未知多项式算法</span>，也未证 NP-完全（Babai 2016：拟多项式）',
+          pair: "penta", showMap: true, rel: "≅",
+          formula: '图同构 GI：<span class="ft hot">至今未知多项式算法</span>，也未被证明是 NP-完全',
           badge: "GI 问题", tone: "gold",
-          text: "一般图的同构判定至今没有多项式算法，但也不像 NP-完全问题那样“看似无望”——它卡在 P 与 NP-完全之间，是复杂性理论的著名悬案。"
+          text: "n 个顶点的双射有 n! 个，逐一试验不可行。一般图的同构判定至今<b>既没有已知的多项式算法，也没有被证明是 NP-完全</b>；Babai 于 2015 年提出了拟多项式时间算法。它是复杂性理论中著名的悬而未决问题。"
         }
       ]
     },
@@ -285,46 +286,46 @@
           pair: "butane",
           gNodes: [1, 2], hNodes: [0],
           formula: '度序列：P₄=<span class="ft hot-green hot">(2,2,1,1)</span> ≠ K₁,₃=<span class="ft hot">(3,1,1,1)</span> ⇒ 不同构',
-          badge: "异构体", tone: "red", viz: "invariants",
-          text: "链上中间碳的度是 2，星形中心碳的度是 3——<b>度序列不同 ⇒ 图不同构 ⇒ 是两种物质</b>（沸点差 11℃！）。同式不同构，即“同分异构体”。"
+          badge: "异构体", tone: "red", viz: "invariants", rel: "≇",
+          text: "链上中间碳的度是 2，星形中心碳的度是 3——<b>度序列不同 ⇒ 图不同构 ⇒ 是两种物质</b>（两者沸点相差约 11 ℃）。同式不同构，即“同分异构体”。"
         },
         {
           name: "化学信息学",
           pair: "butane",
           formula: '“是否同一分子” = <span class="ft hot">图同构判定</span> ⇒ 规范编码 (canonical SMILES)',
-          badge: "去重", tone: "blue",
-          text: "化学数据库上亿分子如何去重？给每个分子图算一个<b>规范编码</b>——同构的图编码必相同。PubChem、ChemDraw 每天都在做图同构。"
+          badge: "去重", tone: "blue", rel: "≇",
+          text: "化学数据库里海量分子如何去重？给每个分子图算一个<b>规范编码</b>（规范标号）——同构的图编码必相同、不同构的图编码必不同。这正是图同构思想在化学信息学中的日常应用。"
         },
         {
           name: "子图同构：找模式",
           pair: "pattern",
           gNodes: [0, 1, 2], gEdges: [[0, 1], [1, 2], [2, 0]],
-          hNodes: [1, 3, 6], hEdges: [[1, 6], [3, 6], [1, 3]],
-          formula: '在大图 H 中寻找与模式 P <span class="ft hot">同构的子图</span> ⇒ 命中 {b, d, g}',
-          badge: "命中", tone: "",
-          text: "升级问题：不是问“两图是否相同”，而是<b>在大图里找一块与模式同构的子图</b>。红色高亮就是在网络数据中定位到的三角形。"
+          hNodes: [1, 2, 3, 6], hEdges: [[1, 6], [3, 6], [1, 3], [1, 2], [2, 3]], rel: "↪",
+          formula: '在大图 H 中寻找与模式 P <span class="ft hot">同构的子图</span> ⇒ 命中 2 处：{b, d, g}、{b, c, d}',
+          badge: "命中 2 处", tone: "",
+          text: "升级问题：不是问“两图是否相同”，而是<b>在大图里找与模式同构的子图</b>。逐个检查三点组，共找到 2 个三角形 {b,d,g} 与 {b,c,d}，它们共用边 b–d（红色高亮）。"
         },
         {
           name: "NP-完全的边界",
           pair: "pattern",
-          formula: '<span class="ft hot">子图同构 ∈ NP-完全</span>；而整图同构 GI 介于 P 与 NPC 之间',
-          badge: "复杂性", tone: "red",
-          text: "找子图比对整图<b>难得多</b>：子图同构已被证明 NP-完全，大图上只能靠剪枝（VF2 算法）、索引与启发式。工程上要学会“与指数复杂度共处”。"
+          formula: '<span class="ft hot">子图同构是 NP-完全问题</span>；整图同构 GI 的复杂度至今悬而未决',
+          badge: "复杂性", tone: "red", rel: "↪",
+          text: "一般形式的子图同构问题已被证明是 <b>NP-完全</b>的（它包含“找最大团”“找哈密顿圈”等难题）；大图上只能靠剪枝搜索（如 VF2 算法）、索引与启发式。工程上要学会“与指数复杂度共处”。"
         },
         {
           name: "反欺诈：环形转账",
           pair: "fraud",
           gNodes: [0, 1, 2, 3], gEdges: [[0, 1], [1, 2], [2, 3], [3, 0]],
-          hNodes: [7, 4, 5], hEdges: [[7, 4], [4, 5], [5, 7]],
-          formula: '在交易网中匹配<span class="ft hot">环形模式</span> ⇒ 命中 辛→戊→己→辛（资金空转）',
+          hNodes: [1, 2, 3, 7], hEdges: [[1, 2], [2, 3], [3, 7], [7, 1]], rel: "↪",
+          formula: '在交易网中匹配<span class="ft hot">有向 4-圈模式</span> ⇒ 命中 乙→丙→丁→辛→乙（资金空转）',
           badge: "风控命中", tone: "red",
-          text: "反洗钱系统把账户当顶点、转账当有向边，用<b>子图同构在亿级交易网中匹配“环形转账”模式</b>——红色的资金闭环就是可疑信号。"
+          text: "风控系统把账户当顶点、转账当有向边，用<b>子图匹配在交易网中查找“环形转账”模式</b>——红色的资金闭环就是可疑信号。注意：图中还有 3-圈 辛→戊→己→辛，它与 4-圈模式不同构，要用 3-圈模式才能命中。"
         },
         {
           name: "迁移总结",
           pair: "fraud",
           formula: '<span class="ft hot">分子识别 · 指纹比对 · 反欺诈</span> —— 同构 = 结构层面的“相同”',
-          badge: "transfer", tone: "gold", viz: "transferlist",
+          badge: "transfer", tone: "gold", viz: "transferlist", rel: "↪",
           text: "同构思想贯穿三类工程：化学结构检索、生物指纹/电路验证、金融风控模式匹配。<b>抓住结构不变量，就是在复杂世界中抓住本质。</b>"
         }
       ]
@@ -352,6 +353,12 @@
   let step = 0;
   let playTimer = null;
   const R = 17;
+  // 全章统一配色：普通顶点=主红白字，当前/关注=金，已确认=绿；普通边=淡褐灰细线，高亮边=主红加粗，确认边=绿加粗
+  const C = {
+    node: "#d63b1d", cur: "#ffb400", ok: "#1f9d55", dimNode: "#eed8cc",
+    edge: "rgba(107,74,56,0.5)", edgeDim: "rgba(107,74,56,0.16)", edgeHot: "#d63b1d", edgeOk: "#1f9d55",
+    text: "#fff", curText: "#2c1810", dimText: "#9a7a6a", ring: "#fff8ec", map: "rgba(214,150,0,0.85)"
+  };
 
   function esc(v) {
     return String(v == null ? "" : v).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch]));
@@ -364,17 +371,24 @@
   function resize() {
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
-    const w = Math.max(360, Math.floor(rect.width));
+    const w = Math.max(240, Math.floor(rect.width));  // 不强行放大到 360，否则窄屏上画布被 CSS 横向压缩、文字变形
     const h = Math.max(300, Math.floor(rect.height));
     canvas.width = Math.floor(w * dpr);
     canvas.height = Math.floor(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     return { w, h };
   }
+  // 窄屏（手机）改为上下排布：G 在上、H 在下，避免左右两图挤在一起
+  function stacked(size) { return size.w < 560; }
   function sidePos(side, which, size) {
+    if (stacked(size)) {
+      const top = which === "g" ? 58 : size.h / 2 + 22;
+      const hh = size.h / 2 - 96;
+      return side.nodes.map(nd => ({ x: (0.1 + nd.x * 0.8) * size.w, y: top + nd.y * hh }));
+    }
     const x0 = which === "g" ? 0.04 : 0.56;
     const regW = 0.40;
-    const padTop = 34, padBot = 56;
+    const padTop = 50, padBot = 84;  // 顶部留给图例，底部留给图注与提示条
     return side.nodes.map(nd => ({
       x: (x0 + nd.x * regW) * size.w,
       y: padTop + nd.y * (size.h - padTop - padBot)
@@ -393,12 +407,12 @@
     ctx.fillStyle = color;
     ctx.fill();
   }
-  function drawSide(side, P, hlNodes, hlEdges, anyHl) {
+  function drawSide(side, P, hlNodes, hlEdges, anyHl, good) {
     const directed = !!side.directed;
     side.edges.forEach(e => {
       const hot = edgeIn(hlEdges, e);
       const dim = anyHl && !hot;
-      const color = hot ? "#d63b1d" : dim ? "rgba(47,95,159,0.2)" : "rgba(47,95,159,0.62)";
+      const color = hot ? (good ? C.edgeOk : C.edgeHot) : dim ? C.edgeDim : C.edge;
       ctx.strokeStyle = color;
       ctx.lineWidth = hot ? 4 : 2.2;
       const a = P[e[0]], b = P[e[1]];
@@ -413,12 +427,12 @@
       const dim = anyHl && !hot;
       ctx.beginPath();
       ctx.arc(p.x, p.y, hot ? R + 2 : R, 0, Math.PI * 2);
-      ctx.fillStyle = hot ? "#d63b1d" : dim ? "#cdbfae" : "#2f7d57";
+      ctx.fillStyle = hot ? (good ? C.ok : C.cur) : dim ? C.dimNode : C.node;
       ctx.fill();
-      ctx.strokeStyle = "#fff8ec";
+      ctx.strokeStyle = C.ring;
       ctx.lineWidth = 3;
       ctx.stroke();
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = hot ? (good ? C.text : C.curText) : dim ? C.dimText : C.text;
       ctx.font = "800 12px 'JetBrains Mono', 'Noto Serif SC', monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -440,28 +454,37 @@
     if (st.showMap && pair.map) {
       const idxs = Array.isArray(st.showMap) ? st.showMap : pair.map.map((_, i) => i);
       ctx.setLineDash([6, 6]);
-      ctx.strokeStyle = "rgba(197,138,31,0.65)";
+      ctx.strokeStyle = C.map;
       ctx.lineWidth = 2;
       idxs.forEach(i => {
         const a = Pg[i], b = Ph[pair.map[i]];
-        ctx.beginPath(); ctx.moveTo(a.x + R, a.y); ctx.lineTo(b.x - R, b.y); ctx.stroke();
+        const ang = Math.atan2(b.y - a.y, b.x - a.x);
+        ctx.beginPath(); ctx.moveTo(a.x + Math.cos(ang) * R, a.y + Math.sin(ang) * R); ctx.lineTo(b.x - Math.cos(ang) * R, b.y - Math.sin(ang) * R); ctx.stroke();
       });
       ctx.setLineDash([]);
     }
 
-    drawSide(pair.g, Pg, st.gNodes, st.gEdges, anyHl);
-    drawSide(pair.h, Ph, st.hNodes, st.hEdges, anyHl);
+    drawSide(pair.g, Pg, st.gNodes, st.gEdges, anyHl, !!st.good);
+    drawSide(pair.h, Ph, st.hNodes, st.hEdges, anyHl, !!st.good);
 
-    // 中缝符号 + 两侧图注
-    ctx.fillStyle = "#d63b1d";
+    // 中缝符号（随结论变化：≅? 待判 / ≅ 同构 / ≇ 不同构 / ↪ 子图匹配）+ 两侧图注
+    const rel = st.rel || "≅?";
+    ctx.fillStyle = rel === "≅" ? C.ok : rel === "≇" ? "#c0392b" : "#d63b1d";
     ctx.font = "800 26px 'JetBrains Mono', Consolas, monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("≅?", size.w * 0.5, size.h * 0.42);
+    const st2 = stacked(size);
+    ctx.fillText(rel, st2 ? size.w * 0.92 : size.w * 0.5, st2 ? size.h * 0.5 : size.h * 0.42);
     ctx.fillStyle = "#6b4a38";
     ctx.font = "700 13px 'Noto Serif SC', 'Microsoft YaHei', serif";
-    ctx.fillText(pair.g.caption, size.w * 0.24, size.h - 22);
-    ctx.fillText(pair.h.caption, size.w * 0.76, size.h - 22);
+    if (st2) {
+      ctx.textAlign = "left";
+      ctx.fillText(pair.g.caption, 12, 30);
+      ctx.fillText(pair.h.caption, 12, size.h / 2 + 4);
+    } else {
+      ctx.fillText(pair.g.caption, size.w * 0.24, size.h - 56);
+      ctx.fillText(pair.h.caption, size.w * 0.76, size.h - 56);
+    }
   }
 
   /* ---- 辅助可视化 ---- */
@@ -562,7 +585,7 @@
   /* ---- 构建控件 ---- */
   function buildControls() {
     const listItems = level.steps.map((s, i) =>
-      '<div class="step-item" data-i="' + i + '"><span class="num">' + (i + 1) + '</span><span>' + esc(s.name) + '</span></div>'
+      '<button type="button" class="step-item" data-i="' + i + '"><span class="num">' + (i + 1) + '</span><span>' + esc(s.name) + '</span></button>'
     ).join("");
     controls.innerHTML =
       '<div class="step-controller">' +
@@ -586,7 +609,20 @@
     });
   }
 
+  function buildLegend() {
+    const board = canvas.parentNode;
+    if (!board || board.querySelector(".graph-legend")) return;
+    const lg = document.createElement("div");
+    lg.className = "graph-legend";
+    lg.setAttribute("aria-hidden", "true");
+    lg.innerHTML = '<span><i class="lg-node"></i>顶点</span><span><i class="lg-node lg-cur"></i>本步关注</span>' +
+      '<span><i class="lg-node lg-ok"></i>已验证</span><span><i class="lg-edge lg-hot"></i>高亮边</span>' +
+      (level.steps.some(st => st.showMap) ? '<span><i class="lg-edge lg-map"></i>映射 f</span>' : '');
+    board.appendChild(lg);
+  }
+
   buildControls();
+  buildLegend();
   renderStep();
   window.addEventListener("resize", draw);
 })();
