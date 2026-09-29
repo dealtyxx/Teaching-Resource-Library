@@ -7,19 +7,22 @@
  *   完成后可点击任意词块 / 原子公式 / 树叶，跨视图联动高亮对应关系。
  *
  * 难度梯度：
- *   基础层：一元谓词，∀x(P→Q) / ∃x(P∧Q)，综合 1 步，2 层树，精简图例。
+ *   基础层：个体常项 + 一元谓词、特性谓词，∀x(P→Q) / ∃x(P∧Q)，综合 1 步，2 层树，精简图例。
  *   进阶层：含否定等价、二元关系与辖域，综合 3 步，完整图例。
  *   拓展层：知识库 / 数据库映射（EXISTS / NOT EXISTS / ALL 约束、外键、本体树），综合 3~4 步。
  * ===================================================================== */
 (function (global) {
   "use strict";
 
-  /* ---------- 词类（个体词/谓词/量词/联结词） ---------- */
+  /* ---------- 词类（量词/个体词/谓词/联结词/特性谓词）
+   * 『君子』『学子』这类名词在全总个体域下不是个体词，而是限定个体范围的特性谓词 M(x)：
+   * 全称量词配 →：∀x(M(x)→P(x))；存在量词配 ∧：∃x(M(x)∧P(x))。 ---------- */
   var CATS = {
     quant: { name: "量词", color: "#d63b1d" },
     ind:   { name: "个体词", color: "#2f5f9f" },
     pred:  { name: "谓词", color: "#c58a1f" },
-    conn:  { name: "联结词", color: "#2f7d57" }
+    conn:  { name: "联结词", color: "#2f7d57" },
+    kind:  { name: "特性谓词", color: "#7a4a2e" }
   };
 
   /* 工具：把含 (x,y) 的语句段拆给 seg 用 */
@@ -29,26 +32,39 @@
   var LEVELS = {
     /* ================= 基础层 ================= */
     basic: {
-      introStatus: "选择一句判断，点击「下一步」逐词识别量词、个体词与谓词，拼出 ∀/∃ 公式。",
+      introStatus: "选择一句判断，点击「下一步」逐词识别个体词、谓词、量词与特性谓词，拼出谓词公式。",
       legend: [
+        ["孔子", "个体常项 · 确定的个体"],
+        ["P(x)", "谓词 · 刻画性质"],
+        ["M(x)", "特性谓词 · 限定个体范围"],
         ["∀x", "全称量词 · 所有个体"],
         ["∃x", "存在量词 · 存在个体"],
-        ["P(x)", "谓词 · 描述性质"],
-        ["→", "蕴含 · 若…则…"],
-        ["∧", "合取 · 并且"]
+        ["→ / ∧", "∀ 配蕴含 · ∃ 配合取"]
       ],
       treeGroups: [
         { cat: "quant", label: "量词", color: "#d63b1d" },
         { cat: "ind", label: "个体词", color: "#2f5f9f" },
+        { cat: "kind", label: "特性谓词", color: "#7a4a2e" },
         { cat: "pred", label: "谓词", color: "#c58a1f" },
         { cat: "conn", label: "联结词", color: "#2f7d57" }
       ],
       sentences: [
         {
+          label: "孔子是思想家",
+          tokens: [
+            { t: "孔子", c: "ind", sym: "孔子", note: "个体常项：论域中一个确定的个体（也可记作 a）。" },
+            { t: "是思想家", c: "pred", sym: "思想家(x)", note: "一元谓词：刻画个体 x 具有『是思想家』这一性质。" }
+          ],
+          synthesis: [
+            { label: "整句符号化", segs: [seg("思想家(", 1), seg("孔子", 0), seg(")", 1)],
+              note: "读法：孔子具有『是思想家』的性质。谓词作用于个体常项，得到一个命题，无需量词。" }
+          ]
+        },
+        {
           label: "所有君子都讲诚信",
           tokens: [
             { t: "所有", c: "quant", sym: "∀x", note: "全称量词：论域里每个个体都要满足后件。" },
-            { t: "君子", c: "ind", sym: "君子(x)", note: "个体词→主词谓词：x 是君子（前提条件）。" },
+            { t: "君子", c: "kind", sym: "君子(x)", note: "特性谓词：x 是君子——把全总个体域中的 x 限定为君子，作蕴含的前件。" },
             { t: "都", c: "conn", sym: "→", note: "系词『都』对应蕴含 →：是君子，则……" },
             { t: "讲诚信", c: "pred", sym: "讲诚信(x)", note: "谓词：x 讲诚信（结论性质）。" }
           ],
@@ -61,7 +77,7 @@
           label: "有些学子热爱经典",
           tokens: [
             { t: "有些", c: "quant", sym: "∃x", note: "存在量词：论域中至少存在一个个体满足。" },
-            { t: "学子", c: "ind", sym: "学子(x)", note: "个体词：x 是学子。" },
+            { t: "学子", c: "kind", sym: "学子(x)", note: "特性谓词：x 是学子——限定个体范围，与后面的性质用合取 ∧ 连接。" },
             { t: "热爱经典", c: "pred", sym: "热爱经典(x)", note: "谓词：x 热爱经典。" }
           ],
           synthesis: [
@@ -72,8 +88,8 @@
         {
           label: "并非所有观点都正确",
           tokens: [
-            { t: "并非所有", c: "quant", sym: "¬∀x", note: "受限全称的否定：不是每个个体都满足。" },
-            { t: "观点", c: "ind", sym: "观点(x)", note: "个体词：x 是观点。" },
+            { t: "并非所有", c: "quant", sym: "¬∀x", note: "对全称判断整体否定：并不是每个个体都满足。" },
+            { t: "观点", c: "kind", sym: "观点(x)", note: "特性谓词：x 是观点。" },
             { t: "都", c: "conn", sym: "→", note: "原句的蕴含结构。" },
             { t: "正确", c: "pred", sym: "正确(x)", note: "谓词：x 正确。" }
           ],
@@ -100,7 +116,7 @@
       ],
       treeGroups: [
         { cat: "quant", label: "量词", color: "#d63b1d" },
-        { cat: "ind", label: "个体词", color: "#2f5f9f" },
+        { cat: "kind", label: "特性谓词", color: "#7a4a2e" },
         { cat: "pred", label: "谓词", color: "#c58a1f" },
         { cat: "conn", label: "联结词", color: "#2f7d57" }
       ],
@@ -109,7 +125,7 @@
           label: "所有爱国者都努力奋斗",
           tokens: [
             { t: "所有", c: "quant", sym: "∀x", note: "全称量词，主导整句辖域。" },
-            { t: "爱国者", c: "ind", sym: "爱国者(x)", note: "个体词→前件谓词。" },
+            { t: "爱国者", c: "kind", sym: "爱国者(x)", note: "特性谓词：限定 x 为爱国者，作蕴含前件。" },
             { t: "都", c: "conn", sym: "→", note: "『都』把前件与后件用蕴含连接。" },
             { t: "努力奋斗", c: "pred", sym: "奋斗(x)", note: "后件谓词。" }
           ],
@@ -124,7 +140,7 @@
           label: "有些科学家既严谨又创新",
           tokens: [
             { t: "有些", c: "quant", sym: "∃x", note: "存在量词。" },
-            { t: "科学家", c: "ind", sym: "科学家(x)", note: "个体词。" },
+            { t: "科学家", c: "kind", sym: "科学家(x)", note: "特性谓词：限定 x 为科学家，与性质用 ∧ 连接。" },
             { t: "既严谨", c: "pred", sym: "严谨(x)", note: "谓词一。" },
             { t: "又创新", c: "pred", sym: "创新(x)", note: "谓词二，与谓词一并列。" }
           ],
@@ -139,7 +155,7 @@
           label: "并非所有传言都可信",
           tokens: [
             { t: "并非所有", c: "quant", sym: "¬∀x", note: "对全称命题整体否定。" },
-            { t: "传言", c: "ind", sym: "传言(x)", note: "个体词。" },
+            { t: "传言", c: "kind", sym: "传言(x)", note: "特性谓词：限定 x 为传言。" },
             { t: "都", c: "conn", sym: "→", note: "原句蕴含结构。" },
             { t: "可信", c: "pred", sym: "可信(x)", note: "谓词。" }
           ],
@@ -154,10 +170,10 @@
           label: "每位老师都教过一些学生",
           tokens: [
             { t: "每位", c: "quant", sym: "∀x", note: "全称量词，约束老师 x。" },
-            { t: "老师", c: "ind", sym: "老师(x)", note: "个体词 x。" },
+            { t: "老师", c: "kind", sym: "老师(x)", note: "特性谓词：限定 x 为老师。" },
             { t: "教过", c: "pred", sym: "教(x,y)", note: "二元关系谓词，连接 x 与 y。" },
             { t: "一些", c: "quant", sym: "∃y", note: "存在量词，约束学生 y。" },
-            { t: "学生", c: "ind", sym: "学生(y)", note: "个体词 y。" }
+            { t: "学生", c: "kind", sym: "学生(y)", note: "特性谓词：限定 y 为学生，在 ∃y 的辖域内用 ∧ 连接。" }
           ],
           synthesis: [
             { label: "① 量词骨架", text: "∀x( 老师(x) → ∃y( ▢ ∧ ▢ ) )", note: "先全称后存在：每位老师各自对应一些学生。" },
@@ -183,7 +199,7 @@
         ["NOT EXISTS", "全称约束（无反例）"]
       ],
       treeGroups: [
-        { cat: "ind", label: "概念 Class", color: "#2f5f9f" },
+        { cat: "kind", label: "概念 Class", color: "#7a4a2e" },
         { cat: "pred", label: "关系 / 属性", color: "#c58a1f" },
         { cat: "quant", label: "量化约束", color: "#d63b1d" },
         { cat: "conn", label: "逻辑联结", color: "#2f7d57" }
@@ -193,7 +209,7 @@
           label: "所有重点文物都须有责任人",
           tokens: [
             { t: "所有", c: "quant", sym: "∀x", note: "全称约束：覆盖知识库中每条记录。" },
-            { t: "重点文物", c: "ind", sym: "重点文物(x)", note: "概念/个体：x 属于『重点文物』类。" },
+            { t: "重点文物", c: "kind", sym: "重点文物(x)", note: "概念（类）：x 属于『重点文物』类，对应表中的一类记录。" },
             { t: "须有", c: "conn", sym: "→∃y", note: "规则蕴含 + 存在：必须存在某个 y。" },
             { t: "责任人", c: "pred", sym: "责任(y,x)", note: "二元关系：y 是 x 的责任人。" }
           ],
@@ -210,7 +226,7 @@
           label: "存在一条记录尚未审核",
           tokens: [
             { t: "存在", c: "quant", sym: "∃x", note: "存在量化查询：是否有满足条件的记录。" },
-            { t: "记录", c: "ind", sym: "记录(x)", note: "个体：x 是一条记录。" },
+            { t: "记录", c: "kind", sym: "记录(x)", note: "概念（类）：x 是一条记录。" },
             { t: "尚未审核", c: "pred", sym: "¬审核(x)", note: "谓词的否定：x 未通过审核。" }
           ],
           synthesis: [
@@ -224,7 +240,7 @@
           label: "任何用户都不得越权访问",
           tokens: [
             { t: "任何", c: "quant", sym: "∀x", note: "全称约束：覆盖所有用户。" },
-            { t: "用户", c: "ind", sym: "用户(x)", note: "个体：x 是用户。" },
+            { t: "用户", c: "kind", sym: "用户(x)", note: "概念（类）：x 是用户。" },
             { t: "都不得", c: "conn", sym: "→¬", note: "蕴含 + 否定：是用户则不得……" },
             { t: "越权访问", c: "pred", sym: "越权(x)", note: "谓词：x 发生越权访问。" }
           ],
@@ -239,7 +255,7 @@
           label: "每个项目至少有一个负责人",
           tokens: [
             { t: "每个", c: "quant", sym: "∀x", note: "全称：覆盖所有项目。" },
-            { t: "项目", c: "ind", sym: "项目(x)", note: "个体 x。" },
+            { t: "项目", c: "kind", sym: "项目(x)", note: "概念（类）：x 是项目。" },
             { t: "至少有一个", c: "quant", sym: "∃y", note: "存在量词：至少一名。" },
             { t: "负责人", c: "pred", sym: "负责(y,x)", note: "二元关系：y 负责 x。" }
           ],
@@ -322,8 +338,10 @@
             '<button class="sym-step-btn" id="symPrev">◀ 上一步</button>' +
             '<button class="sym-step-btn sym-primary" id="symNext">下一步 ▶</button>' +
             '<button class="sym-step-btn" id="symAuto">⏵ 自动播放</button>' +
-            '<button class="sym-step-btn" id="symReset">↺ 重置</button>' +
-          '</div></div>' +
+            '<button class="sym-step-btn sym-ghost" id="symReset">↺ 重置</button>' +
+          '</div>' +
+          '<div class="sym-speed"><span>慢</span><input type="range" id="symSpeed" min="1" max="100" value="55" aria-label="自动播放速度"><span>快</span></div>' +
+        '</div>' +
         '<div class="control-group"><label><span>进度</span></label>' +
           '<div class="sym-progress-wrap"><div class="sym-progress"><i id="symProgBar"></i></div>' +
           '<span class="sym-progress-num" id="symProgNum">0 / 0</span></div></div>' +
@@ -342,7 +360,9 @@
       nextBtn.addEventListener("click", function () { stopAuto(); step(1); });
       byId("symReset").addEventListener("click", function () { stopAuto(); p = 0; manualFocus = null; render(); });
       autoBtn.addEventListener("click", toggleAuto);
+      byId("symSpeed").addEventListener("input", function () { if (autoTimer) { stopAuto(); toggleAuto(); } });
     }
+    function autoDelay() { var sp = byId("symSpeed"); return Math.max(280, 1500 - Number(sp ? sp.value : 55) * 12); }
 
     function renderLegend() {
       var box = byId("legendPanel");
@@ -536,7 +556,7 @@
       autoTimer = setInterval(function () {
         if (p >= total()) { stopAuto(); return; }
         manualFocus = null; p += 1; render();
-      }, 950);
+      }, autoDelay());
     }
     function stopAuto() {
       if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
