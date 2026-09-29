@@ -28,6 +28,7 @@ let huffmanCodes = new Map();
 let frequencyMap = new Map();
 let text = '';
 let isBuilding = false;
+let instant = false; // 首次加载时直接画出示例树，不播放动画
 
 // Constants
 const NODE_RADIUS = 30;
@@ -65,6 +66,7 @@ function createSVGElement(type, attributes = {}) {
 }
 
 function sleep(ms) {
+    if (instant) return Promise.resolve();
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -98,7 +100,7 @@ async function buildHuffmanTree() {
     }
 
     if (!text) {
-        statusText.textContent = '请输入文本!';
+        statusText.textContent = '请输入要编码的文本。';
         isBuilding = false;
         buildBtn.disabled = false;
         return;
@@ -108,13 +110,13 @@ async function buildHuffmanTree() {
     frequencyMap = buildFrequencyMap(text);
 
     if (frequencyMap.size === 0) {
-        statusText.textContent = '文本为空!';
+        statusText.textContent = '文本为空。';
         isBuilding = false;
         buildBtn.disabled = false;
         return;
     }
 
-    statusText.textContent = '正在构建哈夫曼树...';
+    statusText.textContent = '正在统计字符频率……';
 
     // Create priority queue (min-heap)
     const queue = [];
@@ -125,7 +127,7 @@ async function buildHuffmanTree() {
     // Sort queue by frequency
     queue.sort((a, b) => a.freq - b.freq);
 
-    statusText.textContent = `字符频率统计完成,共${queue.length}种字符`;
+    statusText.textContent = `频率统计完成：共 ${queue.length} 种字符，放入按权排序的队列`;
     await sleep(getDelay());
 
     // Build tree
@@ -138,26 +140,13 @@ async function buildHuffmanTree() {
         const parent = new HuffmanNode(null, left.freq + right.freq, left, right);
         queue.push(parent);
 
-        statusText.textContent = `合并节点: ${left.freq} + ${right.freq} = ${parent.freq}`;
+        statusText.textContent = `取两个最小权合并：${left.freq} + ${right.freq} = ${parent.freq}`;
         await sleep(getDelay());
     }
 
     huffmanTree = queue[0];
 
-    // Calculate positions with auto-fit
-    const width = svg.clientWidth || 800;
-    const height = svg.clientHeight || 600;
-
-    // Calculate tree depth
-    const depth = getTreeDepth(huffmanTree);
-
-    // Adjust vertical spacing based on depth
-    const levelHeight = depth > 0 ? Math.min(100, (height - 120) / depth) : 100;
-
-    // Adjust horizontal spread based on width
-    const initialSpread = Math.min(width * 0.35, 250);
-
-    calculatePositions(huffmanTree, width / 2, 60, initialSpread, levelHeight);
+    layoutTree();
 
     // Render tree
     renderTree();
@@ -168,7 +157,7 @@ async function buildHuffmanTree() {
     // Update stats
     updateStats();
 
-    statusText.textContent = '哈夫曼树构建完成!';
+    statusText.textContent = `哈夫曼树构建完成：编码总位数 WPL = ${Array.from(frequencyMap).reduce((s, [c, f]) => s + f * huffmanCodes.get(c).length, 0)}。`;
 
     isBuilding = false;
     buildBtn.disabled = false;
@@ -179,6 +168,34 @@ async function buildHuffmanTree() {
 function getTreeDepth(node) {
     if (!node) return 0;
     return 1 + Math.max(getTreeDepth(node.left), getTreeDepth(node.right));
+}
+
+// 按叶子数分配横向空间（叶子多时整体缩放），顶部为图例留出空间
+function layoutTree() {
+    const width = svg.clientWidth || 800;
+    const height = svg.clientHeight || 600;
+    const depth = getTreeDepth(huffmanTree);
+    const top = width > 700 ? 96 : 50;
+    const levelHeight = depth > 1 ? Math.min(100, Math.max(56, (height - top - 50) / (depth - 1))) : 100;
+    let leafIndex = 0;
+    const slot = 72;
+    (function place(node, d) {
+        if (!node) return;
+        if (node.isLeaf()) {
+            node.x = 40 + slot / 2 + slot * leafIndex++;
+        } else {
+            place(node.left, d + 1);
+            place(node.right, d + 1);
+            node.x = (node.left.x + node.right.x) / 2;
+        }
+        node.y = top + d * levelHeight;
+    })(huffmanTree, 0);
+    const neededW = Math.max(width, leafIndex * slot + 80);
+    const neededH = Math.max(height, top + (depth - 1) * levelHeight + 60);
+    const shift = (neededW - (leafIndex * slot + 80)) / 2; // 叶子少时水平居中
+    (function move(node) { if (!node) return; node.x += shift; move(node.left); move(node.right); })(huffmanTree);
+    svg.setAttribute('viewBox', `0 0 ${neededW} ${neededH}`);
+    svg.setAttribute('preserveAspectRatio', 'xMidYMin meet');
 }
 
 // Calculate Tree Positions with dynamic spacing
@@ -360,7 +377,7 @@ function updateStats() {
 // Encode Text
 async function encodeText() {
     if (!huffmanTree) {
-        statusText.textContent = '请先构建哈夫曼树!';
+        statusText.textContent = '请先构建哈夫曼树。';
         return;
     }
 
@@ -369,9 +386,9 @@ async function encodeText() {
         encoded += huffmanCodes.get(char);
     }
 
-    statusText.textContent = `编码完成! 原文: "${text}"`;
+    statusText.textContent = `编码完成：原文“${text}”`;
     await sleep(1000);
-    statusText.textContent = `编码结果: ${encoded.substring(0, 50)}${encoded.length > 50 ? '...' : ''}`;
+    statusText.textContent = `编码结果（${encoded.length} 位）：${encoded.substring(0, 50)}${encoded.length > 50 ? '…' : ''}`;
 }
 
 // Reset
@@ -412,6 +429,8 @@ resetBtn.addEventListener('click', reset);
 
 // Init
 window.addEventListener('load', () => {
-    customText.value = '革命理想高于天';
     encodeBtn.disabled = true;
+    // 加载即展示示例树（不留空白舞台）
+    instant = true;
+    buildHuffmanTree().finally(() => { instant = false; });
 });

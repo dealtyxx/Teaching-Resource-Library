@@ -199,8 +199,10 @@
         const gap = Math.max(18, width * 0.018);
         const totalLeaves = Math.max(1, roots.reduce((acc, root) => acc + countLeaves(root), 0));
         const maxDepth = Math.max(1, ...roots.map(depth));
-        const gapY = Math.min(76, Math.max(30, (height - 62) / Math.max(1, maxDepth - 1)));
-        const startY = Math.max(32, Math.min(54, height * 0.15));
+        // 桌面端图例浮在舞台右上角，顶部留出图例高度，避免遮住首行节点
+        const legendRoom = width > 700 ? 84 : 40;
+        const startY = Math.max(legendRoom, Math.min(96, height * 0.15));
+        const gapY = Math.min(76, Math.max(30, (height - startY - 40) / Math.max(1, maxDepth - 1)));
         const usable = Math.max(160, width - pad * 2 - gap * Math.max(0, roots.length - 1));
         const minSpan = Math.max(58, Math.min(92, usable / Math.max(1, totalLeaves)));
         let cursor = pad;
@@ -209,6 +211,10 @@
             assignPositions(root, cursor, cursor + span, startY, gapY);
             cursor += span + gap;
         });
+        // 叶子多、屏幕窄时整体按比例缩放，避免节点溢出右侧
+        const needed = Math.max(width, cursor - gap + pad);
+        els.svg.setAttribute("viewBox", "0 0 " + needed + " " + (height * needed / width));
+        els.svg.setAttribute("preserveAspectRatio", "xMidYMin meet");
     }
 
     function pathForLabel(node, label, edges) {

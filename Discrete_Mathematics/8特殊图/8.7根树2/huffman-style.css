@@ -601,26 +601,6 @@ body {
     overflow: hidden;
 }
 
-.home-link {
-    position: fixed;
-    top: 14px;
-    left: 14px;
-    z-index: 10000;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    background: rgba(44, 24, 16, 0.82);
-    color: #fff;
-    text-decoration: none;
-    font-size: 13px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-}
-
 .app-container {
     width: min(1440px, calc(100vw - 32px));
     height: calc(100vh - 126px);
@@ -765,23 +745,6 @@ label {
     border-radius: 8px;
     box-shadow: 0 8px 22px rgba(69, 31, 15, 0.08);
     flex-wrap: wrap;
-}
-
-.footer {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 9998;
-    min-height: 72px;
-    padding: 14px 10px;
-    text-align: center;
-    color: inherit;
-    opacity: 0.72;
-    background: transparent;
-    box-shadow: none;
-    font-size: 13px;
-    line-height: 1.7;
 }
 
 /* Basic and extended interactive pages */
@@ -1092,3 +1055,82 @@ body .app-container {
     }
 }
 
+/* ===== 页面布局（取代原 huffman-layout-fix.js 的内联样式注入）=====
+   桌面端：左栏 + 舞台占满一屏（舞台内部分行），页面本身可正常滚动，页脚按共享样式静态排在下方；
+   手机端：单列、舞台保留足够高度，三阶卡不截断。 */
+body {
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+@media (min-width: 981px) {
+    body .app-container {
+        height: calc(100vh - 126px) !important;
+        min-height: 600px !important;
+    }
+    body .app-container > .sidebar {
+        height: 100%;
+        min-height: 0;
+        flex: 0 0 360px;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+    body .app-container:has(> aside.sidebar) > main.visualizer-stage,
+    body .app-container:has(> aside.sidebar) > main.visualizer-stage:has(> #dm-page-layers) {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        grid-template-rows: auto minmax(0, 1fr) !important;
+        gap: 14px !important;
+        height: 100%;
+        min-height: 0;
+        overflow: hidden;
+    }
+    body.tier-page .app-container:has(> aside.sidebar) > main.visualizer-stage,
+    body.tier-page .app-container:has(> aside.sidebar) > main.visualizer-stage:has(> #dm-page-layers) {
+        grid-template-rows: auto minmax(0, 1fr) auto !important;
+    }
+    body .app-container > main.visualizer-stage > .glass-pane {
+        grid-row: 2;
+        min-height: 0;
+        height: 100%;
+    }
+}
+@media (max-width: 980px) {
+    body .app-container,
+    body:has(.app-container) > .app-container {
+        width: calc(100vw - 22px) !important;
+        height: auto !important;
+        min-height: 0 !important;
+        flex-direction: column !important;
+        margin: 60px auto 16px !important;
+    }
+    body .app-container > .sidebar {
+        width: 100% !important;
+        height: auto;
+        max-height: none;
+        flex: none !important;
+        overflow: visible;
+    }
+    body .app-container:has(> aside.sidebar) > main.visualizer-stage,
+    body .app-container:has(> aside.sidebar) > main.visualizer-stage:has(> #dm-page-layers) {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        min-height: 0 !important;
+        height: auto !important;
+        overflow: visible;
+    }
+    body .app-container > main.visualizer-stage > .glass-pane {
+        height: 460px;
+        min-height: 460px;
+        flex: none;
+    }
+    .visualizer-stage > #dm-page-layers.dm-page-layers {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    .tier-page .detail-dock {
+        max-height: none;
+        overflow: visible;
+    }
+}

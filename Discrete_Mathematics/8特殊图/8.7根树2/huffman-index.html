@@ -8,20 +8,20 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
-    <meta property="og:title" content="哈夫曼编码 · 进阶层｜8.7 根树（二）· 哈夫曼编码 - 离散数学课程资源库">
-    <meta property="og:description" content="第8章 特殊图 · 8.7 根树（二）· 哈夫曼编码 · 进阶层：贪心合并 / 前缀码 / 无歧义。构造哈夫曼编码并比较压缩率。">
+    <meta property="og:title" content="哈夫曼编码 · 进阶层｜8.7 根树（二） - 离散数学课程资源库">
+    <meta property="og:description" content="第8章 特殊图 · 8.7 根树（二） · 进阶层：最优前缀码 / 无歧义译码。构造哈夫曼编码并与等长编码比较位数。">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/8%E7%89%B9%E6%AE%8A%E5%9B%BE/8.7%E6%A0%B9%E6%A0%912/huffman-index.html">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="哈夫曼编码 · 进阶层｜8.7 根树（二）· 哈夫曼编码 - 离散数学课程资源库">
-    <meta name="twitter:description" content="第8章 特殊图 · 8.7 根树（二）· 哈夫曼编码 · 进阶层：贪心合并 / 前缀码 / 无歧义。构造哈夫曼编码并比较压缩率。">
+    <meta name="twitter:title" content="哈夫曼编码 · 进阶层｜8.7 根树（二） - 离散数学课程资源库">
+    <meta name="twitter:description" content="第8章 特殊图 · 8.7 根树（二） · 进阶层：最优前缀码 / 无歧义译码。构造哈夫曼编码并与等长编码比较位数。">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>哈夫曼编码 · 进阶层｜8.7 根树（二）· 哈夫曼编码 - 离散数学课程资源库</title>
-    <meta name="description" content="第8章 特殊图 · 8.7 根树（二）· 哈夫曼编码 · 进阶层：贪心合并 / 前缀码 / 无歧义。构造哈夫曼编码并比较压缩率。">
+    <title>哈夫曼编码 · 进阶层｜8.7 根树（二） - 离散数学课程资源库</title>
+    <meta name="description" content="第8章 特殊图 · 8.7 根树（二） · 进阶层：最优前缀码 / 无歧义译码。构造哈夫曼编码并与等长编码比较位数。">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -50,7 +50,7 @@
 
             <div class="controls-wrapper">
                 <div class="control-group">
-                    <label>革命口号</label>
+                    <label>示例文本</label>
                     <select id="messageSelect" class="apple-select">
                         <option value="custom">自定义文本</option>
                         <option value="slogan1">为人民服务</option>
@@ -61,7 +61,7 @@
 
                 <div class="control-group" id="customTextGroup">
                     <label>自定义文本</label>
-                    <input type="text" id="customText" class="apple-input" placeholder="输入要编码的文本" value="革命理想高于天">
+                    <input type="text" id="customText" class="apple-input" placeholder="输入要编码的文本" value="为人民服务，为人民谋幸福">
                 </div>
 
                 <div class="control-group">
@@ -81,24 +81,24 @@
                         <p id="statusText">准备就绪</p>
                         <div class="stats-grid">
                             <div class="stat-item">
-                                <span class="stat-label">字符种类:</span>
+                                <span class="stat-label">字符种类</span>
                                 <strong id="charCount" class="stat-value">0</strong>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">总字符:</span>
+                                <span class="stat-label">总字符数</span>
                                 <strong id="totalChars" class="stat-value">0</strong>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">原始位数:</span>
+                                <span class="stat-label">等长编码位数</span>
                                 <strong id="originalBits" class="stat-value">0</strong>
                             </div>
                             <div class="stat-item highlight-stat">
-                                <span class="stat-label">压缩位数:</span>
+                                <span class="stat-label">哈夫曼位数（WPL）</span>
                                 <strong id="compressedBits" class="stat-value">0</strong>
                             </div>
                         </div>
                         <div class="compression-ratio">
-                            <span>压缩率:</span>
+                            <span>比等长编码节省：</span>
                             <strong id="compressionRatio">0%</strong>
                         </div>
                     </div>
@@ -110,12 +110,12 @@
                 </div>
 
                 <div class="info-box">
-                    <h3>💡 革命寓意</h3>
+                    <h3>💡 知识要点</h3>
                     <div id="conceptInfo">
-                        <p><strong>哈夫曼编码:</strong> 用最少的资源传递最多的信息。</p>
-                        <p><strong>最优二叉树:</strong> 高频字符短编码,低频字符长编码。</p>
-                        <p><strong>带权路径:</strong> 每个字符的编码长度按其频率优化。</p>
-                        <p><strong>革命启示:</strong> 精简高效,把有限资源用在刀刃上。</p>
+                        <p><strong>构造：</strong>每次取出权最小的两个结点合并，新结点权为两者之和，重复 n−1 次。</p>
+                        <p><strong>最优二叉树：</strong>哈夫曼树的带权路径长度 WPL = Σ wᵢ·lᵢ 最小；编码总位数恰为 WPL。</p>
+                        <p><strong>前缀码：</strong>字符都在叶子上，任何编码都不是另一编码的前缀，译码无歧义。</p>
+                        <p><strong>启示：</strong>高频短码、低频长码——把有限资源用在刀刃上。</p>
                     </div>
                 </div>
             </div>
@@ -168,27 +168,12 @@
     <script>
     window.SECTION_META = {
       "layers": [
-            {
-                  "name": "哈夫曼树",
-                  "concepts": "带权路径长度 WPL 最小",
-                  "task": "理解 WPL 与最优二叉树。",
-                  "page": "huffman-index-basic.html"
-            },
-            {
-                  "name": "哈夫曼编码",
-                  "concepts": "贪心合并 / 前缀码 / 无歧义",
-                  "task": "构造哈夫曼编码并比较压缩率。",
-                  "page": "huffman-index.html"
-            },
-            {
-                  "name": "压缩与信息熵",
-                  "concepts": "ZIP·JPEG / 熵下界",
-                  "task": "迁移到无损压缩与信息熵。",
-                  "page": "huffman-index-extend.html"
-            }
+            { name: "哈夫曼树", concepts: "带权路径长度 WPL / 贪心合并", task: "按权合并构造哈夫曼树并计算 WPL。", page: "huffman-index-basic.html" },
+            { name: "哈夫曼编码", concepts: "最优前缀码 / 无歧义译码", task: "构造哈夫曼编码并与等长编码比较位数。", page: "huffman-index.html" },
+            { name: "压缩与信息熵", concepts: "平均码长 / 熵下界", task: "用信息熵分析无损压缩的理论边界。", page: "huffman-index-extend.html" }
       ],
       "chapter": "第8章 特殊图",
-      "section": "8.7 根树（二）· 哈夫曼编码",
+      "section": "8.7 根树（二）",
       "title": "哈夫曼编码",
       "grounding": "本节主题：哈夫曼树=带权路径长度(WPL)最小的二叉树。构造：每次合并两个最小权节点（贪心+优先队列）。哈夫曼编码是最优前缀码（无歧义、平均码长最短），用于无损数据压缩。",
       "steps": [
@@ -242,7 +227,6 @@
 };
     </script>
     <script src="../../shared/ai-tutor.js" defer></script>
-    <script src="huffman-layout-fix.js" defer></script>
 
 </body>
 
