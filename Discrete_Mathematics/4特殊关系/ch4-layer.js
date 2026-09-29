@@ -114,6 +114,7 @@
 
   /* 二部映射图：A 在左、B 在右；pairs = [[i, j, color?, dash?]]
      o.aState[i] / o.bState[j] ∈ {'', 'bad', 'gold', 'ok', 'dim'}；o.actA 让左侧节点可点击 */
+  function pillW(t) { return Math.max(40, String(t).length * 8.5 + 20); }
   C4.mapSvg = function (A, B, pairs, o) {
     o = o || {};
     var n = Math.max(A.length, B.length), gap = o.gap || 50, top = o.top || 58;
@@ -128,7 +129,8 @@
     pairs.forEach(function (p) {
       var col = p[2] || C4.COL.red;
       var mk = col === C4.COL.bad ? 'c4arrBad' : col === C4.COL.ok ? 'c4arrOk' : col === C4.COL.gold ? 'c4arrGold' : col === '#B9A294' ? 'c4arrMuted' : 'c4arr';
-      out += C4.line(xa, ya(p[0]), xb, yb(p[1]), { color: col, width: p[4] || 2.4, dash: p[3], arrow: mk, trim: [22, 24], opacity: 0.9 });
+      var ra = o.pill ? 12 : (o.r || 19) + 3, rb = (o.r || 19) + 5;
+      out += C4.line(xa + (o.pill ? pillW(A[p[0]]) / 2 - 12 : 0), ya(p[0]), xb, yb(p[1]), { color: col, width: p[4] || 2.4, dash: p[3] || (col === C4.COL.bad ? '7 4' : null), arrow: mk, trim: [ra, rb], opacity: 0.9 });
     });
     var st = function (s, side) {
       if (s === 'bad') return { fill: '#FDECEA', stroke: C4.COL.bad, ring: C4.COL.bad };
@@ -139,6 +141,12 @@
     };
     A.forEach(function (a, i) {
       var s = st((o.aState || [])[i], 'A');
+      if (o.pill) {
+        var pw = pillW(a);
+        out += '<g><rect x="' + (xa - pw / 2) + '" y="' + (ya(i) - 15) + '" width="' + pw + '" height="30" rx="15" fill="' + s.fill + '" stroke="' + s.stroke + '" stroke-width="2"/>' +
+          C4.text(xa, ya(i) + 5, a, { size: 13, weight: 700, fill: s.textFill || C4.COL.ink, mono: true }) + '</g>';
+        return;
+      }
       out += C4.node(xa, ya(i), a, { r: o.r || 19, fill: s.fill, stroke: s.stroke, textFill: s.textFill, ring: s.ring, act: o.actA, arg: i, title: o.actA ? '点击改变 ' + a + ' 的像' : '' });
     });
     B.forEach(function (b, j) {
@@ -1020,6 +1028,149 @@
         S.set('viz', bars + (cur[1] === 0 ? '<p style="margin-top:8px"><span class="c4-chip ok">终止</span> gcd(' + S.v.a + ', ' + S.v.b + ') = <b>' + cur[0] + '</b>，共 ' + (g.length - 1) + ' 步。</p>' : ''));
         S.set('why', '<p>除数序列 ' + g.slice(0, k + 1).map(function (p) { return p[1]; }).join(' > ') + (cur[1] ? ' > …' : '') + ' 是 ℕ 中的<b>严格递降链</b>。</p><p class="c4-note">若它永不终止，集合 {b₀, b₁, b₂, …} 就没有最小元，与 ⟨ℕ, ≤⟩ 是良序矛盾。反观 ⟨ℤ, ≤⟩ 或 ⟨ℚ⁺, ≤⟩，都存在无限递降链（如 1, 1/2, 1/3, …），它们不是良序。</p>');
         C4.result('gcd(' + S.v.a + ', ' + S.v.b + ')', cur[1] === 0 ? '= ' + cur[0] + '（' + (g.length - 1) + ' 步终止）' : '当前 (' + cur[0] + ', ' + cur[1] + ')', '余数严格递减且非负，良序保证必然终止。');
+      }
+    }
+  });
+})();
+/* @@END */
+
+/* ---------- 4.4 函数基本概念 ---------- */
+(function () {
+  var C = C4.COL, esc = C4.esc;
+  var A = ['a', 'b', 'c', 'd'], B = ['1', '2', '3'];
+  var PRE = {
+    func: [[0, 0], [1, 1], [2, 1], [3, 2]],
+    multi: [[0, 0], [0, 1], [1, 1], [2, 2], [3, 2]],
+    missing: [[0, 0], [1, 2], [2, 1]],
+    const1: [[0, 1], [1, 1], [2, 1], [3, 1]]
+  };
+  function analyse(R) {
+    var out = A.map(function (_, i) { return R.filter(function (p) { return p[0] === i; }).map(function (p) { return p[1]; }); });
+    var single = out.every(function (o) { return o.length <= 1; }), total = out.every(function (o) { return o.length >= 1; });
+    return { out: out, single: single, total: total };
+  }
+
+  C4.def('functions/basic', {
+    badge: '关系矩阵 · 箭头图',
+    mission: '函数是一种特殊的关系：A 中<b>每个</b>元素恰好射出<b>一支</b>箭头。点关系矩阵的格子增删有序对，看「单值」「全定义」两个条件何时同时满足。',
+    cols: 2,
+    controls: [
+      { type: 'select', id: 'pre', label: '示例关系', value: 'func', options: [['func', '示例 1：是函数（多对一）'], ['multi', '示例 2：a 对应两个值'], ['missing', '示例 3：d 没有像'], ['const1', '示例 4：常函数']] },
+      { label: '编辑', items: [{ type: 'buttons', items: [{ act: 'clear', text: '清空关系' }, { act: 'fix', text: '修正为函数', cls: 'primary' }] }] }
+    ],
+    stages: [
+      { id: 'mat', title: '关系矩阵', hint: '点格子增删有序对' },
+      { id: 'map', title: '箭头图', hint: 'A → B' },
+      { id: 'pairs', title: '关系 R ⊆ A × B', wide: true },
+      { id: 'judge', title: '判定', wide: true }
+    ],
+    points: [
+      'f ⊆ A×B 是从 A 到 B 的<b>函数</b>，当且仅当：<b>全定义</b>（每个 x∈A 都有像）且<b>单值</b>（像唯一）。',
+      '在关系矩阵中：函数的<b>每一行恰有一个 1</b>。',
+      '<b>多对一允许，一对多禁止</b>：不同的 x 可以有相同的像。',
+      '从 A 到 B 的函数共有 |B|<sup>|A|</sup> 个，记作 B<sup>A</sup>；本例为 3⁴ = 81 个。'
+    ],
+    init: function (S) { S.data.R = PRE[S.v.pre].map(function (p) { return p.slice(); }); },
+    onChange: function (S) { this.init(S); },
+    act: function (S, act, arg) {
+      var R = S.data.R;
+      if (act === 'cell') {
+        var ij = arg.split(','), i = +ij[0], j = +ij[1], k = R.findIndex(function (p) { return p[0] === i && p[1] === j; });
+        if (k >= 0) R.splice(k, 1); else R.push([i, j]);
+      } else if (act === 'clear') S.data.R = [];
+      else if (act === 'fix') {
+        var an = analyse(R), fixed = [];
+        an.out.forEach(function (o, i) { fixed.push([i, o.length ? o[0] : 0]); });
+        S.data.R = fixed;
+        C4.toast('已保留每行第一个像、为空行补上像：现在每行恰有一个 1。', 'ok');
+      }
+    },
+    render: function (S) {
+      var R = S.data.R, an = analyse(R);
+      var t = '<div class="c4-table-wrap"><table class="c4-table"><tr><th>R</th>' + B.map(function (b) { return '<th>' + b + '</th>'; }).join('') + '<th>行和</th></tr>';
+      A.forEach(function (a, i) {
+        var n = an.out[i].length;
+        t += '<tr><th>' + a + '</th>' + B.map(function (b, j) {
+          var on = an.out[i].indexOf(j) >= 0;
+          return '<td class="' + (on ? (n > 1 ? 'bad' : 'hit') : '') + '"><button type="button" class="cell" data-act="cell" data-arg="' + i + ',' + j + '" aria-label="切换 &lt;' + a + ',' + b + '&gt;">' + (on ? 1 : 0) + '</button></td>';
+        }).join('') + '<td class="mono ' + (n === 1 ? 'ok' : 'bad') + '">' + n + '</td></tr>';
+      });
+      S.set('mat', t + '</table></div><p class="c4-note" style="margin-top:8px">行和 = 1 才合格：行和 0 违反全定义，行和 ≥ 2 违反单值。</p>');
+      var pairs = [], aState = [];
+      an.out.forEach(function (o, i) {
+        aState[i] = o.length === 0 ? 'gold' : o.length > 1 ? 'bad' : '';
+        o.forEach(function (j) { pairs.push([i, j, o.length > 1 ? C.bad : C.red]); });
+      });
+      S.set('map', C4.mapSvg(A, B, pairs, { aState: aState, w: 420, xa: 100, gap: 54, aName: 'A', bName: 'B' }) +
+        C4.legend([{ color: C.red, text: '合格' }, { color: '#FDECEA', border: C.bad, text: '一对多（虚线箭头，违反单值）' }, { color: '#FFF4D6', border: C.gold, text: '无像（违反全定义）' }]));
+      S.set('pairs', '<p class="c4-mono">R = {' + R.slice().sort(function (p, q) { return p[0] - q[0] || p[1] - q[1]; }).map(function (p) { return '&lt;' + A[p[0]] + ',' + B[p[1]] + '&gt;'; }).join(', ') + '}</p><p class="c4-note">|A × B| = 12，R 是它的一个子集——任何子集都是关系，但只有少数是函数。</p>');
+      var isF = an.single && an.total;
+      var badS = A.filter(function (_, i) { return an.out[i].length > 1; }), badT = A.filter(function (_, i) { return an.out[i].length === 0; });
+      S.set('judge', '<div class="c4-verdicts">' +
+        '<div class="c4-verdict ' + (an.total ? 'ok' : 'bad') + '"><b>全定义 ' + (an.total ? '✓' : '✗') + '</b><span>' + (an.total ? '每个元素都有像' : badT.join('、') + ' 没有像') + '</span></div>' +
+        '<div class="c4-verdict ' + (an.single ? 'ok' : 'bad') + '"><b>单值 ' + (an.single ? '✓' : '✗') + '</b><span>' + (an.single ? '每个元素至多一个像' : badS.join('、') + ' 有多个像') + '</span></div>' +
+        '<div class="c4-verdict ' + (isF ? 'ok' : 'bad') + '"><b>' + (isF ? 'R 是函数 f: A→B' : 'R 不是函数') + '</b><span>' + (isF ? A.map(function (a, i) { return 'f(' + a + ')=' + B[an.out[i][0]]; }).join('，') : '两个条件缺一不可') + '</span></div></div>');
+      C4.result('单值 ' + (an.single ? '✓' : '✗') + ' · 全定义 ' + (an.total ? '✓' : '✗'), isF ? '是函数' : '不是函数', isF ? '值域 ran f = {' + B.filter(function (_, j) { return an.out.some(function (o) { return o[0] === j; }); }).join(', ') + '}' : '点「修正为函数」看看怎样最少改动。');
+    }
+  });
+
+  /* ----- 拓展层：纯函数与映射表 ----- */
+  var KEYS = ['zhang', 'wang', 'li', 'zhao', 'chen', 'liu', 'yang', 'huang'];
+  var hsum = function (k) { var s = 0; for (var i = 0; i < k.length; i++) s += k.charCodeAt(i); return s; };
+
+  C4.def('functions/extend', {
+    badge: '哈希函数 · 纯函数',
+    mission: '场景一：哈希函数 h(k) = (各字符编码之和) mod m 把键映射到桶——它是函数，但通常<b>不是单射</b>（会冲突）。场景二：反复调用两段程序，辨别谁才是数学意义上的函数。',
+    controls: [
+      { type: 'select', id: 'mode', label: '场景', value: 'hash', options: [['hash', '哈希表：键 → 桶'], ['pure', '纯函数 vs 有副作用的「函数」']] },
+      { type: 'range', id: 'm', label: '桶数 m', text: '桶数 m', min: 3, max: 11, value: 5, show: function (v) { return v.mode === 'hash'; } },
+      { label: '调用程序', items: [{ type: 'buttons', items: [{ act: 'callF', text: '调用 f(3)', cls: 'primary' }, { act: 'callG', text: '调用 g(3)' }] }], show: function (v) { return v.mode === 'pure'; } }
+    ],
+    stages: [
+      { id: 'model', title: '模型' },
+      { id: 'viz', title: '映射' },
+      { id: 'out', title: '结论' }
+    ],
+    points: [
+      '哈希函数 h: 键集 → {0, …, m−1} 是<b>函数</b>：同一个键永远落在同一个桶。',
+      '键多于桶（|K| > m）时由鸽巢原理必然<b>冲突</b>，h 不是单射；但冲突不影响它是函数。',
+      '<b>纯函数</b>：输出只由输入决定、无副作用——正是数学函数。',
+      '依赖外部状态的程序，对同一输入可能给出不同输出，把它看成 x 的「函数」就违反了单值性；它其实是 (x, 状态) 的函数。'
+    ],
+    init: function (S) { S.data.log = []; S.data.counter = 0; },
+    onChange: function (S) { this.init(S); },
+    act: function (S, act) {
+      if (act === 'callF') S.data.log.push(['f', 3, 3 * 3 + 1]);
+      if (act === 'callG') { S.data.counter++; S.data.log.push(['g', 3, 3 + S.data.counter]); }
+      if (S.data.log.length > 8) S.data.log.shift();
+    },
+    render: function (S) {
+      if (S.v.mode === 'hash') {
+        var m = S.v.m, hv = KEYS.map(function (k) { return hsum(k) % m; });
+        S.set('model', '<p class="c4-mono">h(k) = (Σ 字符编码) mod ' + m + '</p><p class="c4-note">例：h("li") = (108 + 105) mod ' + m + ' = ' + (213 % m) + '。</p>');
+        var pairs = KEYS.map(function (k, i) { var clash = hv.filter(function (x) { return x === hv[i]; }).length > 1; return [i, hv[i], clash ? C.bad : C.red]; });
+        var bState = C4.range(m).map(function (j) { var c = hv.filter(function (x) { return x === j; }).length; return c > 1 ? 'bad' : c === 0 ? 'dim' : ''; });
+        S.set('viz', '<div class="c4-svg-wrap">' + C4.mapSvg(KEYS, C4.range(m).map(String), pairs, { bState: bState, w: 560, xa: 130, gap: 40, r: 17, pill: true, aName: '键 K', bName: '桶 0…' + (m - 1) }) + '</div>' +
+          C4.legend([{ color: C.red, line: true, text: '无冲突' }, { color: C.bad, line: true, text: '冲突（虚线：多个键进同一桶）' }, { color: '#F4EEE9', border: '#C9B8AD', text: '空桶（不在值域中）' }]));
+        var used = {}; hv.forEach(function (x) { used[x] = (used[x] || 0) + 1; });
+        var coll = Object.keys(used).filter(function (k) { return used[k] > 1; });
+        var inj = coll.length === 0, sur = Object.keys(used).length === m;
+        S.set('out', '<div class="c4-verdicts"><div class="c4-verdict ok"><b>是函数 ✓</b><span>每个键恰好一个桶</span></div>' +
+          '<div class="c4-verdict ' + (inj ? 'ok' : 'bad') + '"><b>单射 ' + (inj ? '✓' : '✗') + '</b><span>' + (inj ? '无冲突' : '冲突桶：' + coll.join('、')) + '</span></div>' +
+          '<div class="c4-verdict ' + (sur ? 'ok' : 'gold') + '"><b>值域 ' + Object.keys(used).length + ' / ' + m + ' 个桶</b><span>' + (sur ? '满射：每个桶都被用到' : '有空桶，值域 ⊊ 陪域') + '</span></div></div>' +
+          '<p class="c4-note" style="margin-top:8px">' + (KEYS.length > m ? '8 个键放进 ' + m + ' 个桶，由鸽巢原理一定有冲突。' : '即使桶够多，简单哈希也可能冲突，工程上用链地址法或开放寻址解决。') + '</p>');
+        C4.result('h: K → Z<sub>' + m + '</sub>', inj ? '函数，且无冲突' : '函数，但有 ' + coll.length + ' 个冲突桶', '冲突说明 h 不是单射，查表时需在桶内再比较键。');
+      } else {
+        var log = S.data.log;
+        S.set('model', '<p class="c4-mono">f(x) = x² + 1</p><p class="c4-mono">g(x) = x + counter；counter = counter + 1（每次调用都修改全局变量）</p>');
+        S.set('viz', log.length ? '<div class="c4-table-wrap"><table class="c4-table"><tr><th>#</th><th>调用</th><th>输出</th></tr>' + log.map(function (r, i) {
+          return '<tr><td class="mono">' + (i + 1) + '</td><td class="mono">' + r[0] + '(' + r[1] + ')</td><td class="mono ' + (r[0] === 'g' ? 'soft' : 'ok') + '">' + r[2] + '</td></tr>';
+        }).join('') + '</table></div>' : '<p class="c4-note">点左侧按钮多次调用 f(3) 与 g(3)，比较输出。</p>');
+        var gOut = log.filter(function (r) { return r[0] === 'g'; }).map(function (r) { return r[2]; });
+        var gDiff = gOut.filter(function (v, i, a) { return a.indexOf(v) === i; }).length > 1;
+        S.set('out', '<div class="c4-verdicts"><div class="c4-verdict ok"><b>f 是纯函数 ✓</b><span>f(3) 永远等于 10</span></div>' +
+          '<div class="c4-verdict ' + (gDiff ? 'bad' : 'gold') + '"><b>g ' + (gDiff ? '不满足单值 ✗' : '再调用几次看看') + '</b><span>' + (gDiff ? '同一输入 3 得到了 ' + gOut.filter(function (v, i, a) { return a.indexOf(v) === i; }).join('、') : '目前 g(3) 输出：' + (gOut.join('、') || '尚未调用')) + '</span></div></div>');
+        C4.result('调用记录 ' + log.length + ' 条', gDiff ? 'g 不是 x 的函数' : 'f(3) = 10', '纯函数便于测试、缓存与并行，这正是函数式编程推崇它的原因。');
       }
     }
   });

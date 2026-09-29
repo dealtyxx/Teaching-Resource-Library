@@ -6,11 +6,11 @@
     --text-primary: #2c1810;
     --text-secondary: #6b4a38;
 
-    --domain-color: #0984e3;
+    --domain-color: #D63B1D;
     /* Blue for People */
-    --codomain-color: #00b894;
+    --codomain-color: #1F9D55;
     /* Green for Well-being */
-    --mapping-color: #d63031;
+    --mapping-color: #D63B1D;
     /* Red for Policy */
 
     --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
@@ -35,16 +35,7 @@ color: var(--text-primary);
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #f5f0ff;
-    background-image:
-        radial-gradient(circle at 30% 35%, rgba(108,92,231,0.17) 0 95px, transparent 97px),
-        radial-gradient(circle at 70% 65%, rgba(9,132,227,0.13) 0 82px, transparent 84px),
-        radial-gradient(circle at 50% 50%, rgba(253,203,110,0.08) 0 135px, transparent 137px),
-        repeating-linear-gradient(60deg, rgba(108,92,231,0.10) 0 1px, transparent 1px 48px),
-        repeating-linear-gradient(-60deg, rgba(9,132,227,0.07) 0 1px, transparent 1px 48px),
-        repeating-linear-gradient(0deg, rgba(108,92,231,0.04) 0 1px, transparent 1px 48px),
-        linear-gradient(135deg, #f5f0ff 0%, #eef4ff 50%, #f0f8ff 100%);
-    background-size: auto, auto, auto, 48px 48px, 48px 48px, 48px 48px, cover;
+    background-color: #FFFBF0;
     background-position: center;
     background-repeat: no-repeat;
 }
@@ -130,7 +121,7 @@ color: var(--text-primary);
     opacity: 1;
     background: var(--mapping-color);
     color: white;
-    box-shadow: 0 2px 8px rgba(214, 48, 49, 0.3);
+    box-shadow: 0 2px 8px rgba(214, 59, 29, 0.3);
 }
 
 .apple-btn {
@@ -144,7 +135,7 @@ color: var(--text-primary);
 }
 
 .apple-btn:hover {
-    background: #f5f5f5;
+    background: #F7F1EA;
     transform: scale(1.05);
 }
 
@@ -231,18 +222,18 @@ color: var(--text-primary);
 
 .domain-panel .element-item.selected {
     border-color: var(--domain-color);
-    background: rgba(9, 132, 227, 0.05);
+    background: rgba(214, 59, 29, 0.05);
 }
 
 .codomain-panel .element-item.selected {
     border-color: var(--codomain-color);
-    background: rgba(0, 184, 148, 0.05);
+    background: rgba(31, 157, 85, 0.05);
 }
 
 .codomain-panel .element-item.highlighted {
     border-color: var(--mapping-color);
-    background: rgba(214, 48, 49, 0.05);
-    box-shadow: 0 0 8px rgba(214, 48, 49, 0.2);
+    background: rgba(214, 59, 29, 0.05);
+    box-shadow: 0 0 8px rgba(214, 59, 29, 0.2);
 }
 
 .elem-icon {
@@ -300,9 +291,9 @@ color: var(--text-primary);
 
 .mapping-path {
     fill: none;
-    stroke: #ccc;
-    stroke-width: 1.5px;
-    opacity: 0.2;
+    stroke: #C9A99A;
+    stroke-width: 1.6px;
+    opacity: 0.6;
     transition: all 0.4s ease;
     marker-end: url(#arrow-default);
     vector-effect: non-scaling-stroke;
@@ -313,7 +304,7 @@ color: var(--text-primary);
     stroke-width: 3px;
     opacity: 0.8;
     marker-end: url(#arrow-active);
-    filter: drop-shadow(0 2px 4px rgba(214, 48, 49, 0.2));
+    filter: drop-shadow(0 2px 4px rgba(214, 59, 29, 0.2));
 }
 
 /* Insight Panel */
@@ -438,7 +429,7 @@ color: var(--text-primary);
 /* Insight */
 .insight-card {
     background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
-    border: 1px solid rgba(214, 48, 49, 0.2);
+    border: 1px solid rgba(214, 59, 29, 0.2);
 }
 
 .insight-card h4 {
@@ -646,4 +637,46 @@ body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layo
         grid-template-columns: 1fr !important;
         max-height: none !important;
     }
+}
+
+/* ===== 第4章精修补充：定义域/陪域/值域对照卡 ===== */
+.range-card {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(214, 59, 29, 0.16);
+    border-left: 4px solid #FFB400;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: #2C1810;
+}
+.range-card b { color: #D63B1D; }
+.range-card .warn { color: #8A5D0B; }
+/* 映射箭头层铺满中间栏（原 height:100% 在自适应高度的网格项中失效，箭头与行错位） */
+.app-container .mapping-area > .mapping-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.domain-panel .element-item.highlighted {
+    border-color: var(--mapping-color);
+    background: rgba(255, 180, 0, 0.12);
+    box-shadow: 0 0 8px rgba(255, 180, 0, 0.35);
+}
+body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .mapping-area { align-self: stretch !important; }
+
+/* 窄屏：三栏改为纵向堆叠（原移动端规则优先级不足，定义域/陪域/说明卡被放进同一格而重叠）；
+   纵向排列时箭头无从连接，隐藏中间箭头栏，靠高亮显示像与原像 */
+@media (max-width: 1000px) {
+    html body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] > .main-stage {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+    html body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .mapping-area { display: none !important; }
+    html body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .insight-panel {
+        grid-template-columns: 1fr !important;
+        order: 1;
+    }
+    html body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .domain-panel { order: 2; }
+    html body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] .codomain-panel { order: 3; }
+}
+@media (max-width: 1000px) {
+    html body:has(.app-container[data-dm-self-layout]) > .app-container[data-dm-self-layout] > .main-stage > * { width: 100% !important; align-self: stretch !important; }
 }

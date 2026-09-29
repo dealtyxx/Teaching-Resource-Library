@@ -18,7 +18,7 @@ const resetBtn = document.getElementById('resetBtn');
 
 // Data: Domain (People)
 const PEOPLE = [
-    { id: 'p1', name: '贫困户张大爷', role: '脱贫对象', icon: '👴' },
+    { id: 'p1', name: '脱贫户张大爷', role: '防返贫监测对象', icon: '👴' },
     { id: 'p2', name: '返乡青年小李', role: '创业者', icon: '👨‍🌾' },
     { id: 'p3', name: '留守儿童小花', role: '学生', icon: '👧' },
     { id: 'p4', name: '退休工人老王', role: '城市居民', icon: '👷' },
@@ -32,7 +32,8 @@ const OUTCOMES = [
     { id: 'o2', name: '义务教育免费', type: '教育', icon: '🏫' },
     { id: 'o3', name: '产业扶持资金', type: '经济', icon: '💰' },
     { id: 'o4', name: '养老金发放', type: '社保', icon: '💳' },
-    { id: 'o5', name: '技能培训补贴', type: '就业', icon: '🛠️' }
+    { id: 'o5', name: '技能培训补贴', type: '就业', icon: '🛠️' },
+    { id: 'o6', name: '保障性住房', type: '住房', icon: '🏠' }  // 陪域中没有原像的元素：值域 ≠ 陪域
 ];
 
 // Function: f(Person) -> Outcome
@@ -274,6 +275,8 @@ function updateView() {
     // 3. Update Counts
     domainCount.textContent = `已选: ${selectedDomain.size}`;
     codomainCount.textContent = `已选: ${selectedCodomain.size}`;
+    const coverEl = document.getElementById('coverCount');
+    if (coverEl) coverEl.textContent = '';
 }
 
 function updateInsightText(type) {
@@ -339,5 +342,24 @@ function resetSelection() {
     updateView();
 }
 
+// 默认示例：看「产业扶持资金」的原像——两个人对应同一个像（多对一允许）
+function showDefaultExample() {
+    selectedCodomain.add('o3');
+    updateView();
+}
+
+// 定义域 / 陪域 / 值域 对照
+function renderRangeInfo() {
+    const box = document.getElementById('rangeInfo');
+    if (!box) return;
+    const ran = OUTCOMES.filter(o => PEOPLE.some(p => MAPPING[p.id] === o.id));
+    const miss = OUTCOMES.filter(o => !ran.includes(o));
+    box.innerHTML = `<b>定义域</b> X：${PEOPLE.length} 人　<b>陪域</b> Y：${OUTCOMES.length} 项<br>` +
+        `<b>值域</b> ran f = f(X)：${ran.map(o => o.name).join('、')}（${ran.length} 项）<br>` +
+        (miss.length ? `<span class="warn">「${miss.map(o => o.name).join('、')}」在陪域中却没有原像，所以 ran f ⊊ Y。</span>` : '');
+}
+
 // Start
 init();
+renderRangeInfo();
+showDefaultExample();
