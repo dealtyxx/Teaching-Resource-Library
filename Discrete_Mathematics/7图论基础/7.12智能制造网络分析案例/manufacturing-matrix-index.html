@@ -1,249 +1,159 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
-    <meta charset="UTF-8">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
-    <!-- Open Graph / 社交分享（微信、钉钉、Telegram 等）。部署域名变更时全局替换下方 BASE 即可 -->
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
-    <meta property="og:locale" content="zh_CN">
-    <meta property="og:title" content="矩阵分析瓶颈 · 进阶层｜7.12 智能制造网络分析案例 - 离散数学课程资源库">
-    <meta property="og:description" content="第7章 图论基础 · 7.12 智能制造网络分析案例 · 进阶层：可达矩阵 / 关键路径定节拍。用矩阵与关键路径定位瓶颈。">
-    <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/7%E5%9B%BE%E8%AE%BA%E5%9F%BA%E7%A1%80/7.12%E6%99%BA%E8%83%BD%E5%88%B6%E9%80%A0%E7%BD%91%E7%BB%9C%E5%88%86%E6%9E%90%E6%A1%88%E4%BE%8B/manufacturing-matrix-index.html">
-    <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="矩阵分析瓶颈 · 进阶层｜7.12 智能制造网络分析案例 - 离散数学课程资源库">
-    <meta name="twitter:description" content="第7章 图论基础 · 7.12 智能制造网络分析案例 · 进阶层：可达矩阵 / 关键路径定节拍。用矩阵与关键路径定位瓶颈。">
-    <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>矩阵分析瓶颈 · 进阶层｜7.12 智能制造网络分析案例 - 离散数学课程资源库</title>
-    <meta name="description" content="第7章 图论基础 · 7.12 智能制造网络分析案例 · 进阶层：可达矩阵 / 关键路径定节拍。用矩阵与关键路径定位瓶颈。">
-
-    <link rel="stylesheet" href="manufacturing-matrix-style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap"></noscript>
-    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
-    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:title" content="矩阵分析瓶颈 · 进阶层｜7.12 智能制造网络分析案例 - 离散数学课程资源库">
+  <meta property="og:description" content="第7章 图论基础 · 7.12 智能制造网络分析案例 · 进阶层：Warshall 可达矩阵 / 关键路径 / 瓶颈工序。用可达矩阵与关键路径定位瓶颈。">
+  <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/7%E5%9B%BE%E8%AE%BA%E5%9F%BA%E7%A1%80/7.12%E6%99%BA%E8%83%BD%E5%88%B6%E9%80%A0%E7%BD%91%E7%BB%9C%E5%88%86%E6%9E%90%E6%A1%88%E4%BE%8B/manufacturing-matrix-index.html">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="矩阵分析瓶颈 · 进阶层｜7.12 智能制造网络分析案例 - 离散数学课程资源库">
+  <meta name="twitter:description" content="第7章 图论基础 · 7.12 智能制造网络分析案例 · 进阶层：Warshall 可达矩阵 / 关键路径 / 瓶颈工序。用可达矩阵与关键路径定位瓶颈。">
+  <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
+  <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>矩阵分析瓶颈 · 进阶层｜7.12 智能制造网络分析案例 - 离散数学课程资源库</title>
+  <meta name="description" content="第7章 图论基础 · 7.12 智能制造网络分析案例 · 进阶层：Warshall 可达矩阵 / 关键路径 / 瓶颈工序。用可达矩阵与关键路径定位瓶颈。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap"></noscript>
+  <link rel="stylesheet" href="manufacturing-matrix-style.css">
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
+<body data-layer="advanced">
+  <a class="home-link" href="../../index.html#chapter7">← 返回课程主页</a>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="eyebrow">进阶层 · 第7章 图论基础</div>
+      <h1>矩阵分析<span class="highlight">瓶颈</span></h1>
+      <p class="subtitle">Warshall 可达矩阵 / 关键路径 / 瓶颈工序</p>
+      <p class="tier-line">核心掌握 · 建模求解</p>
+      <p class="intro">🎯 用可达矩阵与关键路径定位瓶颈。</p>
 
-<body>
-    <a class="home-link" href="../../index.html#chapter7">← 返回课程主页</a>
+      <div id="controls"></div>
+    </aside>
 
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="window-controls">
-                    <span class="dot red"></span>
-                    <span class="dot yellow"></span>
-                    <span class="dot green"></span>
-                </div>
-                <h1>红色数理 <span class="highlight">进阶层</span></h1>
-                <p class="subtitle">制造工序网络图 · 网络分析</p>
-            </div>
+    <main class="glass-pane">
+      <section class="mission-card">
+        <span id="missionText"><b>互动任务：</b>用 Warshall 算法由邻接矩阵求可达矩阵，再顺推最早开始时间，找出关键路径与瓶颈段。</span>
+        <div class="visual-badge" id="visualBadge">Warshall + 关键路径</div>
+      </section>
 
-            <div class="controls-wrapper">
-                <div class="control-group">
-                    <label>选择矩阵类型</label>
-                    <div class="matrix-tabs">
-                        <button class="tab-btn active" data-tab="adjacency" aria-label="邻接矩阵 (Adjacency)">邻接矩阵</button>
-                        <button class="tab-btn" data-tab="incidence" aria-label="关联矩阵 (Incidence)">关联矩阵</button>
-                    </div>
-                </div>
+      <section class="logic-board" aria-label="交互舞台">
+        <div class="stage-head">
+          <h2 class="stage-title" id="stageTitle">产线网络 · 可达与关键路径</h2>
+          <div class="legend" aria-label="图例"><span><i class="n-normal"></i>工序</span><span><i class="n-cur"></i>当前中转</span><span><i class="n-done"></i>新可达 / 关键</span><span><i class="e-normal"></i>依赖边</span><span><i class="e-gold"></i>新增可达</span><span><i class="e-hot"></i>经中转 / 瓶颈</span><span><i class="e-res"></i>关键路径</span></div>
+        </div>
+        <div class="graph-box" id="graphBox"></div>
+        <p class="canvas-hint" id="canvasHint">点“下一步”逐步推演；点击顶点查看详情</p>
+      </section>
 
-                <div class="analysis-info">
-                    <div class="info-group">
-                        <label>网络复杂度</label>
-                        <div class="stats-row">
-                            <div class="stat-item">
-                                <span class="label">节点数 (V)</span>
-                                <span id="nodeCount" class="value">0</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="label">边数 (E)</span>
-                                <span id="edgeCount" class="value">0</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="label">密度</span>
-                                <span id="density" class="value">0.00</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+      <section class="step-card" aria-live="polite">
+        <div class="formula-line" id="formulaText">加载中…</div>
+        <div class="step-status" id="stepStatus"></div>
+      </section>
 
-                <div class="info-panel info-box">
-                    <h3>工匠精神</h3>
-                    <div id="conceptInfo">
-                        <p><strong>邻接矩阵:</strong> 点击单元格 (0/1) 可直接添加或删除连线。</p>
-                        <p><strong>关联矩阵:</strong> 左键设为起点(1)，右键设为终点(-1)，自由重组物流路径。</p>
-                        <p><strong>精益求精:</strong> 通过数学工具不断打磨网络结构，追求极致效率。</p>
-                    </div>
-                </div>
-            </div>
+      <section class="data-card" id="dataCard"></section>
 
-            <div class="actions-footer controls-area">
-                <button id="optimizeBtn" class="apple-btn primary-btn" aria-label="网络结构优化">
-                    <span class="icon">⚡</span> 网络结构优化
-                </button>
-                <button id="resetBtn" class="apple-btn secondary-btn" aria-label="重置系统 (随机生成)">
-                    <span class="icon">🔄</span> 重置系统
-                </button>
-            </div>
-        </aside>
+      <section class="case-flow" id="caseFlow" aria-label="案例六段式"></section>
+    </main>
+  </div>
 
-        <main class="visualizer-stage">
-            <div class="glass-pane">
-                <div class="visualization-container">
-                    <section class="section topology-section">
-                        <div class="graph-title">
-                            <h2>制造单元拓扑图</h2>
-                            <p>Manufacturing Unit Topology</p>
-                        </div>
+  <footer class="site-footer">
+      <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
+      <p>版权所有 · 项目总负责人：谢鑫</p>
+  </footer>
 
-                        <div class="topology-canvas">
-                            <div class="grid-bg"></div>
-                            <div class="legend">
-                                <div class="legend-item">
-                                    <span class="legend-dot unit"></span>
-                                    <span>制造单元 (可拖拽)</span>
-                                </div>
-                                <div class="legend-item">
-                                    <span class="legend-line flow"></span>
-                                    <span>物流路径</span>
-                                </div>
-                                <div class="legend-item">
-                                    <span class="legend-line optimized"></span>
-                                    <span>优化路径</span>
-                                </div>
-                            </div>
-
-                            <svg id="graphSvg" width="100%" height="100%" viewBox="0 0 900 460" preserveAspectRatio="xMidYMid meet">
-                                <defs>
-                                    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                                        <feGaussianBlur stdDeviation="2" result="blur" />
-                                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                                    </filter>
-                                    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                                        <polygon points="0 0, 10 3.5, 0 7" fill="var(--edge-default)" />
-                                    </marker>
-                                    <marker id="arrow-active" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                                        <polygon points="0 0, 10 3.5, 0 7" fill="var(--accent-blue)" />
-                                    </marker>
-                                </defs>
-                                <g id="edgesGroup"></g>
-                                <g id="nodesGroup"></g>
-                            </svg>
-                        </div>
-                    </section>
-
-                    <section class="section matrix-section">
-                        <h2 class="section-title">图矩阵联动分析</h2>
-                        <div class="matrix-content">
-                            <div id="matrixContainer" class="matrix-container">
-                                <!-- Matrix will be generated here -->
-                            </div>
-                        </div>
-                    </section>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <script src="manufacturing-matrix-script.js"></script>
-
-<!-- 固定底部版权信息 -->
-<footer class="site-footer">
-    <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
-    <p>版权所有 · 项目总负责人：谢鑫</p>
-</footer>
-
-
-
-    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
-    <script>
+  <script>
     window.SECTION_META = {
-      "layers": [
-            {
-                  "name": "工序网络",
-                  "concepts": "工序顶点 / 依赖有向边",
-                  "task": "把产线抽象为有向图。",
-                  "page": "manufacturing-matrix-index-basic.html"
-            },
-            {
-                  "name": "矩阵分析瓶颈",
-                  "concepts": "可达矩阵 / 关键路径定节拍",
-                  "task": "用矩阵与关键路径定位瓶颈。",
-                  "page": "manufacturing-matrix-index.html"
-            },
-            {
-                  "name": "工业互联网",
-                  "concepts": "拓扑排序 / 数字孪生排产",
-                  "task": "迁移到智能排产与数字孪生。",
-                  "page": "manufacturing-matrix-index-extend.html"
-            }
-      ],
-      "chapter": "第7章 图论基础",
-      "section": "7.12 智能制造网络分析案例",
-      "title": "图论应用 · 智能制造网络分析",
-      "grounding": "本节主题：用图与矩阵分析智能制造的工序/设备网络——把工序抽象为顶点、依赖/物流为边，用邻接矩阵、可达矩阵、关键路径分析产线结构、瓶颈工序与节拍，体会图矩阵方法在工业互联网中的应用。",
-      "steps": [
-            {
-                  "name": "情境引入",
-                  "desc": "复杂产线的工序依赖错综，如何用图矩阵看清结构与瓶颈？"
-            },
-            {
-                  "name": "对象抽取",
-                  "desc": "把工序/设备抽象为顶点，把依赖/物流抽象为有向边。"
-            },
-            {
-                  "name": "结构建模",
-                  "desc": "用邻接/可达矩阵与关键路径刻画产线网络。"
-            },
-            {
-                  "name": "推理求解",
-                  "desc": "用矩阵求可达、用关键路径定节拍与瓶颈。"
-            },
-            {
-                  "name": "程序验证",
-                  "desc": "用本页交互分析制造网络，识别瓶颈工序。"
-            },
-            {
-                  "name": "迁移反思",
-                  "desc": "迁移到工业互联网、供应链、流程优化。"
-            }
-      ],
-      "ideology": {
-            "title": "制造强国 · 自立自强",
-            "text": "智能制造是制造强国的主攻方向。用图矩阵方法剖析产线、优化流程、突破瓶颈，是把关键核心技术掌握在自己手中的具体实践。以数学赋能工业，推动制造业高质量发展，彰显自立自强、勇攀高峰的奋斗精神。",
-            "dims": [
-                  "制造强国",
-                  "自立自强",
-                  "系统观念"
-            ],
-            "quote": "把制造业搞上去——用图与矩阵看清产线脉络，是迈向智能制造的硬功夫。"
-      },
-      "reflect": [
-            "用可达矩阵能发现产线中哪些工序间存在（间接）依赖？",
-            "瓶颈工序决定整线节拍，如何用关键路径定位并扩能？",
-            "工序依赖图中若出现环，意味着什么问题（死锁/返工）？"
-      ],
-      "transfer": [
-            "工业互联网的数字孪生用图建模设备与工序关系，实时优化排产。",
-            {
-                  "t": "拓扑排序",
-                  "d": "无环依赖图的拓扑排序给出可行工序序列，如何用于排产调度？"
-            }
-      ]
+  "layers": [
+    {
+      "name": "工序网络",
+      "concepts": "工序顶点 / 依赖有向边 / 邻接矩阵",
+      "task": "把产线抽象为有向图，找出最长工艺路线。",
+      "page": "manufacturing-matrix-index-basic.html"
+    },
+    {
+      "name": "矩阵分析瓶颈",
+      "concepts": "Warshall 可达矩阵 / 关键路径 / 瓶颈工序",
+      "task": "用可达矩阵与关键路径定位瓶颈。",
+      "page": "manufacturing-matrix-index.html"
+    },
+    {
+      "name": "数字孪生排产",
+      "concepts": "拓扑排序 / 时差分析 / 回路检测",
+      "task": "用拓扑排序与时差推演排产和扰动。",
+      "page": "manufacturing-matrix-index-extend.html"
+    }
+  ],
+  "chapter": "第7章 图论基础",
+  "section": "7.12 智能制造网络分析案例",
+  "title": "图论应用 · 智能制造网络分析",
+  "grounding": "本节主题：用图与矩阵分析智能制造的工序网络——把工序抽象为顶点、先后依赖抽象为有向边、流转时长为边权；用邻接矩阵与出入度读结构，用 Warshall 算法求可达矩阵（间接依赖），用拓扑序顺推 ES、逆推 LS 求时差与关键路径，定位决定完工时间的瓶颈段；拓展到拓扑排序排产、数字孪生扰动推演与返工回路检测。注意：关键路径长度是单件最短完工时间，不等于节拍（相邻两件下线间隔）。",
+  "steps": [
+    {
+      "name": "情境引入",
+      "desc": "复杂产线的工序依赖错综，如何看清结构、找到决定完工时间的瓶颈？"
+    },
+    {
+      "name": "对象抽取",
+      "desc": "把工序抽象为顶点，把先后依赖抽象为有向边，流转时长作边权。"
+    },
+    {
+      "name": "结构建模",
+      "desc": "用邻接矩阵、可达矩阵与带权有向无环图刻画产线网络。"
+    },
+    {
+      "name": "推理求解",
+      "desc": "Warshall 求可达、拓扑序顺推 ES 求关键路径、判定瓶颈段。"
+    },
+    {
+      "name": "程序验证",
+      "desc": "逐步点击演示，编辑依赖或优化瓶颈，观察结论如何变化。"
+    },
+    {
+      "name": "迁移反思",
+      "desc": "迁移到拓扑排序排产、数字孪生扰动推演与项目进度计划。"
+    }
+  ],
+  "ideology": {
+    "title": "抓关键 · 补短板",
+    "text": "关键路径揭示了一个朴素而深刻的道理：整条产线的完工时间由最长的工序链决定，在非关键工序上用力并不能缩短工期。智能制造讲“精益”，就是用数据看清结构、找准瓶颈，把有限的设备与人力投向关键环节；而瓶颈消除后关键路径往往会转移，改进也要持续迭代、精益求精。",
+    "dims": [
+      "系统观念",
+      "精益求精",
+      "制造强国"
+    ],
+    "quote": "看清结构、找准瓶颈、持续改进——用图与矩阵读懂产线。"
+  },
+  "reflect": [
+    "可达矩阵中 r_ij = 1 而 a_ij = 0 说明什么？这类间接依赖在设备检修时为什么要特别关注？",
+    "缩短非关键路线上的工序为什么不能缩短完工时间？瓶颈缩短后关键路径可能怎样转移？",
+    "工序依赖图中若出现有向回路，拓扑排序会发生什么？现实中对应什么问题？"
+  ],
+  "transfer": [
+    "工业互联网的数字孪生把设备与工序映射为可计算的图模型，扰动发生时先在模型中推演再调度。",
+    {
+      "t": "拓扑排序",
+      "d": "无环依赖图的拓扑排序给出可行的开工序列，同样适用于软件构建依赖与课程先修排课。"
+    },
+    {
+      "t": "PERT/CPM",
+      "d": "项目管理中的关键路径法与本案例同构：活动时长、最早/最迟开始时间与时差。"
+    }
+  ]
 };
-    </script>
-    <script src="../../shared/ai-tutor.js" defer></script>
-
+  </script>
+  <script src="manufacturing-matrix-case-interactive.js"></script>
+  <script src="../../shared/ai-tutor.js" defer></script>
 </body>
-
 </html>
