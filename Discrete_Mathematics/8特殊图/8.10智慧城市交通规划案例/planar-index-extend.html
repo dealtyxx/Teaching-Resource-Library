@@ -7,7 +7,7 @@
   <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="频率与排课 · 拓展层｜8.10 智慧城市交通规划案例 - 离散数学课程资源库">
-  <meta property="og:description" content="第8章 特殊图 · 8.10 智慧城市交通规划案例 · 拓展层：频率分配 / 排课着色。迁移到频率分配与排课。">
+  <meta property="og:description" content="第8章 特殊图 · 8.10 智慧城市交通规划案例 · 拓展层：频率分配 / 排课着色 / 色数。把图着色迁移到频率分配与排课。">
   <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/8%E7%89%B9%E6%AE%8A%E5%9B%BE/8.10%E6%99%BA%E6%85%A7%E5%9F%8E%E5%B8%82%E4%BA%A4%E9%80%9A%E8%A7%84%E5%88%92%E6%A1%88%E4%BE%8B/planar-index-extend.html">
   <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta property="og:image:width" content="1200">
@@ -15,11 +15,11 @@
   <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="频率与排课 · 拓展层｜8.10 智慧城市交通规划案例 - 离散数学课程资源库">
-  <meta name="twitter:description" content="第8章 特殊图 · 8.10 智慧城市交通规划案例 · 拓展层：频率分配 / 排课着色。迁移到频率分配与排课。">
+  <meta name="twitter:description" content="第8章 特殊图 · 8.10 智慧城市交通规划案例 · 拓展层：频率分配 / 排课着色 / 色数。把图着色迁移到频率分配与排课。">
   <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>频率与排课 · 拓展层｜8.10 智慧城市交通规划案例 - 离散数学课程资源库</title>
-  <meta name="description" content="第8章 特殊图 · 8.10 智慧城市交通规划案例 · 拓展层：频率分配 / 排课着色。迁移到频率分配与排课。">
+  <meta name="description" content="第8章 特殊图 · 8.10 智慧城市交通规划案例 · 拓展层：频率分配 / 排课着色 / 色数。把图着色迁移到频率分配与排课。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -88,30 +88,77 @@
 
   <script>
     window.SECTION_META = {
-      "layers": [
-        { "name": "冲突=图着色", "concepts": "车流顶点 / 冲突边", "task": "把信号冲突转化为图着色。", "page": "planar-index-basic.html" },
-        { "name": "信号分相", "concepts": "最少相位 / 色数 / 平面图", "task": "用最少相位实现无冲突放行。", "page": "planar-index.html" },
-        { "name": "频率与排课", "concepts": "频率分配 / 排课着色", "task": "迁移到频率分配与排课。", "page": "planar-index-extend.html" }
-      ],
       "chapter": "第8章 特殊图",
       "section": "8.10 智慧城市交通规划案例",
-      "title": "特殊图应用 · 智慧城市交通规划",
-      "grounding": "本节主题：用平面图与图着色规划城市交通。拓展层把单一路口扩展到多车流、多相位、多策略比较，关注冲突检测和通行效率的共同约束。",
-      "steps": [
-        { "name": "情境引入", "desc": "多路口联动时，相位上限会怎样影响可行性？" },
-        { "name": "对象抽取", "desc": "把多股车流抽象为顶点，把不可同时放行关系抽象为边。" },
-        { "name": "结构建模", "desc": "用颜色表示相位，用最大度观察约束压力。" },
-        { "name": "推理求解", "desc": "比较不同排相策略在冲突数和相位数上的表现。" },
-        { "name": "迁移反思", "desc": "把图着色迁移到频率分配、排课、资源调度等问题。" }
+      "title": "智慧城市交通规划",
+      "grounding": "本节主题：用平面图与图着色规划城市交通——冲突车流为顶点、冲突关系为边，信号相位数就是着色所需颜色数（色数）；道路网能否无交叉铺设就是平面性问题：连通平面图满足欧拉公式 V−E+F=2，简单平面图 E≤3V−6，K₅ 与 K₃,₃ 不是平面图，只能立交分层。",
+      "layers": [
+        {
+          "name": "冲突=图着色",
+          "concepts": "车流为顶点 / 冲突为边 / 相位=颜色",
+          "task": "把信号冲突转化为图着色，用最少相位无冲突放行。",
+          "page": "planar-index-basic.html"
+        },
+        {
+          "name": "平面路网与立交",
+          "concepts": "平面嵌入 / 欧拉公式 / K₅·K₃,₃",
+          "task": "拖动路口消除道路交叉，判断何时必须修建立交。",
+          "page": "planar-index.html"
+        },
+        {
+          "name": "频率与排课",
+          "concepts": "频率分配 / 排课着色 / 色数",
+          "task": "把图着色迁移到频率分配与排课。",
+          "page": "planar-index-extend.html"
+        }
       ],
+      "steps": [
+        {
+          "name": "情境背景",
+          "desc": "路口车流彼此冲突、城市道路相互穿越：怎样少设相位、少建立交，又保证安全畅通？"
+        },
+        {
+          "name": "数学建模",
+          "desc": "冲突车流→顶点、冲突→边，相位→颜色；路口→顶点、道路→边，无交叉铺设→平面嵌入。"
+        },
+        {
+          "name": "交互求解",
+          "desc": "贪心着色求相位方案；拖动路口消除交叉，用欧拉公式与 E≤3V−6 判断能否理顺。"
+        },
+        {
+          "name": "结果解读",
+          "desc": "颜色数就是所需相位数；交叉清零即得平面嵌入，K₅、K₃,₃ 的交叉永远无法消除。"
+        },
+        {
+          "name": "价值引领",
+          "desc": "以系统思维统筹路网：先理顺、少冲突，让城市出行更安全、更高效、更低碳。"
+        },
+        {
+          "name": "迁移思考",
+          "desc": "迁移到无线频率分配、考试排课、寄存器分配与电路板布线。"
+        }
+      ],
+      "ideology": {
+        "title": "科学规划 · 畅通为民",
+        "text": "用平面图与着色科学规划交通信号，减少冲突、提升通行效率，是智慧治理、便民利民的体现。把『不冲突』转化为图着色、用最少相位实现最大畅通，彰显以系统观念优化城市运行、把好事办到群众心坎上的治理追求。",
+        "dims": [
+          "智慧治理",
+          "人民城市",
+          "系统观念"
+        ],
+        "quote": "道路通，百业兴——用图着色把信号相位算到最优，让城市的脉络畅通无阻。"
+      },
       "reflect": [
-        "相位上限从 2 增加到 4 时，冲突边如何变化？",
-        "高冲突优先策略为什么常比顺序排相更稳？",
-        "通行评分是否只由相位数决定？"
+        "为什么『信号分相』可以转化为『图着色』问题？冲突对应什么？",
+        "平面图的四色定理对实际着色（相位/频率）规划有什么启示与限制？",
+        "色数越小相位越少越好吗？还要兼顾哪些现实约束（流量、安全）？"
       ],
       "transfer": [
-        "无线电频率分配、考试排考场、编译器寄存器分配都可以看作图着色问题。",
-        { "t": "时间表排课", "d": "冲突课程相邻，时间段就是颜色。" }
+        "无线电频率分配、考试排考场、编译器寄存器分配都是图着色问题。",
+        {
+          "t": "时间表排课",
+          "d": "把冲突课程相邻、用最少时段着色，如何排出无冲突课表？"
+        }
       ]
     };
   </script>

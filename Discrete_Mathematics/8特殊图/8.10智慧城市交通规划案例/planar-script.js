@@ -133,6 +133,10 @@ function generateLevel() {
     nodeElements.clear();
     edgeElements = [];
     gameOverlay.classList.remove('active');
+    const msgBox = gameOverlay.querySelector('.success-message');
+    msgBox.querySelector('h2').textContent = '🎉 规划完成！';
+    msgBox.querySelector('p').textContent = '交通网络畅通无阻';
+    nextLevelBtn.style.display = '';
 
     const levelKey = levelSelect.value;
     const level = LEVELS[levelKey];
@@ -188,48 +192,64 @@ function generateLevel() {
 
 // Generate Random Planar Graph (and then shuffle positions)
 function generateRandomPlanar(n, extraEdges, width, height) {
-    // 1. Create random points
+    // 先在“答案布局”上生成一张保证无交叉的平面图，再打乱顶点位置交给学生理顺。
+    // （原实现随机加边，可能含 K₃,₃ 细分而永远无法理顺，却被当作可平面关卡）
+    const sol = [];
     for (let i = 0; i < n; i++) {
+        let best = null, bestGap = -1;
+        for (let t = 0; t < 40; t++) {
+            const p = { x: Math.random() * (width - 140) + 70, y: Math.random() * (height - 140) + 70 };
+            const gap = sol.reduce((m, q) => Math.min(m, Math.hypot(q.x - p.x, q.y - p.y)), Infinity);
+            if (gap > bestGap) { best = p; bestGap = gap; }
+        }
+        sol.push(best);
+    }
+    const crossesExisting = (u, v) => edges.some(e =>
+        e.u !== u && e.u !== v && e.v !== u && e.v !== v &&
+        doIntersect(sol[u], sol[v], sol[e.u], sol[e.v]));
+    const addEdge = (u, v) => edges.push({ u, v, id: `${Math.min(u, v)}-${Math.max(u, v)}`, isIntersecting: false });
+
+    // 1. 欧氏最小生成树（Prim）：保证连通，且直线段两两不交叉
+    const inTree = new Set([0]);
+    while (inTree.size < n) {
+        let bu = -1, bv = -1, bd = Infinity;
+        inTree.forEach(u => {
+            for (let v = 0; v < n; v++) {
+                if (inTree.has(v)) continue;
+                const d = Math.hypot(sol[u].x - sol[v].x, sol[u].y - sol[v].y);
+                if (d < bd) { bd = d; bu = u; bv = v; }
+            }
+        });
+        addEdge(bu, bv);
+        inTree.add(bv);
+    }
+
+    // 2. 再加若干条不与已有边交叉的边（在答案布局中检查）
+    const pairs = [];
+    for (let u = 0; u < n; u++) for (let v = u + 1; v < n; v++) pairs.push([u, v]);
+    pairs.sort(() => Math.random() - 0.5);
+    let added = 0;
+    for (const [u, v] of pairs) {
+        if (added >= extraEdges) break;
+        if (edges.find(e => (e.u === u && e.v === v) || (e.u === v && e.v === u))) continue;
+        if (crossesExisting(u, v)) continue;
+        addEdge(u, v);
+        added++;
+    }
+
+    // 3. 打乱：顶点放到圆周上的随机位置，制造交叉
+    const cx = width / 2, cy = height / 2, r = Math.min(width, height) * 0.36;
+    const order = [...Array(n).keys()].sort(() => Math.random() - 0.5);
+    for (let i = 0; i < n; i++) {
+        const a = (order[i] * 2 * Math.PI) / n - Math.PI / 2;
         nodes.push({
             id: i,
             name: CITY_NAMES[i % CITY_NAMES.length],
             icon: CITY_ICONS[i % CITY_ICONS.length],
-            x: Math.random() * (width - 100) + 50,
-            y: Math.random() * (height - 100) + 50
+            x: cx + r * Math.cos(a),
+            y: cy + r * Math.sin(a)
         });
     }
-
-    // 2. Create a spanning tree (guarantees connectivity)
-    const visited = new Set([0]);
-    const unvisited = new Set();
-    for (let i = 1; i < n; i++) unvisited.add(i);
-
-    while (unvisited.size > 0) {
-        const u = Array.from(visited)[Math.floor(Math.random() * visited.size)];
-        const v = Array.from(unvisited)[Math.floor(Math.random() * unvisited.size)];
-
-        edges.push({ u, v, id: `${Math.min(u, v)}-${Math.max(u, v)}`, isIntersecting: false });
-        visited.add(v);
-        unvisited.delete(v);
-    }
-
-    // 3. Add random edges
-    let added = 0;
-    let attempts = 0;
-    while (added < extraEdges && attempts < 100) {
-        const u = Math.floor(Math.random() * n);
-        const v = Math.floor(Math.random() * n);
-
-        if (u !== v && !edges.find(e => (e.u === u && e.v === v) || (e.u === v && e.v === u))) {
-            edges.push({ u, v, id: `${Math.min(u, v)}-${Math.max(u, v)}`, isIntersecting: false });
-            added++;
-        }
-        attempts++;
-    }
-
-    // Note: We create a graph that MIGHT be planar, but we scramble positions
-    // The user has to untangle it. For levels 2/3 we don't strictly guarantee planarity
-    // but with low edge count it's highly likely to be planar.
 }
 
 // Render Graph
@@ -402,7 +422,7 @@ function checkIntersections() {
     // Status
     const level = levelSelect.value;
     if (intersectionCount === 0) {
-        statusText.textContent = '交通网络畅通!';
+        statusText.textContent = '已无交叉：得到平面嵌入，交通网络畅通。';
         statusIndicator.className = 'status-indicator'; // Reset
         statusIndicator.querySelector('.status-dot').className = 'status-dot safe';
 
@@ -419,9 +439,9 @@ function checkIntersections() {
         }
     } else {
         if (level === 'k33' || level === 'k5') {
-            statusText.textContent = '存在不可消除的交叉 (非平面图)';
+            statusText.textContent = '存在无法消除的交叉：非平面图，需要立交分层。';
         } else {
-            statusText.textContent = '检测到道路交叉拥堵!';
+            statusText.textContent = '检测到道路交叉，拖动路口试着理顺。';
         }
         statusIndicator.querySelector('.status-dot').className = 'status-dot danger';
         gameOverlay.classList.remove('active');
@@ -429,28 +449,37 @@ function checkIntersections() {
 }
 
 // Update Euler Formula
+// 只有“可平面且当前已无交叉”时才能按平面嵌入数面：F = E − V + 2；非平面图没有平面嵌入，F 无定义。
 function updateEulerFormula() {
     const V = nodes.length;
     const E = edges.length;
-    // F = E - V + 2 (for connected planar graph)
-    // This is theoretical F if the graph is planar.
-    // If graph has intersections, this formula holds for the PLANAR embedding.
-    // Here we just show the calculation.
-
-    const F = E - V + 2;
+    const level = levelSelect.value;
+    const nonPlanar = level === 'k33' || level === 'k5';
 
     vCountEl.textContent = V;
     eCountEl.textContent = E;
-    fCountEl.textContent = F;
 
-    const result = V - E + F;
-    eulerResultEl.textContent = result;
-
-    if (result === 2) {
-        eulerResultEl.style.color = 'var(--success-green)';
-    } else {
-        eulerResultEl.style.color = 'var(--text-primary)';
+    if (nonPlanar) {
+        fCountEl.textContent = '—';
+        eulerResultEl.textContent = '×';
+        eulerResultEl.style.color = 'var(--danger-red, #C0392B)';
+        eulerResultEl.title = level === 'k5'
+            ? 'K₅：E = 10 > 3V − 6 = 9，不是平面图，没有平面嵌入，面数无定义'
+            : 'K₃,₃：无三角形，平面时应有 E ≤ 2V − 4 = 8，而 E = 9，不是平面图';
+        return;
     }
+    if (intersectionCount > 0) {
+        fCountEl.textContent = '?';
+        eulerResultEl.textContent = '?';
+        eulerResultEl.style.color = 'var(--text-primary)';
+        eulerResultEl.title = '先拖动路口消除全部交叉，得到平面嵌入后再数面';
+        return;
+    }
+    const F = E - V + 2; // 连通平面图的面数（含外部无界面）
+    fCountEl.textContent = F;
+    eulerResultEl.textContent = V - E + F;
+    eulerResultEl.style.color = 'var(--success-green)';
+    eulerResultEl.title = '无交叉的平面嵌入：面数（含外部面）F = ' + F;
 }
 
 // Event Listeners
@@ -462,8 +491,11 @@ nextLevelBtn.addEventListener('click', () => {
         levelSelect.selectedIndex++;
         generateLevel();
     } else {
-        gameOverlay.classList.remove('active');
-        alert("恭喜! 你已完成所有挑战!");
+        // 最后一关：改为页内提示（不再使用 alert）
+        const msg = gameOverlay.querySelector('.success-message');
+        msg.querySelector('h2').textContent = '🎉 全部场景已完成';
+        msg.querySelector('p').textContent = '可平面的路网都已理顺；K₃,₃、K₅ 无法消除交叉，只能靠立交分层。';
+        nextLevelBtn.style.display = 'none';
     }
 });
 
