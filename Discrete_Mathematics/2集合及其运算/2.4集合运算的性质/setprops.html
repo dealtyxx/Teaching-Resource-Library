@@ -35,7 +35,6 @@
 
 <body>
     <a class="home-link" href="../../index.html#chapter2">← 返回课程主页</a>
-
     <div class="app-container">
         <aside class="sidebar">
             <div class="sidebar-header">
@@ -44,126 +43,69 @@
                     <span class="dot yellow"></span>
                     <span class="dot green"></span>
                 </div>
-                <h1>红色数理 <span class="highlight">运算性质</span></h1>
-                <p class="subtitle">The Scale of Truth</p>
+                <div class="layer-eyebrow">进阶层 · 第2章 集合及其运算</div>
+                <h1>分配与德摩根律</h1>
+                <p class="subtitle">双向分配 / 德摩根律 / 吸收律</p>
             </div>
-
             <div class="controls-wrapper">
+                <p class="task-line">🎯 用定律化简集合表达式、证明等式。</p>
                 <div class="control-group">
-                    <label>定律选择 (Select Law)</label>
-                    <div class="law-selector" id="lawSelector">
-                        <button class="apple-btn law-btn active" data-law="commutative" aria-label="交换律 A ∪ B = B ∪ A">
-                            <span class="law-name">交换律</span>
-                            <span class="law-formula">A ∪ B = B ∪ A</span>
-                        </button>
-                        <button class="apple-btn law-btn" data-law="associative" aria-label="结合律 (A ∪ B) ∪ C = A ∪ (B ∪ C)">
-                            <span class="law-name">结合律</span>
-                            <span class="law-formula">(A ∪ B) ∪ C = A ∪ (B ∪ C)</span>
-                        </button>
-                        <button class="apple-btn law-btn" data-law="distributive" aria-label="分配律 A ∩ (B ∪ C) = (A ∩ B) ∪ (A ∩ C)">
-                            <span class="law-name">分配律</span>
-                            <span class="law-formula">A ∩ (B ∪ C) = (A ∩ B) ∪ (A ∩ C)</span>
-                        </button>
-                        <button class="apple-btn law-btn" data-law="demorgan" aria-label="德摩根律 ~(A ∪ B) = ~A ∩ ~B">
-                            <span class="law-name">德摩根律</span>
-                            <span class="law-formula">~(A ∪ B) = ~A ∩ ~B</span>
-                        </button>
-                        <button class="apple-btn law-btn" data-law="double" aria-label="双重否定律 ~(~A) = A">
-                            <span class="law-name">双重否定律</span>
-                            <span class="law-formula">~(~A) = A</span>
-                        </button>
-                        <button class="apple-btn law-btn" data-law="contradiction" aria-label="矛盾律 A ∩ ~A = ∅">
-                            <span class="law-name">矛盾律</span>
-                            <span class="law-formula">A ∩ ~A = ∅</span>
-                        </button>
-                        <button class="apple-btn law-btn" data-law="excluded" aria-label="排中律 A ∪ ~A = U">
-                            <span class="law-name">排中律</span>
-                            <span class="law-formula">A ∪ ~A = U</span>
-                        </button>
-                        <button class="apple-btn law-btn" data-law="identity" aria-label="同一律 A ∪ ∅ = A">
-                            <span class="law-name">同一律</span>
-                            <span class="law-formula">A ∪ ∅ = A</span>
-                        </button>
-                        <button class="apple-btn law-btn" data-law="idempotent" aria-label="幂等律 A ∪ A = A">
-                            <span class="law-name">幂等律</span>
-                            <span class="law-formula">A ∪ A = A</span>
-                        </button>
-                        <button class="apple-btn law-btn" data-law="zero" aria-label="零律 A ∪ U = U">
-                            <span class="law-name">零律</span>
-                            <span class="law-formula">A ∪ U = U</span>
-                        </button>
-                        <button class="apple-btn law-btn" data-law="absorption" aria-label="吸收律 A ∪ (A ∩ B) = A">
-                            <span class="law-name">吸收律</span>
-                            <span class="law-formula">A ∪ (A ∩ B) = A</span>
-                        </button>
-                    </div>
+                    <label>选择定律（放上天平）</label>
+                    <div class="law-selector" id="lawSelector"></div>
                 </div>
-
                 <div class="control-group">
-                    <label>元素池 (Element Pool)</label>
+                    <label>构造集合 A、B、C（全集 U = 4 类力量）</label>
+                    <div class="member-table" id="memberTable"></div>
                     <div class="element-pool" id="elementPool">
-                        <div class="element-item" draggable="true" data-type="worker">👷 工人</div>
-                        <div class="element-item" draggable="true" data-type="farmer">🌾 农民</div>
-                        <div class="element-item" draggable="true" data-type="soldier">🪖 军人</div>
+                        <button type="button" class="element-item" draggable="true" data-type="worker">👷 工人</button>
+                        <button type="button" class="element-item" draggable="true" data-type="farmer">🌾 农民</button>
+                        <button type="button" class="element-item" draggable="true" data-type="soldier">🪖 军人</button>
+                        <button type="button" class="element-item" draggable="true" data-type="scholar">🎓 知识分子</button>
                     </div>
-                    <p class="hint-text">拖拽元素构建集合 A, B, C</p>
+                    <p class="hint-text">点表格中的 ∈ / ∉ 切换归属；也可把元素拖到天平上的 A、B、C 槽位。</p>
                 </div>
-
                 <div class="control-group">
-                    <label>验证操作 (Verify)</label>
-                    <button id="verifyBtn" class="apple-btn action-btn" aria-label="验证真理">验证真理</button>
+                    <label>验证</label>
+                    <div class="btn-row">
+                        <button id="verifyBtn" type="button" class="apple-btn action-btn">称一称：验证等式</button>
+                        <button id="randomBtn" type="button" class="apple-btn secondary-btn">随机集合</button>
+                    </div>
                 </div>
-
                 <div class="control-group">
                     <label>价值解读</label>
                     <div class="info-panel">
-                        <h3 id="szTitle">平等互助</h3>
-                        <p id="szDesc">交换律象征着平等互助。无论先后顺序如何,工农联盟的性质不变,团结的力量不变。这体现了革命队伍中人人平等的原则。</p>
+                        <h3 id="szTitle">落细落实</h3>
+                        <p id="szDesc"></p>
                     </div>
                 </div>
             </div>
-
             <div class="actions-footer">
-                <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置">重置</button>
+                <button id="resetBtn" type="button" class="apple-btn danger-btn">重置</button>
             </div>
         </aside>
-
         <main class="visualizer-stage">
             <div class="glass-pane">
                 <div class="stage-header">
                     <h2>真理天平</h2>
-                    <p>验证运算性质的理论正确性</p>
+                    <p id="lawTitle">分配律：A ∩ (B ∪ C) = (A ∩ B) ∪ (A ∩ C)</p>
                 </div>
-
                 <div class="scale-stage">
-                    <!-- The Balance Scale -->
                     <div class="balance-scale" id="balanceScale">
                         <div class="scale-beam">
                             <div class="scale-pan left-pan">
                                 <div class="pan-chain"></div>
                                 <div class="pan-plate" id="leftPan">
-                                    <div class="equation-display" id="leftEq">A ∪ B</div>
-                                    <div class="pan-content">
-                                        <!-- Drop zones for sets -->
-                                        <div class="set-slot" data-slot="A" data-side="left">A</div>
-                                        <div class="op-symbol">∪</div>
-                                        <div class="set-slot" data-slot="B" data-side="left">B</div>
-                                    </div>
+                                    <div class="equation-display" id="leftEq"></div>
+                                    <div class="pan-content"></div>
                                     <div class="result-preview hidden" id="leftResult"></div>
                                 </div>
                             </div>
-                            <div class="scale-pivot">
-                                <div class="pivot-triangle"></div>
-                            </div>
+                            <div class="scale-pivot"><div class="pivot-triangle"></div></div>
                             <div class="scale-pan right-pan">
                                 <div class="pan-chain"></div>
                                 <div class="pan-plate" id="rightPan">
-                                    <div class="equation-display" id="rightEq">B ∪ A</div>
-                                    <div class="pan-content">
-                                        <div class="set-slot" data-slot="B" data-side="right">B</div>
-                                        <div class="op-symbol">∪</div>
-                                        <div class="set-slot" data-slot="A" data-side="right">A</div>
-                                    </div>
+                                    <div class="equation-display" id="rightEq"></div>
+                                    <div class="pan-content"></div>
                                     <div class="result-preview hidden" id="rightResult"></div>
                                 </div>
                             </div>
@@ -171,104 +113,58 @@
                         <div class="scale-base"></div>
                     </div>
                 </div>
-
-                <div id="verificationBadge" class="verification-badge hidden">
-                    <span class="badge-icon">⚖️</span>
-                    <span class="badge-text">真理验证通过</span>
+                <div id="verificationBadge" class="verification-badge hidden"><span class="badge-icon">⚖️</span><span class="badge-text" id="badgeText">两端相等</span></div>
+                <div class="proof-panel" id="proofPanel"></div>
+                <div class="simplify-panel">
+                    <div class="simplify-head">
+                        <b>化简演练</b>
+                        <select id="simpSelect" class="apple-select">
+                            <option value="s1">(A ∪ B) ∩ (A ∪ ~B)</option>
+                            <option value="s2">~(~A ∩ ~B) ∩ A</option>
+                            <option value="s3">~(A ∪ B) ∪ (~A ∩ B)</option>
+                        </select>
+                        <div class="btn-row small">
+                            <button type="button" class="apple-btn secondary-btn" id="simpPrev">上一步</button>
+                            <button type="button" class="apple-btn action-btn" id="simpNext">下一步</button>
+                        </div>
+                    </div>
+                    <ol class="simp-steps" id="simpSteps"></ol>
                 </div>
             </div>
         </main>
     </div>
-
     <script src="setprops.js"></script>
 
-<!-- 固定底部版权信息 -->
-<footer class="site-footer">
-    <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
-    <p>版权所有 · 项目总负责人：谢鑫</p>
-</footer>
+    <footer class="site-footer">
+        <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
+        <p>版权所有 · 项目总负责人：谢鑫</p>
+    </footer>
 
 
 
     <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
     <script>
-    window.SECTION_META = {
-      "chapter": "第2章 集合及其运算",
-      "section": "2.4 集合运算的性质",
-      "title": "分配与德摩根律",
-      "grounding": "本节主题：集合运算定律——交换律、结合律、分配律（∪对∩、∩对∪双向分配）、幂等律、吸收律、德摩根律 ~(A∪B)=~A∩~B、~(A∩B)=~A∪~B、同一律与零律。这些定律使集合构成一个布尔代数，可用于化简复合表达式，并与命题逻辑同构。 本页定位为进阶层：在原有页面基础上继续承担本节核心推理与综合运用。",
-      "steps": [
-            {
-                  "name": "情境引入",
-                  "desc": "复杂的集合表达式能否像代数式一样化简？依据是什么？"
-            },
-            {
-                  "name": "对象抽取",
-                  "desc": "把待证等式两端抽象为元素归属命题。"
-            },
-            {
-                  "name": "结构建模",
-                  "desc": "用交换/结合/分配/德摩根等定律建立化简规则体系。"
-            },
-            {
-                  "name": "推理求解",
-                  "desc": "用『互为子集』或文氏图证明定律，用定律化简表达式。"
-            },
-            {
-                  "name": "程序验证",
-                  "desc": "用本页交互对照两端区域，验证定律成立。"
-            },
-            {
-                  "name": "迁移反思",
-                  "desc": "迁移到命题逻辑、布尔代数、电路化简。"
-            }
-      ],
-      "ideology": {
-            "title": "平等互助 · 守正有度",
-            "text": "交换律体现地位平等、不分先后；结合律体现协作不受分组方式影响；德摩根律揭示『否定之否定』的转化规律。这些定律恰如制度规范——在确定的法则之内，运算才公平、可预期、可化繁为简，彰显规则之治的力量。",
-            "dims": [
-                  "规则意识",
-                  "平等观念",
-                  "辩证思维"
-            ],
-            "quote": "没有规矩，不成方圆——集合定律是化简与推理的『规矩』，守正方能致远。"
-      },
-      "reflect": [
-            "德摩根律 ~(A∪B)=~A∩~B 在直觉上说明了什么？请用『非（甲或乙）=非甲且非乙』理解。",
-            "证明集合等式常用『互为子集』法，为什么这是严格而通用的方法？",
-            "集合运算定律与命题逻辑的等值式高度对应，这种『同构』有什么深意？"
-      ],
-      "transfer": [
-            "数字电路化简用德摩根律把『与非/或非』互相转换，本节是逻辑设计的数学基础。",
-            {
-                  "t": "布尔代数",
-                  "d": "集合(∪,∩,~)与命题(∨,∧,¬)都是布尔代数的模型——抽象的统一之美在哪里？"
-            },
-            {
-                  "t": "查询优化",
-                  "d": "数据库把复杂条件用定律化简以加速，集合定律如何服务于性能？"
-            }
-      ],
-      "layers": [
-            {
-                  "name": "基本运算律",
-                  "concepts": "交换 / 结合 / 幂等",
-                  "task": "认识并验证集合运算的基本定律。",
-                  "page": "setprops-basic.html"
-            },
-            {
-                  "name": "分配与德摩根律",
-                  "concepts": "双向分配 / 德摩根 / 吸收律",
-                  "task": "用定律化简集合表达式、证明等式。",
-                  "page": "setprops.html"
-            },
-            {
-                  "name": "布尔代数同构",
-                  "concepts": "命题逻辑 / 电路化简 / 查询优化",
-                  "task": "理解集合-逻辑-电路的统一并迁移应用。",
-                  "page": "setprops-extend.html"
-            }
-      ]
+window.SECTION_META = {
+  "chapter": "第2章 集合及其运算",
+  "section": "2.4 集合运算的性质",
+  "title": "分配与德摩根律",
+  "grounding": "本节主题：集合运算定律——交换律、结合律、分配律（∩ 对 ∪、∪ 对 ∩ 双向分配）、幂等律、吸收律、德摩根律 ~(A∪B)=~A∩~B、~(A∩B)=~A∪~B、双重否定律、矛盾律 A∩~A=∅、排中律 A∪~A=U、同一律与零律。这些定律使集合构成布尔代数，可用于化简复合表达式，并与命题逻辑同构。 本页（进阶层）：『真理天平』把定律两端放上天平，构造 A、B、C 后称量两端结果并用成员表证明；含一个常见错误等式供找反例；『化简演练』用分配律、矛盾律、同一律、德摩根律、双重否定律、吸收律、排中律逐步化简表达式。",
+  "steps": [
+    {"name": "情境引入", "desc": "复杂的集合表达式能否像代数式一样化简？依据是什么？"},
+    {"name": "对象抽取", "desc": "把待证等式两端抽象为元素归属命题。"},
+    {"name": "结构建模", "desc": "用交换/结合/分配/德摩根等定律建立化简规则体系。"},
+    {"name": "推理求解", "desc": "用『互为子集』或文氏图证明定律，用定律化简表达式。"},
+    {"name": "程序验证", "desc": "用本页交互对照两端区域，验证定律成立。"},
+    {"name": "迁移反思", "desc": "迁移到命题逻辑、布尔代数、电路化简。"}
+  ],
+  "ideology": {"title": "平等互助 · 守正有度", "text": "交换律体现地位平等、不分先后；结合律体现协作不受分组方式影响；德摩根律揭示『否定之否定』的转化规律。这些定律恰如制度规范——在确定的法则之内，运算才公平、可预期、可化繁为简，彰显规则之治的力量。", "dims": ["规则意识", "平等观念", "辩证思维"], "quote": "没有规矩，不成方圆——集合定律是化简与推理的『规矩』，守正方能致远。"},
+  "reflect": ["德摩根律 ~(A∪B)=~A∩~B 在直觉上说明了什么？请用『非（甲或乙）=非甲且非乙』理解。", "证明集合等式常用『互为子集』法，为什么这是严格而通用的方法？", "集合运算定律与命题逻辑的等值式高度对应，这种『同构』有什么深意？"],
+  "transfer": ["数字电路化简用德摩根律把『与非/或非』互相转换，本节是逻辑设计的数学基础。", {"t": "布尔代数", "d": "集合(∪,∩,~)与命题(∨,∧,¬)都是布尔代数的模型——抽象的统一之美在哪里？"}, {"t": "查询优化", "d": "数据库把复杂条件用定律化简以加速，集合定律如何服务于性能？"}],
+  "layers": [
+    {"name": "基本运算律", "concepts": "交换 / 结合 / 幂等", "task": "认识并验证集合运算的基本定律。", "page": "setprops-basic.html"},
+    {"name": "分配与德摩根律", "concepts": "双向分配 / 德摩根 / 吸收律", "task": "用定律化简集合表达式、证明等式。", "page": "setprops.html"},
+    {"name": "布尔代数同构", "concepts": "命题逻辑 / 电路化简 / 查询优化", "task": "理解集合-逻辑-电路的统一并迁移应用。", "page": "setprops-extend.html"}
+  ]
 };
     </script>
     <script src="../../shared/ai-tutor.js" defer></script>
