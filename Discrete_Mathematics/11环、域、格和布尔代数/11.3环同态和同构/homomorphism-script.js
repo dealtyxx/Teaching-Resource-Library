@@ -1,523 +1,200 @@
 /**
- * Bridge of Unity - Ring Homomorphism & Isomorphism Visualizer
- * 连心桥 - 环同态与同构可视化
+ * 11.3 环同态和同构 —— 进阶层「核 = 理想与基本定理」
+ * 双运算检查台：选源环、目标环与映射规则 φ(x) = k·x mod m，
+ * 穷举检验良定义、保加法、保乘法、φ(1)=1 与单/满射，给出核、像与同态基本定理 R/Ker φ ≅ Im φ。
+ * 加载即展示默认示例 ℤ₁₂ → ℤ₄，φ(x) = x mod 4。
  */
+(function () {
+    'use strict';
 
-// DOM Elements
-const mappingType = document.getElementById('mappingType');
-const sourceRing = document.getElementById('sourceRing');
-const targetRing = document.getElementById('targetRing');
-const mappingRule = document.getElementById('mappingRule');
-const verifyBtn = document.getElementById('verifyBtn');
-const buildBridgeBtn = document.getElementById('buildBridgeBtn');
-const resetBtn = document.getElementById('resetBtn');
-const visualizationArea = document.getElementById('visualizationArea');
-const vizTitle = document.getElementById('vizTitle');
-const vizSubtitle = document.getElementById('vizSubtitle');
-const infoContent = document.getElementById('infoContent');
-const ideologyCard = document.getElementById('ideologyCard');
-const mappedCount = document.getElementById('mappedCount');
-const score = document.getElementById('score');
+    const $ = (id) => document.getElementById(id);
+    const mappingType = $('mappingType'), sourceRing = $('sourceRing'), targetRing = $('targetRing');
+    const mappingRule = $('mappingRule'), multK = $('multK');
+    const vizArea = $('visualizationArea'), vizTitle = $('vizTitle'), vizSubtitle = $('vizSubtitle');
+    const infoContent = $('infoContent'), ideologyCard = $('ideologyCard');
+    const checks = { add: $('checkAdd'), mul: $('checkMul'), one: $('checkOne'), bij: $('checkBijective') };
 
-// Check items
-const checkAdd = document.getElementById('checkAdd');
-const checkMul = document.getElementById('checkMul');
-const checkOne = document.getElementById('checkOne');
-const checkBijective = document.getElementById('checkBijective');
+    const RINGS = {
+        Z: { n: 0, name: 'ℤ', els: Array.from({ length: 13 }, (_, i) => i - 6) },
+        Z2: { n: 2, name: 'ℤ₂' }, Z3: { n: 3, name: 'ℤ₃' }, Z4: { n: 4, name: 'ℤ₄' },
+        Z6: { n: 6, name: 'ℤ₆' }, Z12: { n: 12, name: 'ℤ₁₂' }
+    };
+    Object.values(RINGS).forEach((R) => { if (R.n) R.els = Array.from({ length: R.n }, (_, i) => i); });
+    const mod = (a, n) => ((a % n) + n) % n;
 
-// State
-let currentMapping = 'homomorphism';
-let currentSourceRing = 'Z6';
-let currentTargetRing = 'Z6';
-let currentRule = 'identity';
-let mappingData = new Map();
-let selectedElements = [];
-let gameScore = 0;
-let totalMapped = 0;
+    const IDEOLOGY = {
+        homomorphism: ['⟷', '环同态 · 守住规则的桥梁', '同态同时保持加法与乘法：在一边先算再映射，与先映射再算，结果一致。搭建沟通的桥梁，关键是规则在两端一致。'],
+        isomorphism: ['≅', '环同构 · 形异而质同', '同构是双射同态：两个环元素写法不同，运算结构却完全一样。看问题要透过表面形式，识别本质相同的结构。'],
+        kernel: ['⊚', '核 · 被“压缩”的部分', 'Ker φ 是映到 0 的元素，它总是理想；商掉核，源环就与像同构。弄清哪些差别被忽略了，才能正确理解一个映射传递了什么。'],
+        image: ['⊃', '像 · 映射所能到达的范围', 'Im φ 是目标环的子环。映射的像告诉我们：源结构的信息在目标中保留了多少、覆盖了哪些部分。']
+    };
 
-// Ideological messages
-const ideologicalMessages = {
-    homomorphism: {
-        title: "环同态 - 连通共建",
-        message: "同态映射如连心桥，保持结构、传递精神，体现不同组织间的协作共建",
-        icon: "⟷"
-    },
-    isomorphism: {
-        title: "环同构 - 等价共融",
-        message: "同构映射建立完全对应，展现本质相同、和谐统一的团结境界",
-        icon: "≅"
-    },
-    kernel: {
-        title: "核 - 团结核心",
-        message: "核Ker(φ)是映射到零的元素集，如组织的核心团队，是稳定的基石",
-        icon: "⊚"
-    },
-    image: {
-        title: "像 - 影响范围",
-        message: "像Im(φ)展现映射的影响力，体现一个集体对另一集体的覆盖与贡献",
-        icon: "⊃"
+    let S = { view: 'homomorphism', src: 'Z12', tgt: 'Z4', rule: 'mult', k: 1, animate: false };
+
+    const R1 = () => RINGS[S.src], R2 = () => RINGS[S.tgt];
+    function phi(x) {
+        const m = R2().n, k = S.rule === 'zero' ? 0 : S.k;
+        const v = k * x;
+        return m ? mod(v, m) : v;
     }
-};
-
-// Ring definitions
-const rings = {
-    Z: {
-        name: "整数环 ℤ",
-        elements: Array.from({ length: 10 }, (_, i) => i - 5), // -5 to 4
-        modulus: null
-    },
-    Z6: {
-        name: "模6环 ℤ/6ℤ",
-        elements: [0, 1, 2, 3, 4, 5],
-        modulus: 6
-    },
-    Z12: {
-        name: "模12环 ℤ/12ℤ",
-        elements: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-        modulus: 12
-    },
-    R: {
-        name: "实数环 ℝ",
-        elements: [0, 0.5, 1, 1.5, 2, 2.5, 3, -1, -0.5],
-        modulus: null
+    function wellDefined() {
+        // 源为 ℤₙ 时，φ(x)=kx mod m 良定义 ⇔ m | k·n（目标为 ℤ 时仅 k=0 良定义）
+        const n = R1().n, m = R2().n, k = S.rule === 'zero' ? 0 : S.k;
+        if (!n) return true;
+        if (!m) return k === 0;
+        return (k * n) % m === 0;
     }
-};
-
-// Mapping rules
-const mappingRules = {
-    identity: {
-        name: "恒等映射",
-        func: (x, srcMod, tgtMod) => {
-            if (tgtMod) return ((x % tgtMod) + tgtMod) % tgtMod;
-            return x;
-        }
-    },
-    double: {
-        name: "倍映射",
-        func: (x, srcMod, tgtMod) => {
-            const result = 2 * x;
-            if (tgtMod) return result >= 0 ? result % tgtMod : ((result % tgtMod) + tgtMod) % tgtMod;
-            return result;
-        }
-    },
-    mod: {
-        name: "模映射",
-        func: (x, srcMod, tgtMod) => {
-            if (tgtMod) return ((x % tgtMod) + tgtMod) % tgtMod;
-            return x;
-        }
-    },
-    zero: {
-        name: "零映射",
-        func: (x, srcMod, tgtMod) => 0
-    }
-};
-
-// Initialize
-function init() {
-    updateIdeology(currentMapping);
-    updateMappingRule();
-}
-
-// Update ideology card
-function updateIdeology(key) {
-    const msg = ideologicalMessages[key];
-    if (msg) {
-        ideologyCard.querySelector('.card-icon').textContent = msg.icon;
-        ideologyCard.querySelector('.card-title').textContent = msg.title;
-        ideologyCard.querySelector('.card-content').textContent = msg.message;
-
-        // Add flash animation
-        ideologyCard.classList.remove('active');
-        setTimeout(() => ideologyCard.classList.add('active'), 10);
-    }
-}
-
-// Update mapping rule based on rings
-function updateMappingRule() {
-    const src = rings[currentSourceRing];
-    const tgt = rings[currentTargetRing];
-
-    // Auto-select appropriate rule
-    if (src.modulus && tgt.modulus && src.modulus > tgt.modulus) {
-        mappingRule.value = 'mod';
-        currentRule = 'mod';
-    } else if (currentSourceRing === currentTargetRing) {
-        mappingRule.value = 'identity';
-        currentRule = 'identity';
-    }
-}
-
-// Build the mapping visualization
-function buildMapping() {
-    const src = rings[currentSourceRing];
-    const tgt = rings[currentTargetRing];
-    const rule = mappingRules[currentRule];
-
-    vizTitle.textContent = `${src.name} → ${tgt.name}`;
-    vizSubtitle.textContent = `${rule.name}: ${getMappingFormula()}`;
-
-    // Build mapping data
-    mappingData.clear();
-    src.elements.forEach(elem => {
-        const mapped = rule.func(elem, src.modulus, tgt.modulus);
-        mappingData.set(elem, mapped);
-    });
-
-    // Create visualization
-    const container = document.createElement('div');
-    container.className = 'mapping-container';
-
-    // Source ring
-    const sourceSet = createRingSet(src, 'source', true);
-
-    // Target ring
-    const targetSet = createRingSet(tgt, 'target', false);
-
-    // SVG for arrows
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('class', 'arrow-svg');
-    svg.innerHTML = `
-        <defs>
-            <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-                <polygon points="0 0, 10 3, 0 6" fill="#d63b1d" opacity="0.6"/>
-            </marker>
-        </defs>
-    `;
-
-    container.appendChild(svg);
-    container.appendChild(sourceSet);
-    container.appendChild(targetSet);
-
-    visualizationArea.innerHTML = '';
-    visualizationArea.appendChild(container);
-
-    // Draw arrows after DOM update
-    setTimeout(() => drawMappingArrows(svg), 100);
-
-    // Update info panel
-    updateInfoPanel();
-
-    // Update stats
-    totalMapped = 0;
-    mappedCount.textContent = totalMapped;
-}
-
-// Create ring element set
-function createRingSet(ring, type, isSource) {
-    const set = document.createElement('div');
-    set.className = 'ring-set';
-
-    const title = document.createElement('div');
-    title.className = 'ring-title';
-    title.textContent = ring.name;
-
-    const elements = document.createElement('div');
-    elements.className = `ring-elements ${type}`;
-    elements.id = `${type}-elements`;
-
-    ring.elements.forEach((elem, idx) => {
-        const item = document.createElement('div');
-        item.className = `element-item ${type}`;
-        item.textContent = elem;
-        item.dataset.value = elem;
-        item.dataset.index = idx;
-
-        // Highlight based on mapping type
-        if (currentMapping === 'kernel' && isSource) {
-            const mapped = mappingData.get(elem);
-            if (mapped === 0) {
-                item.classList.add('kernel');
-            }
-        } else if (currentMapping === 'image' && !isSource) {
-            const values = Array.from(mappingData.values());
-            if (values.includes(elem)) {
-                item.classList.add('image');
+    function opIn(R, a, b, op) { const v = op === '+' ? a + b : a * b; return R.n ? mod(v, R.n) : v; }
+    function analyze() {
+        const A = R1(), B = R2(), wd = wellDefined();
+        let addBad = null, mulBad = null;
+        if (wd) {
+            for (const a of A.els) for (const b of A.els) {
+                const s = opIn(A, a, b, '+'), p = opIn(A, a, b, '*');
+                if (!addBad && phi(s) !== opIn(B, phi(a), phi(b), '+')) addBad = [a, b];
+                if (!mulBad && phi(p) !== opIn(B, phi(a), phi(b), '*')) mulBad = [a, b];
             }
         }
+        const img = [...new Set(A.els.map(phi))].sort((x, y) => x - y);
+        const ker = A.els.filter((x) => phi(x) === 0);
+        const inj = A.n ? img.length === A.els.length : ker.length === 1 && !!wd;
+        const surj = B.n ? img.length === B.n : Math.abs(S.rule === 'zero' ? 0 : S.k) === 1;
+        const one = phi(1) === (B.n === 1 ? 0 : 1);
+        return { wd, addBad, mulBad, hom: wd && !addBad && !mulBad, img, ker, inj, surj, one };
+    }
 
-        // Click handler
-        if (isSource) {
-            item.addEventListener('click', () => selectSourceElement(elem, item));
+    function setCheck(el, ok, na) {
+        el.classList.remove('valid', 'invalid', 'na');
+        el.classList.add(na ? 'na' : ok ? 'valid' : 'invalid');
+        el.querySelector('.check-icon').textContent = na ? '–' : ok ? '✓' : '✗';
+    }
+
+    function formula() {
+        const m = R2().n;
+        if (S.rule === 'zero') return 'φ(x) = 0';
+        const kx = S.k === 1 ? 'x' : S.k + 'x';
+        return m ? `φ(x) = ${kx} mod ${m}` : `φ(x) = ${kx}`;
+    }
+
+    /* ---------- SVG：左源环、右目标环、箭头 ---------- */
+    function draw(A, info) {
+        const L = A.els.length, M = R2().n ? R2().els.length : null;
+        const tEls = R2().n ? R2().els : [...new Set(A.els.map(phi))].sort((x, y) => x - y);
+        const h = Math.max(L, tEls.length) * 34 + 90, xL = 170, xR = 550;
+        const yOf = (i, cnt) => 60 + (i + 0.5) * ((h - 90) / cnt);
+        const posL = {}, posR = {};
+        A.els.forEach((a, i) => { posL[a] = [xL, yOf(i, L)]; });
+        tEls.forEach((b, i) => { posR[b] = [xR, yOf(i, tEls.length)]; });
+        let s = `<defs><marker id="ha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="rgba(214,59,29,.7)"/></marker>` +
+            `<marker id="hk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#c58a1f"/></marker></defs>`;
+        s += `<text x="${xL}" y="34" text-anchor="middle" font-size="16" font-weight="800" fill="#d63b1d">源环 ${R1().name}${R1().n ? '' : '（−6…6）'}</text>`;
+        s += `<text x="${xR}" y="34" text-anchor="middle" font-size="16" font-weight="800" fill="#b8321a">目标环 ${R2().name}</text>`;
+        const bad = info.addBad || info.mulBad;
+        if (info.wd) {
+            A.els.forEach((a, i) => {
+                const b = phi(a), p = posL[a], q = posR[b];
+                if (!q) return;
+                const isKer = b === 0;
+                const hot = bad && (a === bad[0] || a === bad[1]);
+                const col = hot ? '#c0392b' : isKer && S.view === 'kernel' ? '#c58a1f' : 'rgba(214,59,29,.45)';
+                const dash = S.animate ? `stroke-dasharray="400" stroke-dashoffset="400" style="animation: hm-draw .6s ease ${i * 0.06}s forwards"` : '';
+                s += `<path d="M${p[0] + 20},${p[1]} C${(p[0] + q[0]) / 2},${p[1]} ${(p[0] + q[0]) / 2},${q[1]} ${q[0] - 22},${q[1]}" fill="none" stroke="${col}" stroke-width="${hot ? 3 : 2}" marker-end="url(#${isKer && S.view === 'kernel' ? 'hk' : 'ha'})" ${dash}/>`;
+            });
         }
+        A.els.forEach((a) => {
+            const isKer = info.ker.includes(a) && (S.view === 'kernel');
+            const hot = bad && (a === bad[0] || a === bad[1]);
+            s += nodeSvg(posL[a], a, hot ? 'bad' : isKer ? 'cur' : 'norm');
+        });
+        tEls.forEach((b) => {
+            const inImg = info.img.includes(b);
+            const kind = (S.view === 'image' || S.view === 'isomorphism') && inImg ? 'cur' : b === 0 && S.view === 'kernel' ? 'key' : inImg ? 'norm' : 'dim';
+            s += nodeSvg(posR[b], b, kind);
+        });
+        if (!info.wd) s += `<text x="360" y="${h / 2}" text-anchor="middle" font-size="16" font-weight="800" fill="#c0392b">φ 不是良定义的映射：同一剩余类的不同代表元会得到不同的像</text>`;
+        return `<svg class="hm-svg" viewBox="0 0 720 ${h}" role="img">${s}</svg>`;
+    }
+    function nodeSvg(p, label, kind) {
+        const K = { norm: ['#fff', '#6b4a38', '#2c1810'], cur: ['#ffb400', '#c58a1f', '#2c1810'], key: ['#d63b1d', '#b8321a', '#fff'], bad: ['#fde8e4', '#c0392b', '#97180f'], dim: ['#efe4d6', '#d8c6b2', '#a08a78'] }[kind];
+        return `<g><circle cx="${p[0]}" cy="${p[1]}" r="15" fill="${K[0]}" stroke="${K[1]}" stroke-width="2.4"${kind === 'bad' ? ' stroke-dasharray="4 3"' : ''}/>` +
+            `<text x="${p[0]}" y="${p[1] + 5}" text-anchor="middle" class="m" font-size="13" font-weight="800" fill="${K[2]}">${label}</text></g>`;
+    }
 
-        elements.appendChild(item);
-    });
+    /* ---------- 渲染 ---------- */
+    function render() {
+        const A = R1(), info = analyze();
+        vizTitle.textContent = `${A.name} → ${R2().name}，${formula()}`;
+        const sub = {
+            homomorphism: '环同态：∀a,b，φ(a+b) = φ(a)+φ(b) 且 φ(ab) = φ(a)φ(b)（逐对穷举检验）',
+            isomorphism: '环同构：双射的环同态；金色为像，全部点亮才是满射',
+            kernel: '核 Ker φ = {a : φ(a) = 0}（金色）——它总是源环的理想',
+            image: '像 Im φ = {φ(a)}（金色）——它总是目标环的子环'
+        }[S.view];
+        vizSubtitle.textContent = sub;
+        vizArea.innerHTML = draw(A, info);
 
-    set.appendChild(title);
-    set.appendChild(elements);
+        setCheck(checks.add, info.wd && !info.addBad, !info.wd);
+        setCheck(checks.mul, info.wd && !info.mulBad, !info.wd);
+        setCheck(checks.one, info.one, !info.wd);
+        setCheck(checks.bij, info.inj && info.surj, !info.wd);
+        $('kerCount').textContent = info.wd ? (A.n ? info.ker.length : (S.k === 0 || S.rule === 'zero' ? '∞' : info.ker.length === 1 ? 1 : '∞')) : '—';
+        $('imgCount').textContent = info.wd ? (R2().n ? info.img.length : '∞') : '—';
 
-    return set;
-}
-
-// Draw mapping arrows
-function drawMappingArrows(svg) {
-    const sourceElems = document.querySelectorAll('.element-item.source');
-    const targetElems = document.querySelectorAll('.element-item.target');
-
-    let arrowCount = 0;
-    const maxArrows = currentMapping === 'homomorphism' || currentMapping === 'isomorphism' ?
-        Math.min(5, sourceElems.length) : sourceElems.length;
-
-    sourceElems.forEach((srcElem, idx) => {
-        if (arrowCount >= maxArrows) return;
-
-        const srcValue = parseFloat(srcElem.dataset.value);
-        const mappedValue = mappingData.get(srcValue);
-
-        // Find target element
-        const tgtElem = Array.from(targetElems).find(el =>
-            parseFloat(el.dataset.value) === mappedValue
-        );
-
-        if (tgtElem) {
-            const srcRect = srcElem.getBoundingClientRect();
-            const tgtRect = tgtElem.getBoundingClientRect();
-            const svgRect = svg.getBoundingClientRect();
-
-            const x1 = srcRect.right - svgRect.left;
-            const y1 = srcRect.top + srcRect.height / 2 - svgRect.top;
-            const x2 = tgtRect.left - svgRect.left;
-            const y2 = tgtRect.top + tgtRect.height / 2 - svgRect.top;
-
-            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            const controlX = (x1 + x2) / 2;
-            const controlY = (y1 + y2) / 2 - 30;
-
-            path.setAttribute('class', 'mapping-arrow');
-            path.setAttribute('d', `M ${x1} ${y1} Q ${controlX} ${controlY} ${x2} ${y2}`);
-            path.setAttribute('stroke-dasharray', '5,5');
-
-            svg.appendChild(path);
-            arrowCount++;
+        let html = `<div class="info-formula">${formula()}</div>`;
+        if (!info.wd) {
+            html += `<p class="info-text"><b class="bad">不良定义</b>：在 ${A.name} 中 0 = ${A.n}，但 φ(0) = 0 而 ${S.k}·${A.n} mod ${R2().n || '∞'} = ${R2().n ? mod(S.k * A.n, R2().n) : S.k * A.n} ≠ 0。要求 ${R2().n || 'm'} | k·${A.n}。</p>`;
+        } else {
+            const bad = (arr, op) => `φ(${arr[0]}${op}${arr[1]}) = ${phi(opIn(A, arr[0], arr[1], op))}，而 φ(${arr[0]})${op}φ(${arr[1]}) = ${opIn(R2(), phi(arr[0]), phi(arr[1]), op)}`;
+            html += `<p class="info-text">保加法：${info.addBad ? '<b class="bad">✗ ' + bad(info.addBad, '+') + '</b>' : '<b class="ok">✓ 全部成立</b>'}</p>`;
+            html += `<p class="info-text">保乘法：${info.mulBad ? '<b class="bad">✗ ' + bad(info.mulBad, '*').replace(/\*/g, '·') + '</b>' : '<b class="ok">✓ 全部成立</b>'}</p>`;
+            html += `<p class="info-text">φ(1) = ${phi(1)}${info.one ? '（保持单位元）' : '（不保持单位元，仍可能是环同态）'}</p>`;
+            const kerTxt = A.n ? '{' + info.ker.join(', ') + '}' : (S.k === 0 || S.rule === 'zero' ? 'ℤ' : (R2().n ? (R2().n / gcd(S.k, R2().n)) + 'ℤ' : '{0}'));
+            html += `<p class="info-text">Ker φ = ${kerTxt}　Im φ = {${info.img.join(', ')}}</p>`;
+            if (info.hom) {
+                const q = A.n ? A.n / info.ker.length : null;
+                html += `<div class="info-formula">${info.inj && info.surj ? '★ 环同构 ' + A.name + ' ≅ ' + R2().name : '✓ 环同态'}</div>`;
+                if (A.n) html += `<p class="info-text">同态基本定理：${A.name}/Ker φ 有 ${A.n}/${info.ker.length} = ${q} 个陪集，恰与 |Im φ| = ${info.img.length} 相等，${A.name}/Ker φ ≅ Im φ。</p>`;
+                else html += `<p class="info-text">同态基本定理：ℤ/Ker φ ≅ Im φ。</p>`;
+            } else {
+                html += `<div class="info-formula bad">✗ 不是环同态</div>`;
+            }
         }
+        infoContent.innerHTML = html;
+
+        const m = IDEOLOGY[S.view];
+        ideologyCard.querySelector('.card-icon').textContent = m[0];
+        ideologyCard.querySelector('.card-title').textContent = m[1];
+        ideologyCard.querySelector('.card-content').textContent = m[2];
+        S.animate = false;
+    }
+    function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a; }
+
+    function sync() {
+        S.view = mappingType.value; S.src = sourceRing.value; S.tgt = targetRing.value;
+        S.rule = mappingRule.value; S.k = Number(multK.value);
+        multK.disabled = S.rule === 'zero';
+        render();
+    }
+    [mappingType, sourceRing, targetRing, mappingRule, multK].forEach((el) => el.addEventListener('change', sync));
+    $('verifyBtn').addEventListener('click', () => { S.animate = true; render(); });
+    $('buildBridgeBtn').addEventListener('click', () => {
+        // 推荐示例轮换：典型同态 / 非同态 / 同构 / 不良定义
+        const demos = [
+            ['homomorphism', 'Z12', 'Z4', 'mult', 1], ['homomorphism', 'Z6', 'Z6', 'mult', 2],
+            ['homomorphism', 'Z6', 'Z6', 'mult', 3], ['isomorphism', 'Z6', 'Z6', 'mult', 5], ['isomorphism', 'Z', 'Z', 'mult', 1],
+            ['kernel', 'Z', 'Z6', 'mult', 1], ['homomorphism', 'Z4', 'Z6', 'mult', 1], ['homomorphism', 'Z4', 'Z6', 'mult', 3]
+        ];
+        buildIdx = (buildIdx + 1) % demos.length;
+        const d = demos[buildIdx];
+        mappingType.value = d[0]; sourceRing.value = d[1]; targetRing.value = d[2]; mappingRule.value = d[3]; multK.value = String(d[4]);
+        sync(); S.animate = true; render();
     });
-}
-
-// Select source element
-function selectSourceElement(value, elem) {
-    const mapped = mappingData.get(value);
-
-    // Highlight
-    document.querySelectorAll('.element-item.selected').forEach(el => {
-        el.classList.remove('selected');
-    });
-    elem.classList.add('selected');
-
-    // Find and highlight target
-    const targetElems = document.querySelectorAll('.element-item.target');
-    targetElems.forEach(tel => {
-        tel.classList.remove('selected');
-        if (parseFloat(tel.dataset.value) === mapped) {
-            tel.classList.add('selected');
-        }
-    });
-
-    // Update stats
-    totalMapped++;
-    mappedCount.textContent = totalMapped;
-
-    // Show mapping in info
-    infoContent.innerHTML = `
-        <div class="info-formula">φ(${value}) = ${mapped}</div>
-        <p class="info-text">元素 ${value} 映射到 ${mapped}</p>
-    `;
-}
-
-// Update info panel
-function updateInfoPanel() {
-    const src = rings[currentSourceRing];
-    const tgt = rings[currentTargetRing];
-
-    let info = `<p class="info-text"><strong>映射:</strong> ${src.name} → ${tgt.name}</p>`;
-    info += `<div class="info-formula">${getMappingFormula()}</div>`;
-
-    if (currentMapping === 'kernel') {
-        const kernelElems = Array.from(mappingData.entries())
-            .filter(([k, v]) => v === 0)
-            .map(([k, v]) => k);
-        info += `<p class="info-text"><strong>核 Ker(φ):</strong> {${kernelElems.join(', ')}}</p>`;
-    } else if (currentMapping === 'image') {
-        const imageElems = Array.from(new Set(mappingData.values())).sort((a, b) => a - b);
-        info += `<p class="info-text"><strong>像 Im(φ):</strong> {${imageElems.join(', ')}}</p>`;
-    }
-
-    infoContent.innerHTML = info;
-}
-
-// Get mapping formula
-function getMappingFormula() {
-    switch (currentRule) {
-        case 'identity':
-            return 'φ(x) = x';
-        case 'double':
-            return 'φ(x) = 2x';
-        case 'mod':
-            const tgt = rings[currentTargetRing];
-            return `φ(x) = x mod ${tgt.modulus || 'n'}`;
-        case 'zero':
-            return 'φ(x) = 0';
-        default:
-            return 'φ(x)';
-    }
-}
-
-// Verify properties
-function verifyProperties() {
-    const src = rings[currentSourceRing];
-    const tgt = rings[currentTargetRing];
-    const rule = mappingRules[currentRule];
-
-    // Test addition preservation
-    const a = src.elements[1] || 1;
-    const b = src.elements[2] || 2;
-
-    const φa = rule.func(a, src.modulus, tgt.modulus);
-    const φb = rule.func(b, src.modulus, tgt.modulus);
-
-    const lhs = add(φa, φb, tgt.modulus); // φ(a) + φ(b)
-    const rhs = rule.func(add(a, b, src.modulus), src.modulus, tgt.modulus); // φ(a+b)
-
-    const addPreserved = Math.abs(lhs - rhs) < 0.001;
-    updateCheckItem(checkAdd, addPreserved);
-
-    // Test multiplication preservation
-    const lhsMul = mul(φa, φb, tgt.modulus); // φ(a) * φ(b)
-    const rhsMul = rule.func(mul(a, b, src.modulus), src.modulus, tgt.modulus); // φ(a*b)
-
-    const mulPreserved = Math.abs(lhsMul - rhsMul) < 0.001;
-    updateCheckItem(checkMul, mulPreserved);
-
-    // Test identity preservation
-    const φ1 = rule.func(1, src.modulus, tgt.modulus);
-    const onePreserved = Math.abs(φ1 - 1) < 0.001;
-    updateCheckItem(checkOne, onePreserved);
-
-    // Test bijectivity (for isomorphism)
-    const imageSize = new Set(mappingData.values()).size;
-    const isBijective = imageSize === tgt.elements.length &&
-        src.elements.length === tgt.elements.length;
-    updateCheckItem(checkBijective, isBijective);
-
-    // Update score
-    const validCount = [addPreserved, mulPreserved, onePreserved, isBijective].filter(Boolean).length;
-    gameScore += validCount * 10;
-    score.textContent = gameScore;
-
-    // Update info
-    let resultText = '<p class="info-text"><strong>验证结果:</strong></p>';
-    resultText += `<p class="info-text">✓ 加法保持: ${addPreserved ? '是' : '否'}</p>`;
-    resultText += `<p class="info-text">✓ 乘法保持: ${mulPreserved ? '是' : '否'}</p>`;
-    resultText += `<p class="info-text">✓ 单位元保持: ${onePreserved ? '是' : '否'}</p>`;
-    resultText += `<p class="info-text">✓ 双射性: ${isBijective ? '是' : '否'}</p>`;
-
-    if (addPreserved && mulPreserved) {
-        resultText += `<div class="info-formula">✓ 环同态性质满足!</div>`;
-    }
-    if (isBijective && addPreserved && mulPreserved) {
-        resultText += `<div class="info-formula">★ 环同构!</div>`;
-    }
-
-    infoContent.innerHTML += resultText;
-}
-
-// Update check item visual
-function updateCheckItem(item, isValid) {
-    item.classList.remove('valid', 'invalid');
-    const icon = item.querySelector('.check-icon');
-
-    if (isValid) {
-        item.classList.add('valid');
-        icon.textContent = '✓';
-    } else {
-        item.classList.add('invalid');
-        icon.textContent = '✗';
-    }
-}
-
-// Helper: Addition
-function add(a, b, mod) {
-    const result = a + b;
-    if (mod) {
-        return result >= 0 ? result % mod : ((result % mod) + mod) % mod;
-    }
-    return result;
-}
-
-// Helper: Multiplication
-function mul(a, b, mod) {
-    const result = a * b;
-    if (mod) {
-        return result >= 0 ? result % mod : ((result % mod) + mod) % mod;
-    }
-    return result;
-}
-
-// Reset
-function reset() {
-    visualizationArea.innerHTML = `
-        <div class="welcome-state">
-            <div class="bridge-animation">
-                <svg viewBox="0 0 200 100" class="bridge-svg">
-                    <defs>
-                        <linearGradient id="bridgeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style="stop-color:#d63b1d;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ffb400;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <path d="M 20 80 Q 100 20 180 80" stroke="url(#bridgeGrad)" stroke-width="4" fill="none"
-                        class="bridge-path" />
-                    <circle cx="20" cy="80" r="8" fill="#d63b1d" class="bridge-point" />
-                    <circle cx="180" cy="80" r="8" fill="#ffb400" class="bridge-point" />
-                    <text x="20" y="95" text-anchor="middle" class="bridge-label">R₁</text>
-                    <text x="180" y="95" text-anchor="middle" class="bridge-label">R₂</text>
-                </svg>
-            </div>
-            <p class="welcome-text">构建连心桥，探索环之间的映射关系</p>
-        </div>
-    `;
-
-    vizTitle.textContent = '环同态映射可视化';
-    vizSubtitle.textContent = '点击"构建桥梁"开始探索';
-
-    infoContent.innerHTML = '<p class="info-text">选择映射类型和环结构开始</p>';
-
-    // Reset check items
-    [checkAdd, checkMul, checkOne, checkBijective].forEach(item => {
-        item.classList.remove('valid', 'invalid');
-        item.querySelector('.check-icon').textContent = '?';
+    let buildIdx = 0;
+    $('resetBtn').addEventListener('click', () => {
+        mappingType.value = 'homomorphism'; sourceRing.value = 'Z12'; targetRing.value = 'Z4'; mappingRule.value = 'mult'; multK.value = '1';
+        buildIdx = 0; sync();
     });
 
-    totalMapped = 0;
-    mappedCount.textContent = totalMapped;
-}
-
-// Event Listeners
-mappingType.addEventListener('change', (e) => {
-    currentMapping = e.target.value;
-    updateIdeology(currentMapping);
-    if (mappingData.size > 0) {
-        buildMapping(); // Rebuild to show kernel/image highlights
-    }
-});
-
-sourceRing.addEventListener('change', (e) => {
-    currentSourceRing = e.target.value;
-    updateMappingRule();
-});
-
-targetRing.addEventListener('change', (e) => {
-    currentTargetRing = e.target.value;
-    updateMappingRule();
-});
-
-mappingRule.addEventListener('change', (e) => {
-    currentRule = e.target.value;
-});
-
-buildBridgeBtn.addEventListener('click', buildMapping);
-verifyBtn.addEventListener('click', verifyProperties);
-resetBtn.addEventListener('click', reset);
-
-// Initialize
-init();
+    mappingType.value = S.view; sourceRing.value = S.src; targetRing.value = S.tgt; mappingRule.value = S.rule; multK.value = String(S.k);
+    sync();
+})();
