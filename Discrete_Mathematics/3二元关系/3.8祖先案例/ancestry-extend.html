@@ -8,7 +8,7 @@
   <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="最近公共祖先与近亲 · 拓展层｜3.8 祖先案例 - 离散数学课程资源库">
-  <meta property="og:description" content="第3章 二元关系 · 3.8 祖先案例 · 拓展层：LCA / 共同祖先 / 近亲判定。迁移到 LCA 与依赖分析。">
+  <meta property="og:description" content="第3章 二元关系 · 3.8 祖先案例 · 拓展层：共同祖先 / LCA / 三代以内旁系血亲。用祖先集的交与最近公共祖先判定亲缘远近。">
   <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/3%E4%BA%8C%E5%85%83%E5%85%B3%E7%B3%BB/3.8%E7%A5%96%E5%85%88%E6%A1%88%E4%BE%8B/ancestry-extend.html">
   <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta property="og:image:width" content="1200">
@@ -16,11 +16,11 @@
   <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="最近公共祖先与近亲 · 拓展层｜3.8 祖先案例 - 离散数学课程资源库">
-  <meta name="twitter:description" content="第3章 二元关系 · 3.8 祖先案例 · 拓展层：LCA / 共同祖先 / 近亲判定。迁移到 LCA 与依赖分析。">
+  <meta name="twitter:description" content="第3章 二元关系 · 3.8 祖先案例 · 拓展层：共同祖先 / LCA / 三代以内旁系血亲。用祖先集的交与最近公共祖先判定亲缘远近。">
   <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>最近公共祖先与近亲 · 拓展层｜3.8 祖先案例 - 离散数学课程资源库</title>
-  <meta name="description" content="第3章 二元关系 · 3.8 祖先案例 · 拓展层：LCA / 共同祖先 / 近亲判定。迁移到 LCA 与依赖分析。">
+  <meta name="description" content="第3章 二元关系 · 3.8 祖先案例 · 拓展层：共同祖先 / LCA / 三代以内旁系血亲。用祖先集的交与最近公共祖先判定亲缘远近。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -41,9 +41,6 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Mic
 .sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
 .subtitle{margin:0;color:#6b4a38;font-size:.95rem;line-height:1.5;}
 .intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
-.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
-.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
-.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
 .control-group{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
 .control-group>label{display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:8px;}
 .pick-row{display:flex;align-items:center;gap:8px;font-size:.82rem;color:#b8321a;margin:6px 0;}
@@ -61,7 +58,7 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Mic
 .kg-token.on{background:linear-gradient(135deg,#d63b1d,#b8321a);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
 .qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.86rem;color:#5b4136;line-height:1.9;}
 .qres b{color:var(--red);}.qres .tag{display:inline-block;padding:2px 9px;border-radius:11px;margin:2px;font-size:.78rem;}
-.qres .ta{background:rgba(47,95,159,.16);color:#274e7a;}.qres .tb{background:rgba(42,157,143,.18);color:#1c7a6e;}.qres .common{background:rgba(197,138,31,.22);color:#8a5d0b;}.qres .lca{background:#d63b1d;color:#fff;}
+.qres .ta{background:rgba(47,95,159,.16);color:#274e7a;}.qres .tb{background:rgba(47, 125, 87,.18);color:#1c7a6e;}.qres .common{background:rgba(197,138,31,.22);color:#8a5d0b;}.qres .lca{background:#d63b1d;color:#fff;}
 .verdict{border-radius:10px;padding:10px 12px;margin-top:8px;font-weight:700;font-size:.9rem;}
 .verdict.close{background:rgba(214, 59, 29,.1);color:var(--red);border:1px solid rgba(214, 59, 29,.35);}
 .verdict.far{background:rgba(47,125,87,.12);color:var(--green);border:1px solid rgba(47,125,87,.35);}
@@ -75,6 +72,19 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Mic
 .leg{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;font-size:.74rem;color:#b8321a;margin-top:10px;}.leg i{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:5px;vertical-align:middle;}
 .footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
 @media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+
+    /* 案例六段式（3.7–3.10 案例单元统一） */
+    .case-flow-wrap { margin-top: 18px; }
+    .case-flow-title { display: flex; align-items: center; gap: 8px; font-weight: 700; color: #b8321a; font-size: .95rem; margin-bottom: 10px; }
+    .case-flow-title span { font-size: .75rem; font-weight: 600; color: #8a5a00; background: rgba(255,180,0,.16); border: 1px solid rgba(197,138,31,.3); padding: 2px 10px; border-radius: 999px; }
+    .case-flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .cf-step { background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16); border-radius: 12px; padding: 10px 12px; font-size: .82rem; line-height: 1.65; color: #2c1810; }
+    .cf-step h4 { display: flex; align-items: center; gap: 6px; margin: 0 0 4px; font-size: .88rem; color: #d63b1d; }
+    .cf-step h4 i { font-style: normal; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: #d63b1d; color: #fff; font-size: .72rem; }
+    .cf-step p { margin: 0; }
+    .cf-step b { color: #b8321a; }
+    .cf-step.cf-value { background: linear-gradient(135deg, rgba(214,59,29,.07), rgba(255,180,0,.12)); }
+    @media (max-width: 900px) { .case-flow { grid-template-columns: 1fr; } }
   </style>
   <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
   <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
@@ -85,16 +95,11 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Mic
     <aside class="side-panel">
       <div class="sidebar-header">
         <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
-        <h1>红色数理 <span class="highlight">拓展层</span></h1>
+        <h1>最近公共祖先与近亲</h1>
         <p class="subtitle">寻根问祖 · 最近公共祖先与近亲</p>
       </div>
       <p class="intro">求两人祖先集的交集得『共同祖先』，其中辈分最低者即<b>最近公共祖先 LCA</b>，据此判定亲疏远近。</p>
 
-      <div class="value-panel">
-        <h3>慎终追远 · 同根同源</h3>
-        <p>共同的祖先把家族联结为一体；最近公共祖先正是血脉相系、同根同源的见证，也是依赖分析与亲缘判定的数学内核。</p>
-        <div class="dim-list"><span>文化自信</span><span>家国情怀</span><span>守正创新</span></div>
-      </div>
 
       <div class="control-group">
         <label>选择两位家族成员</label>
@@ -128,7 +133,18 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Mic
       <h2 class="pane-title">家族世系图（四代传承）</h2>
       <p class="pane-sub">蓝=A 的祖先，绿=B 的祖先，金=共同祖先，红=最近公共祖先 LCA。</p>
       <div class="kg-box"><svg id="lg" class="lg" viewBox="0 0 580 440" preserveAspectRatio="xMidYMid meet"></svg></div>
-      <div class="leg"><span><i style="background:#2f5f9f"></i>A 祖先</span><span><i style="background:#2a9d8f"></i>B 祖先</span><span><i style="background:#c58a1f"></i>共同祖先</span><span><i style="background:#d63b1d"></i>LCA / 选中</span></div>
+      <div class="leg"><span><i style="background:#2f5f9f"></i>A 祖先</span><span><i style="background:#2F7D57"></i>B 祖先</span><span><i style="background:#c58a1f"></i>共同祖先</span><span><i style="background:#d63b1d"></i>LCA / 选中</span></div>
+      <section class="case-flow-wrap" aria-label="案例六段式">
+        <div class="case-flow-title">案例六段式<span>拓展层 · 拓展模型</span></div>
+        <div class="case-flow">
+          <div class="cf-step"><h4><i>1</i>情境背景</h4><p>判断两个人是否是近亲、亲缘有多近，是婚姻登记和医学遗传咨询中的实际问题。</p></div>
+          <div class="cf-step"><h4><i>2</i>数学建模</h4><p>共同祖先 = R⁺(A) ∩ R⁺(B)（两个祖先集的交）；最近公共祖先 LCA = 共同祖先中辈分最低者；按两人到 LCA 的代数判定亲缘。</p></div>
+          <div class="cf-step"><h4><i>3</i>交互求解</h4><p>选择两位成员，依次查看「各自祖先」「共同祖先」「最近公共祖先」，观察亲缘判定结果；点击世系图可轮流替换 A、B。</p></div>
+          <div class="cf-step"><h4><i>4</i>结果解读</h4><p>李思源与李思远的 LCA 是父母李明、刘芳，二人是兄弟姐妹；若一方是另一方的祖先，则为直系血亲；各自在 LCA 以下两代以内的，是三代以内旁系血亲。</p></div>
+          <div class="cf-step cf-value"><h4><i>5</i>价值引领</h4><p>一个家族四代人的奋斗，映照着从抗战、新中国建设到改革开放、新时代的百年历程。沿亲子关系上溯祖先，就是追寻家风的源头：饮水思源、传承家国情怀。《民法典》第一千零四十八条规定：直系血亲或者三代以内的旁系血亲禁止结婚——关系运算为法律规定提供了清晰的判定方法。</p></div>
+          <div class="cf-step"><h4><i>6</i>迁移思考</h4><p>LCA 在计算机中还用于版本管理（找两个分支的共同祖先提交）、文件系统路径和编译器的依赖分析。你还能举出哪些例子？</p></div>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -140,9 +156,9 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Mic
   <script>
     window.SECTION_META = {
       "layers": [
-        {"name": "亲子关系", "concepts": "父母-子女 / 直接关系", "task": "把家谱抽象为亲子关系。", "page": "ancestry-basic.html"},
-        {"name": "祖先=传递闭包", "concepts": "R⁺ / 可达集 / 无环", "task": "用传递闭包求全部祖先/后代。", "page": "ancestry.html"},
-        {"name": "最近公共祖先与近亲", "concepts": "LCA / 共同祖先 / 近亲判定", "task": "迁移到 LCA 与依赖分析。", "page": "ancestry-extend.html"}
+        {"name": "亲子关系", "concepts": "父母→子女 / 有向边 / 一步关系", "task": "把家谱抽象为家族成员集合上的亲子关系。", "page": "ancestry-basic.html"},
+        {"name": "祖先=传递闭包", "concepts": "R⁺ / DFS 逐级上溯 / 可达集", "task": "用传递闭包求一个人的全部祖先。", "page": "ancestry.html"},
+        {"name": "最近公共祖先与近亲", "concepts": "共同祖先 / LCA / 三代以内旁系血亲", "task": "用祖先集的交与最近公共祖先判定亲缘远近。", "page": "ancestry-extend.html"}
       ],
       "chapter": "第3章 二元关系", "section": "3.8 祖先案例", "title": "最近公共祖先与近亲",
       "grounding": "本页（拓展层）主题：把传递闭包用于亲缘判定。两人的共同祖先=各自祖先集（传递闭包）的交集；最近公共祖先 LCA=共同祖先中辈分最低者；据 LCA 的辈分距离判定近亲/远亲。这正是族谱亲缘判定与依赖分析（最近公共依赖）的数学内核。",
@@ -169,7 +185,7 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Mic
       'g4-1':{n:'李思源',gen:4,x:380,y:385},'g4-2':{n:'李思远',gen:4,x:500,y:385}
     };
     var PARENTS={'g2-1':['g1-1','g1-2'],'g3-1':['g2-1','g2-2'],'g4-1':['g3-1','g3-2'],'g4-2':['g3-1','g3-2']};
-    var GC={1:'#c0392b',2:'#e8a317',3:'#2a9d8f',4:'#2f5f9f'};
+    var GC={1:'#c0392b',2:'#c58a1f',3:'#2F7D57',4:'#2f5f9f'};
     var EDGES=[];Object.keys(PARENTS).forEach(function(c){PARENTS[c].forEach(function(p){EDGES.push([p,c]);});});
     var IDS=Object.keys(FAM);
     var nameOf=function(id){return FAM[id].n;};
@@ -197,7 +213,7 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Mic
         else if((guide==='common'||guide==='lca')&&commonSet[id])fill='#c58a1f';
         else if(guide==='anc'&&setA[id]&&setB[id])fill='#c58a1f';
         else if(setA[id]&&(guide==='anc'))fill='#2f5f9f';
-        else if(setB[id]&&(guide==='anc'))fill='#2a9d8f';
+        else if(setB[id]&&(guide==='anc'))fill='#2F7D57';
         else fill='#bfae9f';
         var ring=(guide==='lca'&&lcaSet[id]);var stroke=isAB?'#b8321a':(ring?'#fff':'#fff');var sw=(isAB||ring)?3.4:2;
         var dim=(guide==='common'||guide==='lca')&&!isAB&&!commonSet[id];
@@ -221,11 +237,12 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Mic
       if(A===B){v='同一个人。';cls='none';}
       else if(R.aIsAncB){v=nameOf(A)+' 是 '+nameOf(B)+' 的<b>直系长辈</b>（祖先）。';cls='close';}
       else if(R.bIsAncA){v=nameOf(B)+' 是 '+nameOf(A)+' 的<b>直系长辈</b>（祖先）。';cls='close';}
-      else if(!R.lca.length){v='二人<b>无共同祖先</b>，无血缘关系（如两位婚入者）。';cls='none';}
-      else{var g0=FAM[R.lca[0]].gen;var dist=(FAM[A].gen-g0)+(FAM[B].gen-g0);
-        if(dist<=2){v='二人同辈、共享父母级祖先（LCA 距离 '+dist+'），属<b>近亲</b>（如兄弟姐妹）。';cls='close';}
-        else if(dist<=4){v='二人 LCA 距离 '+dist+'，属<b>近亲</b>（如堂/表亲）。';cls='close';}
-        else{v='二人 LCA 距离 '+dist+'，血缘较<b>远</b>。';cls='far';}
+      else if(!R.lca.length){v='在本族谱数据中二人<b>无共同祖先</b>（如经婚姻进入家族的成员），不是血亲。';cls='none';}
+      else{var g0=FAM[R.lca[0]].gen;var dA=FAM[A].gen-g0,dB=FAM[B].gen-g0,dist=dA+dB;
+        // 旁系血亲：按到 LCA 的代数判定；双方都在 LCA 以下两代以内即「三代以内旁系血亲」
+        var kin=(dA===1&&dB===1)?'兄弟姐妹':((dA===2&&dB===2)?'堂（表）兄弟姐妹':((Math.max(dA,dB)===2)?'叔伯姑舅姨与侄甥':''));
+        if(Math.max(dA,dB)<=2){v='二人分别在 LCA 以下 '+dA+'、'+dB+' 代（LCA 距离 '+dist+'），是<b>三代以内旁系血亲</b>（'+kin+'）。';cls='close';}
+        else{v='二人 LCA 距离 '+dist+'，超出三代以内旁系血亲的范围，血缘较<b>远</b>。';cls='far';}
       }
       html+='<div class="verdict '+cls+'">亲缘判定：'+v+'</div>';
       html+='<div style="margin-top:6px;font-size:.76rem;opacity:.8">共同祖先=两祖先集之<b>交</b>；LCA=共同祖先中<b>辈分最低</b>者；按 LCA 辈分距离判定亲疏，正是近亲判定与依赖分析的内核。</div>';
