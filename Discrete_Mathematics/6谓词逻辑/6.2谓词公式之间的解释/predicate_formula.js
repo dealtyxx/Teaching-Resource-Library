@@ -1,679 +1,440 @@
-/**
- * Predicate Formula Interpreter
- * 谓词公式解析器 - 价值引领可视化
- */
+/* =====================================================================
+ * 6.2 谓词公式的解释 —— 三层统一交互引擎（解释求值器）
+ * 基础层 / 进阶层 / 拓展层 共用本引擎，按 window.SYMBOLIZE_LEVEL 取难度。
+ *
+ * 交互形态（与本章其它小节同形）：选择解释 + 公式 → 逐步求值
+ *   点一步 → 看反馈 → 看公式项高亮、论域对象高亮、量词展开式累计真值 → 得出该解释下的真值。
+ *
+ * 难度梯度：
+ *   基础层：解释的构成（非空论域 D / 个体常项指派 / 谓词赋值），单谓词 P，
+ *           ∃ 找见证、∀ 找反例即可定论；可「换个解释」看真值变化。
+ *   进阶层：双谓词 P、Q，有限论域上 ∀ 展开为合取、∃ 展开为析取，逐个体累计求值（含数学解释）。
+ *   拓展层：同一公式放进多个解释（模型）对照真值，并把解释写成数据库实例、用 SQL 复算。
+ * ===================================================================== */
+(function (global) {
+  "use strict";
 
-// DOM Elements
-const formulaSelect = document.getElementById('formulaSelect');
-const customInputGroup = document.getElementById('customInputGroup');
-const customInput = document.getElementById('customInput');
-const startBtn = document.getElementById('startBtn');
-const resetBtn = document.getElementById('resetBtn');
-const speedInput = document.getElementById('speed');
-const statusText = document.getElementById('statusText');
-const quantifierCount = document.getElementById('quantifierCount');
-const variableCount = document.getElementById('variableCount');
-const originalFormula = document.getElementById('originalFormula');
-const formulaDescription = document.getElementById('formulaDescription');
-const scopeVisualization = document.getElementById('scopeVisualization');
-const boundVariables = document.getElementById('boundVariables');
-const freeVariables = document.getElementById('freeVariables');
-const closedFormCheck = document.getElementById('closedFormCheck');
-const renameDemo = document.getElementById('renameDemo');
-const treeSvg = document.getElementById('treeSvg');
-const treeGroup = document.getElementById('treeGroup');
-
-// 价值主题公式库
-const FORMULAS = [
-    {
-        formula: "∀x(团结(x) → 力量(x))",
-        description: "团结就是力量:所有团结的集体都具有强大力量",
-        context: "体现集体主义精神,强调团结协作的重要性",
-        theme: "集体主义"
+  /* ---------- 公式库：body(d) 为 φ(x) 在个体 d 上的真值 ---------- */
+  function tm(v) { return v ? "T" : "F"; }
+  var FORMULAS = {
+    constP: {
+      q: null, label: "P(a)", meaning: "个体常项 a 所指的对象满足 P",
+      parts: [{ k: "p", t: "P(" }, { k: "c", t: "a" }, { k: "p", t: ")" }],
+      bodyTerms: ["p", "c"], body: function (d) { return d.P; }, bodyStr: function (d) { return "P = " + tm(d.P); }
     },
-    {
-        formula: "∃x(英雄(x) ∧ 奉献(x) ∧ 无私(x))",
-        description: "存在英雄人物:有人既是英雄,又具备奉献和无私的品质",
-        context: "弘扬英雄主义精神,学习榜样力量",
-        theme: "英雄主义"
+    someP: {
+      q: "∃", label: "∃xP(x)", phi: "P(x)", meaning: "论域中存在一个对象满足 P",
+      parts: [{ k: "q", t: "∃x" }, { k: "p", t: "P(x)" }],
+      bodyTerms: ["p"], body: function (d) { return d.P; }, bodyStr: function (d) { return "P = " + tm(d.P); },
+      sql: "SELECT EXISTS (\n  SELECT 1 FROM D WHERE P = 1\n);", sqlNote: "∃xP(x) 为真 ⇔ 存在 P 为真的行。"
     },
-    {
-        formula: "∀x(奋斗(x) → (坚持(x) ∧ 成功(x)))",
-        description: "奋斗与成功:所有奋斗者只要坚持就能成功",
-        context: "倡导艰苦奋斗精神,激励青年追求梦想",
-        theme: "奋斗精神"
+    allP: {
+      q: "∀", label: "∀xP(x)", phi: "P(x)", meaning: "论域中每个对象都满足 P",
+      parts: [{ k: "q", t: "∀x" }, { k: "p", t: "P(x)" }],
+      bodyTerms: ["p"], body: function (d) { return d.P; }, bodyStr: function (d) { return "P = " + tm(d.P); },
+      sql: "SELECT NOT EXISTS (\n  SELECT 1 FROM D WHERE P = 0\n);", sqlNote: "∀xP(x) 为真 ⇔ 不存在 P 为假的行。"
     },
-    {
-        formula: "∀x∃y(需要帮助(x) → (愿意帮助(y) ∧ 帮助(y,x)))",
-        description: "互助友爱:对于任何需要帮助的人,都存在愿意帮助他的人",
-        context: "弘扬社会主义核心价值观,构建和谐社会",
-        theme: "友善互助"
+    impAll: {
+      q: "∀", label: "∀x(P(x)→Q(x))", phi: "(P(x)→Q(x))", meaning: "凡满足 P 的对象都满足 Q",
+      parts: [{ k: "q", t: "∀x" }, { k: "o", t: "(" }, { k: "p", t: "P(x)" }, { k: "c", t: " → " }, { k: "r", t: "Q(x)" }, { k: "o", t: ")" }],
+      bodyTerms: ["p", "c", "r"], body: function (d) { return !d.P || d.Q; },
+      bodyStr: function (d) { return "P→Q = " + tm(d.P) + "→" + tm(d.Q); },
+      sql: "SELECT NOT EXISTS (\n  SELECT 1 FROM D WHERE P = 1 AND Q = 0\n);", sqlNote: "∀x(P→Q) 为真 ⇔ 不存在『P 真而 Q 假』的反例行。"
+    },
+    andSome: {
+      q: "∃", label: "∃x(P(x)∧Q(x))", phi: "(P(x)∧Q(x))", meaning: "存在一个对象同时满足 P 和 Q",
+      parts: [{ k: "q", t: "∃x" }, { k: "o", t: "(" }, { k: "p", t: "P(x)" }, { k: "c", t: " ∧ " }, { k: "r", t: "Q(x)" }, { k: "o", t: ")" }],
+      bodyTerms: ["p", "c", "r"], body: function (d) { return d.P && d.Q; },
+      bodyStr: function (d) { return "P∧Q = " + tm(d.P) + "∧" + tm(d.Q); },
+      sql: "SELECT EXISTS (\n  SELECT 1 FROM D WHERE P = 1 AND Q = 1\n);", sqlNote: "∃x(P∧Q) 为真 ⇔ 存在一行 P、Q 同时为真。"
     }
-];
+  };
 
-// State
-let currentFormula = null;
-let parsedFormula = null;
-let isRunning = false;
-let shouldStop = false;
-let analysisMode = 'scope';
-
-// Helper Functions
-function getDelay() {
-    const val = parseInt(speedInput.value);
-    return Math.max(50, 1000 - (val * 10));
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// 谓词公式解析器
-class FormulaParser {
-    constructor(formula) {
-        this.formula = formula;
-        this.tokens = [];
-        this.quantifiers = [];
-        this.variables = new Set();
-        this.boundVars = new Map(); // 变元 -> 量词位置
-        this.freeVars = new Set();
-        this.scopeMap = new Map(); // 量词 -> 辖域范围
+  /* ---------- 三层数据 ---------- */
+  var LEVELS = {
+    basic: {
+      mode: "short",
+      introStatus: "一个解释 I 由三部分构成：非空论域 D、个体常项的指派、谓词的赋值。点「下一步」逐项给出解释，再读出公式真值。",
+      formulaKeys: ["someP", "allP", "constP"],
+      interpLabel: "选择解释（论域 + 赋值）",
+      legend: [
+        ["D", "非空论域 · 个体的全体"],
+        ["a ↦ 孔子", "个体常项的指派"],
+        ["P(x)", "谓词的赋值 · 每个个体取 T/F"],
+        ["∃x", "找到一个见证即为真"],
+        ["∀x", "找到一个反例即为假"]
+      ],
+      scenarios: [
+        { name: "先秦人物", Pname: "x 是先秦时期的人物", aTo: "a",
+          domain: [{ id: "a", label: "孔子", P: true }, { id: "b", label: "屈原", P: true }, { id: "c", label: "李白", P: false }],
+          alts: [{ Pname: "x 以诗歌名世", P: [false, true, true], aTo: "c" }, { Pname: "x 是唐代人物", P: [false, false, true], aTo: "b" }] },
+        { name: "奋斗的青年", Pname: "x 正在为目标奋斗", aTo: "b",
+          domain: [{ id: "a", label: "青年甲", P: true }, { id: "b", label: "青年乙", P: false }, { id: "c", label: "青年丙", P: true }],
+          alts: [{ Pname: "x 参加了志愿服务", P: [false, true, false], aTo: "a" }, { Pname: "x 已考取资格证", P: [false, false, false], aTo: "c" }] },
+        { name: "岗位奉献", Pname: "x 在岗位上默默奉献", aTo: "b",
+          domain: [{ id: "a", label: "战士", P: true }, { id: "b", label: "医者", P: true }, { id: "c", label: "教师", P: true }],
+          alts: [{ Pname: "x 在医院工作", P: [false, true, false], aTo: "c" }, { Pname: "x 在学校工作", P: [false, false, true], aTo: "a" }] }
+      ]
+    },
+    advanced: {
+      mode: "full",
+      introStatus: "选择解释与公式，点「下一步」：把量词在有限论域上展开（∀ → 合取，∃ → 析取），逐个体代入求值，累计出公式在该解释下的真值。",
+      formulaKeys: ["impAll", "andSome", "allP", "someP"],
+      interpLabel: "选择解释（论域 + 赋值）",
+      legend: [
+        ["∀x φ(x)", "≡ φ(a₁) ∧ … ∧ φ(aₙ)（有限论域）"],
+        ["∃x φ(x)", "≡ φ(a₁) ∨ … ∨ φ(aₙ)（有限论域）"],
+        ["P→Q", "前件假则真"],
+        ["解释 I", "论域 + 谓词赋值"]
+      ],
+      scenarios: [
+        { name: "数的世界", Pname: "x 是偶数", Qname: "x > 1",
+          domain: [{ id: "a", label: "1", P: false, Q: false }, { id: "b", label: "2", P: true, Q: true }, { id: "c", label: "3", P: false, Q: true }, { id: "d", label: "4", P: true, Q: true }] },
+        { name: "团结·力量", Pname: "x 是团结的集体", Qname: "x 能攻坚克难",
+          domain: [{ id: "a", label: "班集体", P: true, Q: true }, { id: "b", label: "科研组", P: true, Q: true }, { id: "c", label: "临时小组", P: false, Q: false }, { id: "d", label: "施工队", P: true, Q: true }] },
+        { name: "奋斗·成功", Pname: "x 在奋斗", Qname: "x 已达成目标",
+          domain: [{ id: "a", label: "创业者", P: true, Q: true }, { id: "b", label: "追梦学子", P: true, Q: false }, { id: "c", label: "运动员", P: true, Q: true }, { id: "d", label: "旁观者", P: false, Q: false }] }
+      ]
+    },
+    extend: {
+      mode: "full", multi: true,
+      introStatus: "同一公式放进不同解释（模型）真值可能不同。逐一评估各解释，对照表自动累计；最后把解释写成数据库实例，用 SQL 复算。",
+      formulaKeys: ["impAll", "andSome", "allP", "someP"],
+      interpLabel: "当前解释（模型）",
+      legend: [
+        ["模型", "使公式为真的解释"],
+        ["实例", "数据库的一个状态 ≅ 一个解释"],
+        ["EXISTS", "∃ 的 SQL 形式"],
+        ["NOT EXISTS", "∀：不存在反例行"],
+        ["可满足", "有解释为真、有解释为假 ⟹ 非永真"]
+      ],
+      scenarios: [
+        { name: "社区·志愿", Pname: "x 是社区志愿者", Qname: "x 参加了本周服务",
+          domain: [{ id: "a", label: "王组长", P: true, Q: true }, { id: "b", label: "李大姐", P: true, Q: true }, { id: "c", label: "张同学", P: false, Q: true }] },
+        { name: "校园·学风", Pname: "x 是本课程学生", Qname: "x 按时提交作业",
+          domain: [{ id: "a", label: "小李", P: true, Q: true }, { id: "b", label: "小明", P: true, Q: false }, { id: "c", label: "助教", P: false, Q: true }] },
+        { name: "工程·攻关", Pname: "x 是项目工程师", Qname: "x 参与了技术攻关",
+          domain: [{ id: "a", label: "总师", P: true, Q: true }, { id: "b", label: "助理", P: false, Q: false }, { id: "c", label: "技工", P: false, Q: true }] }
+      ]
     }
+  };
 
-    // Token化
-    tokenize() {
-        const pattern = /∀|∃|∧|∨|¬|→|↔|\(|\)|[a-zA-Z_][a-zA-Z0-9_]*|[,]/g;
-        this.tokens = this.formula.match(pattern) || [];
-        return this.tokens;
-    }
+  /* ---------- 纯逻辑：构造步骤 ---------- */
+  function evalFormula(f, scen) {
+    if (!f.q) return !!f.body(scen.domain.filter(function (d) { return d.id === scen.aTo; })[0]);
+    var b = scen.domain.map(f.body);
+    return f.q === "∀" ? b.every(Boolean) : b.some(Boolean);
+  }
 
-    // 解析公式结构
-    parse() {
-        this.tokenize();
-        this.analyzeQuantifiers();
-        this.analyzeVariables();
-        this.analyzeScopeRanges();
-        this.identifyBoundAndFreeVars();
-
-        return {
-            formula: this.formula,
-            quantifiers: this.quantifiers,
-            variables: Array.from(this.variables),
-            boundVars: Array.from(this.boundVars.keys()),
-            freeVars: Array.from(this.freeVars),
-            scopeMap: this.scopeMap,
-            isClosed: this.freeVars.size === 0
-        };
-    }
-
-    // 分析量词
-    analyzeQuantifiers() {
-        this.quantifiers = [];
-        for (let i = 0; i < this.tokens.length; i++) {
-            if (this.tokens[i] === '∀' || this.tokens[i] === '∃') {
-                const variable = this.tokens[i + 1];
-                this.quantifiers.push({
-                    type: this.tokens[i],
-                    variable: variable,
-                    position: i,
-                    scopeStart: -1,
-                    scopeEnd: -1
-                });
-            }
+  function buildSteps(level, scen, fk) {
+    var f = FORMULAS[fk], D = scen.domain, list = [];
+    var hasQ = scen.Qname != null;
+    var names = "{ " + D.map(function (d) { return d.label; }).join(", ") + " }";
+    if (level.mode === "short") {
+      var aObj = D.filter(function (d) { return d.id === scen.aTo; })[0];
+      list.push({ reveal: 1, status: "① <b>非空论域</b> D = " + names + "。论域必须非空，量词才有对象可谈。", terms: [], sub: "D = " + names });
+      list.push({ reveal: 2, status: "② <b>个体常项的指派</b>：a ↦ " + aObj.label + "。公式中的常项 a 从此指代论域里这个确定的对象。", terms: ["c"], sub: "a ↦ " + aObj.label });
+      list.push({ reveal: 3, status: "③ <b>谓词的赋值</b>：P(x)：" + scen.Pname + "。绿色 = P 真，米色 = P 假。三部分齐备，解释 I 就确定了。", terms: ["p"],
+        sub: "满足 P 的对象：{ " + (D.filter(function (d) { return d.P; }).map(function (d) { return d.label; }).join(", ") || "（空）") + " }" });
+      if (!f.q) {
+        var v0 = aObj.P;
+        list.push({ reveal: 3, active: aObj.id, status: "读公式 <b>P(a)</b>：a 指派为 <b>" + aObj.label + "</b>，查 P 的赋值得 P(" + aObj.label + ") = " + (v0 ? "真" : "假") + "。不含量词，直接求值。",
+          terms: ["p", "c"], sub: "P(a) = P(" + aObj.label + ") = " + tm(v0), checked: [aObj.id], acc: { done: [aObj.id] } });
+        list.push({ reveal: 3, verdict: v0, status: "<b>结论：P(a) 在该解释下为" + (v0 ? "真" : "假") + "。</b>换一个指派（例如 a ↦ 另一个对象）或换一组赋值，真值就可能改变。",
+          terms: ["p", "c"], sub: "P(a) = " + tm(v0), checked: [aObj.id], acc: { done: [aObj.id] } });
+        return list;
+      }
+      list.push({ reveal: 3, status: f.q === "∃"
+        ? "读公式 <b>∃xP(x)</b>：论域中<b>是否存在</b>一个对象满足 P？找到一个<b>见证</b>即为真。"
+        : "读公式 <b>∀xP(x)</b>：论域中<b>是否每个</b>对象都满足 P？找到一个<b>反例</b>即为假。",
+        terms: ["q"], sub: "量词 " + f.q + "x 的辖域是 P(x)，要在整个论域 D 上检验。" });
+      var result = f.q === "∀", done = [];
+      for (var i = 0; i < D.length; i++) {
+        var d = D[i], hit = f.q === "∃" ? d.P : !d.P;
+        done = done.concat([d.id]);
+        if (hit) {
+          result = f.q === "∃";
+          list.push({ reveal: 3, active: d.id, checked: done.slice(), acc: { done: done.slice(), key: d.id },
+            status: "检验 <b>" + d.label + "</b>：P(" + d.label + ") = " + (d.P ? "真" : "假") + "。<b>找到" + (f.q === "∃" ? "见证" : "反例") + "！</b>" + (f.q === "∃" ? "∃ 一真即真" : "∀ 一假即假") + "，结论已定，其余对象不必再查。",
+            terms: ["q", "p"], sub: "P(" + d.label + ") = " + tm(d.P) + " ⟹ " + f.label + " = " + tm(result) });
+          break;
         }
+        list.push({ reveal: 3, active: d.id, checked: done.slice(), acc: { done: done.slice() },
+          status: "检验 <b>" + d.label + "</b>：P(" + d.label + ") = " + (d.P ? "真" : "假") + "，" + (f.q === "∃" ? "还不是见证，继续找……" : "暂时成立，继续检验……"),
+          terms: ["q", "p"], sub: "P(" + d.label + ") = " + tm(d.P) });
+      }
+      list.push({ reveal: 3, verdict: result, checked: done.slice(), acc: { done: done.slice(), key: list[list.length - 1].acc.key },
+        status: "<b>结论：" + f.label + " 在该解释下为" + (result ? "真" : "假") + "。</b>" + (f.q === "∃" ? (result ? "有见证。" : "全部检验完也没有见证。") : (result ? "全部检验完没有反例。" : "有反例。")) + "点「↻ 换个解释」换一组谓词赋值与常项指派，看同一公式真值是否改变。",
+        terms: ["q", "p"], sub: f.label + " = " + tm(result) });
+      return list;
     }
 
-    // 分析所有变元
-    analyzeVariables() {
-        this.variables = new Set();
-        for (let i = 0; i < this.tokens.length; i++) {
-            const token = this.tokens[i];
-            // 单字母变元
-            if (/^[a-z]$/.test(token)) {
-                this.variables.add(token);
-            }
-        }
+    /* 进阶 / 拓展：全展开 + 累计 */
+    list.push({ reveal: 3, status: "给定解释 <b>" + scen.name + "</b>：论域 D = " + names + "；P(x)：" + scen.Pname + (hasQ ? "；Q(x)：" + scen.Qname : "") + "。",
+      terms: [], sub: "D = " + names });
+    list.push({ reveal: 3, expand: true, status: "量词展开：在有限论域上，<b>" + f.label + "</b> 等价于把 φ(x) = " + f.phi + " 对每个个体做" + (f.q === "∀" ? "<b>合取 ∧</b>（全真才真）" : "<b>析取 ∨</b>（一真即真）") + "。含义：" + f.meaning + "。",
+      terms: ["q"], sub: f.label + " ≡ " + D.map(function (d) { return "φ(" + d.label + ")"; }).join(f.q === "∀" ? " ∧ " : " ∨ ") });
+    var run = f.q === "∀", dn = [];
+    for (var j = 0; j < D.length; j++) {
+      var e = D[j], b = f.body(e);
+      run = f.q === "∀" ? (run && b) : (run || b);
+      dn = dn.concat([e.id]);
+      list.push({ reveal: 3, expand: true, active: e.id, checked: dn.slice(), acc: { done: dn.slice(), cur: e.id, run: run },
+        status: "代入 <b>" + e.label + "</b>：" + f.bodyStr(e) + " = " + (b ? "真" : "假") + "，并入" + (f.q === "∀" ? "合取" : "析取") + "后累计 = <b>" + (run ? "真" : "假") + "</b>。",
+        terms: ["q"].concat(f.bodyTerms), sub: "φ(" + e.label + ") = " + f.bodyStr(e) + " = " + tm(b) });
+    }
+    list.push({ reveal: 3, expand: true, verdict: run, writeResult: true, checked: dn.slice(), acc: { done: dn.slice(), run: run },
+      status: "<b>结论：" + f.label + " 在解释「" + scen.name + "」下为" + (run ? "真" : "假") + "。</b>" + (level.multi ? "结果已写入对照表；切换左侧解释继续评估。" : "切换左侧解释，同一公式的真值可能改变——真值总是相对于具体解释而言。"),
+      terms: ["q"].concat(f.bodyTerms), sub: f.label + " = " + tm(run) });
+    if (level.multi) {
+      list.push({ reveal: 3, expand: true, db: true, verdict: run, checked: dn.slice(), acc: { done: dn.slice(), run: run },
+        status: "<b>数据库实例 ≅ 解释。</b>把论域写成关系表 D（每行一个个体，列为 P、Q），公式译为 SQL 在该实例上求值——查询结果与逻辑真值一致。",
+        terms: f.bodyTerms, sub: f.sqlNote });
+    }
+    return list;
+  }
+
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = { FORMULAS: FORMULAS, LEVELS: LEVELS, buildSteps: buildSteps, evalFormula: evalFormula };
+  }
+
+  /* ====================== 以下仅浏览器运行 ====================== */
+  if (typeof document === "undefined") return;
+
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function esc(v) {
+    return String(v == null ? "" : v).replace(/[&<>"']/g, function (ch) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
+    });
+  }
+  function svgEl(type, attrs) { var el = document.createElementNS(SVGNS, type); if (attrs) for (var k in attrs) el.setAttribute(k, attrs[k]); return el; }
+  function byId(id) { return document.getElementById(id); }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function tfHtml(v) { return v ? '<span class="pf-t">真 T</span>' : '<span class="pf-f">假 F</span>'; }
+
+  function run() {
+    var levelKey = global.SYMBOLIZE_LEVEL || "basic";
+    var cfg = LEVELS[levelKey] || LEVELS.basic;
+    var controlsEl = byId("controls");
+    var formulaEl = byId("pfFormula"), compEl = byId("pfComp"), svgWrap = byId("pfDomain"), accEl = byId("pfAcc"), verdictEl = byId("pfVerdict");
+    if (!controlsEl || !formulaEl) return;
+
+    var scenIdx = 0, scen = clone(cfg.scenarios[0]), fk = cfg.formulaKeys[0];
+    var steps = [], p = 0, autoTimer = null, results = {};
+    var statusEl, progBar, progNum, prevBtn, nextBtn, autoBtn, speedEl;
+
+    function renderControls() {
+      var sOpts = cfg.scenarios.map(function (s, i) { return '<option value="' + i + '">' + esc(s.name) + '</option>'; }).join("");
+      var fOpts = cfg.formulaKeys.map(function (k) { return '<option value="' + k + '">' + esc(FORMULAS[k].label) + '</option>'; }).join("");
+      controlsEl.innerHTML =
+        '<div class="control-group"><label><span>' + esc(cfg.interpLabel) + '</span><small>论域 D + 赋值</small></label>' +
+          '<select id="pfScen">' + sOpts + '</select></div>' +
+        '<div class="control-group"><label><span>选择公式</span><small>' + (cfg.mode === "short" ? "∃ 找见证 / ∀ 找反例" : "∀=合取 / ∃=析取") + '</small></label>' +
+          '<select id="pfForm">' + fOpts + '</select></div>' +
+        '<div class="control-group"><label><span>逐步求值</span><small>点一步 · 看反馈</small></label>' +
+          '<div class="sym-step-row">' +
+            '<button class="sym-step-btn" id="pfPrev">◀ 上一步</button>' +
+            '<button class="sym-step-btn sym-primary" id="pfNext">下一步 ▶</button>' +
+            '<button class="sym-step-btn" id="pfAuto">⏵ 自动播放</button>' +
+            '<button class="sym-step-btn sym-ghost" id="pfReset">↺ 重置</button>' +
+            (cfg.mode === "short" ? '<button class="sym-step-btn sym-wide" id="pfReinterp">↻ 换个解释（换谓词含义与常项指派）</button>' : "") +
+          '</div>' +
+          '<div class="sym-speed"><span>慢</span><input type="range" id="pfSpeed" min="1" max="100" value="55" aria-label="自动播放速度"><span>快</span></div>' +
+        '</div>' +
+        '<div class="control-group"><label><span>进度</span></label>' +
+          '<div class="sym-progress-wrap"><div class="sym-progress"><i id="pfProgBar"></i></div><span class="sym-progress-num" id="pfProgNum">0 / 0</span></div></div>' +
+        '<div class="control-group"><label><span>当前反馈</span></label><div class="sym-status" id="pfStatus"></div></div>';
+      statusEl = byId("pfStatus"); progBar = byId("pfProgBar"); progNum = byId("pfProgNum");
+      prevBtn = byId("pfPrev"); nextBtn = byId("pfNext"); autoBtn = byId("pfAuto"); speedEl = byId("pfSpeed");
+      byId("pfScen").addEventListener("change", function (e) { selectScen(+e.target.value); });
+      byId("pfForm").addEventListener("change", function (e) { fk = e.target.value; results = {}; rebuild(); });
+      prevBtn.addEventListener("click", function () { stopAuto(); go(p - 1); });
+      nextBtn.addEventListener("click", function () { stopAuto(); go(p + 1); });
+      byId("pfReset").addEventListener("click", function () { stopAuto(); go(0); });
+      autoBtn.addEventListener("click", toggleAuto);
+      speedEl.addEventListener("input", function () { if (autoTimer) { stopAuto(); toggleAuto(); } });
+      var re = byId("pfReinterp");
+      if (re) re.addEventListener("click", reinterpret);
     }
 
-    // 分析辖域范围
-    analyzeScopeRanges() {
-        for (const q of this.quantifiers) {
-            const start = q.position;
-            let depth = 0;
-            let scopeStart = -1;
-            let scopeEnd = -1;
-
-            // 找到量词后的第一个'('作为辖域开始
-            for (let i = start; i < this.tokens.length; i++) {
-                if (this.tokens[i] === '(') {
-                    if (scopeStart === -1) {
-                        scopeStart = i;
-                    }
-                    depth++;
-                } else if (this.tokens[i] === ')') {
-                    depth--;
-                    if (depth === 0 && scopeStart !== -1) {
-                        scopeEnd = i;
-                        break;
-                    }
-                }
-            }
-
-            q.scopeStart = scopeStart;
-            q.scopeEnd = scopeEnd;
-
-            // 提取辖域内容
-            if (scopeStart !== -1 && scopeEnd !== -1) {
-                const scopeTokens = this.tokens.slice(scopeStart, scopeEnd + 1);
-                this.scopeMap.set(q.variable, {
-                    quantifier: q.type,
-                    range: scopeTokens.join(''),
-                    start: scopeStart,
-                    end: scopeEnd
-                });
-            }
-        }
+    function renderLegend() {
+      var box = byId("legendPanel"); if (!box) return;
+      box.innerHTML = '<div class="legend-title">解释与符号说明</div><div class="legend-grid">' +
+        cfg.legend.map(function (it) { return '<div class="legend-item"><span class="sym">' + esc(it[0]) + '</span><span class="desc">' + esc(it[1]) + '</span></div>'; }).join("") + '</div>';
     }
 
-    // 识别约束变元和自由变元
-    identifyBoundAndFreeVars() {
-        // 先标记所有约束变元
-        for (const q of this.quantifiers) {
-            this.boundVars.set(q.variable, q);
-        }
+    function selectScen(i) {
+      scenIdx = i; scen = clone(cfg.scenarios[i]); altIdx = 0;
+      var sel = byId("pfScen"); if (sel && +sel.value !== i) sel.value = String(i);
+      rebuild();
+    }
+    /* 换个解释：论域不变，依次换一组「谓词含义 + 常项指派」（均为真实赋值），看同一公式真值是否改变 */
+    var altIdx = 0;
+    function reinterpret() {
+      stopAuto();
+      var base = cfg.scenarios[scenIdx], alts = [{ Pname: base.Pname, P: base.domain.map(function (d) { return d.P; }), aTo: base.aTo }].concat(base.alts || []);
+      altIdx = (altIdx + 1) % alts.length;
+      var A = alts[altIdx], D = scen.domain;
+      scen.Pname = A.Pname; scen.aTo = A.aTo;
+      D.forEach(function (d, i) { d.P = A.P[i]; });
+      steps = buildSteps(cfg, scen, fk);
+      go(Math.min(3, steps.length));
+      statusEl.innerHTML = "↻ <b>解释已改变！</b>论域不变，P(x) 改为「" + esc(A.Pname) + "」，a ↦ " +
+        esc(D.filter(function (d) { return d.id === A.aTo; })[0].label) + "。满足 P 的对象：{ " +
+        esc(D.filter(function (d) { return d.P; }).map(function (d) { return d.label; }).join(", ") || "（空）") + " }。继续点「下一步」，看同一公式的真值是否随之改变。";
+    }
+    function rebuild() { stopAuto(); steps = buildSteps(cfg, scen, fk); go(0); }
 
-        // 找出自由变元
-        for (const v of this.variables) {
-            if (!this.boundVars.has(v)) {
-                this.freeVars.add(v);
-            }
-        }
+    /* ---------- 渲染 ---------- */
+    function renderFormula(st) {
+      var f = FORMULAS[fk], hot = st.terms || [];
+      formulaEl.innerHTML = '<div class="pf-fline">' + f.parts.map(function (pt) {
+        return '<span class="pf-term' + (hot.length ? (hot.indexOf(pt.k) >= 0 ? " hot" : " dim") : "") + '">' + esc(pt.t) + '</span>';
+      }).join("") + '</div><div class="pf-sub">' + esc(st.sub || "") + '</div>';
     }
 
-    // 生成换名后的公式
-    generateRenamedFormula(oldVar, newVar) {
-        if (!this.boundVars.has(oldVar)) {
-            return { success: false, message: `${oldVar} 不是约束变元` };
-        }
-
-        if (this.variables.has(newVar)) {
-            return { success: false, message: `${newVar} 已存在,会产生冲突` };
-        }
-
-        const quantifier = this.boundVars.get(oldVar);
-        const scope = this.scopeMap.get(oldVar);
-
-        // 只在辖域内替换
-        let newFormula = this.formula;
-        const scopeText = this.tokens.slice(scope.start, scope.end + 1).join('');
-        const newScopeText = scopeText.replace(new RegExp(`\\b${oldVar}\\b`, 'g'), newVar);
-
-        // 替换量词处的变元
-        newFormula = newFormula.replace(
-            new RegExp(`${quantifier.type}${oldVar}`, 'g'),
-            `${quantifier.type}${newVar}`
-        );
-
-        // 替换辖域内的变元
-        const beforeScope = this.tokens.slice(0, scope.start).join('');
-        const afterScope = this.tokens.slice(scope.end + 1).join('');
-        newFormula = beforeScope + newScopeText + afterScope;
-
-        return {
-            success: true,
-            newFormula: newFormula,
-            message: `成功将 ${oldVar} 换名为 ${newVar}`
-        };
+    function renderComp(st) {
+      var aObj = scen.aTo ? scen.domain.filter(function (d) { return d.id === scen.aTo; })[0] : null;
+      var items = [["论域 D", "{ " + scen.domain.map(function (d) { return d.label; }).join(", ") + " }", 1]];
+      if (aObj) items.push(["个体常项", "a ↦ " + aObj.label, 2]);
+      items.push(["谓词 P", "P(x)：" + scen.Pname, 3]);
+      if (scen.Qname) items.push(["谓词 Q", "Q(x)：" + scen.Qname, 3]);
+      compEl.innerHTML = items.map(function (it) {
+        return '<div class="pf-comp' + (st.reveal >= it[2] ? "" : " sym-pending") + '"><span class="k">' + esc(it[0]) + '</span><span class="v">' + esc(st.reveal >= it[2] ? it[1] : "待给出…") + '</span></div>';
+      }).join("");
     }
-}
 
-// 渲染原始公式
-function renderOriginalFormula(data) {
-    originalFormula.innerHTML = `<span class="formula-highlight">${data.formula}</span>`;
-    formulaDescription.innerHTML = `
-        <p class="desc-title">${data.description}</p>
-        <p class="desc-context">${data.context}</p>
-        <span class="theme-tag">${data.theme}</span>
-    `;
-}
+    function renderGraph(st) {
+      svgWrap.innerHTML = "";
+      var D = scen.domain, n = D.length, VW = 760, gap = Math.min(180, (VW - 120) / Math.max(1, n - 1));
+      var hasQ = !!scen.Qname, colored = st.reveal >= 3;
+      var svg = svgEl("svg", { viewBox: "0 0 " + VW + " 200", width: "100%", role: "img", "aria-label": "论域对象与谓词赋值" });
+      if (!st.reveal) {
+        var t0 = svgEl("text", { x: VW / 2, y: 100, "text-anchor": "middle", fill: "#a48a7c", "font-size": 18 });
+        t0.textContent = "论域 D 尚未给出……"; svg.appendChild(t0); svgWrap.appendChild(svg); return;
+      }
+      var startX = VW / 2 - (n - 1) * gap / 2;
+      D.forEach(function (d, i) {
+        var x = startX + i * gap, y = 88;
+        var g = svgEl("g", { transform: "translate(" + x + "," + y + ")", "class": "pf-node" });
+        var isActive = st.active === d.id, isChecked = (st.checked || []).indexOf(d.id) >= 0;
+        if (isActive) {
+          var pulse = svgEl("circle", { r: 50, fill: "none", stroke: "#ffb400", "stroke-width": 4, opacity: 0.9 });
+          pulse.appendChild(svgEl("animate", { attributeName: "r", values: "48;58;48", dur: "1.4s", repeatCount: "indefinite" }));
+          g.appendChild(pulse);
+        }
+        g.appendChild(svgEl("circle", { r: 40, fill: colored ? (d.P ? "#2f7d57" : "#efe2d3") : "#ece0d4", stroke: colored ? (d.P ? "#256346" : "#c9a99a") : "#cbb6a6", "stroke-width": isActive ? 3 : 2 }));
+        if (hasQ && colored) g.appendChild(svgEl("circle", { r: 27, fill: "none", stroke: d.Q ? "#2f5f9f" : "#b9c4d8", "stroke-width": 5, "stroke-dasharray": d.Q ? "0" : "5 5" }));
+        var name = svgEl("text", { x: 0, y: 1, "text-anchor": "middle", "dominant-baseline": "central", fill: (colored && d.P) ? "#fff" : "#3a2a22", "font-size": d.label.length > 3 ? 13 : 15, "font-weight": "700" });
+        name.textContent = d.label; g.appendChild(name);
+        if (scen.aTo === d.id && st.reveal >= 2) {
+          var tag = svgEl("g", { transform: "translate(-44,-44)" });
+          tag.appendChild(svgEl("rect", { x: 0, y: -11, width: 26, height: 22, rx: 11, fill: "#2f5f9f" }));
+          var tt = svgEl("text", { x: 13, y: 1, "text-anchor": "middle", "dominant-baseline": "central", fill: "#fff", "font-size": 13, "font-weight": "800", "font-family": "JetBrains Mono, Consolas, monospace" });
+          tt.textContent = "a"; tag.appendChild(tt); g.appendChild(tag);
+        }
+        if (isChecked && !isActive) {
+          var tick = svgEl("text", { x: 34, y: -30, "text-anchor": "middle", fill: "#c58a1f", "font-size": 18, "font-weight": "800" });
+          tick.textContent = "✓"; g.appendChild(tick);
+        }
+        if (colored) {
+          var badge = svgEl("text", { x: 0, y: 64, "text-anchor": "middle", fill: "#5e4338", "font-size": 12.5, "font-weight": "800", "font-family": "JetBrains Mono, Consolas, monospace" });
+          badge.textContent = "P=" + tm(d.P) + (hasQ ? "  Q=" + tm(d.Q) : ""); g.appendChild(badge);
+        }
+        svg.appendChild(g);
+      });
+      svgWrap.appendChild(svg);
+    }
 
-// 渲染辖域可视化
-async function renderScopeVisualization(parsed) {
-    scopeVisualization.innerHTML = '';
-
-    if (parsed.quantifiers.length === 0) {
-        scopeVisualization.innerHTML = '<p class="no-data">此公式不包含量词</p>';
+    function renderAcc(st) {
+      var f = FORMULAS[fk], D = scen.domain, acc = st.acc || { done: [] };
+      if (!f.q) {
+        var aObj = D.filter(function (d) { return d.id === scen.aTo; })[0], ok = acc.done.indexOf(aObj.id) >= 0;
+        accEl.innerHTML = '<div class="pf-acc-line"><span class="lead">P(a) = P(' + esc(aObj.label) + ') =</span>' +
+          '<span class="pf-term-box' + (ok ? (aObj.P ? " t" : " f") : " pending") + '">' + (ok ? tm(aObj.P) : "?") + '</span></div>' +
+          '<div class="pf-acc-note">个体常项不需要量词展开：先查指派，再查谓词赋值。</div>';
         return;
+      }
+      var conn = f.q === "∀" ? "∧" : "∨";
+      var boxes = D.map(function (d) {
+        var done = acc.done.indexOf(d.id) >= 0, b = f.body(d);
+        var cls = "pf-term-box" + (done ? (b ? " t" : " f") : " pending") + (acc.cur === d.id || acc.key === d.id ? " cur" : "");
+        return '<span class="' + cls + '">φ(' + esc(d.label) + ')' + (done ? "=" + tm(b) : "=?") + '</span>';
+      }).join('<span class="pf-conn">' + conn + '</span>');
+      var runLine = "";
+      if (cfg.mode === "full" && acc.done.length) {
+        runLine = '<div class="pf-acc-run">当前累计（' + (f.q === "∀" ? "合取" : "析取") + '）= ' + tfHtml(acc.run) + '　已算 ' + acc.done.length + ' / ' + D.length + ' 个个体</div>';
+      } else if (cfg.mode === "short") {
+        runLine = '<div class="pf-acc-note">' + (f.q === "∃" ? "∃：析取中出现一个 T 即为真（见证）" : "∀：合取中出现一个 F 即为假（反例）") + '，其余项不必再算。</div>';
+      }
+      accEl.innerHTML = '<div class="pf-acc-line"><span class="lead">' + esc(f.q + "x " + f.phi) + ' ≡</span>' + boxes + '</div>' + runLine;
     }
 
-    statusText.textContent = '正在分析辖域...';
-
-    for (const q of parsed.quantifiers) {
-        await sleep(getDelay());
-
-        const scopeItem = document.createElement('div');
-        scopeItem.className = 'scope-item';
-
-        const scope = parsed.scopeMap.get(q.variable);
-        const quantifierName = q.type === '∀' ? '全称量词' : '存在量词';
-
-        scopeItem.innerHTML = `
-            <div class="scope-header">
-                <span class="scope-quantifier">${q.type}${q.variable}</span>
-                <span class="scope-type">${quantifierName}</span>
-            </div>
-            <div class="scope-range">
-                <div class="range-label">辖域范围:</div>
-                <div class="range-content">${scope ? scope.range : '未找到辖域'}</div>
-            </div>
-            <div class="scope-visual">
-                <div class="scope-bar" style="animation-delay: ${parsed.quantifiers.indexOf(q) * 0.2}s"></div>
-            </div>
-        `;
-
-        scopeVisualization.appendChild(scopeItem);
-
-        // 触发动画
-        setTimeout(() => scopeItem.classList.add('visible'), 10);
-    }
-}
-
-// 渲染变元分析
-async function renderVariableAnalysis(parsed) {
-    boundVariables.innerHTML = '';
-    freeVariables.innerHTML = '';
-
-    statusText.textContent = '正在分析变元...';
-
-    // 约束变元
-    if (parsed.boundVars.length > 0) {
-        for (const v of parsed.boundVars) {
-            await sleep(getDelay() * 0.5);
-
-            const item = document.createElement('div');
-            item.className = 'variable-item bound';
-
-            const quantifier = parsed.scopeMap.get(v)?.quantifier || '';
-            item.innerHTML = `
-                <span class="var-symbol">${v}</span>
-                <span class="var-info">被 ${quantifier} 约束</span>
-            `;
-
-            boundVariables.appendChild(item);
-            setTimeout(() => item.classList.add('visible'), 10);
-        }
-    } else {
-        boundVariables.innerHTML = '<p class="no-vars">无约束变元</p>';
-    }
-
-    // 自由变元
-    if (parsed.freeVars.length > 0) {
-        for (const v of parsed.freeVars) {
-            await sleep(getDelay() * 0.5);
-
-            const item = document.createElement('div');
-            item.className = 'variable-item free';
-
-            item.innerHTML = `
-                <span class="var-symbol">${v}</span>
-                <span class="var-info">自由变元</span>
-            `;
-
-            freeVariables.appendChild(item);
-            setTimeout(() => item.classList.add('visible'), 10);
-        }
-    } else {
-        freeVariables.innerHTML = '<p class="no-vars">无自由变元</p>';
-    }
-}
-
-// 渲染闭式检测
-async function renderClosedFormCheck(parsed) {
-    closedFormCheck.innerHTML = '';
-
-    statusText.textContent = '正在检测闭式...';
-    await sleep(getDelay());
-
-    const isClosed = parsed.isClosed;
-    const resultDiv = document.createElement('div');
-    resultDiv.className = `closed-result ${isClosed ? 'is-closed' : 'not-closed'}`;
-
-    resultDiv.innerHTML = `
-        <div class="result-icon">${isClosed ? '✓' : '✗'}</div>
-        <div class="result-content">
-            <div class="result-title">${isClosed ? '这是一个闭式' : '这不是闭式'}</div>
-            <div class="result-desc">
-                ${isClosed
-                    ? '所有变元都被量词约束,公式具有确定的真值'
-                    : `存在 ${parsed.freeVars.length} 个自由变元: ${Array.from(parsed.freeVars).join(', ')}`
-                }
-            </div>
-            <div class="result-explanation">
-                ${isClosed
-                    ? '闭式公式在任何解释下都有确定的真值,适合表达普遍规律和真理'
-                    : '含有自由变元的公式其真值依赖于变元的赋值'
-                }
-            </div>
-        </div>
-    `;
-
-    closedFormCheck.appendChild(resultDiv);
-    setTimeout(() => resultDiv.classList.add('visible'), 10);
-}
-
-// 渲染变元换名演示
-async function renderRenameDemo(parsed) {
-    renameDemo.innerHTML = '';
-
-    if (parsed.boundVars.length === 0) {
-        renameDemo.innerHTML = '<p class="no-data">此公式无约束变元,无法演示换名</p>';
+    function renderVerdict(st) {
+      var f = FORMULAS[fk];
+      if (!cfg.multi) {
+        var shown = typeof st.verdict === "boolean";
+        verdictEl.className = "pf-verdict" + (shown ? (st.verdict ? " v-true" : " v-false") : " sym-pending");
+        verdictEl.innerHTML = shown
+          ? '<span class="c-chip">' + esc(f.label) + ' 在解释「' + esc(scen.name) + '」下' + (st.verdict ? "为真 T" : "为假 F") + '</span>' +
+            '<div class="c-reason">真值是相对于解释而言的：换论域、换指派或换赋值，同一公式可能变真或变假。</div>'
+          : '<span class="c-chip">真值待定</span><div class="c-reason">逐步给出解释并求值后，这里显示结论。</div>';
         return;
+      }
+      if (st.writeResult) results[scenIdx] = st.verdict;
+      var rows = cfg.scenarios.map(function (s, i) {
+        var r = results[i];
+        return '<tr class="' + (i === scenIdx ? "cur" : "") + '" data-i="' + i + '"><td class="nm">' + esc(s.name) + '</td><td class="ds">' + esc(s.Pname) + ' / ' + esc(s.Qname) + '</td><td>' +
+          (r === undefined ? '<span class="pf-wait">待评估</span>' : tfHtml(r)) + '</td></tr>';
+      }).join("");
+      var vals = cfg.scenarios.map(function (s, i) { return results[i]; }).filter(function (v) { return typeof v === "boolean"; });
+      var concl;
+      if (vals.length < 2) concl = "已评估 <b>" + vals.length + " / " + cfg.scenarios.length + "</b> 个解释。点表格行或左侧下拉切换解释，走完推演后结果自动写入。";
+      else if (vals.some(Boolean) && vals.some(function (v) { return !v; })) concl = "有解释为真、也有解释为假 ⟹ 该公式<b>可满足但非永真</b>（结论严格：一个成真解释 + 一个成假解释即可）。";
+      else if (vals.every(Boolean)) concl = "已评估的解释中<b>都为真</b>。注意：要断言<b>永真</b>须对一切解释成立——有限几个模型只能提供支持，不能代替证明。";
+      else concl = "已评估的解释中<b>都为假</b>。断言<b>永假（不可满足）</b>同样须对一切解释论证；换一个解释也许就能使它为真。";
+      var db = "";
+      if (st.db) {
+        var r0 = evalFormula(f, scen);
+        db = '<div class="pf-db"><div><div class="pf-db-cap">关系实例 D（每行一个个体）</div><table class="pf-tbl"><thead><tr><th>x</th><th>P</th><th>Q</th></tr></thead><tbody>' +
+          scen.domain.map(function (d) { return '<tr><td class="nm">' + esc(d.label) + '</td><td>' + (d.P ? 1 : 0) + '</td><td>' + (d.Q ? 1 : 0) + '</td></tr>'; }).join("") +
+          '</tbody></table></div><div><div class="pf-db-cap">公式 → SQL，对该实例求值</div><pre class="pf-sql">' + esc(f.sql) + '\n<span class="res">-- 结果：' + (r0 ? "TRUE" : "FALSE") + ' ≡ 逻辑真值 ' + (r0 ? "真" : "假") + '</span></pre></div></div>';
+      }
+      verdictEl.className = "pf-verdict pf-multi";
+      verdictEl.innerHTML = '<table class="pf-tbl pf-cmp"><thead><tr><th>解释（模型）</th><th>P / Q 的含义</th><th>' + esc(f.label) + '</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+        '<div class="pf-cmp-concl">' + concl + '</div>' + db;
+      Array.prototype.forEach.call(verdictEl.querySelectorAll("tbody tr[data-i]"), function (tr) {
+        tr.addEventListener("click", function () { var i = +tr.getAttribute("data-i"); if (i !== scenIdx) selectScen(i); });
+      });
     }
 
-    statusText.textContent = '正在生成换名示例...';
-    await sleep(getDelay());
-
-    const parser = new FormulaParser(parsed.formula);
-    parser.parse();
-
-    // 为每个约束变元生成换名示例
-    const newVars = ['u', 'v', 'w', 't', 's'];
-    let varIndex = 0;
-
-    for (const oldVar of parsed.boundVars) {
-        if (varIndex >= newVars.length) break;
-
-        const newVar = newVars[varIndex++];
-        const result = parser.generateRenamedFormula(oldVar, newVar);
-
-        await sleep(getDelay() * 0.6);
-
-        const renameItem = document.createElement('div');
-        renameItem.className = 'rename-item';
-
-        renameItem.innerHTML = `
-            <div class="rename-header">
-                <span class="rename-old">${oldVar}</span>
-                <span class="rename-arrow">→</span>
-                <span class="rename-new">${newVar}</span>
-            </div>
-            <div class="rename-formulas">
-                <div class="rename-original">
-                    <div class="rename-label">原公式:</div>
-                    <div class="rename-formula">${parsed.formula}</div>
-                </div>
-                <div class="rename-result">
-                    <div class="rename-label">换名后:</div>
-                    <div class="rename-formula">${result.success ? result.newFormula : result.message}</div>
-                </div>
-            </div>
-            <div class="rename-note ${result.success ? 'success' : 'error'}">
-                ${result.message}
-            </div>
-        `;
-
-        renameDemo.appendChild(renameItem);
-        setTimeout(() => renameItem.classList.add('visible'), 10);
+    function go(to) {
+      p = Math.max(0, Math.min(steps.length, to));
+      var st = p === 0 ? { reveal: cfg.mode === "short" ? 0 : 3, terms: [], sub: cfg.mode === "short" ? "" : ("D = { " + scen.domain.map(function (d) { return d.label; }).join(", ") + " }") } : steps[p - 1];
+      renderFormula(st); renderComp(st); renderGraph(st); renderAcc(st); renderVerdict(st);
+      statusEl.innerHTML = p === 0 ? cfg.introStatus : st.status;
+      progNum.textContent = p + " / " + steps.length;
+      progBar.style.width = (steps.length ? p / steps.length * 100 : 0) + "%";
+      prevBtn.disabled = p <= 0;
+      nextBtn.disabled = p >= steps.length;
     }
-}
-
-// 渲染语法树
-async function renderSyntaxTree(parsed) {
-    treeGroup.innerHTML = '';
-
-    statusText.textContent = '正在构建语法树...';
-    await sleep(getDelay());
-
-    const width = treeSvg.clientWidth || 800;
-    const height = 400;
-
-    // 根节点 - 公式
-    const rootX = width / 2;
-    const rootY = 60;
-
-    drawTreeNode(rootX, rootY, '公式', '#b8321a', 45);
-
-    // 第一层:量词和主体
-    const hasQuantifiers = parsed.quantifiers.length > 0;
-
-    if (hasQuantifiers) {
-        // 量词节点
-        const quantX = rootX - 150;
-        const quantY = 180;
-        drawTreeEdge(rootX, rootY + 45, quantX, quantY - 35);
-        drawTreeNode(quantX, quantY, '量词部分', '#d63b1d', 35);
-
-        // 绘制每个量词
-        parsed.quantifiers.forEach((q, idx) => {
-            const qX = quantX + (idx - parsed.quantifiers.length / 2 + 0.5) * 80;
-            const qY = 280;
-            drawTreeEdge(quantX, quantY + 35, qX, qY - 30);
-            drawTreeNode(qX, qY, `${q.type}${q.variable}`, '#ff8c75', 30);
-        });
-
-        // 主体节点
-        const bodyX = rootX + 150;
-        const bodyY = 180;
-        drawTreeEdge(rootX, rootY + 45, bodyX, bodyY - 35);
-        drawTreeNode(bodyX, bodyY, '主体公式', '#ffb400', 35);
+    function autoDelay() { return Math.max(280, 1500 - Number(speedEl ? speedEl.value : 55) * 12); }
+    function toggleAuto() {
+      if (autoTimer) { stopAuto(); return; }
+      if (p >= steps.length) go(0);
+      autoBtn.classList.add("sym-playing"); autoBtn.textContent = "⏸ 暂停";
+      autoTimer = setInterval(function () { if (p >= steps.length) { stopAuto(); return; } go(p + 1); }, autoDelay());
+    }
+    function stopAuto() {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+      if (autoBtn) { autoBtn.classList.remove("sym-playing"); autoBtn.textContent = "⏵ 自动播放"; }
     }
 
-    // 变元节点
-    const varY = hasQuantifiers ? 340 : 180;
-    const boundVarX = rootX - 180;
-    const freeVarX = rootX + 180;
+    renderControls();
+    renderLegend();
+    rebuild();
+  }
 
-    if (parsed.boundVars.length > 0) {
-        const startY = hasQuantifiers ? 280 : rootY + 45;
-        drawTreeEdge(hasQuantifiers ? rootX - 150 : rootX, startY, boundVarX, varY - 25);
-        drawTreeNode(boundVarX, varY, `约束变元\n{${parsed.boundVars.join(',')}}`, '#d63b1d', 30);
-    }
-
-    if (parsed.freeVars.length > 0) {
-        const startY = hasQuantifiers ? 215 : rootY + 45;
-        drawTreeEdge(hasQuantifiers ? rootX + 150 : rootX, startY, freeVarX, varY - 25);
-        drawTreeNode(freeVarX, varY, `自由变元\n{${Array.from(parsed.freeVars).join(',')}}`, '#ffb400', 30);
-    }
-}
-
-function drawTreeNode(x, y, text, color, r) {
-    const circle = createSVGElement('circle', {
-        cx: x,
-        cy: y,
-        r: r,
-        fill: color,
-        stroke: '#fff',
-        'stroke-width': 3,
-        filter: 'drop-shadow(0px 4px 8px rgba(0,0,0,0.2))'
-    });
-
-    const textLines = text.split('\n');
-    const textGroup = createSVGElement('g');
-
-    textLines.forEach((line, idx) => {
-        const textEl = createSVGElement('text', {
-            x: x,
-            y: y + (idx - textLines.length / 2 + 0.5) * 16,
-            'text-anchor': 'middle',
-            'dominant-baseline': 'middle',
-            fill: '#fff',
-            'font-size': r > 35 ? '14' : '12',
-            'font-weight': 'bold',
-            'font-family': 'Noto Serif SC, sans-serif'
-        });
-        textEl.textContent = line;
-        textGroup.appendChild(textEl);
-    });
-
-    treeGroup.appendChild(circle);
-    treeGroup.appendChild(textGroup);
-}
-
-function drawTreeEdge(x1, y1, x2, y2) {
-    const path = createSVGElement('path', {
-        d: `M ${x1} ${y1} Q ${x1} ${(y1 + y2) / 2} ${x2} ${y2}`,
-        stroke: '#d63b1d',
-        'stroke-width': 2,
-        fill: 'none',
-        opacity: 0.6,
-        'marker-end': 'url(#arrowhead)'
-    });
-    treeGroup.appendChild(path);
-}
-
-function createSVGElement(type, attributes = {}) {
-    const el = document.createElementNS('http://www.w3.org/2000/svg', type);
-    for (const [key, value] of Object.entries(attributes)) {
-        el.setAttribute(key, value);
-    }
-    return el;
-}
-
-// 主流程
-async function startAnalysis() {
-    if (isRunning) return;
-
-    isRunning = true;
-    shouldStop = false;
-    startBtn.disabled = true;
-    formulaSelect.disabled = true;
-
-    try {
-        // 获取公式
-        let formulaData;
-        if (formulaSelect.value === 'custom') {
-            const customFormula = customInput.value.trim();
-            if (!customFormula) {
-                alert('请输入谓词公式!');
-                resetAnalysis();
-                return;
-            }
-            formulaData = {
-                formula: customFormula,
-                description: '自定义公式',
-                context: '用户输入的谓词公式',
-                theme: '自定义'
-            };
-        } else {
-            formulaData = FORMULAS[parseInt(formulaSelect.value)];
-        }
-
-        currentFormula = formulaData;
-
-        // 渲染原始公式
-        renderOriginalFormula(formulaData);
-        await sleep(500);
-
-        // 解析公式
-        statusText.textContent = '正在解析公式结构...';
-        const parser = new FormulaParser(formulaData.formula);
-        parsedFormula = parser.parse();
-
-        // 更新统计
-        quantifierCount.textContent = parsedFormula.quantifiers.length;
-        variableCount.textContent = parsedFormula.variables.length;
-
-        await sleep(500);
-
-        if (!shouldStop) {
-            // 辖域分析
-            await renderScopeVisualization(parsedFormula);
-            await sleep(300);
-
-            // 变元分析
-            await renderVariableAnalysis(parsedFormula);
-            await sleep(300);
-
-            // 闭式检测
-            await renderClosedFormCheck(parsedFormula);
-            await sleep(300);
-
-            // 换名演示
-            await renderRenameDemo(parsedFormula);
-            await sleep(300);
-
-            // 语法树
-            await renderSyntaxTree(parsedFormula);
-
-            statusText.textContent = '解析完成!';
-        }
-    } catch (error) {
-        console.error('解析错误:', error);
-        statusText.textContent = '解析出错: ' + error.message;
-    }
-
-    isRunning = false;
-    startBtn.disabled = false;
-    formulaSelect.disabled = false;
-}
-
-function resetAnalysis() {
-    shouldStop = true;
-    isRunning = false;
-
-    originalFormula.innerHTML = '';
-    formulaDescription.innerHTML = '';
-    scopeVisualization.innerHTML = '';
-    boundVariables.innerHTML = '';
-    freeVariables.innerHTML = '';
-    closedFormCheck.innerHTML = '';
-    renameDemo.innerHTML = '';
-    treeGroup.innerHTML = '';
-
-    quantifierCount.textContent = '0';
-    variableCount.textContent = '0';
-    statusText.textContent = '准备解析';
-
-    startBtn.disabled = false;
-    formulaSelect.disabled = false;
-}
-
-// 事件监听
-formulaSelect.addEventListener('change', () => {
-    if (formulaSelect.value === 'custom') {
-        customInputGroup.style.display = 'flex';
-    } else {
-        customInputGroup.style.display = 'none';
-    }
-    resetAnalysis();
-});
-
-document.querySelectorAll('.mode-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        analysisMode = e.target.dataset.mode;
-    });
-});
-
-startBtn.addEventListener('click', startAnalysis);
-resetBtn.addEventListener('click', resetAnalysis);
-
-// 键盘快捷键
-customInput.addEventListener('keydown', (e) => {
-    if (e.altKey) {
-        switch (e.key.toLowerCase()) {
-            case 'a': e.preventDefault(); insertSymbol('∀'); break;
-            case 'e': e.preventDefault(); insertSymbol('∃'); break;
-            case 'v': e.preventDefault(); insertSymbol('∧'); break;
-            case '7': e.preventDefault(); insertSymbol('∨'); break;
-            case 'n': e.preventDefault(); insertSymbol('¬'); break;
-            case 'r': e.preventDefault(); insertSymbol('→'); break;
-        }
-    }
-});
-
-function insertSymbol(symbol) {
-    const start = customInput.selectionStart;
-    const end = customInput.selectionEnd;
-    const text = customInput.value;
-    customInput.value = text.substring(0, start) + symbol + text.substring(end);
-    customInput.selectionStart = customInput.selectionEnd = start + symbol.length;
-    customInput.focus();
-}
-
-// 初始化
-window.addEventListener('load', () => {
-    currentFormula = FORMULAS[0];
-    renderOriginalFormula(currentFormula);
-});
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
+  else run();
+})(typeof window !== "undefined" ? window : globalThis);

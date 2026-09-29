@@ -8,7 +8,7 @@
   <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="解释 I · 基础层｜6.2 谓词公式的解释 - 离散数学课程资源库">
-  <meta property="og:description" content="第6章 谓词逻辑 · 6.2 谓词公式的解释 · 基础层：非空论域 / 常项·谓词·函数赋值。理解一个解释由哪些部分构成。">
+  <meta property="og:description" content="第6章 谓词逻辑 · 6.2 谓词公式的解释 · 基础层：非空论域 / 常项指派 / 谓词赋值。理解一个解释由哪些部分构成。">
   <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/6%E8%B0%93%E8%AF%8D%E9%80%BB%E8%BE%91/6.2%E8%B0%93%E8%AF%8D%E5%85%AC%E5%BC%8F%E4%B9%8B%E9%97%B4%E7%9A%84%E8%A7%A3%E9%87%8A/predicate_formula-basic.html">
   <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta property="og:image:width" content="1200">
@@ -16,455 +16,61 @@
   <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="解释 I · 基础层｜6.2 谓词公式的解释 - 离散数学课程资源库">
-  <meta name="twitter:description" content="第6章 谓词逻辑 · 6.2 谓词公式的解释 · 基础层：非空论域 / 常项·谓词·函数赋值。理解一个解释由哪些部分构成。">
+  <meta name="twitter:description" content="第6章 谓词逻辑 · 6.2 谓词公式的解释 · 基础层：非空论域 / 常项指派 / 谓词赋值。理解一个解释由哪些部分构成。">
   <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>解释 I · 基础层｜6.2 谓词公式的解释 - 离散数学课程资源库</title>
-  <meta name="description" content="第6章 谓词逻辑 · 6.2 谓词公式的解释 · 基础层：非空论域 / 常项·谓词·函数赋值。理解一个解释由哪些部分构成。">
+  <meta name="description" content="第6章 谓词逻辑 · 6.2 谓词公式的解释 · 基础层：非空论域 / 常项指派 / 谓词赋值。理解一个解释由哪些部分构成。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap"></noscript>
-  <style>
-
-:root {
-  --ink: #2c1810;
-  --muted: #6b4a38;
-  --paper: #fff8ec;
-  --card: rgba(255, 253, 246, 0.92);
-  --line: rgba(116, 55, 31, 0.18);
-  --red: #d63b1d;
-  --red-2: #de5b3d;
-  --gold: #c58a1f;
-  --green: #2f7d57;
-  --blue: #2f5f9f;
-  --shadow: 0 18px 50px rgba(69, 31, 15, 0.14);
-}
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  min-height: 100vh;
-  color: var(--ink);
-  font-family: "Noto Serif SC", "Microsoft YaHei", serif;
-  background:
-    radial-gradient(circle at 16% 12%, rgba(222, 91, 61, 0.18), transparent 28%),
-    radial-gradient(circle at 82% 8%, rgba(47, 95, 159, 0.14), transparent 26%),
-    linear-gradient(135deg, #fff7e6 0%, #f8ead3 45%, #f3dfc7 100%);
-  overflow: hidden;
-}
-.home-link {
-  position: fixed;
-  top: 14px;
-  left: 14px;
-  z-index: 10000;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.5);
-  background: rgba(44, 24, 16, 0.82);
-  color: #fff;
-  text-decoration: none;
-  font-size: 13px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  backdrop-filter: blur(10px);
-}
-.app-container {
-  width: min(1440px, calc(100vw - 32px));
-  height: calc(100vh - 166px);
-  min-height: 640px;
-  margin: 74px auto 0;
-  display: grid;
-  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
-  gap: 18px;
-}
-.side-panel,
-.glass-pane {
-  border: 1px solid var(--line);
-  background: var(--card);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(12px);
-}
-.side-panel {
-  border-radius: 8px;
-  padding: 20px;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-}
-.glass-pane {
-  border-radius: 8px;
-  padding: 18px;
-  overflow: auto;
-}
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(214, 59, 29, 0.22);
-  color: var(--red);
-  background: rgba(214, 59, 29, 0.08);
-  font-size: 12px;
-  font-weight: 700;
-  align-self: flex-start;
-  margin-bottom: 10px;
-}
-h1 {
-  margin: 0 0 8px;
-  font-family: "Ma Shan Zheng", "Noto Serif SC", cursive;
-  font-size: 2.1rem;
-  line-height: 1.2;
-  font-weight: 400;
-  color: #d63b1d;
-}
-h1 .highlight { color: #ffb400; }
-.subtitle {
-  margin: 0 0 10px;
-  color: #6b4a38;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  font-family: "JetBrains Mono", "Noto Serif SC", monospace;
-}
-.tier-line { display: inline-flex; align-self: flex-start; gap: 6px; margin: 0 0 12px; padding: 4px 11px; border-radius: 999px; font-size: 12.5px; font-weight: 800; color: #8a5d0b; background: rgba(197,138,31,0.14); border: 1px solid rgba(197,138,31,0.28); letter-spacing: .03em; }
-.intro {
-  margin: 0 0 16px;
-  color: var(--muted);
-  line-height: 1.7;
-  font-size: 15px;
-}
-.value-panel {
-  padding: 14px;
-  margin: 4px 0 16px;
-  border-radius: 8px;
-  border: 1px solid rgba(116, 55, 31, 0.16);
-  background: rgba(255,255,255,0.66);
-  border-left: 4px solid var(--red);
-}
-.value-panel h3 { margin: 0 0 8px; font-size: 17px; color: var(--red); }
-.value-panel p { margin: 0; line-height: 1.7; color: #563c31; font-size: 14px; }
-.dim-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.dim-list span {
-  border-radius: 999px;
-  background: rgba(197, 138, 31, 0.13);
-  color: #8a5d0b;
-  padding: 4px 9px;
-  font-size: 12px;
-  font-weight: 700;
-}
-.control-group {
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(116, 55, 31, 0.16);
-  background: rgba(255,255,255,0.66);
-  margin-bottom: 10px;
-}
-.control-group label {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  color: #4e362d;
-  font-weight: 700;
-  font-size: 14px;
-  margin-bottom: 8px;
-}
-.control-group small { color: var(--muted); font-weight: 400; }
-select {
-  width: 100%;
-  min-height: 38px;
-  border-radius: 8px;
-  border: 1px solid rgba(116,55,31,0.22);
-  background: #fffaf2;
-  color: var(--ink);
-  padding: 0 10px;
-  font: inherit;
-  cursor: pointer;
-}
-.speed-row { display: flex; align-items: center; gap: 10px; }
-input[type="range"] { width: 100%; accent-color: var(--red); }
-
-/* ===== Mission card ===== */
-.mission-card {
-  padding: 14px 16px;
-  margin-bottom: 14px;
-  border-radius: 8px;
-  border: 1px solid rgba(116, 55, 31, 0.16);
-  background: rgba(255,255,255,0.66);
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-  align-items: center;
-}
-.mission-card b { color: var(--red); }
-.mission-card span { color: var(--muted); line-height: 1.6; }
-.visual-badge {
-  white-space: nowrap;
-  border-radius: 999px;
-  padding: 7px 10px;
-  background: rgba(47,95,159,0.1);
-  color: var(--blue);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-/* ===== Stage ===== */
-.stage { display: grid; gap: 14px; }
-.il-panel {
-  border-radius: 10px;
-  border: 1px solid rgba(116,55,31,0.16);
-  background: rgba(255,255,255,0.62);
-  padding: 14px 16px;
-}
-.il-panel-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--red);
-  margin: 0 0 12px;
-  letter-spacing: 0.02em;
-}
-.il-panel-title .num {
-  display: inline-grid;
-  place-items: center;
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  background: var(--red);
-  color: #fff;
-  font-size: 12px;
-  font-family: "JetBrains Mono", Consolas, monospace;
-}
-
-/* ===== Formula box & highlight ===== */
-.il-formula {
-  font-family: "JetBrains Mono", Consolas, monospace;
-  font-size: 30px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  text-align: center;
-  padding: 12px 8px;
-  color: #2c1810;
-}
-.il-term {
-  display: inline-block;
-  padding: 2px 8px;
-  margin: 0 1px;
-  border-radius: 8px;
-  transition: all .28s ease;
-}
-.il-term.dim { opacity: 0.38; }
-.il-term.hot {
-  background: linear-gradient(135deg, rgba(255,180,0,0.32), rgba(222,91,61,0.22));
-  box-shadow: 0 0 0 2px rgba(197,138,31,0.45);
-  color: var(--red);
-  transform: translateY(-2px) scale(1.06);
-}
-.il-sub {
-  margin-top: 6px;
-  min-height: 26px;
-  text-align: center;
-  font-size: 15px;
-  color: #5e4338;
-  font-family: "JetBrains Mono", Consolas, monospace;
-}
-.il-sub .t { color: var(--green); font-weight: 800; }
-.il-sub .f { color: var(--red); font-weight: 800; }
-
-/* ===== Domain SVG ===== */
-.il-graph-wrap {
-  border-radius: 8px;
-  background:
-    linear-gradient(90deg, rgba(116,55,31,0.05) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(116,55,31,0.05) 1px, transparent 1px),
-    rgba(255,255,255,0.5);
-  background-size: 26px 26px;
-  border: 1px solid rgba(116,55,31,0.12);
-  padding: 6px;
-}
-#domainSvg { width: 100%; height: auto; display: block; }
-.il-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 10px;
-  font-size: 12.5px;
-  color: var(--muted);
-}
-.il-legend i {
-  display: inline-block;
-  width: 14px; height: 14px;
-  border-radius: 4px;
-  margin-right: 5px;
-  vertical-align: -2px;
-}
-
-/* ===== Feedback / steps ===== */
-.il-stepbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-.il-btn {
-  border: 1px solid rgba(116,55,31,0.22);
-  background: #fffaf2;
-  color: #4e362d;
-  border-radius: 8px;
-  padding: 8px 14px;
-  font: inherit;
-  font-weight: 700;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all .18s ease;
-}
-.il-btn:hover { border-color: var(--red); color: var(--red); transform: translateY(-1px); }
-.il-btn:disabled { opacity: .42; cursor: not-allowed; transform: none; }
-.il-btn.primary { background: var(--red); color: #fff; border-color: var(--red); }
-.il-btn.primary:hover { background: #9a1d12; color: #fff; }
-.il-btn.ghost { background: rgba(47,95,159,0.08); border-color: rgba(47,95,159,0.25); color: var(--blue); }
-.il-status {
-  border-radius: 8px;
-  background: rgba(255,250,242,0.9);
-  border: 1px dashed rgba(116,55,31,0.28);
-  padding: 12px 14px;
-  line-height: 1.7;
-  font-size: 14.5px;
-  color: #4a342b;
-  min-height: 52px;
-}
-.il-status b { color: var(--red); }
-.il-footer-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 12px;
-  flex-wrap: wrap;
-}
-.il-progress { font-size: 12px; color: var(--muted); font-family: "JetBrains Mono", Consolas, monospace; }
-.il-verdict {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 800;
-  font-size: 15px;
-  padding: 8px 16px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  background: rgba(107, 74, 56,0.1);
-  color: var(--muted);
-}
-.il-verdict.true { background: rgba(47,125,87,0.14); color: var(--green); border-color: rgba(47,125,87,0.4); }
-.il-verdict.false { background: rgba(214, 59, 29,0.1); color: var(--red); border-color: rgba(214, 59, 29,0.4); }
-
-.footer {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 9998;
-  min-height: 72px;
-  padding: 14px 10px;
-  text-align: center;
-  color: inherit;
-  opacity: 0.72;
-  background: transparent;
-  font-size: 13px;
-  line-height: 1.7;
-}
-@media (max-width: 920px) {
-  body { overflow: auto; }
-  .app-container {
-    width: min(100vw - 22px, 760px);
-    height: auto;
-    min-height: 0;
-    grid-template-columns: 1fr;
-    margin-bottom: 96px;
-  }
-  .side-panel, .glass-pane { max-height: none; }
-  .mission-card { grid-template-columns: 1fr; }
-  .il-formula { font-size: 24px; }
-}
-
-  </style>
+    <link rel="stylesheet" href="predicate_formula.css">
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
     <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 <body>
   <a class="home-link" href="../../index.html#chapter6">← 返回课程主页</a>
+
   <div class="app-container">
     <aside class="side-panel">
       <div class="eyebrow">基础层 · 第6章 谓词逻辑</div>
       <h1>解释 I</h1>
-      <p class="subtitle">非空论域 / 常项·谓词·函数赋值</p>
+      <p class="subtitle">非空论域 / 常项指派 / 谓词赋值</p>
       <p class="tier-line">低门槛 · 建立直觉</p>
       <p class="intro">🎯 理解一个解释由哪些部分构成。</p>
 
-      <div class="value-panel">
-        <h3>具体问题具体分析</h3>
-        <p>真假依赖于解释，正是『具体问题具体分析』『一切以时间地点条件为转移』的逻辑写照。先看清论域和赋值，再下判断，才不会陷入教条。</p>
-        <div class="dim-list"><span>辩证思维</span><span>实事求是</span><span>具体分析</span></div>
-      </div>
-
-      <div class="control-group">
-        <label><span>选择情境（论域 + 谓词）</span></label>
-        <select id="scenarioSel"></select>
-      </div>
-      <div class="control-group">
-        <label><span>选择公式</span><small>量词不同，读法不同</small></label>
-        <select id="formulaSel">
-          <option value="exists">∃xP(x) — 存在一个满足 P</option>
-          <option value="forall">∀xP(x) — 所有都满足 P</option>
-        </select>
-      </div>
-      <div class="control-group">
-        <label><span>自动播放速度</span></label>
-        <div class="speed-row">
-          <span style="font-size:12px;color:var(--muted)">慢</span>
-          <input type="range" id="speed" min="1" max="100" value="55">
-          <span style="font-size:12px;color:var(--muted)">快</span>
-        </div>
-      </div>
+      <div id="controls"></div>
+      <div class="legend-panel" id="legendPanel"></div>
     </aside>
 
     <main class="glass-pane">
       <section class="mission-card">
-        <span><b>互动任务：</b>先确定论域 D，再给谓词 P 赋值，最后逐个体读出公式真值。</span>
-        <div class="visual-badge">论域成员 + 谓词染色</div>
+        <span><b>互动任务：</b>先给出解释 I 的三部分（论域、常项指派、谓词赋值），再逐个体读出公式真值；点「换个解释」看真值变化。</span>
+        <div class="visual-badge">解释构成 · 见证/反例</div>
       </section>
 
-      <section class="stage">
-        <div class="il-panel">
-          <h2 class="il-panel-title"><span class="num">F</span>公式 · Formula</h2>
-          <div id="formulaBox" class="il-formula"></div>
-          <div id="subBox" class="il-sub"></div>
-        </div>
-
-        <div class="il-panel">
-          <h2 class="il-panel-title"><span class="num">I</span>解释 I：论域与谓词赋值</h2>
-          <div class="il-graph-wrap">
-            <svg id="domainSvg" viewBox="0 0 720 230" preserveAspectRatio="xMidYMid meet" role="img" aria-label="论域对象图"></svg>
-          </div>
-          <div class="il-legend">
-            <span><i style="background:#2f7d57"></i>满足 P（真）</span>
-            <span><i style="background:#e7d8cc;border:1px solid #c9a99a"></i>不满足 P（假）</span>
-            <span><i style="background:transparent;box-shadow:0 0 0 2px #c58a1f"></i>正在检验</span>
-          </div>
-        </div>
-
-        <div class="il-panel">
-          <h2 class="il-panel-title"><span class="num">▶</span>逐步推演 · 反馈</h2>
-          <div class="il-stepbar">
-            <button class="il-btn" id="prevBtn">◀ 上一步</button>
-            <button class="il-btn primary" id="nextBtn">下一步 ▶</button>
-            <button class="il-btn ghost" id="autoBtn">自动播放</button>
-            <button class="il-btn" id="resetBtn">重置</button>
-            <button class="il-btn" id="reinterpBtn" title="随机改变 P 的赋值">↻ 换个解释</button>
-          </div>
-          <div id="statusText" class="il-status">点击 <b>下一步</b> 开始：先搭论域，再给谓词赋值，然后读公式。</div>
-          <div class="il-footer-row">
-            <span id="verdict" class="il-verdict">真值待定</span>
-            <span id="stepLabel" class="il-progress">步骤 0 / 0</span>
-          </div>
-        </div>
-      </section>
+      <div class="sym-pipeline">
+        <section class="sym-stage-card">
+          <div class="sym-stage-head"><span class="sym-stage-num">1</span><span class="sym-stage-title">公式 · Formula</span><span class="sym-stage-hint">当前步骤涉及的部分高亮</span></div>
+          <div id="pfFormula"></div>
+        </section>
+        <section class="sym-stage-card">
+          <div class="sym-stage-head"><span class="sym-stage-num">2</span><span class="sym-stage-title">解释 I · 论域与赋值</span><span class="sym-stage-hint">D / a ↦ / P</span></div>
+          <div id="pfComp" class="pf-comps"></div>
+          <div id="pfDomain" class="pf-domain"></div>
+          <div class="pf-legend"><span><i class="l-pt"></i>P 真</span><span><i class="l-pf"></i>P 假</span><span><i class="l-a"></i>常项 a 的指派</span><span><i class="l-cur"></i>正在检验</span></div>
+        </section>
+        <section class="sym-stage-card">
+          <div class="sym-stage-head"><span class="sym-stage-num">3</span><span class="sym-stage-title">量词展开 · 逐个体检验</span><span class="sym-stage-hint">∃ 找见证 / ∀ 找反例</span></div>
+          <div id="pfAcc"></div>
+        </section>
+        <section class="sym-stage-card">
+          <div class="sym-stage-head"><span class="sym-stage-num">4</span><span class="sym-stage-title">求值结论</span><span class="sym-stage-hint">该解释下真 / 假</span></div>
+          <div id="pfVerdict" class="pf-verdict"></div>
+        </section>
+      </div>
     </main>
   </div>
 
@@ -476,7 +82,7 @@ input[type="range"] { width: 100%; accent-color: var(--red); }
   <script>
     window.SECTION_META = {
       "layers": [
-            { "name": "解释 I", "concepts": "非空论域 / 常项·谓词·函数赋值", "task": "理解一个解释由哪些部分构成。", "page": "predicate_formula-basic.html" },
+            { "name": "解释 I", "concepts": "非空论域 / 常项指派 / 谓词赋值", "task": "理解一个解释由哪些部分构成。", "page": "predicate_formula-basic.html" },
             { "name": "在解释下求值", "concepts": "量词论域求值 / 真值随解释变", "task": "在给定解释下求公式真值。", "page": "predicate_formula.html" },
             { "name": "模型论与数据库实例", "concepts": "模型 / 实例 / 语义验证", "task": "迁移到模型论与数据库求值。", "page": "predicate_formula-extend.html" }
       ],
@@ -509,320 +115,8 @@ input[type="range"] { width: 100%; accent-color: var(--red); }
       ]
 };
   </script>
-
-  <script>
-(function () {
-  "use strict";
-
-  /* ====== 情境数据：论域 + 单谓词 P ====== */
-  const SCENARIOS = [
-    {
-      name: "君子与诚信",
-      Pname: "P(x)：x 是君子",
-      domain: [
-        { id: "a", label: "孔子", P: true },
-        { id: "b", label: "屈原", P: true },
-        { id: "c", label: "路人", P: false }
-      ]
-    },
-    {
-      name: "奋斗的青年",
-      Pname: "P(x)：x 正在奋斗",
-      domain: [
-        { id: "a", label: "青年甲", P: true },
-        { id: "b", label: "青年乙", P: false },
-        { id: "c", label: "青年丙", P: true }
-      ]
-    },
-    {
-      name: "时代的英雄",
-      Pname: "P(x)：x 是英雄",
-      domain: [
-        { id: "a", label: "战士", P: true },
-        { id: "b", label: "医者", P: true },
-        { id: "c", label: "教师", P: true }
-      ]
-    }
-  ];
-
-  /* ====== DOM ====== */
-  const scenarioSel = document.getElementById("scenarioSel");
-  const formulaSel = document.getElementById("formulaSel");
-  const speed = document.getElementById("speed");
-  const formulaBox = document.getElementById("formulaBox");
-  const subBox = document.getElementById("subBox");
-  const svg = document.getElementById("domainSvg");
-  const statusText = document.getElementById("statusText");
-  const verdict = document.getElementById("verdict");
-  const stepLabel = document.getElementById("stepLabel");
-  const prevBtn = document.getElementById("prevBtn");
-  const nextBtn = document.getElementById("nextBtn");
-  const autoBtn = document.getElementById("autoBtn");
-  const resetBtn = document.getElementById("resetBtn");
-  const reinterpBtn = document.getElementById("reinterpBtn");
-
-  const SVGNS = "http://www.w3.org/2000/svg";
-  let scen = clone(SCENARIOS[0]);
-  let steps = [];
-  let idx = 0;
-  let timer = null;
-
-  function clone(o) { return JSON.parse(JSON.stringify(o)); }
-  function esc(s) { return String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
-  function tf(v) { return v ? '<span class="t">真</span>' : '<span class="f">假</span>'; }
-  function delay() { return Math.max(280, 1500 - Number(speed.value) * 12); }
-
-  /* ====== 初始化下拉 ====== */
-  SCENARIOS.forEach((s, i) => {
-    const o = document.createElement("option");
-    o.value = String(i); o.textContent = s.name;
-    scenarioSel.appendChild(o);
-  });
-
-  /* ====== 构建步骤 ====== */
-  function buildSteps() {
-    const kind = formulaSel.value;           // exists | forall
-    const D = scen.domain;
-    const qsym = kind === "exists" ? "∃x" : "∀x";
-    const list = [];
-
-    // step 0
-    list.push({
-      status: "一个<b>解释 I</b> 要先回答两件事：① 论域 D 是哪些对象？② 谓词 P 对每个对象取真还是假？",
-      terms: [], reveal: false, colored: false, active: null, checked: []
-    });
-    // step 1 — 论域
-    list.push({
-      status: "① <b>非空论域 D</b> = {" + D.map(d => d.label).join("，") + "}。论域必须非空，量词才有对象可谈。",
-      terms: [], reveal: true, colored: false, active: null, checked: [],
-      sub: "D = { " + D.map(d => esc(d.label)).join(", ") + " }"
-    });
-    // step 2 — 谓词赋值
-    list.push({
-      status: "② <b>谓词赋值</b>：" + esc(scen.Pname) + "。绿色 = 满足 P（真），灰色 = 不满足（假）。这一步把抽象谓词落到具体对象上。",
-      terms: ["p"], reveal: true, colored: true, active: null, checked: [],
-      sub: "满足 P 的对象：{ " + (D.filter(d => d.P).map(d => esc(d.label)).join(", ") || "（空）") + " }"
-    });
-    // step 3 — 读量词
-    list.push({
-      status: kind === "exists"
-        ? "③ 读公式 <b>∃xP(x)</b>：问『论域中<b>是否存在</b>一个对象满足 P？』只要找到一个就为真。"
-        : "③ 读公式 <b>∀xP(x)</b>：问『论域中<b>是否每个</b>对象都满足 P？』只要有一个反例就为假。",
-      terms: ["q"], reveal: true, colored: true, active: null, checked: [],
-      sub: "量词 " + qsym + " 的辖域是 P(x)，要在整个论域 D 上检验。"
-    });
-
-    // 逐个体检验
-    let result, stopId = null, witnessId = null, counterId = null;
-    if (kind === "exists") {
-      result = false;
-      for (let i = 0; i < D.length; i++) {
-        const d = D[i];
-        const checked = D.slice(0, i).map(x => x.id);
-        if (d.P) {
-          witnessId = d.id; stopId = d.id;
-          list.push({
-            status: "检验 <b>" + esc(d.label) + "</b>：P(" + esc(d.label) + ") = " + (d.P ? "真" : "假") + "。<b>找到见证！</b>∃ 只要一个为真即成立，无需再查后面的对象。",
-            terms: ["q", "p"], reveal: true, colored: true, active: d.id, checked,
-            sub: "P(" + esc(d.label) + ") = " + tf(d.P) + " ⟹ ∃xP(x) 已成立"
-          });
-          result = true;
-          break;
-        } else {
-          list.push({
-            status: "检验 <b>" + esc(d.label) + "</b>：P(" + esc(d.label) + ") = 假，还不是见证，继续看下一个对象……",
-            terms: ["q", "p"], reveal: true, colored: true, active: d.id, checked,
-            sub: "P(" + esc(d.label) + ") = " + tf(d.P) + "（继续寻找）"
-          });
-        }
-      }
-    } else {
-      result = true;
-      for (let i = 0; i < D.length; i++) {
-        const d = D[i];
-        const checked = D.slice(0, i).map(x => x.id);
-        if (!d.P) {
-          counterId = d.id; stopId = d.id;
-          list.push({
-            status: "检验 <b>" + esc(d.label) + "</b>：P(" + esc(d.label) + ") = 假。<b>找到反例！</b>∀ 只要一个为假即不成立，结论已定。",
-            terms: ["q", "p"], reveal: true, colored: true, active: d.id, checked,
-            sub: "P(" + esc(d.label) + ") = " + tf(d.P) + " ⟹ ∀xP(x) 被否决"
-          });
-          result = false;
-          break;
-        } else {
-          list.push({
-            status: "检验 <b>" + esc(d.label) + "</b>：P(" + esc(d.label) + ") = 真，暂时成立，继续检验剩下的对象……",
-            terms: ["q", "p"], reveal: true, colored: true, active: d.id, checked,
-            sub: "P(" + esc(d.label) + ") = " + tf(d.P) + "（仍需全部为真）"
-          });
-        }
-      }
-    }
-
-    // 结论
-    const allChecked = D.map(d => d.id);
-    list.push({
-      status: "<b>结论：" + (kind === "exists" ? "∃xP(x)" : "∀xP(x)") + " 在该解释下 = " + (result ? "真" : "假") + "。</b> "
-        + "换一个解释（改变论域或 P 的赋值），同一公式的真值就可能不同——这正是『一切以时间地点条件为转移』。试试右上角的「↻ 换个解释」。",
-      terms: ["q", "p"], reveal: true, colored: true, active: null, checked: allChecked,
-      verdict: result,
-      sub: (kind === "exists" ? "∃xP(x)" : "∀xP(x)") + " = " + tf(result)
-    });
-
-    return list;
-  }
-
-  /* ====== 渲染公式框 ====== */
-  function renderFormula(activeTerms) {
-    const kind = formulaSel.value;
-    const q = kind === "exists" ? "∃x" : "∀x";
-    const parts = [
-      { k: "q", t: q },
-      { k: "p", t: "P(x)" }
-    ];
-    formulaBox.innerHTML = parts.map(p => {
-      let cls = "il-term";
-      if (activeTerms && activeTerms.length) {
-        cls += activeTerms.includes(p.k) ? " hot" : " dim";
-      }
-      return '<span class="' + cls + '" data-k="' + p.k + '">' + esc(p.t) + "</span>";
-    }).join("");
-  }
-
-  /* ====== 渲染论域 SVG ====== */
-  function makeEl(tag, attrs) {
-    const el = document.createElementNS(SVGNS, tag);
-    for (const k in attrs) el.setAttribute(k, attrs[k]);
-    return el;
-  }
-  function renderGraph(st) {
-    svg.innerHTML = "";
-    const D = scen.domain;
-    if (!st.reveal) {
-      const t = makeEl("text", { x: 360, y: 120, "text-anchor": "middle", fill: "#a48a7c", "font-size": 18, "font-family": "Noto Serif SC, serif" });
-      t.textContent = "论域 D 尚未给出……";
-      svg.appendChild(t);
-      return;
-    }
-    const n = D.length;
-    const gap = 180;
-    const startX = 360 - (n - 1) * gap / 2;
-    D.forEach((d, i) => {
-      const x = startX + i * gap;
-      const y = 100;
-      const isActive = st.active === d.id;
-      const isChecked = (st.checked || []).includes(d.id);
-      const colored = st.colored;
-      const g = makeEl("g", { transform: "translate(" + x + "," + y + ")" });
-
-      // active halo
-      if (isActive) {
-        g.appendChild(makeEl("circle", { r: 50, fill: "none", stroke: "#c58a1f", "stroke-width": 5, opacity: 0.9 }));
-        const pulse = makeEl("circle", { r: 50, fill: "none", stroke: "#c58a1f", "stroke-width": 2, opacity: 0.5 });
-        const anim = makeEl("animate", { attributeName: "r", values: "50;62;50", dur: "1.4s", repeatCount: "indefinite" });
-        const anim2 = makeEl("animate", { attributeName: "opacity", values: "0.5;0;0.5", dur: "1.4s", repeatCount: "indefinite" });
-        pulse.appendChild(anim); pulse.appendChild(anim2);
-        g.appendChild(pulse);
-      }
-
-      const fill = colored ? (d.P ? "#2f7d57" : "#e7d8cc") : "#ece0d4";
-      const stroke = colored ? (d.P ? "#256346" : "#c9a99a") : "#cbb6a6";
-      g.appendChild(makeEl("circle", { r: 40, fill, stroke, "stroke-width": isActive ? 3 : 2, filter: "drop-shadow(0 4px 8px rgba(69,31,15,0.18))" }));
-
-      const nameColor = (colored && d.P) ? "#fff" : "#3a2a22";
-      const name = makeEl("text", { x: 0, y: 5, "text-anchor": "middle", fill: nameColor, "font-size": 16, "font-weight": "700", "font-family": "Noto Serif SC, serif" });
-      name.textContent = d.label;
-      g.appendChild(name);
-
-      // checked tick
-      if (isChecked && !isActive) {
-        const tick = makeEl("text", { x: 30, y: -28, "text-anchor": "middle", fill: "#c58a1f", "font-size": 18, "font-weight": "800" });
-        tick.textContent = "✓";
-        g.appendChild(tick);
-      }
-
-      // P badge
-      if (colored) {
-        const badge = makeEl("text", { x: 0, y: 66, "text-anchor": "middle", fill: d.P ? "#2f7d57" : "#a05a4a", "font-size": 13, "font-weight": "800", "font-family": "JetBrains Mono, monospace" });
-        badge.textContent = "P=" + (d.P ? "T" : "F");
-        g.appendChild(badge);
-      }
-      svg.appendChild(g);
-    });
-  }
-
-  /* ====== 应用步骤 ====== */
-  function applyStep() {
-    const st = steps[idx];
-    renderFormula(st.terms);
-    renderGraph(st);
-    statusText.innerHTML = st.status;
-    subBox.innerHTML = st.sub || "";
-    stepLabel.textContent = "步骤 " + idx + " / " + (steps.length - 1);
-    if (typeof st.verdict === "boolean") {
-      verdict.className = "il-verdict " + (st.verdict ? "true" : "false");
-      verdict.textContent = st.verdict ? "✓ 公式为真 T" : "✗ 公式为假 F";
-    } else {
-      verdict.className = "il-verdict";
-      verdict.textContent = "真值待定";
-    }
-    prevBtn.disabled = idx === 0;
-    nextBtn.disabled = idx >= steps.length - 1;
-  }
-
-  function go(to) {
-    idx = Math.max(0, Math.min(steps.length - 1, to));
-    applyStep();
-  }
-  function rebuild(resetIdx) {
-    steps = buildSteps();
-    if (resetIdx) idx = 0;
-    else idx = Math.min(idx, steps.length - 1);
-    applyStep();
-  }
-  function stopAuto() {
-    if (timer) { clearInterval(timer); timer = null; autoBtn.textContent = "自动播放"; autoBtn.classList.remove("primary"); }
-  }
-  function toggleAuto() {
-    if (timer) { stopAuto(); return; }
-    if (idx >= steps.length - 1) go(0);
-    autoBtn.textContent = "暂停"; autoBtn.classList.add("primary");
-    timer = setInterval(() => {
-      if (idx >= steps.length - 1) { stopAuto(); return; }
-      go(idx + 1);
-    }, delay());
-  }
-
-  /* ====== 事件 ====== */
-  nextBtn.addEventListener("click", () => { stopAuto(); go(idx + 1); });
-  prevBtn.addEventListener("click", () => { stopAuto(); go(idx - 1); });
-  resetBtn.addEventListener("click", () => { stopAuto(); go(0); });
-  autoBtn.addEventListener("click", toggleAuto);
-  scenarioSel.addEventListener("change", () => { stopAuto(); scen = clone(SCENARIOS[Number(scenarioSel.value)]); rebuild(true); });
-  formulaSel.addEventListener("change", () => { stopAuto(); rebuild(true); });
-  speed.addEventListener("input", () => { if (timer) { stopAuto(); toggleAuto(); } });
-  reinterpBtn.addEventListener("click", () => {
-    stopAuto();
-    // 随机改变 P 的赋值，至少保证不是全相同的极端，便于观察真值变化
-    const D = scen.domain;
-    let guard = 0;
-    do {
-      D.forEach(d => { d.P = Math.random() < 0.5; });
-      guard++;
-    } while (guard < 8 && D.every(d => d.P) === D.every(d => !d.P));
-    rebuild(true);
-    // 跳到“谓词赋值”一步，强调解释已改变
-    go(2);
-    statusText.innerHTML = "↻ <b>解释已改变！</b> 谓词 P 被重新赋值——满足 P 的对象：{ "
-      + (D.filter(d => d.P).map(d => esc(d.label)).join(", ") || "（空）")
-      + " }。继续点「下一步」，看同一公式的真值是否随之改变。";
-  });
-
-  /* ====== 启动 ====== */
-  rebuild(true);
-})();
-  </script>
+  <script>window.SYMBOLIZE_LEVEL = "basic";</script>
+  <script src="predicate_formula.js"></script>
   <script src="../../shared/ai-tutor.js" defer></script>
 </body>
 </html>
