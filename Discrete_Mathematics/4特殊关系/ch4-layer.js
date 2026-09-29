@@ -1296,6 +1296,108 @@
 })();
 /* @@END */
 
+/* ---------- 4.6 特殊类型的函数 ---------- */
+(function () {
+  var C = C4.COL, esc = C4.esc;
+  var A = ['1', '2', '3', '4'];
+  var F = {
+    shift: { name: 'f(x) = x mod 4 + 1（循环右移）', f: [1, 2, 3, 0] },
+    swap: { name: 'f：交换 1、2，其余不动', f: [1, 0, 2, 3] },
+    sq: { name: 'f(x) = ⌈x/2⌉', f: [0, 0, 1, 1] }
+  };
+
+  C4.def('special/basic', {
+    badge: '常函数 · 恒等函数 · 复合',
+    mission: '在 A = {1,2,3,4} 上比较两种特殊函数：<b>常函数</b>把一切压成一点，<b>恒等函数</b> I<sub>A</sub> 让每个元素保持原样。再把 I<sub>A</sub> 与任意 f 复合，验证 f∘I<sub>A</sub> = I<sub>A</sub>∘f = f。',
+    cols: 2,
+    controls: [
+      { type: 'select', id: 'kind', label: '选择函数', value: 'id', options: [['id', '恒等函数 I_A'], ['const', '常函数 c(x) = c']] },
+      { type: 'range', id: 'c', label: '常数 c', text: '常数 c', min: 1, max: 4, value: 2, show: function (v) { return v.kind === 'const'; } },
+      { type: 'select', id: 'g', label: '与之复合的函数 f', value: 'shift', options: [['shift', 'f(x) = x mod 4 + 1'], ['swap', '交换 1、2'], ['sq', 'f(x) = ⌈x/2⌉']] }
+    ],
+    stages: [
+      { id: 'map', title: '映射图', hint: 'A → A' },
+      { id: 'prop', title: '性质' },
+      { id: 'comp', title: '与 f 复合', wide: true }
+    ],
+    points: [
+      '<b>常函数</b>：∀x∈A，f(x) = c；值域 {c}。',
+      '<b>恒等函数</b> I<sub>A</sub>(x) = x，是 A 上的双射，且 I<sub>A</sub><sup>−1</sup> = I<sub>A</sub>。',
+      'I<sub>A</sub> 是复合运算的<b>单位元</b>：f∘I<sub>A</sub> = f，I<sub>B</sub>∘f = f（f : A→B）。',
+      '常函数与任何函数复合：c∘f 仍是常函数 c；f∘c 是常函数 f(c)。'
+    ],
+    render: function (S) {
+      var isId = S.v.kind === 'id', c = S.v.c - 1;
+      var h = A.map(function (_, i) { return isId ? i : c; });
+      var pairs = h.map(function (y, i) { return [i, y]; });
+      S.set('map', C4.mapSvg(A, A, pairs, { w: 420, xa: 100, gap: 54, aName: 'A', bName: 'A', bState: A.map(function (_, j) { return h.indexOf(j) >= 0 ? 'ok' : 'dim'; }) }));
+      S.set('prop', '<div class="c4-verdicts">' +
+        '<div class="c4-verdict ' + (isId ? 'ok' : 'bad') + '"><b>单射 ' + (isId ? '✓' : '✗') + '</b><span>' + (isId ? '不同元素像不同' : '4 个元素都映到 ' + A[c]) + '</span></div>' +
+        '<div class="c4-verdict ' + (isId ? 'ok' : 'bad') + '"><b>满射 ' + (isId ? '✓' : '✗') + '</b><span>值域 {' + (isId ? A.join(',') : A[c]) + '}</span></div>' +
+        '<div class="c4-verdict gold"><b>' + (isId ? '双射，可逆' : '不可逆') + '</b><span>' + (isId ? 'I⁻¹ = I' : '信息被压缩成一点') + '</span></div></div>');
+      var f = F[S.v.g].f;
+      var hf = f.map(function (y) { return h[y]; }), fh = h.map(function (y) { return f[y]; });
+      var row = function (lab, arr) { return '<tr><th>' + lab + '</th>' + arr.map(function (v, i) { return '<td class="mono' + (v === f[i] ? ' ok' : '') + '">' + A[v] + '</td>'; }).join('') + '</tr>'; };
+      S.set('comp', '<p class="c4-note">' + esc(F[S.v.g].name) + '。表中绿色格子表示与 f 的结果相同。</p><div class="c4-table-wrap"><table class="c4-table"><tr><th>x</th>' + A.map(function (a) { return '<th>' + a + '</th>'; }).join('') + '</tr>' +
+        '<tr><th>f(x)</th>' + f.map(function (v) { return '<td class="mono soft">' + A[v] + '</td>'; }).join('') + '</tr>' +
+        row(isId ? '(I∘f)(x)' : '(c∘f)(x)', hf) + row(isId ? '(f∘I)(x)' : '(f∘c)(x)', fh) + '</table></div>' +
+        '<p style="margin-top:8px">' + (isId ? '<span class="c4-chip ok">f∘I = I∘f = f</span> 恒等函数像数字乘法里的 1。' : '<span class="c4-chip gold">c∘f ≡ ' + A[c] + '，f∘c ≡ ' + A[f[c]] + '</span> 与常函数复合，结果仍是常函数。') + '</p>');
+      C4.result(isId ? 'I_A(x) = x' : 'c(x) = ' + A[c], isId ? '恒等函数：双射' : '常函数：非单射非满射', isId ? 'I_A 是复合的单位元。' : '常函数「以不变应万变」。');
+    }
+  });
+
+  /* ----- 拓展层：编码与离散化 ----- */
+  var CITY = ['长沙', '株洲', '湘潭', '衡阳', '岳阳'];
+  var SCORES = [58, 61, 73, 79, 85, 90, 96, 44, 67, 88];
+
+  C4.def('special/extend', {
+    badge: '独热编码 · 分桶离散化',
+    mission: '场景一：<b>独热编码</b>把每个类别 k 编成特征函数向量 (χ<sub>{k}</sub>(c₁), …)——恰有一个 1；场景二：<b>分桶</b>是一个单调不减的阶梯函数，把连续分数离散成等级，保序但不单射。',
+    controls: [
+      { type: 'select', id: 'mode', label: '场景', value: 'onehot', options: [['onehot', '独热编码（特征函数向量）'], ['bucket', '成绩分桶（单调阶梯函数）']] },
+      { type: 'select', id: 'city', label: '选择类别', value: '2', options: CITY.map(function (c, i) { return [String(i), c]; }), show: function (v) { return v.mode === 'onehot'; } },
+      { type: 'range', id: 'w', label: '桶宽', text: '桶宽（分）', min: 5, max: 20, step: 5, value: 10, show: function (v) { return v.mode === 'bucket'; } }
+    ],
+    stages: [
+      { id: 'model', title: '模型' },
+      { id: 'viz', title: '编码结果' },
+      { id: 'out', title: '性质' }
+    ],
+    points: [
+      '独热编码：类别集合 K 中每个 k 对应向量 e(k) = (χ<sub>{k}</sub>(k₁), …, χ<sub>{k}</sub>(kₙ))，e 是单射。',
+      '子集 S ⊆ K 的「多热」向量就是特征函数 χ<sub>S</sub> 的取值表。',
+      '分桶 b(x) = ⌊x / w⌋ 单调不减（保序）：x ≤ y ⇒ b(x) ≤ b(y)。',
+      '分桶不是单射：同桶的不同分数被合并，以损失精度换取稳健与可解释。'
+    ],
+    render: function (S) {
+      if (S.v.mode === 'onehot') {
+        var k = +S.v.city;
+        S.set('model', '<p>类别集 K = {' + CITY.join('，') + '}，e(k)ᵢ = χ<sub>{k}</sub>(kᵢ)。</p>');
+        var t = '<div class="c4-table-wrap"><table class="c4-table"><tr><th>类别</th>' + CITY.map(function (c) { return '<th>' + c + '</th>'; }).join('') + '</tr>';
+        CITY.forEach(function (c, i) {
+          t += '<tr><th>' + c + '</th>' + CITY.map(function (_, j) { return '<td class="mono ' + (i === j ? 'hit' : '') + (i === k ? ' cur' : '') + '">' + (i === j ? 1 : 0) + '</td>'; }).join('') + '</tr>';
+        });
+        S.set('viz', t + '</table></div><p style="margin-top:8px">e(' + CITY[k] + ') = <b class="c4-mono">(' + CITY.map(function (_, j) { return j === k ? 1 : 0; }).join(', ') + ')</b></p>');
+        S.set('out', '<div class="c4-verdicts"><div class="c4-verdict ok"><b>e 是单射 ✓</b><span>不同类别的向量不同</span></div><div class="c4-verdict gold"><b>每行恰一个 1</b><span>各分量是单点集的特征函数</span></div></div><p class="c4-note" style="margin-top:8px">为何不直接编成 1,2,3,…？那会引入「长沙 &lt; 株洲」这样并不存在的顺序。</p>');
+        C4.result('e(' + CITY[k] + ')', '独热向量，第 ' + (k + 1) + ' 位为 1', '类别之间没有大小关系，独热编码不引入虚假序。');
+      } else {
+        var w = S.v.w, b = function (x) { return Math.floor(x / w); };
+        var sorted = SCORES.slice().sort(function (p, q) { return p - q; });
+        S.set('model', '<p class="c4-mono">b(x) = ⌊x / ' + w + '⌋</p>');
+        var groups = {}; sorted.forEach(function (x) { (groups[b(x)] = groups[b(x)] || []).push(x); });
+        S.set('viz', '<div class="c4-verdicts">' + Object.keys(groups).map(function (g, i) {
+          return '<div class="c4-verdict" style="border-top-color:' + C4.CLASS[i % 8] + '"><b>桶 ' + g + '：[' + g * w + ', ' + (g * w + w) + ')</b><span class="c4-mono">' + groups[g].join(', ') + '</span></div>';
+        }).join('') + '</div>');
+        var mono = sorted.every(function (x, i) { return i === 0 || b(sorted[i - 1]) <= b(x); });
+        var merged = Object.keys(groups).filter(function (g) { return groups[g].length > 1; }).length;
+        S.set('out', '<div class="c4-verdicts"><div class="c4-verdict ' + (mono ? 'ok' : 'bad') + '"><b>单调不减 ✓</b><span>排序后桶号不下降</span></div><div class="c4-verdict ' + (merged ? 'bad' : 'ok') + '"><b>单射 ' + (merged ? '✗' : '✓') + '</b><span>' + merged + ' 个桶里合并了多个分数</span></div></div>');
+        C4.result('桶宽 ' + w, Object.keys(groups).length + ' 个非空桶', '桶越宽，离散越粗，信息损失越大。');
+      }
+    }
+  });
+})();
+/* @@END */
+
 /* @@UNITS@@ */
 
 C4.boot();
