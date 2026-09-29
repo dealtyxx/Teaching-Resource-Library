@@ -77,7 +77,6 @@ function init() {
     buildChallengePanel();
     generateData();
     updateCalculation();
-    scheduleResponsiveFix();
 }
 
 // Data Generation
@@ -144,26 +143,19 @@ function createParticle(person) {
     // We need to place them in the correct intersection regions
     // Simple approach: Weighted average of centers + noise
 
-    let targetX = 0, targetY = 0, count = 0;
+    // 拒绝采样：在画布内随机取点，直到它恰好落在该人所属的区域（避免落到错误的交集区）
+    const inside = (x, y, c) => Math.hypot(x - CENTERS[c].x, y - CENTERS[c].y) <= CIRCLE_RADIUS - 6;
+    let x = 0, y = 0;
+    for (let k = 0; k < 4000; k++) {
+        x = 40 + Math.random() * 420;
+        y = 20 + Math.random() * 360;
+        if (inside(x, y, 'A') === person.inA && inside(x, y, 'B') === person.inB && inside(x, y, 'C') === person.inC) break;
+    }
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
 
-    if (person.inA) { targetX += CENTERS.A.x; targetY += CENTERS.A.y; count++; }
-    if (person.inB) { targetX += CENTERS.B.x; targetY += CENTERS.B.y; count++; }
-    if (person.inC) { targetX += CENTERS.C.x; targetY += CENTERS.C.y; count++; }
-
-    targetX /= count;
-    targetY /= count;
-
-    // Add noise to spread them out
-    const angle = Math.random() * Math.PI * 2;
-    const dist = Math.random() * 40;
-
-    el.style.left = (targetX + Math.cos(angle) * dist) + 'px';
-    el.style.top = (targetY + Math.sin(angle) * dist) + 'px';
-
-    // Color based on role (Visual flair)
-    if (person.inA) el.style.backgroundColor = '#ff5f56';
-    else if (person.inB) el.style.backgroundColor = '#ffbd2e';
-    else el.style.backgroundColor = '#2f5f9f';
+    // 颜色 = 在 |A|+|B|+|C| 中被数了几次（1 次绿、2 次金、3 次红）
+    el.classList.add('c' + personSets(person).length);
 
     el.addEventListener('click', event => {
         event.stopPropagation();
@@ -175,8 +167,6 @@ function createParticle(person) {
 
 // Interaction
 equationTerms.forEach(term => {
-    term.setAttribute('role', 'button');
-    term.setAttribute('tabindex', '0');
     term.setAttribute('aria-pressed', term.classList.contains('active') ? 'true' : 'false');
     term.title = (TERM_META[term.dataset.term] || {}).desc || '点击切换该公式项';
 
@@ -184,11 +174,6 @@ equationTerms.forEach(term => {
         toggleTerm(term.dataset.term);
     });
 
-    term.addEventListener('keydown', event => {
-        if (event.key !== 'Enter' && event.key !== ' ') return;
-        event.preventDefault();
-        toggleTerm(term.dataset.term);
-    });
 
     // Hover effects (Highlight region)
     term.addEventListener('mouseenter', () => highlightRegion(term.dataset.term));
@@ -379,41 +364,6 @@ function showParticleProbe(person, el) {
     updateProbe(`样本 ${person.id}：${sets.join('、')}`, `它会影响 ${terms.map(term => TERM_META[term].label).join('、')}。容斥的目标是让它最终只被计数 1 次。`);
 }
 
-function applyResponsiveFix() {
-    const compact = window.innerWidth <= 760;
-    const app = document.querySelector('.app-container');
-    const side = document.querySelector('.sidebar');
-    const stage = document.querySelector('.visualizer-stage');
-    if (!app || !side || !stage) return;
-    const set = (node, prop, value) => node.style.setProperty(prop, value, 'important');
-
-    if (compact) {
-        set(document.body, 'height', 'auto');
-        set(document.body, 'overflow', 'auto');
-        set(document.body, 'align-items', 'flex-start');
-        set(app, 'display', 'grid');
-        set(app, 'grid-template-columns', '1fr');
-        set(app, 'grid-template-areas', '"side" "main"');
-        set(app, 'grid-template-rows', 'auto auto');
-        set(app, 'width', 'min(94vw, 760px)');
-        set(app, 'height', 'auto');
-        set(app, 'min-height', '0');
-        set(side, 'grid-area', 'side');
-        set(side, 'width', '100%');
-        set(side, 'max-width', '100%');
-        set(stage, 'grid-area', 'main');
-        set(stage, 'width', '100%');
-        set(stage, 'min-width', '0');
-    }
-}
-
-function scheduleResponsiveFix() {
-    applyResponsiveFix();
-    [120, 820, 1700, 2800, 3600].forEach(delay => setTimeout(applyResponsiveFix, delay));
-    window.addEventListener('load', applyResponsiveFix);
-    window.addEventListener('resize', applyResponsiveFix);
-}
-
 // Calculation Logic
 function updateCalculation() {
     let total = 0;
@@ -436,7 +386,7 @@ function updateCalculation() {
     calcValueEl.textContent = total;
 
     const diff = total - setSizes.Total;
-    statDiffEl.textContent = diff > 0 ? `误差: +${diff}` : `误差: ${diff}`;
+    statDiffEl.textContent = diff > 0 ? `误差：+${diff}` : `误差：${diff}`;
 
     if (diff === 0) {
         // Success

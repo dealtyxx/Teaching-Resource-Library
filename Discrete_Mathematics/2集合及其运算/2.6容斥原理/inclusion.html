@@ -44,13 +44,15 @@
                     <span class="dot yellow"></span>
                     <span class="dot green"></span>
                 </div>
-                <h1>红色数理 <span class="highlight">容斥原理</span></h1>
-                <p class="subtitle">Seeking Truth from Facts</p>
+                <div class="layer-eyebrow">进阶层 · 第2章 集合及其运算</div>
+                <h1>多集合容斥</h1>
+                <p class="subtitle">奇加偶减 / 三集合公式</p>
             </div>
 
             <div class="controls-wrapper">
                 <div class="control-group">
-                    <label>统计任务 (Mission)</label>
+                    <p class="task-line">🎯 会用一般容斥式准确计数。</p>
+                    <label>统计任务</label>
                     <div class="mission-card">
                         <div class="mission-icon">📊</div>
                         <div class="mission-info">
@@ -61,7 +63,7 @@
                 </div>
 
                 <div class="control-group">
-                    <label>力量构成 (Components)</label>
+                    <label>三类力量（点的颜色 = 被 |A|+|B|+|C| 数了几次）</label>
                     <div class="legend-list">
                         <div class="legend-item">
                             <span class="dot-legend red"></span>
@@ -74,7 +76,7 @@
                             <span class="count-badge" id="countB">0</span>
                         </div>
                         <div class="legend-item">
-                            <span class="dot-legend blue"></span>
+                            <span class="dot-legend green"></span>
                             <span>专家 (C)</span>
                             <span class="count-badge" id="countC">0</span>
                         </div>
@@ -82,18 +84,21 @@
                 </div>
 
                 <div class="control-group">
-                    <label>数据看板 (Dashboard)</label>
+                    <div class="count-legend"><span><i class="c1"></i>数 1 次</span><span><i class="c2"></i>数 2 次</span><span><i class="c3"></i>数 3 次</span></div>
+                </div>
+                <div class="control-group">
+                    <label>数据看板</label>
                     <div class="stats-board">
                         <div class="stat-row">
-                            <span>当前计算值:</span>
+                            <span>当前公式计算值</span>
                             <span id="calcValue" class="stat-value highlight">0</span>
                         </div>
                         <div class="stat-row">
-                            <span>真实人数:</span>
+                            <span>真实人数 |A∪B∪C|</span>
                             <span id="trueValue" class="stat-value">0</span>
                         </div>
                         <div class="stat-diff" id="statDiff">
-                            误差: +0
+                            误差：+0
                         </div>
                     </div>
                 </div>
@@ -101,7 +106,7 @@
 
             <div class="actions-footer">
                 <button id="refreshBtn" class="apple-btn secondary-btn" aria-label="生成新数据">
-                    <span class="btn-icon">🔄</span> 生成新数据
+                    生成新数据
                 </button>
             </div>
         </aside>
@@ -125,21 +130,21 @@
                 </div>
 
                 <div class="equation-bar">
-                    <div class="equation-term active" data-term="A">|A|</div>
+                    <button type="button" class="equation-term active" data-term="A">|A|</button>
                     <div class="equation-op">+</div>
-                    <div class="equation-term active" data-term="B">|B|</div>
+                    <button type="button" class="equation-term active" data-term="B">|B|</button>
                     <div class="equation-op">+</div>
-                    <div class="equation-term active" data-term="C">|C|</div>
+                    <button type="button" class="equation-term active" data-term="C">|C|</button>
 
                     <div class="equation-op">-</div>
-                    <div class="equation-term" data-term="AB">|A∩B|</div>
+                    <button type="button" class="equation-term" data-term="AB">|A∩B|</button>
                     <div class="equation-op">-</div>
-                    <div class="equation-term" data-term="BC">|B∩C|</div>
+                    <button type="button" class="equation-term" data-term="BC">|B∩C|</button>
                     <div class="equation-op">-</div>
-                    <div class="equation-term" data-term="AC">|A∩C|</div>
+                    <button type="button" class="equation-term" data-term="AC">|A∩C|</button>
 
                     <div class="equation-op">+</div>
-                    <div class="equation-term" data-term="ABC">|A∩B∩C|</div>
+                    <button type="button" class="equation-term" data-term="ABC">|A∩B∩C|</button>
 
                     <div class="equation-equals">=</div>
                     <div class="equation-result" id="equationResult">?</div>
@@ -165,83 +170,27 @@
 
     <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
     <script>
-    window.SECTION_META = {
-      "chapter": "第2章 集合及其运算",
-      "section": "2.6 容斥原理",
-      "title": "多集合容斥",
-      "grounding": "本节主题：容斥原理。两集合 |A∪B|=|A|+|B|−|A∩B|；三集合 |A∪B∪C|=|A|+|B|+|C|−|A∩B|−|A∩C|−|B∩C|+|A∩B∩C|。一般式按交集阶数奇加偶减。用于在『有重叠』时正确计数，避免重复或遗漏。 本页定位为进阶层：在原有页面基础上继续承担本节核心推理与综合运用。",
-      "steps": [
-            {
-                  "name": "情境引入",
-                  "desc": "统计『至少参加一项活动』的人数，简单相加为何会多算？"
-            },
-            {
-                  "name": "对象抽取",
-                  "desc": "把各类参与者抽象为集合，把『重叠人群』抽象为交集。"
-            },
-            {
-                  "name": "结构建模",
-                  "desc": "用容斥公式『奇加偶减』修正重复计数。"
-            },
-            {
-                  "name": "推理求解",
-                  "desc": "代入各集合与交集的基数，算出并集准确人数。"
-            },
-            {
-                  "name": "程序验证",
-                  "desc": "用本页交互调整重叠，观察容斥修正项的作用。"
-            },
-            {
-                  "name": "迁移反思",
-                  "desc": "迁移到错位排列、欧拉函数、概率加法公式。"
-            }
-      ],
-      "ideology": {
-            "title": "实事求是 · 精准核算",
-            "text": "容斥原理要求『重叠的不重复算、遗漏的不漏算』，是实事求是、精准统计的方法论典范。在普查、台账、绩效核算中，唯有像容斥这样厘清交叉与重叠，数据才真实可信——这正是调查研究『搞清楚真实情况』的科学精神。",
-            "dims": [
-                  "实事求是",
-                  "严谨求实",
-                  "科学精神"
-            ],
-            "quote": "不唯上、不唯书、只唯实——容斥原理教我们把『重叠的账』算清算准。"
-      },
-      "reflect": [
-            "为什么简单地把各集合大小相加会高估并集？多算了哪部分？",
-            "三集合公式里为什么 |A∩B∩C| 要『加回来』？请追踪它被加减的次数。",
-            "容斥原理的一般式为何呈现『奇加偶减』的规律？"
-      ],
-      "transfer": [
-            "概率的加法公式 P(A∪B)=P(A)+P(B)−P(A∩B) 正是容斥原理的概率版本。",
-            {
-                  "t": "错位排列",
-                  "d": "求『没有一封信放对信封』的方案数（装错信封问题），如何用容斥求解？"
-            },
-            {
-                  "t": "欧拉函数",
-                  "d": "φ(n) 可由容斥从『不被各素因子整除』推出——数论与计数如何在此相遇？"
-            }
-      ],
-      "layers": [
-            {
-                  "name": "两集合容斥",
-                  "concepts": "|A∪B|=|A|+|B|−|A∩B|",
-                  "task": "理解相加为何多算、如何修正。",
-                  "page": "inclusion-basic.html"
-            },
-            {
-                  "name": "多集合容斥",
-                  "concepts": "奇加偶减 / 三集合公式",
-                  "task": "会用一般容斥式准确计数。",
-                  "page": "inclusion.html"
-            },
-            {
-                  "name": "容斥的应用",
-                  "concepts": "错位排列 / 欧拉函数 / 概率加法",
-                  "task": "迁移到排列、数论与概率。",
-                  "page": "inclusion-extend.html"
-            }
-      ]
+window.SECTION_META = {
+  "chapter": "第2章 集合及其运算",
+  "section": "2.6 容斥原理",
+  "title": "多集合容斥",
+  "grounding": "本节主题：容斥原理。两集合 |A∪B|=|A|+|B|−|A∩B|；三集合 |A∪B∪C|=|A|+|B|+|C|−|A∩B|−|A∩C|−|B∩C|+|A∩B∩C|。一般式按交集阶数奇加偶减。用于在『有重叠』时正确计数，避免重复或遗漏。 本页（进阶层）：约百人的三类力量样本，点的颜色表示在 |A|+|B|+|C| 中被数了几次；逐项开关公式项，三关闯关依次观察虚高、减去两两交集、补回三重交集，直至计算值等于真实人数。",
+  "steps": [
+    {"name": "情境引入", "desc": "统计『至少参加一项活动』的人数，简单相加为何会多算？"},
+    {"name": "对象抽取", "desc": "把各类参与者抽象为集合，把『重叠人群』抽象为交集。"},
+    {"name": "结构建模", "desc": "用容斥公式『奇加偶减』修正重复计数。"},
+    {"name": "推理求解", "desc": "代入各集合与交集的基数，算出并集准确人数。"},
+    {"name": "程序验证", "desc": "用本页交互调整重叠，观察容斥修正项的作用。"},
+    {"name": "迁移反思", "desc": "迁移到错位排列、欧拉函数、概率加法公式。"}
+  ],
+  "ideology": {"title": "实事求是 · 精准核算", "text": "容斥原理要求『重叠的不重复算、遗漏的不漏算』，是实事求是、精准统计的方法论典范。在普查、台账、绩效核算中，唯有像容斥这样厘清交叉与重叠，数据才真实可信——这正是调查研究『搞清楚真实情况』的科学精神。", "dims": ["实事求是", "严谨求实", "科学精神"], "quote": "不唯上、不唯书、只唯实——容斥原理教我们把『重叠的账』算清算准。"},
+  "reflect": ["为什么简单地把各集合大小相加会高估并集？多算了哪部分？", "三集合公式里为什么 |A∩B∩C| 要『加回来』？请追踪它被加减的次数。", "容斥原理的一般式为何呈现『奇加偶减』的规律？"],
+  "transfer": ["概率的加法公式 P(A∪B)=P(A)+P(B)−P(A∩B) 正是容斥原理的概率版本。", {"t": "错位排列", "d": "求『没有一封信放对信封』的方案数（装错信封问题），如何用容斥求解？"}, {"t": "欧拉函数", "d": "φ(n) 可由容斥从『不被各素因子整除』推出——数论与计数如何在此相遇？"}],
+  "layers": [
+    {"name": "两集合容斥", "concepts": "|A∪B|=|A|+|B|−|A∩B|", "task": "理解相加为何多算、如何修正。", "page": "inclusion-basic.html"},
+    {"name": "多集合容斥", "concepts": "奇加偶减 / 三集合公式", "task": "会用一般容斥式准确计数。", "page": "inclusion.html"},
+    {"name": "容斥的应用", "concepts": "错位排列 / 欧拉函数 / 概率加法", "task": "迁移到排列、数论与概率。", "page": "inclusion-extend.html"}
+  ]
 };
     </script>
     <script src="../../shared/ai-tutor.js" defer></script>

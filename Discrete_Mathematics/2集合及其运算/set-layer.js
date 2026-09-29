@@ -748,14 +748,14 @@
       } else if (app === 'phi') {
         var m = num('pn'), ps = primeFactors(m), cop = 0, cells = '';
         for (var x = 1; x <= m; x++) { var c = gcd(x, m) === 1; if (c) cop++; var dv = ps.filter(function (p) { return x % p === 0; }); cells += '<div class="sl-cell ' + (c ? 'good' : (dv.length > 1 ? 'gold' : 'muted')) + '" style="min-height:40px">' + x + '</div>'; }
-        var sub = [], sum = 0;
+        var ieRows = [], sum = 0;
         for (var mask = 0; mask < (1 << ps.length); mask++) {
           var ds = ps.filter(function (_, i) { return mask & (1 << i); }), d = ds.reduce(function (s, p) { return s * p; }, 1), sgn = ds.length % 2 ? -1 : 1;
-          sum += sgn * (m / d); sub.push([ds.length ? ds.join('·') : '1', m / d, sgn]);
+          sum += sgn * (m / d); ieRows.push([ds.length ? ds.join('·') : '1', m / d, sgn]);
         }
         ui.viz(card('φ(' + m + ')：1…' + m + ' 中与 ' + m + ' 互素的数', '<p>' + m + ' = ' + (function () { var r = [], t = m; ps.forEach(function (p) { var e = 0; while (t % p === 0) { t /= p; e++; } r.push(p + (e > 1 ? '^' + e : '')); }); return r.join(' × '); })() + '，设 Aₚ = 「能被 p 整除的数」，则 φ(n) = n − |⋃Aₚ|。</p>') +
           card('容斥展开', '<div class="sl-table-wrap"><table class="sl-table"><thead><tr><th>整除条件 d</th><th>⌊n/d⌋</th><th>符号</th></tr></thead><tbody>' +
-            sub.map(function (r) { return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td><td class="' + (r[2] < 0 ? 'bad' : 'y') + '">' + (r[2] < 0 ? '−' : '+') + '</td></tr>'; }).join('') + '<tr class="cur"><td>φ(' + m + ') =</td><td colspan="2" class="y">' + sum + '</td></tr></tbody></table></div>') +
+            ieRows.map(function (r) { return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td><td class="' + (r[2] < 0 ? 'bad' : 'y') + '">' + (r[2] < 0 ? '−' : '+') + '</td></tr>'; }).join('') + '<tr class="cur"><td>φ(' + m + ') =</td><td colspan="2" class="y">' + sum + '</td></tr></tbody></table></div>') +
           card('逐个验证（绿色 = 互素）', '<div class="sl-cellgrid" style="grid-template-columns:repeat(auto-fill,minmax(46px,1fr))">' + cells + '</div>'));
         ui.result('φ(n) = n·∏(1 − 1/p)', 'φ(' + m + ') = ' + sum, sum === cop ? 'ok' : 'bad', '直接数 gcd(x, ' + m + ') = 1 的个数：' + cop + (sum === cop ? '，与公式一致。' : '。'));
         ui.explain('质因子 ' + ps.join('、') + ' 各对应一个「被整除」集合。同时被两个质数整除的数先被减了两次，所以要加回一次——' + (ps.length >= 3 ? '三个质因子时还要再减去三重交集。' : '这就是「奇加偶减」。') + '欧拉函数是第 1 章数论与第 10 章 RSA 密码的基础。');
