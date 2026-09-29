@@ -248,7 +248,6 @@
     app.className = "app-container";
     app.setAttribute("data-dm-self-layout", "1");
     document.body.dataset.mstLayer = state.layer;
-    document.title = `第8章 特殊图 - ${config.title}（${config.tier}）`;
     app.innerHTML = `
       <aside class="mst-sidebar sidebar">
         <div class="mst-header layer-summary">
@@ -283,7 +282,6 @@
       </aside>
 
       <main class="visualizer-stage">
-        ${tierBoard()}
         <div class="glass-pane">
           <div class="map-bg"></div>
           <div class="graph-title">
@@ -315,47 +313,6 @@
         </div>
       </main>
     `;
-  }
-
-  function tierBoard() {
-    return `
-      <section class="tier-board" aria-label="三阶层次案例">
-        <div class="tier-board-head">
-          <div>
-            <span class="tier-board-title">📚 三阶层次案例</span>
-            <span class="tier-board-sub">低门槛 · 高天花板 — 点「进入本层」切换难度</span>
-          </div>
-          <button class="tier-board-toggle" type="button" data-action="toggle-tier">收起</button>
-        </div>
-        <div class="tier-ladder">
-          ${LAYER_CARDS.map(card => tierCard(card)).join("")}
-        </div>
-      </section>
-    `;
-  }
-
-  function tierCard(card) {
-    const current = state.layer === card.layer;
-    return `
-      <article class="tier-card tier-card-${esc(card.layer)}${current ? " current" : ""}">
-        <div class="tier-card-top">
-          <span class="tier-card-tag">${esc(card.tag)}</span>
-          <span class="tier-dots" aria-hidden="true">${esc(card.dots)}</span>
-          ${current ? '<span class="tier-current-badge">当前</span>' : ""}
-        </div>
-        <h2>${esc(card.title)}</h2>
-        <div class="tier-card-concept">${esc(card.concept)}</div>
-        <div class="tier-card-sub">${esc(card.sub)}</div>
-        <p class="tier-card-task">🎯 ${esc(card.task)}</p>
-        ${current
-          ? '<button class="tier-card-btn current-btn" type="button" disabled>✓ 你在本层</button>'
-          : `<a class="tier-card-btn" href="${esc(card.page)}">▶ 进入本层互动页</a>`}
-      </article>
-    `;
-  }
-
-  function layerLink(layer, label, href) {
-    return `<a class="layer-link${state.layer === layer ? " active" : ""}" href="${href}">${label}</a>`;
   }
 
   function render() {
@@ -715,13 +672,6 @@
     render();
   }
 
-  function toggleTierBoard(button) {
-    const board = button.closest(".tier-board");
-    if (!board) return;
-    const collapsed = board.classList.toggle("collapsed");
-    button.textContent = collapsed ? "展开" : "收起";
-  }
-
   function toggleAuto() {
     if (state.auto) {
       stopAuto();
@@ -767,7 +717,6 @@
         if (action === "reset") reset();
         if (action === "hint") showHint();
         if (action === "auto") toggleAuto();
-        if (action === "toggle-tier") toggleTierBoard(actionButton);
         return;
       }
       const edgeButton = event.target.closest("[data-edge]");

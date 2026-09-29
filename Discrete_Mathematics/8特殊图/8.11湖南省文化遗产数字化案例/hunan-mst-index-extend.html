@@ -6,20 +6,20 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:locale" content="zh_CN">
-  <meta property="og:title" content="特殊图应用 · 数字湖湘共享网络 · 拓展层｜8.11 湖南省文化遗产数字化案例 - 离散数学课程资源库">
-  <meta property="og:description" content="第8章 特殊图 · 8.11 湖南省文化遗产数字化案例 · 拓展层：特殊图应用 · 数字湖湘共享网络。">
+  <meta property="og:title" content="冗余链路与韧性 · 拓展层｜8.11 湖南省文化遗产数字化案例 - 离散数学课程资源库">
+  <meta property="og:description" content="第8章 特殊图 · 8.11 湖南省文化遗产数字化案例 · 拓展层：非树边 / 可靠性补强。在 MST 骨干上比较成本与备份韧性。">
   <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/8%E7%89%B9%E6%AE%8A%E5%9B%BE/8.11%E6%B9%96%E5%8D%97%E7%9C%81%E6%96%87%E5%8C%96%E9%81%97%E4%BA%A7%E6%95%B0%E5%AD%97%E5%8C%96%E6%A1%88%E4%BE%8B/hunan-mst-index-extend.html">
   <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:image:height" content="630">
   <meta property="og:image:width" content="1200">
   <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="特殊图应用 · 数字湖湘共享网络 · 拓展层｜8.11 湖南省文化遗产数字化案例 - 离散数学课程资源库">
-  <meta name="twitter:description" content="第8章 特殊图 · 8.11 湖南省文化遗产数字化案例 · 拓展层：特殊图应用 · 数字湖湘共享网络。">
+  <meta name="twitter:title" content="冗余链路与韧性 · 拓展层｜8.11 湖南省文化遗产数字化案例 - 离散数学课程资源库">
+  <meta name="twitter:description" content="第8章 特殊图 · 8.11 湖南省文化遗产数字化案例 · 拓展层：非树边 / 可靠性补强。在 MST 骨干上比较成本与备份韧性。">
   <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>特殊图应用 · 数字湖湘共享网络 · 拓展层｜8.11 湖南省文化遗产数字化案例 - 离散数学课程资源库</title>
-  <meta name="description" content="第8章 特殊图 · 8.11 湖南省文化遗产数字化案例 · 拓展层：特殊图应用 · 数字湖湘共享网络。">
+  <title>冗余链路与韧性 · 拓展层｜8.11 湖南省文化遗产数字化案例 - 离散数学课程资源库</title>
+  <meta name="description" content="第8章 特殊图 · 8.11 湖南省文化遗产数字化案例 · 拓展层：非树边 / 可靠性补强。在 MST 骨干上比较成本与备份韧性。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -41,35 +41,81 @@
   <script>
     window.HUNAN_MST_LAYER = "extend";
     window.SECTION_META = {
-      chapter: "第8章 特殊图",
-      section: "8.11 湖南省文化遗产数字化案例",
-      title: "特殊图应用 · 数字湖湘共享网络",
-      grounding: "本页拓展层在最小生成树骨干上继续讨论冗余链路。学生先构建最低成本连通网络，再比较补充非树边后成本、韧性与覆盖能力的变化。",
-      ideologyPanel: false,
-      ideology: {
-        title: "工程权衡",
-        text: "图算法给出可验证的最低成本骨干，工程决策还需要在成本、可靠性和服务覆盖之间做透明权衡。",
-        dims: ["工程权衡", "可靠服务", "方案复核"]
+      "chapter": "第8章 特殊图",
+      "section": "8.11 湖南省文化遗产数字化案例",
+      "title": "湖南省文化遗产数字化",
+      "grounding": "本节主题：用最小生成树规划湖南文化遗产点的数字化共享网络——8 个遗产点为顶点、13 条可建链路为带权边（建设费用，示意数据）；Prim 算法每步在“一端已入网、一端未入网”的割边中取最小权边，7 条边连通全网、总费用最小；再在骨干上补充非树边提高可靠性。",
+      "layers": [
+        {
+          "name": "生成树",
+          "concepts": "极小连通子图 / n−1 边",
+          "task": "理解遗产点、连接边与生成树概念。",
+          "page": "hunan-mst-index-basic.html"
+        },
+        {
+          "name": "Prim 最小生成树",
+          "concepts": "割边候选集 / 贪心选边",
+          "task": "用 Prim 步进推演最省联网方案。",
+          "page": "hunan-mst-index.html"
+        },
+        {
+          "name": "冗余链路与韧性",
+          "concepts": "非树边 / 可靠性补强",
+          "task": "在 MST 骨干上比较成本与备份韧性。",
+          "page": "hunan-mst-index-extend.html"
+        }
+      ],
+      "steps": [
+        {
+          "name": "情境背景",
+          "desc": "湖南各地文化遗产点要建数字化共享网络：怎样花最少的钱让所有遗产点互联互通？"
+        },
+        {
+          "name": "数学建模",
+          "desc": "遗产点→顶点，可建链路→边，建设费用→边权；“全部连通且总费用最小”→最小生成树。"
+        },
+        {
+          "name": "交互求解",
+          "desc": "从长沙出发执行 Prim：每步只比较割边候选集，取最小权边入网，直到 n−1 条边。"
+        },
+        {
+          "name": "结果解读",
+          "desc": "8 个遗产点只需 7 条链路；总费用即 MST 权和。MST 不保证任意两点路径最短，也没有冗余。"
+        },
+        {
+          "name": "价值引领",
+          "desc": "用数字化守护湖湘文脉：精打细算建骨干，让每一处遗产都接入共享网络、不掉队。"
+        },
+        {
+          "name": "迁移思考",
+          "desc": "迁移到通信、电网、物流骨干规划；目标从“最省”变为“更可靠”时，需在 MST 上增加冗余链路。"
+        }
+      ],
+      "ideology": {
+        "title": "数字赋能 · 守护湖湘文脉",
+        "text": "把散落各地的文化遗产点用最省的方式连成共享网络，是用数学方法服务文化传承：既精打细算、不浪费一分投入，又让每一处遗产都接入、不掉队。",
+        "dims": [
+          "文化自信",
+          "系统观念",
+          "勤俭节约"
+        ],
+        "quote": "一张最省的网，连起三湘四水的文化记忆。"
       },
-      steps: [
-        { name: "情境引入", desc: "从文化资源共享网络出发，提出低成本与高可靠的双目标。" },
-        { name: "对象抽取", desc: "把遗产点、数据通道和备份链路统一成图结构。" },
-        { name: "结构建模", desc: "先用 MST 建骨干，再把非树边视为可选冗余链路。" },
-        { name: "推理求解", desc: "比较低成本、均衡和韧性优先三种补边策略。" },
-        { name: "程序验证", desc: "点击步骤，观察红色骨干和蓝色备份边的变化。" },
-        { name: "迁移反思", desc: "思考现实网络为什么常常不止追求最低成本。" }
+      "reflect": [
+        "Prim 算法为什么每次只比较割边候选集？",
+        "MST 保证总成本最低，但是否保证任意两点间路径最短？",
+        "如果某些边必须保留，MST 过程应如何调整？"
       ],
-      reflect: [
-        "为什么纯 MST 没有冗余，一条边断开就可能分裂网络？",
-        "增加备份边会带来哪些收益和代价？",
-        "如果预算固定，应该优先补哪类边？"
-      ],
-      transfer: [
-        "通信骨干网、电网、交通应急通道都需要同时考虑成本与韧性。",
-        "可把边权扩展为多指标权重，例如费用、时延、维护难度和风险等级。"
+      "transfer": [
+        "通信、物流、电网骨干规划都可以抽象为带权图连通问题。",
+        {
+          "t": "可靠性",
+          "d": "当目标从最低成本变为高可靠时，需要在 MST 基础上增加哪些冗余边？代价是多少？"
+        }
       ]
     };
   </script>
   <script src="hunan-mst-unified.js"></script>
+  <script src="../../shared/ai-tutor.js" defer></script>
 </body>
 </html>
