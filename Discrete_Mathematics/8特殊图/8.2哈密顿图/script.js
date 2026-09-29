@@ -46,27 +46,27 @@ const REVOLUTIONARY_SITES = [
 const GRAPH_INFO = {
     'hamiltonian-circuit': {
         title: '哈密顿回路',
-        description: '访问每个革命地点恰好一次,最终回到起点的完整征程。',
-        condition: '图中存在一条回路,经过每个顶点恰好一次。',
-        meaning: '象征革命事业的完整性,从人民中来,到人民中去。'
+        description: '经过每个顶点恰好一次、最终回到起点的回路（首尾顶点相同）。',
+        condition: '目前没有简单的充要条件；判定哈密顿回路是否存在是 NP 完全问题，只能搜索（如回溯）。',
+        meaning: '每个站点都要到、且只到一次——统筹全局，不遗漏也不重复。'
     },
     'hamiltonian-path': {
         title: '哈密顿通路',
-        description: '访问每个革命地点恰好一次,但不回到起点。',
-        condition: '图中存在一条路径,经过每个顶点恰好一次。',
-        meaning: '体现革命征程有起点有终点,从旧社会走向新社会。'
+        description: '经过每个顶点恰好一次的通路，终点不必回到起点。',
+        condition: '本例“北京”的度为 1，只能作为通路端点，所以有哈密顿通路而无哈密顿回路。',
+        meaning: '有起点、有终点，一站一站走完全程。'
     },
     'hamiltonian-graph': {
         title: '哈密顿图',
         description: '存在哈密顿回路的图。',
-        condition: '所有顶点度数≥n/2(Dirac定理)或其他充分条件。',
-        meaning: '代表革命根据地紧密联系,形成完整闭环。'
+        condition: '充分条件：n≥3 且每个顶点度 ≥ n/2（Dirac）；或任意不相邻两点度数之和 ≥ n（Ore）。本例“延安”度为 2 < n/2，不满足 Dirac 条件却仍是哈密顿图——充分条件不必要。',
+        meaning: '各地紧密相连、首尾呼应，形成完整闭环。'
     },
     'non-hamiltonian': {
         title: '非哈密顿图',
-        description: '不存在哈密顿回路的图,用于对比学习。',
-        condition: '图中存在割点或桥,或不满足哈密顿条件。',
-        meaning: '对比理解完整革命道路的重要性。'
+        description: '不存在哈密顿回路的图，用于对比学习。',
+        condition: '必要条件：删去任意 k 个顶点后，连通分支数 ≤ k。本例删去割点“延安”后图分成两块，故不是哈密顿图（但仍有哈密顿通路）。',
+        meaning: '关键枢纽一旦成为“独木桥”，整体就难以闭环——要重视薄弱环节。'
     }
 };
 
@@ -92,9 +92,9 @@ function getDelay() {
 function updateConceptInfo(type) {
     const info = GRAPH_INFO[type];
     conceptInfo.innerHTML = `
-        <p><strong>${info.title}:</strong> ${info.description}</p>
-        <p><strong>判定条件:</strong> ${info.condition}</p>
-        <p><strong>象征意义:</strong> ${info.meaning}</p>
+        <p><strong>${info.title}：</strong>${info.description}</p>
+        <p><strong>判定条件：</strong>${info.condition}</p>
+        <p><strong>价值寓意：</strong>${info.meaning}</p>
     `;
 }
 
@@ -343,7 +343,7 @@ function resetState() {
 
 // Backtracking Algorithm for Hamiltonian Path/Circuit
 async function backtrackingAlgorithm(requireCircuit = false) {
-    statusText.textContent = '回溯算法: 深度优先搜索中...';
+    statusText.textContent = '回溯算法：深度优先搜索，走不通就退回上一步……';
 
     const startNode = 0;
     const path = [startNode];
@@ -361,10 +361,12 @@ async function backtrackingAlgorithm(requireCircuit = false) {
 
     if (found) {
         statusText.textContent = requireCircuit
-            ? '成功! 找到哈密顿回路,革命征程圆满闭环!'
-            : '成功! 找到哈密顿通路,革命征程胜利完成!';
-    } else {
-        statusText.textContent = '未找到哈密顿路径,该图可能不存在哈密顿回路/通路';
+            ? '找到哈密顿回路：每个顶点恰好一次，并回到起点。'
+            : `找到哈密顿通路：从 ${nodes[path[0]].name} 出发，经过全部 ${nodes.length} 个顶点。`;
+    } else if (!shouldStop) {
+        statusText.textContent = requireCircuit
+            ? '回溯已穷尽所有走法：该图不存在哈密顿回路。'
+            : `从 ${nodes[startNode].name} 出发不存在哈密顿通路。`;
     }
 
     return found;
@@ -427,7 +429,7 @@ async function backtrack(current, path, visited, requireCircuit) {
                 edgeEl.classList.add('visited');
             }
 
-            statusText.textContent = `访问: ${nodes[next].name} (${nodes[next].desc})`;
+            statusText.textContent = `访问：${nodes[next].name}（${nodes[next].desc}）`;
             await sleep(getDelay());
 
             // Recursive call
@@ -441,7 +443,7 @@ async function backtrack(current, path, visited, requireCircuit) {
 
             // Backtrack
             if (!shouldStop) {
-                statusText.textContent = `回溯: 从 ${nodes[next].name} 返回`;
+                statusText.textContent = `回溯：从 ${nodes[next].name} 退回`;
                 nextEl.classList.add('backtrack');
                 await sleep(getDelay() / 2);
                 nextEl.classList.remove('current', 'backtrack');
@@ -473,7 +475,7 @@ async function backtrack(current, path, visited, requireCircuit) {
 
 // Greedy Algorithm (Nearest Neighbor)
 async function greedyAlgorithm() {
-    statusText.textContent = '贪心算法: 最近邻居优先...';
+    statusText.textContent = '贪心算法：每步去一个未访问的相邻顶点，不回头……';
 
     const startNode = 0;
     const path = [startNode];
@@ -492,7 +494,7 @@ async function greedyAlgorithm() {
         const neighbors = adjacencyList.get(current).filter(n => !visited.has(n));
 
         if (neighbors.length === 0) {
-            statusText.textContent = '贪心算法失败: 陷入死胡同,无法继续';
+            statusText.textContent = '贪心失败：陷入死胡同，还有顶点没访问到——贪心不保证找到解。';
             return false;
         }
 
@@ -524,7 +526,7 @@ async function greedyAlgorithm() {
             edgeEl.classList.add('visited');
         }
 
-        statusText.textContent = `贪心选择: ${nodes[next].name} (${nodes[next].desc})`;
+        statusText.textContent = `贪心选择：${nodes[next].name}（${nodes[next].desc}）`;
         await sleep(getDelay());
 
         current = next;
@@ -534,7 +536,10 @@ async function greedyAlgorithm() {
     nodeElements.get(current).classList.add('visited');
 
     if (visited.size === nodes.length) {
-        statusText.textContent = '贪心算法成功! 找到一条哈密顿通路!';
+        const closes = adjacencyList.get(current).includes(startNode);
+        statusText.textContent = closes
+            ? '贪心走遍全部顶点，且终点与起点相邻：构成哈密顿回路。'
+            : '贪心走遍全部顶点：得到哈密顿通路（终点与起点不相邻，不能闭合成回路）。';
         return true;
     }
 
@@ -557,7 +562,8 @@ async function runHamiltonianAlgorithm() {
     resetState();
 
     const algorithm = algorithmSelect.value;
-    const requireCircuit = currentGraphType === 'hamiltonian-circuit' || currentGraphType === 'hamiltonian-graph';
+    // 非哈密顿图也按“找回路”搜索，演示回溯穷尽后确认不存在
+    const requireCircuit = currentGraphType !== 'hamiltonian-path';
 
     let success = false;
 

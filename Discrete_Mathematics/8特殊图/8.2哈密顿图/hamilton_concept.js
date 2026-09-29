@@ -366,8 +366,9 @@
 
     ctx.fillStyle = "#6b4a38";
     ctx.font = "700 13px 'Noto Serif SC', 'Microsoft YaHei', serif";
-    ctx.textAlign = "center";
-    ctx.fillText(g.caption, size.w / 2, size.h - 18);
+    // 图题放右上角，避免与左下角的操作提示胶囊重叠
+    ctx.textAlign = "right";
+    ctx.fillText(g.caption, size.w - 14, 20);
   }
 
   /* ---- 辅助可视化 ---- */
