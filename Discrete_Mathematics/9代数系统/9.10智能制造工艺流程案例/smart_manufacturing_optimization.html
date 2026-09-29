@@ -9,7 +9,7 @@
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
     <meta property="og:title" content="半群与同态 · 进阶层｜9.10 智能制造工艺流程案例 - 离散数学课程资源库">
-    <meta property="og:description" content="第9章 代数系统 · 9.10 智能制造工艺流程案例 · 进阶层：结合律 / 同态映射成本。用半群与同态刻画并优化流程。">
+    <meta property="og:description" content="第9章 代数系统 · 9.10 智能制造工艺流程案例 · 进阶层：结合律 / 同态映射 / 配比优化。用半群刻画工序组合，用同态把生产过程映射为可计算模型并优化。">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/9%E4%BB%A3%E6%95%B0%E7%B3%BB%E7%BB%9F/9.10%E6%99%BA%E8%83%BD%E5%88%B6%E9%80%A0%E5%B7%A5%E8%89%BA%E6%B5%81%E7%A8%8B%E6%A1%88%E4%BE%8B/smart_manufacturing_optimization.html">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta property="og:image:width" content="1200">
@@ -17,11 +17,11 @@
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="半群与同态 · 进阶层｜9.10 智能制造工艺流程案例 - 离散数学课程资源库">
-    <meta name="twitter:description" content="第9章 代数系统 · 9.10 智能制造工艺流程案例 · 进阶层：结合律 / 同态映射成本。用半群与同态刻画并优化流程。">
+    <meta name="twitter:description" content="第9章 代数系统 · 9.10 智能制造工艺流程案例 · 进阶层：结合律 / 同态映射 / 配比优化。用半群刻画工序组合，用同态把生产过程映射为可计算模型并优化。">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>半群与同态 · 进阶层｜9.10 智能制造工艺流程案例 - 离散数学课程资源库</title>
-    <meta name="description" content="第9章 代数系统 · 9.10 智能制造工艺流程案例 · 进阶层：结合律 / 同态映射成本。用半群与同态刻画并优化流程。">
+    <meta name="description" content="第9章 代数系统 · 9.10 智能制造工艺流程案例 · 进阶层：结合律 / 同态映射 / 配比优化。用半群刻画工序组合，用同态把生产过程映射为可计算模型并优化。">
 
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -412,8 +412,10 @@
             font-weight: 700;
             color: var(--accent-red);
         }
-    </style>
+    .sidebar-header .eyebrow{display:inline-block;width:fit-content;margin:6px 0 4px;padding:5px 10px;border-radius:999px;border:1px solid rgba(214,59,29,.22);color:#D63B1D;background:rgba(214,59,29,.08);font-size:12px;font-weight:700;}
+</style>
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <link rel="stylesheet" href="../case-flow.css">
     <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 
@@ -428,8 +430,9 @@
                     <span class="dot yellow"></span>
                     <span class="dot green"></span>
                 </div>
-                <h1>红色数理 <span class="highlight">进阶层</span></h1>
-                <p class="subtitle">工艺流程闭环运算台 · 流程优化</p>
+                <span class="eyebrow">进阶层 · 第9章 代数系统</span>
+                <h1>半群与同态</h1>
+                <p class="subtitle">结合律 / 同态映射 / 配比优化</p>
             </div>
 
             <div class="controls-wrapper">
@@ -572,14 +575,14 @@
                                 <div style="font-size: 0.8rem; color: var(--text-secondary);">材料C系数</div>
                             </div>
                             <div class="mapping-item" data-model="m4">
-                                <div style="font-weight: 700; margin-bottom: 5px;">·: 向量加法</div>
+                                <div style="font-weight: 700; margin-bottom: 5px;">+: 向量加法</div>
                                 <div style="font-size: 0.8rem; color: var(--text-secondary);">线性组合</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="equation">
-                        φ(a * b) = φ(a) · φ(b)
+                        φ(a * b) = φ(a) + φ(b)
                     </div>
                     <div style="text-align: center; color: var(--text-secondary); margin-bottom: 20px;">
                         同态映射保持运算结构不变
@@ -630,19 +633,19 @@
                             <span>优化求解结果</span>
                         </div>
                         <div class="result-item">
-                            <span class="result-label">材料A最优配比</span>
+                            <span class="result-label">材料A用量 x₁</span>
                             <span class="result-value" id="optimalA">-</span>
                         </div>
                         <div class="result-item">
-                            <span class="result-label">材料B最优配比</span>
+                            <span class="result-label">材料B用量 x₂</span>
                             <span class="result-value" id="optimalB">-</span>
                         </div>
                         <div class="result-item">
-                            <span class="result-label">材料C最优配比</span>
+                            <span class="result-label">材料C用量 x₃</span>
                             <span class="result-value" id="optimalC">-</span>
                         </div>
                         <div class="result-item">
-                            <span class="result-label">预计成本降低</span>
+                            <span class="result-label">验算 Ax = b</span>
                             <span class="result-value" id="costReduction">-</span>
                         </div>
                     </div>
@@ -650,7 +653,7 @@
                     <div class="insight-box">
                         <div class="insight-title">⚙️ 智能制造的数学支撑</div>
                         <p style="font-size: 0.9rem; color: var(--text-primary); line-height: 1.6;">
-                            利用线性代数方法求解最优配比,是智能制造中数据驱动决策的典型应用。
+                            利用线性代数方法求解满足各项指标约束的配比（Ax = b 有唯一解 x = (20, 10, 30)），是智能制造中数据驱动决策的典型应用。
                             通过数学建模和优化算法,我们能够快速找到满足质量要求的最优生产方案,
                             实现降本增效,推动制造业向高质量发展迈进。
                         </p>
@@ -729,7 +732,6 @@
         </main>
     </div>
 
-    <script src="script.js"></script>
     <script>
         // ==================== 全局变量 ====================
         let currentTab = 'tab1';
@@ -746,10 +748,10 @@
 
         // 优化结果
         let optimizationResults = {
-            A: 46.5,
-            B: 29.5,
-            C: 24.0,
-            costReduction: 18
+            // Ax = b 的精确解：A=[[2,3,1],[1,2,2],[3,1,1]]，b=(100,100,100) ⇒ x=(20,10,30)
+            A: 20,
+            B: 10,
+            C: 30
         };
 
         // ==================== Tab 切换 ====================
@@ -911,7 +913,7 @@
             });
 
             document.getElementById('analyzeBtn')?.addEventListener('click', () => {
-                alert('数据分析完成！识别出材料配比为关键影响因素。');
+                dm9Toast('数据分析完成！识别出材料配比为关键影响因素。');
             });
         }
 
@@ -932,7 +934,7 @@
             });
 
             document.getElementById('verifyBtn')?.addEventListener('click', () => {
-                alert('同态映射验证通过！φ(a * b) = φ(a) · φ(b) 成立。');
+                dm9Toast('同态验证：φ(p₁ * p₂) = [1, 1, 0] = [1, 0, 0] + [0, 1, 0] = φ(p₁) + φ(p₂) ✓\n混合操作被映射为配比向量相加，运算结构得以保持。');
             });
         }
 
@@ -1007,7 +1009,7 @@
             document.getElementById('optimalA').textContent = `${optimizationResults.A} kg`;
             document.getElementById('optimalB').textContent = `${optimizationResults.B} kg`;
             document.getElementById('optimalC').textContent = `${optimizationResults.C} kg`;
-            document.getElementById('costReduction').textContent = `${optimizationResults.costReduction}%`;
+            document.getElementById('costReduction').textContent = '(100, 100, 100) ✓';
 
             result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
@@ -1105,82 +1107,94 @@
     <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
     <script>
     window.SECTION_META = {
-      "layers": [
-            {
-                  "name": "工序串联运算",
-                  "concepts": "工序为元素 / 串联",
-                  "task": "把工艺组合抽象为运算。",
-                  "page": "smart_manufacturing_optimization-basic.html"
-            },
-            {
-                  "name": "半群与同态",
-                  "concepts": "结合律 / 同态映射成本",
-                  "task": "用半群与同态刻画并优化流程。",
-                  "page": "smart_manufacturing_optimization.html"
-            },
-            {
-                  "name": "工作流与并行",
-                  "concepts": "工作流引擎 / 流程并行化",
-                  "task": "迁移到工作流与并行排产。",
-                  "page": "smart_manufacturing_optimization-extend.html"
-            }
-      ],
       "chapter": "第9章 代数系统",
       "section": "9.10 智能制造工艺流程案例",
       "title": "代数系统应用 · 智能制造工艺优化",
       "grounding": "本节主题：用代数系统/半群刻画工艺流程的串联组合——把工序抽象为元素、工序串联抽象为运算（结合律保证分段合并一致），用单位元表示空操作，用同态把工艺映射到成本/时间，体会代数结构在流程优化中的应用。",
       "steps": [
-            {
-                  "name": "情境引入",
-                  "desc": "复杂工艺由工序串联而成，如何用代数刻画并优化组合？"
-            },
-            {
-                  "name": "对象抽取",
-                  "desc": "把工序与串联抽象为半群的元素与运算。"
-            },
-            {
-                  "name": "结构建模",
-                  "desc": "用结合律保证分段合并一致、用同态映射到成本。"
-            },
-            {
-                  "name": "推理求解",
-                  "desc": "分析工艺组合的代数性质，优化流程顺序。"
-            },
-            {
-                  "name": "程序验证",
-                  "desc": "用本页交互组合工艺，验证一致性与优化。"
-            },
-            {
-                  "name": "迁移反思",
-                  "desc": "迁移到流程自动化、工作流引擎、编译优化。"
-            }
+        {
+          "name": "情境引入",
+          "desc": "复杂工艺由工序串联而成，如何用代数刻画并优化组合？"
+        },
+        {
+          "name": "对象抽取",
+          "desc": "把工序与串联抽象为半群的元素与运算。"
+        },
+        {
+          "name": "结构建模",
+          "desc": "用结合律保证分段合并一致、用同态映射到成本。"
+        },
+        {
+          "name": "推理求解",
+          "desc": "分析工艺组合的代数性质，优化流程顺序。"
+        },
+        {
+          "name": "程序验证",
+          "desc": "用本页交互组合工艺，验证一致性与优化。"
+        },
+        {
+          "name": "迁移反思",
+          "desc": "迁移到流程自动化、工作流引擎、编译优化。"
+        }
       ],
       "ideology": {
-            "title": "制造强国 · 精益求精",
-            "text": "智能制造的工艺优化追求精益求精、提质增效。用代数系统刻画工序组合、用同态映射成本时间，使优化有章可循，体现工匠精神与制造强国的奋斗目标——把每一道工序都做到极致，把核心技术握在自己手中。",
-            "dims": [
-                  "制造强国",
-                  "工匠精神",
-                  "精益求精"
-            ],
-            "quote": "执着专注、精益求精——工艺流程的每一次代数化优化，都是迈向智能制造的扎实一步。"
+        "title": "制造强国 · 精益求精",
+        "text": "智能制造的工艺优化追求精益求精、提质增效。用代数系统刻画工序组合、用同态映射成本时间，使优化有章可循，体现工匠精神与制造强国的奋斗目标——把每一道工序都做到极致，把核心技术握在自己手中。",
+        "dims": [
+          "制造强国",
+          "工匠精神",
+          "精益求精"
+        ],
+        "quote": "执着专注、精益求精——工艺流程的每一次代数化优化，都是迈向智能制造的扎实一步。"
       },
       "reflect": [
-            "工序串联满足结合律意味着什么（分段合并与整体合并一致）？",
-            "用同态把工艺映射到『总耗时/总成本』，为什么要求映射保持串联运算？",
-            "工艺组合一般不交换（顺序不能乱），这给优化带来什么约束？"
+        "工序串联满足结合律意味着什么（分段合并与整体合并一致）？",
+        "用同态把工艺映射到『总耗时/总成本』，为什么要求映射保持串联运算？",
+        "工艺组合一般不交换（顺序不能乱），这给优化带来什么约束？"
       ],
       "transfer": [
-            "工作流引擎、编译器的指令流水都用半群/幺半群刻画可结合的串联。",
-            {
-                  "t": "流程并行化",
-                  "d": "哪些工序可并行（交换）、哪些必须串行？如何用代数性质判断？"
-            }
+        "工作流引擎、编译器的指令流水都用半群/幺半群刻画可结合的串联。",
+        {
+          "t": "流程并行化",
+          "d": "哪些工序可并行（交换）、哪些必须串行？如何用代数性质判断？"
+        }
+      ],
+      "layers": [
+        {
+          "name": "工序串联运算",
+          "concepts": "工序 / 串联运算 / 封闭",
+          "task": "把工序的先后串联抽象为运算，检查工艺组合的封闭性。",
+          "page": "smart_manufacturing_optimization-basic.html"
+        },
+        {
+          "name": "半群与同态",
+          "concepts": "结合律 / 同态映射 / 配比优化",
+          "task": "用半群刻画工序组合，用同态把生产过程映射为可计算模型并优化。",
+          "page": "smart_manufacturing_optimization.html"
+        },
+        {
+          "name": "工作流与并行",
+          "concepts": "工作流引擎 / 并行排产 / 分段合并",
+          "task": "迁移到工作流编排与并行排产，利用结合律分段计算再合并。",
+          "page": "smart_manufacturing_optimization-extend.html"
+        }
       ]
-};
+    };
     </script>
     <script src="../../shared/ai-tutor.js" defer></script>
 
+  <script>
+    window.CASE_FLOW = {
+      "stage": "求解模型",
+      "background": "复合材料生产要把材料 A、B、C 按配比混合，既要满足各项性能指标，又要可计算、可优化。",
+      "model": "工序串联满足结合律，⟨工序串, ∘⟩ 构成半群；混合操作通过同态 φ 映射为配比向量相加：φ(a*b)=φ(a)+φ(b)；指标约束写成线性方程组 Ax=b。",
+      "solve": "依次完成“数据收集分析 → 同态映射定义 → 优化方案求解 → 方案实施评估”，点击验证同态、求解配比。",
+      "result": "A=[[2,3,1],[1,2,2],[3,1,1]]、b=(100,100,100) 时方程组有唯一解 x=(20,10,30)，代回验算 Ax=b 成立。",
+      "value": "用数学模型把经验变成可计算、可验证的方案，推动制造业数字化、智能化，实现高质量发展。",
+      "transfer": "同态“把复杂过程映射为可计算模型”的思路可用于配方设计、电路分析、数字孪生；拓展层走向工作流与并行排产。"
+    };
+  </script>
+  <script src="../case-flow.js" defer></script>
 </body>
 
 </html>

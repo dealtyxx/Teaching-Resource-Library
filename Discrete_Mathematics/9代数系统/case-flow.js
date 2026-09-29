@@ -67,8 +67,13 @@
     });
     show(0);
 
-    if (host.after && host.after.parentNode === host.parent) host.parent.insertBefore(card, host.after.nextSibling);
-    else host.parent.insertBefore(card, host.parent.firstChild);
+    if (host.after && host.after.parentNode === host.parent) {
+      host.parent.insertBefore(card, host.after.nextSibling);
+      // 侧栏若用 flex order 重排子元素，卡片沿用标题的 order，保证紧跟在标题之后
+      try { var ord = getComputedStyle(host.after).order; if (ord && ord !== "0") card.style.order = ord; } catch (e) {}
+    } else {
+      host.parent.insertBefore(card, host.parent.firstChild);
+    }
     return true;
   }
 

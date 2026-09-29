@@ -8,7 +8,7 @@
   <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="工序串联运算 · 基础层｜9.10 智能制造工艺流程案例 - 离散数学课程资源库">
-  <meta property="og:description" content="第9章 代数系统 · 9.10 智能制造工艺流程案例 · 基础层：工序为元素 / 串联。把工艺组合抽象为运算。">
+  <meta property="og:description" content="第9章 代数系统 · 9.10 智能制造工艺流程案例 · 基础层：工序 / 串联运算 / 封闭。把工序的先后串联抽象为运算，检查工艺组合的封闭性。">
   <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/9%E4%BB%A3%E6%95%B0%E7%B3%BB%E7%BB%9F/9.10%E6%99%BA%E8%83%BD%E5%88%B6%E9%80%A0%E5%B7%A5%E8%89%BA%E6%B5%81%E7%A8%8B%E6%A1%88%E4%BE%8B/smart_manufacturing_optimization-basic.html">
   <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta property="og:image:width" content="1200">
@@ -16,11 +16,11 @@
   <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="工序串联运算 · 基础层｜9.10 智能制造工艺流程案例 - 离散数学课程资源库">
-  <meta name="twitter:description" content="第9章 代数系统 · 9.10 智能制造工艺流程案例 · 基础层：工序为元素 / 串联。把工艺组合抽象为运算。">
+  <meta name="twitter:description" content="第9章 代数系统 · 9.10 智能制造工艺流程案例 · 基础层：工序 / 串联运算 / 封闭。把工序的先后串联抽象为运算，检查工艺组合的封闭性。">
   <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>工序串联运算 · 基础层｜9.10 智能制造工艺流程案例 - 离散数学课程资源库</title>
-  <meta name="description" content="第9章 代数系统 · 9.10 智能制造工艺流程案例 · 基础层：工序为元素 / 串联。把工艺组合抽象为运算。">
+  <meta name="description" content="第9章 代数系统 · 9.10 智能制造工艺流程案例 · 基础层：工序 / 串联运算 / 封闭。把工序的先后串联抽象为运算，检查工艺组合的封闭性。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -38,7 +38,7 @@
   --red-2: #de5b3d;
   --gold: #c58a1f;
   --green: #2f7d57;
-  --blue: #2f5f9f;
+  --blue: #B7791F;
   --shadow: 0 18px 50px rgba(69, 31, 15, 0.14);
 }
 * { box-sizing: border-box; }
@@ -49,7 +49,7 @@ body {
   font-family: "Noto Serif SC", "Microsoft YaHei", serif;
   background:
     radial-gradient(circle at 16% 12%, rgba(222, 91, 61, 0.18), transparent 28%),
-    radial-gradient(circle at 82% 8%, rgba(47, 95, 159, 0.14), transparent 26%),
+    radial-gradient(circle at 82% 8%, rgba(183, 121, 31, 0.14), transparent 26%),
     linear-gradient(135deg, #fff7e6 0%, #f8ead3 45%, #f3dfc7 100%);
   overflow: hidden;
 }
@@ -197,7 +197,7 @@ h1 {
   white-space: nowrap;
   border-radius: 999px;
   padding: 7px 10px;
-  background: rgba(47,95,159,0.1);
+  background: rgba(183,121,31,0.1);
   color: var(--blue);
   font-size: 12px;
   font-weight: 700;
@@ -334,7 +334,7 @@ input[type="checkbox"] {
   place-items: center;
   min-height: 112px;
   border-radius: 8px;
-  background: linear-gradient(135deg, rgba(214, 59, 29,0.12), rgba(47,95,159,0.13));
+  background: linear-gradient(135deg, rgba(214, 59, 29,0.12), rgba(183,121,31,0.13));
   font-size: 42px;
   font-family: "JetBrains Mono", Consolas, monospace;
   font-weight: 800;
@@ -495,7 +495,7 @@ tr.warn td { background: rgba(214, 59, 29,0.08); }
   place-items: center;
   border-radius: 4px;
   font-family: "JetBrains Mono", Consolas, monospace;
-  background: rgba(47,95,159,0.08);
+  background: rgba(183,121,31,0.08);
   color: #253447;
   font-weight: 800;
 }
@@ -518,8 +518,10 @@ tr.warn td { background: rgba(214, 59, 29,0.08); }
   .meter { height: 9px; border-radius: 999px; background: rgba(42,82,152,.12); overflow: hidden; margin-top: 6px; }
   .meter i { display: block; height: 100%; background: linear-gradient(90deg,#2f7d57,#d33a24); border-radius: inherit; }
 
-  </style>
+  .sidebar-header .eyebrow{display:inline-block;width:fit-content;margin:6px 0 4px;padding:5px 10px;border-radius:999px;border:1px solid rgba(214,59,29,.22);color:#D63B1D;background:rgba(214,59,29,.08);font-size:12px;font-weight:700;}
+</style>
     <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <link rel="stylesheet" href="../case-flow.css">
     <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 <body>
@@ -532,16 +534,11 @@ tr.warn td { background: rgba(214, 59, 29,0.08); }
           <span class="dot yellow"></span>
           <span class="dot green"></span>
         </div>
-        <h1>红色数理 <span class="highlight">基础层</span></h1>
-        <p class="subtitle">工艺流程闭环运算台</p>
+        <span class="eyebrow">基础层 · 第9章 代数系统</span>
+        <h1>工序串联运算</h1>
+        <p class="subtitle">工序 / 串联运算 / 封闭</p>
       </div>
       <p class="intro">把工序状态作为集合元素，观察组合运算后流程是否稳定闭环。</p>
-
-      <div class="value-panel">
-        <h3>制造强国 · 精益求精</h3>
-        <p>智能制造的工艺优化追求精益求精、提质增效。用代数系统刻画工序组合、用同态映射成本时间，使优化有章可循，体现工匠精神与制造强国的奋斗目标——把每一道工序都做到极致，把核心技术握在自己手中。</p>
-        <div class="dim-list"><span>制造强国</span><span>工匠精神</span><span>精益求精</span></div>
-      </div>
 
       <div id="controls"></div>
     </aside>
@@ -572,79 +569,79 @@ tr.warn td { background: rgba(214, 59, 29,0.08); }
 
   <script>
     window.SECTION_META = {
-      "layers": [
-            {
-                  "name": "工序串联运算",
-                  "concepts": "工序为元素 / 串联",
-                  "task": "把工艺组合抽象为运算。",
-                  "page": "smart_manufacturing_optimization-basic.html"
-            },
-            {
-                  "name": "半群与同态",
-                  "concepts": "结合律 / 同态映射成本",
-                  "task": "用半群与同态刻画并优化流程。",
-                  "page": "smart_manufacturing_optimization.html"
-            },
-            {
-                  "name": "工作流与并行",
-                  "concepts": "工作流引擎 / 流程并行化",
-                  "task": "迁移到工作流与并行排产。",
-                  "page": "smart_manufacturing_optimization-extend.html"
-            }
-      ],
       "chapter": "第9章 代数系统",
       "section": "9.10 智能制造工艺流程案例",
       "title": "代数系统应用 · 智能制造工艺优化",
       "grounding": "本节主题：用代数系统/半群刻画工艺流程的串联组合——把工序抽象为元素、工序串联抽象为运算（结合律保证分段合并一致），用单位元表示空操作，用同态把工艺映射到成本/时间，体会代数结构在流程优化中的应用。",
       "steps": [
-            {
-                  "name": "情境引入",
-                  "desc": "复杂工艺由工序串联而成，如何用代数刻画并优化组合？"
-            },
-            {
-                  "name": "对象抽取",
-                  "desc": "把工序与串联抽象为半群的元素与运算。"
-            },
-            {
-                  "name": "结构建模",
-                  "desc": "用结合律保证分段合并一致、用同态映射到成本。"
-            },
-            {
-                  "name": "推理求解",
-                  "desc": "分析工艺组合的代数性质，优化流程顺序。"
-            },
-            {
-                  "name": "程序验证",
-                  "desc": "用本页交互组合工艺，验证一致性与优化。"
-            },
-            {
-                  "name": "迁移反思",
-                  "desc": "迁移到流程自动化、工作流引擎、编译优化。"
-            }
+        {
+          "name": "情境引入",
+          "desc": "复杂工艺由工序串联而成，如何用代数刻画并优化组合？"
+        },
+        {
+          "name": "对象抽取",
+          "desc": "把工序与串联抽象为半群的元素与运算。"
+        },
+        {
+          "name": "结构建模",
+          "desc": "用结合律保证分段合并一致、用同态映射到成本。"
+        },
+        {
+          "name": "推理求解",
+          "desc": "分析工艺组合的代数性质，优化流程顺序。"
+        },
+        {
+          "name": "程序验证",
+          "desc": "用本页交互组合工艺，验证一致性与优化。"
+        },
+        {
+          "name": "迁移反思",
+          "desc": "迁移到流程自动化、工作流引擎、编译优化。"
+        }
       ],
       "ideology": {
-            "title": "制造强国 · 精益求精",
-            "text": "智能制造的工艺优化追求精益求精、提质增效。用代数系统刻画工序组合、用同态映射成本时间，使优化有章可循，体现工匠精神与制造强国的奋斗目标——把每一道工序都做到极致，把核心技术握在自己手中。",
-            "dims": [
-                  "制造强国",
-                  "工匠精神",
-                  "精益求精"
-            ],
-            "quote": "执着专注、精益求精——工艺流程的每一次代数化优化，都是迈向智能制造的扎实一步。"
+        "title": "制造强国 · 精益求精",
+        "text": "智能制造的工艺优化追求精益求精、提质增效。用代数系统刻画工序组合、用同态映射成本时间，使优化有章可循，体现工匠精神与制造强国的奋斗目标——把每一道工序都做到极致，把核心技术握在自己手中。",
+        "dims": [
+          "制造强国",
+          "工匠精神",
+          "精益求精"
+        ],
+        "quote": "执着专注、精益求精——工艺流程的每一次代数化优化，都是迈向智能制造的扎实一步。"
       },
       "reflect": [
-            "工序串联满足结合律意味着什么（分段合并与整体合并一致）？",
-            "用同态把工艺映射到『总耗时/总成本』，为什么要求映射保持串联运算？",
-            "工艺组合一般不交换（顺序不能乱），这给优化带来什么约束？"
+        "工序串联满足结合律意味着什么（分段合并与整体合并一致）？",
+        "用同态把工艺映射到『总耗时/总成本』，为什么要求映射保持串联运算？",
+        "工艺组合一般不交换（顺序不能乱），这给优化带来什么约束？"
       ],
       "transfer": [
-            "工作流引擎、编译器的指令流水都用半群/幺半群刻画可结合的串联。",
-            {
-                  "t": "流程并行化",
-                  "d": "哪些工序可并行（交换）、哪些必须串行？如何用代数性质判断？"
-            }
+        "工作流引擎、编译器的指令流水都用半群/幺半群刻画可结合的串联。",
+        {
+          "t": "流程并行化",
+          "d": "哪些工序可并行（交换）、哪些必须串行？如何用代数性质判断？"
+        }
+      ],
+      "layers": [
+        {
+          "name": "工序串联运算",
+          "concepts": "工序 / 串联运算 / 封闭",
+          "task": "把工序的先后串联抽象为运算，检查工艺组合的封闭性。",
+          "page": "smart_manufacturing_optimization-basic.html"
+        },
+        {
+          "name": "半群与同态",
+          "concepts": "结合律 / 同态映射 / 配比优化",
+          "task": "用半群刻画工序组合，用同态把生产过程映射为可计算模型并优化。",
+          "page": "smart_manufacturing_optimization.html"
+        },
+        {
+          "name": "工作流与并行",
+          "concepts": "工作流引擎 / 并行排产 / 分段合并",
+          "task": "迁移到工作流编排与并行排产，利用结合律分段计算再合并。",
+          "page": "smart_manufacturing_optimization-extend.html"
+        }
       ]
-};
+    };
   </script>
   <script>
     const PROFILE = {
@@ -1279,5 +1276,17 @@ tr.warn td { background: rgba(214, 59, 29,0.08); }
 
   </script>
   <script src="../../shared/ai-tutor.js" defer></script>
+  <script>
+    window.CASE_FLOW = {
+      "stage": "认识模型",
+      "background": "一条生产线由若干道工序依次串联而成，工序越多、自动化与质检水平不同，最终的良品率也不同。",
+      "model": "把工序看作元素，把“先做 a 再做 b”的串联看作运算 a∘b；串联后仍是一条工艺流程（封闭），流程网络直观呈现工序顺序。",
+      "solve": "调节工序数、自动化程度、质检强度，观察流程网络与良品率估计的变化。",
+      "result": "页面中的良品率是教学示意模型（自动化与质检加权、工序过多有损耗），用来体会“每一道工序都影响整体”，不代表真实工厂数据。",
+      "value": "制造强国靠的是每一道工序的精益求精：把好每一个环节，就是工匠精神的具体体现。",
+      "transfer": "工序串联的思想可用于软件构建流水线、数据处理管道；进阶层用半群与同态刻画并优化流程。"
+    };
+  </script>
+  <script src="../case-flow.js" defer></script>
 </body>
 </html>
