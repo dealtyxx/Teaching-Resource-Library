@@ -1,8 +1,9 @@
-/* =====================================================================
-   6.1 自然语言的谓词符号化 —— 三层统一交互引擎样式
-   基础层 / 进阶层 / 拓展层 共用此样式（红色数理 · 暖纸主题）
+/* ==== ch6-engine:common:begin ====
+   第6章 谓词逻辑 · 三层统一交互引擎 · 公共样式
+   6.1–6.8 各单元 CSS 开头这一段逐字相同（改动请同步到全部单元，勿单独改）；
+   单元专用组件写在 ch6-engine:common:end 之后。
    - 外壳（app-container / side-panel / glass-pane）与 shared/discrete-ui.css 协同
-   - sym-* 前缀为本节交互组件，避免与共享框架冲突
+   - sym-* 前缀为本章交互组件，避免与共享框架冲突
    ===================================================================== */
 
 :root {
@@ -18,11 +19,12 @@
   --blue: #2f5f9f;
   --shadow: 0 18px 50px rgba(69, 31, 15, 0.14);
 
-  /* 词类配色：量词/个体词/谓词/联结词 */
+  /* 词类配色：量词/个体词/谓词/联结词/特性谓词 */
   --cat-quant: #d63b1d;
   --cat-ind: #2f5f9f;
   --cat-pred: #c58a1f;
   --cat-conn: #2f7d57;
+  --cat-kind: #7a4a2e;
   --hl: #de5b3d;
 }
 
@@ -38,25 +40,6 @@ body {
     radial-gradient(circle at 82% 8%, rgba(47, 95, 159, 0.14), transparent 26%),
     linear-gradient(135deg, #fff7e6 0%, #f8ead3 45%, #f3dfc7 100%);
   overflow: hidden;
-}
-
-.home-link {
-  position: fixed;
-  top: 14px;
-  left: 14px;
-  z-index: 10000;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  background: rgba(44, 24, 16, 0.82);
-  color: #fff;
-  text-decoration: none;
-  font-size: 13px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
 }
 
 /* ===== 外壳（共享框架会用 !important 覆写为网格，此处为兜底） ===== */
@@ -138,27 +121,6 @@ body {
   font-size: 14px;
 }
 
-/* ===== 价值面板（思政） ===== */
-.value-panel {
-  border-radius: 8px;
-  border: 1px solid rgba(116, 55, 31, 0.16);
-  background: rgba(255, 255, 255, 0.66);
-  padding: 13px 14px;
-  margin: 4px 0 14px;
-  border-left: 4px solid var(--red);
-}
-.value-panel h3 { margin: 0 0 6px; font-size: 16px; color: var(--red); }
-.value-panel p { margin: 0; line-height: 1.7; color: #563c31; font-size: 13.5px; }
-.dim-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
-.dim-list span {
-  border-radius: 999px;
-  background: rgba(197, 138, 31, 0.13);
-  color: #8a5d0b;
-  padding: 4px 9px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
 /* ===== 控制区 ===== */
 #controls { display: grid; gap: 10px; }
 .control-group {
@@ -188,26 +150,34 @@ select {
   font: inherit;
 }
 
-/* 逐步控制按钮 */
+/* 逐步控制按钮（STYLE-GUIDE §4：主操作红色渐变实心 / 次操作白底红边红字 / 重置描边） */
 .sym-step-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .sym-step-btn {
   appearance: none;
-  border: 1px solid rgba(116, 55, 31, 0.22);
-  background: #fffaf2;
-  color: #4e362d;
+  min-height: 40px;
+  border: 1px solid rgba(214, 59, 29, 0.42);
+  background: #fff;
+  color: var(--red);
   font: inherit;
   font-weight: 700;
   font-size: 13.5px;
-  padding: 9px 8px;
+  padding: 8px 8px;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.16s ease;
 }
-.sym-step-btn:hover:not(:disabled) { border-color: var(--red); color: var(--red); transform: translateY(-1px); }
+.sym-step-btn:hover:not(:disabled) { border-color: var(--red); background: rgba(214, 59, 29, 0.06); transform: translateY(-1px); }
 .sym-step-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.sym-step-btn.sym-primary { background: var(--red); border-color: var(--red); color: #fff; }
-.sym-step-btn.sym-primary:hover:not(:disabled) { background: #97180f; color: #fff; }
-.sym-step-btn.sym-playing { background: var(--gold); border-color: var(--gold); color: #fff; }
+.sym-step-btn.sym-primary { background: linear-gradient(135deg, #d63b1d, #b8321a); border-color: #b8321a; color: #fff; }
+.sym-step-btn.sym-primary:hover:not(:disabled) { background: linear-gradient(135deg, #c5341a, #97180f); color: #fff; }
+.sym-step-btn.sym-ghost { background: transparent; border-color: rgba(116, 55, 31, 0.3); color: #6b4a38; }
+.sym-step-btn.sym-ghost:hover:not(:disabled) { border-color: var(--red); color: var(--red); background: transparent; }
+.sym-step-btn.sym-playing { background: #ffb400; border-color: #e0a000; color: #2c1810; }
+.sym-step-btn.sym-wide { grid-column: 1 / -1; }
+
+/* 自动播放速度 */
+.sym-speed { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+.sym-speed input[type="range"] { flex: 1; min-width: 0; accent-color: var(--red); }
 
 /* 进度条 */
 .sym-progress-wrap { display: flex; align-items: center; gap: 10px; }
@@ -307,6 +277,7 @@ select {
 
 /* ===== 流水线（右侧可视化） ===== */
 .sym-pipeline { display: grid; gap: 14px; }
+.sym-pipeline > * { min-width: 0; }
 .sym-stage-card {
   border-radius: 10px;
   border: 1px solid rgba(116, 55, 31, 0.16);
@@ -461,33 +432,44 @@ select {
 .sym-leaf.sym-cur rect { stroke: var(--hl); stroke-width: 3; }
 .sym-group.sym-cur circle { stroke: var(--hl); stroke-width: 3; }
 
-/* ===== 页脚 ===== */
-.footer {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 9998;
-  min-height: 64px;
-  padding: 12px 10px;
-  text-align: center;
-  color: inherit;
-  opacity: 0.72;
-  background: transparent;
-  font-size: 13px;
-  line-height: 1.7;
+/* 公共响应式：单列 + 手机端收紧侧栏（≤768px 触控目标 ≥40px） */
+@media (max-width: 1000px) {
+  body { overflow: auto; }
+  .app-container {
+    width: min(100vw - 22px, 760px);
+    height: auto;
+    min-height: 0;
+    grid-template-columns: 1fr;
+    margin-bottom: 96px;
+  }
+  .side-panel, .glass-pane { max-height: none; }
+  .mission-card { grid-template-columns: 1fr; }
 }
+@media (max-width: 768px) {
+  .side-panel { padding: 16px 14px; }
+  .glass-pane { padding: 12px; }
+  .side-panel > h1 { font-size: 1.85rem; margin: 10px 0 4px; }
+  .intro { margin-bottom: 8px; }
+  select { min-height: 40px; }
+  .sym-stage-card { padding: 12px; }
+  .sym-stage-head { flex-wrap: wrap; row-gap: 4px; }
+  .sym-stage-hint { flex-basis: 100%; margin-left: 36px; }
+  .visual-badge { justify-self: start; white-space: normal; }
+  #symTree { min-width: 560px; }
+}
+/* ==== ch6-engine:common:end ==== */
 
 /* =====================================================================
    推理系统性质 专用组件（系统配置 / 命题样本判定 / 语义×语法图 / 元性质结论）
    ===================================================================== */
 
+/* 图例：性质名较长，不折行 */
+.legend-panel .legend-item .sym { white-space: nowrap; flex-shrink: 0; font-size: 0.95rem; }
+
 /* 系统配置 */
 .sp-system { display: grid; gap: 8px; }
 .sp-system .sys-row { font-size: 13.5px; color: #4e362d; line-height: 1.6; }
 .sp-system .sys-row b { color: var(--blue); }
-.sp-system .sys-row code {
-  font-family: "JetBrains Mono", Consolas, monospace; font-weight: 700; color: #2c1810;
-  background: rgba(47, 95, 159, 0.08); padding: 1px 6px; border-radius: 5px;
-}
 
 /* 命题样本卡 */
 .sp-formulas { display: grid; gap: 10px; }
@@ -567,6 +549,9 @@ select {
 .sp-conclusion.k-semidec .c-chip { background: var(--blue); }
 .sp-conclusion .c-reason { margin-top: 9px; font-size: 13px; line-height: 1.7; color: #4e362d; }
 .sp-conclusion .c-reason b { color: var(--red); }
+.sp-conclusion .c-note {
+  margin-top: 8px; font-size: 12px; color: #6b4a38; line-height: 1.65;
+}
 .sp-conclusion .c-insight {
   margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(116, 55, 31, 0.22);
   font-size: 12.5px; color: #6a4a3a; line-height: 1.7;
@@ -574,15 +559,11 @@ select {
 
 /* ===== 响应式 ===== */
 @media (max-width: 1000px) {
-  body { overflow: auto; }
-  .app-container {
-    width: min(100vw - 22px, 760px);
-    height: auto;
-    min-height: 0;
-    grid-template-columns: 1fr;
-    margin-bottom: 96px;
-  }
-  .side-panel, .glass-pane { max-height: none; }
-  .mission-card { grid-template-columns: 1fr; }
   .sp-formula { grid-template-columns: 1fr auto; }
+}
+@media (max-width: 600px) {
+  /* 维恩图按 viewBox 缩小后字太小：放大 SVG 内文字与圆点 */
+  #spVenn > g > text { font-size: 26px; }
+  #spVenn .sp-dot circle { r: 22px; }
+  #spVenn .sp-dot text { font-size: 20px; }
 }
