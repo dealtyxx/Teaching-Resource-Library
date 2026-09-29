@@ -14,9 +14,6 @@
 
   if (!controls || !canvas || !vizText || !formulaText || !resultValue || !resultExtra) return;
 
-  if (window.SECTION_META) {
-    window.SECTION_META.ideology = { title: "", text: "", dims: [], quote: "" };
-  }
 
   const ctx = canvas.getContext("2d");
   const state = {
