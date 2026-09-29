@@ -1,698 +1,255 @@
 /**
- * Unity Ring Visualizer - Ring Theory with Ideological Elements
- * 团结之环 - 环论可视化
+ * 11.2 子环、理想和商环 —— 进阶层「理想与商环」
+ * 在 ℤₙ（或整数环 ℤ 的一个窗口）上：
+ *   子环 ⟨d⟩ 的封闭性 → 理想的吸收律 r·I ⊆ I → 陪集划分与商环 R/I ≅ ℤ_d → 扩环 R ⊆ R[i]
+ * 所有图示由 SVG 即时绘制，加载即展示默认示例（ℤ₁₂，I = ⟨3⟩，理想视图）。
  */
+(function () {
+    'use strict';
 
-// DOM Elements
-const ringType = document.getElementById('ringType');
-const subringBtn = document.getElementById('subringBtn');
-const idealBtn = document.getElementById('idealBtn');
-const quotientBtn = document.getElementById('quotientBtn');
-const extensionBtn = document.getElementById('extensionBtn');
-const input1 = document.getElementById('input1');
-const input2 = document.getElementById('input2');
-const operation = document.getElementById('operation');
-const calculateBtn = document.getElementById('calculateBtn');
-const resultValue = document.getElementById('resultValue');
-const visualizeBtn = document.getElementById('visualizeBtn');
-const resetBtn = document.getElementById('resetBtn');
-const visualizationArea = document.getElementById('visualizationArea');
-const vizTitle = document.getElementById('vizTitle');
-const vizSubtitle = document.getElementById('vizSubtitle');
-const propertiesList = document.getElementById('propertiesList');
-const ideologyCard = document.getElementById('ideologyCard');
+    const $ = (id) => document.getElementById(id);
+    const ringType = $('ringType');
+    const genSelect = $('idealGen');
+    const conceptBtns = {
+        subring: $('subringBtn'), ideal: $('idealBtn'), quotient: $('quotientBtn'), extension: $('extensionBtn')
+    };
+    const input1 = $('input1'), input2 = $('input2'), operation = $('operation');
+    const resultValue = $('resultValue');
+    const vizArea = $('visualizationArea'), vizTitle = $('vizTitle'), vizSubtitle = $('vizSubtitle');
+    const propertiesList = $('propertiesList');
+    const ideologyCard = $('ideologyCard');
 
-// State
-let currentRing = 'integers';
-let currentConcept = null;
-let modulus = 12; // For modular rings
+    const RINGS = {
+        z12: { n: 12, name: 'ℤ₁₂', full: '模 12 剩余类环 ℤ₁₂', gens: [1, 2, 3, 4, 6, 12], def: 3 },
+        z8: { n: 8, name: 'ℤ₈', full: '模 8 剩余类环 ℤ₈', gens: [1, 2, 4, 8], def: 2 },
+        z10: { n: 10, name: 'ℤ₁₀', full: '模 10 剩余类环 ℤ₁₀', gens: [1, 2, 5, 10], def: 5 },
+        z: { n: 0, name: 'ℤ', full: '整数环 ℤ（显示 −8 … 8）', gens: [2, 3, 4, 5], def: 3 }
+    };
+    const COSET_COLORS = ['#d63b1d', '#c58a1f', '#2f7d57', '#8a4b2a', '#b8321a', '#6b4a38'];
+    const SUBS = '₀₁₂₃₄₅₆₇₈₉';
+    const sub = (k) => String(k).replace(/\d/g, (d) => SUBS[d]);
 
-// Ideological messages for different concepts
-const ideologicalMessages = {
-    integers: {
-        title: "整数环 - 团结的基石",
-        message: "整数环体现全体人民的团结，每个整数都是社会主义建设的参与者",
-        icon: "★"
-    },
-    modular: {
-        title: "模环 - 周期性协作",
-        message: "模运算展现循环往复的发展规律，体现团结协作的周期性特征",
-        icon: "⟲"
-    },
-    polynomial: {
-        title: "多项式环 - 持续发展",
-        message: "多项式环象征着不断累积的力量，每一项都为整体贡献价值",
-        icon: "∑"
-    },
-    matrix: {
-        title: "矩阵环 - 组织力量",
-        message: "矩阵环体现组织的严密性，每个元素协同工作形成强大力量",
-        icon: "▦"
-    },
-    subring: {
-        title: "子环 - 基层组织",
-        message: "子环就像基层组织，虽小但完整，是大集体不可或缺的组成部分",
-        icon: "⊆"
-    },
-    ideal: {
-        title: "理想 - 共同目标",
-        message: "理想吸收外部影响，体现集体对个体的包容性与引导作用",
-        icon: "◁"
-    },
-    quotient: {
-        title: "商环 - 升华提炼",
-        message: "商环通过模去理想得到新结构，象征去粗取精、提炼升华的过程",
-        icon: "⊘"
-    },
-    extension: {
-        title: "扩环 - 开放包容",
-        message: "扩环展现开放包容的精神，在保持原有结构下不断扩大团结面",
-        icon: "⊇"
+    let ringKey = 'z12', d = 3, concept = 'ideal', r = 2;
+
+    const ring = () => RINGS[ringKey];
+    const mod = (a, n) => ((a % n) + n) % n;
+    const norm = (a) => (ring().n ? mod(a, ring().n) : a);
+    const els = () => (ring().n ? Array.from({ length: ring().n }, (_, i) => i) : Array.from({ length: 17 }, (_, i) => i - 8));
+    const inI = (a) => (ring().n ? mod(a, d) === 0 && (d !== ring().n || mod(a, ring().n) === 0) : mod(a, d) === 0);
+    const idealEls = () => els().filter((a) => (ring().n ? (d === ring().n ? a === 0 : a % d === 0) : a % d === 0));
+    const Iname = () => (ring().n ? (d === ring().n ? '{0}' : '⟨' + d + '⟩') : d + 'ℤ');
+    const quotientSize = () => (ring().n ? (d === ring().n ? ring().n : d) : d);
+
+    /* ---------- 价值元素卡：每个概念一句与数学直接相关的话 ---------- */
+    const IDEOLOGY = {
+        subring: ['⊆', '子环 · 局部自成体系', '子环对减法和乘法都封闭，自身就是一个完整的环：局部单元既要自洽，又要遵守整体的同一套运算规则。'],
+        ideal: ['◁', '理想 · 吸收而不失本色', '理想不仅自身封闭，还能“吸收”环中任意元素的乘法：r·a 仍在 I 中。稳固的核心能接纳外来作用，又保持自身结构不变。'],
+        quotient: ['⊘', '商环 · 抓住本质差别', '商环把同一陪集中的元素看作一体，只保留“模 I 的差别”。忽略次要差异、抓住本质区别——钟表只看模 12 的余数就是例子。'],
+        extension: ['⊇', '扩环 · 开放而守根本', '扩环引入新元素 i（i² = −1），原环的运算完整保留，又获得新的表达能力：开放拓展以守住根本规则为前提。']
+    };
+    function updateIdeology() {
+        const m = IDEOLOGY[concept];
+        ideologyCard.querySelector('.card-icon').textContent = m[0];
+        ideologyCard.querySelector('.card-title').textContent = m[1];
+        ideologyCard.querySelector('.card-content').textContent = m[2];
     }
-};
 
-// Ring definitions
-const rings = {
-    integers: {
-        name: "整数环 ℤ",
-        elements: [0, 1, -1, 2, -2, 3, -3, 4],
-        operation: (a, b, op) => op === '+' ? a + b : a * b
-    },
-    modular: {
-        name: `模环 ℤ/${modulus}ℤ`,
-        elements: Array.from({ length: modulus }, (_, i) => i),
-        operation: (a, b, op) => {
-            const result = op === '+' ? (a + b) % modulus : (a * b) % modulus;
-            return result < 0 ? result + modulus : result;
+    function updateProperties(props) {
+        propertiesList.innerHTML = Object.entries(props).map(([k, v]) =>
+            `<div class="property-item"><span class="prop-key">${k}</span><span class="prop-value">${v}</span></div>`).join('');
+    }
+
+    /* ---------- SVG 绘图 ---------- */
+    const K = {
+        norm: ['#ffffff', '#6b4a38', '#2c1810'], cur: ['#ffb400', '#c58a1f', '#2c1810'], key: ['#d63b1d', '#b8321a', '#ffffff'],
+        ok: ['#2f7d57', '#2f7d57', '#ffffff'], dim: ['#efe4d6', '#d8c6b2', '#a08a78']
+    };
+    function node(x, y, label, kind, rr, stroke) {
+        const k = K[kind] || K.norm; rr = rr || 20;
+        return `<g><circle cx="${x}" cy="${y}" r="${rr}" fill="${k[0]}" stroke="${stroke || k[1]}" stroke-width="${stroke ? 4 : 2.4}"/>` +
+            `<text x="${x}" y="${y + 5}" text-anchor="middle" class="m" font-size="${String(label).length > 2 ? 12 : 14}" font-weight="800" fill="${k[2]}">${label}</text></g>`;
+    }
+    function text(x, y, t, size, color, weight, anchor) {
+        return `<text x="${x}" y="${y}" text-anchor="${anchor || 'middle'}" font-size="${size || 14}" font-weight="${weight || 700}" fill="${color || '#4e362d'}">${t}</text>`;
+    }
+    function arrow(x1, y1, x2, y2, color, rr) {
+        const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
+        const sx = x1 + ux * rr, sy = y1 + uy * rr, ex = x2 - ux * (rr + 3), ey = y2 - uy * (rr + 3);
+        const bend = 0.18, mx = (sx + ex) / 2 - uy * L * bend, my = (sy + ey) / 2 + ux * L * bend;
+        return `<path d="M${sx},${sy} Q${mx},${my} ${ex},${ey}" fill="none" stroke="${color}" stroke-width="2.6" marker-end="url(#ah)"/>`;
+    }
+    const DEFS = '<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f7d57"/></marker></defs>';
+
+    function positions() {
+        const E = els(), pos = {};
+        if (ring().n) {
+            const n = ring().n, R = 150, cx = 360, cy = 215;
+            E.forEach((a) => { const t = -Math.PI / 2 + a * 2 * Math.PI / n; pos[a] = [cx + R * Math.cos(t), cy + R * Math.sin(t)]; });
+        } else {
+            E.forEach((a, i) => { pos[a] = [40 + i * 40, 215]; });
         }
-    },
-    polynomial: {
-        name: "多项式环 ℝ[x]",
-        elements: ["1", "x", "x²", "2x", "x+1", "x²+1", "2x+3"],
-        operation: null // Simplified for display
-    },
-    matrix: {
-        name: "2×2 矩阵环",
-        elements: ["I", "A", "B", "C", "D"],
-        operation: null // Simplified for display
-    }
-};
-
-// Initialize
-function init() {
-    updateIdeology(currentRing);
-    updateProperties();
-}
-
-// Update ideology card
-function updateIdeology(key) {
-    const msg = ideologicalMessages[key];
-    if (msg) {
-        ideologyCard.querySelector('.card-icon').textContent = msg.icon;
-        ideologyCard.querySelector('.card-title').textContent = msg.title;
-        ideologyCard.querySelector('.card-content').textContent = msg.message;
-        ideologyCard.classList.add('active');
-        setTimeout(() => ideologyCard.classList.remove('active'), 300);
-        setTimeout(() => ideologyCard.classList.add('active'), 310);
-    }
-}
-
-// Update properties panel
-function updateProperties(props = null) {
-    if (!props) {
-        props = {
-            "环类型": rings[currentRing].name,
-            "封闭性": "✓",
-            "结合律": "✓",
-            "单位元": currentRing === 'integers' || currentRing === 'modular' ? "1" : "存在"
-        };
+        return pos;
     }
 
-    propertiesList.innerHTML = '';
-    for (const [key, value] of Object.entries(props)) {
-        const item = document.createElement('div');
-        item.className = 'property-item';
-        item.innerHTML = `
-            <span class="prop-key">${key}</span>
-            <span class="prop-value">${value}</span>
-        `;
-        propertiesList.appendChild(item);
-    }
-}
-
-// Calculate ring operation
-function calculate() {
-    const a = input1.value.trim();
-    const b = input2.value.trim();
-    const op = operation.value;
-
-    if (!a || !b) {
-        resultValue.textContent = '请输入元素';
-        resultValue.style.color = 'var(--text-secondary)';
-        return;
+    function drawSubringOrIdeal(isIdeal) {
+        const pos = positions(), I = idealEls();
+        let s = DEFS;
+        if (ring().n) s += `<circle cx="360" cy="215" r="150" fill="none" stroke="rgba(116,55,31,.18)" stroke-width="2" stroke-dasharray="4 6"/>`;
+        else s += `<line x1="20" y1="215" x2="700" y2="215" stroke="rgba(116,55,31,.3)" stroke-width="2"/>` + text(700, 245, '…', 18) + text(20, 245, '…', 18);
+        if (ring().n && I.length > 2) {
+            s += `<polygon points="${I.map((a) => pos[a].join(',')).join(' ')}" fill="rgba(255,180,0,.12)" stroke="#e0a100" stroke-width="2.4"/>`;
+        }
+        if (isIdeal) {
+            const rr = norm(r);
+            I.forEach((a) => {
+                const b = norm(rr * a);
+                if (a !== b && pos[b]) s += ring().n ? arrow(pos[a][0], pos[a][1], pos[b][0], pos[b][1], '#2f7d57', 20)
+                    : `<path d="M${pos[a][0]},${pos[a][1] - 22} Q${(pos[a][0] + pos[b][0]) / 2},${130 - Math.abs(pos[b][0] - pos[a][0]) / 6} ${pos[b][0]},${pos[b][1] - 24}" fill="none" stroke="#2f7d57" stroke-width="2.4" marker-end="url(#ah)"/>`;
+            });
+        }
+        els().forEach((a) => { s += node(pos[a][0], pos[a][1], a, I.includes(a) ? 'cur' : 'norm', ring().n ? 20 : 16); });
+        if (isIdeal) s += text(360, 405, `绿色箭头：a ↦ ${norm(r)}·a，落点仍是金色元素（在 I 中）⇒ 吸收律 r·I ⊆ I`, 14, '#2f7d57');
+        else s += text(360, 405, `金色元素组成 S = ${Iname()}：任取两元，差与积仍是金色 ⇒ 子环`, 14, '#8a5d0b');
+        return svgWrap(s);
     }
 
-    try {
-        const numA = parseInt(a);
-        const numB = parseInt(b);
+    function drawQuotient() {
+        const pos = positions(), q = quotientSize();
+        let s = DEFS;
+        const classes = Array.from({ length: q }, (_, c) => els().filter((a) => mod(a, q) === c && (ring().n || true)));
+        if (ring().n) {
+            s += `<circle cx="360" cy="215" r="150" fill="none" stroke="rgba(116,55,31,.14)" stroke-width="2" stroke-dasharray="4 6"/>`;
+            classes.forEach((cls, c) => {
+                const col = COSET_COLORS[c % COSET_COLORS.length];
+                if (cls.length > 2) s += `<polygon points="${cls.map((a) => pos[a].join(',')).join(' ')}" fill="none" stroke="${col}" stroke-width="2.2" stroke-opacity=".7"/>`;
+                else if (cls.length === 2) s += `<line x1="${pos[cls[0]][0]}" y1="${pos[cls[0]][1]}" x2="${pos[cls[1]][0]}" y2="${pos[cls[1]][1]}" stroke="${col}" stroke-width="2.2" stroke-opacity=".7"/>`;
+            });
+        } else {
+            s += `<line x1="20" y1="215" x2="700" y2="215" stroke="rgba(116,55,31,.3)" stroke-width="2"/>`;
+        }
+        els().forEach((a) => {
+            const c = mod(a, q);
+            s += node(pos[a][0], pos[a][1], a, c === 0 ? 'cur' : 'norm', ring().n ? 20 : 16, c === 0 ? null : COSET_COLORS[c % COSET_COLORS.length]);
+        });
+        const legend = classes.slice(0, 6).map((_, c) => `<tspan fill="${COSET_COLORS[c % COSET_COLORS.length]}">■ ${c}+I</tspan>`).join('　');
+        s += `<text x="360" y="405" text-anchor="middle" font-size="14" font-weight="700">${legend}${q > 6 ? '　…' : ''}</text>`;
+        return svgWrap(s) + cosetTables(q);
+    }
 
-        if (isNaN(numA) || isNaN(numB)) {
-            resultValue.textContent = '无效输入';
-            resultValue.style.color = 'var(--danger-red)';
+    function cosetTables(q) {
+        if (q > 6) return `<p class="viz-note">R/I 共有 ${q} 个陪集，与 ℤ${sub(q)} 同构（表格略）。</p>`;
+        const E = Array.from({ length: q }, (_, i) => i);
+        const tbl = (op, f) => '<table class="coset-tbl"><tr><th>' + op + '</th>' + E.map((b) => `<th>[${b}]</th>`).join('') + '</tr>' +
+            E.map((a) => `<tr><th>[${a}]</th>` + E.map((b) => { const v = f(a, b); return `<td class="${v === 0 ? 'z' : v === 1 && op === '·' ? 'o' : ''}">[${v}]</td>`; }).join('') + '</tr>').join('') + '</table>';
+        return `<div class="coset-row"><div><div class="coset-cap">R/I 的加法</div>${tbl('+', (a, b) => mod(a + b, q))}</div>` +
+            `<div><div class="coset-cap">R/I 的乘法</div>${tbl('·', (a, b) => mod(a * b, q))}</div></div>` +
+            `<p class="viz-note">记 [a] = a + I。表中运算只依赖陪集而不依赖代表元（良定义），R/I ≅ ℤ${sub(q)}${isPrime(q) ? '，且 ' + q + ' 是素数 ⇒ R/I 是域' : '，' + q + ' 不是素数 ⇒ R/I 有零因子，不是域'}。</p>`;
+    }
+    function isPrime(k) { if (k < 2) return false; for (let i = 2; i * i <= k; i++) if (k % i === 0) return false; return true; }
+
+    function drawExtension() {
+        let s = '';
+        const n = ring().n, m = n ? Math.min(n, 12) : 7, lo = n ? 0 : -3;
+        const step = n ? Math.min(30, 300 / m) : 44, x0 = 360 - (m - 1) * step / 2, y0 = 60;
+        for (let b = 0; b < m; b++) for (let a = 0; a < m; a++) {
+            const x = x0 + a * step, y = y0 + (m - 1 - b) * step * (n ? 1 : 1);
+            const real = (b + lo) === 0;
+            s += `<circle cx="${x}" cy="${y}" r="${real ? 8 : 5}" fill="${real ? '#d63b1d' : '#ffb400'}" stroke="${real ? '#b8321a' : '#c58a1f'}" stroke-width="1.5"/>`;
+        }
+        const yReal = y0 + (m - 1 - (0 - lo)) * step;
+        s += text(x0 - 22, yReal + 5, n ? 'b=0' : 'ℤ', 13, '#d63b1d', 800, 'end');
+        s += text(360, 405, n ? `${ring().name}[i] = {a + bi : a, b ∈ ${ring().name}}，i² = −1；红色一行 b = 0 就是原环 ${ring().name}`
+            : 'ℤ[i] = {a + bi : a, b ∈ ℤ}（高斯整数），i² = −1；红色一行就是原环 ℤ', 14, '#4e362d');
+        return svgWrap(s, 440);
+    }
+    function svgWrap(inner, h) { return `<svg class="ring-svg" viewBox="0 0 720 ${h || 430}" role="img">${inner}</svg>`; }
+
+    /* ---------- 渲染 ---------- */
+    function render() {
+        Object.entries(conceptBtns).forEach(([k, b]) => b.classList.toggle('active', k === concept));
+        const R = ring(), I = idealEls(), q = quotientSize();
+        const Ishow = R.n ? '{' + I.join(', ') + '}' : '{…, ' + [-2 * d, -d, 0, d, 2 * d].join(', ') + ', …}';
+        if (concept === 'subring') {
+            vizTitle.textContent = `子环 S = ${Iname()} ⊆ ${R.name}`;
+            vizSubtitle.textContent = '子环判定：S 非空，且对减法、乘法封闭（a − b ∈ S，ab ∈ S）';
+            vizArea.innerHTML = drawSubringOrIdeal(false);
+            const a = d, b = 2 * d;
+            updateProperties({
+                '母环 R': R.name, '子集 S': Ishow, '示例 a−b': `${norm(a)} − ${norm(b)} = ${norm(a - b)} ∈ S`,
+                '示例 ab': `${norm(a)}·${norm(b)} = ${norm(a * b)} ∈ S`, '含单位元 1': I.includes(1) ? '是' : '否（子环可以不含 1）'
+            });
+        } else if (concept === 'ideal') {
+            vizTitle.textContent = `理想 I = ${Iname()} ◁ ${R.name}`;
+            vizSubtitle.textContent = `理想 = 子环 + 吸收律：∀r ∈ R，r·I ⊆ I。当前 r = ${norm(r)}（可在“元素 a”中输入 r）`;
+            vizArea.innerHTML = drawSubringOrIdeal(true);
+            updateProperties({
+                '环 R': R.name, '理想 I': Ishow, '吸收示例': `${norm(r)}·${d % (R.n || Infinity)} = ${norm(r * d)} ∈ I`,
+                '吸收律 r·I ⊆ I': '✓ 成立', '非理想的子环': 'ℤ ⊆ ℚ（½·1 ∉ ℤ）'
+            });
+        } else if (concept === 'quotient') {
+            vizTitle.textContent = `商环 ${R.name} / ${Iname()}`;
+            vizSubtitle.textContent = `以 I 的陪集 a + I 为元素：共 ${q} 个陪集，按代表元做加法和乘法`;
+            vizArea.innerHTML = drawQuotient();
+            updateProperties({
+                '商环': `${R.name}/${Iname()}`, '元素个数': q, '同构于': 'ℤ' + sub(q),
+                '运算': '(a+I)(b+I) = ab+I', '是否为域': isPrime(q) ? '✓ 是（' + q + ' 为素数）' : '✗ 否'
+            });
+        } else {
+            vizTitle.textContent = `扩环 ${R.name} ⊆ ${R.name}[i]`;
+            vizSubtitle.textContent = '扩环 S ⊇ R，且 R 的加法、乘法就是 S 运算在 R 上的限制';
+            vizArea.innerHTML = drawExtension();
+            updateProperties({
+                '原环 R': R.name, '扩环 S': R.name + '[i]', '新元素': 'i，满足 i² = −1',
+                '乘法': '(a+bi)(c+di) = (ac−bd)+(ad+bc)i', '包含关系': 'R ⊆ S（b = 0 的元素）'
+            });
+        }
+        updateIdeology();
+        calculate(true);
+    }
+
+    function fillGens() {
+        const R = ring();
+        genSelect.innerHTML = R.gens.map((g) => {
+            const lab = R.n ? (g === R.n ? `d = ${g}：I = {0}（零理想）` : g === 1 ? `d = 1：I = ${R.name}（整个环）` : `d = ${g}：I = ⟨${g}⟩`) : `d = ${g}：I = ${g}ℤ`;
+            return `<option value="${g}"${g === d ? ' selected' : ''}>${lab}</option>`;
+        }).join('');
+    }
+
+    function calculate(silent) {
+        const a = parseInt(input1.value, 10), b = parseInt(input2.value, 10), op = operation.value;
+        if (isNaN(a) || isNaN(b)) {
+            if (!silent) resultValue.textContent = '请输入两个整数';
+            else resultValue.textContent = '—';
             return;
         }
-
-        const ring = rings[currentRing];
-        if (ring.operation) {
-            const result = ring.operation(numA, numB, op);
-            resultValue.textContent = result;
-            resultValue.style.color = 'var(--accent-red)';
-
-            // Add animation
-            resultValue.style.transform = 'scale(1.2)';
-            setTimeout(() => {
-                resultValue.style.transform = 'scale(1)';
-            }, 200);
-        } else {
-            resultValue.textContent = `${a} ${op} ${b}`;
-            resultValue.style.color = 'var(--accent-red)';
-        }
-    } catch (e) {
-        resultValue.textContent = '计算错误';
-        resultValue.style.color = 'var(--danger-red)';
+        const raw = op === '+' ? a + b : a * b, v = norm(raw), R = ring();
+        let tail = '';
+        if (concept === 'ideal' || concept === 'subring') tail = inI(v) ? `　∈ I` : `　∉ I`;
+        if (concept === 'quotient') tail = `　即 (${mod(a, quotientSize())}+I) ${op === '+' ? '+' : '·'} (${mod(b, quotientSize())}+I) = ${mod(v, quotientSize())}+I`;
+        resultValue.textContent = `${a} ${op === '+' ? '+' : '×'} ${b} = ${R.n ? raw + ' ≡ ' + v + ' (mod ' + R.n + ')' : v}${tail}`;
+        if (!silent && concept === 'ideal' && !isNaN(a)) { r = a; }
     }
-}
 
-// Visualization functions
-function visualizeRingStructure() {
-    currentConcept = null;
-    deactivateAllConceptBtns();
-
-    vizTitle.textContent = rings[currentRing].name;
-    vizSubtitle.textContent = '基本环结构可视化';
-
-    const container = document.createElement('div');
-    container.className = 'ring-container';
-
-    const circle = document.createElement('div');
-    circle.className = 'ring-circle';
-
-    const label = document.createElement('div');
-    label.className = 'ring-label';
-    label.textContent = rings[currentRing].name;
-    circle.appendChild(label);
-
-    const elements = rings[currentRing].elements;
-    const angleStep = (2 * Math.PI) / elements.length;
-    const radius = 180;
-
-    elements.forEach((elem, index) => {
-        const angle = index * angleStep - Math.PI / 2;
-        const x = radius * Math.cos(angle);
-        const y = radius * Math.sin(angle);
-
-        const elemDiv = document.createElement('div');
-        elemDiv.className = 'ring-element';
-        elemDiv.textContent = elem;
-        elemDiv.style.left = `calc(50% + ${x}px - 25px)`;
-        elemDiv.style.top = `calc(50% + ${y}px - 25px)`;
-        elemDiv.style.animationDelay = `${index * 0.1}s`;
-
-        elemDiv.addEventListener('click', () => {
-            input1.value = elem;
-            elemDiv.style.background = 'var(--accent-gold)';
-            setTimeout(() => {
-                elemDiv.style.background = 'var(--ring-element)';
-            }, 500);
-        });
-
-        circle.appendChild(elemDiv);
+    /* ---------- 事件 ---------- */
+    ringType.addEventListener('change', () => { ringKey = ringType.value; d = ring().def; fillGens(); render(); });
+    genSelect.addEventListener('change', () => { d = Number(genSelect.value); render(); });
+    Object.entries(conceptBtns).forEach(([k, b]) => b.addEventListener('click', () => { concept = k; render(); }));
+    $('calculateBtn').addEventListener('click', () => { calculate(false); if (concept === 'ideal') render(); });
+    [input1, input2].forEach((el) => el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { calculate(false); if (concept === 'ideal') render(); } }));
+    operation.addEventListener('change', () => calculate(true));
+    $('visualizeBtn').addEventListener('click', () => {
+        // 逐个演示四个概念
+        const order = ['subring', 'ideal', 'quotient', 'extension'];
+        concept = order[(order.indexOf(concept) + 1) % order.length];
+        render();
+    });
+    $('resetBtn').addEventListener('click', () => {
+        ringKey = 'z12'; ringType.value = 'z12'; d = 3; concept = 'ideal'; r = 2;
+        input1.value = '2'; input2.value = '3'; operation.value = '*';
+        fillGens(); render();
     });
 
-    container.appendChild(circle);
-    visualizationArea.innerHTML = '';
-    visualizationArea.appendChild(container);
-
-    updateIdeology(currentRing);
-    updateProperties();
-}
-
-function visualizeSubring() {
-    currentConcept = 'subring';
-    setActiveConceptBtn(subringBtn);
-
-    vizTitle.textContent = '子环结构';
-    vizSubtitle.textContent = '子环是环的子集且自身构成环';
-
-    const container = document.createElement('div');
-    container.className = 'subring-container';
-
-    const nested = document.createElement('div');
-    nested.className = 'nested-rings';
-
-    const outerRing = document.createElement('div');
-    outerRing.className = 'outer-ring';
-
-    const outerLabel = document.createElement('div');
-    outerLabel.className = 'ring-annotation';
-    outerLabel.textContent = '环 R (全体力量)';
-    outerLabel.style.top = '10px';
-    outerLabel.style.right = '30px';
-
-    const innerRing = document.createElement('div');
-    innerRing.className = 'inner-ring';
-
-    const innerLabel = document.createElement('div');
-    innerLabel.className = 'ring-annotation';
-    innerLabel.textContent = '子环 S (基层组织)';
-    innerLabel.style.bottom = '30px';
-    innerLabel.style.left = 'calc(50% - 60px)';
-
-    // Add elements to outer ring
-    const outerElems = currentRing === 'modular' ?
-        Array.from({ length: modulus }, (_, i) => i) :
-        [0, 1, -1, 2, -2, 3, -3, 4, -4, 5];
-
-    const outerRadius = 210;
-    const outerStep = (2 * Math.PI) / outerElems.length;
-
-    outerElems.forEach((elem, i) => {
-        const angle = i * outerStep - Math.PI / 2;
-        const x = outerRadius * Math.cos(angle);
-        const y = outerRadius * Math.sin(angle);
-
-        const div = document.createElement('div');
-        div.className = 'ring-element';
-        div.textContent = elem;
-        div.style.position = 'absolute';
-        div.style.left = `calc(50% + ${x}px - 25px)`;
-        div.style.top = `calc(50% + ${y}px - 25px)`;
-        div.style.animationDelay = `${i * 0.08}s`;
-
-        nested.appendChild(div);
-    });
-
-    // Add elements to inner ring (subring)
-    const innerElems = currentRing === 'modular' ? [0, 3, 6, 9] : [0, 2, -2, 4];
-    const innerRadius = 130;
-    const innerStep = (2 * Math.PI) / innerElems.length;
-
-    innerElems.forEach((elem, i) => {
-        const angle = i * innerStep - Math.PI / 2;
-        const x = innerRadius * Math.cos(angle);
-        const y = innerRadius * Math.sin(angle);
-
-        const div = document.createElement('div');
-        div.className = 'ring-element';
-        div.textContent = elem;
-        div.style.position = 'absolute';
-        div.style.left = `calc(50% + ${x}px - 25px)`;
-        div.style.top = `calc(50% + ${y}px - 25px)`;
-        div.style.background = 'var(--accent-gold)';
-        div.style.animationDelay = `${(i + 0.5) * 0.08}s`;
-
-        nested.appendChild(div);
-    });
-
-    nested.appendChild(outerRing);
-    nested.appendChild(innerRing);
-    nested.appendChild(outerLabel);
-    nested.appendChild(innerLabel);
-    container.appendChild(nested);
-
-    visualizationArea.innerHTML = '';
-    visualizationArea.appendChild(container);
-
-    updateIdeology('subring');
-    updateProperties({
-        "母环": rings[currentRing].name,
-        "子环示例": currentRing === 'modular' ? `{0, ${modulus / 4}, ${modulus / 2}, ${3 * modulus / 4}}` : "{0, ±2, ±4, ...}",
-        "封闭性": "✓",
-        "包含关系": "S ⊆ R"
-    });
-}
-
-function visualizeIdeal() {
-    currentConcept = 'ideal';
-    setActiveConceptBtn(idealBtn);
-
-    vizTitle.textContent = '理想结构';
-    vizSubtitle.textContent = '理想满足吸收律：I·R ⊆ I';
-
-    const container = document.createElement('div');
-    container.className = 'ideal-container';
-
-    // Ring R
-    const ringSet = document.createElement('div');
-    ringSet.className = 'ideal-set';
-
-    const ringBox = document.createElement('div');
-    ringBox.className = 'ideal-box';
-    ringBox.style.borderColor = 'var(--ring-main)';
-
-    const ringTitle = document.createElement('div');
-    ringTitle.className = 'ideal-title';
-    ringTitle.textContent = '环 R';
-    ringTitle.style.color = 'var(--ring-main)';
-
-    const ringElems = document.createElement('div');
-    ringElems.className = 'ideal-elements';
-
-    const rElems = currentRing === 'modular' ?
-        Array.from({ length: Math.min(6, modulus) }, (_, i) => i) :
-        [0, 1, 2, 3, 4, 5];
-
-    rElems.forEach(e => {
-        const elem = document.createElement('div');
-        elem.className = 'ideal-elem';
-        elem.textContent = e;
-        elem.style.background = 'var(--ring-main)';
-        ringElems.appendChild(elem);
-    });
-
-    ringBox.appendChild(ringTitle);
-    ringBox.appendChild(ringElems);
-    ringSet.appendChild(ringBox);
-
-    // Arrow
-    const arrow = document.createElement('div');
-    arrow.className = 'absorption-arrow';
-    arrow.textContent = '◀';
-
-    // Ideal I
-    const idealSet = document.createElement('div');
-    idealSet.className = 'ideal-set';
-
-    const idealBox = document.createElement('div');
-    idealBox.className = 'ideal-box';
-
-    const idealTitle = document.createElement('div');
-    idealTitle.className = 'ideal-title';
-    idealTitle.textContent = '理想 I';
-
-    const idealElems = document.createElement('div');
-    idealElems.className = 'ideal-elements';
-
-    const iElems = currentRing === 'modular' ? [0, 2, 4] : [0, 2, 4];
-
-    iElems.forEach(e => {
-        const elem = document.createElement('div');
-        elem.className = 'ideal-elem';
-        elem.textContent = e;
-        idealElems.appendChild(elem);
-    });
-
-    idealBox.appendChild(idealTitle);
-    idealBox.appendChild(idealElems);
-    idealSet.appendChild(idealBox);
-
-    container.appendChild(ringSet);
-    container.appendChild(arrow);
-    container.appendChild(idealSet);
-
-    visualizationArea.innerHTML = '';
-    visualizationArea.appendChild(container);
-
-    updateIdeology('ideal');
-    updateProperties({
-        "环": rings[currentRing].name,
-        "理想示例": currentRing === 'modular' ? "偶数集" : "2ℤ = {...,-2,0,2,4,...}",
-        "吸收律": "I·R ⊆ I",
-        "特性": "I + I ⊆ I"
-    });
-}
-
-function visualizeQuotient() {
-    currentConcept = 'quotient';
-    setActiveConceptBtn(quotientBtn);
-
-    vizTitle.textContent = '商环结构';
-    vizSubtitle.textContent = '商环 = 环 / 理想';
-
-    const container = document.createElement('div');
-    container.className = 'ideal-container';
-    container.style.flexDirection = 'column';
-    container.style.gap = '2rem';
-
-    // Original Ring
-    const topRow = document.createElement('div');
-    topRow.style.display = 'flex';
-    topRow.style.gap = '2rem';
-    topRow.style.alignItems = 'center';
-
-    const ringBox = document.createElement('div');
-    ringBox.className = 'ideal-box';
-    ringBox.style.borderColor = 'var(--ring-main)';
-
-    const ringTitle = document.createElement('div');
-    ringTitle.className = 'ideal-title';
-    ringTitle.textContent = rings[currentRing].name;
-    ringTitle.style.color = 'var(--ring-main)';
-
-    ringBox.appendChild(ringTitle);
-
-    const divSymbol = document.createElement('div');
-    divSymbol.style.fontSize = '3rem';
-    divSymbol.style.color = 'var(--accent-red)';
-    divSymbol.textContent = '÷';
-
-    const idealBox = document.createElement('div');
-    idealBox.className = 'ideal-box';
-    idealBox.style.width = '120px';
-    idealBox.style.height = '120px';
-
-    const idealTitle = document.createElement('div');
-    idealTitle.className = 'ideal-title';
-    idealTitle.textContent = '理想 I';
-    idealTitle.style.fontSize = '0.9rem';
-
-    idealBox.appendChild(idealTitle);
-
-    topRow.appendChild(ringBox);
-    topRow.appendChild(divSymbol);
-    topRow.appendChild(idealBox);
-
-    // Arrow down
-    const arrowDown = document.createElement('div');
-    arrowDown.style.fontSize = '2.5rem';
-    arrowDown.style.color = 'var(--accent-gold)';
-    arrowDown.textContent = '⬇';
-
-    // Quotient Ring
-    const quotientBox = document.createElement('div');
-    quotientBox.className = 'ideal-box';
-    quotientBox.style.borderColor = 'var(--accent-gold)';
-    quotientBox.style.width = '220px';
-    quotientBox.style.background = 'linear-gradient(135deg, rgba(255, 180, 0, 0.15), rgba(255, 180, 0, 0.08))';
-
-    const quotientTitle = document.createElement('div');
-    quotientTitle.className = 'ideal-title';
-    quotientTitle.textContent = 'R / I';
-
-    const cosets = document.createElement('div');
-    cosets.style.fontSize = '0.75rem';
-    cosets.style.color = 'var(--text-secondary)';
-    cosets.style.marginTop = '0.5rem';
-    cosets.textContent = '陪集集合';
-
-    quotientBox.appendChild(quotientTitle);
-    quotientBox.appendChild(cosets);
-
-    container.appendChild(topRow);
-    container.appendChild(arrowDown);
-    container.appendChild(quotientBox);
-
-    visualizationArea.innerHTML = '';
-    visualizationArea.appendChild(container);
-
-    updateIdeology('quotient');
-    updateProperties({
-        "商环": "R / I",
-        "元素": "陪集 r + I",
-        "运算": "(a+I) + (b+I) = (a+b)+I",
-        "意义": "提炼升华新结构"
-    });
-}
-
-function visualizeExtension() {
-    currentConcept = 'extension';
-    setActiveConceptBtn(extensionBtn);
-
-    vizTitle.textContent = '扩环结构';
-    vizSubtitle.textContent = '扩环包含原环并保持其结构';
-
-    const container = document.createElement('div');
-    container.className = 'subring-container';
-
-    const nested = document.createElement('div');
-    nested.className = 'nested-rings';
-
-    const innerRing = document.createElement('div');
-    innerRing.className = 'inner-ring';
-    innerRing.style.borderColor = 'var(--ring-main)';
-    innerRing.style.background = 'radial-gradient(circle, rgba(214, 59, 29, 0.1), transparent 70%)';
-
-    const innerLabel = document.createElement('div');
-    innerLabel.className = 'ring-annotation';
-    innerLabel.textContent = '原环 R (核心)';
-    innerLabel.style.top = '30px';
-    innerLabel.style.left = 'calc(50% - 50px)';
-
-    const outerRing = document.createElement('div');
-    outerRing.className = 'outer-ring';
-    outerRing.style.borderColor = 'var(--accent-gold)';
-    outerRing.style.borderStyle = 'solid';
-    outerRing.style.borderWidth = '3px';
-    outerRing.style.opacity = '0.8';
-
-    const outerLabel = document.createElement('div');
-    outerLabel.className = 'ring-annotation';
-    outerLabel.textContent = '扩环 S (包容扩展)';
-    outerLabel.style.bottom = '10px';
-    outerLabel.style.right = '30px';
-
-    // Inner ring elements
-    const innerElems = [0, 1, -1];
-    const innerRadius = 100;
-    const innerStep = (2 * Math.PI) / innerElems.length;
-
-    innerElems.forEach((elem, i) => {
-        const angle = i * innerStep - Math.PI / 2;
-        const x = innerRadius * Math.cos(angle);
-        const y = innerRadius * Math.sin(angle);
-
-        const div = document.createElement('div');
-        div.className = 'ring-element';
-        div.textContent = elem;
-        div.style.position = 'absolute';
-        div.style.left = `calc(50% + ${x}px - 25px)`;
-        div.style.top = `calc(50% + ${y}px - 25px)`;
-        div.style.background = 'var(--ring-main)';
-        div.style.color = 'white';
-        div.style.animationDelay = `${i * 0.1}s`;
-
-        nested.appendChild(div);
-    });
-
-    // Extension elements
-    const extElems = ['√2', 'π', 'i', 'e'];
-    const extRadius = 200;
-    const extStep = (2 * Math.PI) / extElems.length;
-
-    extElems.forEach((elem, i) => {
-        const angle = i * extStep;
-        const x = extRadius * Math.cos(angle);
-        const y = extRadius * Math.sin(angle);
-
-        const div = document.createElement('div');
-        div.className = 'ring-element';
-        div.textContent = elem;
-        div.style.position = 'absolute';
-        div.style.left = `calc(50% + ${x}px - 25px)`;
-        div.style.top = `calc(50% + ${y}px - 25px)`;
-        div.style.background = 'var(--accent-gold)';
-        div.style.animationDelay = `${(i + 0.5) * 0.1}s`;
-
-        nested.appendChild(div);
-    });
-
-    nested.appendChild(innerRing);
-    nested.appendChild(outerRing);
-    nested.appendChild(innerLabel);
-    nested.appendChild(outerLabel);
-    container.appendChild(nested);
-
-    visualizationArea.innerHTML = '';
-    visualizationArea.appendChild(container);
-
-    updateIdeology('extension');
-    updateProperties({
-        "原环": "ℤ (整数)",
-        "扩环示例": "ℝ (实数)",
-        "包含关系": "R ⊆ S",
-        "精神": "开放包容发展"
-    });
-}
-
-// Helper functions
-function deactivateAllConceptBtns() {
-    [subringBtn, idealBtn, quotientBtn, extensionBtn].forEach(btn => {
-        btn.classList.remove('active');
-    });
-}
-
-function setActiveConceptBtn(btn) {
-    deactivateAllConceptBtns();
-    btn.classList.add('active');
-}
-
-function reset() {
-    visualizationArea.innerHTML = `
-        <div class="welcome-state">
-            <div class="star-container">
-                <svg viewBox="0 0 100 100" class="red-star">
-                    <polygon points="50,15 61,40 88,40 67,57 74,82 50,65 26,82 33,57 12,40 39,40"
-                        fill="#d63b1d" />
-                    <circle cx="50" cy="50" r="35" fill="none" stroke="#d63b1d" stroke-width="2"
-                        stroke-dasharray="5,5" />
-                </svg>
-            </div>
-            <p class="welcome-text">点击"可视化结构"开始探索团结之环</p>
-        </div>
-    `;
-
-    vizTitle.textContent = '环结构可视化';
-    vizSubtitle.textContent = '选择概念开始探索';
-
-    input1.value = '';
-    input2.value = '';
-    resultValue.textContent = '—';
-    resultValue.style.color = 'var(--accent-red)';
-
-    currentConcept = null;
-    deactivateAllConceptBtns();
-
-    updateIdeology(currentRing);
-    updateProperties();
-}
-
-// Event Listeners
-ringType.addEventListener('change', (e) => {
-    currentRing = e.target.value;
-    updateIdeology(currentRing);
-    reset();
-});
-
-subringBtn.addEventListener('click', visualizeSubring);
-idealBtn.addEventListener('click', visualizeIdeal);
-quotientBtn.addEventListener('click', visualizeQuotient);
-extensionBtn.addEventListener('click', visualizeExtension);
-
-calculateBtn.addEventListener('click', calculate);
-
-input1.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') calculate();
-});
-
-input2.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') calculate();
-});
-
-visualizeBtn.addEventListener('click', () => {
-    if (currentConcept) {
-        // Re-visualize current concept
-        switch (currentConcept) {
-            case 'subring': visualizeSubring(); break;
-            case 'ideal': visualizeIdeal(); break;
-            case 'quotient': visualizeQuotient(); break;
-            case 'extension': visualizeExtension(); break;
-        }
-    } else {
-        visualizeRingStructure();
-    }
-});
-
-resetBtn.addEventListener('click', reset);
-
-// Initialize
-init();
+    input1.value = '2'; input2.value = '3'; operation.value = '*';
+    fillGens();
+    render();
+})();

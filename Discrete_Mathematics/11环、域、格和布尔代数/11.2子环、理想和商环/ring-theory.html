@@ -9,7 +9,7 @@
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
     <meta property="og:title" content="理想与商环 · 进阶层｜11.2 子环、理想和商环 - 离散数学课程资源库">
-    <meta property="og:description" content="第11章 环、域、格和布尔代数 · 11.2 子环、理想和商环 · 进阶层：吸收乘法 / R/I。判定理想、构造商环。">
+    <meta property="og:description" content="第11章 环、域、格和布尔代数 · 11.2 子环、理想和商环 · 进阶层：吸收律 r·I ⊆ I / 陪集 a+I / R/I。判定理想、划分陪集并构造商环。">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/11%E7%8E%AF%E3%80%81%E5%9F%9F%E3%80%81%E6%A0%BC%E5%92%8C%E5%B8%83%E5%B0%94%E4%BB%A3%E6%95%B0/11.2%E5%AD%90%E7%8E%AF%E3%80%81%E7%90%86%E6%83%B3%E5%92%8C%E5%95%86%E7%8E%AF/ring-theory.html">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta property="og:image:width" content="1200">
@@ -17,11 +17,11 @@
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="理想与商环 · 进阶层｜11.2 子环、理想和商环 - 离散数学课程资源库">
-    <meta name="twitter:description" content="第11章 环、域、格和布尔代数 · 11.2 子环、理想和商环 · 进阶层：吸收乘法 / R/I。判定理想、构造商环。">
+    <meta name="twitter:description" content="第11章 环、域、格和布尔代数 · 11.2 子环、理想和商环 · 进阶层：吸收律 r·I ⊆ I / 陪集 a+I / R/I。判定理想、划分陪集并构造商环。">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>理想与商环 · 进阶层｜11.2 子环、理想和商环 - 离散数学课程资源库</title>
-    <meta name="description" content="第11章 环、域、格和布尔代数 · 11.2 子环、理想和商环 · 进阶层：吸收乘法 / R/I。判定理想、构造商环。">
+    <meta name="description" content="第11章 环、域、格和布尔代数 · 11.2 子环、理想和商环 · 进阶层：吸收律 r·I ⊆ I / 陪集 a+I / R/I。判定理想、划分陪集并构造商环。">
 
     <link rel="stylesheet" href="ring-style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,52 +44,50 @@
                     <span class="dot yellow"></span>
                     <span class="dot green"></span>
                 </div>
+                <div class="layer-eyebrow">进阶层 · 第11章 环、域、格和布尔代数</div>
                 <h1>红色数理 <span class="highlight">进阶层</span></h1>
                 <p class="subtitle">理想生成与商环分块 · 环域协作</p>
             </div>
 
             <div class="controls-wrapper">
                 <div class="control-group">
-                    <label>选择环结构</label>
+                    <label for="ringType">选择环结构</label>
                     <select id="ringType" class="apple-select">
-                        <option value="integers">整数环 ℤ (团结)</option>
-                        <option value="modular">模环 ℤ/nℤ (协作)</option>
-                        <option value="polynomial">多项式环 (发展)</option>
-                        <option value="matrix">矩阵环 (组织)</option>
+                        <option value="z12">模 12 剩余类环 ℤ₁₂</option>
+                        <option value="z8">模 8 剩余类环 ℤ₈</option>
+                        <option value="z10">模 10 剩余类环 ℤ₁₀</option>
+                        <option value="z">整数环 ℤ（窗口 −8 … 8）</option>
                     </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="idealGen">理想生成元 d（I = ⟨d⟩）</label>
+                    <select id="idealGen" class="apple-select"></select>
                 </div>
 
                 <div class="control-group">
                     <label>探索概念</label>
                     <div class="concept-buttons">
-                        <button id="subringBtn" class="concept-btn" aria-label="⊆ 子环">
-                            <span class="icon">⊆</span> 子环
-                        </button>
-                        <button id="idealBtn" class="concept-btn" aria-label="◁ 理想">
-                            <span class="icon">◁</span> 理想
-                        </button>
-                        <button id="quotientBtn" class="concept-btn" aria-label="⊘ 商环">
-                            <span class="icon">⊘</span> 商环
-                        </button>
-                        <button id="extensionBtn" class="concept-btn" aria-label="⊇ 扩环">
-                            <span class="icon">⊇</span> 扩环
-                        </button>
+                        <button type="button" id="subringBtn" class="concept-btn"><span class="icon">⊆</span> 子环</button>
+                        <button type="button" id="idealBtn" class="concept-btn"><span class="icon">◁</span> 理想</button>
+                        <button type="button" id="quotientBtn" class="concept-btn"><span class="icon">⊘</span> 商环</button>
+                        <button type="button" id="extensionBtn" class="concept-btn"><span class="icon">⊇</span> 扩环</button>
                     </div>
                 </div>
 
                 <div class="control-group">
-                    <label>运算演示</label>
+                    <label>运算演示（在理想视图中，a 即吸收律里的 r）</label>
                     <div class="operation-panel">
-                        <input type="text" id="input1" placeholder="元素 a" class="apple-input">
-                        <select id="operation" class="apple-select mini">
+                        <input type="number" id="input1" placeholder="元素 a" class="apple-input" aria-label="元素 a">
+                        <select id="operation" class="apple-select mini" aria-label="运算">
                             <option value="+">+</option>
                             <option value="*">×</option>
                         </select>
-                        <input type="text" id="input2" placeholder="元素 b" class="apple-input">
-                        <button id="calculateBtn" class="apple-btn calculate-btn" aria-label="计算">计算</button>
+                        <input type="number" id="input2" placeholder="元素 b" class="apple-input" aria-label="元素 b">
                     </div>
+                    <button type="button" id="calculateBtn" class="apple-btn calculate-btn">计算</button>
                     <div id="resultDisplay" class="result-box">
-                        <span class="result-label">结果:</span>
+                        <span class="result-label">结果：</span>
                         <span id="resultValue">—</span>
                     </div>
                 </div>
@@ -99,49 +97,33 @@
                     <div class="ideological-panel">
                         <div class="ideology-card active" id="ideologyCard">
                             <div class="card-header">
-                                <span class="card-icon">★</span>
-                                <span class="card-title">集体主义精神</span>
+                                <span class="card-icon">◁</span>
+                                <span class="card-title">理想 · 吸收而不失本色</span>
                             </div>
-                            <p class="card-content">环的封闭性体现团结协作，每个元素都是集体不可分割的一部分</p>
+                            <p class="card-content"></p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="actions-footer">
-                <button id="visualizeBtn" class="apple-btn action-btn" aria-label="可视化结构">可视化结构</button>
-                <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置">重置</button>
+                <button type="button" id="visualizeBtn" class="apple-btn action-btn">下一个概念 ▶</button>
+                <button type="button" id="resetBtn" class="apple-btn danger-btn">重置</button>
             </div>
         </aside>
 
         <main class="visualizer-stage">
             <div class="glass-pane">
                 <div class="visualization-header">
-                    <h2 id="vizTitle">环结构可视化</h2>
-                    <p id="vizSubtitle">选择概念开始探索</p>
+                    <h2 id="vizTitle">理想与商环</h2>
+                    <p id="vizSubtitle"></p>
                 </div>
 
-                <div id="visualizationArea" class="viz-area">
-                    <!-- Dynamic content will be rendered here -->
-                    <div class="welcome-state">
-                        <div class="star-container">
-                            <svg viewBox="0 0 100 100" class="red-star">
-                                <polygon points="50,15 61,40 88,40 67,57 74,82 50,65 26,82 33,57 12,40 39,40"
-                                    fill="#d63b1d" />
-                                <circle cx="50" cy="50" r="35" fill="none" stroke="#d63b1d" stroke-width="2"
-                                    stroke-dasharray="5,5" />
-                            </svg>
-                        </div>
-                        <p class="welcome-text">点击"可视化结构"开始探索团结之环</p>
-                    </div>
-                </div>
-
-                <div id="propertiesPanel" class="properties-panel">
-                    <h3>属性面板</h3>
-                    <div id="propertiesList" class="properties-list">
-                        <div class="property-item">
-                            <span class="prop-key">选择环结构</span>
-                        </div>
+                <div class="viz-body">
+                    <div id="visualizationArea" class="viz-area"></div>
+                    <div id="propertiesPanel" class="properties-panel">
+                        <h3>属性面板</h3>
+                        <div id="propertiesList" class="properties-list"></div>
                     </div>
                 </div>
             </div>
@@ -161,79 +143,79 @@
     <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
     <script>
     window.SECTION_META = {
-      "layers": [
-            {
-                  "name": "子环",
-                  "concepts": "对加减乘封闭",
-                  "task": "判定一个子集是否为子环。",
-                  "page": "ring-theory-basic.html"
-            },
-            {
-                  "name": "理想与商环",
-                  "concepts": "吸收乘法 / R/I",
-                  "task": "判定理想、构造商环。",
-                  "page": "ring-theory.html"
-            },
-            {
-                  "name": "模运算与有限域构造",
-                  "concepts": "Z/nZ / F[x]/(p(x))",
-                  "task": "迁移到模运算与有限域构造。",
-                  "page": "ring-theory-extend.html"
-            }
-      ],
       "chapter": "第11章 环、域、格和布尔代数",
       "section": "11.2 子环、理想和商环",
       "title": "子环、理想和商环",
       "grounding": "本节主题：子环（对加减乘封闭）；理想 I（子环且吸收乘法：rI⊆I、Ir⊆I）；商环 R/I（以 I 的陪集为元素构成环）。理想之于环，恰如正规子群之于群——是构造商结构的『良性子结构』。模 n 即 Z 对理想 nZ 的商。",
       "steps": [
-            {
-                  "name": "情境引入",
-                  "desc": "环里什么样的子结构能让『陪集也构成环』？"
-            },
-            {
-                  "name": "对象抽取",
-                  "desc": "把『吸收乘法的子环』抽象为理想，把陪集集合抽象为商环。"
-            },
-            {
-                  "name": "结构建模",
-                  "desc": "用理想的吸收性保证商环运算良定义。"
-            },
-            {
-                  "name": "推理求解",
-                  "desc": "判定理想、构造商环、联系环同态核。"
-            },
-            {
-                  "name": "程序验证",
-                  "desc": "用本页交互构造理想与商环，验证良定义。"
-            },
-            {
-                  "name": "迁移反思",
-                  "desc": "迁移到模运算、多项式商环、有限域构造。"
-            }
+        {
+          "name": "情境引入",
+          "desc": "环里什么样的子结构能让『陪集也构成环』？"
+        },
+        {
+          "name": "对象抽取",
+          "desc": "把『吸收乘法的子环』抽象为理想，把陪集集合抽象为商环。"
+        },
+        {
+          "name": "结构建模",
+          "desc": "用理想的吸收性保证商环运算良定义。"
+        },
+        {
+          "name": "推理求解",
+          "desc": "判定理想、构造商环、联系环同态核。"
+        },
+        {
+          "name": "程序验证",
+          "desc": "用本页交互构造理想与商环，验证良定义。"
+        },
+        {
+          "name": "迁移反思",
+          "desc": "迁移到模运算、多项式商环、有限域构造。"
+        }
       ],
       "ideology": {
-            "title": "团结协作 · 局部服从全局",
-            "text": "理想是环中『吸纳乘法、自成一体』的核心子结构，商环把它凝为一体、在更高层次重组。这体现局部服从全局、个体融入整体的组织智慧——好的子结构既要自洽稳固，又要与整体规则相容，方能协同成更高的和谐。",
-            "dims": [
-                  "团结协作",
-                  "系统观念",
-                  "辩证思维"
-            ],
-            "quote": "积力之所举，则无不胜——理想凝聚成商环，局部与整体协调统一，方能行稳致远。"
+        "title": "团结协作 · 局部服从全局",
+        "text": "理想是环中『吸纳乘法、自成一体』的核心子结构，商环把它凝为一体、在更高层次重组。这体现局部服从全局、个体融入整体的组织智慧——好的子结构既要自洽稳固，又要与整体规则相容，方能协同成更高的和谐。",
+        "dims": [
+          "团结协作",
+          "系统观念",
+          "辩证思维"
+        ],
+        "quote": "积力之所举，则无不胜——理想凝聚成商环，局部与整体协调统一，方能行稳致远。"
       },
       "reflect": [
-            "理想比子环多了『吸收乘法』的条件，为什么这是构造商环的关键？",
-            "Z 的理想都是 nZ 形式，Z/nZ 就是模 n 环——请说明这种对应。",
-            "理想与环同态核是什么关系（类比正规子群与群同态核）？"
+        "理想比子环多了『吸收乘法』的条件，为什么这是构造商环的关键？",
+        "Z 的理想都是 nZ 形式，Z/nZ 就是模 n 环——请说明这种对应。",
+        "理想与环同态核是什么关系（类比正规子群与群同态核）？"
       ],
       "transfer": [
-            "用商环 F[x]/(p(x)) 构造有限域 GF(p^n)，这是纠错码与密码学的关键。",
-            {
-                  "t": "模运算",
-                  "d": "钟表算术、密码学的模 n 运算正是商环 Z/nZ 的日常化身。"
-            }
+        "用商环 F[x]/(p(x)) 构造有限域 GF(p^n)，这是纠错码与密码学的关键。",
+        {
+          "t": "模运算",
+          "d": "钟表算术、密码学的模 n 运算正是商环 Z/nZ 的日常化身。"
+        }
+      ],
+      "layers": [
+        {
+          "name": "子环",
+          "concepts": "非空 / 减法封闭 / 乘法封闭",
+          "task": "用子环判定定理检验 ℤ₁₂ 的候选子集。",
+          "page": "ring-theory-basic.html"
+        },
+        {
+          "name": "理想与商环",
+          "concepts": "吸收律 r·I ⊆ I / 陪集 a+I / R/I",
+          "task": "判定理想、划分陪集并构造商环。",
+          "page": "ring-theory.html"
+        },
+        {
+          "name": "模运算与有限域构造",
+          "concepts": "ℤ/nℤ / F[x]/(p(x)) / 极大理想",
+          "task": "由商环构造模运算系统与有限域。",
+          "page": "ring-theory-extend.html"
+        }
       ]
-};
+    };
     </script>
     <script src="../../shared/ai-tutor.js" defer></script>
 
