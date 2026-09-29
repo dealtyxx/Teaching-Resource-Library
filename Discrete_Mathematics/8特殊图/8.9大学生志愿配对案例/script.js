@@ -203,7 +203,7 @@ function addVolunteer(x, y) {
     renderSingleVolunteer({ id, name, x, y });
     updateStats();
 
-    statusText.textContent = `添加志愿者: ${name}`;
+    statusText.textContent = `添加志愿者：${name}`;
 }
 
 // Add Project
@@ -216,7 +216,7 @@ function addProject(x, y) {
     renderSingleProject({ id, name, x, y });
     updateStats();
 
-    statusText.textContent = `添加项目: ${name}`;
+    statusText.textContent = `添加项目：${name}`;
 }
 
 // Handle Node Click
@@ -232,11 +232,11 @@ function handleNodeClick(type, id) {
         if (type === 'volunteer') {
             const el = volunteerElements.get(id);
             el.circle.classList.add('selected');
-            statusText.textContent = `选中志愿者,点击项目建立连线`;
+            statusText.textContent = '已选中志愿者，再点击项目建立连线';
         } else {
             const el = projectElements.get(id);
             el.circle.classList.add('selected');
-            statusText.textContent = `选中项目,点击志愿者建立连线`;
+            statusText.textContent = '已选中项目，再点击志愿者建立连线';
         }
     } else {
         // Second selection
@@ -262,7 +262,7 @@ function addEdgeWithRender(vId, pId) {
     // Check if edge already exists
     const exists = edges.some(e => e.volunteer === vId && e.project === pId);
     if (exists) {
-        statusText.textContent = '该连线已存在!';
+        statusText.textContent = '该连线已存在。';
         return;
     }
 
@@ -288,7 +288,7 @@ function addEdgeWithRender(vId, pId) {
         edgesGroup.appendChild(line);
         edgeElements.push({ line, edge });
 
-        statusText.textContent = `连线已添加: ${v.name.split(' ')[0]} - ${p.name}`;
+        statusText.textContent = `连线已添加：${v.name.split(' ')[0]}–${p.name}`;
     }
 }
 
@@ -311,7 +311,7 @@ function generateScenario() {
 
     const scenario = SCENARIOS[scenarioSelect.value];
     if (!scenario) {
-        statusText.textContent = '自定义模式: 点击按钮添加志愿者和项目';
+        statusText.textContent = '自定义模式：点击按钮添加志愿者和项目';
         updateStats();
         return;
     }
@@ -568,13 +568,13 @@ async function hungarianAlgorithm() {
 
     reset();
 
-    statusText.textContent = '开始匈牙利算法匹配...';
+    statusText.textContent = '匈牙利算法：依次为每位志愿者寻找增广路……';
     await sleep(getDelay());
 
     // Try to find augmenting paths for each volunteer
     for (let i = 0; i < volunteers.length; i++) {
         const v = volunteers[i];
-        statusText.textContent = `为志愿者 ${v.name} 寻找配对...`;
+        statusText.textContent = `为志愿者 ${v.name} 寻找增广路……`;
 
         const visited = new Set();
         const found = await dfs(v.id, visited);
@@ -584,12 +584,12 @@ async function hungarianAlgorithm() {
             updateStats();
             await sleep(getDelay());
         } else {
-            statusText.textContent = `志愿者 ${v.name} 无法找到合适项目`;
+            statusText.textContent = `${v.name}：找不到增广路，本轮匹配数不增加`;
             await sleep(getDelay());
         }
     }
 
-    statusText.textContent = `匹配完成! 共匹配${matching.size}对`;
+    statusText.textContent = `匹配完成：已无增广路，最大匹配 ${matching.size} 对`;
 
     isRunning = false;
     startBtn.disabled = false;

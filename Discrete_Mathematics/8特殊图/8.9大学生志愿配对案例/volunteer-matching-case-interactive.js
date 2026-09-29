@@ -330,15 +330,16 @@
 
     setImportant(document.body, "display", "block");
     setImportant(document.body, "overflow-x", "hidden");
-    setImportant(document.body, "overflow-y", compact ? "auto" : "hidden");
+    setImportant(document.body, "overflow-y", "auto"); // 桌面端也允许滚动，保证页脚可见
     setImportant(document.body, "padding-bottom", "0");
 
     setImportant(app, "display", "grid");
     setImportant(app, "width", compact ? "calc(100vw - 24px)" : "min(1440px, calc(100vw - 32px))");
     setImportant(app, "max-width", "none");
-    setImportant(app, "height", compact ? "auto" : "calc(100vh - 166px)");
-    setImportant(app, "min-height", compact ? "0" : "640px");
-    setImportant(app, "margin", compact ? "68px auto 84px" : "74px auto 0");
+    // 高度随内容增长（不再锁定一屏），避免三阶卡占位后画布被压扁
+    setImportant(app, "height", "auto");
+    setImportant(app, "min-height", compact ? "0" : "max(640px, calc(100vh - 166px))");
+    setImportant(app, "margin", compact ? "68px auto 24px" : "74px auto 12px");
     setImportant(app, "padding", "0");
     setImportant(app, "gap", "18px");
     setImportant(app, "grid-template", compact ? "\"side\" auto \"main\" auto / minmax(0, 1fr)" : "\"side main\" minmax(0, 1fr) / minmax(300px, 360px) minmax(0, 1fr)");
@@ -360,14 +361,14 @@
     setImportant(side, "grid-area", "side");
     setImportant(side, "width", "auto");
     setImportant(main, "grid-area", "main");
-    setImportant(main, "overflow", "auto");
+    setImportant(main, "overflow", "visible");
     setImportant(main, "display", "grid");
     setImportant(main, "grid-template-rows", "auto auto minmax(0, 1fr) auto");
     setImportant(main, "gap", "12px");
 
     if (viz) {
       setImportant(viz, "height", "auto");
-      setImportant(viz, "min-height", "0");
+      setImportant(viz, "min-height", compact ? "300px" : "340px");
       setImportant(viz, "overflow", "hidden");
       setImportant(viz, "grid-template-rows", "minmax(0, 1fr)");
     }
@@ -591,7 +592,7 @@
     const path = findNextPath();
     if (!path) {
       state.activePath = [];
-      state.message = "没有新的可增广路径，当前配对已经稳定。";
+      state.message = "已不存在增广路：当前匹配就是最大匹配（Berge 定理）。";
       render();
       return false;
     }
@@ -740,7 +741,7 @@
     const { w, h } = canvasSize();
     const compact = h < 340;
     const top = compact ? 56 : 70;
-    const bottom = compact ? 44 : 56;
+    const bottom = compact ? 50 : 76; // 底部留出操作提示文字的空间
     const leftX = Math.max(118, w * 0.22);
     const rightX = Math.min(w - 118, w * 0.78);
     return {

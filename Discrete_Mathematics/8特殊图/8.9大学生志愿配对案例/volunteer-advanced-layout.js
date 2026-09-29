@@ -20,7 +20,7 @@
     const compact = window.innerWidth <= 920;
     setImportant(document.body, "display", "block");
     setImportant(document.body, "overflow-x", "hidden");
-    setImportant(document.body, "overflow-y", compact ? "auto" : "hidden");
+    setImportant(document.body, "overflow-y", "auto"); // 桌面端也允许滚动，保证页脚可见
     setImportant(document.body, "padding-bottom", "0");
 
     setImportant(app, "display", "grid");
