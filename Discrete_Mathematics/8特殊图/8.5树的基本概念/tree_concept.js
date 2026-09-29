@@ -90,7 +90,7 @@
     },
     // 连通图（有一个圈），用于生成树
     graphCyc: {
-      names: NAMES7.slice(0, 6), caption: "连通图 G（含一个圈）",
+      names: NAMES7.slice(0, 6), caption: "连通图 G（6 点 7 边，含圈）",
       nodes: [
         { x: 0.15, y: 0.2 }, { x: 0.5, y: 0.08 }, { x: 0.85, y: 0.2 },
         { x: 0.8, y: 0.8 }, { x: 0.5, y: 0.92 }, { x: 0.2, y: 0.8 }
@@ -170,7 +170,7 @@
           graph: "tree7",
           formula: '树：<span class="ft hot">连通 + 无圈</span>；|E| = |V| − 1',
           badge: "起点", tone: "", viz: "treecheck",
-          text: "树有五条彼此等价的刻画。它们从不同角度说“同一件事”，是本层要打通的重点。先固定这棵 7 点树作为样例。"
+          text: "树有多种彼此等价的刻画。它们从不同角度说“同一件事”，是本层要打通的重点。先固定这棵 7 点树作为样例。"
         },
         {
           name: "任两点唯一路径",
@@ -205,7 +205,7 @@
           graph: "graphCyc", edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]],
           formula: '连通图 G 的生成树：含全部顶点的<span class="ft hot-green hot">极小连通子图</span>',
           badge: "生成树", tone: "",
-          text: "去掉圈上任意一条边（这里去掉弦 B–E 与一条环边），保留 5 条红色边连通所有 6 点——一棵<b>生成树</b>。BFS/DFS 遍历天然给出生成树，第 8.6 节将求“最小”的那棵。"
+          text: "每次去掉某个圈上的一条边，直到无圈（这里去掉弦 B–E 与环边 F–A），保留 5 条红色边连通所有 6 点——一棵<b>生成树</b>。BFS/DFS 遍历天然给出生成树，第 8.6 节将求“最小”的那棵。"
         }
       ]
     },
@@ -390,8 +390,9 @@
 
     ctx.fillStyle = "#6b4a38";
     ctx.font = "700 13px 'Noto Serif SC', 'Microsoft YaHei', serif";
-    ctx.textAlign = "center";
-    ctx.fillText(g.caption, size.w / 2, size.h - 16);
+    // 图题放右上角，避免与左下角的操作提示胶囊重叠
+    ctx.textAlign = "right";
+    ctx.fillText(g.caption, size.w - 14, 20);
   }
 
   /* ---- 辅助可视化 ---- */
