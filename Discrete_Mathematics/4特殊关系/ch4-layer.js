@@ -867,6 +867,165 @@
 })();
 /* @@END */
 
+/* ---------- 4.3 全序、良序和拟序 ---------- */
+(function () {
+  var C = C4.COL, esc = C4.esc;
+  var setLab = function (s) { return s.length ? '{' + s.join(',') + '}' : '∅'; };
+  var ORD = {
+    le: { name: '⟨{1,2,3,4,5,6}, ≤⟩', rule: 'x ≼ y ⇔ x ≤ y（数的大小）', els: [1, 2, 3, 4, 5, 6], leq: function (a, b) { return a <= b; }, lab: String },
+    div: { name: '⟨{1,2,3,4,6,12}, |⟩', rule: 'x ≼ y ⇔ x 整除 y', els: [1, 2, 3, 4, 6, 12], leq: function (a, b) { return b % a === 0; }, lab: String },
+    lex: { name: '⟨{a, ab, abc, b, ba}, 字典序⟩', rule: 'x ≼ y ⇔ x 在词典中不排在 y 之后', els: ['a', 'ab', 'abc', 'b', 'ba'], leq: function (a, b) { return a <= b; }, lab: String },
+    sub: { name: '⟨P({a,b}), ⊆⟩', rule: 'x ≼ y ⇔ x ⊆ y', els: [[], ['a'], ['b'], ['a', 'b']], leq: function (a, b) { return a.every(function (t) { return b.indexOf(t) >= 0; }); }, lab: setLab }
+  };
+
+  C4.def('order/basic', {
+    badge: '哈斯图 · 可比矩阵',
+    mission: '比较四个偏序集：看哈斯图是不是「一条链」，再看可比矩阵里有没有<b>不可比</b>格子——没有，就是全序（线序），可以唯一地排成一队。',
+    cols: 2,
+    controls: [
+      { type: 'select', id: 'o', label: '选择偏序集', value: 'div', options: [['div', '{1,2,3,4,6,12} 上的整除'], ['le', '{1,…,6} 上的 ≤'], ['lex', '单词上的字典序'], ['sub', 'P({a,b}) 上的 ⊆']] },
+      { label: '可比性', items: [{ type: 'buttons', items: [{ act: 'clearSel', text: '清除选择' }] }] }
+    ],
+    stages: [
+      { id: 'def', title: '偏序集', wide: true },
+      { id: 'hasse', title: '哈斯图', hint: '点选两个元素' },
+      { id: 'mat', title: '可比矩阵', hint: '∥ 表示不可比' },
+      { id: 'out', title: '结论', wide: true }
+    ],
+    points: [
+      '<b>全序（线序）</b>：偏序 + 任意两元素可比，即 ∀x,y (x≼y ∨ y≼x)。',
+      '全序的哈斯图是一条<b>链</b>；有分叉就说明存在不可比元素。',
+      '≤、字典序是全序；整除、⊆ 一般只是偏序。',
+      '有限全序集可以唯一地排成 x₁ ≺ x₂ ≺ … ≺ xₙ，这就是「排队排名」的数学本质。'
+    ],
+    init: function (S) { S.data.sel = []; },
+    onChange: function (S) { S.data.sel = []; },
+    act: function (S, act, arg) {
+      if (act === 'clearSel') S.data.sel = [];
+      if (act === 'pick') { var i = +arg, sel = S.data.sel, k = sel.indexOf(i); if (k >= 0) sel.splice(k, 1); else { sel.push(i); if (sel.length > 2) sel.shift(); } }
+    },
+    render: function (S) {
+      var p = ORD[S.v.o], els = p.els, n = els.length, sel = S.data.sel, H = C4.hasse(els, p.leq, 360, 330, 36);
+      var inc = [];
+      for (var i = 0; i < n; i++) for (var j = i + 1; j < n; j++) if (!p.leq(els[i], els[j]) && !p.leq(els[j], els[i])) inc.push([i, j]);
+      var total = inc.length === 0;
+      S.set('def', '<p><b>' + esc(p.name) + '</b>：' + esc(p.rule) + '。它自反、反对称、传递，是偏序。</p>');
+      var svg = '';
+      H.covers.forEach(function (e) { svg += C4.line(H.pos[e[0]][0], H.pos[e[0]][1], H.pos[e[1]][0], H.pos[e[1]][1], { color: '#C98F7C', width: 2.4 }); });
+      els.forEach(function (x, k) {
+        var on = sel.indexOf(k) >= 0;
+        svg += C4.node(H.pos[k][0], H.pos[k][1], p.lab(x), { r: 20, fill: on ? C.red : '#fff', textFill: on ? '#fff' : C.ink, ring: on ? C.gold : null, act: 'pick', arg: k, mono: true, size: p.lab(x).length > 3 ? 11 : 13, title: '点击选择 ' + p.lab(x) });
+      });
+      S.set('hasse', C4.svg(360, 360, svg, '哈斯图'));
+      var t = '<div class="c4-table-wrap"><table class="c4-table"><tr><th></th>' + els.map(function (x) { return '<th>' + esc(p.lab(x)) + '</th>'; }).join('') + '</tr>';
+      for (i = 0; i < n; i++) {
+        t += '<tr><th>' + esc(p.lab(els[i])) + '</th>';
+        for (j = 0; j < n; j++) {
+          var a = p.leq(els[i], els[j]), b = p.leq(els[j], els[i]), sym = i === j ? '=' : a ? '≼' : b ? '≽' : '∥';
+          var cur = sel.length === 2 && ((sel[0] === i && sel[1] === j) || (sel[1] === i && sel[0] === j));
+          t += '<td class="mono ' + (sym === '∥' ? 'bad' : i === j ? 'soft' : 'ok') + (cur ? ' cur' : '') + '">' + sym + '</td>';
+        }
+        t += '</tr>';
+      }
+      S.set('mat', t + '</table></div>');
+      var pick = '';
+      if (sel.length === 2) {
+        var x = els[sel[0]], y = els[sel[1]], lx = esc(p.lab(x)), ly = esc(p.lab(y));
+        pick = p.leq(x, y) || p.leq(y, x) ? '<p><span class="c4-chip ok">可比</span> ' + (p.leq(x, y) ? lx + ' ≼ ' + ly : ly + ' ≼ ' + lx) + '</p>' : '<p><span class="c4-chip bad">不可比</span> ' + lx + ' 与 ' + ly + ' 谁也不 ≼ 谁。</p>';
+      }
+      var line = total ? els.slice().sort(function (a, b) { return p.leq(a, b) ? -1 : 1; }).map(function (x) { return '<span class="box ok">' + esc(p.lab(x)) + '</span>'; }).join('<span class="arrow">≺</span>') : '';
+      S.set('out', pick + (total
+        ? '<p><span class="c4-chip ok">全序</span> 任意两元素可比，哈斯图是一条链，唯一的排队方式：</p><div class="c4-flow">' + line + '</div>'
+        : '<p><span class="c4-chip bad">不是全序</span> 共有 ' + inc.length + ' 对不可比，例如 ' + inc.slice(0, 3).map(function (q) { return esc(p.lab(els[q[0]])) + ' ∥ ' + esc(p.lab(els[q[1]])); }).join('，') + '。哈斯图出现了分叉。</p>'));
+      C4.result(esc(p.name), total ? '全序（线序）' : '偏序，但不是全序', total ? '哈斯图是一条链。' : inc.length + ' 对元素不可比。');
+    }
+  });
+
+  /* ----- 拓展层：排序与归纳 ----- */
+  var LISTS = {
+    num: { name: '整数，按 ≤', items: [5, 2, 9, 1, 7, 3], key: function (x) { return x; }, cmp: function (a, b) { return a - b; }, lab: String },
+    lex: { name: '拼音串，按字典序', items: ['shu', 'li', 'san', 'lisan', 'ai', 'shuxue'], cmp: function (a, b) { return a < b ? -1 : a > b ? 1 : 0; }, lab: String },
+    pair: { name: '成绩单，按（总分降序，学号升序）', items: [[88, 3], [95, 1], [88, 1], [72, 2], [95, 4], [88, 2]],
+      cmp: function (a, b) { return b[0] - a[0] || a[1] - b[1]; }, lab: function (r) { return r[0] + '分·' + r[1] + '号'; } }
+  };
+  function insertionTrace(L) {
+    var a = L.items.slice(), tr = [{ a: a.slice(), i: -1, j: -1, sorted: 1, msg: '初始：第 1 个元素自成有序段。' }];
+    for (var i = 1; i < a.length; i++) {
+      var j = i;
+      tr.push({ a: a.slice(), i: i, j: j, sorted: i, msg: '取出 ' + L.lab(a[i]) + '，准备插入前面的有序段。' });
+      while (j > 0 && L.cmp(a[j - 1], a[j]) > 0) {
+        var t = a[j - 1]; a[j - 1] = a[j]; a[j] = t;
+        tr.push({ a: a.slice(), i: i, j: j - 1, sorted: i, msg: '比较：' + L.lab(a[j]) + ' ≻ ' + L.lab(a[j - 1]) + '，交换。' });
+        j--;
+      }
+      tr.push({ a: a.slice(), i: i, j: j, sorted: i + 1, msg: j > 0 ? '比较：' + L.lab(a[j - 1]) + ' ≼ ' + L.lab(a[j]) + '，停在这里。' : '已到最前面。' });
+    }
+    tr.push({ a: a.slice(), i: -1, j: -1, sorted: a.length, msg: '排序完成：任意两元素都可比较，结果唯一。' });
+    return tr;
+  }
+  function gcdTrace(a, b) {
+    var tr = [[a, b]];
+    while (b !== 0) { var r = a % b; a = b; b = r; tr.push([a, b]); }
+    return tr;
+  }
+
+  C4.def('order/extend', {
+    badge: '插入排序 · 递降终止',
+    mission: '场景一：比较排序只依赖一个<b>全序</b>——并列的分数要用学号打破平局，才能排出唯一结果；场景二：辗转相除的余数在 ℕ 中严格递减，<b>良序</b>保证它必然停下。',
+    controls: [
+      { type: 'select', id: 'mode', label: '场景', value: 'sort', options: [['sort', '插入排序（全序）'], ['gcd', '辗转相除必终止（良序）']] },
+      { type: 'select', id: 'L', label: '待排序数据', value: 'pair', options: [['pair', '成绩单：总分降序、同分学号升序'], ['num', '整数：按 ≤'], ['lex', '拼音串：字典序']], show: function (v) { return v.mode === 'sort'; } },
+      { label: '参数', items: [
+        { type: 'range', id: 'a', text: '被除数 a', min: 20, max: 300, value: 252, show: function (v) { return v.mode === 'gcd'; } },
+        { type: 'range', id: 'b', text: '除数 b', min: 2, max: 200, value: 105, show: function (v) { return v.mode === 'gcd'; } }
+      ] },
+      { label: '逐步演示', type: 'stepper' }
+    ],
+    stages: [
+      { id: 'model', title: '模型' },
+      { id: 'viz', title: '过程' },
+      { id: 'why', title: '为什么一定成功' }
+    ],
+    points: [
+      '比较排序需要一个<b>全序</b>：任意两元素可比，结果才唯一；并列时用字典序（总分, 学号）补全。',
+      '<b>良序原理</b>：ℕ 的任意非空子集都有最小元 ⇒ ℕ 中不存在无限严格递降链。',
+      '辗转相除 gcd(a, b) 的余数 b > r₁ > r₂ > … ≥ 0，良序保证有限步终止。',
+      '良序原理与<b>数学归纳法</b>等价：若有反例，则取最小反例导出矛盾。'
+    ],
+    prepare: function (S) {
+      if (S.v.mode === 'sort') { S.data.tr = insertionTrace(LISTS[S.v.L]); S.total = S.data.tr.length - 1; }
+      else { S.data.g = gcdTrace(S.v.a, S.v.b); S.total = S.data.g.length - 1; }
+    },
+    render: function (S) {
+      if (S.v.mode === 'sort') {
+        var L = LISTS[S.v.L], st = S.data.tr[S.step];
+        S.set('model', '<p><b>' + esc(L.name) + '</b></p><p class="c4-note">' + (S.v.L === 'pair'
+          ? '只按总分比较时，88 分的三人彼此「并列」——关系不反对称，不是全序，排序结果不唯一；加上「同分按学号升序」后成为字典序，是全序。'
+          : '这个比较关系是全序，任意两项都能比较。') + '</p>');
+        var cells = st.a.map(function (x, k) {
+          var cls = k === st.j ? 'gold' : k < st.sorted ? 'ok' : '';
+          return '<span class="' + cls + '" style="min-width:64px">' + esc(L.lab(x)) + '</span>';
+        }).join('');
+        S.set('viz', '<div class="c4-seq">' + cells + '</div><p class="c4-note" style="margin-top:10px">第 ' + S.step + ' 步：' + esc(st.msg) + '</p>' +
+          C4.legend([{ color: 'rgba(31,157,85,.15)', border: C.ok, text: '已有序段' }, { color: 'rgba(255,180,0,.3)', border: C.gold, text: '正在插入的元素' }]));
+        S.set('why', '<p>插入排序每次把新元素与有序段比较，只用到 ≼ 的<b>可比性</b>与<b>传递性</b>：可比保证每次比较都有答案，传递保证插入后整段仍有序。</p>');
+        C4.result('插入排序 · ' + esc(L.name), S.step === S.total ? '排序完成' : '进行中 ' + S.step + ' / ' + S.total, esc(st.msg));
+      } else {
+        var g = S.data.g, k = S.step, cur = g[k], mx = Math.max(S.v.a, S.v.b);
+        S.set('model', '<p class="c4-mono">gcd(a, b) = gcd(b, a mod b)，直到 b = 0</p><p class="c4-note">每一步的新除数是余数 r = a mod b，满足 0 ≤ r < b。</p>');
+        var bars = g.slice(0, k + 1).map(function (p, i) {
+          return '<div class="bar-row" style="display:grid;grid-template-columns:90px 1fr 56px;gap:8px;align-items:center;margin:4px 0"><span class="c4-mono" style="font-size:.85rem">(' + p[0] + ', ' + p[1] + ')</span>' +
+            '<div style="height:18px;border-radius:9px;background:rgba(116,55,31,.08);overflow:hidden"><i style="display:block;height:100%;width:' + Math.max(1, p[1] / mx * 100) + '%;background:linear-gradient(90deg,#D63B1D,#FFB400)"></i></div><b class="c4-mono" style="color:' + (i === k ? '#D63B1D' : '#6B4A38') + '">b=' + p[1] + '</b></div>';
+        }).join('');
+        S.set('viz', bars + (cur[1] === 0 ? '<p style="margin-top:8px"><span class="c4-chip ok">终止</span> gcd(' + S.v.a + ', ' + S.v.b + ') = <b>' + cur[0] + '</b>，共 ' + (g.length - 1) + ' 步。</p>' : ''));
+        S.set('why', '<p>除数序列 ' + g.slice(0, k + 1).map(function (p) { return p[1]; }).join(' > ') + (cur[1] ? ' > …' : '') + ' 是 ℕ 中的<b>严格递降链</b>。</p><p class="c4-note">若它永不终止，集合 {b₀, b₁, b₂, …} 就没有最小元，与 ⟨ℕ, ≤⟩ 是良序矛盾。反观 ⟨ℤ, ≤⟩ 或 ⟨ℚ⁺, ≤⟩，都存在无限递降链（如 1, 1/2, 1/3, …），它们不是良序。</p>');
+        C4.result('gcd(' + S.v.a + ', ' + S.v.b + ')', cur[1] === 0 ? '= ' + cur[0] + '（' + (g.length - 1) + ' 步终止）' : '当前 (' + cur[0] + ', ' + cur[1] + ')', '余数严格递减且非负，良序保证必然终止。');
+      }
+    }
+  });
+})();
+/* @@END */
+
 /* @@UNITS@@ */
 
 C4.boot();

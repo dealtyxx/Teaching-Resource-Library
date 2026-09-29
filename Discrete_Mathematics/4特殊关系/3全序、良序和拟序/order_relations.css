@@ -4,12 +4,12 @@
     --panel-bg: rgba(255, 255, 255, 0.9);
     --glass-border: rgba(0, 0, 0, 0.08);
     --text-primary: #2c1810;
-    --text-secondary: #7f8c8d;
+    --text-secondary: #6B4A38;
 
-    --progress-blue: #2980b9;
-    --flag-red: #c0392b;
-    --success-green: #27ae60;
-    --warn-yellow: #f39c12;
+    --progress-red: #B8321A;
+    --flag-red: #C0392B;
+    --success-green: #1F9D55;
+    --warn-yellow: #E39B0B;
 
     --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.08);
@@ -33,16 +33,7 @@ color: var(--text-primary);
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #f5f0ff;
-    background-image:
-        radial-gradient(circle at 30% 35%, rgba(108,92,231,0.17) 0 95px, transparent 97px),
-        radial-gradient(circle at 70% 65%, rgba(9,132,227,0.13) 0 82px, transparent 84px),
-        radial-gradient(circle at 50% 50%, rgba(253,203,110,0.08) 0 135px, transparent 137px),
-        repeating-linear-gradient(60deg, rgba(108,92,231,0.10) 0 1px, transparent 1px 48px),
-        repeating-linear-gradient(-60deg, rgba(9,132,227,0.07) 0 1px, transparent 1px 48px),
-        repeating-linear-gradient(0deg, rgba(108,92,231,0.04) 0 1px, transparent 1px 48px),
-        linear-gradient(135deg, #f5f0ff 0%, #eef4ff 50%, #f0f8ff 100%);
-    background-size: auto, auto, auto, 48px 48px, 48px 48px, 48px 48px, cover;
+    background-color: #FFFBF0;
     background-position: center;
     background-repeat: no-repeat;
 }
@@ -76,7 +67,7 @@ color: var(--text-primary);
     font-family: var(--font-title);
     font-size: 2rem;
     font-weight: 400;
-    color: var(--progress-blue);
+    color: var(--progress-red);
 }
 
 .highlight {
@@ -126,9 +117,9 @@ color: var(--text-primary);
 
 .nav-btn.active {
     opacity: 1;
-    background: var(--progress-blue);
+    background: var(--progress-red);
     color: white;
-    box-shadow: 0 2px 8px rgba(41, 128, 185, 0.3);
+    box-shadow: 0 2px 8px rgba(214, 59, 29, 0.3);
 }
 
 .nav-btn[data-mode="well"].active {
@@ -138,7 +129,7 @@ color: var(--text-primary);
 
 .nav-btn[data-mode="quasi"].active {
     background: var(--warn-yellow);
-    box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
+    box-shadow: 0 2px 8px rgba(255, 180, 0, 0.3);
 }
 
 .apple-btn {
@@ -152,7 +143,7 @@ color: var(--text-primary);
 }
 
 .apple-btn:hover {
-    background: #f5f5f5;
+    background: #F7F1EA;
     transform: scale(1.05);
 }
 
@@ -253,14 +244,14 @@ color: var(--text-primary);
 }
 
 .drop-zone.drag-over {
-    border-color: var(--progress-blue);
-    background: rgba(41, 128, 185, 0.1);
+    border-color: var(--progress-red);
+    background: rgba(214, 59, 29, 0.1);
     transform: scale(1.05);
 }
 
 .drop-zone.correct {
     border-color: var(--success-green);
-    background: rgba(39, 174, 96, 0.1);
+    background: rgba(31, 157, 85, 0.1);
     border-style: solid;
 }
 
@@ -305,7 +296,7 @@ color: var(--text-primary);
 }
 
 .event-card h4 {
-    color: var(--progress-blue);
+    color: var(--progress-red);
     margin-bottom: 8px;
     font-size: 1rem;
 }
@@ -425,12 +416,12 @@ color: var(--text-primary);
 }
 
 .tool-btn:hover {
-    background: #f5f5f5;
+    background: #F7F1EA;
 }
 
 .validation-box {
     padding: 12px;
-    background: rgba(39, 174, 96, 0.1);
+    background: rgba(31, 157, 85, 0.1);
     color: var(--success-green);
     border-radius: 8px;
     text-align: center;
@@ -459,7 +450,7 @@ color: var(--text-primary);
 }
 
 .concept-card {
-    border-top: 4px solid var(--progress-blue);
+    border-top: 4px solid var(--progress-red);
 }
 
 .card-header {
@@ -534,4 +525,20 @@ color: var(--text-primary);
     stroke-width: 2px;
     fill: none;
     marker-end: url(#arrow);
+}
+/* ===== 第4章精修补充 ===== */
+.validation-box.warn { background: rgba(255, 180, 0, 0.14); color: #8A5D0B; }
+.event-card { cursor: pointer; }
+.event-card.picked { outline: 3px solid #FFB400; outline-offset: 2px; transform: translateY(-3px); }
+.total-actions { display: flex; justify-content: center; margin-top: 10px; }
+.total-actions .tool-btn { min-height: 40px; padding: 8px 18px; }
+.quasi-node { cursor: pointer; }
+.quasi-node.picked .node-circle { fill: #FFF1C9; stroke: #D63B1D; stroke-width: 3px; }
+.quasi-node:focus-visible { outline: none; }
+.quasi-node:focus-visible .node-circle { stroke: #D63B1D; stroke-width: 3px; }
+.edge-path { stroke: #B8321A; opacity: .75; }
+.graph-svg { width: 100%; height: 100%; min-height: 300px; display: block; }
+.nav-btn { flex: 1 1 0; justify-content: center; min-height: 44px; }
+@media (max-width: 768px) {
+    .nav-btn { flex-direction: column; gap: 2px; padding: 6px 4px; font-size: 0.8rem; }
 }
