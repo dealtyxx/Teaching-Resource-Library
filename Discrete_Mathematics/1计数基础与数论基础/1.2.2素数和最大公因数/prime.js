@@ -105,7 +105,7 @@ function renderGcd() {
         <div class="eu-table">${rows}</div>
         <div class="eu-cards">
             <div class="eu-card ${done ? 'ok' : ''}"><h4>结论</h4><p>${done ? `gcd(${num1}, ${num2}) = <b>${g}</b>${g === 1 ? '，两数<b>互素</b>' : ''}` : '继续下一步，直到余数为 0。'}</p></div>
-            <div class="eu-card"><h4>扩展欧几里得（贝祖等式）</h4><p>${done ? `${g} = ${x} × ${num1} ${y < 0 ? '−' : '+'} ${Math.abs(y)} × ${num2}` : '算完后回代，可把 gcd 写成 a、b 的整数组合。'}</p></div>
+            <div class="eu-card"><h4>扩展欧几里得（贝祖等式）</h4><p>${done ? `${g} = ${x < 0 ? `(${x})` : x} × ${num1} ${y < 0 ? '−' : '+'} ${Math.abs(y)} × ${num2}` : '算完后回代，可把 gcd 写成 a、b 的整数组合。'}</p></div>
             <div class="eu-card"><h4>对照素因子分解</h4><p>${num1} = ${factorHtml(f1)}<br>${num2} = ${factorHtml(f2)}<br>公共部分 ${g === 1 ? '为空，gcd = 1' : '= ' + factorHtml(fg) + ' = ' + g}</p></div>
         </div>`;
     document.getElementById('euPrev').disabled = n <= 1;
