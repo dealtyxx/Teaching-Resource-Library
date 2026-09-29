@@ -10,9 +10,6 @@
   const resultExtra = document.getElementById("resultExtra");
   if (!controls || !vizArea || !formulaText || !resultValue || !resultExtra) return;
 
-  if (window.SECTION_META) {
-    window.SECTION_META.ideology = { title: "", text: "", dims: [], quote: "" };
-  }
 
   const SVG_NS = "http://www.w3.org/2000/svg";
   let layoutScheduled = false;
@@ -820,13 +817,14 @@
     const compact = window.innerWidth <= 920;
     setImportant(document.body, "display", "block");
     setImportant(document.body, "overflow-x", "hidden");
-    setImportant(document.body, "overflow-y", compact ? "auto" : "hidden");
+    setImportant(document.body, "overflow-y", "auto"); // 桌面端也允许滚动，保证页脚可见
     setImportant(document.body, "padding-bottom", "0");
     setImportant(app, "display", "grid");
     setImportant(app, "width", compact ? "calc(100vw - 24px)" : "min(1440px, calc(100vw - 32px))");
-    setImportant(app, "height", compact ? "auto" : "calc(100vh - 124px)");
-    setImportant(app, "min-height", compact ? "0" : "640px");
-    setImportant(app, "margin", compact ? "54px auto 84px" : "32px auto 0");
+    // 高度随内容增长（不再锁定一屏），避免三阶卡占位后画布被压扁
+    setImportant(app, "height", "auto");
+    setImportant(app, "min-height", compact ? "0" : "max(640px, calc(100vh - 124px))");
+    setImportant(app, "margin", compact ? "54px auto 24px" : "32px auto 12px");
     setImportant(app, "padding", "0");
     setImportant(app, "gap", "18px");
     setImportant(app, "grid-template", compact ? "\"side\" auto \"main\" auto / minmax(0, 1fr)" : "\"side main\" minmax(0, 1fr) / minmax(300px, 360px) minmax(0, 1fr)");
@@ -847,7 +845,7 @@
     setImportant(main, "display", "grid");
     setImportant(main, "grid-template-rows", compact ? "auto auto minmax(380px, 1fr) auto" : "auto auto minmax(330px, 1fr) auto");
     setImportant(main, "gap", "10px");
-    setImportant(main, "overflow", "auto");
+    setImportant(main, "overflow", "visible");
     setImportant(vizArea, "min-height", compact ? "380px" : "330px");
     setImportant(vizArea, "height", "auto");
     if (result) {
