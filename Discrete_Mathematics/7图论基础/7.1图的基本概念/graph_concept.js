@@ -41,6 +41,27 @@
     }
     return c;
   }
+  // 有向图强连通分量个数（互相可达即同一分量；n 很小，用可达闭包即可）
+  function strongComponents(n, edges) {
+    const reach = Array.from({ length: n }, (_, i) => { const r = Array(n).fill(false); r[i] = true; return r; });
+    edges.forEach(e => { reach[e.u][e.v] = true; });
+    for (let k = 0; k < n; k++) for (let i = 0; i < n; i++) if (reach[i][k]) for (let j = 0; j < n; j++) if (reach[k][j]) reach[i][j] = true;
+    const seen = Array(n).fill(false);
+    let c = 0;
+    for (let i = 0; i < n; i++) if (!seen[i]) { c++; for (let j = 0; j < n; j++) if (reach[i][j] && reach[j][i]) seen[j] = true; }
+    return c;
+  }
+  function hasLoop(edges) { return edges.some(e => e.u === e.v); }
+  function hasParallel(edges) {
+    const seen = new Set();
+    for (const e of edges) {
+      if (e.u === e.v) continue;
+      const k = e.u < e.v ? e.u + "-" + e.v : e.v + "-" + e.u;
+      if (seen.has(k)) return true;
+      seen.add(k);
+    }
+    return false;
+  }
   function isSimple(edges) {
     const seen = new Set();
     for (const e of edges) {
@@ -163,7 +184,7 @@
           formula: '<span class="ft hot">e = {C, C}</span> ：两端点相同  →  deg(C) 计 +2',
           nodes: [2], edges: [[2,2]],
           badge: "loop", tone: "red",
-          text: "两个端点是<b>同一个顶点</b>的边叫<b>自环</b>。计算度数时，自环给该顶点贡献 <b>2</b>（进出各一次）。"
+          text: "两个端点是<b>同一个顶点</b>的边叫<b>自环</b>。一条边有两个端点，自环的两个端点都落在 C 上，所以计算度数时它给 C 贡献 <b>2</b>。"
         },
         {
           name: "平行边 parallel",
@@ -174,11 +195,11 @@
         },
         {
           name: "简单图 vs 多重图",
-          formula: '含自环或平行边  ⇒  <span class="ft hot">多重图</span>；都没有  ⇒  简单图',
+          formula: '含平行边  ⇒  <span class="ft hot">多重图</span>；既无平行边又无自环  ⇒  <span class="ft hot-green hot">简单图</span>',
           nodes: [0,1,2,3], edges: [[0,1],[2,2]],
           badge: "多重图", tone: "red",
           viz: "simple",
-          text: "本图既有平行边(A-B)又有自环(C)，所以是<b>多重图</b>。去掉它们、每对顶点至多一条边且无自环，才是<b>简单图</b>。"
+          text: "本图有平行边(A–B)，所以是<b>多重图</b>；它还带自环(C)，当然更不是简单图。只有<b>既无平行边、又无自环</b>（每对顶点至多一条边）的图才叫<b>简单图</b>。注意：只含自环、不含平行边的图不是简单图，但按教材定义也不叫多重图。"
         },
         {
           name: "度与握手(含自环)",
@@ -227,7 +248,7 @@
           formula: '<span class="ft hot">(u, v) ∈ E  ⟺  u R v</span>',
           nodes: [0,1], edges: [[0,1]],
           badge: "R ⊆ V×V", tone: "blue",
-          text: "一条有向边 (u,v) 恰好对应二元关系里的一个有序对 u R v。<b>有向图与集合上的二元关系是一回事</b>——第3章的关系图正是有向图。"
+          text: "一条有向边 (u,v) 恰好对应二元关系里的一个有序对 u R v。<b>不含平行边的有向图（允许自环）与顶点集上的二元关系一一对应</b>——第3章的关系图正是有向图。"
         },
         {
           name: "邻接矩阵 = 关系矩阵",
@@ -235,23 +256,23 @@
           nodes: [], edges: [],
           badge: "matrix", tone: "blue",
           viz: "matrix",
-          text: "有向图的邻接矩阵就是关系的<b>关系矩阵</b>：非对称说明关系非对称。矩阵乘法 M² 数的是长度为 2 的路径条数。"
+          text: "有向图的邻接矩阵就是关系的<b>关系矩阵</b>：矩阵不对称，说明这个关系不是对称关系。矩阵乘法 M² 的 (i,j) 元恰是从 i 到 j 长度为 2 的<b>通路</b>条数（第 7.7 节详讲）。"
         },
         {
           name: "出度 / 入度 · 中心性",
-          formula: 'deg⁺(A)=<span class="ft hot">2</span>（出）,  deg⁻(A)=<span class="ft hot-green hot">1</span>（入）',
+          formula: 'deg⁺(A)=<span class="ft hot">2</span>（出）,  deg⁻(A)=<span class="ft hot-green hot">1</span>（入）；Σdeg⁺ = Σdeg⁻ = |E| = 8',
           nodes: [0], edges: [[0,1],[0,2],[5,0]],
           badge: "out/in", tone: "gold",
           viz: "degree", vizFocus: 0,
-          text: "有向图每点分<b>出度</b>与<b>入度</b>。入度高≈被引用/被关注多，是<b>度中心性</b>的雏形——PageRank 正由此发展而来。"
+          text: "有向图每点分<b>出度</b>与<b>入度</b>。入度高≈被引用/被关注多，是<b>度中心性</b>的雏形；网页排序算法 PageRank 也以“被多少、被谁链接”为出发点。每条有向边贡献 1 个出度和 1 个入度，所以出度和 = 入度和 = 边数。"
         },
         {
           name: "可达与连通分量",
-          formula: '沿方向可达  ⇒  <span class="ft hot">强/弱连通分量</span>',
+          formula: '沿方向互相可达  ⇒  <span class="ft hot">强连通</span>；忽略方向后连通  ⇒  弱连通',
           nodes: [0,1,2,3,4,5], edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]],
           badge: "connected", tone: "",
           viz: "components",
-          text: "顺着有向环 A→B→C→D→E→F→A 彼此可达，构成一个<b>强连通分量</b>。连通性是搜索引擎爬取、交通调度的基础。"
+          text: "顺着有向环 A→B→C→D→E→F→A 彼此可达，所以整张图只有 <b>1 个强连通分量</b>（强连通图）。连通性是搜索引擎爬取、交通调度的基础（第 7.6 节详讲）。"
         },
         {
           name: "迁移：三类真实网络",
@@ -267,7 +288,7 @@
 
   /* 供 Node 测试 */
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = { LEVELS, degrees, handshakeOK, adjacency, components, isSimple };
+    module.exports = { LEVELS, degrees, handshakeOK, adjacency, components, strongComponents, hasLoop, hasParallel, isSimple };
   }
   if (typeof document === "undefined") return;
 
@@ -287,6 +308,12 @@
   let step = 0;
   let playTimer = null;
   const R = 20;
+  // 全章统一配色：普通顶点=主红白字，当前/关注=金，已确认=绿；普通边=淡褐灰细线，高亮边=主红加粗
+  const C = {
+    node: "#d63b1d", cur: "#ffb400", ok: "#1f9d55", dimNode: "#eed8cc",
+    edge: "rgba(107,74,56,0.5)", edgeDim: "rgba(107,74,56,0.16)", edgeHot: "#d63b1d", edgeOk: "#1f9d55",
+    text: "#fff", curText: "#2c1810", dimText: "#9a7a6a", ring: "#fff8ec"
+  };
 
   function esc(v) {
     return String(v == null ? "" : v).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch]));
@@ -299,7 +326,7 @@
   function resize() {
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
-    const w = Math.max(360, Math.floor(rect.width));
+    const w = Math.max(240, Math.floor(rect.width));  // 不强行放大到 360，否则窄屏上画布被 CSS 横向压缩、文字变形
     const h = Math.max(300, Math.floor(rect.height));
     canvas.width = Math.floor(w * dpr);
     canvas.height = Math.floor(h * dpr);
@@ -327,7 +354,7 @@
     ctx.fill();
   }
   function drawLoop(p, hot, dim) {
-    const color = hot ? "#d63b1d" : dim ? "rgba(47,95,159,0.2)" : "rgba(47,95,159,0.62)";
+    const color = hot ? C.edgeHot : dim ? C.edgeDim : C.edge;
     ctx.strokeStyle = color;
     ctx.lineWidth = hot ? 4 : 2;
     ctx.beginPath();
@@ -351,7 +378,7 @@
       const dim = anyHl && !hot;
       if (e.u === e.v) { drawLoop(P[e.u], hot, dim); return; }
       const a = P[e.u], b = P[e.v];
-      const color = hot ? "#d63b1d" : dim ? "rgba(47,95,159,0.2)" : "rgba(47,95,159,0.62)";
+      const color = hot ? C.edgeHot : dim ? C.edgeDim : C.edge;
       ctx.strokeStyle = color;
       ctx.lineWidth = hot ? 4 : 2.2;
       const off = e.off || 0;
@@ -375,12 +402,12 @@
       const dim = anyHl && !hot;
       ctx.beginPath();
       ctx.arc(p.x, p.y, hot ? R + 2 : R, 0, Math.PI * 2);
-      ctx.fillStyle = hot ? "#d63b1d" : dim ? "#cdbfae" : "#2f7d57";
+      ctx.fillStyle = hot ? C.cur : dim ? C.dimNode : C.node;
       ctx.fill();
-      ctx.strokeStyle = "#fff8ec";
+      ctx.strokeStyle = C.ring;
       ctx.lineWidth = 3;
       ctx.stroke();
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = hot ? C.curText : dim ? C.dimText : C.text;
       ctx.font = "800 14px 'JetBrains Mono', Consolas, monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -399,7 +426,7 @@
     ).join("");
     return '<div class="matrix-wrap"><div class="matrix-grid" style="grid-template-columns:repeat(' + (N + 1) + ',26px)">' +
       head + rows + '</div><div class="graph-summary">' +
-      (directed ? "有向图的邻接矩阵一般<b>不对称</b>，即关系矩阵。" : "无向图的邻接矩阵<b>对称</b>；平行边使元素 &gt;1，自环记对角线。") +
+      (directed ? "有向图的邻接矩阵一般<b>不对称</b>，即关系矩阵。" : "无向图的邻接矩阵<b>对称</b>；平行边使元素 &gt;1，对角线记自环条数（本页约定，个别教材把自环在对角线记 2）。") +
       '</div></div>';
   }
   function degreeHtml(focus) {
@@ -409,8 +436,11 @@
       '<span class="pill">' + nm + (directed ? "：出" + d.out[i] + " / 入" + d.inn[i] : "：deg " + d.deg[i]) + '</span>'
     ).join("");
     const f = focus != null ? focus : 0;
+    const sumOut = d.out.reduce((a, b) => a + b, 0), sumIn = d.inn.reduce((a, b) => a + b, 0);
     return '<div class="graph-summary"><b>度数分布：</b>' +
-      (directed ? "deg⁺(" + level.names[f] + ")=" + d.out[f] + "，deg⁻(" + level.names[f] + ")=" + d.inn[f] : "deg(" + level.names[f] + ")=" + d.deg[f]) +
+      (directed ? "deg⁺(" + level.names[f] + ")=" + d.out[f] + "，deg⁻(" + level.names[f] + ")=" + d.inn[f] +
+        "；Σdeg⁺=" + sumOut + "，Σdeg⁻=" + sumIn + "，|E|=" + level.edges.length + (sumOut === sumIn && sumIn === level.edges.length ? " ✓" : "")
+        : "deg(" + level.names[f] + ")=" + d.deg[f]) +
       '<div class="pill-row">' + rows + '</div></div>';
   }
   function handshakeHtml() {
@@ -421,12 +451,19 @@
       '，两者相等 ✓。奇度顶点数=' + odd + '（必为偶数）。</div>';
   }
   function simpleHtml() {
-    const simple = isSimple(level.edges);
-    return '<div class="graph-summary"><b>判定：</b>本图' + (simple ? "无自环、无平行边 → 是<b>简单图</b>。" : "含自环/平行边 → 是<b>多重图</b>。") + '</div>';
+    const loop = hasLoop(level.edges), par = hasParallel(level.edges);
+    const verdict = isSimple(level.edges) ? "无平行边、无自环 → 是<b>简单图</b>。"
+      : (par ? "有平行边 → 是<b>多重图</b>" + (loop ? "（另含自环）" : "") + "，不是简单图。" : "无平行边但有自环 → 不是简单图（也不叫多重图）。");
+    return '<div class="graph-summary"><b>判定：</b>平行边 ' + (par ? "有" : "无") + '，自环 ' + (loop ? "有" : "无") + '。本图' + verdict + '</div>';
   }
   function componentsHtml() {
-    const c = components(N, level.edges);
-    return '<div class="graph-summary"><b>连通分量数：</b>' + c + '。' + (c === 1 ? "整张网络连成一体，任意两点（弱）可达。" : "网络被分成 " + c + " 块。") + '</div>';
+    const weak = components(N, level.edges);
+    if (!level.directed) {
+      return '<div class="graph-summary"><b>连通分量数：</b>' + weak + '。' + (weak === 1 ? "整张网络连成一体。" : "网络被分成 " + weak + " 块。") + '</div>';
+    }
+    const strong = strongComponents(N, level.edges);
+    return '<div class="graph-summary"><b>连通性：</b>弱连通分量 ' + weak + ' 个，强连通分量 ' + strong + ' 个。' +
+      (strong === 1 ? "任意两点沿箭头方向<b>互相可达</b>，是强连通图。" : "沿箭头方向并非处处互达。") + '</div>';
   }
   function networksHtml() {
     return '<div class="graph-summary"><b>迁移对照：</b>' +
@@ -495,7 +532,7 @@
   /* ---- 构建控件 ---- */
   function buildControls() {
     const listItems = level.steps.map((s, i) =>
-      '<div class="step-item" data-i="' + i + '"><span class="num">' + (i + 1) + '</span><span>' + esc(s.name) + '</span></div>'
+      '<button type="button" class="step-item" data-i="' + i + '"><span class="num">' + (i + 1) + '</span><span>' + esc(s.name) + '</span></button>'
     ).join("");
     controls.innerHTML =
       '<div class="step-controller">' +
@@ -519,7 +556,19 @@
     });
   }
 
+  function buildLegend() {
+    const board = canvas.parentNode;
+    if (!board || board.querySelector(".graph-legend")) return;
+    const lg = document.createElement("div");
+    lg.className = "graph-legend";
+    lg.setAttribute("aria-hidden", "true");
+    lg.innerHTML = '<span><i class="lg-node"></i>顶点</span><span><i class="lg-node lg-cur"></i>本步关注</span>' +
+      '<span><i class="lg-edge"></i>边</span><span><i class="lg-edge lg-hot"></i>本步高亮</span>';
+    board.appendChild(lg);
+  }
+
   buildControls();
+  buildLegend();
   renderStep();
   window.addEventListener("resize", draw);
 })();
