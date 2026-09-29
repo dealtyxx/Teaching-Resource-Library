@@ -2,7 +2,6 @@
  * Tower of Order - Lattice Theory Visualizer
  * 秩序之塔 - 格论可视化
  */
-
 // DOM Elements
 const latticeType = document.getElementById('latticeType');
 const joinBtn = document.getElementById('joinBtn');
@@ -24,7 +23,6 @@ const elementCount = document.getElementById('elementCount');
 const levelCount = document.getElementById('levelCount');
 const operationCount = document.getElementById('operationCount');
 const score = document.getElementById('score');
-
 // State
 let currentLattice = 'divisors12';
 let currentMode = 'join'; // join, meet, sublattice, homomorphism
@@ -32,22 +30,21 @@ let selectedElements = [null, null];
 let latticeData = null;
 let gameScore = 0;
 let opCount = 0;
-
 // Ideological messages
 const ideologicalMessages = {
     lattice: {
         title: "层级秩序",
-        message: "格的偏序结构体现组织层级，上下有序、协作有序，展现和谐统一的秩序之美",
+        message: "格中任意两个元素都有最小上界与最大下界：再多的差异，也总能找到共同目标（∨）与共同基础（∧）。",
         icon: "△"
     },
     join: {
         title: "并运算 - 团结向上",
-        message: "并运算寻找最小上界，体现团结协作、共同提升的向上精神",
+        message: "a ∨ b 是同时高于 a、b 的元素中最低的那个——既照顾各方，又不好高骛远。",
         icon: "∨"
     },
     meet: {
         title: "交运算 - 共同基础",
-        message: "交运算寻找最大下界，象征寻找共识、夯实基础的务实作风",
+        message: "a ∧ b 是 a、b 共有的最大下界，就像多方共识中的“最大公约数”。",
         icon: "∧"
     },
     sublattice: {
@@ -61,7 +58,6 @@ const ideologicalMessages = {
         icon: "→"
     }
 };
-
 // Lattice definitions
 const lattices = {
     divisors12: {
@@ -201,7 +197,6 @@ const lattices = {
         }
     }
 };
-
 // Helper functions
 function gcd(a, b) {
     while (b !== 0) {
@@ -211,18 +206,15 @@ function gcd(a, b) {
     }
     return a;
 }
-
 function lcm(a, b) {
     return (a * b) / gcd(a, b);
 }
-
 function isSubset(setA, setB) {
     for (const elem of setA) {
         if (!setB.has(elem)) return false;
     }
     return true;
 }
-
 function setsEqual(setA, setB) {
     if (setA.size !== setB.size) return false;
     for (const elem of setA) {
@@ -230,13 +222,53 @@ function setsEqual(setA, setB) {
     }
     return true;
 }
-
 // Initialize
 function init() {
     updateIdeology('lattice');
     setActiveMode('join');
+    buildLattice();
+    // 默认示例：在 D₁₂ 中选 4 与 6，演示 ∨
+    selectedElements = ['4', '6'];
+    updateSlots();
+    updateNodeHighlights();
+    computeOperation(true);
 }
-
+// 统一用字符串表示所选元素，计算时还原为格中的原始元素
+function toElem(s) { return latticeData.elements.find(e => String(e) === String(s)); }
+// 穷举检验格的代数性质：吸收律 + 分配律（交换、结合、幂等对任何格都成立）
+function checkLaws(L) {
+    const E = L.elements, J = (a, b) => L.join(a, b), M = (a, b) => L.meet(a, b);
+    let absorb = true, distBad = null;
+    for (const a of E) for (const b of E) {
+        if (String(J(a, M(a, b))) !== String(a) || String(M(a, J(a, b))) !== String(a)) absorb = false;
+        for (const c of E) {
+            if (!distBad && String(M(a, J(b, c))) !== String(J(M(a, b), M(a, c)))) distBad = [a, b, c];
+        }
+    }
+    return { absorb, distBad };
+}
+function coverCount(L) {
+    let n = 0;
+    for (const a of L.elements) for (const b of L.elements) {
+        if (a === b || !L.partialOrder(a, b)) continue;
+        if (!L.elements.some(m => m !== a && m !== b && L.partialOrder(a, m) && L.partialOrder(m, b))) n++;
+    }
+    return n;
+}
+function updateLawBadges() {
+    const L = latticeData, K = checkLaws(L);
+    const set = (id, ok, text) => {
+        const el = document.getElementById(id);
+        el.classList.toggle('ok', ok); el.classList.toggle('no', !ok);
+        el.querySelector('.badge-icon').textContent = ok ? '✓' : '✗';
+        if (text) el.querySelector('.badge-text').textContent = text;
+    };
+    set('prop1', true);
+    set('prop2', true);
+    set('prop3', K.absorb);
+    const d = K.distBad;
+    set('prop4', !d, d ? `分配律 ✗：${d[0]}∧(${d[1]}∨${d[2]}) ≠ (${d[0]}∧${d[1]})∨(${d[0]}∧${d[2]})` : '分配律 a∧(b∨c)=(a∧b)∨(a∧c)');
+}
 // Update ideology card
 function updateIdeology(key) {
     const msg = ideologicalMessages[key];
@@ -244,21 +276,17 @@ function updateIdeology(key) {
         ideologyCard.querySelector('.card-icon').textContent = msg.icon;
         ideologyCard.querySelector('.card-title').textContent = msg.title;
         ideologyCard.querySelector('.card-content').textContent = msg.message;
-
         ideologyCard.classList.remove('active');
         setTimeout(() => ideologyCard.classList.add('active'), 10);
     }
 }
-
 // Set active mode
 function setActiveMode(mode) {
     currentMode = mode;
-
     // Update button states
     [joinBtn, meetBtn, sublatticeBtn, homomorphismBtn].forEach(btn => {
         btn.classList.remove('active');
     });
-
     switch (mode) {
         case 'join':
             joinBtn.classList.add('active');
@@ -275,40 +303,31 @@ function setActiveMode(mode) {
             homomorphismBtn.classList.add('active');
             break;
     }
-
     // Reset selection
     selectedElements = [null, null];
     updateSlots();
     clearResultHighlight();
 }
-
 // Build lattice visualization
 function buildLattice() {
     const lattice = lattices[currentLattice];
     latticeData = lattice;
-
     vizTitle.textContent = `${lattice.name} - Hasse 图`;
     vizSubtitle.textContent = `${lattice.elements.length} 个元素，${Object.keys(lattice.levels).length} 个层级`;
-
     // Update stats
     elementCount.textContent = lattice.elements.length;
     levelCount.textContent = Object.keys(lattice.levels).length;
-
     // Create Hasse diagram
     const container = document.createElement('div');
     container.className = 'hasse-diagram';
-
     // Create SVG for edges
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('class', 'lattice-edge-svg');
     container.appendChild(svg);
-
     // Calculate positions
     const positions = calculateNodePositions(lattice);
-
     // Draw edges first
     drawEdges(svg, lattice, positions);
-
     // Create nodes
     lattice.elements.forEach((elem, idx) => {
         const node = document.createElement('div');
@@ -316,31 +335,30 @@ function buildLattice() {
         node.textContent = elem;
         node.dataset.element = elem;
         node.dataset.index = idx;
-
         const pos = positions[idx];
         node.style.left = `${pos.x}px`;
         node.style.top = `${pos.y}px`;
-
-        node.addEventListener('click', () => selectElement(elem, node));
-
+        node.setAttribute('role', 'button');
+        node.setAttribute('tabindex', '0');
+        node.setAttribute('aria-label', '元素 ' + elem);
+        node.addEventListener('click', () => selectElement(String(elem), node));
+        node.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectElement(String(elem), node); } });
         container.appendChild(node);
     });
-
     visualizationArea.innerHTML = '';
     visualizationArea.appendChild(container);
+    score.textContent = coverCount(lattice);
+    updateLawBadges();
 }
-
 // Calculate node positions for Hasse diagram
 function calculateNodePositions(lattice) {
     const positions = [];
     const levels = lattice.levels;
     const levelCount = Object.keys(levels).length;
-    const containerWidth = visualizationArea.clientWidth || 600;
-    const containerHeight = visualizationArea.clientHeight || 500;
-
+    const containerWidth = Math.min(visualizationArea.clientWidth || 600, 720);
+    const containerHeight = 440; // 与 .hasse-diagram 固定高度一致，避免首屏量到 0 高度而溢出
     const verticalSpacing = Math.min(120, (containerHeight - 100) / (levelCount - 1));
     const startY = 50;
-
     lattice.elements.forEach((elem) => {
         // Find which level this element is in
         let level = 0;
@@ -350,39 +368,29 @@ function calculateNodePositions(lattice) {
                 break;
             }
         }
-
         const levelElems = levels[level];
         const indexInLevel = levelElems.indexOf(elem);
         const levelSize = levelElems.length;
-
         const horizontalSpacing = Math.min(100, containerWidth / (levelSize + 1));
         const startX = (containerWidth - (levelSize - 1) * horizontalSpacing) / 2;
-
         const x = startX + indexInLevel * horizontalSpacing - 25; // -25 for node radius
         const y = containerHeight - startY - level * verticalSpacing - 25;
-
         positions.push({ x, y });
     });
-
     return positions;
 }
-
 // Draw edges (covering relations)
 function drawEdges(svg, lattice, positions) {
     const elements = lattice.elements;
-
     elements.forEach((lower, lowerIdx) => {
         elements.forEach((upper, upperIdx) => {
             if (lower === upper) return;
-
             // Check if lower covers upper (lower < upper and no element between)
             const lowerPos = positions[lowerIdx];
             const upperPos = positions[upperIdx];
-
             if (typeof lattice.partialOrder === 'function') {
                 const isLE = lattice.partialOrder(lower, upper);
                 if (!isLE || lower === upper) return;
-
                 // Check if it's a covering relation (no element between)
                 let isCovering = true;
                 for (const mid of elements) {
@@ -392,7 +400,6 @@ function drawEdges(svg, lattice, positions) {
                         break;
                     }
                 }
-
                 if (isCovering) {
                     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                     line.setAttribute('class', 'lattice-edge');
@@ -408,10 +415,8 @@ function drawEdges(svg, lattice, positions) {
         });
     });
 }
-
 // ── Sublattice state ──────────────────────────────────────────────────────────
 let sublatticeSelected = new Set();
-
 function runSublatticeVisualization() {
     if (!latticeData) {
         operationResult.querySelector('.result-value').textContent = '请先构建格结构';
@@ -419,33 +424,12 @@ function runSublatticeVisualization() {
     }
     // Re-draw the Hasse diagram with sublattice toggle support
     buildLattice();
-    // Patch node click to toggle sublattice membership
-    document.querySelectorAll('.lattice-node').forEach(node => {
-        node.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const el = node.dataset.element;
-            if (sublatticeSelected.has(el)) {
-                sublatticeSelected.delete(el);
-                node.style.outline = '';
-                node.style.background = '';
-            } else {
-                sublatticeSelected.add(el);
-                node.style.outline = '3px solid #ffb400';
-                node.style.background = 'rgba(255,180,0,0.25)';
-            }
-        });
-    });
-
     // Inject "检查子格" button into operationResult area
     operationResult.querySelector('.result-value').innerHTML =
-        '点击节点选择元素，然后 <button id="checkSublatticeBtn" style="' +
-        'background:var(--accent-red);color:#fff;border:none;padding:4px 12px;' +
-        'border-radius:8px;cursor:pointer;font-size:0.85rem;">检查子格</button>';
-
+        '点击节点选择元素，然后 <button type="button" id="checkSublatticeBtn" class="inline-btn">检查子格</button>';
     document.getElementById('checkSublatticeBtn').addEventListener('click', checkSublattice);
     vizSubtitle.textContent = '点击节点选择子集，检查是否构成子格';
 }
-
 function checkSublattice() {
     const sel = Array.from(sublatticeSelected);
     if (sel.length < 2) {
@@ -455,12 +439,11 @@ function checkSublattice() {
     const lattice = latticeData;
     let isSublattice = true;
     const failures = [];
-
     for (let i = 0; i < sel.length; i++) {
         for (let j = i + 1; j < sel.length; j++) {
-            const a = sel[i], b = sel[j];
-            const joinResult = String(typeof lattice.join === 'function' ? lattice.join(a, b) : lcm(Number(a), Number(b)));
-            const meetResult = String(typeof lattice.meet === 'function' ? lattice.meet(a, b) : gcd(Number(a), Number(b)));
+            const a = toElem(sel[i]), b = toElem(sel[j]);
+            const joinResult = String(lattice.join(a, b));
+            const meetResult = String(lattice.meet(a, b));
             if (!sublatticeSelected.has(joinResult)) {
                 isSublattice = false;
                 failures.push(`${a} ∨ ${b} = ${joinResult} ∉ 子集`);
@@ -471,16 +454,14 @@ function checkSublattice() {
             }
         }
     }
-
     // Color nodes
     document.querySelectorAll('.lattice-node').forEach(node => {
         const el = node.dataset.element;
         if (sublatticeSelected.has(el)) {
-            node.style.outline = isSublattice ? '3px solid #22c55e' : '3px solid #ef4444';
-            node.style.background = isSublattice ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)';
+            node.style.outline = isSublattice ? '3px solid #2f7d57' : '3px dashed #c0392b';
+            node.style.background = isSublattice ? 'rgba(47,125,87,0.18)' : 'rgba(192,57,43,0.12)';
         }
     });
-
     if (isSublattice) {
         operationResult.querySelector('.result-value').textContent =
             `✓ {${sel.join(', ')}} 是子格！对并和交封闭。`;
@@ -488,10 +469,7 @@ function checkSublattice() {
         operationResult.querySelector('.result-value').textContent =
             `✗ 不是子格：${failures[0]}`;
     }
-    gameScore += isSublattice ? 20 : 0;
-    score.textContent = gameScore;
 }
-
 // ── Homomorphism visualization ────────────────────────────────────────────────
 function runHomomorphismVisualization() {
     if (!latticeData) {
@@ -502,19 +480,15 @@ function runHomomorphismVisualization() {
     const domainLattice = lattices['divisors12'];
     const codomainElems = [1, 2, 3, 6];
     const phi = x => gcd(x, 6);
-
     vizTitle.textContent = '格同态 φ: D₁₂ → D₆';
     vizSubtitle.textContent = 'φ(x) = gcd(x, 6)，保持 ∨ 和 ∧ 运算';
-
     const containerW = visualizationArea.clientWidth || 620;
-    const containerH = visualizationArea.clientHeight || 480;
-    const halfW = containerW / 2 - 10;
-
+    const containerH = 440;
+    const halfW = Math.min(360, containerW / 2 - 10);
     const wrapper = document.createElement('div');
     wrapper.style.cssText = 'display:flex;gap:10px;height:100%;align-items:center;';
-
     // Build left panel (D₁₂)
-    const leftDiv = buildMiniHasse(domainLattice, halfW, containerH - 60, '#3b82f6', 'D₁₂（定义域）');
+    const leftDiv = buildMiniHasse(domainLattice, halfW, containerH - 60, '#d63b1d', 'D₁₂（定义域）');
     // Build right panel (D₆)
     const d6 = {
         name: 'D₆', elements: codomainElems,
@@ -522,13 +496,11 @@ function runHomomorphismVisualization() {
         join: (a, b) => lcm(a, b), meet: (a, b) => gcd(a, b),
         levels: { 0: [1], 1: [2, 3], 2: [6] }
     };
-    const rightDiv = buildMiniHasse(d6, halfW, containerH - 60, '#8b5cf6', 'D₆（值域）');
-
+    const rightDiv = buildMiniHasse(d6, halfW, containerH - 60, '#c58a1f', 'D₆（值域）');
     wrapper.appendChild(leftDiv);
     wrapper.appendChild(rightDiv);
     visualizationArea.innerHTML = '';
     visualizationArea.appendChild(wrapper);
-
     // Animate mapping arrows with a small SVG overlay (after DOM renders)
     setTimeout(() => {
         domainLattice.elements.forEach(x => {
@@ -537,36 +509,30 @@ function runHomomorphismVisualization() {
             const tgtNode = rightDiv.querySelector(`[data-element="${tgtElem}"]`);
             if (srcNode && tgtNode) {
                 // Pulse animation: temporarily highlight src and target
-                srcNode.style.background = 'rgba(59,130,246,0.5)';
-                tgtNode.style.background = 'rgba(139,92,246,0.5)';
                 srcNode.title = `φ(${x}) = ${tgtElem}`;
+                srcNode.textContent = `${x}→${tgtElem}`;
+                srcNode.style.fontSize = '0.68rem';
             }
         });
     }, 100);
-
     operationResult.querySelector('.result-value').textContent =
-        '悬停节点查看映射；φ 保持 join/meet ✓';
+        '左图节点标出 x→φ(x)；φ(x)=x∧6 保持 ∨ 与 ∧ ✓（D₁₂ 是分配格）';
 }
-
 function buildMiniHasse(lattice, w, h, color, label) {
     const div = document.createElement('div');
     div.style.cssText = `position:relative;width:${w}px;height:${h}px;flex-shrink:0;`;
-
     const title = document.createElement('div');
     title.textContent = label;
     title.style.cssText = `text-align:center;font-size:0.8rem;color:${color};font-weight:bold;margin-bottom:4px;`;
     div.appendChild(title);
-
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.style.cssText = `position:absolute;top:20px;left:0;width:100%;height:${h-20}px;pointer-events:none;`;
     div.appendChild(svg);
-
     const positions = {};
     const levels = lattice.levels;
     const levelKeys = Object.keys(levels).map(Number).sort((a, b) => a - b);
     const levelCount2 = levelKeys.length;
     const vSpacing = (h - 60) / Math.max(levelCount2 - 1, 1);
-
     lattice.elements.forEach(elem => {
         let level = 0;
         for (const [lvl, elems] of Object.entries(levels)) {
@@ -579,7 +545,6 @@ function buildMiniHasse(lattice, w, h, color, label) {
         const y = h - 30 - level * vSpacing;
         positions[elem] = { x, y };
     });
-
     // Draw edges
     lattice.elements.forEach(lower => {
         lattice.elements.forEach(upper => {
@@ -603,7 +568,6 @@ function buildMiniHasse(lattice, w, h, color, label) {
             }
         });
     });
-
     // Draw nodes
     lattice.elements.forEach(elem => {
         const pos = positions[elem];
@@ -617,10 +581,8 @@ function buildMiniHasse(lattice, w, h, color, label) {
             box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background .3s;`;
         div.appendChild(node);
     });
-
     return div;
 }
-
 // Select element
 function selectElement(elem, node) {
     if (currentMode === 'sublattice') {
@@ -639,7 +601,6 @@ function selectElement(elem, node) {
     if (currentMode === 'homomorphism') {
         return;
     }
-
     // Add/update selection for join/meet
     if (selectedElements[0] === null) {
         selectedElements[0] = elem;
@@ -650,16 +611,13 @@ function selectElement(elem, node) {
         selectedElements[0] = selectedElements[1];
         selectedElements[1] = elem;
     }
-
     updateSlots();
     updateNodeHighlights();
 }
-
 // Update slot display
 function updateSlots() {
     const slot1Value = slot1.querySelector('.slot-value');
     const slot2Value = slot2.querySelector('.slot-value');
-
     if (selectedElements[0] !== null) {
         slot1Value.textContent = selectedElements[0];
         slot1.classList.add('filled');
@@ -667,7 +625,6 @@ function updateSlots() {
         slot1Value.textContent = '—';
         slot1.classList.remove('filled');
     }
-
     if (selectedElements[1] !== null) {
         slot2Value.textContent = selectedElements[1];
         slot2.classList.add('filled');
@@ -676,53 +633,42 @@ function updateSlots() {
         slot2.classList.remove('filled');
     }
 }
-
 // Update node highlights
 function updateNodeHighlights() {
     document.querySelectorAll('.lattice-node').forEach(node => {
         node.classList.remove('selected', 'result');
         const elem = node.dataset.element;
-        if (selectedElements.includes(elem)) {
+        if (selectedElements.map(String).includes(elem)) {
             node.classList.add('selected');
         }
     });
 }
-
 // Compute operation
-function computeOperation() {
+function computeOperation(silent) {
     if (selectedElements[0] === null || selectedElements[1] === null) {
         operationResult.querySelector('.result-value').textContent = '请选择两个元素';
         return;
     }
-
-    const a = selectedElements[0];
-    const b = selectedElements[1];
+    const a = toElem(selectedElements[0]);
+    const b = toElem(selectedElements[1]);
     let result;
-
+    const j = latticeData.join(a, b), m = latticeData.meet(a, b);
     if (currentMode === 'join') {
-        result = typeof latticeData.join === 'function' ?
-            latticeData.join(a, b) : lcm(a, b);
-        operationResult.querySelector('.result-value').textContent = `${a} ∨ ${b} = ${result}`;
+        result = j;
+        operationResult.querySelector('.result-value').textContent = `${a} ∨ ${b} = ${j}（最小上界）；对偶地 ${a} ∧ ${b} = ${m}`;
     } else if (currentMode === 'meet') {
-        result = typeof latticeData.meet === 'function' ?
-            latticeData.meet(a, b) : gcd(a, b);
-        operationResult.querySelector('.result-value').textContent = `${a} ∧ ${b} = ${result}`;
+        result = m;
+        operationResult.querySelector('.result-value').textContent = `${a} ∧ ${b} = ${m}（最大下界）；对偶地 ${a} ∨ ${b} = ${j}`;
+    } else {
+        return;
     }
-
     // Highlight result node
     highlightResult(result);
-
-    // Update stats
-    opCount++;
-    operationCount.textContent = opCount;
-    gameScore += 10;
-    score.textContent = gameScore;
+    if (!silent) { opCount++; operationCount.textContent = opCount; }
 }
-
 // Highlight result
 function highlightResult(result) {
     clearResultHighlight();
-
     const nodes = document.querySelectorAll('.lattice-node');
     nodes.forEach(node => {
         if (node.dataset.element === String(result)) {
@@ -730,85 +676,50 @@ function highlightResult(result) {
         }
     });
 }
-
 // Clear result highlight
 function clearResultHighlight() {
     document.querySelectorAll('.lattice-node.result').forEach(node => {
         node.classList.remove('result');
     });
 }
-
 // Reset
 function reset() {
-    visualizationArea.innerHTML = `
-        <div class="welcome-state">
-            <div class="tower-animation">
-                <svg viewBox="0 0 200 200" class="tower-svg">
-                    <defs>
-                        <linearGradient id="towerGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-                            <stop offset="0%" style="stop-color:#b8321a;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#d63b1d;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ffb400;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <polygon points="100,20 130,60 70,60" fill="url(#towerGrad)" class="tower-level" />
-                    <polygon points="100,60 140,100 60,100" fill="url(#towerGrad)" class="tower-level"
-                        style="opacity: 0.8" />
-                    <polygon points="100,100 150,140 50,140" fill="url(#towerGrad)" class="tower-level"
-                        style="opacity: 0.6" />
-                    <polygon points="100,140 160,180 40,180" fill="url(#towerGrad)" class="tower-level"
-                        style="opacity: 0.4" />
-                    <polygon points="100,5 103,15 113,15 105,21 108,31 100,25 92,31 95,21 87,15 97,15"
-                        fill="#ffb400" class="tower-star" />
-                </svg>
-            </div>
-            <p class="welcome-text">构建秩序之塔，探索格的层级结构</p>
-        </div>
-    `;
-
-    vizTitle.textContent = 'Hasse 图可视化';
-    vizSubtitle.textContent = '点击"构建格结构"开始探索';
-
-    selectedElements = [null, null];
-    updateSlots();
-
-    operationResult.querySelector('.result-value').textContent = '选择两个元素';
-
+    currentLattice = 'divisors12';
+    latticeType.value = 'divisors12';
+    sublatticeSelected.clear();
     opCount = 0;
     operationCount.textContent = opCount;
+    init();
 }
-
 // Event Listeners
 latticeType.addEventListener('change', (e) => {
     currentLattice = e.target.value;
+    sublatticeSelected.clear();
+    setActiveMode(currentMode === 'homomorphism' ? 'join' : currentMode);
+    buildLattice();
+    if (currentMode === 'sublattice') runSublatticeVisualization();
 });
-
 joinBtn.addEventListener('click', () => {
     setActiveMode('join');
     updateIdeology('join');
 });
-
 meetBtn.addEventListener('click', () => {
     setActiveMode('meet');
     updateIdeology('meet');
 });
-
 sublatticeBtn.addEventListener('click', () => {
     sublatticeSelected.clear();
     setActiveMode('sublattice');
     updateIdeology('sublattice');
     runSublatticeVisualization();
 });
-
 homomorphismBtn.addEventListener('click', () => {
     setActiveMode('homomorphism');
     updateIdeology('homomorphism');
     runHomomorphismVisualization();
 });
-
-computeBtn.addEventListener('click', computeOperation);
-buildLatticeBtn.addEventListener('click', buildLattice);
+computeBtn.addEventListener('click', () => computeOperation(false));
+buildLatticeBtn.addEventListener('click', () => { setActiveMode(currentMode === 'homomorphism' ? 'join' : currentMode); buildLattice(); });
 resetBtn.addEventListener('click', reset);
-
 // Initialize
 init();

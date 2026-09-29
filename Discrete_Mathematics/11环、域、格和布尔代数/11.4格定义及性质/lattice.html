@@ -9,7 +9,7 @@
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
     <meta property="og:title" content="格的代数刻画 · 进阶层｜11.4 格定义及性质 - 离散数学课程资源库">
-    <meta property="og:description" content="第11章 环、域、格和布尔代数 · 11.4 格定义及性质 · 进阶层：交换/结合/吸收 / 双视角。用代数定律刻画格、求确界。">
+    <meta property="og:description" content="第11章 环、域、格和布尔代数 · 11.4 格定义及性质 · 进阶层：交换 / 结合 / 吸收 / 分配 / 对偶视角。用运算律刻画格，求确界并检验吸收律、分配律。">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/11%E7%8E%AF%E3%80%81%E5%9F%9F%E3%80%81%E6%A0%BC%E5%92%8C%E5%B8%83%E5%B0%94%E4%BB%A3%E6%95%B0/11.4%E6%A0%BC%E5%AE%9A%E4%B9%89%E5%8F%8A%E6%80%A7%E8%B4%A8/lattice.html">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta property="og:image:width" content="1200">
@@ -17,11 +17,11 @@
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="格的代数刻画 · 进阶层｜11.4 格定义及性质 - 离散数学课程资源库">
-    <meta name="twitter:description" content="第11章 环、域、格和布尔代数 · 11.4 格定义及性质 · 进阶层：交换/结合/吸收 / 双视角。用代数定律刻画格、求确界。">
+    <meta name="twitter:description" content="第11章 环、域、格和布尔代数 · 11.4 格定义及性质 · 进阶层：交换 / 结合 / 吸收 / 分配 / 对偶视角。用运算律刻画格，求确界并检验吸收律、分配律。">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>格的代数刻画 · 进阶层｜11.4 格定义及性质 - 离散数学课程资源库</title>
-    <meta name="description" content="第11章 环、域、格和布尔代数 · 11.4 格定义及性质 · 进阶层：交换/结合/吸收 / 双视角。用代数定律刻画格、求确界。">
+    <meta name="description" content="第11章 环、域、格和布尔代数 · 11.4 格定义及性质 · 进阶层：交换 / 结合 / 吸收 / 分配 / 对偶视角。用运算律刻画格，求确界并检验吸收律、分配律。">
 
     <link rel="stylesheet" href="lattice-style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,6 +44,7 @@
                     <span class="dot yellow"></span>
                     <span class="dot green"></span>
                 </div>
+                <div class="layer-eyebrow">进阶层 · 第11章 环、域、格和布尔代数</div>
                 <h1>红色数理 <span class="highlight">进阶层</span></h1>
                 <p class="subtitle">格的上确界下确界实验室 · 格论探索</p>
             </div>
@@ -52,27 +53,27 @@
                 <div class="control-group">
                     <label>选择格类型</label>
                     <select id="latticeType" class="apple-select">
-                        <option value="divisors12">约数格 D₁₂ (层级)</option>
-                        <option value="divisors30">约数格 D₃₀ (组织)</option>
-                        <option value="powerset">幂集格 2³ (权力)</option>
-                        <option value="diamond">钻石格 M₃ (决策)</option>
-                        <option value="pentagon">五边形格 N₅ (平衡)</option>
+                        <option value="divisors12">约数格 D₁₂（整除）</option>
+                        <option value="divisors30">约数格 D₃₀（整除）</option>
+                        <option value="powerset">幂集格 P({a,b,c})（包含）</option>
+                        <option value="diamond">钻石格 M₃</option>
+                        <option value="pentagon">五边形格 N₅</option>
                     </select>
                 </div>
 
                 <div class="control-group">
                     <label>探索概念</label>
                     <div class="concept-buttons">
-                        <button id="joinBtn" class="concept-btn" aria-label="∨ 并运算">
+                        <button type="button" id="joinBtn" class="concept-btn">
                             <span class="icon">∨</span> 并运算
                         </button>
-                        <button id="meetBtn" class="concept-btn" aria-label="∧ 交运算">
+                        <button type="button" id="meetBtn" class="concept-btn">
                             <span class="icon">∧</span> 交运算
                         </button>
-                        <button id="sublatticeBtn" class="concept-btn" aria-label="⊆ 子格">
+                        <button type="button" id="sublatticeBtn" class="concept-btn">
                             <span class="icon">⊆</span> 子格
                         </button>
-                        <button id="homomorphismBtn" class="concept-btn" aria-label="→ 同态">
+                        <button type="button" id="homomorphismBtn" class="concept-btn">
                             <span class="icon">→</span> 同态
                         </button>
                     </div>
@@ -92,7 +93,7 @@
                                 <span class="slot-value">—</span>
                             </div>
                         </div>
-                        <button id="computeBtn" class="apple-btn compute-btn" aria-label="计算">计算</button>
+                        <button type="button" id="computeBtn" class="apple-btn compute-btn">计算</button>
                         <div class="result-display" id="operationResult">
                             <span class="result-icon">→</span>
                             <span class="result-value">选择两个元素</span>
@@ -105,19 +106,19 @@
                     <div class="property-list">
                         <div class="property-badge" id="prop1">
                             <span class="badge-icon">✓</span>
-                            <span class="badge-text">偏序性</span>
+                            <span class="badge-text">偏序（自反·反对称·传递）</span>
                         </div>
                         <div class="property-badge" id="prop2">
                             <span class="badge-icon">✓</span>
-                            <span class="badge-text">上确界存在</span>
+                            <span class="badge-text">任两元有上确界 ∨ 与下确界 ∧</span>
                         </div>
                         <div class="property-badge" id="prop3">
                             <span class="badge-icon">✓</span>
-                            <span class="badge-text">下确界存在</span>
+                            <span class="badge-text">吸收律 a∨(a∧b)=a、a∧(a∨b)=a</span>
                         </div>
                         <div class="property-badge" id="prop4">
                             <span class="badge-icon">?</span>
-                            <span class="badge-text">分配性</span>
+                            <span class="badge-text">分配律</span>
                         </div>
                     </div>
                 </div>
@@ -149,15 +150,15 @@
                         <span class="stat-value" id="operationCount">0</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">得分</span>
+                        <span class="stat-label">覆盖关系</span>
                         <span class="stat-value" id="score">0</span>
                     </div>
                 </div>
             </div>
 
             <div class="actions-footer">
-                <button id="buildLatticeBtn" class="apple-btn action-btn" aria-label="构建格结构">构建格结构</button>
-                <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置">重置</button>
+                <button type="button" id="buildLatticeBtn" class="apple-btn action-btn">重绘 Hasse 图</button>
+                <button type="button" id="resetBtn" class="apple-btn danger-btn">重置</button>
             </div>
         </aside>
 
@@ -165,36 +166,10 @@
             <div class="glass-pane">
                 <div class="visualization-header">
                     <h2 id="vizTitle">Hasse 图可视化</h2>
-                    <p id="vizSubtitle">点击"构建格结构"开始探索</p>
+                    <p id="vizSubtitle"></p>
                 </div>
 
-                <div id="visualizationArea" class="viz-area">
-                    <div class="welcome-state">
-                        <div class="tower-animation">
-                            <svg viewBox="0 0 200 200" class="tower-svg">
-                                <defs>
-                                    <linearGradient id="towerGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-                                        <stop offset="0%" style="stop-color:#b8321a;stop-opacity:1" />
-                                        <stop offset="50%" style="stop-color:#d63b1d;stop-opacity:1" />
-                                        <stop offset="100%" style="stop-color:#ffb400;stop-opacity:1" />
-                                    </linearGradient>
-                                </defs>
-                                <!-- Tower structure -->
-                                <polygon points="100,20 130,60 70,60" fill="url(#towerGrad)" class="tower-level" />
-                                <polygon points="100,60 140,100 60,100" fill="url(#towerGrad)" class="tower-level"
-                                    style="opacity: 0.8" />
-                                <polygon points="100,100 150,140 50,140" fill="url(#towerGrad)" class="tower-level"
-                                    style="opacity: 0.6" />
-                                <polygon points="100,140 160,180 40,180" fill="url(#towerGrad)" class="tower-level"
-                                    style="opacity: 0.4" />
-                                <!-- Top star -->
-                                <polygon points="100,5 103,15 113,15 105,21 108,31 100,25 92,31 95,21 87,15 97,15"
-                                    fill="#ffb400" class="tower-star" />
-                            </svg>
-                        </div>
-                        <p class="welcome-text">构建秩序之塔，探索格的层级结构</p>
-                    </div>
-                </div>
+                <div id="visualizationArea" class="viz-area"></div>
 
                 <div id="legendPanel" class="legend-panel">
                     <h3>图例说明</h3>
@@ -234,79 +209,79 @@
     <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
     <script>
     window.SECTION_META = {
-      "layers": [
-            {
-                  "name": "格=任两元有上下确界",
-                  "concepts": "∨ 上确界 / ∧ 下确界",
-                  "task": "理解格的偏序定义。",
-                  "page": "lattice-basic.html"
-            },
-            {
-                  "name": "格的代数刻画",
-                  "concepts": "交换/结合/吸收 / 双视角",
-                  "task": "用代数定律刻画格、求确界。",
-                  "page": "lattice.html"
-            },
-            {
-                  "name": "子集格与类型格",
-                  "concepts": "幂集格 / 子类型格",
-                  "task": "迁移到集合与类型的格。",
-                  "page": "lattice-extend.html"
-            }
-      ],
       "chapter": "第11章 环、域、格和布尔代数",
       "section": "11.4 格定义及性质",
       "title": "格的定义及性质",
       "grounding": "本节主题：格=任意两元都有上确界(∨,并)与下确界(∧,交)的偏序集；等价地，格是满足交换、结合、吸收律的代数 ⟨L,∨,∧⟩。性质：幂等、吸收、保序。格统一了『偏序』与『代数』两种视角，是布尔代数、概念分析的基础。",
       "steps": [
-            {
-                  "name": "情境引入",
-                  "desc": "层级结构里任意两节点都能找到『共同上级』和『共同下级』吗？"
-            },
-            {
-                  "name": "对象抽取",
-                  "desc": "把『任两元有上下确界』抽象为格。"
-            },
-            {
-                  "name": "结构建模",
-                  "desc": "用偏序（∨∧确界）或代数（交换/结合/吸收）双视角刻画格。"
-            },
-            {
-                  "name": "推理求解",
-                  "desc": "求上下确界、验证格的定律。"
-            },
-            {
-                  "name": "程序验证",
-                  "desc": "用本页交互构造格（哈斯图），验证确界存在。"
-            },
-            {
-                  "name": "迁移反思",
-                  "desc": "迁移到子群格、子集格、概念格。"
-            }
+        {
+          "name": "情境引入",
+          "desc": "层级结构里任意两节点都能找到『共同上级』和『共同下级』吗？"
+        },
+        {
+          "name": "对象抽取",
+          "desc": "把『任两元有上下确界』抽象为格。"
+        },
+        {
+          "name": "结构建模",
+          "desc": "用偏序（∨∧确界）或代数（交换/结合/吸收）双视角刻画格。"
+        },
+        {
+          "name": "推理求解",
+          "desc": "求上下确界、验证格的定律。"
+        },
+        {
+          "name": "程序验证",
+          "desc": "用本页交互构造格（哈斯图），验证确界存在。"
+        },
+        {
+          "name": "迁移反思",
+          "desc": "迁移到子群格、子集格、概念格。"
+        }
       ],
       "ideology": {
-            "title": "秩序之塔 · 统筹有序",
-            "text": "格让任意两元都能找到『共同的上与下』，象征统筹协调中『总能找到共识与底线』的治理智慧。上确界凝聚共同目标、下确界守住共同基础，启示我们在多元中求统一、在差异中找共识，构建既有秩序又有弹性的和谐结构。",
-            "dims": [
-                  "系统观念",
-                  "统筹智慧",
-                  "辩证思维"
-            ],
-            "quote": "致中和，天地位焉——格中任两元皆有共上共下，正是统筹协调、求得共识的数学之道。"
+        "title": "秩序之塔 · 统筹有序",
+        "text": "格让任意两元都能找到『共同的上与下』，象征统筹协调中『总能找到共识与底线』的治理智慧。上确界凝聚共同目标、下确界守住共同基础，启示我们在多元中求统一、在差异中找共识，构建既有秩序又有弹性的和谐结构。",
+        "dims": [
+          "系统观念",
+          "统筹智慧",
+          "辩证思维"
+        ],
+        "quote": "致中和，天地位焉——格中任两元皆有共上共下，正是统筹协调、求得共识的数学之道。"
       },
       "reflect": [
-            "格的『偏序定义』（上下确界）与『代数定义』（交换/结合/吸收）为何等价？",
-            "幂等律 a∨a=a、吸收律 a∨(a∧b)=a 直觉上说明了什么？",
-            "全序集一定是格吗？任意偏序集都是格吗？"
+        "格的『偏序定义』（上下确界）与『代数定义』（交换/结合/吸收）为何等价？",
+        "幂等律 a∨a=a、吸收律 a∨(a∧b)=a 直觉上说明了什么？",
+        "全序集一定是格吗？任意偏序集都是格吗？"
       ],
       "transfer": [
-            "集合的幂集按包含关系构成格（∪为∨、∩为∧），是最常见的格。",
-            {
-                  "t": "类型格",
-                  "d": "程序类型的子类型关系常构成格，最小公共超类型如何对应上确界？"
-            }
+        "集合的幂集按包含关系构成格（∪为∨、∩为∧），是最常见的格。",
+        {
+          "t": "类型格",
+          "d": "程序类型的子类型关系常构成格，最小公共超类型如何对应上确界？"
+        }
+      ],
+      "layers": [
+        {
+          "name": "格=任两元有上下确界",
+          "concepts": "上界 / 最小上界 a∨b / 最大下界 a∧b",
+          "task": "在 Hasse 图上求上下确界，判断偏序集是否为格。",
+          "page": "lattice-basic.html"
+        },
+        {
+          "name": "格的代数刻画",
+          "concepts": "交换 / 结合 / 吸收 / 分配 / 对偶视角",
+          "task": "用运算律刻画格，求确界并检验吸收律、分配律。",
+          "page": "lattice.html"
+        },
+        {
+          "name": "子集格与类型格",
+          "concepts": "幂集格 / 类型格 / 对偶原理",
+          "task": "用格为权限、类型与密级建模，理解对偶原理。",
+          "page": "lattice-extend.html"
+        }
       ]
-};
+    };
     </script>
     <script src="../../shared/ai-tutor.js" defer></script>
 
