@@ -8,7 +8,7 @@
   <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="孤立点与资源可达 · 拓展层｜3.7 社区案例 - 离散数学课程资源库">
-  <meta property="og:description" content="第3章 二元关系 · 3.7 社区案例 · 拓展层：孤立点识别 / 传递可达 / 精准关怀。迁移到精准关怀与匹配问题。">
+  <meta property="og:description" content="第3章 二元关系 · 3.7 社区案例 · 拓展层：传递闭包 / 资源可达 / 孤立点识别。用传递闭包分析资源可达，识别孤立点并落实精准关怀。">
   <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/3%E4%BA%8C%E5%85%83%E5%85%B3%E7%B3%BB/3.7%E7%A4%BE%E5%8C%BA%E6%A1%88%E4%BE%8B/community_service-extend.html">
   <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta property="og:image:width" content="1200">
@@ -16,11 +16,11 @@
   <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="孤立点与资源可达 · 拓展层｜3.7 社区案例 - 离散数学课程资源库">
-  <meta name="twitter:description" content="第3章 二元关系 · 3.7 社区案例 · 拓展层：孤立点识别 / 传递可达 / 精准关怀。迁移到精准关怀与匹配问题。">
+  <meta name="twitter:description" content="第3章 二元关系 · 3.7 社区案例 · 拓展层：传递闭包 / 资源可达 / 孤立点识别。用传递闭包分析资源可达，识别孤立点并落实精准关怀。">
   <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>孤立点与资源可达 · 拓展层｜3.7 社区案例 - 离散数学课程资源库</title>
-  <meta name="description" content="第3章 二元关系 · 3.7 社区案例 · 拓展层：孤立点识别 / 传递可达 / 精准关怀。迁移到精准关怀与匹配问题。">
+  <meta name="description" content="第3章 二元关系 · 3.7 社区案例 · 拓展层：传递闭包 / 资源可达 / 孤立点识别。用传递闭包分析资源可达，识别孤立点并落实精准关怀。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -41,9 +41,6 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Mic
 .sidebar-header h1 .highlight{color:var(--gold);font-weight:700;}
 .subtitle{margin:0;color:#6b4a38;font-size:.95rem;line-height:1.5;}
 .intro{margin:0;color:var(--muted);line-height:1.7;font-size:14px;}
-.value-panel{border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--red);background:rgba(255,255,255,.66);padding:12px 14px;}
-.value-panel h3{margin:0 0 6px;font-size:15px;color:var(--red);}.value-panel p{margin:0;line-height:1.6;color:#563c31;font-size:13px;}
-.dim-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.dim-list span{border-radius:999px;background:rgba(197,138,31,.13);color:#8a5d0b;padding:3px 9px;font-size:12px;font-weight:700;}
 .control-group{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.62);padding:12px;}
 .control-group>label{display:block;color:#4e362d;font-weight:700;font-size:13px;margin-bottom:8px;}
 .control-group select{width:100%;min-height:36px;border-radius:8px;border:1px solid rgba(116,55,31,.22);background:#fffaf2;color:var(--ink);padding:0 10px;font:inherit;}
@@ -59,7 +56,7 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Mic
 .kg-token.on{background:linear-gradient(135deg,#d63b1d,#b8321a);color:#fff;box-shadow:0 8px 18px rgba(214,59,29,.18);}
 .qres{border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.6);padding:14px;font-size:.86rem;color:#5b4136;line-height:1.9;}
 .qres b{color:var(--red);}.qres .tag{display:inline-block;padding:2px 9px;border-radius:11px;margin:2px;font-size:.78rem;}
-.qres .direct{background:rgba(42,157,143,.18);color:#1c7a6e;}.qres .reach{background:rgba(197,138,31,.2);color:#8a5d0b;}.qres .iso{background:#d63b1d;color:#fff;}
+.qres .direct{background:rgba(47, 125, 87,.18);color:#1c7a6e;}.qres .reach{background:rgba(197,138,31,.2);color:#8a5d0b;}.qres .iso{background:#d63b1d;color:#fff;}
 .mission-card{border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.66);padding:13px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;}
 .mission-card b{color:var(--red);}.mission-card span{color:var(--muted);line-height:1.6;font-size:14px;}
 .visual-badge{white-space:nowrap;border-radius:999px;padding:7px 12px;background:rgba(47,95,159,.1);color:var(--blue);font-size:12px;font-weight:700;}
@@ -69,6 +66,19 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Mic
 .leg{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.76rem;color:#b8321a;margin-top:10px;}.leg i{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:5px;vertical-align:middle;}
 .footer{position:fixed;left:0;right:0;bottom:0;z-index:9998;padding:12px 10px;text-align:center;color:inherit;opacity:.72;font-size:13px;line-height:1.6;}
 @media(max-width:920px){body{overflow:auto;}.app-container{width:min(100vw - 22px,720px);height:auto;min-height:0;grid-template-columns:1fr;margin:74px auto 96px;}.side-panel,.glass-pane{max-height:none;overflow:visible;}}
+
+    /* 案例六段式（3.7–3.10 案例单元统一） */
+    .case-flow-wrap { margin-top: 18px; }
+    .case-flow-title { display: flex; align-items: center; gap: 8px; font-weight: 700; color: #b8321a; font-size: .95rem; margin-bottom: 10px; }
+    .case-flow-title span { font-size: .75rem; font-weight: 600; color: #8a5a00; background: rgba(255,180,0,.16); border: 1px solid rgba(197,138,31,.3); padding: 2px 10px; border-radius: 999px; }
+    .case-flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .cf-step { background: rgba(255,255,255,.72); border: 1px solid rgba(214,59,29,.16); border-radius: 12px; padding: 10px 12px; font-size: .82rem; line-height: 1.65; color: #2c1810; }
+    .cf-step h4 { display: flex; align-items: center; gap: 6px; margin: 0 0 4px; font-size: .88rem; color: #d63b1d; }
+    .cf-step h4 i { font-style: normal; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: #d63b1d; color: #fff; font-size: .72rem; }
+    .cf-step p { margin: 0; }
+    .cf-step b { color: #b8321a; }
+    .cf-step.cf-value { background: linear-gradient(135deg, rgba(214,59,29,.07), rgba(255,180,0,.12)); }
+    @media (max-width: 900px) { .case-flow { grid-template-columns: 1fr; } }
   </style>
   <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
   <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
@@ -79,16 +89,11 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Mic
     <aside class="side-panel">
       <div class="sidebar-header">
         <div class="window-controls"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
-        <h1>红色数理 <span class="highlight">拓展层</span></h1>
+        <h1>孤立点与资源可达</h1>
         <p class="subtitle">社区互助 · 孤立点与资源可达</p>
       </div>
       <p class="intro">用传递闭包看『资源能传到谁』（资源可达），用度为 0 识别『被遗忘的人』（孤立点），驱动精准关怀。</p>
 
-      <div class="value-panel">
-        <h3>不漏一户 · 精准关怀</h3>
-        <p>用关系闭包补全帮扶链条、确保『不漏一户』，让每个人都被联系所托举——这正是以人民为中心的治理温度。</p>
-        <div class="dim-list"><span>人民立场</span><span>精准关怀</span><span>责任担当</span></div>
-      </div>
 
       <div class="control-group">
         <label>选择居民（也可点图中节点）</label>
@@ -121,7 +126,18 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Mic
       <h2 class="pane-title">社区互助关系网（结对帮扶 · 资源传导）</h2>
       <p class="pane-sub">箭头表示『帮扶』关系。资源可沿箭头多跳传导（传递闭包）；无任何连线的居民即孤立点。</p>
       <div class="kg-box"><svg id="lg" class="lg" viewBox="0 0 460 410" preserveAspectRatio="xMidYMid meet"></svg></div>
-      <div class="leg"><span><i style="background:#d63b1d"></i>选中</span><span><i style="background:#2a9d8f"></i>直接帮扶</span><span><i style="background:#e8a317"></i>传递可达</span><span><i style="background:#9a4848"></i>孤立点</span></div>
+      <div class="leg"><span><i style="background:#d63b1d"></i>选中</span><span><i style="background:#2F7D57"></i>直接帮扶</span><span><i style="background:#c58a1f"></i>传递可达</span><span><i style="background:#9a4848"></i>孤立点</span></div>
+      <section class="case-flow-wrap" aria-label="案例六段式">
+        <div class="case-flow-title">案例六段式<span>拓展层 · 拓展模型</span></div>
+        <div class="case-flow">
+          <div class="cf-step"><h4><i>1</i>情境背景</h4><p>社区开展结对帮扶：一户帮一户，帮扶资源还能继续传下去。但也可能有居民没有与任何人结对，成了「被遗忘的人」。</p></div>
+          <div class="cf-step"><h4><i>2</i>数学建模</h4><p>帮扶关系 R ⊆ P×P（有向）。资源多跳可达 = 传递闭包 R⁺；与任何人都没有帮扶联系（度为 0）的结点 = 孤立点。</p></div>
+          <div class="cf-step"><h4><i>3</i>交互求解</h4><p>选择一位居民，依次查看「直接帮扶（R）」「资源可达（R⁺）」，再切换到「孤立点识别」找出无人联系的居民。</p></div>
+          <div class="cf-step"><h4><i>4</i>结果解读</h4><p>张三的资源可经李四、赵六继续传到王五、孙七；周八度为 0，是需要主动结对的孤立点；吴九与郑十互助成对，但与其他人不连通。</p></div>
+          <div class="cf-step cf-value"><h4><i>5</i>价值引领</h4><p>社区治理的关键是「不漏一户」：把参与、组织、帮扶关系画清楚，才能看见每一位居民，体现共建共治共享、以人民为中心的温度。</p></div>
+          <div class="cf-step"><h4><i>6</i>迁移思考</h4><p>如何用最少的新增帮扶关系，使每位居民都能得到资源？这与第 7、8 章图的连通性、匹配问题有什么联系？</p></div>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -133,9 +149,9 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Mic
   <script>
     window.SECTION_META = {
       "layers": [
-        {"name": "互助关系建模", "concepts": "居民/组织节点 / 帮扶·互助为边", "task": "把社区联系抽象为二元关系。", "page": "community_service-basic.html"},
-        {"name": "性质与闭包分析", "concepts": "对称=互助 / 传递闭包=资源可达", "task": "用性质与闭包分析互助网络。", "page": "community_service.html"},
-        {"name": "孤立点与资源可达", "concepts": "孤立点识别 / 传递可达 / 精准关怀", "task": "迁移到精准关怀与匹配问题。", "page": "community_service-extend.html"}
+        {"name": "互助关系建模", "concepts": "居民 / 活动 / 组织者 / 带类型的二元关系", "task": "把社区中的参与、组织联系抽象为二元关系。", "page": "community_service-basic.html"},
+        {"name": "逆关系与合成查询", "concepts": "R⁻¹ 反查 / 关系合成 / 覆盖范围", "task": "用逆关系反查、用关系合成计算组织者的覆盖范围。", "page": "community_service.html"},
+        {"name": "孤立点与资源可达", "concepts": "传递闭包 / 资源可达 / 孤立点识别", "task": "用传递闭包分析资源可达，识别孤立点并落实精准关怀。", "page": "community_service-extend.html"}
       ],
       "chapter": "第3章 二元关系", "section": "3.7 社区案例", "title": "孤立点与资源可达",
       "grounding": "本页（拓展层）主题：把帮扶关系的传递闭包用于『资源可达』分析（资源能多跳传到谁），用度为 0 识别孤立点（无人联系的居民），驱动精准关怀。这正是网格化治理与精准帮扶的关系内核。",
@@ -180,8 +196,8 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Mic
       IDS.forEach(function(id){var p=pos[id];var isSel=id===sel;var fill='#bfae9f';
         if(isSel)fill='#d63b1d';
         else if(guide==='iso'&&isoSet[id])fill='#9a4848';
-        else if(guide==='direct'&&directSet[id])fill='#2a9d8f';
-        else if(guide==='reach'&&reachSet[id])fill='#e8a317';
+        else if(guide==='direct'&&directSet[id])fill='#2F7D57';
+        else if(guide==='reach'&&reachSet[id])fill='#c58a1f';
         else if(degree(id)===0&&guide!=='iso')fill='#c7b6ad';
         var stroke=isSel?'#b8321a':((guide==='iso'&&isoSet[id])?'#fff':'#fff');var sw=(isSel||(guide==='iso'&&isoSet[id]))?3.4:2;
         svg+='<g style="cursor:pointer" data-id="'+id+'"><circle cx="'+p[0]+'" cy="'+p[1]+'" r="22" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+sw+'"/><text x="'+p[0]+'" y="'+(p[1]+5)+'" text-anchor="middle" fill="#fff" font-size="13">'+NAME[id]+'</text></g>';
@@ -194,7 +210,7 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:"Noto Serif SC","Mic
       var direct=out(sel),reach=closure(sel),iso=isolated();
       var html='起点：<b>'+NAME[sel]+'</b><br>';
       html+='直接帮扶（R）：'+tagList(direct,'direct')+'<br>';
-      html+='资源可达（R⁺ 传递闭包，'+reach.length+' 人）：'+tagList(reach,'reach')+'<br>';
+      html+='资源可达（R⁺ 传递闭包，不含本人，'+reach.length+' 人）：'+tagList(reach,'reach')+'<br>';
       html+='<div style="margin-top:6px">社区孤立点（度=0，被遗忘的人）：'+tagList(iso,'iso')+'</div>';
       html+='<div style="margin-top:8px;font-size:.76rem;opacity:.8">资源可达 = 帮扶关系的<b>传递闭包</b>，资源可多跳传导；孤立点提示需<b>精准关怀</b>、主动结对。</div>';
       $('qres').innerHTML=html;
