@@ -8,32 +8,23 @@
     basic: {
       tag: "基础层",
       title: "特殊元素入门",
-      concept: "单位元 / 零元 / 简单逆元",
+      concept: "单位元 / 零元 / 逆元",
       sub: "低门槛 · 建立直觉",
-      task: "点选元素，看它是否保持不变、吸收结果或抵消回到基准。",
-      dots: "●○○",
-      page: "special_elements-basic.html",
-      badge: "概念识别"
+      task: "点选元素，看它保持不变、吸收一切还是抵消回单位元。"
     },
     advanced: {
       tag: "进阶层",
       title: "特殊元素探测器",
-      concept: "幂等 · 单位 · 零 · 逆",
-      sub: "核心掌握 · 判定证明",
-      task: "按步骤检验公式项，追踪特殊元素在运算图中的高亮变化。",
-      dots: "●●○",
-      page: "special_elements.html",
-      badge: "公式判定"
+      concept: "幂等元 / 单位元 / 零元 / 逆元 / 唯一性",
+      sub: "核心掌握 · 建模求解",
+      task: "逐步做左右两侧检验，判定特殊元素并理解唯一性。"
     },
     extend: {
       tag: "拓展层",
       title: "可逆恢复实验室",
       concept: "恒等映射 / 逆操作 / 可还原",
-      sub: "高天花板 · 迁移应用",
-      task: "把单位元与逆元迁移到加解密、置换和矩阵恢复场景。",
-      dots: "●●●",
-      page: "special_elements-extend.html",
-      badge: "迁移工程"
+      sub: "高天花板 · 迁移工程",
+      task: "把单位元与逆元迁移到加解密、置换和矩阵还原。"
     }
   };
 
@@ -67,7 +58,7 @@
           title: "单位元",
           text: "若存在 e，使得任意 a 都满足 e∘a=a∘e=a，则 e 是该运算的单位元。"
         },
-        properties: ["要同时检查左侧和右侧。", "单位元若存在则唯一。", "加法 mod n 的单位元通常是 0。"],
+        properties: ["要同时检查左侧和右侧。", "单位元若存在则唯一。", "模 n 加法的单位元是 0。"],
         steps: [
           { title: "锁定候选", formula: "候选 e=0", activeTerms: [0], focus: [0], feedback: "先把 0 作为候选单位元，观察它是否保持其他元素不变。" },
           { title: "左侧检验", formula: "0 + 2 ≡ 2 (mod 5)", activeTerms: [0, 1, 2, 3, 4], focus: [0, 2], resultIndex: 2, feedback: "左单位成立：0 放在左边时，2 没有被改变。" },
@@ -244,7 +235,7 @@
         title: "模加密的可还原链路",
         summary: "把加密看作加上密钥 k，再用逆操作 -k 把密文还原为明文。",
         visual: "Enc 后接 Dec",
-        set: ["m=3", "k=5", "c=8", "-k=8", "m=3"],
+        set: ["m=3", "k=5", "c=8", "−k≡8", "m=3"],
         center: "Enc",
         special: [0, 3, 4],
         activeStart: 0,
@@ -319,8 +310,7 @@
     step: 0,
     activeIndex: 0,
     speed: 900,
-    autoTimer: null,
-    tierCollapsed: false
+    autoTimer: null
   };
 
   function detectLayer() {
@@ -416,15 +406,22 @@
     if (state.activeIndex >= caseData.set.length) state.activeIndex = caseData.activeStart || 0;
     const step = currentStep(caseData);
     document.body.dataset.layer = state.layer;
-    document.title = `第9章 代数系统 - ${layer.title}（${layer.tag}）`;
-    app.className = "special-app";
-    app.innerHTML = `
-      <aside class="sidebar">
-        ${renderSidebar(layer, caseData)}
-      </aside>
-      <main class="visualizer-stage">
-        ${renderTierBoard()}
-        <div class="workspace">
+    app.classList.add("special-app");
+    let side = app.querySelector(":scope > aside.sidebar");
+    let work = app.querySelector(":scope > main .workspace");
+    if (!side || !work) {
+      app.innerHTML = `
+        <aside class="sidebar"></aside>
+        <main class="visualizer-stage">
+          <div class="workspace"></div>
+        </main>
+      `;
+      side = app.querySelector(":scope > aside.sidebar");
+      work = app.querySelector(":scope > main .workspace");
+    }
+    // 只刷新侧栏与工作区内容，保留 ai-tutor.js 注入到主舞台顶部的三阶卡 #dm-page-layers
+    side.innerHTML = renderSidebar(layer, caseData);
+    work.innerHTML = `
           <section class="graph-pane">
             <div class="panel-title">
               <div>
@@ -442,8 +439,6 @@
             ${renderDefinition(caseData)}
             ${renderProperties(caseData)}
           </div>
-        </div>
-      </main>
     `;
   }
 
@@ -453,7 +448,7 @@
     return `
       <div class="layer-summary">
         <div class="window-controls" aria-hidden="true"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
-        <span class="tier-pill">${esc(layer.tag)} · ${esc(layer.badge)}</span>
+        <span class="tier-pill">${esc(layer.tag)} · 第9章 代数系统</span>
         <h1>${esc(layer.title)}</h1>
         <p class="subtitle">${esc(layer.concept)}</p>
         <p class="goal">${esc(layer.sub)}<br>目标：${esc(layer.task)}</p>
@@ -492,38 +487,6 @@
           </div>
         </div>
       </div>
-    `;
-  }
-
-  function renderTierBoard() {
-    const collapsed = state.tierCollapsed ? " collapsed" : "";
-    return `
-      <section class="tier-board${collapsed}">
-        <div class="tier-board-head">
-          <div class="tier-board-title">三阶层次案例<span class="tier-board-sub">低门槛 · 高天花板 · 一点一点推演</span></div>
-          <button class="tier-board-toggle" type="button" data-action="toggle-tier">${state.tierCollapsed ? "展开" : "收起"}</button>
-        </div>
-        <div class="tier-ladder">
-          ${Object.entries(LAYERS).map(([key, item]) => renderTierCard(key, item)).join("")}
-        </div>
-      </section>
-    `;
-  }
-
-  function renderTierCard(key, item) {
-    const current = key === state.layer;
-    return `
-      <a class="tier-card ${esc(key)}${current ? " current" : ""}" href="${esc(item.page)}">
-        <div class="tier-card-top">
-          <span class="tier-tag">${esc(item.tag)}</span>
-          <span class="tier-dots">${esc(item.dots)}</span>
-        </div>
-        <h3>${esc(item.title)}</h3>
-        <div class="concept">${esc(item.concept)}</div>
-        <p>${esc(item.sub)}</p>
-        <p>目标：${esc(item.task)}</p>
-        <span class="tier-card-btn">${current ? "你在本层" : "进入本层互动页"}</span>
-      </a>
     `;
   }
 
@@ -714,8 +677,6 @@
       state.step = Number(actionButton.dataset.step) || 0;
     } else if (action === "type") {
       setLayerType(actionButton.dataset.type);
-    } else if (action === "toggle-tier") {
-      state.tierCollapsed = !state.tierCollapsed;
     } else if (action === "auto") {
       if (state.autoTimer) {
         stopAuto();

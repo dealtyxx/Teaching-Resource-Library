@@ -32,34 +32,16 @@ body {
   color: var(--ink);
   background:
     radial-gradient(circle at 14% 16%, rgba(255, 180, 0, 0.18), transparent 28%),
-    radial-gradient(circle at 84% 14%, rgba(45, 108, 223, 0.13), transparent 27%),
-    radial-gradient(circle at 74% 86%, rgba(47, 143, 100, 0.13), transparent 30%),
+    radial-gradient(circle at 84% 14%, rgba(214, 59, 29, 0.10), transparent 27%),
+    radial-gradient(circle at 74% 86%, rgba(255, 180, 0, 0.12), transparent 30%),
     linear-gradient(135deg, #fff8ef 0%, #fffdf7 54%, #fff0e6 100%);
-  overflow: hidden;
-}
-
-.home-link {
-  position: fixed;
-  top: 14px;
-  left: 14px;
-  z-index: 30;
-  display: inline-flex;
-  align-items: center;
-  min-height: 34px;
-  padding: 6px 13px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 8px;
-  color: #fff;
-  background: rgba(44, 32, 28, 0.78);
-  text-decoration: none;
-  font-size: 13px;
-  backdrop-filter: blur(10px);
+  overflow-x: hidden;
 }
 
 .special-app {
   width: min(1540px, calc(100vw - 52px));
-  height: min(940px, calc(100vh - 36px));
-  margin: 18px auto;
+  min-height: calc(100vh - 92px);
+  margin: 56px auto 24px;
   display: grid;
   grid-template-columns: 330px minmax(0, 1fr);
   overflow: hidden;
@@ -189,8 +171,6 @@ input[type="range"] {
 .segmented button,
 .element-picker button,
 .step-controls button,
-.tier-card-btn,
-.tier-board-toggle,
 .step-card {
   border: 1px solid rgba(133, 68, 45, 0.16);
   border-radius: 8px;
@@ -220,7 +200,6 @@ input[type="range"] {
 .segmented button:hover,
 .element-picker button:hover,
 .step-controls button:hover,
-.tier-card-btn:hover,
 .step-card:hover {
   transform: translateY(-1px);
   border-color: rgba(214, 59, 29, 0.36);
@@ -244,143 +223,20 @@ input[type="range"] {
   padding: 14px;
   display: flex;
   flex-direction: column;
+  flex-wrap: nowrap !important;
   gap: 12px;
   overflow: hidden;
 }
 
-.tier-board {
+/* 框架注入的三阶卡 #dm-page-layers 位于主舞台顶部，工作区占满其余高度 */
+.special-app > .visualizer-stage > #dm-page-layers {
   flex: 0 0 auto;
-  padding: 9px;
-  border: 1px solid rgba(214, 59, 29, 0.20);
-  border-radius: 8px;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.93), rgba(255, 236, 229, 0.76)),
-    rgba(255, 253, 246, 0.92);
-  box-shadow: var(--shadow-sm);
+  margin: 0;
 }
 
-.tier-board-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 8px;
-}
-
-.tier-board-title {
-  color: var(--red);
-  font-size: 17px;
-  font-weight: 900;
-}
-
-.tier-board-sub {
-  margin-left: 6px;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.tier-board-toggle {
-  min-width: 58px;
-  min-height: 32px;
-  padding: 6px 11px;
-}
-
-.tier-board.collapsed .tier-ladder {
-  display: none;
-}
-
-.tier-board.collapsed .tier-board-head {
-  margin-bottom: 0;
-}
-
-.tier-ladder {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.tier-card {
-  min-height: 126px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 10px;
-  border: 1px solid rgba(214, 59, 29, 0.24);
-  border-radius: 8px;
-  color: var(--ink);
-  background: rgba(255, 255, 255, 0.58);
-  text-decoration: none;
-}
-
-.tier-card.basic { border-color: rgba(255, 180, 0, 0.68); }
-.tier-card.advanced { border-color: rgba(47, 143, 100, 0.62); }
-.tier-card.extend { border-color: rgba(214, 59, 29, 0.62); }
-
-.tier-card.current {
-  outline: 2px solid rgba(47, 143, 100, 0.38);
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.62);
-}
-
-.tier-card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.tier-tag {
-  padding: 5px 10px;
-  border-radius: 8px;
-  color: #fff;
-  background: var(--red);
-  font-weight: 900;
-}
-
-.tier-card.basic .tier-tag { background: var(--gold); color: #4a2d00; }
-.tier-card.advanced .tier-tag { background: var(--green); }
-
-.tier-dots {
-  color: var(--red);
-  letter-spacing: 2px;
-  font-size: 14px;
-}
-
-.tier-card h3,
 .panel-title h2,
 .info-card h3 {
   margin: 0;
-}
-
-.tier-card h3 {
-  margin-top: 2px;
-  font-size: 1.02rem;
-}
-
-.tier-card .concept {
-  color: var(--red);
-  font-weight: 900;
-}
-
-.tier-card p {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.34;
-  font-size: 12px;
-}
-
-.tier-card-btn {
-  margin-top: auto;
-  display: grid;
-  place-items: center;
-  min-height: 30px;
-  padding: 6px 10px;
-  color: #fff;
-  background: linear-gradient(135deg, var(--red), var(--red-dark));
-  text-decoration: none;
-}
-
-.tier-card.current .tier-card-btn {
-  background: linear-gradient(135deg, var(--green), #49a871);
 }
 
 .workspace {
@@ -754,12 +610,10 @@ input[type="range"] {
     padding: 14px;
   }
 
-  .tier-ladder,
   .operation-steps {
     grid-template-columns: 1fr;
   }
 
-  .tier-board-head,
   .panel-title {
     align-items: flex-start;
     flex-direction: column;
@@ -771,23 +625,6 @@ input[type="range"] {
 }
 
 @media (max-height: 760px) and (min-width: 900px) {
-  .tier-board-sub,
-  .tier-card p:last-of-type {
-    display: none;
-  }
-
-  .tier-card {
-    min-height: 104px;
-  }
-
-  .tier-card h3 {
-    font-size: 0.98rem;
-  }
-
-  .tier-card .concept,
-  .tier-card p {
-    font-size: 11px;
-  }
 
   .layer-summary .goal {
     font-size: 0.86rem;
