@@ -798,3 +798,57 @@ input[type="range"] {
     min-height: 240px;
   }
 }
+
+/* ===== 与全站统一外壳对齐（2026-09）=====
+   外框尺寸 / 圆角 / 留白与 9.6 及其余章节一致，并为顶部面包屑与「返回课程主页」浮标留出空间。 */
+body { overflow: auto; }
+
+.special-app {
+  width: min(94vw, 1760px);
+  height: calc(100vh - 132px);
+  min-height: 610px;
+  margin: 72px auto 60px;
+  grid-template-columns: minmax(315px, 395px) minmax(0, 1fr);
+  padding: 12px;
+  border-radius: 22px;
+  border-color: rgba(214, 59, 29, 0.14);
+  background: rgba(255, 252, 245, 0.90);
+  box-shadow: 0 24px 60px rgba(69, 31, 15, 0.16);
+  backdrop-filter: blur(18px);
+}
+
+.special-app .sidebar {
+  padding: 22px;
+  gap: 14px;
+  border-radius: 12px 0 0 12px;
+  border-right-color: rgba(214, 59, 29, 0.14);
+  background: rgba(255, 250, 244, 0.60);
+}
+
+@media (max-width: 1200px) {
+  .special-app {
+    width: min(100vw - 22px, 820px);
+    height: auto;
+    min-height: 0;
+    grid-template-columns: 1fr;
+    margin: 64px auto 96px;
+    overflow: visible;
+  }
+
+  .special-app .sidebar {
+    border-right: 0;
+    border-bottom: 1px solid rgba(214, 59, 29, 0.14);
+    border-radius: 12px 12px 0 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .special-app {
+    width: min(100vw - 16px, 760px);
+    margin: 54px auto 80px;
+    padding: 8px;
+  }
+}
+
+/* 与 9.6 / 其余章节一致：关闭 mathjax-auto.js 的整页缩放（该页外框自行响应式布局） */
+html { zoom: 1 !important; }

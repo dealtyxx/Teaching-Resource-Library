@@ -3,27 +3,29 @@
 
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
-    <!-- Open Graph / 社交分享（微信、钉钉、Telegram 等）。部署域名变更时全局替换下方 BASE 即可 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3.6 二元关系的闭包 · 基础层：自反闭包与对称闭包 | 离散数学课程资源库</title>
+    <meta name="description" content="第3章 二元关系 · 3.6 二元关系的闭包 · 基础层：自反闭包与对称闭包（r(R)=R∪I / s(R)=R∪R⁻¹ / 最小添加）。理解『最小补全使其具备某性质』。互动可视化页面，湖南信息学院离散数学课程思政资源。">
+    <meta name="theme-color" content="#D63B1D">
+    <link rel="canonical" href="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/3%E4%BA%8C%E5%85%83%E5%85%B3%E7%B3%BB/3.6%E4%BA%8C%E5%85%83%E5%85%B3%E7%B3%BB%E7%9A%84%E9%97%AD%E5%8C%85/closures-basic.html">
+    <link rel="icon" type="image/svg+xml" href="../../shared/favicon.svg">
+    <!-- Open Graph / 社交分享（微信、钉钉、Telegram 等）。部署域名变更时改 tools/dm/catalog.py 的 BASE_URL 后重新运行 apply_catalog.py -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
-    <meta property="og:title" content="关系闭包 · 基础层 — 自反闭包与对称闭包">
-    <meta property="og:description" content="离散数学 3.6 基础层：自反闭包 r(R)=R∪I 与对称闭包 s(R)=R∪R⁻¹ 的最小补全可视化">
+    <meta property="og:title" content="3.6 二元关系的闭包 · 基础层：自反闭包与对称闭包 | 离散数学课程资源库">
+    <meta property="og:description" content="第3章 二元关系 · 3.6 二元关系的闭包 · 基础层：自反闭包与对称闭包（r(R)=R∪I / s(R)=R∪R⁻¹ / 最小添加）。理解『最小补全使其具备某性质』。互动可视化页面，湖南信息学院离散数学课程思政资源。">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/3%E4%BA%8C%E5%85%83%E5%85%B3%E7%B3%BB/3.6%E4%BA%8C%E5%85%83%E5%85%B3%E7%B3%BB%E7%9A%84%E9%97%AD%E5%8C%85/closures-basic.html">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="关系闭包 · 基础层 — 自反闭包与对称闭包">
-    <meta name="twitter:description" content="离散数学 3.6 基础层：自反闭包 r(R)=R∪I 与对称闭包 s(R)=R∪R⁻¹ 的最小补全可视化">
+    <meta name="twitter:title" content="3.6 二元关系的闭包 · 基础层：自反闭包与对称闭包 | 离散数学课程资源库">
+    <meta name="twitter:description" content="第3章 二元关系 · 3.6 二元关系的闭包 · 基础层：自反闭包与对称闭包（r(R)=R∪I / s(R)=R∪R⁻¹ / 最小添加）。理解『最小补全使其具备某性质』。互动可视化页面，湖南信息学院离散数学课程思政资源。">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>关系闭包 · 基础层 — 自反闭包与对称闭包</title>
-    <meta name="description" content="离散数学 3.6 基础层：自反闭包 r(R)=R∪I 与对称闭包 s(R)=R∪R⁻¹ 的最小补全可视化">
     <link rel="stylesheet" href="closures.css">
-    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css?v=2026.09" data-dm-ui="1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
@@ -53,7 +55,7 @@
         .dm-t-note { font-size: .84rem; color: #b8321a; max-width: 320px; line-height: 1.7; }
         .dm-t-note b { color: #d63b1d; } .dm-t-note .gold { color: #b8860b; }
     </style>
-    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+    <script src="../../shared/mathjax-auto.js?v=2026.09" data-dm-mathjax="1"></script>
 </head>
 
 <body>
@@ -150,7 +152,7 @@
             { "name": "三闭包对照与可达应用", "concepts": "r/s/t 对照 / 可达性 / 祖先·递归查询", "task": "迁移到可达、族谱与数据库递归。", "page": "closures-extend.html" }
         ],
         chapter: "第3章 二元关系",
-        section: "3.6 二元关系的闭包 · 基础层",
+        section: "3.6 二元关系的闭包",
         title: "自反闭包与对称闭包",
         grounding: "本页（基础层）主题：闭包是『最小地添加有序对使其具备某性质』。自反闭包 r(R)=R∪I_A（补全对角线缺失的 (a,a)）；对称闭包 s(R)=R∪R⁻¹（为每个单向对补上反向）。关键是『最小性』——多一个都不必、少一个则不具备该性质。金色格直观显示新增的最少有序对。",
         steps: [
@@ -163,10 +165,12 @@
         ],
         ideology: { title: "完善网络 · 恰如其分", text: "闭包的『最小性』提醒我们：补全联系要恰如其分、不画蛇添足——既不遗漏应然，也不臆造虚假联系。", dims: ["辩证思维", "实事求是"] },
         reflect: ["为什么闭包强调『最小』？多加了有序对还算闭包吗？", "自反闭包只动对角线、对称闭包只动镜像——为什么？"],
-        transfer: ["传递闭包是三种闭包里最复杂的——进阶层用 Warshall 求解。"]
+        transfer: ["传递闭包是三种闭包里最复杂的——进阶层用 Warshall 求解。"],
+        uid: "3.6"
     };
     </script>
-    <script src="../../shared/ai-tutor.js" defer></script>
+    <script src="../../shared/ai-tutor.js?v=2026.09" defer></script>
+    <script src="../../shared/site-shell.js?v=2026.09" defer></script>
 </body>
 
 </html>

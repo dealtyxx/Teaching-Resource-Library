@@ -2,26 +2,28 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
-    <!-- Open Graph / 社交分享（微信、钉钉、Telegram 等）。部署域名变更时全局替换下方 BASE 即可 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4.7 函数的运算 · 拓展层：管道与加解密 | 离散数学课程资源库</title>
+    <meta name="description" content="第4章 特殊关系与函数 · 4.7 函数的运算 · 拓展层：管道与加解密（函数式管道 / 可逆计算 / 加解密链）。迁移到函数式编程与多层加解密。互动可视化页面，湖南信息学院离散数学课程思政资源。">
+    <meta name="theme-color" content="#D63B1D">
+    <link rel="canonical" href="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/4%E7%89%B9%E6%AE%8A%E5%85%B3%E7%B3%BB/7%E5%87%BD%E6%95%B0%E7%9A%84%E8%BF%90%E7%AE%97/function_operations-extend.html">
+    <link rel="icon" type="image/svg+xml" href="../../shared/favicon.svg">
+    <!-- Open Graph / 社交分享（微信、钉钉、Telegram 等）。部署域名变更时改 tools/dm/catalog.py 的 BASE_URL 后重新运行 apply_catalog.py -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
     <meta property="og:locale" content="zh_CN">
-    <meta property="og:title" content="数据治理管线编排 · 拓展层 - 离散数学课程资源库">
-    <meta property="og:description" content="第四章 特殊关系 数据治理管线编排 拓展层互动可视化页面">
+    <meta property="og:title" content="4.7 函数的运算 · 拓展层：管道与加解密 | 离散数学课程资源库">
+    <meta property="og:description" content="第4章 特殊关系与函数 · 4.7 函数的运算 · 拓展层：管道与加解密（函数式管道 / 可逆计算 / 加解密链）。迁移到函数式编程与多层加解密。互动可视化页面，湖南信息学院离散数学课程思政资源。">
     <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/4%E7%89%B9%E6%AE%8A%E5%85%B3%E7%B3%BB/7%E5%87%BD%E6%95%B0%E7%9A%84%E8%BF%90%E7%AE%97/function_operations-extend.html">
     <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="数据治理管线编排 · 拓展层 - 离散数学课程资源库">
-    <meta name="twitter:description" content="第四章 特殊关系 数据治理管线编排 拓展层互动可视化页面">
+    <meta name="twitter:title" content="4.7 函数的运算 · 拓展层：管道与加解密 | 离散数学课程资源库">
+    <meta name="twitter:description" content="第4章 特殊关系与函数 · 4.7 函数的运算 · 拓展层：管道与加解密（函数式管道 / 可逆计算 / 加解密链）。迁移到函数式编程与多层加解密。互动可视化页面，湖南信息学院离散数学课程思政资源。">
     <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>数据治理管线编排 · 拓展层 - 离散数学课程资源库</title>
-    <meta name="description" content="第四章 特殊关系 数据治理管线编排 拓展层互动可视化页面">
-    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+    <link rel="stylesheet" href="../../shared/discrete-ui.css?v=2026.09" data-dm-ui="1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
@@ -107,7 +109,7 @@
         @keyframes sparkFly { from { transform:translate(-50%,-50%) scale(1); opacity:1; } to { transform:translate(-50%,-88px) scale(.2); opacity:0; } }
         @media (max-width:900px) { body.interactive-layer-page { overflow:auto; } .app-container { height:auto; flex-direction:column; margin:66px auto 96px; } .sidebar { width:100%; flex:auto; } .visualizer-stage { min-height:620px; padding:16px; } .mission-card { grid-template-columns:1fr; } }
     </style>
-    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+    <script src="../../shared/mathjax-auto.js?v=2026.09" data-dm-mathjax="1"></script>
 </head>
 <body class="interactive-layer-page">
     <a class="home-link" href="../../index.html">首页</a>
@@ -188,7 +190,7 @@
     const MID_PAGE = "function_operations.html";
     const OTHER_PAGE = "function_operations-basic.html";
     const OTHER_TEXT = "回基础层";
-    window.SECTION_META = {"layers": [{"name": "函数复合", "concepts": "(g∘f)(x)=g(f(x)) / 流程串联", "task": "把多道工序表示为复合。", "page": "function_operations-basic.html"}, {"name": "逆函数", "concepts": "双射才可逆 / (g∘f)⁻¹=f⁻¹∘g⁻¹", "task": "求逆函数、验证复合可逆性。", "page": "function_operations.html"}, {"name": "管道与加解密", "concepts": "函数式管道 / 可逆计算 / 加解密链", "task": "迁移到函数式编程与多层加解密。", "page": "function_operations-extend.html"}], "chapter": "第4章 特殊关系与函数", "section": "4.7 函数的运算 · 进阶层 · 拓展层", "title": "管道与加解密", "grounding": "本节主题：函数复合 (g∘f)(x)=g(f(x))，满足结合律、不交换，恒等函数为单位元；逆函数 f⁻¹ 仅当 f 为双射时存在，且 f⁻¹∘f=I_A、f∘f⁻¹=I_B。复合可逆性：(g∘f)⁻¹=f⁻¹∘g⁻¹。函数运算是流程串联与可逆变换的基础。 本页定位为进阶层：承接原页面的核心推理、综合辨析和课程资源主线。 本页定位为拓展层：把本节结构迁移到工程、治理、文化或科学探索场景。", "steps": [{"name": "情境引入", "desc": "把多道工序串成流水线、再逆向追溯——如何用函数运算表达？"}, {"name": "对象抽取", "desc": "把流程串联抽象为复合，把可逆还原抽象为逆函数。"}, {"name": "结构建模", "desc": "用 g∘f 建模串联，用 f⁻¹ 建模可逆还原。"}, {"name": "推理求解", "desc": "计算复合与逆，验证 (g∘f)⁻¹=f⁻¹∘g⁻¹。"}, {"name": "程序验证", "desc": "用本页交互串联/求逆函数，观察轨迹。"}, {"name": "迁移反思", "desc": "迁移到函数式编程、可逆计算、加解密。"}], "ideology": {
+    window.SECTION_META = {"layers": [{"name": "函数复合", "concepts": "(g∘f)(x)=g(f(x)) / 流程串联", "task": "把多道工序表示为复合。", "page": "function_operations-basic.html"}, {"name": "逆函数", "concepts": "双射才可逆 / (g∘f)⁻¹=f⁻¹∘g⁻¹", "task": "求逆函数、验证复合可逆性。", "page": "function_operations.html"}, {"name": "管道与加解密", "concepts": "函数式管道 / 可逆计算 / 加解密链", "task": "迁移到函数式编程与多层加解密。", "page": "function_operations-extend.html"}], "chapter": "第4章 特殊关系与函数", "section": "4.7 函数的运算", "title": "管道与加解密", "grounding": "本节主题：函数复合 (g∘f)(x)=g(f(x))，满足结合律、不交换，恒等函数为单位元；逆函数 f⁻¹ 仅当 f 为双射时存在，且 f⁻¹∘f=I_A、f∘f⁻¹=I_B。复合可逆性：(g∘f)⁻¹=f⁻¹∘g⁻¹。函数运算是流程串联与可逆变换的基础。 本页定位为进阶层：承接原页面的核心推理、综合辨析和课程资源主线。 本页定位为拓展层：把本节结构迁移到工程、治理、文化或科学探索场景。", "steps": [{"name": "情境引入", "desc": "把多道工序串成流水线、再逆向追溯——如何用函数运算表达？"}, {"name": "对象抽取", "desc": "把流程串联抽象为复合，把可逆还原抽象为逆函数。"}, {"name": "结构建模", "desc": "用 g∘f 建模串联，用 f⁻¹ 建模可逆还原。"}, {"name": "推理求解", "desc": "计算复合与逆，验证 (g∘f)⁻¹=f⁻¹∘g⁻¹。"}, {"name": "程序验证", "desc": "用本页交互串联/求逆函数，观察轨迹。"}, {"name": "迁移反思", "desc": "迁移到函数式编程、可逆计算、加解密。"}], "ideology": {
         "title": "奋斗的轨迹 · 环环相扣",
         "text": "函数复合把一道道工序环环相扣串成完整流程，体现系统协同、链条思维；逆函数则诠释了『有作用必可追溯、有结果必能问责』。奋斗的轨迹由无数环节复合而成，唯有每一环可靠，全局才能行稳致远。",
         "dims": [
@@ -197,7 +199,8 @@
                 "责任担当"
         ],
         "quote": "积跬步以至千里——复合函数正是把一个个环节累积成完整轨迹的数学表达。"
-}, "reflect": ["为什么 (g∘f)⁻¹=f⁻¹∘g⁻¹（顺序反转）？用『先穿袜后穿鞋，脱时先脱鞋』理解。", "函数复合满足结合律但不满足交换律——g∘f 与 f∘g 一般不同，请举例。", "只有双射才有逆函数，这对加密/解密的可还原性意味着什么？"], "transfer": ["函数式编程把程序写成函数复合的管道；可逆计算要求每步双射以节能。", {"t": "加解密链", "d": "多层加密是函数复合，解密须按逆序复合各层逆函数——为什么？"}]};
+}, "reflect": ["为什么 (g∘f)⁻¹=f⁻¹∘g⁻¹（顺序反转）？用『先穿袜后穿鞋，脱时先脱鞋』理解。", "函数复合满足结合律但不满足交换律——g∘f 与 f∘g 一般不同，请举例。", "只有双射才有逆函数，这对加密/解密的可还原性意味着什么？"], "transfer": ["函数式编程把程序写成函数复合的管道；可逆计算要求每步双射以节能。", {"t": "加解密链", "d": "多层加密是函数复合，解密须按逆序复合各层逆函数——为什么？"}],
+"uid": "4.7"};
     const IDEOLOGY = window.SECTION_META.ideology || {
         "title": "奋斗的轨迹 · 环环相扣",
         "text": "函数复合把一道道工序环环相扣串成完整流程，体现系统协同、链条思维；逆函数则诠释了『有作用必可追溯、有结果必能问责』。奋斗的轨迹由无数环节复合而成，唯有每一环可靠，全局才能行稳致远。",
@@ -415,6 +418,7 @@
     document.querySelectorAll('input,select').forEach(el=>{ el.addEventListener('input', render); el.addEventListener('change', render); });
     render();
     </script>
-    <script src="../../shared/ai-tutor.js" defer></script>
+    <script src="../../shared/ai-tutor.js?v=2026.09" defer></script>
+    <script src="../../shared/site-shell.js?v=2026.09" defer></script>
 </body>
 </html>

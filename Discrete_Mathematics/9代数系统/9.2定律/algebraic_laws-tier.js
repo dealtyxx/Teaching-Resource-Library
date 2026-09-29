@@ -483,7 +483,7 @@
 
     function init() {
         const cfg = DATA[tier];
-        document.title = `${cfg.title} - ${cfg.label}`;
+        /* 页面 <title> 由 tools/dm/apply_catalog.py 统一生成，脚本不再改写 */
         $("tierLabel").textContent = cfg.label;
         $("pageTitle").textContent = cfg.title;
         $("pageSubtitle").textContent = cfg.subtitle;

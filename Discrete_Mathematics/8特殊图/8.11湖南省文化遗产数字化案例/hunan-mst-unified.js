@@ -248,7 +248,7 @@
     app.className = "app-container";
     app.setAttribute("data-dm-self-layout", "1");
     document.body.dataset.mstLayer = state.layer;
-    document.title = `第8章 特殊图 - ${config.title}（${config.tier}）`;
+    /* 页面 <title> 由 tools/dm/apply_catalog.py 统一生成，脚本不再改写 */
     app.innerHTML = `
       <aside class="mst-sidebar sidebar">
         <div class="mst-header layer-summary">

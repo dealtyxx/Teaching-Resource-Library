@@ -4,7 +4,7 @@
   const profile = window.PROFILE || {};
   const params = profile.params || {};
   const pageText = (document.title + " " + (document.querySelector(".sidebar-header") || { innerText: "" }).innerText);
-  const isExtend = params.mode === "preference" || profile.layerLabel === "拓展层" || /拓展层|稳定匹配|偏好|满意度/.test(pageText);
+  const isExtend = params.mode === "preference" || profile.layerLabel === "拓展层" || /-extend\.html$/.test(location.pathname) || /拓展层|稳定匹配|偏好|满意度/.test(pageText);
   const controls = document.getElementById("controls");
   const canvas = document.getElementById("graphCanvas");
   const vizText = document.getElementById("vizText");

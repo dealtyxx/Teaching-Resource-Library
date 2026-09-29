@@ -2,7 +2,7 @@
   "use strict";
 
   const pageText = document.title + " " + (document.querySelector(".sidebar-header") || { innerText: "" }).innerText;
-  const isExtend = /拓展层|覆盖优化|物联网部署/.test(pageText);
+  const isExtend = /-extend\.html$/.test(location.pathname) || /拓展层|覆盖优化|物联网部署/.test(pageText);
   const controls = document.getElementById("controls");
   const vizArea = document.getElementById("vizArea");
   const formulaText = document.getElementById("formulaText");

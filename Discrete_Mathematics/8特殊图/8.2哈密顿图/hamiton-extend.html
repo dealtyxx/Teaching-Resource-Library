@@ -2,31 +2,33 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
-  <!-- Open Graph / 社交分享（微信、钉钉、Telegram 等）。部署域名变更时全局替换下方 BASE 即可 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8.2 哈密顿图 · 拓展层：TSP 与启发式 | 离散数学课程资源库</title>
+  <meta name="description" content="第8章 特殊图 · 8.2 哈密顿图 · 拓展层：TSP 与启发式（旅行商问题 / 近似·遗传算法）。迁移到 TSP 与启发式求解。互动可视化页面，湖南信息学院离散数学课程思政资源。">
+  <meta name="theme-color" content="#D63B1D">
+  <link rel="canonical" href="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/8%E7%89%B9%E6%AE%8A%E5%9B%BE/8.2%E5%93%88%E5%AF%86%E9%A1%BF%E5%9B%BE/hamiton-extend.html">
+  <link rel="icon" type="image/svg+xml" href="../../shared/favicon.svg">
+  <!-- Open Graph / 社交分享（微信、钉钉、Telegram 等）。部署域名变更时改 tools/dm/catalog.py 的 BASE_URL 后重新运行 apply_catalog.py -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:locale" content="zh_CN">
-  <meta property="og:title" content="第8章 特殊图 - TSP 与启发式 拓展层">
-  <meta property="og:description" content="8.2 哈密顿图 - 迁移到 TSP 与启发式求解">
+  <meta property="og:title" content="8.2 哈密顿图 · 拓展层：TSP 与启发式 | 离散数学课程资源库">
+  <meta property="og:description" content="第8章 特殊图 · 8.2 哈密顿图 · 拓展层：TSP 与启发式（旅行商问题 / 近似·遗传算法）。迁移到 TSP 与启发式求解。互动可视化页面，湖南信息学院离散数学课程思政资源。">
   <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/8%E7%89%B9%E6%AE%8A%E5%9B%BE/8.2%E5%93%88%E5%AF%86%E9%A1%BF%E5%9B%BE/hamiton-extend.html">
   <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="第8章 特殊图 - TSP 与启发式 拓展层">
-  <meta name="twitter:description" content="8.2 哈密顿图 - 迁移到 TSP 与启发式求解">
+  <meta name="twitter:title" content="8.2 哈密顿图 · 拓展层：TSP 与启发式 | 离散数学课程资源库">
+  <meta name="twitter:description" content="第8章 特殊图 · 8.2 哈密顿图 · 拓展层：TSP 与启发式（旅行商问题 / 近似·遗传算法）。迁移到 TSP 与启发式求解。互动可视化页面，湖南信息学院离散数学课程思政资源。">
   <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>第8章 特殊图 - TSP 与启发式 拓展层</title>
-  <meta name="description" content="8.2 哈密顿图 - 迁移到 TSP 与启发式求解">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="hamilton_concept.css">
-    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
-    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+    <link rel="stylesheet" href="../../shared/discrete-ui.css?v=2026.09" data-dm-ui="1">
+    <script src="../../shared/mathjax-auto.js?v=2026.09" data-dm-mathjax="1"></script>
 </head>
 <body>
   <a class="home-link" href="../../index.html">← 返回课程主页</a>
@@ -94,7 +96,7 @@
             }
       ],
       "chapter": "第8章 特殊图",
-      "section": "8.2 哈密顿图 · 拓展层",
+      "section": "8.2 哈密顿图",
       "title": "哈密顿图",
       "grounding": "本节主题：哈密顿通路（经过每个顶点恰一次）、哈密顿回路。与欧拉不同，哈密顿无简单充要判据，判定是 NP 完全。充分条件：Dirac（每点度≥n/2）、Ore（不相邻点对度和≥n）。TSP 是其优化版。",
       "steps": [
@@ -119,11 +121,13 @@
       "transfer": [
             "物流配送、电路板钻孔、基因排序都可建模为 TSP/哈密顿问题。",
             { "t": "近似与启发式", "d": "面对 NP 难，最近邻、2-opt、遗传算法如何求得可用的好解？" }
-      ]
+      ],
+      "uid": "8.2"
 };
   </script>
   <script>window.HAM_LEVEL = "extend";</script>
   <script src="hamilton_concept.js"></script>
-  <script src="../../shared/ai-tutor.js" defer></script>
+  <script src="../../shared/ai-tutor.js?v=2026.09" defer></script>
+  <script src="../../shared/site-shell.js?v=2026.09" defer></script>
 </body>
 </html>

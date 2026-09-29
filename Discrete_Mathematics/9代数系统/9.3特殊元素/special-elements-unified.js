@@ -416,7 +416,7 @@
     if (state.activeIndex >= caseData.set.length) state.activeIndex = caseData.activeStart || 0;
     const step = currentStep(caseData);
     document.body.dataset.layer = state.layer;
-    document.title = `第9章 代数系统 - ${layer.title}（${layer.tag}）`;
+    /* 页面 <title> 由 tools/dm/apply_catalog.py 统一生成，脚本不再改写 */
     app.className = "special-app";
     app.innerHTML = `
       <aside class="sidebar">

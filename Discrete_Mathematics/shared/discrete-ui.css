@@ -1583,3 +1583,133 @@ html { scroll-behavior: smooth; }
   }
 }
 
+
+/* =============================================================================
+ * 10. 全站导航坞 + 课程目录抽屉 + 面包屑案例徽标（site-shell.js 注入）
+ *     统一放在文件末尾；类名一律 dm-nav-* / dm-toc-*，不影响各小节原有样式。
+ * ========================================================================== */
+#dm-crumb .dm-cb-case {
+  flex: 0 0 auto; margin-left: 2px; padding: 1px 9px; border-radius: 999px;
+  font-size: 11px; font-weight: 800; letter-spacing: .5px; color: #8A5D0B;
+  background: rgba(255, 180, 0, .2); border: 1px solid rgba(214, 59, 29, .22);
+}
+
+.dm-nav {
+  position: fixed; left: 14px; bottom: 14px; z-index: 9985;
+  display: flex; align-items: center; gap: 2px; padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 253, 247, .92);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border: 1px solid rgba(214, 59, 29, .22);
+  box-shadow: 0 8px 24px rgba(139, 0, 0, .14);
+  font-family: 'Noto Serif SC', 'Microsoft YaHei', serif;
+}
+.dm-nav-btn {
+  display: inline-flex; align-items: center; gap: 5px; height: 34px; padding: 0 13px;
+  border: 0; border-radius: 999px; background: transparent; cursor: pointer;
+  color: #6B4A38; font: 700 13px/1 'Noto Serif SC', 'Microsoft YaHei', serif;
+  text-decoration: none; white-space: nowrap;
+  transition: background .16s ease, color .16s ease, transform .16s ease;
+}
+.dm-nav-btn:hover { background: rgba(214, 59, 29, .1); color: #B8321A; }
+.dm-nav-btn:active { transform: scale(.96); }
+.dm-nav-btn:focus-visible { outline: 2px solid #FFB400; outline-offset: 1px; }
+.dm-nav-btn[aria-disabled="true"] { opacity: .38; pointer-events: none; }
+.dm-nav-ic { font-size: 16px; line-height: 1; }
+.dm-nav-toc { color: #B8321A; background: rgba(255, 180, 0, .16); }
+.dm-nav-toc:hover { background: rgba(255, 180, 0, .3); }
+
+.dm-toc-mask {
+  position: fixed; inset: 0; z-index: 10001; background: rgba(44, 24, 16, .38);
+  opacity: 0; transition: opacity .2s ease;
+}
+.dm-toc-mask.on { opacity: 1; }
+.dm-toc {
+  position: fixed; top: 0; bottom: 0; left: 0; z-index: 10002;
+  width: min(390px, 92vw); display: flex; flex-direction: column;
+  background: rgba(255, 253, 247, .98);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border-right: 1px solid rgba(214, 59, 29, .22);
+  box-shadow: 18px 0 48px rgba(139, 0, 0, .18);
+  transform: translateX(-102%); transition: transform .22s cubic-bezier(.22, .61, .36, 1);
+  font-family: 'Noto Serif SC', 'Microsoft YaHei', serif; color: #2C1810;
+}
+.dm-toc.on { transform: none; }
+.dm-toc[hidden], .dm-toc-mask[hidden] { display: none; }
+.dm-toc *, .dm-toc *::before, .dm-toc *::after { box-sizing: border-box; }
+.dm-toc-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  padding: 18px 18px 10px;
+}
+.dm-toc-head b { display: block; font-family: 'Ma Shan Zheng', 'Noto Serif SC', cursive; font-weight: 400; font-size: 24px; color: #D63B1D; line-height: 1.2; }
+.dm-toc-head span { display: block; margin-top: 3px; font-size: 12px; color: #9B7A68; }
+.dm-toc-close {
+  flex: 0 0 auto; width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(214, 59, 29, .22);
+  background: #fff; color: #6B4A38; font-size: 14px; cursor: pointer;
+}
+.dm-toc-close:hover { background: #D63B1D; color: #fff; }
+.dm-toc-close:focus-visible, .dm-toc-search:focus-visible, .dm-toc a:focus-visible, .dm-toc summary:focus-visible { outline: 2px solid #FFB400; outline-offset: 1px; }
+.dm-toc-search {
+  margin: 0 18px 10px; padding: 9px 14px; border-radius: 12px; font: 14px 'Noto Serif SC', 'Microsoft YaHei', serif;
+  border: 1px solid rgba(214, 59, 29, .24); background: #fff; color: #2C1810;
+}
+.dm-toc-body { flex: 1; overflow: auto; padding: 0 12px 12px; overscroll-behavior: contain; }
+.dm-toc-ch { margin: 0 0 6px; border: 1px solid rgba(214, 59, 29, .14); border-radius: 14px; background: rgba(255, 255, 255, .7); }
+.dm-toc-ch[hidden] { display: none; }
+.dm-toc-ch > summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; list-style: none;
+  padding: 10px 14px; font-size: 14px; font-weight: 700; color: #B8321A; border-radius: 14px;
+}
+.dm-toc-ch > summary::-webkit-details-marker { display: none; }
+.dm-toc-ch > summary em { font-style: normal; font-size: 12px; font-weight: 700; color: #9B7A68; }
+.dm-toc-ch[open] > summary { border-bottom: 1px solid rgba(214, 59, 29, .1); border-radius: 14px 14px 0 0; }
+.dm-toc-ch ul { list-style: none; margin: 0; padding: 4px 6px 6px; }
+.dm-toc-ch li { display: flex; align-items: center; gap: 6px; border-radius: 10px; padding: 1px 4px 1px 0; }
+.dm-toc-ch li[hidden] { display: none; }
+.dm-toc-ch li:hover { background: rgba(255, 180, 0, .12); }
+.dm-toc-ch li.dm-toc-cur { background: linear-gradient(90deg, rgba(214, 59, 29, .13), rgba(255, 180, 0, .12)); }
+.dm-toc-main {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 10px;
+  color: #2C1810; text-decoration: none; font-size: 13.5px; line-height: 1.35;
+}
+.dm-toc-num { flex: 0 0 auto; min-width: 38px; font: 800 12px/1 'JetBrains Mono', Consolas, monospace; color: #9A6A10; }
+.dm-toc-name { flex: 1; min-width: 0; }
+.dm-toc-name i { font-style: normal; color: #9B7A68; font-size: 12px; }
+.dm-toc-cur .dm-toc-name { color: #B8321A; font-weight: 700; }
+.dm-toc-case {
+  flex: 0 0 auto; font-style: normal; font-size: 10.5px; font-weight: 800; padding: 1px 7px; border-radius: 999px;
+  color: #8A5D0B; background: rgba(255, 180, 0, .22); border: 1px solid rgba(214, 59, 29, .2);
+}
+.dm-toc-tiers { flex: 0 0 auto; display: inline-flex; gap: 3px; }
+.dm-toc-tier {
+  width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; font-size: 11px; font-weight: 800; text-decoration: none;
+  color: #6B4A38; border: 1px solid rgba(214, 59, 29, .2); background: #fff;
+}
+.dm-toc-tier:hover { color: #fff; background: #D63B1D; border-color: #D63B1D; }
+.dm-toc-tier.done { color: #8A5D0B; background: rgba(255, 180, 0, .3); border-color: rgba(197, 138, 31, .6); }
+.dm-toc-tier.cur { color: #fff; background: #D63B1D; border-color: #D63B1D; }
+.dm-toc-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  padding: 10px 18px 14px; border-top: 1px solid rgba(214, 59, 29, .14); font-size: 12px; color: #9B7A68;
+}
+.dm-toc-foot a { color: #B8321A; font-weight: 700; text-decoration: none; }
+.dm-toc-foot a:hover { text-decoration: underline; }
+
+@media (max-width: 560px) {
+  .dm-nav { left: 10px; bottom: 10px; }
+  .dm-nav-btn { padding: 0 11px; }
+  .dm-nav-prev .dm-nav-tx, .dm-nav-next .dm-nav-tx { display: none; }
+  .dm-nav-ic { font-size: 18px; }
+}
+@media print { .dm-nav, .dm-toc, .dm-toc-mask, #dm-launcher, #dm-panel, a.home-link { display: none !important; } }
+
+/* ---- 11. 装饰性「窗口三色圆点」统一隐藏：原先仅约 60% 的页面带有，且在顶部与「返回课程主页」浮标重叠 ---- */
+.window-controls { display: none !important; }
+
+/* ---- 12. 手机端：为顶部「返回课程主页」浮标与底部导航坞让出空间，避免遮挡标题与页脚 ---- */
+.dm-nav-spacer { display: none; }
+@media (max-width: 720px) {
+  body:has(> .app-container):has(> a.home-link) { padding-top: 46px !important; }
+  .dm-nav-spacer { display: block; height: 58px; }
+}

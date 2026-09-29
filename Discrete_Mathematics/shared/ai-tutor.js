@@ -397,7 +397,18 @@
     { key: 'engineer', name: '工程解释', w: 0.10 },
     { key: 'transfer', name: '迁移应用', w: 0.10 }
   ];
-  var RADAR_KEY = 'dm_radar_' + (META.chapter + '|' + META.section);
+  /* 小节标签规范化（2026-09 统一编号与案例命名）后，把旧键下已有的学习进度迁移到新键 */
+  function migrateKey(prefix) {
+    var key = prefix + (META.chapter + '|' + META.section);
+    try {
+      if (META.legacySection) {
+        var old = prefix + META.chapter + '|' + normalizeTierText(META.legacySection, META.tier);
+        if (old !== key && localStorage.getItem(key) == null && localStorage.getItem(old) != null) localStorage.setItem(key, localStorage.getItem(old));
+      }
+    } catch (e) {}
+    return key;
+  }
+  var RADAR_KEY = migrateKey('dm_radar_');
   function getScores() {
     var d = { context: 0, abstract: 0, model: 0, reason: 0, engineer: 0, transfer: 0 };
     try { var s = JSON.parse(localStorage.getItem(RADAR_KEY) || '{}'); for (var k in d) if (typeof s[k] === 'number') d[k] = s[k]; } catch (e) {}
@@ -608,7 +619,7 @@
 
   /* ---------- 多轮对话状态 ---------- */
   var convo = [], transcriptEl;
-  var CONVO_KEY = 'dm_convo_' + (META.chapter + '|' + META.section);
+  var CONVO_KEY = migrateKey('dm_convo_');
   function loadConvo() { try { var a = JSON.parse(localStorage.getItem(CONVO_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
   function saveConvo() { try { localStorage.setItem(CONVO_KEY, JSON.stringify(convo.slice(-16))); } catch (e) {} }
   function clearConvo() { convo = []; saveConvo(); if (transcriptEl) { transcriptEl.innerHTML = ''; showWelcome(); } }
@@ -698,7 +709,7 @@
     return p;
   }
 
-  var STEPS_KEY = 'dm_steps_' + (META.chapter + '|' + META.section);
+  var STEPS_KEY = migrateKey('dm_steps_');
   function getDone() { try { return JSON.parse(localStorage.getItem(STEPS_KEY) || '[]'); } catch (e) { return []; } }
   function setDone(a) { try { localStorage.setItem(STEPS_KEY, JSON.stringify(a)); } catch (e) {} }
   var _pgFill, _pgTxt;
@@ -774,7 +785,7 @@
     }
     sub.textContent = layer.concepts || '';
     sub.setAttribute('data-dm-layer-title-sub', '1');
-    try { document.title = layer.name + (layer.concepts ? ' — ' + layer.concepts : ''); } catch (e) {}
+    /* 页面 <title> 由 tools/dm/apply_catalog.py 统一生成（编号 · 层 · 层名 | 站名），此处不再改写 */
   }
   function openPanel() {
     if (onboard) dismissOnboard();

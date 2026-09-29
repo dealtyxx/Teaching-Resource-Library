@@ -322,7 +322,7 @@
     if (state.activeIndex >= caseData.domain.length) state.activeIndex = caseData.pair[0] || 0;
     const step = currentStep(caseData);
     document.body.dataset.layer = state.layer;
-    document.title = `第9章 代数系统 - ${layer.title}（${layer.tag}）`;
+    /* 页面 <title> 由 tools/dm/apply_catalog.py 统一生成，脚本不再改写 */
     app.className = "homo-app";
     app.innerHTML = `
       <aside class="sidebar">${renderSidebar(layer, caseData)}</aside>
