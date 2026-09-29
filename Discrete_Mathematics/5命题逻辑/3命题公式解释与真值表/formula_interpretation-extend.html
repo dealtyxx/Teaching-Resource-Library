@@ -8,7 +8,7 @@
   <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="SAT 与电路验证 · 拓展层｜5.3 命题公式解释与真值表 - 离散数学课程资源库">
-  <meta property="og:description" content="第5章 命题逻辑 · 5.3 命题公式解释与真值表 · 拓展层：SAT / NP完全 / 电路等价。迁移到可满足性与电路验证。">
+  <meta property="og:description" content="第5章 命题逻辑 · 5.3 命题公式解释与真值表 · 拓展层：SAT / NP 完全 / 电路等价。迁移到可满足性与电路验证。">
   <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/5%E5%91%BD%E9%A2%98%E9%80%BB%E8%BE%91/3%E5%91%BD%E9%A2%98%E5%85%AC%E5%BC%8F%E8%A7%A3%E9%87%8A%E4%B8%8E%E7%9C%9F%E5%80%BC%E8%A1%A8/formula_interpretation-extend.html">
   <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta property="og:image:width" content="1200">
@@ -16,121 +16,19 @@
   <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="SAT 与电路验证 · 拓展层｜5.3 命题公式解释与真值表 - 离散数学课程资源库">
-  <meta name="twitter:description" content="第5章 命题逻辑 · 5.3 命题公式解释与真值表 · 拓展层：SAT / NP完全 / 电路等价。迁移到可满足性与电路验证。">
+  <meta name="twitter:description" content="第5章 命题逻辑 · 5.3 命题公式解释与真值表 · 拓展层：SAT / NP 完全 / 电路等价。迁移到可满足性与电路验证。">
   <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SAT 与电路验证 · 拓展层｜5.3 命题公式解释与真值表 - 离散数学课程资源库</title>
-  <meta name="description" content="第5章 命题逻辑 · 5.3 命题公式解释与真值表 · 拓展层：SAT / NP完全 / 电路等价。迁移到可满足性与电路验证。">
+  <meta name="description" content="第5章 命题逻辑 · 5.3 命题公式解释与真值表 · 拓展层：SAT / NP 完全 / 电路等价。迁移到可满足性与电路验证。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap"></noscript>
-  <style>
-
-:root {
-  --ink: #2c1810; --muted: #6b4a38; --paper: #fff8ec; --card: rgba(255, 253, 246, 0.92);
-  --line: rgba(116, 55, 31, 0.18); --red: #d63b1d; --red-2: #de5b3d; --gold: #c58a1f;
-  --green: #2f7d57; --blue: #2f5f9f; --shadow: 0 18px 50px rgba(69, 31, 15, 0.14);
-}
-* { box-sizing: border-box; }
-body {
-  margin: 0; min-height: 100vh; color: var(--ink);
-  font-family: "Noto Serif SC", "Microsoft YaHei", serif;
-  background:
-    radial-gradient(circle at 16% 12%, rgba(222, 91, 61, 0.18), transparent 28%),
-    radial-gradient(circle at 82% 8%, rgba(47, 95, 159, 0.14), transparent 26%),
-    linear-gradient(135deg, #fff7e6 0%, #f8ead3 45%, #f3dfc7 100%);
-  overflow: hidden;
-}
-.home-link { position: fixed; top: 14px; left: 14px; z-index: 10000; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.5); background: rgba(44, 24, 16, 0.82); color: #fff; text-decoration: none; font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); backdrop-filter: blur(10px); }
-.app-container { width: min(1440px, calc(100vw - 32px)); height: calc(100vh - 166px); min-height: 640px; margin: 74px auto 0; display: grid; grid-template-columns: minmax(300px, 360px) minmax(0, 1fr); gap: 18px; }
-.side-panel, .glass-pane { border: 1px solid var(--line); background: var(--card); box-shadow: var(--shadow); backdrop-filter: blur(12px); }
-.side-panel { border-radius: 8px; padding: 20px; overflow: auto; display: flex; flex-direction: column; }
-.glass-pane { border-radius: 8px; padding: 18px; overflow: auto; }
-.eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 5px 10px; border-radius: 999px; border: 1px solid rgba(214, 59, 29, 0.22); color: var(--red); background: rgba(214, 59, 29, 0.08); font-size: 12px; font-weight: 700; align-self: flex-start; margin-bottom: 10px; }
-h1 { margin: 0 0 8px; font-family: "Ma Shan Zheng", "Noto Serif SC", cursive; font-size: 2.1rem; line-height: 1.2; font-weight: 400; color: #d63b1d; }
-.subtitle { margin: 0 0 10px; color: #6b4a38; font-size: 0.95rem; line-height: 1.6; font-family: "JetBrains Mono", "Noto Serif SC", monospace; }
-.tier-line { display: inline-flex; align-self: flex-start; gap: 6px; margin: 0 0 12px; padding: 4px 11px; border-radius: 999px; font-size: 12.5px; font-weight: 800; color: #8a5d0b; background: rgba(197,138,31,0.14); border: 1px solid rgba(197,138,31,0.28); letter-spacing: .03em; }
-.intro { margin: 0 0 16px; color: var(--muted); line-height: 1.7; font-size: 15px; }
-.value-panel { padding: 14px; margin: 4px 0 16px; border-radius: 8px; border: 1px solid rgba(116, 55, 31, 0.16); background: rgba(255,255,255,0.66); border-left: 4px solid var(--red); }
-.value-panel h3 { margin: 0 0 8px; font-size: 17px; color: var(--red); }
-.value-panel p { margin: 0; line-height: 1.7; color: #563c31; font-size: 14px; }
-.dim-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.dim-list span { border-radius: 999px; background: rgba(197, 138, 31, 0.13); color: #8a5d0b; padding: 4px 9px; font-size: 12px; font-weight: 700; }
-.control-group { padding: 12px; border-radius: 8px; border: 1px solid rgba(116, 55, 31, 0.16); background: rgba(255,255,255,0.66); margin-bottom: 10px; }
-.control-group label { display: flex; justify-content: space-between; gap: 12px; color: #4e362d; font-weight: 700; font-size: 14px; margin-bottom: 8px; }
-.control-group small { color: var(--muted); font-weight: 400; }
-select { width: 100%; min-height: 38px; border-radius: 8px; border: 1px solid rgba(116,55,31,0.22); background: #fffaf2; color: var(--ink); padding: 0 10px; font: inherit; cursor: pointer; }
-.mode-btns { display: flex; gap: 8px; }
-.mode-btns .mb { flex: 1; border: 1px solid rgba(116,55,31,0.22); background: #fffaf2; color: #4e362d; border-radius: 8px; padding: 8px 6px; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; transition: all .15s ease; }
-.mode-btns .mb:hover { border-color: var(--red); color: var(--red); }
-.mode-btns .mb.active { background: var(--red); color: #fff; border-color: var(--red); }
-.speed-row { display: flex; align-items: center; gap: 10px; }
-input[type="range"] { width: 100%; accent-color: var(--red); }
-.hidden { display: none !important; }
-.mission-card { padding: 14px 16px; margin-bottom: 14px; border-radius: 8px; border: 1px solid rgba(116, 55, 31, 0.16); background: rgba(255,255,255,0.66); display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
-.mission-card b { color: var(--red); }
-.mission-card span { color: var(--muted); line-height: 1.6; }
-.visual-badge { white-space: nowrap; border-radius: 999px; padding: 7px 10px; background: rgba(47,95,159,0.1); color: var(--blue); font-size: 12px; font-weight: 700; }
-
-.stage { display: grid; gap: 14px; }
-.il-panel { border-radius: 10px; border: 1px solid rgba(116,55,31,0.16); background: rgba(255,255,255,0.62); padding: 14px 16px; }
-.il-panel-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; color: var(--red); margin: 0 0 12px; letter-spacing: 0.02em; }
-.il-panel-title .num { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--red); color: #fff; font-size: 12px; font-family: "JetBrains Mono", Consolas, monospace; }
-.il-panel-title .badge { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--blue); background: rgba(47,95,159,0.1); border-radius: 999px; padding: 3px 10px; }
-.il-formula { font-family: "JetBrains Mono", Consolas, monospace; font-size: 24px; font-weight: 800; letter-spacing: 1px; text-align: center; padding: 8px; color: #2c1810; }
-.il-formula .lbl { display: block; font-size: 12px; color: var(--muted); font-family: "Noto Serif SC", "Microsoft YaHei", serif; font-weight: 700; margin-bottom: 2px; letter-spacing: 0; }
-.il-formula.f2 { color: #2f5f9f; }
-.il-term { display: inline-block; padding: 2px 5px; margin: 0 1px; border-radius: 8px; transition: all .28s ease; }
-.il-term.dim { opacity: 0.4; }
-.il-term.hot { background: linear-gradient(135deg, rgba(255,180,0,0.32), rgba(222,91,61,0.22)); box-shadow: 0 0 0 2px rgba(197,138,31,0.45); color: var(--red); }
-.il-term.tt { color: var(--green); } .il-term.ff { color: var(--red); }
-.il-sub { margin-top: 4px; min-height: 24px; text-align: center; font-size: 15px; color: #5e4338; font-family: "JetBrains Mono", Consolas, monospace; }
-.il-sub .t { color: var(--green); font-weight: 800; } .il-sub .f { color: var(--red); font-weight: 800; }
-.il-graph-wrap { border-radius: 8px; background: linear-gradient(90deg, rgba(116,55,31,0.05) 1px, transparent 1px), linear-gradient(0deg, rgba(116,55,31,0.05) 1px, transparent 1px), rgba(255,255,255,0.5); background-size: 26px 26px; border: 1px solid rgba(116,55,31,0.12); padding: 6px; }
-#treeSvg { width: 100%; height: auto; display: block; }
-.il-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; font-size: 12.5px; color: var(--muted); }
-.il-legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; margin-right: 5px; vertical-align: -2px; }
-table.il-tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; font-family: "JetBrains Mono", Consolas, monospace; }
-table.il-tbl th, table.il-tbl td { border: 1px solid rgba(116,55,31,0.16); padding: 6px 9px; text-align: center; }
-table.il-tbl th { background: rgba(214, 59, 29,0.08); color: var(--red); font-weight: 800; }
-table.il-tbl th.f2 { color: var(--blue); background: rgba(47,95,159,0.08); }
-table.il-tbl tr.cur td { background: rgba(255,180,0,0.2); outline: 2px solid var(--gold); outline-offset: -2px; }
-table.il-tbl tr.pending td { color: #c3b2a4; }
-table.il-tbl tr.hit td { background: rgba(47,125,87,0.12); }
-table.il-tbl tr.bad td { background: rgba(214, 59, 29,0.1); }
-table.il-tbl td.res { font-weight: 800; }
-.cell-t { color: var(--green); font-weight: 800; } .cell-f { color: var(--red); font-weight: 800; }
-.cell-eq { color: var(--green); font-weight: 800; } .cell-ne { color: var(--red); font-weight: 800; }
-.il-conclusion { margin-top: 12px; padding: 11px 14px; border-radius: 8px; background: rgba(47,95,159,0.07); border-left: 4px solid var(--blue); font-size: 14px; line-height: 1.7; color: #36506f; }
-.il-conclusion b { color: var(--red); }
-.il-stepbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-.il-btn { border: 1px solid rgba(116,55,31,0.22); background: #fffaf2; color: #4e362d; border-radius: 8px; padding: 8px 14px; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; transition: all .18s ease; }
-.il-btn:hover { border-color: var(--red); color: var(--red); transform: translateY(-1px); }
-.il-btn:disabled { opacity: .42; cursor: not-allowed; transform: none; }
-.il-btn.primary { background: var(--red); color: #fff; border-color: var(--red); }
-.il-btn.primary:hover { background: #9a1d12; color: #fff; }
-.il-btn.ghost { background: rgba(47,95,159,0.08); border-color: rgba(47,95,159,0.25); color: var(--blue); }
-.il-status { border-radius: 8px; background: rgba(255,250,242,0.9); border: 1px dashed rgba(116,55,31,0.28); padding: 12px 14px; line-height: 1.7; font-size: 14.5px; color: #4a342b; min-height: 52px; }
-.il-status b { color: var(--red); }
-.il-footer-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
-.il-progress { font-size: 12px; color: var(--muted); font-family: "JetBrains Mono", Consolas, monospace; }
-.il-verdict { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 15px; padding: 8px 16px; border-radius: 999px; border: 1px solid transparent; background: rgba(107, 74, 56,0.1); color: var(--muted); }
-.il-verdict.true { background: rgba(47,125,87,0.14); color: var(--green); border-color: rgba(47,125,87,0.4); }
-.il-verdict.false { background: rgba(214, 59, 29,0.1); color: var(--red); border-color: rgba(214, 59, 29,0.4); }
-.footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 9998; min-height: 72px; padding: 14px 10px; text-align: center; color: inherit; opacity: 0.72; background: transparent; font-size: 13px; line-height: 1.7; }
-@media (max-width: 920px) {
-  body { overflow: auto; }
-  .app-container { width: min(100vw - 22px, 760px); height: auto; min-height: 0; grid-template-columns: 1fr; margin-bottom: 96px; }
-  .side-panel, .glass-pane { max-height: none; }
-  .mission-card { grid-template-columns: 1fr; }
-  .il-formula { font-size: 20px; }
-}
-
-  </style>
-    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
-    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+  <link rel="stylesheet" href="formula_interpretation.css">
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
 <body>
   <a class="home-link" href="../../index.html#chapter5">← 返回课程主页</a>
@@ -138,92 +36,100 @@ table.il-tbl td.res { font-weight: 800; }
     <aside class="side-panel">
       <div class="eyebrow">拓展层 · 第5章 命题逻辑</div>
       <h1>SAT 与电路验证</h1>
-      <p class="subtitle">SAT / NP完全 / 电路等价</p>
+      <p class="subtitle">SAT / NP 完全 / 电路等价</p>
       <p class="tier-line">高天花板 · 迁移工程</p>
       <p class="intro">🎯 迁移到可满足性与电路验证。</p>
 
-      <div class="value-panel">
-        <h3>求真务实 · 实践检验</h3>
-        <p>SAT 是『能否找到一组解释让它成真』，电路等价是『两份方案是否处处一致』。穷举检验，实事求是地下结论。</p>
-        <div class="dim-list"><span>实事求是</span><span>求真务实</span><span>科学精神</span></div>
-      </div>
-
-      <div class="control-group">
-        <label><span>任务模式</span></label>
-        <div class="mode-btns">
-          <button class="mb active" id="mbSat" data-mode="sat">SAT 可满足性</button>
-          <button class="mb" id="mbEq" data-mode="eq">等价/电路验证</button>
+      <div class="controls">
+        <div class="control-group">
+          <div class="cg-label">任务模式</div>
+          <div class="seg">
+            <button type="button" class="il-btn active" id="mbSat" aria-pressed="true">SAT 可满足性</button>
+            <button type="button" class="il-btn" id="mbEq" aria-pressed="false">等价 / 电路验证</button>
+          </div>
+        </div>
+        <div class="control-group" id="satGroup">
+          <label for="satSel">选择公式 <small>求一组成真赋值</small></label>
+          <select id="satSel">
+            <option value="s1">(p ∧ q) ∨ (¬p ∧ r)</option>
+            <option value="s4">(p∨q∨r)∧(¬p∨q)∧(¬q∨r)∧(p∨¬r)</option>
+            <option value="s2">((p → q) ∧ p) ∧ ¬q</option>
+            <option value="s3">¬(p ∨ q)</option>
+          </select>
+        </div>
+        <div class="control-group hidden" id="eqGroup">
+          <label for="eqSel">选择待验证的两个公式</label>
+          <select id="eqSel">
+            <option value="e1">p→q 与 ¬p∨q（蕴含等值式）</option>
+            <option value="e2">¬(p∧q) 与 ¬p∨¬q（德摩根律）</option>
+            <option value="e4">p→q 与 ¬q→¬p（逆否命题）</option>
+            <option value="e3">p→q 与 q→p（逆命题）</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <div class="cg-label">逐步演示 <small>一步 = 检查一行</small></div>
+          <div class="step-row">
+            <button type="button" class="il-btn" id="prevBtn">◀ 上一步</button>
+            <button type="button" class="il-btn primary" id="nextBtn">下一步 ▶</button>
+            <button type="button" class="il-btn" id="autoBtn">▶ 自动播放</button>
+            <button type="button" class="il-btn reset" id="resetBtn">重置</button>
+          </div>
+          <div class="speed-row" style="margin-top:10px"><span>慢</span><input type="range" id="speed" min="1" max="100" value="55" aria-label="自动播放速度"><span>快</span></div>
+        </div>
+        <div class="control-group">
+          <div class="cg-label">进度</div>
+          <div class="progress-wrap"><div class="progress"><i id="progressBar"></i></div><span class="progress-num" id="progressNum">0 / 0</span></div>
+        </div>
+        <div class="control-group">
+          <div class="cg-label">当前反馈</div>
+          <div id="statusText" class="il-status"></div>
+          <span id="verdict" class="il-verdict">结论待定</span>
         </div>
       </div>
-      <div class="control-group" id="satGroup">
-        <label><span>选择公式（求可满足）</span></label>
-        <select id="satSel">
-          <option value="s1">(p ∧ q) ∨ (¬p ∧ r)</option>
-          <option value="s2">(p → q) ∧ p ∧ ¬q</option>
-          <option value="s3">¬(p ∨ q)</option>
-        </select>
-      </div>
-      <div class="control-group hidden" id="eqGroup">
-        <label><span>选择待验证的两个公式</span></label>
-        <select id="eqSel">
-          <option value="e1">p→q　vs　¬p∨q（蕴含等值）</option>
-          <option value="e2">¬(p∧q)　vs　¬p∨¬q（德摩根）</option>
-          <option value="e3">p→q　vs　q→p（逆命题）</option>
-        </select>
-      </div>
-      <div class="control-group">
-        <label><span>自动播放速度</span></label>
-        <div class="speed-row"><span style="font-size:12px;color:var(--muted)">慢</span><input type="range" id="speed" min="1" max="100" value="55"><span style="font-size:12px;color:var(--muted)">快</span></div>
+
+      <div class="legend-panel">
+        <div class="legend-title">两个判定问题</div>
+        <div class="legend-grid">
+          <div class="legend-item"><span class="sym">SAT</span><span class="desc">是否存在成真赋值？找到一行为真即可停止</span></div>
+          <div class="legend-item"><span class="sym">A⇔B</span><span class="desc">两式等值 ⟺ A↔B 是重言式；找到一行不同即可否定</span></div>
+          <div class="legend-item"><span class="sym">见证</span><span class="desc">绿色行：使公式为真的赋值</span></div>
+          <div class="legend-item"><span class="sym">反例</span><span class="desc">红色行：使两式真值不同的赋值</span></div>
+        </div>
       </div>
     </aside>
 
     <main class="glass-pane">
       <section class="mission-card">
-        <span><b>互动任务：</b>SAT 模式逐行搜索一组成真赋值；等价模式逐行比对两公式真值列是否处处相同。</span>
-        <div class="visual-badge">SAT 搜索 + 真值列比对</div>
+        <span><b>互动任务：</b>SAT 模式逐行搜索一组成真赋值；等价模式逐行比对两公式的真值列，找反例或确认处处相同。</span>
+        <div class="visual-badge">SAT 搜索 · 真值列比对</div>
       </section>
 
-      <section class="stage">
-        <div class="il-panel">
-          <h2 class="il-panel-title"><span class="num">F</span>公式 · Formula<span class="badge" id="modeBadge">—</span></h2>
+      <div class="sym-pipeline">
+        <section class="sym-stage-card">
+          <div class="sym-stage-head"><span class="sym-stage-num">1</span><span class="sym-stage-title">待判定公式</span><span class="il-badge" id="modeBadge">—</span><span class="sym-stage-hint">变元按当前行着色</span></div>
           <div id="formulaBox" class="il-formula"></div>
           <div id="formulaBox2" class="il-formula f2 hidden"></div>
           <div id="subBox" class="il-sub"></div>
-        </div>
+        </section>
 
-        <div class="il-panel">
-          <h2 class="il-panel-title"><span class="num">T</span>当前解释下的表达式树</h2>
+        <section class="sym-stage-card">
+          <div class="sym-stage-head"><span class="sym-stage-num">2</span><span class="sym-stage-title">表达式树 · 当前解释</span><span class="sym-stage-hint" id="treeHint">根节点 = 本行结果</span></div>
           <div class="il-graph-wrap">
-            <svg id="treeSvg" viewBox="0 0 760 240" preserveAspectRatio="xMidYMid meet" role="img" aria-label="表达式树"></svg>
+            <svg id="treeSvg" viewBox="0 0 760 250" preserveAspectRatio="xMidYMid meet" role="img" aria-label="表达式树"></svg>
           </div>
           <div class="il-legend">
-            <span><i style="background:#2f7d57"></i>真 T</span>
-            <span><i style="background:#e7d8cc;border:1px solid #c9a99a"></i>假 F</span>
-            <span><i style="background:transparent;box-shadow:0 0 0 2px #c58a1f"></i>当前节点</span>
+            <span><i class="lg-t"></i>真 T</span>
+            <span><i class="lg-f"></i>假 F</span>
+            <span><i class="lg-idle"></i>尚未代入</span>
           </div>
-        </div>
+        </section>
 
-        <div class="il-panel">
-          <h2 class="il-panel-title"><span class="num">≣</span><span id="tableTitle">真值表 · 逐行搜索</span></h2>
-          <div id="ttable"></div>
+        <section class="sym-stage-card">
+          <div class="sym-stage-head"><span class="sym-stage-num">3</span><span class="sym-stage-title" id="tableTitle">真值表 · 逐行搜索</span><span class="sym-stage-hint">金色 = 当前行 · 绿 = 见证 · 红 = 反例</span></div>
+          <div id="ttable" class="il-table-wrap"></div>
           <div id="conclusion" class="il-conclusion"></div>
-        </div>
-
-        <div class="il-panel">
-          <h2 class="il-panel-title"><span class="num">▶</span>逐步推演 · 反馈</h2>
-          <div class="il-stepbar">
-            <button class="il-btn" id="prevBtn">◀ 上一步</button>
-            <button class="il-btn primary" id="nextBtn">下一步 ▶</button>
-            <button class="il-btn ghost" id="autoBtn">自动播放</button>
-            <button class="il-btn" id="resetBtn">重置</button>
-          </div>
-          <div id="statusText" class="il-status">点击 <b>下一步</b>：在 SAT 模式逐行搜索成真赋值；切换到等价模式逐行比对两公式。</div>
-          <div class="il-footer-row">
-            <span id="verdict" class="il-verdict">结论待定</span>
-            <span id="stepLabel" class="il-progress">步骤 0 / 0</span>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   </div>
 
@@ -237,298 +143,196 @@ table.il-tbl td.res { font-weight: 800; }
       "layers": [
         { "name": "解释与赋值", "concepts": "变元真值指派 / 2ⁿ 种解释", "task": "枚举所有解释下的真值。", "page": "formula_interpretation-basic.html" },
         { "name": "公式分类", "concepts": "重言式 / 矛盾式 / 可满足式", "task": "据真值表对公式分类。", "page": "formula_interpretation.html" },
-        { "name": "SAT 与电路验证", "concepts": "SAT / NP完全 / 电路等价", "task": "迁移到可满足性与电路验证。", "page": "formula_interpretation-extend.html" }
+        { "name": "SAT 与电路验证", "concepts": "SAT / NP 完全 / 电路等价", "task": "迁移到可满足性与电路验证。", "page": "formula_interpretation-extend.html" }
       ],
       "chapter": "第5章 命题逻辑",
       "section": "5.3 命题公式解释与真值表",
-      "title": "命题公式解释与真值表",
-      "grounding": "本节主题：解释=对所有命题变元的一组真值指派；真值表列出全部 2ⁿ 种解释下公式的真值。据此分类：重言式（永真）、矛盾式（永假）、可满足式（存在使其真的解释）。真值表是判定逻辑性质的根本方法。",
+      "title": "SAT 与电路验证",
+      "grounding": "本节主题：解释（赋值）= 对全部命题变元的一组真值指派；真值表列出全部 2ⁿ 种解释下公式的真值，据此判定重言式、矛盾式与可满足式。本页定位为拓展层：SAT 问题问『公式是否可满足』，是第一个被证明为 NP 完全的问题（Cook 1971，Levin 独立证明）；目前没有已知的多项式时间算法，真值表穷举最坏需 2ⁿ 行，现代求解器（DPLL/CDCL）靠剪枝在大量实际问题上很高效，但不改变最坏情况的难度。两电路（公式 A、B）等价当且仅当 A↔B 是重言式，也即 ¬(A↔B) 不可满足，因此等价验证可以交给 SAT 求解器。",
       "steps": [
-        {"name":"情境引入","desc":"一个论断是『放之四海皆准』还是『偶尔成立』？如何穷举判定？"},
-        {"name":"对象抽取","desc":"把变元的所有取值组合抽象为 2ⁿ 种解释。"},
-        {"name":"结构建模","desc":"用真值表系统枚举所有解释下的真值。"},
-        {"name":"推理求解","desc":"据真值表判定重言/矛盾/可满足。"},
-        {"name":"程序验证","desc":"用本页交互生成真值表，分类公式。"},
-        {"name":"迁移反思","desc":"迁移到 SAT 求解、电路验证、测试覆盖。"}
+        {"name":"情境引入","desc":"约束能否同时满足？两份电路设计是否处处一致？"},
+        {"name":"对象抽取","desc":"把约束 / 电路写成命题公式，变元即输入。"},
+        {"name":"结构建模","desc":"SAT：找成真赋值；等价：比对 A、B 真值列。"},
+        {"name":"推理求解","desc":"逐行搜索见证或反例，找到即可提前结束。"},
+        {"name":"程序验证","desc":"用本页交互观察搜索过程与提前终止。"},
+        {"name":"迁移反思","desc":"2ⁿ 的代价从何而来？求解器如何剪枝？"}
       ],
       "ideology": {
         "title": "求真务实 · 实践检验",
-        "text": "真值表用『穷举一切情形』来判定真理的普遍性，正是实事求是、用实践检验认识的科学态度。重言式象征经得起一切检验的真理，可满足式提醒我们结论的成立有其条件——不可以偏概全，也不可因噎废食。",
-        "dims": ["实事求是", "求真务实", "科学精神"],
-        "quote": "实践是检验真理的唯一标准——真值表正是把『一切情形』逐一检验的逻辑实践。"
+        "text": "SAT 问『能否找到一组解释让它成真』，电路等价问『两份方案是否处处一致』：一个见证就能证明可满足，一个反例就能否定等价，而要断言『处处一致』则必须穷尽检验。芯片设计前先做形式验证，正是用严谨的逻辑为工程质量把关——实事求是地下结论，不凭感觉、不留死角。",
+        "dims": ["实事求是", "科学精神", "工程素养"],
+        "quote": "一个反例足以推翻结论，处处一致才敢放心替换——形式验证是工程上的求真务实。"
       },
       "reflect": [
-        "重言式、矛盾式、可满足式三者的关系是什么？矛盾式可满足吗？",
-        "真值表有 2ⁿ 行，当 n 很大时为何不可行？这预示了什么计算难题（SAT）？",
-        "如何只用真值表判断两个公式是否逻辑等价？"
+        "为什么找到一行为真就能停止 SAT 搜索，而判定『不可满足』却要检查全部 2ⁿ 行？",
+        "如何把『A 与 B 是否等价』转化为一个 SAT 问题？",
+        "变元从 20 个增加到 60 个，真值表行数扩大了多少倍？这说明了什么？"
       ],
       "transfer": [
-        "SAT 问题（判定公式是否可满足）是第一个被证明的 NP 完全问题。",
-        {"t":"电路验证","d":"判断两个电路是否等价，本质是判断对应公式是否重言等价。"}
+        "SAT 问题（判定公式是否可满足）是第一个被证明为 NP 完全的问题。",
+        {"t":"电路验证","d":"两电路等价 ⟺ A↔B 是重言式 ⟺ ¬(A↔B) 不可满足，可交给 SAT 求解器判定。"}
       ]
     };
   </script>
 
+  <script src="formula_interpretation.js"></script>
   <script>
 (function () {
   "use strict";
+  const P = window.PropCore;
+  const $ = id => document.getElementById(id);
+  const { A, NOT, AND, OR, IMP } = P;
 
-  /* ===== AST 引擎 ===== */
-  const A = n => ({ op: "atom", name: n });
-  const NOT = c => ({ op: "not", child: c });
-  const AND = (l, r) => ({ op: "and", left: l, right: r });
-  const OR = (l, r) => ({ op: "or", left: l, right: r });
-  const IMP = (l, r) => ({ op: "implies", left: l, right: r });
-  const SYM = { not: "¬", and: "∧", or: "∨", implies: "→", iff: "↔" };
-  const GATE = { not: "非", and: "与", or: "或", implies: "条件", iff: "等价" };
-  const isBin = n => ["and", "or", "implies", "iff"].includes(n.op);
-  let _id = 0;
-  function annotate(n) { n.id = _id++; n.desc = new Set([n.id]); const kids = n.op === "atom" ? [] : (n.op === "not" ? [n.child] : [n.left, n.right]); kids.forEach(k => { annotate(k); k.desc.forEach(d => n.desc.add(d)); }); return n; }
-  function ev(n, e) { switch (n.op) { case "atom": return e[n.name]; case "not": return !ev(n.child, e); case "and": return ev(n.left, e) && ev(n.right, e); case "or": return ev(n.left, e) || ev(n.right, e); case "implies": return !ev(n.left, e) || ev(n.right, e); case "iff": return ev(n.left, e) === ev(n.right, e); } }
-  function toks(n, top) { if (n.op === "atom") return [{ t: n.name, nid: n.id }]; if (n.op === "not") return [{ t: "¬", nid: n.id }].concat(toks(n.child, false)); let arr = toks(n.left, false).concat([{ t: SYM[n.op], nid: n.id }], toks(n.right, false)); if (!top && isBin(n)) arr = [{ t: "(", nid: n.id }].concat(arr, [{ t: ")", nid: n.id }]); return arr; }
-  function strOf(n) { return toks(n, true).map(x => x.t).join(""); }
-  function atomsOf(n, s) { s = s || new Set(); if (n.op === "atom") s.add(n.name); else if (n.op === "not") atomsOf(n.child, s); else { atomsOf(n.left, s); atomsOf(n.right, s); } return s; }
-
-  /* ===== 公式库 ===== */
   const SATF = {
-    s1: { build: () => OR(AND(A("p"), A("q")), AND(NOT(A("p")), A("r"))) },
-    s2: { build: () => AND(AND(IMP(A("p"), A("q")), A("p")), NOT(A("q"))) },
-    s3: { build: () => NOT(OR(A("p"), A("q"))) }
+    s1: { build: () => OR(AND(A("p"), A("q")), AND(NOT(A("p")), A("r"))), mode: "full" },
+    s4: { build: () => AND(AND(AND(OR(OR(A("p"), A("q")), A("r")), OR(NOT(A("p")), A("q"))), OR(NOT(A("q")), A("r"))), OR(A("p"), NOT(A("r")))), mode: "min" },
+    s2: { build: () => AND(AND(IMP(A("p"), A("q")), A("p")), NOT(A("q"))), mode: "full" },
+    s3: { build: () => NOT(OR(A("p"), A("q"))), mode: "full" }
   };
   const EQF = {
-    e1: { a: () => IMP(A("p"), A("q")), b: () => OR(NOT(A("p")), A("q")), note: "蕴含等值式 p→q ≡ ¬p∨q" },
-    e2: { a: () => NOT(AND(A("p"), A("q"))), b: () => OR(NOT(A("p")), NOT(A("q"))), note: "德摩根律 ¬(p∧q) ≡ ¬p∨¬q" },
-    e3: { a: () => IMP(A("p"), A("q")), b: () => IMP(A("q"), A("p")), note: "原命题与逆命题不等价" }
+    e1: { a: () => IMP(A("p"), A("q")), b: () => OR(NOT(A("p")), A("q")), note: "蕴含等值式 p→q ⇔ ¬p∨q" },
+    e2: { a: () => NOT(AND(A("p"), A("q"))), b: () => OR(NOT(A("p")), NOT(A("q"))), note: "德摩根律 ¬(p∧q) ⇔ ¬p∨¬q" },
+    e4: { a: () => IMP(A("p"), A("q")), b: () => IMP(NOT(A("q")), NOT(A("p"))), note: "原命题与逆否命题等值" },
+    e3: { a: () => IMP(A("p"), A("q")), b: () => IMP(A("q"), A("p")), note: "原命题与逆命题不一定等值" }
   };
 
-  /* ===== 树布局 ===== */
-  function layout(root) {
-    const leaves = [];
-    (function c(n) { if (n.op === "atom") leaves.push(n); else if (n.op === "not") c(n.child); else { c(n.left); c(n.right); } })(root);
-    let maxDepth = 0; const depth = {};
-    (function d(n, dp) { depth[n.id] = dp; maxDepth = Math.max(maxDepth, dp); if (n.op === "not") d(n.child, dp + 1); else if (n.op !== "atom") { d(n.left, dp + 1); d(n.right, dp + 1); } })(root, 0);
-    leaves.forEach((lf, i) => lf._u = leaves.length === 1 ? 0.5 : i / (leaves.length - 1));
-    (function u(n) { if (n.op === "atom") return n._u; if (n.op === "not") { n._u = u(n.child); return n._u; } const a = u(n.left), b = u(n.right); n._u = (a + b) / 2; return n._u; })(root);
-    return { maxDepth, depth };
-  }
-
-  /* ===== DOM ===== */
-  const mbSat = document.getElementById("mbSat");
-  const mbEq = document.getElementById("mbEq");
-  const satGroup = document.getElementById("satGroup");
-  const eqGroup = document.getElementById("eqGroup");
-  const satSel = document.getElementById("satSel");
-  const eqSel = document.getElementById("eqSel");
-  const speed = document.getElementById("speed");
-  const modeBadge = document.getElementById("modeBadge");
-  const formulaBox = document.getElementById("formulaBox");
-  const formulaBox2 = document.getElementById("formulaBox2");
-  const subBox = document.getElementById("subBox");
-  const treeSvg = document.getElementById("treeSvg");
-  const tableTitle = document.getElementById("tableTitle");
-  const ttable = document.getElementById("ttable");
-  const conclusion = document.getElementById("conclusion");
-  const statusText = document.getElementById("statusText");
-  const verdict = document.getElementById("verdict");
-  const stepLabel = document.getElementById("stepLabel");
-  const prevBtn = document.getElementById("prevBtn");
-  const nextBtn = document.getElementById("nextBtn");
-  const autoBtn = document.getElementById("autoBtn");
-  const resetBtn = document.getElementById("resetBtn");
-
-  const SVGNS = "http://www.w3.org/2000/svg";
-  let mode = "sat";
-  let fA = null, fB = null, atoms = [], steps = [], idx = 0, timer = null;
-
-  function tm(v) { return v ? "T" : "F"; }
-  function esc(s) { return String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
-  function delay() { return Math.max(280, 1500 - Number(speed.value) * 12); }
-  function rowEnv(m) { const e = {}; atoms.forEach((a, i) => e[a] = !!(m & (1 << (atoms.length - 1 - i)))); return e; }
+  const satGroup = $("satGroup"), eqGroup = $("eqGroup"), satSel = $("satSel"), eqSel = $("eqSel");
+  const mbSat = $("mbSat"), mbEq = $("mbEq"), statusText = $("statusText"), verdict = $("verdict");
+  let mode = "sat", fA = null, fB = null, fmode = "full", atoms = [], rows = 0;
 
   function build() {
-    _id = 0;
     if (mode === "sat") {
-      fA = SATF[satSel.value].build(); annotate(fA); fB = null;
-      atoms = [...atomsOf(fA)].sort();
+      const c = SATF[satSel.value];
+      fA = P.annotate(c.build()); fB = null; fmode = c.mode;
+      atoms = P.atomsOf(fA);
     } else {
       const c = EQF[eqSel.value];
-      fA = c.a(); annotate(fA);
-      fB = c.b(); annotate(fB);   // 不重置 _id，保证两树 id 不冲突
-      atoms = [...new Set([...atomsOf(fA), ...atomsOf(fB)])].sort();
+      fA = P.annotate(c.a()); fB = P.annotate(c.b(), fA.nextId); fmode = "full";
+      atoms = [...new Set(P.atomsOf(fA).concat(P.atomsOf(fB)))].sort();
     }
-    layout(fA);
-    formulaBox2.classList.toggle("hidden", mode !== "eq");
+    rows = 1 << atoms.length;
+    $("formulaBox2").classList.toggle("hidden", mode !== "eq");
   }
+  const S = n => P.strOf(n, fmode);
+  const assignStr = m => { const e = P.rowEnv(atoms, m); return P.bits(atoms, e) + "（" + atoms.map(a => a + "=" + P.tm(e[a])).join("，") + "）"; };
 
-  /* ===== 步骤 ===== */
   function buildSteps() {
-    const N = atoms.length, rows = 1 << N;
     const list = [];
     if (mode === "sat") {
-      list.push({ row: -1, status: "<b>SAT（可满足性）问题：</b>是否存在一组解释，使公式 <b>" + esc(strOf(fA)) + "</b> 为真？我们逐行搜索，只要找到一行真值为真，就证明它<b>可满足</b>。", sub: "变元 " + atoms.join("、") + "，最多搜 " + rows + " 行" });
+      list.push({ row: -1, status: "<b>SAT（可满足性）问题：</b>是否存在一组解释，使公式 <b>" + P.esc(S(fA)) + "</b> 为真？逐行搜索，只要找到一行为真，就证明它<b>可满足</b>。", sub: '<span class="note">变元 ' + atoms.join("、") + "，最多搜索 " + rows + " 行</span>" });
       let found = -1;
       for (let m = 0; m < rows; m++) {
-        const val = ev(fA, rowEnv(m));
-        if (val) {
-          list.push({ row: m, status: "搜索第 <b>" + (m + 1) + "</b> 行：" + assignStr(m) + " ⟹ 公式 = <b>真</b>。<b>找到成真赋值（SAT 见证）！</b>无需再搜——可满足性已经成立。", sub: strOf(fA) + " = " + '<span class="t">真</span>', verdict: true, hit: m });
+        const v = P.ev(fA, P.rowEnv(atoms, m));
+        if (v) {
+          list.push({ row: m, hit: m, verdict: true, status: "搜索第 <b>" + (m + 1) + "</b> 行 " + assignStr(m) + " ⟹ 公式为" + P.tf(true) + "。<b>找到成真赋值（SAT 见证）！</b>可满足性已成立，无需再搜。", sub: P.esc(S(fA)) + " = " + P.tf(true) });
           found = m; break;
-        } else {
-          list.push({ row: m, status: "搜索第 <b>" + (m + 1) + "</b> 行：" + assignStr(m) + " ⟹ 公式 = 假，不是见证，继续搜下一行……", sub: strOf(fA) + " = " + '<span class="f">假</span>' });
         }
+        list.push({ row: m, verdict: false, status: "搜索第 <b>" + (m + 1) + "</b> 行 " + assignStr(m) + " ⟹ 公式为" + P.tf(false) + "，不是见证，继续搜索下一行。", sub: P.esc(S(fA)) + " = " + P.tf(false) });
       }
       if (found >= 0) {
-        list.push({ row: found, done: true, sat: true, hit: found, status: "<b>结论：公式可满足（SAT）。</b> 见证赋值：" + assignStr(found) + "。现实中 SAT 求解器正是这样为约束问题寻找可行解——只是用聪明的剪枝代替傻搜。SAT 是首个被证明的 <b>NP 完全</b>问题。", sub: "可满足 · 见证 " + assignStr(found) });
+        list.push({ row: found, done: true, ok: true, hit: found, searched: found + 1, status: "<b>结论：公式可满足（SAT）。</b>见证赋值：" + assignStr(found) + "。共检查 " + (found + 1) + "/" + rows + " 行。", sub: "可满足 · 见证 " + P.bits(atoms, P.rowEnv(atoms, found)) });
       } else {
-        list.push({ row: rows, done: true, sat: false, status: "<b>结论：公式不可满足（UNSAT）。</b> 全部 " + rows + " 行都为假，它是<b>矛盾式</b>——无论怎样取值都不成立，相当于一组<b>自相矛盾</b>的约束。", sub: "不可满足（矛盾式）" });
+        list.push({ row: rows, done: true, ok: false, searched: rows, status: "<b>结论：公式不可满足（UNSAT）。</b>全部 " + rows + " 行都为假，它是<b>矛盾式</b>——相当于一组<b>彼此冲突</b>的约束，没有任何可行解。", sub: "不可满足（矛盾式）" });
       }
     } else {
-      const note = EQF[eqSel.value].note;
-      list.push({ row: -1, status: "<b>逻辑/电路等价验证：</b>两公式等价 ⟺ 在<b>所有解释</b>下真值<b>处处相同</b>。逐行比对 <b>" + esc(strOf(fA)) + "</b> 与 <b>" + esc(strOf(fB)) + "</b> 的真值列。", sub: note });
+      list.push({ row: -1, status: "<b>等价（电路）验证：</b>A ⇔ B 当且仅当两式在<b>所有解释</b>下真值相同（即 A↔B 是重言式）。逐行比对 <b>" + P.esc(S(fA)) + "</b> 与 <b>" + P.esc(S(fB)) + "</b>。", sub: '<span class="note">' + EQF[eqSel.value].note + "</span>" });
       let bad = -1;
       for (let m = 0; m < rows; m++) {
-        const va = ev(fA, rowEnv(m)), vb = ev(fB, rowEnv(m)), same = va === vb;
-        if (!same) {
-          list.push({ row: m, status: "比对第 <b>" + (m + 1) + "</b> 行：" + assignStr(m) + " ⟹ 左=" + tm(va) + "，右=" + tm(vb) + "，<b>不一致！</b>找到反例——两公式<b>不等价</b>，结论已定。", sub: "左 " + tm(va) + " ≠ 右 " + tm(vb), bad: m });
+        const e = P.rowEnv(atoms, m), va = P.ev(fA, e), vb = P.ev(fB, e);
+        if (va !== vb) {
+          list.push({ row: m, bad: m, verdict: false, status: "比对第 <b>" + (m + 1) + "</b> 行 " + assignStr(m) + " ⟹ A 为" + P.tf(va) + "，B 为" + P.tf(vb) + "，<b>不一致！</b>找到反例，两式<b>不等值</b>，结论已定。", sub: "A = " + P.tf(va) + "，B = " + P.tf(vb) + "，不一致 ✗" });
           bad = m; break;
-        } else {
-          list.push({ row: m, status: "比对第 <b>" + (m + 1) + "</b> 行：" + assignStr(m) + " ⟹ 左=" + tm(va) + "，右=" + tm(vb) + "，一致 ✓，继续比对……", sub: "左 " + tm(va) + " = 右 " + tm(vb) });
         }
+        list.push({ row: m, verdict: true, status: "比对第 <b>" + (m + 1) + "</b> 行 " + assignStr(m) + " ⟹ A 为" + P.tf(va) + "，B 为" + P.tf(vb) + "，一致 ✓，继续比对。", sub: "A = " + P.tf(va) + "，B = " + P.tf(vb) + "，一致 ✓" });
       }
       if (bad >= 0) {
-        list.push({ row: bad, done: true, eq: false, bad: bad, status: "<b>结论：两公式不等价。</b> 反例：" + assignStr(bad) + " 处真值不同。在电路验证里，这意味着两份设计在该输入下输出不一致——必须修正。", sub: "不等价（存在反例）" });
+        list.push({ row: bad, done: true, ok: false, bad, searched: bad + 1, status: "<b>结论：两式不等值。</b>反例 " + assignStr(bad) + " 处真值不同。放到电路验证里，意味着两份设计在该输入下输出不一致，不能互相替换。", sub: "不等值（存在反例）" });
       } else {
-        list.push({ row: rows, done: true, eq: true, status: "<b>结论：两公式逻辑等价（" + esc(strOf(fA)) + " ≡ " + esc(strOf(fB)) + "）。</b> 全部 " + rows + " 行真值列完全相同。这正是<b>电路等价验证</b>的原理：穷尽所有输入，处处一致才放心替换。", sub: "等价（处处一致）" });
+        list.push({ row: rows, done: true, ok: true, searched: rows, status: "<b>结论：两式等值（" + P.esc(S(fA)) + " ⇔ " + P.esc(S(fB)) + "）。</b>全部 " + rows + " 行真值列完全相同——穷尽所有输入、处处一致，才能放心替换。", sub: "等值（处处一致）" });
       }
     }
     return list;
   }
-  function assignStr(m) { const e = rowEnv(m); return atoms.map(a => a + "=" + (e[a] ? "真" : "假")).join("，"); }
 
-  /* ===== 公式渲染 ===== */
-  function renderOne(box, ast, env, hot, label) {
-    const list = toks(ast, true);
-    const inner = list.map(tk => {
-      let cls = "il-term";
-      if (hot) cls += " hot";
-      const isAtom = atoms.indexOf(tk.t) >= 0;
-      if (env && isAtom) cls += env[tk.t] ? " tt" : " ff";
-      return '<span class="' + cls + '">' + esc(tk.t) + "</span>";
-    }).join("");
-    box.innerHTML = (label ? '<span class="lbl">' + label + "</span>" : "") + inner;
-  }
-  function renderFormula(env, hot) {
-    if (mode === "sat") { renderOne(formulaBox, fA, env, hot, null); }
-    else { renderOne(formulaBox, fA, env, hot, "左 · " + strOf(fA)); renderOne(formulaBox2, fB, env, hot, "右 · " + strOf(fB)); }
-  }
-
-  /* ===== SVG 树（渲染 fA） ===== */
-  function makeEl(tag, attrs) { const el = document.createElementNS(SVGNS, tag); for (const k in attrs) el.setAttribute(k, attrs[k]); return el; }
-  function renderTree(env) {
-    treeSvg.innerHTML = "";
-    if (!env) { const t = makeEl("text", { x: 380, y: 120, "text-anchor": "middle", fill: "#a48a7c", "font-size": 17, "font-family": "Noto Serif SC, serif" }); t.textContent = "点「下一步」开始搜索/比对……"; treeSvg.appendChild(t); return; }
-    const ast = fA, W = 760, H = 240, mx = 64, my = 38;
-    const lay = layout(ast); const pos = {};
-    (function walk(n) { const x = mx + n._u * (W - 2 * mx); const y = my + (lay.maxDepth === 0 ? 0 : lay.depth[n.id] / lay.maxDepth) * (H - 2 * my); pos[n.id] = { x, y }; if (n.op === "not") walk(n.child); else if (n.op !== "atom") { walk(n.left); walk(n.right); } })(ast);
-    (function edges(n) { const kids = n.op === "not" ? [n.child] : (n.op === "atom" ? [] : [n.left, n.right]); kids.forEach(k => { const a = pos[n.id], b = pos[k.id]; treeSvg.appendChild(makeEl("path", { d: "M " + a.x + " " + a.y + " L " + b.x + " " + b.y, stroke: ev(k, env) ? "#2f7d57" : "#c9a99a", "stroke-width": 3, fill: "none", opacity: 0.85 })); edges(k); }); })(ast);
-    (function nodes(n) {
-      const p = pos[n.id], val = ev(n, env);
-      if (n.op === "atom") {
-        treeSvg.appendChild(makeEl("circle", { cx: p.x, cy: p.y, r: 24, fill: val ? "#2f7d57" : "#e7d8cc", stroke: val ? "#256346" : "#c9a99a", "stroke-width": 2, filter: "drop-shadow(0 3px 6px rgba(69,31,15,0.16))" }));
-        const tx = makeEl("text", { x: p.x, y: p.y + 6, "text-anchor": "middle", fill: val ? "#fff" : "#3a2a22", "font-size": 17, "font-weight": "800", "font-family": "JetBrains Mono, monospace" }); tx.textContent = n.name; treeSvg.appendChild(tx);
-      } else {
-        const isRoot = n.id === ast.id;
-        if (isRoot) treeSvg.appendChild(makeEl("rect", { x: p.x - 32, y: p.y - 24, width: 64, height: 48, rx: 12, fill: "none", stroke: "#c58a1f", "stroke-width": 3, opacity: 0.85 }));
-        treeSvg.appendChild(makeEl("rect", { x: p.x - 28, y: p.y - 21, width: 56, height: 42, rx: 10, fill: val ? "#2f7d57" : "#e7d8cc", stroke: val ? "#256346" : "#c9a99a", "stroke-width": 2, filter: "drop-shadow(0 3px 6px rgba(69,31,15,0.16))" }));
-        const s = makeEl("text", { x: p.x, y: p.y - 1, "text-anchor": "middle", fill: val ? "#fff" : "#d63b1d", "font-size": 17, "font-weight": "800", "font-family": "JetBrains Mono, monospace" }); s.textContent = SYM[n.op]; treeSvg.appendChild(s);
-        const g = makeEl("text", { x: p.x, y: p.y + 14, "text-anchor": "middle", fill: val ? "rgba(255,255,255,.85)" : "#9a6a3a", "font-size": 9.5, "font-weight": "700" }); g.textContent = GATE[n.op]; treeSvg.appendChild(g);
-      }
-      const kids = n.op === "not" ? [n.child] : (n.op === "atom" ? [] : [n.left, n.right]);
-      kids.forEach(nodes);
-    })(ast);
-  }
-
-  /* ===== 真值表 ===== */
   function renderTable(st) {
-    const N = atoms.length, rows = 1 << N;
-    const cur = st.row, hit = st.hit, bad = st.bad;
-    let head = atoms.map(a => "<th>" + a + "</th>").join("");
-    if (mode === "sat") head += "<th>" + esc(strOf(fA)) + "</th>";
-    else head += "<th>" + esc(strOf(fA)) + "</th><th class='f2'>" + esc(strOf(fB)) + "</th><th>一致?</th>";
-    let body = "";
-    const limit = st.done ? rows - 1 : cur;
+    const last = st.done ? st.searched - 1 : st.row;
+    let head = "<th>赋值</th>" + atoms.map(a => "<th>" + a + "</th>").join("") + "<th>" + P.esc(S(fA)) + "</th>";
+    if (mode === "eq") head += '<th class="f2">' + P.esc(S(fB)) + "</th><th>一致？</th>";
+    let html = '<table class="il-tbl"><thead><tr>' + head + "</tr></thead><tbody>";
+    const val = (v, shown) => shown ? '<span class="' + (v ? "cell-t" : "cell-f") + '">' + P.tm(v) + "</span>" : "·";
     for (let m = 0; m < rows; m++) {
-      const e = rowEnv(m), shown = limit >= m;
-      let cls = "";
-      if (m === cur && !st.done) cls = "cur";
-      else if (!shown) cls = "pending";
-      if (st.done && hit === m) cls = "hit";
-      if (st.done && bad === m) cls = "bad";
-      const cells = atoms.map(a => "<td>" + (shown ? '<span class="' + (e[a] ? "cell-t" : "cell-f") + '">' + tm(e[a]) + "</span>" : "·") + "</td>").join("");
-      let rest;
-      if (mode === "sat") {
-        const va = ev(fA, e);
-        rest = '<td class="res">' + (shown ? '<span class="' + (va ? "cell-t" : "cell-f") + '">' + tm(va) + "</span>" : "·") + "</td>";
-      } else {
-        const va = ev(fA, e), vb = ev(fB, e), same = va === vb;
-        rest = '<td class="res">' + (shown ? '<span class="' + (va ? "cell-t" : "cell-f") + '">' + tm(va) + "</span>" : "·") + "</td>"
-          + '<td class="res">' + (shown ? '<span class="' + (vb ? "cell-t" : "cell-f") + '">' + tm(vb) + "</span>" : "·") + "</td>"
-          + "<td>" + (shown ? '<span class="' + (same ? "cell-eq" : "cell-ne") + '">' + (same ? "✓" : "✗") + "</span>" : "·") + "</td>";
+      const e = P.rowEnv(atoms, m), shown = m <= last;
+      let cls = shown ? "" : "pending";
+      if (m === st.row && !st.done) cls = "cur";
+      if (st.hit === m) cls = st.done ? "hit" : "cur hit";
+      if (st.bad === m) cls = st.done ? "bad" : "cur bad";
+      let tr = '<tr class="' + cls + '"><td class="idx">' + P.bits(atoms, e) + "</td>" + atoms.map(a => "<td>" + val(e[a], shown) + "</td>").join("");
+      const va = P.ev(fA, e);
+      tr += '<td class="res">' + val(va, shown) + "</td>";
+      if (mode === "eq") {
+        const vb = P.ev(fB, e);
+        tr += '<td class="res">' + val(vb, shown) + "</td><td>" + (shown ? '<span class="' + (va === vb ? "cell-eq" : "cell-ne") + '">' + (va === vb ? "✓" : "✗") + "</span>" : "·") + "</td>";
       }
-      body += '<tr class="' + cls + '">' + cells + rest + "</tr>";
+      html += tr + "</tr>";
     }
-    ttable.innerHTML = '<table class="il-tbl"><thead><tr>' + head + "</tr></thead><tbody>" + body + "</tbody></table>";
+    $("ttable").innerHTML = html + "</tbody></table>";
+    const rest = st.done && st.searched < rows ? "（其余 " + (rows - st.searched) + " 行无需再查）" : "";
+    let c;
+    if (!st.done) c = mode === "sat" ? "逐行搜索：遇到第一行为真的赋值即可停止。" : "逐行比对：遇到第一行真值不同即可停止。";
+    else if (mode === "sat") c = st.ok
+      ? "<b>可满足（SAT）</b>：存在使公式成真的解释。" + rest + "SAT 求解器被广泛用于芯片验证、排课排产、自动规划等约束问题。真值表穷举最坏要查 2ⁿ 行；现代求解器（如 DPLL、CDCL）用单元传播、冲突学习等剪枝，在大量实际问题上很快，但至今没有已知的多项式时间算法——SAT 是第一个被证明为 <b>NP 完全</b>的问题。"
+      : "<b>不可满足（UNSAT）</b>：该公式是矛盾式，约束彼此冲突，没有任何可行解。注意：断言“不可满足”必须排除<b>全部</b> 2ⁿ 种解释。";
+    else c = st.ok
+      ? "<b>等值</b>：两式真值列处处相同，可互相替换，这是逻辑化简与电路优化的依据。工程上把 A、B 两个电路的输出接到一个异或门上（称 miter），问“能否输出 1”——即判定 ¬(A↔B) 是否可满足；若 UNSAT，两电路就等价。"
+      : "<b>不等值</b>：存在使两者真值不同的解释（反例），不能互相替换。" + rest + "在 miter 电路里，这个反例正是让 ¬(A↔B) 成真的 SAT 见证。";
+    $("conclusion").innerHTML = c;
   }
 
-  /* ===== 应用步骤 ===== */
-  function applyStep() {
-    const st = steps[idx];
-    const env = st.row >= 0 && !st.done ? rowEnv(st.row) : (st.done && (st.hit >= 0 || st.bad >= 0) ? rowEnv(st.hit >= 0 ? st.hit : st.bad) : null);
-    renderFormula(env, st.row >= 0);
-    renderTree(env);
+  function render(st) {
+    const shownRow = st.row >= 0 && st.row < rows ? st.row : -1;
+    const env = shownRow >= 0 ? P.rowEnv(atoms, shownRow) : null;
+    if (mode === "sat") {
+      $("formulaBox").innerHTML = P.formulaHTML(fA, { env, mode: fmode });
+    } else {
+      $("formulaBox").innerHTML = '<span class="lbl">公式 A</span>' + P.formulaHTML(fA, { env });
+      $("formulaBox2").innerHTML = '<span class="lbl">公式 B</span>' + P.formulaHTML(fB, { env });
+    }
+    $("subBox").innerHTML = st.sub || "";
+    $("modeBadge").textContent = mode === "sat" ? "SAT 搜索" : "等价验证";
+    $("tableTitle").textContent = mode === "sat" ? "真值表 · 逐行搜索见证" : "真值列比对 · 逐行找反例";
+    $("treeHint").textContent = mode === "sat" ? "根节点 = 本行结果" : "左 A · 右 B";
+    const svg = $("treeSvg"), base = env ? { env, H: 250 } : { env: {}, evaluated: new Set(), H: 250 };
+    if (mode === "sat") {
+      P.drawTree(svg, fA, Object.assign({ active: env ? fA.id : null }, base));
+    } else {
+      const W = P.isNarrow(svg) ? 440 : 760;
+      P.drawTree(svg, fA, Object.assign({ W, Wn: W, x0: 0, w: W / 2, title: "公式 A", titleColor: "#2F5F9F", mx: W < 500 ? 26 : 50 }, base));
+      P.drawTree(svg, fB, Object.assign({ W, Wn: W, x0: W / 2, w: W / 2, title: "公式 B", titleColor: "#8A5D0B", mx: W < 500 ? 26 : 50, clear: false }, base));
+    }
     renderTable(st);
     statusText.innerHTML = st.status;
-    subBox.innerHTML = st.sub || "";
-    modeBadge.textContent = mode === "sat" ? "SAT 搜索" : "等价验证";
-    tableTitle.textContent = mode === "sat" ? "真值表 · 逐行搜索成真赋值" : "真值列比对 · 逐行检查一致性";
-    stepLabel.textContent = "步骤 " + idx + " / " + (steps.length - 1);
-    conclusion.innerHTML = st.done ? buildConclusion(st) : "";
-    conclusion.style.display = st.done ? "" : "none";
     if (st.done) {
-      const ok = mode === "sat" ? st.sat : st.eq;
-      verdict.className = "il-verdict " + (ok ? "true" : "false");
-      verdict.textContent = mode === "sat" ? (st.sat ? "✓ 可满足 SAT" : "✗ 不可满足 UNSAT") : (st.eq ? "✓ 等价" : "✗ 不等价");
+      verdict.className = "il-verdict " + (st.ok ? "true" : "false");
+      verdict.textContent = mode === "sat" ? (st.ok ? "✓ 可满足 SAT" : "✗ 不可满足 UNSAT") : (st.ok ? "✓ 两式等值" : "✗ 两式不等值");
     } else if (typeof st.verdict === "boolean") {
       verdict.className = "il-verdict " + (st.verdict ? "true" : "false");
-      verdict.textContent = st.verdict ? "✓ 本行为真" : "本行为假";
+      verdict.textContent = mode === "sat" ? (st.verdict ? "本行为真 · 见证" : "本行为假") : (st.verdict ? "本行一致" : "本行不一致 · 反例");
     } else { verdict.className = "il-verdict"; verdict.textContent = "结论待定"; }
-    prevBtn.disabled = idx === 0;
-    nextBtn.disabled = idx >= steps.length - 1;
   }
-  function buildConclusion(st) {
-    if (mode === "sat") return st.sat ? "<b>可满足（SAT）：</b>存在解释使公式成真。SAT 求解是芯片验证、排课排产、自动规划等的通用引擎。" : "<b>不可满足（UNSAT）：</b>该公式是矛盾式，约束彼此冲突，没有任何可行解。";
-    return st.eq ? "<b>等价：</b>两公式真值列处处相同，可互相替换；这是逻辑化简与电路优化的依据。" : "<b>不等价：</b>存在使两者真值不同的解释（反例），不能互相替换。";
-  }
-  function go(to) { idx = Math.max(0, Math.min(steps.length - 1, to)); applyStep(); }
-  function rebuild() { build(); steps = buildSteps(); idx = 0; applyStep(); }
-  function stopAuto() { if (timer) { clearInterval(timer); timer = null; autoBtn.textContent = "自动播放"; autoBtn.classList.remove("primary"); } }
-  function toggleAuto() { if (timer) { stopAuto(); return; } if (idx >= steps.length - 1) go(0); autoBtn.textContent = "暂停"; autoBtn.classList.add("primary"); timer = setInterval(() => { if (idx >= steps.length - 1) { stopAuto(); return; } go(idx + 1); }, delay()); }
 
+  const stepper = P.Stepper({ render });
+  function rebuild() { build(); stepper.set(buildSteps(), 0); }
   function setMode(m) {
     mode = m;
     mbSat.classList.toggle("active", m === "sat"); mbEq.classList.toggle("active", m === "eq");
+    mbSat.setAttribute("aria-pressed", String(m === "sat")); mbEq.setAttribute("aria-pressed", String(m === "eq"));
     satGroup.classList.toggle("hidden", m !== "sat"); eqGroup.classList.toggle("hidden", m !== "eq");
     rebuild();
   }
-  mbSat.addEventListener("click", () => { stopAuto(); setMode("sat"); });
-  mbEq.addEventListener("click", () => { stopAuto(); setMode("eq"); });
-  satSel.addEventListener("change", () => { stopAuto(); rebuild(); });
-  eqSel.addEventListener("change", () => { stopAuto(); rebuild(); });
-  nextBtn.addEventListener("click", () => { stopAuto(); go(idx + 1); });
-  prevBtn.addEventListener("click", () => { stopAuto(); go(idx - 1); });
-  resetBtn.addEventListener("click", () => { stopAuto(); go(0); });
-  autoBtn.addEventListener("click", toggleAuto);
-  speed.addEventListener("input", () => { if (timer) { stopAuto(); toggleAuto(); } });
-
+  mbSat.addEventListener("click", () => { stepper.stop(); setMode("sat"); });
+  mbEq.addEventListener("click", () => { stepper.stop(); setMode("eq"); });
+  satSel.addEventListener("change", () => { stepper.stop(); rebuild(); });
+  eqSel.addEventListener("change", () => { stepper.stop(); rebuild(); });
   rebuild();
 })();
   </script>

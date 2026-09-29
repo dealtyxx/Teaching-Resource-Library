@@ -1,445 +1,269 @@
-/**
- * Formula Interpretation & Truth Values
- * 命题解释与真值：求真务实的逻辑
- */
+/* =====================================================================
+   命题公式可视化内核（本单元三页共用）
+   - 公式 AST：构造 / 求值 / 记号（完整括号或按优先级省括号）
+   - 表达式树 SVG：T 绿 · F 红 · 待求值暖纸 · 当前节点金环
+   - 分步控制器：上一步 / 下一步 / 自动播放 + 速度 / 重置 / 进度条
+   页面只写本层特有的步骤生成与面板渲染，通过 window.PropCore 调用。
+   ===================================================================== */
+(function (global) {
+  "use strict";
 
-document.addEventListener('DOMContentLoaded', () => {
-    init();
-});
+  const SYM = { not: "¬", and: "∧", or: "∨", implies: "→", iff: "↔" };
+  const NAME = { not: "否定", and: "合取", or: "析取", implies: "蕴含", iff: "等价" };
+  /* 优先级：¬ > ∧ > ∨ > → > ↔ */
+  const PREC = { iff: 1, implies: 2, or: 3, and: 4, not: 5, atom: 6 };
+  const COLOR = {
+    t: "#2F7D57", tDk: "#1D5E3F", f: "#C0392B", fDk: "#96281B",
+    idleOp: "#FFF4E6", idleOpStroke: "#E0A020", idleAtom: "#F3E7DA", idleAtomStroke: "#CBB6A6",
+    edge: "#D8C4B4", ring: "#FFB400", ink: "#3A2A22", red: "#D63B1D", gateIdle: "#9A6A3A"
+  };
 
-function init() {
-    setupTabs();
-    setupAssignments();
-    setupClassifier();
-    setupSimulator();
-}
+  const A = n => ({ op: "atom", name: n });
+  const NOT = c => ({ op: "not", child: c });
+  const AND = (l, r) => ({ op: "and", left: l, right: r });
+  const OR = (l, r) => ({ op: "or", left: l, right: r });
+  const IMP = (l, r) => ({ op: "implies", left: l, right: r });
+  const IFF = (l, r) => ({ op: "iff", left: l, right: r });
+  const isBin = n => n.op === "and" || n.op === "or" || n.op === "implies" || n.op === "iff";
+  const kids = n => n.op === "atom" ? [] : (n.op === "not" ? [n.child] : [n.left, n.right]);
 
-// --- Tab Switching ---
-function setupTabs() {
-    const btns = document.querySelectorAll('.tab-btn');
-    const contents = document.querySelectorAll('.tab-content');
+  /* 给每个节点编号，并记录子树包含的全部节点 id（用于高亮） */
+  function annotate(root, start) {
+    let id = start || 0;
+    (function walk(n) {
+      n.id = id++;
+      n.desc = new Set([n.id]);
+      kids(n).forEach(k => { walk(k); k.desc.forEach(d => n.desc.add(d)); });
+    })(root);
+    root.nextId = id;
+    return root;
+  }
 
-    btns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            btns.forEach(b => b.classList.remove('active'));
-            contents.forEach(c => c.classList.remove('active'));
-
-            btn.classList.add('active');
-            document.getElementById(btn.dataset.tab + 'Tab').classList.add('active');
-        });
-    });
-}
-
-// --- Logic Parser & Evaluator ---
-const Logic = {
-    // Tokenizer
-    tokenize: (formula) => {
-        // Remove spaces but keep operators intact
-        let s = formula.replace(/\s+/g, '');
-        const tokens = [];
-        let i = 0;
-        while (i < s.length) {
-            const c = s[i];
-            if (s.startsWith('<->', i)) { tokens.push('<->'); i += 3; }
-            else if (s.startsWith('->', i)) { tokens.push('->'); i += 2; }
-            else if ('&|!()'.includes(c)) { tokens.push(c); i++; }
-            else {
-                // Variable (alphanumeric)
-                let j = i;
-                while (j < s.length && /[a-zA-Z0-9]/.test(s[j])) j++;
-                if (j === i) { i++; } // Skip unknown char
-                else { tokens.push(s.slice(i, j)); i = j; }
-            }
-        }
-        return tokens;
-    },
-
-    // Recursive Descent Parser
-    parse: (tokens) => {
-        let pos = 0;
-        const peek = () => tokens[pos];
-        const consume = () => tokens[pos++];
-
-        // Expression: Iff
-        const parseExpression = () => parseIff();
-
-        // Iff: Implies (<-> Implies)*
-        const parseIff = () => {
-            let left = parseImplies();
-            while (peek() === '<->') {
-                consume();
-                const right = parseImplies();
-                left = { type: 'IFF', left, right };
-            }
-            return left;
-        };
-
-        // Implies: Or (-> Implies)? (Right Associative)
-        const parseImplies = () => {
-            let left = parseOr();
-            if (peek() === '->') {
-                consume();
-                const right = parseImplies(); // Recursion for right associativity
-                left = { type: 'IMP', left, right };
-            }
-            return left;
-        };
-
-        // Or: And (| And)*
-        const parseOr = () => {
-            let left = parseAnd();
-            while (peek() === '|') {
-                consume();
-                const right = parseAnd();
-                left = { type: 'OR', left, right };
-            }
-            return left;
-        };
-
-        // And: Not (& Not)*
-        const parseAnd = () => {
-            let left = parseNot();
-            while (peek() === '&') {
-                consume();
-                const right = parseNot();
-                left = { type: 'AND', left, right };
-            }
-            return left;
-        };
-
-        // Not: ! Not | Factor
-        const parseNot = () => {
-            if (peek() === '!') {
-                consume();
-                return { type: 'NOT', operand: parseNot() };
-            }
-            return parseFactor();
-        };
-
-        // Factor: ( Expression ) | Variable
-        const parseFactor = () => {
-            const t = peek();
-            if (t === '(') {
-                consume();
-                const expr = parseExpression();
-                if (peek() === ')') consume();
-                return expr;
-            }
-            if (t && /[a-zA-Z0-9]/.test(t)) {
-                return { type: 'VAR', value: consume() };
-            }
-            // Fallback for syntax errors or empty
-            return { type: 'VAR', value: 'FALSE' };
-        };
-
-        return parseExpression();
-    },
-
-    // Evaluator
-    evaluateTree: (node, assignment) => {
-        if (!node) return false;
-        switch (node.type) {
-            case 'VAR': return node.value === 'FALSE' ? false : !!assignment[node.value];
-            case 'NOT': return !Logic.evaluateTree(node.operand, assignment);
-            case 'AND': return Logic.evaluateTree(node.left, assignment) && Logic.evaluateTree(node.right, assignment);
-            case 'OR': return Logic.evaluateTree(node.left, assignment) || Logic.evaluateTree(node.right, assignment);
-            case 'IMP': return !Logic.evaluateTree(node.left, assignment) || Logic.evaluateTree(node.right, assignment);
-            case 'IFF': return Logic.evaluateTree(node.left, assignment) === Logic.evaluateTree(node.right, assignment);
-            default: return false;
-        }
-    },
-
-    evaluate: (formula, assignment) => {
-        try {
-            const tokens = Logic.tokenize(formula);
-            if (tokens.length === 0) return false;
-            const ast = Logic.parse(tokens);
-            return Logic.evaluateTree(ast, assignment);
-        } catch (e) {
-            console.error("Parse/Eval Error", e);
-            return false;
-        }
-    },
-
-    getVariables: (formula) => {
-        const tokens = Logic.tokenize(formula);
-        const vars = new Set();
-        tokens.forEach(t => {
-            if (!['&', '|', '!', '->', '<->', '(', ')'].includes(t)) {
-                vars.add(t);
-            }
-        });
-        return Array.from(vars).sort();
+  function ev(n, e) {
+    switch (n.op) {
+      case "atom": return !!e[n.name];
+      case "not": return !ev(n.child, e);
+      case "and": return ev(n.left, e) && ev(n.right, e);
+      case "or": return ev(n.left, e) || ev(n.right, e);
+      case "implies": return !ev(n.left, e) || ev(n.right, e);
+      case "iff": return ev(n.left, e) === ev(n.right, e);
     }
-};
+    return false;
+  }
 
-// --- Assignments Tab ---
-function setupAssignments() {
-    const input = document.getElementById('formulaInput');
-    const btn = document.getElementById('analyzeBtn');
-    const container = document.getElementById('truthTableContainer');
-    const presets = document.querySelectorAll('.preset-btn');
-    const currentConnective = document.getElementById('currentConnective');
+  function postorder(n, acc) {
+    acc = acc || [];
+    kids(n).forEach(k => postorder(k, acc));
+    acc.push(n);
+    return acc;
+  }
+  function atomsOf(n) {
+    const s = new Set();
+    (function w(x) { if (x.op === "atom") s.add(x.name); else kids(x).forEach(w); })(n);
+    return [...s].sort();
+  }
 
-    presets.forEach(p => {
-        p.addEventListener('click', () => {
-            // Remove active class from all presets
-            presets.forEach(btn => btn.classList.remove('active'));
-            p.classList.add('active');
-
-            input.value = p.dataset.formula;
-            currentConnective.innerHTML = `当前选择: <strong>${p.dataset.desc}</strong>`;
-            generateTable();
-        });
-    });
-
-    btn.addEventListener('click', generateTable);
-
-    // Allow Enter key to generate table
-    input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') generateTable();
-    });
-
-    function generateTable() {
-        const formula = input.value.trim();
-        if (!formula) return;
-
-        const vars = Logic.getVariables(formula);
-        if (vars.length === 0) {
-            container.innerHTML = '<div style="padding: 40px; text-align: center; color: #e74c3c; font-size: 1.1rem;">⚠️ 请输入包含变元的公式 (如 p, q)</div>';
-            return;
-        }
-
-        // Limit variables to prevent crashing (max 5 variables = 32 rows)
-        if (vars.length > 5) {
-            container.innerHTML = '<div style="padding: 40px; text-align: center; color: #e74c3c; font-size: 1.1rem;">⚠️ 变元过多，请控制在5个以内</div>';
-            return;
-        }
-
-        const rows = 1 << vars.length; // 2^n
-
-        let html = '<table class="truth-table"><thead><tr>';
-        vars.forEach(v => html += `<th>${v.toUpperCase()}</th>`);
-        html += `<th style="background: #fef5e7; color: #e67e22; font-weight: bold;">公式结果</th></tr></thead><tbody>`;
-
-        let trueCount = 0;
-        let falseCount = 0;
-
-        for (let i = 0; i < rows; i++) {
-            const assignment = {};
-            for (let j = 0; j < vars.length; j++) {
-                // Generate truth values. We usually want T first, so we invert the bit check
-                const val = rows - 1 - i;
-                const isTrue = (val >> (vars.length - 1 - j)) & 1;
-                assignment[vars[j]] = !!isTrue;
-            }
-
-            const result = Logic.evaluate(formula, assignment);
-            if (result) trueCount++;
-            else falseCount++;
-
-            const rowClass = result ? 'row-true' : 'row-false';
-
-            html += `<tr class="${rowClass}">`;
-            vars.forEach(v => {
-                html += `<td>${assignment[v] ? 'T' : 'F'}</td>`;
-            });
-            html += `<td style="font-weight: bold; font-size: 1.1rem;">${result ? 'T' : 'F'}</td></tr>`;
-        }
-
-        html += '</tbody></table>';
-
-        // Add summary
-        html += `<div style="margin-top: 20px; padding: 16px; background: #f8f9fa; border-radius: 12px; border-left: 4px solid var(--primary-red);">`;
-        html += `<strong>统计摘要：</strong><br>`;
-        html += `共 ${rows} 种可能情况（解释），其中 <span style="color: #28a745; font-weight: bold;">${trueCount} 种成真赋值</span>，`;
-        html += `<span style="color: #dc3545; font-weight: bold;">${falseCount} 种成假赋值</span>。`;
-        html += `</div>`;
-
-        container.innerHTML = html;
+  /* 记号：mode = "full"（非顶层二元子式一律加括号）或 "min"（按优先级省略括号） */
+  function needParen(child, parent, side, mode) {
+    if (!isBin(child)) return false;
+    if (mode !== "min") return true;
+    if (parent.op === "not") return true;
+    const pc = PREC[child.op], pp = PREC[parent.op];
+    if (pc < pp) return true;
+    if (pc > pp) return false;
+    /* 同级：∧、∨ 左结合可省；其余（→、↔ 及右侧嵌套）保留括号，避免歧义 */
+    return !((child.op === "and" || child.op === "or") && child.op === parent.op && side === "L");
+  }
+  function toks(n, mode) {
+    function wrap(child, parent, side) {
+      const inner = t(child);
+      return needParen(child, parent, side, mode)
+        ? [{ t: "(", nid: child.id }].concat(inner, [{ t: ")", nid: child.id }])
+        : inner;
     }
-
-    // Initial generation
-    generateTable();
-}
-
-// --- Classifier Tab ---
-function setupClassifier() {
-    const input = document.getElementById('classInput');
-    const btn = document.getElementById('classBtn');
-    const resultDisplay = document.getElementById('classResult');
-
-    // Allow Enter key
-    input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') classify();
-    });
-
-    btn.addEventListener('click', classify);
-
-    function classify() {
-        const formula = input.value.trim();
-        if (!formula) {
-            resultDisplay.innerHTML = '<div class="placeholder-text" style="color: #e74c3c;">⚠️ 请输入公式</div>';
-            return;
-        }
-
-        const vars = Logic.getVariables(formula);
-        if (vars.length === 0) {
-            resultDisplay.innerHTML = '<div class="placeholder-text" style="color: #e74c3c;">⚠️ 公式中没有变元</div>';
-            return;
-        }
-
-        const rows = 1 << vars.length;
-        let trueCount = 0;
-        let falseCount = 0;
-
-        for (let i = 0; i < rows; i++) {
-            const assignment = {};
-            for (let j = 0; j < vars.length; j++) {
-                assignment[vars[j]] = !!((i >> j) & 1); // Order doesn't matter for classification
-            }
-            if (Logic.evaluate(formula, assignment)) {
-                trueCount++;
-            } else {
-                falseCount++;
-            }
-        }
-
-        let type = '';
-        let desc = '';
-        let icon = '';
-        let color = '';
-        let ideologyNote = '';
-
-        if (falseCount === 0) {
-            type = '永真式 (Tautology)';
-            desc = `该公式在所有 ${rows} 种赋值情况下都为真。`;
-            icon = '☀️';
-            color = '#f1c40f';
-            ideologyNote = '象征着绝对真理与核心价值观。如"为人民服务"、"人民至上"等永恒命题，在任何条件下都成立。';
-        } else if (trueCount === 0) {
-            type = '永假式 (Contradiction)';
-            desc = `该公式在所有 ${rows} 种赋值情况下都为假。`;
-            icon = '🌑';
-            color = '#e74c3c';
-            ideologyNote = '象征着逻辑谬误与根本错误。如"既要...又不要..."的自相矛盾命题，在任何条件下都无法实现。';
-        } else {
-            type = '可满足式 (Satisfiable)';
-            desc = `在 ${rows} 种可能情况中，有 ${trueCount} 种为真，${falseCount} 种为假。`;
-            icon = '🌤️';
-            color = '#3498db';
-            ideologyNote = '象征着具体政策需要特定条件才能成功。体现"具体问题具体分析"的辩证思维，需要创造"成真"的条件。';
-        }
-
-        resultDisplay.innerHTML = `
-            <div style="text-align: center; animation: fadeIn 0.5s; padding: 20px;">
-                <div style="font-size: 4rem; margin-bottom: 16px;">${icon}</div>
-                <h3 style="color: ${color}; margin-bottom: 12px; font-size: 1.8rem;">${type}</h3>
-                <p style="color: #34495e; font-size: 1.1rem; margin-bottom: 16px;">${desc}</p>
-                <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; border-left: 5px solid ${color}; text-align: left;">
-                    <h4 style="margin-bottom: 8px; color: ${color};">💡 价值解读</h4>
-                    <p style="color: #7f8c8d; line-height: 1.6; margin: 0;">${ideologyNote}</p>
-                </div>
-            </div>
-        `;
+    function t(x) {
+      if (x.op === "atom") return [{ t: x.name, nid: x.id }];
+      if (x.op === "not") return [{ t: "¬", nid: x.id }].concat(wrap(x.child, x, "R"));
+      return wrap(x.left, x, "L").concat([{ t: SYM[x.op], nid: x.id }], wrap(x.right, x, "R"));
     }
-}
+    return t(n);
+  }
+  const strOf = (n, mode) => toks(n, mode).map(x => x.t).join("");
 
-// --- Simulator Tab ---
-function setupSimulator() {
-    const levels = {
-        1: {
-            name: '乡村振兴',
-            formula: '(p & q) | (r & s)',
-            desc: '只有当(产业兴旺p 且 生态宜居q)，或者(乡风文明r 且 治理有效s)时，才能实现目标。',
-            vars: { p: '产业兴旺', q: '生态宜居', r: '乡风文明', s: '治理有效' }
-        },
-        2: {
-            name: '科技强国',
-            formula: 'p & (q | r)',
-            desc: '必须坚持党的领导(p)，并且(基础研究突破q 或者 关键技术攻关r)。',
-            vars: { p: '党的领导', q: '基础研究', r: '技术攻关' }
-        },
-        3: {
-            name: '民族复兴',
-            formula: '(p & q & r) -> s',
-            desc: '如果(经济发展p 且 文化繁荣q 且 社会和谐r)，则实现民族复兴(s)。(提示：要让蕴含式为真，或者前件假，或者后件真。但在实践中我们追求前件真且后件真)',
-            vars: { p: '经济发展', q: '文化繁荣', r: '社会和谐', s: '民族复兴' }
+  const tm = v => v ? "T" : "F";
+  const tf = v => v ? '<span class="t">真</span>' : '<span class="f">假</span>';
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  /* 第 m 行解释：变元按字母序，二进制位 1 表示取真（与主范式编号一致） */
+  function rowEnv(atoms, m) {
+    const e = {};
+    atoms.forEach((a, i) => { e[a] = !!(m & (1 << (atoms.length - 1 - i))); });
+    return e;
+  }
+  const bits = (atoms, e) => atoms.map(a => e[a] ? "1" : "0").join("");
+
+  /* 公式 token 渲染：hot = 高亮的节点 id 集合；env = 给原子按真值上色 */
+  function formulaHTML(ast, opts) {
+    opts = opts || {};
+    const hot = opts.hot ? (opts.hot instanceof Set ? opts.hot : new Set(opts.hot)) : null;
+    return toks(ast, opts.mode).map(tk => {
+      let cls = "il-term";
+      if (hot && hot.size) cls += hot.has(tk.nid) ? " hot" : " dim";
+      if (opts.env && /^[a-z]$/.test(tk.t)) cls += opts.env[tk.t] ? " tt" : " ff";
+      return '<span class="' + cls + '">' + esc(tk.t) + "</span>";
+    }).join("");
+  }
+
+  /* ---------------- 表达式树 SVG ---------------- */
+  const SVGNS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs, text) {
+    const x = document.createElementNS(SVGNS, tag);
+    for (const k in attrs) x.setAttribute(k, attrs[k]);
+    if (text != null) x.textContent = text;
+    return x;
+  }
+  function layout(root) {
+    const leaves = [], depth = {};
+    let maxDepth = 0;
+    (function c(n, d) {
+      depth[n.id] = d; maxDepth = Math.max(maxDepth, d);
+      if (n.op === "atom") leaves.push(n); else kids(n).forEach(k => c(k, d + 1));
+    })(root, 0);
+    const u = {};
+    leaves.forEach((lf, i) => { u[lf.id] = leaves.length === 1 ? 0.5 : i / (leaves.length - 1); });
+    (function f(n) {
+      if (n.op === "atom") return u[n.id];
+      const ks = kids(n).map(f);
+      u[n.id] = ks.reduce((a, b) => a + b, 0) / ks.length;
+      return u[n.id];
+    })(root);
+    return { depth, maxDepth, u };
+  }
+
+  /* opts: env（解释）, evaluated（Set，缺省 = 全部已求值；null 且无 env = 结构图）, active（当前节点 id）,
+           orient "down"（树）| "right"（门电路：输入在左、输出在右）, labels（原子旁说明）, gateText（节点下小字）,
+           x0/w（在 SVG 中所占横向区域）, W/H, clear, title */
+  /* 窄屏（手机）时改用更窄的画布，节点不至于缩得太小 */
+  function isNarrow(svg) {
+    const box = svg && svg.parentNode;
+    const cw = box ? box.clientWidth : 0;
+    return cw > 0 && cw < 560;
+  }
+  function drawTree(svg, root, opts) {
+    opts = opts || {};
+    const narrow = isNarrow(svg);
+    const W = narrow ? (opts.Wn || 440) : (opts.W || 760), H = narrow ? (opts.Hn || opts.H || 250) : (opts.H || 250);
+    if (opts.clear !== false) svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    const x0 = opts.x0 || 0, w = opts.w || W;
+    if (opts.clear !== false) svg.innerHTML = "";
+    const env = opts.env || null;
+    const evd = opts.evaluated === undefined ? (env ? null : new Set()) : opts.evaluated;
+    const isEval = id => !!env && (evd === null || evd.has(id));
+    const lay = layout(root), pos = {};
+    const mx = opts.mx || (narrow ? 34 : 56), my = opts.my || (opts.title ? 56 : 40);
+    postorder(root).forEach(n => {
+      const dn = lay.maxDepth === 0 ? 0 : lay.depth[n.id] / lay.maxDepth;
+      if (opts.orient === "right") {
+        pos[n.id] = { x: x0 + mx + (1 - dn) * (w - 2 * mx), y: my + lay.u[n.id] * (H - my - 34) };
+      } else {
+        pos[n.id] = { x: x0 + mx + lay.u[n.id] * (w - 2 * mx), y: my + dn * (H - my - 40) };
+      }
+    });
+    if (opts.title) svg.appendChild(el("text", { x: x0 + w / 2, y: 22, "text-anchor": "middle", fill: opts.titleColor || COLOR.gateIdle, "font-size": 13, "font-weight": 800 }, opts.title));
+    /* 边 */
+    postorder(root).forEach(n => kids(n).forEach(k => {
+      const a = pos[n.id], b = pos[k.id], lit = isEval(k.id);
+      const stroke = lit ? (ev(k, env) ? COLOR.t : COLOR.f) : COLOR.edge;
+      const d = opts.orient === "right"
+        ? "M " + b.x + " " + b.y + " C " + (a.x + b.x) / 2 + " " + b.y + " " + (a.x + b.x) / 2 + " " + a.y + " " + a.x + " " + a.y
+        : "M " + a.x + " " + a.y + " L " + b.x + " " + b.y;
+      svg.appendChild(el("path", { d, stroke, "stroke-width": lit ? 3 : 2, fill: "none", opacity: 0.9 }));
+    }));
+    /* 节点 */
+    postorder(root).forEach(n => {
+      const p = pos[n.id], done = isEval(n.id), val = done ? ev(n, env) : null;
+      if (opts.active === n.id) {
+        const ring = n.op === "atom"
+          ? el("circle", { cx: p.x, cy: p.y, r: 31, fill: "none", stroke: COLOR.ring, "stroke-width": 4 })
+          : el("rect", { x: p.x - 36, y: p.y - 27, width: 72, height: 54, rx: 13, fill: "none", stroke: COLOR.ring, "stroke-width": 4 });
+        ring.appendChild(el("animate", { attributeName: "opacity", values: "1;0.35;1", dur: "1.3s", repeatCount: "indefinite" }));
+        svg.appendChild(ring);
+      }
+      const fill = done ? (val ? COLOR.t : COLOR.f) : (n.op === "atom" ? COLOR.idleAtom : COLOR.idleOp);
+      const stroke = done ? (val ? COLOR.tDk : COLOR.fDk) : (n.op === "atom" ? COLOR.idleAtomStroke : COLOR.idleOpStroke);
+      const shadow = "drop-shadow(0 3px 6px rgba(69,31,15,0.16))";
+      if (n.op === "atom") {
+        svg.appendChild(el("circle", { cx: p.x, cy: p.y, r: 23, fill, stroke, "stroke-width": 2, filter: shadow }));
+        svg.appendChild(el("text", { x: p.x, y: p.y + 6, "text-anchor": "middle", fill: done ? "#fff" : COLOR.ink, "font-size": 17, "font-weight": 800, "font-family": "JetBrains Mono, Consolas, monospace" }, n.name));
+        if (done) svg.appendChild(el("text", { x: p.x, y: p.y + 41, "text-anchor": "middle", fill: val ? COLOR.tDk : COLOR.fDk, "font-size": 12, "font-weight": 800, "font-family": "JetBrains Mono, Consolas, monospace" }, tm(val)));
+        if (opts.labels && opts.labels[n.name]) {
+          const side = opts.orient === "right";
+          svg.appendChild(el("text", { x: side ? p.x - 30 : p.x, y: side ? p.y + 4 : p.y - 30, "text-anchor": side ? "end" : "middle", fill: "#7a5c4d", "font-size": 11, "font-weight": 700 }, opts.labels[n.name]));
         }
+      } else {
+        svg.appendChild(el("rect", { x: p.x - 29, y: p.y - 21, width: 58, height: 42, rx: 10, fill, stroke, "stroke-width": 2, filter: shadow }));
+        svg.appendChild(el("text", { x: p.x, y: p.y - 1, "text-anchor": "middle", fill: done ? "#fff" : COLOR.red, "font-size": 17, "font-weight": 800, "font-family": "JetBrains Mono, Consolas, monospace" }, SYM[n.op]));
+        const g = opts.gateText ? opts.gateText(n) : NAME[n.op];
+        svg.appendChild(el("text", { x: p.x, y: p.y + 14, "text-anchor": "middle", fill: done ? "rgba(255,255,255,.92)" : COLOR.gateIdle, "font-size": 10, "font-weight": 700 }, g));
+        if (opts.orient === "right" && n === root && done) {
+          svg.appendChild(el("text", { x: p.x + 38, y: p.y + 5, "text-anchor": "start", fill: val ? COLOR.tDk : COLOR.fDk, "font-size": 15, "font-weight": 800, "font-family": "JetBrains Mono, Consolas, monospace" }, "▶" + tm(val)));
+        }
+      }
+    });
+    return pos;
+  }
+
+  /* ---------------- 分步控制器 ---------------- */
+  function Stepper(cfg) {
+    const $ = id => document.getElementById(id);
+    const prev = $(cfg.prev || "prevBtn"), next = $(cfg.next || "nextBtn"), auto = $(cfg.auto || "autoBtn"),
+      reset = $(cfg.reset || "resetBtn"), speed = $(cfg.speed || "speed"),
+      bar = $(cfg.bar || "progressBar"), num = $(cfg.num || "progressNum");
+    let steps = [], idx = 0, timer = null;
+    const AUTO_TXT = "▶ 自动播放", PAUSE_TXT = "❚❚ 暂停";
+    function delay() { return Math.max(300, 1600 - Number(speed ? speed.value : 55) * 12); }
+    function paint() {
+      const n = Math.max(1, steps.length - 1);
+      if (bar) bar.style.width = (idx / n * 100) + "%";
+      if (num) num.textContent = idx + " / " + (steps.length - 1);
+      prev.disabled = idx <= 0;
+      next.disabled = idx >= steps.length - 1;
+      cfg.render(steps[idx], idx, steps);
+    }
+    function stop() {
+      if (!timer) return;
+      clearInterval(timer); timer = null;
+      auto.textContent = AUTO_TXT; auto.classList.remove("playing");
+    }
+    function go(i) { idx = Math.max(0, Math.min(steps.length - 1, i)); paint(); }
+    function play() {
+      if (timer) { stop(); return; }
+      if (idx >= steps.length - 1) go(0);
+      auto.textContent = PAUSE_TXT; auto.classList.add("playing");
+      timer = setInterval(() => { if (idx >= steps.length - 1) { stop(); return; } go(idx + 1); }, delay());
+    }
+    auto.textContent = AUTO_TXT;
+    prev.addEventListener("click", () => { stop(); go(idx - 1); });
+    next.addEventListener("click", () => { stop(); go(idx + 1); });
+    reset.addEventListener("click", () => { stop(); go(0); if (cfg.onReset) cfg.onReset(); });
+    auto.addEventListener("click", play);
+    if (speed) speed.addEventListener("input", () => { if (timer) { stop(); play(); } });
+    let rz = null, lastW = window.innerWidth;
+    window.addEventListener("resize", () => {
+      if (window.innerWidth === lastW) return;
+      lastW = window.innerWidth;
+      clearTimeout(rz); rz = setTimeout(() => { if (steps.length) paint(); }, 150);
+    });
+    return {
+      set(list, i) { steps = list; go(i == null ? 0 : i); },
+      go, stop,
+      get index() { return idx; },
+      get steps() { return steps; }
     };
+  }
 
-    let currentLevel = 1;
-    const controlsArea = document.getElementById('variableControls');
-    const statusIndicator = document.getElementById('missionStatus');
-    const levelBtns = document.querySelectorAll('.level-btn');
-
-    function loadLevel(levelId) {
-        currentLevel = levelId;
-        const level = levels[levelId];
-
-        document.getElementById('missionName').textContent = level.name;
-        document.getElementById('missionFormula').textContent = `$$ ${level.formula.replace(/&/g, '\\land').replace(/\|/g, '\\lor').replace(/->/g, '\\rightarrow')} $$`;
-        document.querySelector('.mission-desc').textContent = level.desc;
-
-        // Generate controls
-        controlsArea.innerHTML = '';
-        Object.entries(level.vars).forEach(([key, label]) => {
-            const div = document.createElement('div');
-            div.className = 'switch-control';
-            div.innerHTML = `
-                <div class="switch-label">${label} (${key})</div>
-                <label class="switch">
-                    <input type="checkbox" data-var="${key}">
-                    <span class="slider"></span>
-                </label>
-            `;
-            controlsArea.appendChild(div);
-        });
-
-        // Re-render MathJax
-        if (window.MathJax) {
-            window.MathJax&&window.MathJax.typesetPromise&&MathJax.typesetPromise();
-        }
-
-        checkStatus();
-
-        // Add listeners
-        document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-            cb.addEventListener('change', checkStatus);
-        });
-    }
-
-    function checkStatus() {
-        const level = levels[currentLevel];
-        const assignment = {};
-
-        document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-            assignment[cb.dataset.var] = cb.checked;
-        });
-
-        const result = Logic.evaluate(level.formula, assignment);
-        const icon = document.querySelector('.status-icon');
-        const text = document.querySelector('.status-text');
-
-        if (result) {
-            statusIndicator.className = 'status-indicator success';
-            icon.textContent = '🎉';
-            text.textContent = '目标达成！(成真赋值)';
-        } else {
-            statusIndicator.className = 'status-indicator fail';
-            icon.textContent = '⚠️';
-            text.textContent = '尚未实现 (成假赋值)';
-        }
-    }
-
-    levelBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            levelBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            loadLevel(btn.dataset.level);
-        });
-    });
-
-    // Init
-    loadLevel(1);
-}
+  global.PropCore = {
+    SYM, NAME, PREC, COLOR, A, NOT, AND, OR, IMP, IFF, isBin, kids,
+    annotate, ev, postorder, atomsOf, toks, strOf, tm, tf, esc, rowEnv, bits,
+    formulaHTML, drawTree, isNarrow, Stepper
+  };
+})(window);
