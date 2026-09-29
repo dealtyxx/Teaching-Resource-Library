@@ -1,29 +1,27 @@
 /* =====================================================================
-   6.1 自然语言的谓词符号化 —— 三层统一交互引擎样式
-   基础层 / 进阶层 / 拓展层 共用此样式（红色数理 · 暖纸主题）
+   5.6 命题演算推证 —— 三层统一交互引擎样式
+   基础层 / 进阶层 / 拓展层 共用此样式（红金玻璃 · 暖纸主题）
    - 外壳（app-container / side-panel / glass-pane）与 shared/discrete-ui.css 协同
-   - sym-* 前缀为本节交互组件，避免与共享框架冲突
+   - sym-* 为本章引擎通用组件，ip-* 为本节专用组件
    ===================================================================== */
 
 :root {
   --ink: #2c1810;
   --muted: #6b4a38;
-  --paper: #fff8ec;
   --card: rgba(255, 253, 246, 0.92);
   --line: rgba(116, 55, 31, 0.18);
   --red: #d63b1d;
-  --red-2: #de5b3d;
-  --gold: #c58a1f;
+  --red-2: #b8321a;
+  --gold: #ffb400;
+  --gold-ink: #8a5d0b;
+  --gold-mid: #c58a1f;
   --green: #2f7d57;
-  --blue: #2f5f9f;
+  --green-ink: #1d6b43;
+  --false: #c0392b;
+  --false-ink: #97180f;
+  --hl: #ffb400;
   --shadow: 0 18px 50px rgba(69, 31, 15, 0.14);
-
-  /* 词类配色：量词/个体词/谓词/联结词 */
-  --cat-quant: #d63b1d;
-  --cat-ind: #2f5f9f;
-  --cat-pred: #c58a1f;
-  --cat-conn: #2f7d57;
-  --hl: #de5b3d;
+  --mono: "JetBrains Mono", Consolas, monospace;
 }
 
 * { box-sizing: border-box; }
@@ -35,28 +33,9 @@ body {
   font-family: "Noto Serif SC", "Microsoft YaHei", serif;
   background:
     radial-gradient(circle at 16% 12%, rgba(222, 91, 61, 0.18), transparent 28%),
-    radial-gradient(circle at 82% 8%, rgba(47, 95, 159, 0.14), transparent 26%),
+    radial-gradient(circle at 82% 8%, rgba(255, 180, 0, 0.12), transparent 26%),
     linear-gradient(135deg, #fff7e6 0%, #f8ead3 45%, #f3dfc7 100%);
   overflow: hidden;
-}
-
-.home-link {
-  position: fixed;
-  top: 14px;
-  left: 14px;
-  z-index: 10000;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  background: rgba(44, 24, 16, 0.82);
-  color: #fff;
-  text-decoration: none;
-  font-size: 13px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
 }
 
 /* ===== 外壳（共享框架会用 !important 覆写为网格，此处为兜底） ===== */
@@ -90,6 +69,7 @@ body {
   overflow: auto;
 }
 
+/* ===== 侧栏头部：眉标 → 层名 → 概念 → 层级 → 任务 ===== */
 .eyebrow {
   display: inline-flex;
   align-items: center;
@@ -109,12 +89,11 @@ body {
   font-size: 2.1rem;
   line-height: 1.2;
   font-weight: 400;
-  color: #d63b1d;
+  color: var(--red);
 }
-.side-panel > h1 .highlight { color: #ffb400; }
 .subtitle {
   margin: 0 0 8px;
-  color: #6b4a38;
+  color: var(--muted);
   font-size: 0.95rem;
   line-height: 1.6;
 }
@@ -126,7 +105,7 @@ body {
   padding: 3px 11px;
   border-radius: 999px;
   background: rgba(197, 138, 31, 0.14);
-  color: #8a5d0b;
+  color: var(--gold-ink);
   font-size: 12.5px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -136,27 +115,6 @@ body {
   color: var(--muted);
   line-height: 1.7;
   font-size: 14px;
-}
-
-/* ===== 价值面板（思政） ===== */
-.value-panel {
-  border-radius: 8px;
-  border: 1px solid rgba(116, 55, 31, 0.16);
-  background: rgba(255, 255, 255, 0.66);
-  padding: 13px 14px;
-  margin: 4px 0 14px;
-  border-left: 4px solid var(--red);
-}
-.value-panel h3 { margin: 0 0 6px; font-size: 16px; color: var(--red); }
-.value-panel p { margin: 0; line-height: 1.7; color: #563c31; font-size: 13.5px; }
-.dim-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
-.dim-list span {
-  border-radius: 999px;
-  background: rgba(197, 138, 31, 0.13);
-  color: #8a5d0b;
-  padding: 4px 9px;
-  font-size: 12px;
-  font-weight: 700;
 }
 
 /* ===== 控制区 ===== */
@@ -179,7 +137,7 @@ body {
 .control-group small { color: var(--muted); font-weight: 400; }
 select {
   width: 100%;
-  min-height: 38px;
+  min-height: 40px;
   border-radius: 8px;
   border: 1px solid rgba(116, 55, 31, 0.22);
   background: #fffaf2;
@@ -188,26 +146,37 @@ select {
   font: inherit;
 }
 
-/* 逐步控制按钮 */
+/* 逐步控制按钮：主操作红色渐变 / 次操作白底红边 / 重置描边 */
 .sym-step-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .sym-step-btn {
   appearance: none;
-  border: 1px solid rgba(116, 55, 31, 0.22);
-  background: #fffaf2;
-  color: #4e362d;
+  min-height: 40px;
+  border: 1px solid rgba(214, 59, 29, 0.55);
+  background: #fff;
+  color: var(--red);
   font: inherit;
   font-weight: 700;
   font-size: 13.5px;
-  padding: 9px 8px;
+  padding: 8px;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.16s ease;
 }
-.sym-step-btn:hover:not(:disabled) { border-color: var(--red); color: var(--red); transform: translateY(-1px); }
+.sym-step-btn:hover:not(:disabled) { border-color: var(--red); background: rgba(214, 59, 29, 0.06); transform: translateY(-1px); }
 .sym-step-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.sym-step-btn.sym-primary { background: var(--red); border-color: var(--red); color: #fff; }
-.sym-step-btn.sym-primary:hover:not(:disabled) { background: #97180f; color: #fff; }
-.sym-step-btn.sym-playing { background: var(--gold); border-color: var(--gold); color: #fff; }
+.sym-step-btn.sym-primary {
+  background: linear-gradient(135deg, #d63b1d, #b8321a);
+  border-color: #b8321a;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(214, 59, 29, 0.24);
+}
+.sym-step-btn.sym-primary:hover:not(:disabled) { background: linear-gradient(135deg, #c93419, #9f2a15); color: #fff; }
+.sym-step-btn.sym-reset { background: transparent; border-color: rgba(116, 55, 31, 0.3); color: var(--muted); }
+.sym-step-btn.sym-reset:hover:not(:disabled) { border-color: var(--muted); color: var(--ink); background: rgba(255, 255, 255, 0.5); }
+.sym-step-btn.sym-playing { background: #fff6dc; border-color: var(--gold-mid); color: var(--gold-ink); }
+.sym-speed { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 13px; color: var(--muted); font-weight: 700; }
+.sym-speed label { white-space: nowrap; }
+.sym-speed select { flex: 1; }
 
 /* 进度条 */
 .sym-progress-wrap { display: flex; align-items: center; gap: 10px; }
@@ -227,7 +196,7 @@ select {
   transition: width 0.25s ease;
 }
 .sym-progress-num {
-  font-family: "JetBrains Mono", Consolas, monospace;
+  font-family: var(--mono);
   font-weight: 800;
   font-size: 13px;
   color: var(--red);
@@ -239,6 +208,7 @@ select {
   border-radius: 8px;
   background: rgba(255, 250, 242, 0.9);
   border: 1px solid rgba(116, 55, 31, 0.16);
+  border-left: 3px solid var(--gold);
   padding: 11px 12px;
   font-size: 13.5px;
   line-height: 1.65;
@@ -247,7 +217,7 @@ select {
 }
 .sym-status b { color: var(--red); }
 
-/* ===== 符号体系说明（图例） ===== */
+/* ===== 符号说明（图例） ===== */
 .legend-panel {
   border-radius: 8px;
   border: 1px solid rgba(116, 55, 31, 0.16);
@@ -272,11 +242,11 @@ select {
   border: 1px solid rgba(116, 55, 31, 0.1);
 }
 .legend-item .sym {
-  min-width: 48px;
+  min-width: 56px;
   text-align: center;
-  font-family: "JetBrains Mono", Consolas, monospace;
+  font-family: var(--mono);
   font-weight: 800;
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   color: var(--red);
 }
 .legend-item .desc { font-size: 12.5px; color: var(--muted); }
@@ -299,8 +269,9 @@ select {
   white-space: nowrap;
   border-radius: 999px;
   padding: 7px 11px;
-  background: rgba(47, 95, 159, 0.1);
-  color: var(--blue);
+  background: rgba(255, 180, 0, 0.16);
+  border: 1px solid rgba(197, 138, 31, 0.3);
+  color: var(--gold-ink);
   font-size: 12px;
   font-weight: 700;
 }
@@ -316,16 +287,19 @@ select {
     rgba(255, 255, 255, 0.62);
   background-size: 26px 26px;
   padding: 14px 16px;
+  min-width: 0;
 }
 .sym-stage-head {
   display: flex;
   align-items: center;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 6px 10px;
   margin-bottom: 12px;
 }
 .sym-stage-num {
   display: grid;
   place-items: center;
+  flex: none;
   width: 26px;
   height: 26px;
   border-radius: 50%;
@@ -333,7 +307,7 @@ select {
   color: #fff;
   font-weight: 800;
   font-size: 14px;
-  font-family: "JetBrains Mono", Consolas, monospace;
+  font-family: var(--mono);
 }
 .sym-stage-title {
   font-family: "Ma Shan Zheng", "Noto Serif SC", cursive;
@@ -343,203 +317,105 @@ select {
 }
 .sym-stage-hint { margin-left: auto; font-size: 12px; color: var(--muted); }
 
-/* 原文：词块串 */
-.sym-original { display: flex; flex-wrap: wrap; gap: 4px 2px; font-size: 1.18rem; line-height: 2; }
-.sym-otok {
-  position: relative;
-  padding: 1px 4px;
-  border-radius: 6px;
-  transition: all 0.18s ease;
-  cursor: pointer;
-}
-.sym-otok.sym-cur {
-  background: rgba(222, 91, 61, 0.16);
-  box-shadow: inset 0 -3px 0 var(--hl);
-  font-weight: 700;
-}
-.sym-otok.sym-pending { color: rgba(107, 74, 56, 0.45); }
-
-/* 符号序列：词类积木 */
-.sym-tokens { display: flex; flex-wrap: wrap; gap: 12px; min-height: 86px; }
-.sym-tok {
-  --c: var(--cat-ind);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  min-width: 70px;
-  padding: 9px 13px;
-  border-radius: 10px;
-  background: #fff;
-  border: 2px solid var(--c);
-  box-shadow: 0 6px 16px rgba(69, 31, 15, 0.08);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.sym-tok .tok-text { font-size: 1.05rem; font-weight: 700; color: var(--ink); }
-.sym-tok .tok-cat {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: #fff;
-  background: var(--c);
-  padding: 1px 7px;
-  border-radius: 999px;
-}
-.sym-tok.sym-pending { opacity: 0.34; filter: grayscale(0.35); transform: scale(0.96); }
-.sym-tok.sym-cur {
-  transform: translateY(-3px) scale(1.07);
-  box-shadow: 0 12px 26px rgba(222, 91, 61, 0.32);
-  outline: 3px solid var(--hl);
-  outline-offset: 2px;
-}
-
-/* 谓词公式：原子行 + 综合行 */
-.sym-formula { display: grid; gap: 12px; }
-.sym-atoms { display: grid; gap: 8px; }
-.sym-atom {
-  display: grid;
-  grid-template-columns: minmax(72px, auto) 26px 1fr;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  background: #fff;
-  border-radius: 9px;
-  border-left: 4px solid var(--c, var(--red));
-  box-shadow: 0 5px 14px rgba(69, 31, 15, 0.06);
-  transition: all 0.2s ease;
-}
-.sym-atom.sym-pending { opacity: 0.3; transform: translateX(-6px); }
-.sym-atom.sym-cur { box-shadow: 0 10px 22px rgba(222, 91, 61, 0.26); outline: 2px solid var(--hl); outline-offset: 1px; }
-.sym-atom .a-word { font-weight: 800; color: var(--ink); }
-.sym-atom .a-arrow { color: var(--gold); font-weight: 800; font-size: 1.2rem; text-align: center; }
-.sym-atom .a-sym {
-  font-family: "JetBrains Mono", Consolas, monospace;
-  font-weight: 700;
-  color: var(--red);
-  background: rgba(214, 59, 29, 0.06);
-  padding: 4px 10px;
-  border-radius: 6px;
-}
-
-.sym-syn-list { display: grid; gap: 10px; border-top: 1px dashed rgba(116, 55, 31, 0.25); padding-top: 12px; }
-.sym-syn {
-  padding: 10px 13px;
-  border-radius: 9px;
-  background: rgba(255, 250, 242, 0.85);
-  border: 1px solid rgba(116, 55, 31, 0.16);
-  transition: all 0.22s ease;
-}
-.sym-syn.sym-pending { display: none; }
-.sym-syn.sym-cur { border-color: var(--hl); box-shadow: 0 8px 20px rgba(222, 91, 61, 0.16); }
-.sym-syn .syn-label { font-size: 12.5px; font-weight: 800; color: var(--blue); margin-bottom: 5px; }
-.sym-syn .syn-body {
-  font-family: "JetBrains Mono", Consolas, monospace;
-  font-weight: 700;
-  font-size: 1.02rem;
-  color: #2c1810;
-  line-height: 1.7;
-  word-break: break-word;
-}
-.sym-syn .syn-note { margin-top: 5px; font-size: 12.5px; color: var(--muted); line-height: 1.6; font-family: "Noto Serif SC", "Microsoft YaHei", serif; font-weight: 400; }
-/* 最终整句公式内可高亮的项 */
-.sym-seg { padding: 0 1px; border-radius: 4px; transition: all 0.18s ease; }
-.sym-seg.sym-hl { background: var(--hl); color: #fff; box-shadow: 0 0 0 2px rgba(222, 91, 61, 0.35); }
-
-/* 树状图 */
-.sym-tree-wrap {
-  width: 100%;
-  overflow-x: auto;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(116, 55, 31, 0.14);
-}
-#symTree { display: block; width: 100%; height: auto; }
-.sym-leaf { cursor: pointer; }
-.sym-leaf rect { transition: all 0.18s ease; }
-.sym-leaf.sym-pending { opacity: 0.34; }
-.sym-leaf.sym-cur rect { stroke: var(--hl); stroke-width: 3; }
-.sym-group.sym-cur circle { stroke: var(--hl); stroke-width: 3; }
-
-/* ===== 页脚 ===== */
-.footer {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 9998;
-  min-height: 64px;
-  padding: 12px 10px;
-  text-align: center;
-  color: inherit;
-  opacity: 0.72;
-  background: transparent;
-  font-size: 13px;
-  line-height: 1.7;
-}
+/* 真值 1/0 语义色：真 = 绿，假 = 红 */
+.ok { color: var(--green); font-weight: 800; }
+.bad { color: var(--false); font-weight: 800; }
+b.v1 { color: var(--green-ink); }
+b.v0 { color: var(--false-ink); }
+.ev-idle { color: var(--muted); }
+.ev-done { color: var(--green-ink); font-weight: 700; }
 
 /* =====================================================================
    命题演算推证 专用组件（任务目标 / 推证记录 / 推理图）
    ===================================================================== */
 
-/* 任务目标 */
-.ip-goal {
-  display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; align-items: center;
-}
-.ip-goal .g-premises { font-size: 14px; color: #4e362d; }
-.ip-goal .g-premises b { color: var(--blue); }
-.ip-goal .g-premises code {
-  font-family: "JetBrains Mono", Consolas, monospace; font-weight: 700; color: #2c1810;
-  background: rgba(47, 95, 159, 0.08); padding: 1px 6px; border-radius: 5px;
+/* 任务目标 + 有效性验证 */
+.ip-goal { display: grid; gap: 8px; }
+.ip-goal .g-premises { font-size: 14px; color: #4e362d; line-height: 1.9; }
+.ip-goal .g-premises b { color: var(--red); }
+.ip-goal code {
+  font-family: var(--mono); font-weight: 700; color: var(--ink);
+  background: rgba(116, 55, 31, 0.07); padding: 1px 6px; border-radius: 5px; white-space: nowrap;
 }
 .ip-goal .g-goal {
-  white-space: nowrap; border-radius: 999px; padding: 7px 14px;
-  background: rgba(47, 125, 87, 0.12); color: #1d6b43; font-weight: 800;
-  font-family: "JetBrains Mono", Consolas, monospace; font-size: 1rem;
+  justify-self: start; display: inline-flex; align-items: center; gap: 10px;
+  border-radius: 999px; padding: 6px 16px;
+  background: rgba(47, 125, 87, 0.12); border: 1px solid rgba(47, 125, 87, 0.35); color: var(--green-ink);
+  font-weight: 800; font-family: var(--mono); font-size: 1.02rem; overflow-wrap: anywhere;
 }
-.ip-goal .g-desc { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); }
+.ip-goal .g-turn { color: var(--gold-ink); }
+.ip-goal .g-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.g-valid {
+  margin-top: 2px; border-radius: 9px; padding: 10px 13px; font-size: 13px; line-height: 1.75; color: #5e4030;
+  background: rgba(255, 180, 0, 0.09); border: 1px solid rgba(197, 138, 31, 0.3);
+}
+.gv-head { font-weight: 800; color: var(--gold-ink); margin-bottom: 2px; }
+.gv-chip {
+  display: inline-block; margin: 2px 6px 2px 0; padding: 0 8px; border-radius: 999px;
+  font-family: var(--mono); font-size: 12px; font-weight: 700; border: 1px solid;
+}
+.gv-chip.t { color: var(--green-ink); border-color: rgba(47, 125, 87, 0.45); background: #e9f6ef; }
+.gv-chip.f { color: var(--false-ink); border-color: rgba(192, 57, 43, 0.45); background: #fdeae6; }
+.gv-verdict { margin-top: 4px; font-weight: 800; }
+.gv-verdict.ok { color: var(--green-ink); }
+.gv-verdict.bad { color: var(--false-ink); }
+.gv-contrast { margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(116, 55, 31, 0.25); color: var(--muted); }
 
 /* 推证记录表 */
-.ip-table-wrap { overflow-x: auto; }
-table.ip-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.ip-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table.ip-table { width: 100%; border-collapse: collapse; font-size: 13.5px; background: rgba(255, 255, 255, 0.55); }
 table.ip-table th, table.ip-table td {
   border-bottom: 1px solid rgba(116, 55, 31, 0.14); padding: 8px 10px; text-align: left; vertical-align: top;
 }
-table.ip-table th { background: rgba(214, 59, 29, 0.07); color: var(--red); font-weight: 800; font-size: 12.5px; }
-table.ip-table td.c-no { text-align: center; font-family: "JetBrains Mono", Consolas, monospace; font-weight: 800; color: var(--muted); width: 44px; }
-table.ip-table td.c-f { font-family: "JetBrains Mono", Consolas, monospace; font-weight: 700; color: #2c1810; }
-table.ip-table td.c-r { font-size: 12.5px; color: #6a4a3a; }
-table.ip-table td.c-r .r-rule { font-weight: 800; color: var(--red); }
-table.ip-table td.c-r .r-refs { font-family: "JetBrains Mono", Consolas, monospace; color: var(--blue); }
+table.ip-table th { background: rgba(214, 59, 29, 0.07); color: var(--red); font-weight: 800; font-size: 12.5px; white-space: nowrap; }
+table.ip-table td.c-no { text-align: center; font-weight: 800; color: var(--muted); width: 44px; font-size: 15px; }
+table.ip-table td.c-f { font-family: var(--mono); font-weight: 700; color: var(--ink); white-space: nowrap; }
+table.ip-table td.c-r { font-size: 13px; color: #6a4a3a; }
+.r-rule { font-weight: 800; color: var(--red); }
+.r-ab { font-family: var(--mono); font-size: 11.5px; font-weight: 800; color: var(--gold-ink); background: rgba(255, 180, 0, 0.16); border-radius: 4px; padding: 0 5px; }
+.r-refs { font-weight: 700; color: var(--ink); letter-spacing: 0.04em; }
 .ip-row { transition: all 0.16s ease; cursor: pointer; }
 .ip-row.sym-pending { opacity: 0.26; }
-.ip-row.is-prem td.c-f { color: var(--blue); }
-.ip-row.is-final td.c-f { color: #1d6b43; }
-.ip-row.sym-cur td { background: rgba(222, 91, 61, 0.16); }
-.ip-row.is-cited td { background: rgba(47, 95, 159, 0.12); }
-.ip-row.is-cited td.c-no { color: var(--blue); }
+.ip-row.k-assume td.c-f { color: var(--gold-ink); }
+.ip-row.is-final td.c-f { color: var(--green-ink); }
+.ip-row.is-contra td.c-f { color: var(--false-ink); }
+.ip-row.sym-cur td { background: rgba(255, 180, 0, 0.2); }
+.ip-row.sym-cur td.c-no { box-shadow: inset 4px 0 0 var(--hl); }
+.ip-row.is-cited td { background: rgba(214, 59, 29, 0.07); }
+.ip-row.is-cited td.c-no { color: var(--red); }
 
 /* 当前步反馈 */
 .ip-eval {
   border-radius: 8px; background: rgba(255, 250, 242, 0.86);
   border: 1px solid rgba(116, 55, 31, 0.16); padding: 12px 14px;
-  font-size: 13.5px; line-height: 1.8; color: #4e362d; min-height: 84px;
+  font-size: 14px; line-height: 1.8; color: #4e362d; min-height: 84px;
 }
 .ip-eval .ev-rule { font-weight: 800; color: var(--red); }
-.ip-eval .ev-f { font-family: "JetBrains Mono", Consolas, monospace; font-weight: 800; color: #2c1810; }
-.ip-eval .ev-ref { font-family: "JetBrains Mono", Consolas, monospace; font-weight: 700; color: var(--blue); }
+.ip-eval .ev-f { font-family: var(--mono); font-weight: 800; color: var(--ink); }
+.ip-eval .ev-ref { font-weight: 800; color: var(--ink); }
+.ip-eval .ev-done { margin-top: 6px; }
 
-/* 推理图（证明 DAG） */
+/* 推理图（证明依赖） */
+.ip-graph-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: -4px 0 10px; font-size: 12px; color: var(--muted); }
+.ip-graph-legend i { display: inline-block; width: 14px; height: 10px; border-radius: 3px; border: 1.6px solid; vertical-align: -1px; margin-right: 5px; }
+.ip-graph-legend .lg-prem { background: #fffaf0; border-color: #8a6a55; }
+.ip-graph-legend .lg-assume { background: #fff1c7; border-color: #c58a1f; }
+.ip-graph-legend .lg-derive { background: #fff; border-color: #d63b1d; }
+.ip-graph-legend .lg-final { background: #e3f3ea; border-color: #2f7d57; }
+.ip-graph-legend .lg-contra { background: #fbe4e0; border-color: #c0392b; }
 .ip-graph-wrap {
   border-radius: 8px; background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(116, 55, 31, 0.14); padding: 6px; overflow: auto;
+  border: 1px solid rgba(116, 55, 31, 0.14); padding: 6px; overflow-x: auto;
 }
-#ipGraph { display: block; width: 100%; height: auto; }
+.ip-graph-wrap svg { display: block; max-width: none; }
 .ip-node { cursor: pointer; }
 .ip-node rect { transition: all 0.16s ease; }
 .ip-node.sym-pending { opacity: 0.28; }
-.ip-node.is-cited rect { stroke: var(--blue); stroke-width: 2.4; stroke-dasharray: 4 3; }
-.ip-node.sym-cur rect { stroke: var(--hl); stroke-width: 3; }
-.ip-arc { transition: all 0.16s ease; opacity: 0.32; }
-.ip-arc.is-active { opacity: 0.95; }
+.ip-node.is-cited rect { stroke: #d63b1d; stroke-width: 2.4; stroke-dasharray: 4 3; }
+.ip-node.sym-cur rect { stroke: var(--hl); stroke-width: 3.2; }
+.ip-arc { stroke: #b8321a; stroke-width: 1.6; opacity: 0.3; transition: all 0.16s ease; }
+.ip-arc.is-active { opacity: 1; stroke: #d63b1d; stroke-width: 2.6; }
+.ip-arc.is-hidden { opacity: 0; }
 
 /* ===== 响应式 ===== */
 @media (max-width: 1000px) {
@@ -553,5 +429,10 @@ table.ip-table td.c-r .r-refs { font-family: "JetBrains Mono", Consolas, monospa
   }
   .side-panel, .glass-pane { max-height: none; }
   .mission-card { grid-template-columns: 1fr; }
-  .ip-goal { grid-template-columns: 1fr; }
+  .visual-badge { justify-self: start; }
+}
+@media (max-width: 560px) {
+  .sym-stage-card { padding: 12px 10px; }
+  .sym-stage-hint { margin-left: 36px; }
+  table.ip-table th, table.ip-table td { padding: 7px 6px; }
 }

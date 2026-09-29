@@ -7,7 +7,7 @@
   <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="自动定理证明 · 拓展层｜5.6 命题演算推证 - 离散数学课程资源库">
-  <meta property="og:description" content="第5章 命题逻辑 · 5.6 命题演算推证 · 拓展层：归结法 / 程序验证 Hoare 逻辑。迁移到机械推理与程序验证。">
+  <meta property="og:description" content="第5章 命题逻辑 · 5.6 命题演算推证 · 拓展层：子句集 / 归结原理 / 归结反演 / Hoare 逻辑。把推理迁移到归结证明与程序验证。">
   <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/5%E5%91%BD%E9%A2%98%E9%80%BB%E8%BE%91/6%E5%91%BD%E9%A2%98%E6%BC%94%E7%AE%97%E6%8E%A8%E8%AF%81/inference_proof-extend.html">
   <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta property="og:image:width" content="1200">
@@ -15,11 +15,11 @@
   <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="自动定理证明 · 拓展层｜5.6 命题演算推证 - 离散数学课程资源库">
-  <meta name="twitter:description" content="第5章 命题逻辑 · 5.6 命题演算推证 · 拓展层：归结法 / 程序验证 Hoare 逻辑。迁移到机械推理与程序验证。">
+  <meta name="twitter:description" content="第5章 命题逻辑 · 5.6 命题演算推证 · 拓展层：子句集 / 归结原理 / 归结反演 / Hoare 逻辑。把推理迁移到归结证明与程序验证。">
   <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>自动定理证明 · 拓展层｜5.6 命题演算推证 - 离散数学课程资源库</title>
-  <meta name="description" content="第5章 命题逻辑 · 5.6 命题演算推证 · 拓展层：归结法 / 程序验证 Hoare 逻辑。迁移到机械推理与程序验证。">
+  <meta name="description" content="第5章 命题逻辑 · 5.6 命题演算推证 · 拓展层：子句集 / 归结原理 / 归结反演 / Hoare 逻辑。把推理迁移到归结证明与程序验证。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -36,15 +36,9 @@
     <aside class="side-panel">
       <div class="eyebrow">拓展层 · 第5章 命题逻辑</div>
       <h1>自动定理证明</h1>
-      <p class="subtitle">归结法 / 程序验证 Hoare 逻辑</p>
+      <p class="subtitle">子句集 / 归结原理 / 归结反演 / Hoare 逻辑</p>
       <p class="tier-line">高天花板 · 迁移工程</p>
-      <p class="intro">🎯 迁移到机械推理与程序验证。</p>
-
-      <div class="value-panel">
-        <h3>真理的阶梯 · 以理服人</h3>
-        <p>把推理机械化：归结法消去互补文字导出空子句，Hoare 逻辑逐条验证程序断言。每一步都可追溯、可校验——这正是科学与工程的严谨精神。</p>
-        <div class="dim-list"><span>逻辑严谨</span><span>求真务实</span><span>工程思维</span></div>
-      </div>
+      <p class="intro">🎯 把推理迁移到归结证明与程序验证。</p>
 
       <div id="controls"></div>
       <div class="legend-panel" id="legendPanel"></div>
@@ -52,25 +46,26 @@
 
     <main class="glass-pane">
       <section class="mission-card">
-        <span><b>互动任务：</b>逐步执行机械推理——归结法消去互补文字得空子句□，或 Hoare 逻辑逐条验证程序，看记录与推理图联动高亮。</span>
+        <span><b>互动任务：</b>逐步执行机械推理：把前提与结论的否定化为子句集，反复归结直到得出空子句 □；或用 Hoare 逻辑的赋值公理与推论规则验证程序。</span>
         <div class="visual-badge">归结 / Hoare · 机械推理</div>
       </section>
 
       <div class="sym-pipeline">
         <section class="sym-stage-card">
-          <div class="sym-stage-head"><span class="sym-stage-num">1</span><span class="sym-stage-title">任务 · 前提与目标</span><span class="sym-stage-hint">⊢ 待证结论</span></div>
+          <div class="sym-stage-head"><span class="sym-stage-num">1</span><span class="sym-stage-title">任务 · 子句集与目标</span><span class="sym-stage-hint">可满足性检查</span></div>
           <div id="ipGoal" class="ip-goal"></div>
         </section>
         <section class="sym-stage-card">
-          <div class="sym-stage-head"><span class="sym-stage-num">2</span><span class="sym-stage-title">机械推理记录</span><span class="sym-stage-hint">点行可定位</span></div>
+          <div class="sym-stage-head"><span class="sym-stage-num">2</span><span class="sym-stage-title">推证记录</span><span class="sym-stage-hint">点行可定位</span></div>
           <div id="ipTable" class="ip-table-wrap"></div>
         </section>
         <section class="sym-stage-card">
-          <div class="sym-stage-head"><span class="sym-stage-num">3</span><span class="sym-stage-title">当前步 · 推理反馈</span><span class="sym-stage-hint">归结 / 验证条件</span></div>
+          <div class="sym-stage-head"><span class="sym-stage-num">3</span><span class="sym-stage-title">当前步 · 推理依据</span><span class="sym-stage-hint">规则与引用行</span></div>
           <div id="ipEval" class="ip-eval"></div>
         </section>
         <section class="sym-stage-card">
-          <div class="sym-stage-head"><span class="sym-stage-num">4</span><span class="sym-stage-title">推理图 · 依赖关系</span><span class="sym-stage-hint">父子句 → 归结式</span></div>
+          <div class="sym-stage-head"><span class="sym-stage-num">4</span><span class="sym-stage-title">推理图 · 依赖关系</span><span class="sym-stage-hint">引用行 → 当前行</span></div>
+          <div class="ip-graph-legend"><span><i class="lg-prem"></i>前提</span><span><i class="lg-assume"></i>附加前提 / 结论否定</span><span><i class="lg-derive"></i>推出</span><span><i class="lg-final"></i>结论</span><span><i class="lg-contra"></i>矛盾 / □</span></div>
           <div id="ipGraph" class="ip-graph-wrap"></div>
         </section>
       </div>
@@ -85,36 +80,36 @@
   <script>
     window.SECTION_META = {
       "layers": [
-        { "name": "有效推理", "concepts": "前提⇒结论 / 假言推理 MP", "task": "理解有效推理与基本规则。", "page": "inference_proof-basic.html" },
-        { "name": "规则与证明方法", "concepts": "MT/三段论 / 反证 / 附加前提 CP", "task": "用多种方法完成严密推证。", "page": "inference_proof.html" },
-        { "name": "自动定理证明", "concepts": "归结法 / 程序验证 Hoare 逻辑", "task": "迁移到机械推理与程序验证。", "page": "inference_proof-extend.html" }
+        { "name": "有效推理", "concepts": "前提引入 / 假言推理 MP / 拒取式 MT / 化简·合取·附加", "task": "理解有效推理，用基本规则逐行推证。", "page": "inference_proof-basic.html" },
+        { "name": "推理规则与证明法", "concepts": "三段论 HS·DS / 构造性二难 / 附加前提 CP / 归谬法", "task": "综合运用推理规则与证明方法完成推证。", "page": "inference_proof.html" },
+        { "name": "自动定理证明", "concepts": "子句集 / 归结原理 / 归结反演 / Hoare 逻辑", "task": "把推理迁移到归结证明与程序验证。", "page": "inference_proof-extend.html" }
       ],
       "chapter": "第5章 命题逻辑",
       "section": "5.6 命题演算推证",
       "title": "自动定理证明",
-      "grounding": "本节主题：把推理机械化。归结法（resolution）将前提与『否定的结论』化为子句集，反复消去互补文字，若导出空子句□即原结论成立（反证）。Hoare 逻辑用 {P}S{Q} 三元组与赋值公理、验证条件逐条证明程序满足规约。二者都是可自动执行的形式推理。",
+      "grounding": "本节主题：把推理机械化。归结规则：由子句 C₁∨l 与 C₂∨¬l 推出 C₁∨C₂（消去一对互补文字）。归结反演：要证前提集 S 推出 G，把 S 与 ¬G 都化为子句（合取范式），反复归结，若得出空子句 □，则 S∪{¬G} 不可满足，从而 S ⊨ G。归结是可靠的，且对不可满足的子句集是反驳完备的（一定能归结出 □），但对可满足的公式集搜索可能很大。Hoare 逻辑用三元组 {P}S{Q} 描述部分正确性：赋值公理 {Q[E/x]} x:=E {Q}，推论规则允许加强前置条件、减弱后置条件，由此可机械地检查程序满足规约。",
       "steps": [
         {"name":"情境引入","desc":"机器能不能自动证明定理、验证程序正确？"},
-        {"name":"对象抽取","desc":"把前提与否定结论化为子句/断言。"},
-        {"name":"结构建模","desc":"用归结/Hoare 规则机械地推进。"},
-        {"name":"推理求解","desc":"归结出空子句□，或逐条满足后置条件。"},
-        {"name":"程序验证","desc":"用本页逐步执行机械推理。"},
-        {"name":"迁移反思","desc":"迁移到 SAT/SMT、定理证明器、形式化验证。"}
+        {"name":"对象抽取","desc":"把前提与结论的否定化为子句；把程序规约写成 Hoare 三元组。"},
+        {"name":"结构建模","desc":"选出含互补文字的两条子句；选用赋值公理与推论规则。"},
+        {"name":"推理求解","desc":"归结出空子句 □，或推出目标三元组。"},
+        {"name":"程序验证","desc":"用本页逐步执行，并检查子句集确实不可满足。"},
+        {"name":"迁移反思","desc":"迁移到 SAT/SMT 求解器、定理证明器与形式化验证。"}
       ],
       "ideology": {
         "title": "真理的阶梯 · 以理服人",
-        "text": "严密的逻辑推证是『以理服人』而非『以势压人』的力量所在。把推理机械化、可校验，是科学与工程严谨精神的延伸——每一步都有规则可依、有依据可溯，让真理的论证可被机器复核。",
+        "text": "严密的逻辑推证是『以理服人』而非『以势压人』的力量所在。把推理机械化、可校验，是科学与工程严谨精神的延伸：归结法每次只消去一对互补文字直至得出空子句，Hoare 逻辑逐条验证程序断言——每一步都有规则可依、有依据可溯，让论证可被机器复核。",
         "dims": ["逻辑严谨", "求真务实", "工程思维"],
         "quote": "摆事实、讲道理——机械化的推理，让每一步论证都可被自动复核。"
       },
       "reflect": [
-        "归结法为什么要先『否定结论』？导出空子句□意味着什么？",
-        "归结的每一步只消去一对互补文字，为什么这样仍然完备？",
-        "Hoare 逻辑的赋值公理与验证条件，如何机械地保证程序正确？"
+        "归结反演为什么要先加入结论的否定？得出空子句 □ 意味着什么？",
+        "归结每一步只消去一对互补文字，为什么对不可满足的子句集仍能保证得出 □？",
+        "Hoare 逻辑的赋值公理为什么是『把后置条件中的变量替换掉』，而不是反过来？"
       ],
       "transfer": [
-        "自动定理证明器（如归结法）把推理机械化，是人工智能的早期里程碑。",
-        {"t":"程序验证","d":"用逻辑推理证明程序满足规约（Hoare 逻辑），是软件形式化验证的基础。"}
+        "归结原理（Robinson，1965）让定理证明可由计算机执行，是自动推理与逻辑程序设计的基础。",
+        {"t": "程序验证", "d": "Hoare 逻辑与验证条件生成把『程序正确』化为逻辑公式，再交给 SAT/SMT 求解器检查。"}
       ]
     };
   </script>
