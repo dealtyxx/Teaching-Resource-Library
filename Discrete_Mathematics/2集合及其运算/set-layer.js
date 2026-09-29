@@ -656,11 +656,11 @@
       var loads = shards.map(function (s) { return s.length; }), mx = Math.max.apply(null, loads), mn = Math.min.apply(null, loads);
       var isPart = !rep;
       ui.viz('<div class="sl-grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">' + shards.map(function (s, i) {
-        return card('分片 S' + (i + 1), '<div>' + s.map(function (x) { return pill(x.id + ' ' + x.topic, x.copy ? 'warn' : 'good'); }).join('') + '</div>', s.length + ' 条');
+        return card('分片 S' + sub(i + 1), '<div>' + s.map(function (x) { return pill(x.id + ' ' + x.topic, x.copy ? 'warn' : 'good'); }).join('') + '</div>', s.length + ' 条');
       }).join('') + '</div>' +
-        card('负载', '<div class="sl-bars">' + shards.map(function (s, i) { return '<div class="sl-bar-row"><span>S' + (i + 1) + '</span><div class="sl-bar"><span style="width:' + (s.length / 12 * 100 * k / 2) + '%"></span></div><strong>' + s.length + '</strong></div>'; }).join('') + '</div>') +
+        card('负载', '<div class="sl-bars">' + shards.map(function (s, i) { return '<div class="sl-bar-row"><span>S' + sub(i + 1) + '</span><div class="sl-bar"><span style="width:' + (s.length / 12 * 100 * k / 2) + '%"></span></div><strong>' + s.length + '</strong></div>'; }).join('') + '</div>') +
         card('划分检查', '<div class="sl-checks"><div class="ok"><b>✓</b><span>并为全集：12 条数据都有归属</span></div><div class="' + (isPart ? 'ok' : 'no') + '"><b>' + (isPart ? '✓' : '×') + '</b><span>两两不交：' + (isPart ? '每条数据只在一个分片' : 'D1、D2 同时出现在两个分片') + '</span></div></div>'));
-      ui.result('U = S₁ ∪ … ∪ S' + k + (isPart ? '，Sᵢ ∩ Sⱼ = ∅' : ''), isPart ? '是划分 · 负载差 ' + (mx - mn) : '是覆盖（含副本）', isPart ? 'ok' : 'bad', '最大负载 ' + mx + '，最小负载 ' + mn + '。');
+      ui.result('U = S₁ ∪ … ∪ S' + sub(k) + (isPart ? '，Sᵢ ∩ Sⱼ = ∅' : ''), isPart ? '是划分 · 负载差 ' + (mx - mn) : '是覆盖（含副本）', isPart ? 'ok' : 'bad', '最大负载 ' + mx + '，最小负载 ' + mn + '。');
       ui.explain((strat === 'topic' && k !== 3 ? '按主题分片时主题数 3 与 k = ' + k + ' 不匹配，出现<b>数据倾斜</b>。' : strat === 'mod' ? '取模把编号均匀散开，负载最均衡。' : '按范围切分保持编号连续，便于区间查询。') +
         '同样的「划分」思想也用于社区<b>网格化治理</b>（每户属于且仅属于一个网格）与<b>聚类</b>（每个样本属于且仅属于一个簇）。');
     }

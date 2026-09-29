@@ -569,3 +569,61 @@ label {
         overflow-y: auto;
     }
 }
+/* ===== 2.5 进阶层精修：规则生成、按钮化、等价关系矩阵与商集 ===== */
+.layer-eyebrow {
+    display: inline-flex; width: fit-content; align-items: center; padding: 3px 10px; border-radius: 999px;
+    font-size: .74rem; font-weight: 700; color: #B8321A; background: rgba(255, 180, 0, .16); border: 1px solid rgba(214, 59, 29, .18);
+}
+.subtitle { font-style: normal; }
+.task-line {
+    margin: 0; padding: 10px 12px; border-radius: 12px; font-size: .88rem; line-height: 1.55; color: #2C1810;
+    background: linear-gradient(135deg, rgba(214, 59, 29, .07), rgba(255, 180, 0, .12)); border: 1px solid rgba(214, 59, 29, .16);
+}
+.hint-text { font-size: .76rem; color: var(--text-secondary); margin: 0; line-height: 1.5; }
+.mode-btn { font-family: inherit; text-align: left; }
+.mode-info { display: flex; flex-direction: column; }
+.rule-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.rule-btn { min-height: 40px; padding: 8px 6px; font-size: .84rem; font-family: inherit; }
+.rule-btn.active { background: var(--accent-red); color: #fff; border-color: var(--accent-red); }
+.team-list { max-height: none; }
+.team-card { width: 100%; font-family: inherit; text-align: left; display: flex; align-items: center; gap: 8px; min-height: 40px; cursor: pointer; }
+.team-card .team-count { margin-left: auto; font-family: 'JetBrains Mono', Consolas, monospace; font-size: .78rem; }
+.team-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.team-controls .apple-btn { padding: 10px 6px; font-size: .86rem; }
+.glass-pane { overflow-y: auto; gap: 12px; }
+.stage-header { margin-bottom: 0; }
+.map-container { flex-grow: 0; padding: 6px 0; }
+.zone-grid { gap: 14px; }
+.zone-item { height: 104px; font-family: inherit; color: inherit; padding: 0; }
+.zone-name { font-size: 1.15rem; }
+.zone-street { z-index: 2; font-size: .74rem; color: var(--text-secondary); margin-top: 2px; }
+.zone-label { font-size: 3rem; }
+.zone-badges { margin-top: 6px; min-height: 14px; }
+.zone-item.empty { border-style: dashed; }
+.zone-item.conflict { box-shadow: 0 0 0 3px rgba(192, 57, 43, .2); }
+.status-panel { padding: 12px 16px; box-shadow: var(--shadow-sm); }
+.eq-panel { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; background: rgba(255, 255, 255, .8); border: 1px solid rgba(214, 59, 29, .14); border-radius: 16px; padding: 12px 14px; }
+.eq-title { font-weight: 700; color: var(--accent-red); font-size: .86rem; margin-bottom: 8px; line-height: 1.5; }
+.eq-matrix table { border-collapse: collapse; font-family: 'JetBrains Mono', Consolas, monospace; font-size: .85rem; }
+.eq-matrix th { color: var(--text-secondary); padding: 3px 6px; font-weight: 700; }
+.eq-matrix td { width: 32px; height: 30px; text-align: center; border: 1px solid rgba(214, 59, 29, .12); color: #b8a597; }
+.eq-matrix td.on { color: #2C1810; font-weight: 800; }
+.eq-matrix td.miss { outline: 2px solid #C0392B; outline-offset: -2px; }
+.eq-checks { display: grid; gap: 6px; }
+.eq-checks div { display: flex; align-items: flex-start; gap: 8px; padding: 7px 10px; border-radius: 10px; background: rgba(255, 255, 255, .8); border: 1px solid rgba(214, 59, 29, .12); font-size: .84rem; line-height: 1.5; color: #2C1810; }
+.eq-checks b { flex: 0 0 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: .76rem; }
+.eq-checks .ok b { background: #1F9D55; }
+.eq-checks .no b { background: #C0392B; }
+.eq-quotient { margin-top: 8px; font-size: .85rem; line-height: 1.65; color: #2C1810; }
+.eq-quotient p { margin: 0 0 4px; }
+.eq-quotient b { color: var(--accent-red); }
+.eq-quotient .q { font-family: 'JetBrains Mono', Consolas, monospace; color: #1F9D55; font-weight: 700; }
+@media (max-width: 900px) {
+    .eq-panel { grid-template-columns: 1fr; }
+    .eq-matrix { overflow-x: auto; }
+}
+@media (max-width: 600px) {
+    .zone-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .zone-item { height: 92px; }
+    .glass-pane { padding: 1rem .6rem; }
+}
