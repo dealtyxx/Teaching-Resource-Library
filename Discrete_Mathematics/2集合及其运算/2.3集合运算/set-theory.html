@@ -35,7 +35,6 @@
 
 <body>
     <a class="home-link" href="../../index.html#chapter2">← 返回课程主页</a>
-
     <div class="app-container">
         <aside class="sidebar">
             <div class="sidebar-header">
@@ -44,219 +43,144 @@
                     <span class="dot yellow"></span>
                     <span class="dot green"></span>
                 </div>
-                <h1>集合论运算 <span class="highlight">可视化</span></h1>
-                <p class="subtitle">团结就是力量 Unity is Strength</p>
+                <div class="layer-eyebrow">进阶层 · 第2章 集合及其运算</div>
+                <h1>复合运算</h1>
+                <p class="subtitle">对称差 ⊕ / 差的方向性 / 补依赖全集</p>
             </div>
-
             <div class="controls-wrapper">
+                <p class="task-line">🎯 计算嵌套复合运算并辨析易错点。</p>
                 <div class="control-group">
-                    <label>集合主题选择</label>
+                    <label for="themeSelect">全集 U（主题词）</label>
                     <select id="themeSelect" class="apple-select">
                         <option value="revolutionary">革命精神</option>
                         <option value="development">发展理念</option>
                         <option value="culture">文化传承</option>
                     </select>
                 </div>
-
                 <div class="control-group">
-                    <label>集合运算类型</label>
+                    <label>基本运算</label>
                     <div class="operation-buttons">
-                        <button class="operation-btn active" data-operation="union" aria-label="∪ 并集">
-                            <span class="icon">∪</span>并集
-                        </button>
-                        <button class="operation-btn" data-operation="intersection" aria-label="∩ 交集">
-                            <span class="icon">∩</span>交集
-                        </button>
-                        <button class="operation-btn" data-operation="difference" aria-label="− 差集">
-                            <span class="icon">−</span>差集
-                        </button>
-                        <button class="operation-btn" data-operation="symmetric" aria-label="△ 对称差">
-                            <span class="icon">△</span>对称差
-                        </button>
+                        <button type="button" class="operation-btn active" data-operation="union">A ∪ B</button>
+                        <button type="button" class="operation-btn" data-operation="intersection">A ∩ B</button>
+                        <button type="button" class="operation-btn" data-operation="diffAB">A − B</button>
+                        <button type="button" class="operation-btn" data-operation="diffBA">B − A</button>
+                        <button type="button" class="operation-btn" data-operation="symmetric">A ⊕ B</button>
+                        <button type="button" class="operation-btn" data-operation="compA">~A</button>
                     </div>
                 </div>
-
                 <div class="control-group">
-                    <label>元素数量控制</label>
-                    <div class="slider-container">
-                        <span class="slider-label">集合A: <span id="setACount">5</span></span>
-                        <input type="range" id="setASlider" min="3" max="10" value="5">
+                    <label for="exprSelect">复合表达式（分步求值）</label>
+                    <select id="exprSelect" class="apple-select">
+                        <option value="">（不使用，只看基本运算）</option>
+                        <option value="sym1">(A − B) ∪ (B − A)</option>
+                        <option value="sym2">(A ∪ B) − (A ∩ B)</option>
+                        <option value="dm">~(A ∪ B) 与 ~A ∩ ~B</option>
+                        <option value="absorb">A − (A ∩ B) 与 A − B</option>
+                    </select>
+                    <div class="player-row">
+                        <button type="button" class="apple-btn secondary-btn" id="prevBtn">上一步</button>
+                        <button type="button" class="apple-btn action-btn" id="nextBtn">下一步</button>
+                        <button type="button" class="apple-btn secondary-btn" id="playBtn">自动播放</button>
                     </div>
                     <div class="slider-container">
-                        <span class="slider-label">集合B: <span id="setBCount">5</span></span>
-                        <input type="range" id="setBSlider" min="3" max="10" value="5">
+                        <span class="slider-label">播放速度：<span id="speedVal">2</span> 档</span>
+                        <input type="range" id="speedSlider" min="1" max="4" value="2">
                     </div>
                 </div>
-
                 <div class="control-group">
-                    <label>运算说明</label>
-                    <div class="info-panel">
-                        <p id="operationDesc">并集：两个集合所有元素的合并，象征着团结的力量</p>
+                    <label>集合规模</label>
+                    <div class="slider-container">
+                        <span class="slider-label">|A| = <span id="setACount">5</span></span>
+                        <input type="range" id="setASlider" min="3" max="7" value="5">
+                    </div>
+                    <div class="slider-container">
+                        <span class="slider-label">|B| = <span id="setBCount">5</span></span>
+                        <input type="range" id="setBSlider" min="3" max="7" value="5">
                     </div>
                 </div>
-
                 <div class="control-group">
                     <label>结果统计</label>
                     <div class="stats-panel">
-                        <div class="stat-item">
-                            <span class="stat-label">集合A</span>
-                            <span class="stat-value" id="statA">5</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">集合B</span>
-                            <span class="stat-value" id="statB">5</span>
-                        </div>
-                        <div class="stat-item highlight-stat">
-                            <span class="stat-label">结果</span>
-                            <span class="stat-value" id="statResult">8</span>
-                        </div>
+                        <div class="stat-item"><span class="stat-label">|U|</span><span class="stat-value" id="statU">12</span></div>
+                        <div class="stat-item"><span class="stat-label">|A|</span><span class="stat-value" id="statA">5</span></div>
+                        <div class="stat-item"><span class="stat-label">|B|</span><span class="stat-value" id="statB">5</span></div>
+                        <div class="stat-item highlight-stat"><span class="stat-label">结果</span><span class="stat-value" id="statResult">8</span></div>
                     </div>
                 </div>
             </div>
-
             <div class="actions-footer">
-                <button id="executeBtn" class="apple-btn action-btn" aria-label="执行运算">执行运算</button>
-                <button id="randomBtn" class="apple-btn secondary-btn" aria-label="随机生成">随机生成</button>
+                <button type="button" id="randomBtn" class="apple-btn secondary-btn">随机生成</button>
+                <button type="button" id="resetBtn" class="apple-btn secondary-btn">重置</button>
             </div>
         </aside>
-
         <main class="visualizer-stage">
             <div class="glass-pane">
-                <svg id="mainSvg" width="100%" height="100%">
-                    <defs>
-                        <filter id="glow">
-                            <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-                            <feMerge>
-                                <feMergeNode in="coloredBlur" />
-                                <feMergeNode in="SourceGraphic" />
-                            </feMerge>
-                        </filter>
-                    </defs>
-
-                    <!-- Set Circles -->
-                    <g id="setsGroup">
-                        <circle id="setACircle" class="set-circle set-a" cx="250" cy="250" r="150" />
-                        <circle id="setBCircle" class="set-circle set-b" cx="450" cy="250" r="150" />
-                    </g>
-
-                    <!-- Set Labels -->
-                    <text id="setALabel" class="set-label" x="180" y="120">集合 A</text>
-                    <text id="setBLabel" class="set-label" x="520" y="120">集合 B</text>
-
-                    <!-- Elements -->
-                    <g id="elementsGroup"></g>
-
-                    <!-- Result Highlight -->
-                    <g id="resultGroup"></g>
-                </svg>
-
-                <div class="legend">
-                    <div class="legend-item">
-                        <div class="legend-color set-a-color"></div>
-                        <span>集合 A</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color set-b-color"></div>
-                        <span>集合 B</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color result-color"></div>
-                        <span>运算结果</span>
-                    </div>
+                <div class="stage-top">
+                    <h2 id="stageTitle">A ∪ B</h2>
+                    <p id="stageFormula">A ∪ B = {x | x ∈ A ∨ x ∈ B}</p>
                 </div>
+                <svg id="mainSvg" viewBox="0 0 760 440" role="img" aria-label="全集 U 与集合 A、B 的文氏图">
+                    <defs>
+                        <clipPath id="stClipA"><circle cx="290" cy="230" r="160"/></clipPath>
+                        <mask id="stMaskAonly"><rect width="760" height="440" fill="white"/><circle cx="470" cy="230" r="160" fill="black"/></mask>
+                        <mask id="stMaskBonly"><rect width="760" height="440" fill="white"/><circle cx="290" cy="230" r="160" fill="black"/></mask>
+                        <mask id="stMaskOut"><rect width="760" height="440" fill="white"/><circle cx="290" cy="230" r="160" fill="black"/><circle cx="470" cy="230" r="160" fill="black"/></mask>
+                    </defs>
+                    <rect class="u-rect" x="16" y="16" width="728" height="408" rx="22"/>
+                    <rect id="hlOut" class="hl" x="16" y="16" width="728" height="408" rx="22" mask="url(#stMaskOut)"/>
+                    <circle class="set-fill-a" cx="290" cy="230" r="160"/>
+                    <circle class="set-fill-b" cx="470" cy="230" r="160"/>
+                    <circle id="hlA" class="hl" cx="290" cy="230" r="160" mask="url(#stMaskAonly)"/>
+                    <circle id="hlB" class="hl" cx="470" cy="230" r="160" mask="url(#stMaskBonly)"/>
+                    <circle id="hlI" class="hl" cx="470" cy="230" r="160" clip-path="url(#stClipA)"/>
+                    <circle class="set-stroke-a" cx="290" cy="230" r="160"/>
+                    <circle class="set-stroke-b" cx="470" cy="230" r="160"/>
+                    <text class="set-label" x="34" y="44">U</text>
+                    <text class="set-label set-label-a" x="200" y="100">A</text>
+                    <text class="set-label set-label-b" x="548" y="100">B</text>
+                    <g id="elementsGroup"></g>
+                </svg>
+                <div class="legend">
+                    <div class="legend-item"><div class="legend-color set-a-color"></div><span>集合 A</span></div>
+                    <div class="legend-item"><div class="legend-color set-b-color"></div><span>集合 B</span></div>
+                    <div class="legend-item"><div class="legend-color result-color"></div><span>当前结果区域 / 元素</span></div>
+                </div>
+                <div class="expr-panel" id="exprPanel"></div>
             </div>
         </main>
     </div>
-
     <script src="set-theory.js"></script>
 
-<!-- 固定底部版权信息 -->
-<footer class="site-footer">
-    <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
-    <p>版权所有 · 项目总负责人：谢鑫</p>
-</footer>
+    <footer class="site-footer">
+        <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
+        <p>版权所有 · 项目总负责人：谢鑫</p>
+    </footer>
 
 
 
     <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
     <script>
-    window.SECTION_META = {
-      "chapter": "第2章 集合及其运算",
-      "section": "2.3 集合运算",
-      "title": "复合运算",
-      "grounding": "本节主题：并 A∪B、交 A∩B、差 A−B、补 ∁A、对称差 A⊕B。文氏图直观表示各区域。运算可嵌套组合。要分清『差』的方向性（A−B≠B−A）与补集依赖全集 U。这些运算是后续关系、逻辑、概率的基础工具。 本页定位为进阶层：在原有页面基础上继续承担本节核心推理与综合运用。",
-      "steps": [
-            {
-                  "name": "情境引入",
-                  "desc": "把不同群体的资源『合并、取共同、求差异』，如何用运算精确表达？"
-            },
-            {
-                  "name": "对象抽取",
-                  "desc": "确定全集 U 与参与运算的集合，明确每个元素的归属。"
-            },
-            {
-                  "name": "结构建模",
-                  "desc": "用 ∪、∩、−、∁、⊕ 建模合并/共有/差异/补足关系。"
-            },
-            {
-                  "name": "推理求解",
-                  "desc": "逐元素判定归属，计算复合运算结果。"
-            },
-            {
-                  "name": "程序验证",
-                  "desc": "用本页文氏图交互高亮各运算区域，验证结果。"
-            },
-            {
-                  "name": "迁移反思",
-                  "desc": "迁移到 SQL 连接、搜索过滤、概率事件运算。"
-            }
-      ],
-      "ideology": {
-            "title": "团结力量 · 和而不同",
-            "text": "并集汇聚众人之力成大团结，交集寻求最大公约数与共同点，差集尊重差异与个性——『和而不同』『求同存异』的辩证智慧，在集合运算中得到精确表达。运算之间的协同，正如多元主体在共同目标下的协作。",
-            "dims": [
-                  "辩证思维",
-                  "团结观念",
-                  "求同存异"
-            ],
-            "quote": "海纳百川，有容乃大——并集的包容与交集的共识，共同成就和谐的整体。"
-      },
-      "reflect": [
-            "为什么 A−B 与 B−A 一般不相等？差运算的『方向性』说明了什么？",
-            "补集 ∁A 必须先确定全集 U——脱离全集谈补集为什么没有意义？",
-            "对称差 A⊕B 表示『只属于其中之一』，它和『异或』有什么联系？"
-      ],
-      "transfer": [
-            "SQL 的 UNION/INTERSECT/EXCEPT 正是集合的并交差，数据库查询就是集合运算。",
-            {
-                  "t": "搜索过滤",
-                  "d": "搜索引擎的『同时包含/排除某词』，对应集合的交与差——如何提升检索精度？"
-            },
-            {
-                  "t": "概率事件",
-                  "d": "事件的『或/且/非』正对应并/交/补，本节是古典概率的运算基础。"
-            }
-      ],
-      "layers": [
-            {
-                  "name": "并交差补",
-                  "concepts": "∪ ∩ − ∁ / 文氏图区域",
-                  "task": "在文氏图上指出每种运算的结果区域。",
-                  "page": "set-theory-basic.html"
-            },
-            {
-                  "name": "复合运算",
-                  "concepts": "对称差 ⊕ / 差的方向性 / 补依赖全集",
-                  "task": "计算嵌套复合运算并辨析易错点。",
-                  "page": "set-theory.html"
-            },
-            {
-                  "name": "集合运算工程化",
-                  "concepts": "SQL UNION/INTERSECT / 搜索过滤 / 概率事件",
-                  "task": "迁移到数据库、检索与概率运算。",
-                  "page": "set-theory-extend.html"
-            }
-      ]
+window.SECTION_META = {
+  "chapter": "第2章 集合及其运算",
+  "section": "2.3 集合运算",
+  "title": "复合运算",
+  "grounding": "本节主题：并 A∪B、交 A∩B、差 A−B、补 ~A（= U−A）、对称差 A⊕B。文氏图直观表示各区域。运算可嵌套组合。要分清『差』的方向性（A−B≠B−A）与补集依赖全集 U。这些运算是后续关系、逻辑、概率的基础工具。 本页（进阶层）：在主题词全集中取 A、B，高亮基本运算结果；分步求值复合表达式 (A−B)∪(B−A)、(A∪B)−(A∩B)、~(A∪B) 与 ~A∩~B、A−(A∩B) 与 A−B，辨析对称差、差的方向性与补集依赖全集。",
+  "steps": [
+    {"name": "情境引入", "desc": "把不同群体的资源『合并、取共同、求差异』，如何用运算精确表达？"},
+    {"name": "对象抽取", "desc": "确定全集 U 与参与运算的集合，明确每个元素的归属。"},
+    {"name": "结构建模", "desc": "用 ∪、∩、−、~、⊕ 建模合并/共有/差异/补足关系。"},
+    {"name": "推理求解", "desc": "逐元素判定归属，计算复合运算结果。"},
+    {"name": "程序验证", "desc": "用本页文氏图交互高亮各运算区域，验证结果。"},
+    {"name": "迁移反思", "desc": "迁移到 SQL 连接、搜索过滤、概率事件运算。"}
+  ],
+  "ideology": {"title": "团结力量 · 和而不同", "text": "并集汇聚众人之力成大团结，交集寻求最大公约数与共同点，差集尊重差异与个性——『和而不同』『求同存异』的辩证智慧，在集合运算中得到精确表达。运算之间的协同，正如多元主体在共同目标下的协作。", "dims": ["辩证思维", "团结观念", "求同存异"], "quote": "海纳百川，有容乃大——并集的包容与交集的共识，共同成就和谐的整体。"},
+  "reflect": ["为什么 A−B 与 B−A 一般不相等？差运算的『方向性』说明了什么？", "补集 ~A 必须先确定全集 U——脱离全集谈补集为什么没有意义？", "对称差 A⊕B 表示『只属于其中之一』，它和『异或』有什么联系？"],
+  "transfer": ["SQL 的 UNION/INTERSECT/EXCEPT 正是集合的并交差，数据库查询就是集合运算。", {"t": "搜索过滤", "d": "搜索引擎的『同时包含/排除某词』，对应集合的交与差——如何提升检索精度？"}, {"t": "概率事件", "d": "事件的『或/且/非』正对应并/交/补，本节是古典概率的运算基础。"}],
+  "layers": [
+    {"name": "并交差补", "concepts": "∪ ∩ − ~ / 文氏图区域", "task": "在文氏图上指出每种运算的结果区域。", "page": "set-theory-basic.html"},
+    {"name": "复合运算", "concepts": "对称差 ⊕ / 差的方向性 / 补依赖全集", "task": "计算嵌套复合运算并辨析易错点。", "page": "set-theory.html"},
+    {"name": "集合运算工程化", "concepts": "SQL 集合运算 / 概率事件 / 加法公式", "task": "迁移到数据库查询与概率运算。", "page": "set-theory-extend.html"}
+  ]
 };
     </script>
     <script src="../../shared/ai-tutor.js" defer></script>

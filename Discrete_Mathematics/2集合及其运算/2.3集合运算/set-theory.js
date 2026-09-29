@@ -1,371 +1,173 @@
 /**
- * 集合论运算可视化 - 价值引领版
+ * 2.3 集合运算 · 进阶层：复合运算
+ * 全集 U（12 个主题词）中取集合 A、B，元素按「只属于 A / A∩B / 只属于 B / A、B 之外」四个区域排布；
+ * 基本运算 ∪ ∩ A−B B−A ⊕ ~A 高亮结果区域与元素；复合表达式分步求值，辨析对称差、差的方向性、补依赖全集。
  */
 
-// DOM 元素
-const themeSelect = document.getElementById('themeSelect');
+const $ = id => document.getElementById(id);
+const themeSelect = $('themeSelect');
+const exprSelect = $('exprSelect');
 const operationBtns = document.querySelectorAll('.operation-btn');
-const setASlider = document.getElementById('setASlider');
-const setBSlider = document.getElementById('setBSlider');
-const setACountSpan = document.getElementById('setACount');
-const setBCountSpan = document.getElementById('setBCount');
-const operationDesc = document.getElementById('operationDesc');
-const statA = document.getElementById('statA');
-const statB = document.getElementById('statB');
-const statResult = document.getElementById('statResult');
-const executeBtn = document.getElementById('executeBtn');
-const randomBtn = document.getElementById('randomBtn');
+const setASlider = $('setASlider');
+const setBSlider = $('setBSlider');
+const elementsGroup = $('elementsGroup');
+const exprPanel = $('exprPanel');
 
-const setACircle = document.getElementById('setACircle');
-const setBCircle = document.getElementById('setBCircle');
-const elementsGroup = document.getElementById('elementsGroup');
-const resultGroup = document.getElementById('resultGroup');
-
-// 状态
-let currentTheme = 'revolutionary';
-let currentOperation = 'union';
-let setA = [];
-let setB = [];
-let resultSet = [];
-let isAnimating = false;
-
-// 价值主题数据
 const themes = {
-    revolutionary: {
-        name: '革命精神',
-        elements: [
-            '自力更生', '艰苦奋斗', '勤俭节约', '服务人民',
-            '实事求是', '团结协作', '开拓创新', '爱国主义',
-            '集体主义', '社会主义', '为人民服务', '解放思想',
-            '与时俱进', '求真务实', '清正廉洁', '公正法治'
-        ]
-    },
-    development: {
-        name: '发展理念',
-        elements: [
-            '创新驱动', '协调发展', '绿色发展', '开放合作',
-            '共享成果', '科技强国', '文化自信', '生态文明',
-            '共同富裕', '高质量发展', '乡村振兴', '区域协调',
-            '数字中国', '智能制造', '绿水青山', '金山银山'
-        ]
-    },
-    culture: {
-        name: '文化传承',
-        elements: [
-            '仁义礼智信', '温良恭俭让', '忠孝节义', '诚信友善',
-            '尊师重道', '敬老爱幼', '和谐共处', '天人合一',
-            '自强不息', '厚德载物', '知行合一', '修身齐家',
-            '经世致用', '格物致知', '民为邦本', '以德治国'
-        ]
-    }
+    revolutionary: ['自力更生', '艰苦奋斗', '勤俭节约', '实事求是', '团结协作', '开拓创新', '爱国主义', '集体主义', '为人民服务', '解放思想', '与时俱进', '清正廉洁'],
+    development: ['创新驱动', '协调发展', '绿色发展', '开放合作', '共享成果', '科技强国', '生态文明', '共同富裕', '高质量发展', '乡村振兴', '区域协调', '数字中国'],
+    culture: ['仁义礼智信', '诚信友善', '尊师重道', '敬老爱幼', '天人合一', '自强不息', '厚德载物', '知行合一', '修身齐家', '经世致用', '格物致知', '民为邦本']
 };
 
-// 运算说明
-const operationDescriptions = {
-    union: '并集（A ∪ B）：两个集合所有元素的合并，象征着团结的力量，凝聚共识，形成合力',
-    intersection: '交集（A ∩ B）：两个集合共同拥有的元素，象征着共同目标和价值观的交汇',
-    difference: '差集（A − B）：属于A但不属于B的元素，象征着特色与差异，保持独特性',
-    symmetric: '对称差（A △ B）：只属于其中一个集合的元素，象征着互补与多元化发展'
+const OPS = {
+    union:        { t: 'A ∪ B', f: 'A ∪ B = {x | x ∈ A ∨ x ∈ B}', r: ['a', 'i', 'b'] },
+    intersection: { t: 'A ∩ B', f: 'A ∩ B = {x | x ∈ A ∧ x ∈ B}', r: ['i'] },
+    diffAB:       { t: 'A − B', f: 'A − B = {x | x ∈ A ∧ x ∉ B}', r: ['a'] },
+    diffBA:       { t: 'B − A', f: 'B − A = {x | x ∈ B ∧ x ∉ A}', r: ['b'] },
+    symmetric:    { t: 'A ⊕ B', f: 'A ⊕ B = (A − B) ∪ (B − A)', r: ['a', 'b'] },
+    compA:        { t: '~A', f: '~A = U − A = {x | x ∈ U ∧ x ∉ A}', r: ['b', 'o'] }
+};
+const NOTES = {
+    union: '并集：至少属于一个集合。两个集合的公共元素在并集中只出现一次。',
+    intersection: '交集：同时属于两个集合，是二者的「最大公约数」。',
+    diffAB: '差集有方向：A − B 只保留 A 独有的部分。试试 B − A，结果完全不同。',
+    diffBA: '差集有方向：B − A 只保留 B 独有的部分，一般 A − B ≠ B − A。',
+    symmetric: '对称差：恰好属于一个集合的元素。A ⊕ B = (A − B) ∪ (B − A) = (A ∪ B) − (A ∩ B)，且 A ⊕ B = B ⊕ A。',
+    compA: '补集依赖全集：~A = U − A 包含「A、B 之外」的元素。换一个主题（全集），~A 就随之改变。'
+};
+// 复合表达式：每步 [说明, 表达式, 区域]
+const EXPRS = {
+    sym1: { t: '(A − B) ∪ (B − A)', steps: [['先算左括号', 'A − B', ['a']], ['再算右括号', 'B − A', ['b']], ['两部分取并', '(A − B) ∪ (B − A)', ['a', 'b']]],
+        end: '结果与 A ⊕ B 完全相同——这正是对称差的定义。' },
+    sym2: { t: '(A ∪ B) − (A ∩ B)', steps: [['先算被减数', 'A ∪ B', ['a', 'i', 'b']], ['再算减数', 'A ∩ B', ['i']], ['从并集中去掉交集', '(A ∪ B) − (A ∩ B)', ['a', 'b']]],
+        end: '与上一个表达式结果相同：对称差的两种等价写法。' },
+    dm: { t: '~(A ∪ B) 与 ~A ∩ ~B', steps: [['先算括号内', 'A ∪ B', ['a', 'i', 'b']], ['取补（相对 U）', '~(A ∪ B)', ['o']], ['另一边：~A', '~A', ['b', 'o']], ['另一边：~B', '~B', ['a', 'o']], ['求交', '~A ∩ ~B', ['o']]],
+        end: '两边结果一致：~(A ∪ B) = ~A ∩ ~B（德摩根律，2.4 节）。注意 ~A ∩ ~B ≠ ~A ∪ ~B。' },
+    absorb: { t: 'A − (A ∩ B) 与 A − B', steps: [['先算括号内', 'A ∩ B', ['i']], ['从 A 中去掉', 'A − (A ∩ B)', ['a']], ['对照 A − B', 'A − B', ['a']]],
+        end: '两者相等：A − (A ∩ B) = A − B。从 A 里去掉「B 的部分」与去掉「A、B 公共部分」效果一样。' }
 };
 
-// 初始化
-function init() {
-    generateSets();
-    updateDisplay();
-    attachEventListeners();
-}
+let U = [], A = [], B = [], seed = 1;
+let currentOp = 'union', step = 0, timer = null;
 
-// 生成集合
+function rng() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const has = (s, x) => s.includes(x);
+function region(x) { return has(A, x) ? (has(B, x) ? 'i' : 'a') : (has(B, x) ? 'b' : 'o'); }
+function members(regs) { return U.filter(x => regs.includes(region(x))); }
+const setText = arr => arr.length ? '{' + arr.join(', ') + '}' : '∅';
+
 function generateSets() {
-    const themeData = themes[currentTheme];
-    const elements = [...themeData.elements];
-
-    // 打乱数组
-    for (let i = elements.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [elements[i], elements[j]] = [elements[j], elements[i]];
-    }
-
-    const countA = parseInt(setASlider.value);
-    const countB = parseInt(setBSlider.value);
-
-    // 生成集合A
-    setA = elements.slice(0, countA);
-
-    // 生成集合B（保证有部分交集）
-    const overlapCount = Math.floor(Math.min(countA, countB) / 2);
-    const uniqueB = elements.slice(countA, countA + countB - overlapCount);
-    const overlap = setA.slice(0, overlapCount);
-    setB = [...overlap, ...uniqueB];
-
-    // 打乱集合B
-    for (let i = setB.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [setB[i], setB[j]] = [setB[j], setB[i]];
-    }
+    U = themes[themeSelect.value].slice();
+    const a = +setASlider.value, b = +setBSlider.value;
+    const overlap = Math.max(1, Math.floor(Math.min(a, b) / 2));
+    const pool = shuffle(U);
+    A = pool.slice(0, a);
+    B = A.slice(0, overlap).concat(pool.slice(a, a + b - overlap));
+    $('setACount').textContent = a;
+    $('setBCount').textContent = b;
 }
 
-// 计算运算结果
-function calculateResult() {
-    switch (currentOperation) {
-        case 'union':
-            resultSet = [...new Set([...setA, ...setB])];
-            break;
-        case 'intersection':
-            resultSet = setA.filter(item => setB.includes(item));
-            break;
-        case 'difference':
-            resultSet = setA.filter(item => !setB.includes(item));
-            break;
-        case 'symmetric':
-            const onlyA = setA.filter(item => !setB.includes(item));
-            const onlyB = setB.filter(item => !setA.includes(item));
-            resultSet = [...onlyA, ...onlyB];
-            break;
-    }
+// 各区域的元素槽位（viewBox 760×440；A 圆心 (290,230)，B 圆心 (470,230)，r=160）
+const SLOTS = {
+    a: [[215, 150], [215, 196], [215, 242], [215, 288], [215, 334], [245, 104]],
+    i: [[380, 190], [380, 235], [380, 280]],
+    b: [[545, 150], [545, 196], [545, 242], [545, 288], [545, 334], [515, 104]],
+    o: [[80, 70], [680, 70], [80, 380], [680, 380], [80, 150], [680, 150], [80, 300], [680, 300], [380, 44], [380, 404]]
+};
+
+function currentRegions() {
+    if (exprSelect.value) { const E = EXPRS[exprSelect.value]; return step ? E.steps[step - 1][2] : []; }
+    return OPS[currentOp].r;
 }
 
-// 更新显示
-function updateDisplay() {
-    calculateResult();
-
-    // 更新统计
-    setACountSpan.textContent = setA.length;
-    setBCountSpan.textContent = setB.length;
-    statA.textContent = setA.length;
-    statB.textContent = setB.length;
-    statResult.textContent = resultSet.length;
-
-    // 更新说明
-    operationDesc.textContent = operationDescriptions[currentOperation];
-
-    // 渲染元素
-    renderElements();
+function render() {
+    const regs = currentRegions();
+    ['a', 'b', 'i'].forEach(k => $('hl' + k.toUpperCase()).classList.toggle('on', regs.includes(k)));
+    $('hlOut').classList.toggle('on', regs.includes('o'));
+    const used = { a: 0, i: 0, b: 0, o: 0 };
+    elementsGroup.innerHTML = U.map(x => {
+        const r = region(x), p = SLOTS[r][used[r]++] || [380, 230];
+        const w = x.length * 14 + 18, hot = regs.includes(r);
+        return '<g class="element' + (hot ? ' highlighted' : '') + ' in-' + r + '" transform="translate(' + p[0] + ',' + p[1] + ')">' +
+            '<rect class="element-pill" x="' + (-w / 2) + '" y="-14" width="' + w + '" height="28" rx="14"/>' +
+            '<text class="element-text" dy=".35em">' + x + '</text><title>' + x + '</title></g>';
+    }).join('');
+    const res = members(regs);
+    $('statU').textContent = U.length;
+    $('statA').textContent = A.length;
+    $('statB').textContent = B.length;
+    $('statResult').textContent = res.length;
+    if (exprSelect.value) renderExpr(res); else renderOp(res);
 }
 
-// 渲染元素
-function renderElements() {
-    elementsGroup.innerHTML = '';
-
-    const svg = document.getElementById('mainSvg');
-    const width = svg.clientWidth || 700;
-    const height = svg.clientHeight || 500;
-
-    // 获取集合圆心位置
-    const centerA = { x: width * 0.35, y: height * 0.5 };
-    const centerB = { x: width * 0.65, y: height * 0.5 };
-    const radius = Math.min(width, height) * 0.25;
-
-    // 更新圆圈位置
-    setACircle.setAttribute('cx', centerA.x);
-    setACircle.setAttribute('cy', centerA.y);
-    setACircle.setAttribute('r', radius);
-
-    setBCircle.setAttribute('cx', centerB.x);
-    setBCircle.setAttribute('cy', centerB.y);
-    setBCircle.setAttribute('r', radius);
-
-    // 渲染集合A元素
-    setA.forEach((element, index) => {
-        const angle = (index / setA.length) * 2 * Math.PI;
-        const distance = radius * 0.6;
-        const x = centerA.x + Math.cos(angle) * distance;
-        const y = centerA.y + Math.sin(angle) * distance;
-
-        const inBoth = setB.includes(element);
-        let elementX = x;
-
-        // 如果在交集中，向右偏移
-        if (inBoth) {
-            elementX = centerA.x + (centerB.x - centerA.x) * 0.5 + (Math.random() - 0.5) * 20;
-        }
-
-        createElementNode(element, elementX, y, 'a', inBoth);
-    });
-
-    // 渲染集合B独有元素
-    const uniqueB = setB.filter(item => !setA.includes(item));
-    uniqueB.forEach((element, index) => {
-        const angle = (index / uniqueB.length) * 2 * Math.PI;
-        const distance = radius * 0.6;
-        const x = centerB.x + Math.cos(angle) * distance;
-        const y = centerB.y + Math.sin(angle) * distance;
-
-        createElementNode(element, x, y, 'b', false);
-    });
+function renderOp(res) {
+    const O = OPS[currentOp];
+    $('stageTitle').textContent = O.t + ' = ' + setText(res);
+    $('stageFormula').textContent = O.f;
+    exprPanel.innerHTML = '<div class="expr-note"><b>' + O.t + '</b>：' + NOTES[currentOp] + '</div>' +
+        '<div class="expr-sets"><span>A = ' + setText(U.filter(x => has(A, x))) + '</span><span>B = ' + setText(U.filter(x => has(B, x))) + '</span></div>';
 }
 
-// 创建元素节点
-function createElementNode(text, x, y, setType, inBoth) {
-    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    g.classList.add('element');
-
-    if (inBoth) {
-        g.classList.add('in-both');
-    } else if (setType === 'a') {
-        g.classList.add('in-a');
-    } else {
-        g.classList.add('in-b');
-    }
-
-    g.setAttribute('data-element', text);
-    g.setAttribute('transform', `translate(${x}, ${y})`);
-
-    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circle.classList.add('element-circle');
-    circle.setAttribute('r', 22);
-
-    const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    textEl.classList.add('element-text');
-    textEl.setAttribute('y', '0');
-    textEl.setAttribute('dy', '.35em');
-    textEl.textContent = text.length > 4 ? text.substring(0, 4) : text;
-
-    g.appendChild(circle);
-    g.appendChild(textEl);
-    elementsGroup.appendChild(g);
-
-    // 添加悬停提示
-    g.addEventListener('mouseenter', function () {
-        showTooltip(text, x, y);
-    });
-
-    g.addEventListener('mouseleave', function () {
-        hideTooltip();
-    });
+function renderExpr(res) {
+    const E = EXPRS[exprSelect.value];
+    $('stageTitle').textContent = E.t;
+    $('stageFormula').textContent = step ? E.steps[step - 1][1] + ' = ' + setText(res) : '点「下一步」开始分步求值';
+    exprPanel.innerHTML = '<ol class="expr-steps">' + E.steps.map((s, i) => {
+        const val = setText(members(s[2]));
+        const cls = i + 1 === step ? 'cur' : (i + 1 < step ? 'done' : 'todo');
+        return '<li class="' + cls + '"><span class="st-no">' + (i + 1) + '</span><span class="st-desc">' + s[0] + '</span><code>' + s[1] + '</code><span class="st-val">' + (i < step ? '= ' + val : '…') + '</span></li>';
+    }).join('') + '</ol>' + (step === E.steps.length ? '<div class="expr-note ok">✓ ' + E.end + '</div>' : '');
 }
 
-// 工具提示
-let tooltipElement = null;
+function stopPlay() { if (timer) { clearInterval(timer); timer = null; } $('playBtn').textContent = '自动播放'; }
+function maxStep() { return exprSelect.value ? EXPRS[exprSelect.value].steps.length : 0; }
+function go(d) { if (!exprSelect.value) { exprSelect.value = 'sym1'; step = 0; operationBtns.forEach(b => b.classList.remove('active')); } step = Math.max(0, Math.min(maxStep(), step + d)); render(); }
 
-function showTooltip(text, x, y) {
-    hideTooltip();
+operationBtns.forEach(btn => btn.addEventListener('click', () => {
+    stopPlay();
+    operationBtns.forEach(b => b.classList.toggle('active', b === btn));
+    currentOp = btn.dataset.operation;
+    exprSelect.value = '';
+    render();
+}));
+exprSelect.addEventListener('change', () => {
+    stopPlay();
+    step = exprSelect.value ? 1 : 0;
+    operationBtns.forEach(b => b.classList.toggle('active', !exprSelect.value && b.dataset.operation === currentOp));
+    render();
+});
+$('prevBtn').addEventListener('click', () => { stopPlay(); go(-1); });
+$('nextBtn').addEventListener('click', () => { stopPlay(); go(1); });
+$('playBtn').addEventListener('click', () => {
+    if (timer) { stopPlay(); return; }
+    if (!exprSelect.value) { exprSelect.value = 'sym1'; }
+    if (step >= maxStep()) step = 0;
+    operationBtns.forEach(b => b.classList.remove('active'));
+    $('playBtn').textContent = '暂停';
+    const ms = [0, 1600, 1100, 700, 400][+$('speedSlider').value];
+    go(1);
+    timer = setInterval(() => { if (step >= maxStep()) { stopPlay(); return; } go(1); }, ms);
+});
+$('speedSlider').addEventListener('input', () => { $('speedVal').textContent = $('speedSlider').value; });
+themeSelect.addEventListener('change', () => { generateSets(); render(); });
+[setASlider, setBSlider].forEach(s => s.addEventListener('input', () => { generateSets(); render(); }));
+$('randomBtn').addEventListener('click', () => {
+    seed = Math.floor(Math.random() * 233280);
+    setASlider.value = 3 + Math.floor(Math.random() * 5);
+    setBSlider.value = 3 + Math.floor(Math.random() * 5);
+    generateSets();
+    render();
+});
+$('resetBtn').addEventListener('click', () => {
+    stopPlay();
+    seed = 1; step = 0; currentOp = 'union';
+    themeSelect.value = 'revolutionary'; exprSelect.value = '';
+    setASlider.value = 5; setBSlider.value = 5; $('speedSlider').value = 2; $('speedVal').textContent = 2;
+    operationBtns.forEach(b => b.classList.toggle('active', b.dataset.operation === 'union'));
+    generateSets();
+    render();
+});
 
-    const svg = document.getElementById('mainSvg');
-    tooltipElement = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    tooltipElement.classList.add('tooltip');
-
-    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    rect.setAttribute('x', x - 40);
-    rect.setAttribute('y', y - 50);
-    rect.setAttribute('width', 80);
-    rect.setAttribute('height', 30);
-    rect.setAttribute('rx', 6);
-    rect.setAttribute('fill', 'rgba(139, 0, 0, 0.9)');
-    rect.setAttribute('stroke', '#ffb400');
-    rect.setAttribute('stroke-width', 2);
-
-    const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    textEl.setAttribute('x', x);
-    textEl.setAttribute('y', y - 30);
-    textEl.setAttribute('text-anchor', 'middle');
-    textEl.setAttribute('fill', '#fff');
-    textEl.setAttribute('font-size', '12px');
-    textEl.setAttribute('font-weight', '600');
-    textEl.textContent = text;
-
-    tooltipElement.appendChild(rect);
-    tooltipElement.appendChild(textEl);
-    svg.appendChild(tooltipElement);
-}
-
-function hideTooltip() {
-    if (tooltipElement) {
-        tooltipElement.remove();
-        tooltipElement = null;
-    }
-}
-
-// 执行运算动画
-async function executeOperation() {
-    if (isAnimating) return;
-    isAnimating = true;
-
-    executeBtn.disabled = true;
-    executeBtn.textContent = '运算中...';
-
-    // 清除之前的高亮
-    document.querySelectorAll('.element').forEach(el => {
-        el.classList.remove('highlighted');
-    });
-
-    // 等待一下让用户看到状态变化
-    await sleep(300);
-
-    // 高亮结果元素
-    for (const element of resultSet) {
-        const elementNode = document.querySelector(`.element[data-element="${element}"]`);
-        if (elementNode) {
-            elementNode.classList.add('highlighted');
-            await sleep(150);
-        }
-    }
-
-    executeBtn.disabled = false;
-    executeBtn.textContent = '执行运算';
-    isAnimating = false;
-}
-
-// 工具函数：延迟
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// 事件监听
-function attachEventListeners() {
-    // 主题选择
-    themeSelect.addEventListener('change', () => {
-        currentTheme = themeSelect.value;
-        generateSets();
-        updateDisplay();
-    });
-
-    // 运算类型选择
-    operationBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            operationBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentOperation = btn.getAttribute('data-operation');
-            updateDisplay();
-        });
-    });
-
-    // 滑块
-    setASlider.addEventListener('input', () => {
-        generateSets();
-        updateDisplay();
-    });
-
-    setBSlider.addEventListener('input', () => {
-        generateSets();
-        updateDisplay();
-    });
-
-    // 按钮
-    executeBtn.addEventListener('click', executeOperation);
-
-    randomBtn.addEventListener('click', () => {
-        // 随机选择主题
-        const themeKeys = Object.keys(themes);
-        const randomTheme = themeKeys[Math.floor(Math.random() * themeKeys.length)];
-        themeSelect.value = randomTheme;
-        currentTheme = randomTheme;
-
-        // 随机设置集合大小
-        const randomA = Math.floor(Math.random() * 6) + 4;
-        const randomB = Math.floor(Math.random() * 6) + 4;
-        setASlider.value = randomA;
-        setBSlider.value = randomB;
-
-        generateSets();
-        updateDisplay();
-    });
-
-    // 窗口调整
-    window.addEventListener('resize', () => {
-        updateDisplay();
-    });
-}
-
-// 启动应用
-init();
+generateSets();
+render();
