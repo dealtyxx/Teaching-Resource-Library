@@ -223,7 +223,7 @@
           graph: "stable", matchEdges: "gs",
           formula: '男士按偏好<span class="ft hot">依次求婚</span>，女士留最优、拒其余，直至稳定',
           badge: "GS 算法", tone: "", viz: "gscheck",
-          text: "每轮：未婚男士向<b>最心仪且未拒绝</b>的女士求婚；女士暂留当前最优、拒绝其他。绿色即最终匹配。算法必终止、结果必稳定（Gale-Shapley 1962）。"
+          text: "每轮：未婚男士向<b>最心仪且未拒绝</b>的女士求婚；女士暂留当前最优、拒绝其他。绿色即最终匹配。算法必终止、结果必稳定（Gale 与 Shapley，1962 年）。"
         },
         {
           name: "稳定性验证",
@@ -235,9 +235,9 @@
         {
           name: "迁移总结",
           graph: "stable", matchEdges: "gs",
-          formula: '<span class="ft hot">高考录取 · 住院医师匹配 · 婚恋平台</span>',
+          formula: '<span class="ft hot">住院医师匹配 · 择校分配 · 任务调度</span>',
           badge: "transfer", tone: "gold", viz: "transferlist",
-          text: "Gale-Shapley 支撑美国住院医师匹配(NRMP)、我国高考平行志愿投档、婚恋/租房撮合；KM 指派用于任务调度与资源分配。<b>让合适的人与需求精准对接，就是公平的算法表达。</b>"
+          text: "Gale-Shapley 的“延迟接受”思想用于美国住院医师匹配（NRMP）与多地择校分配；我国高考平行志愿“分数优先、遵循志愿”的投档规则，可看作所有院校按同一分数排序时的特例。KM 指派用于任务调度与资源分配。<b>让合适的人与需求精准对接，就是公平的算法表达。</b>"
         }
       ]
     }
@@ -392,14 +392,16 @@
 
     ctx.fillStyle = "#6b4a38";
     ctx.font = "700 13px 'Noto Serif SC', 'Microsoft YaHei', serif";
-    ctx.textAlign = "center";
-    ctx.fillText(g.caption, size.w / 2, size.h - 18);
+    // 图题放右上角，避免与左下角的操作提示胶囊重叠
+    ctx.textAlign = "right";
+    ctx.fillText(g.caption, size.w - 14, 20);
   }
 
   /* ---- 辅助可视化 ---- */
   function colorcheckHtml(g) {
-    const bp = isBipartite(g.nodes ? g.nodes.length : 0, g.edges || []);
-    if (!g.edges) return '<div class="graph-summary"><b>二染色：</b>左右两列天然可两染色，是二部图。</div>';
+    // 两列布局的二部图（kind:"bip"）没有 nodes，按左右两侧天然两染色处理；先判断再调用，避免 n=0 时越界
+    if (g.kind === "bip" || !g.nodes || !g.edges) return '<div class="graph-summary"><b>二染色：</b>左列涂红、右列涂蓝，每条边都连接不同颜色 ⇒ <b>是二部图</b>。</div>';
+    const bp = isBipartite(g.nodes.length, g.edges);
     return '<div class="graph-summary"><b>二染色判定：</b>' + (bp.ok ? "成功两染色、无同色边 ⇒ <b>是二部图</b>。" : "染色出现同色边（" + g.names[bp.conflict[0]] + "–" + g.names[bp.conflict[1]] + "）⇒ <b>非二部图</b>（含奇圈）。") + '</div>';
   }
   function assigncheckHtml(g) {
@@ -419,7 +421,7 @@
   }
   function transferHtml() {
     return '<div class="graph-summary"><b>迁移对照：</b>' +
-      '<div class="pill-row"><span class="pill">高考平行志愿</span><span class="pill">住院医师匹配</span><span class="pill">婚恋/租房撮合</span></div>' +
+      '<div class="pill-row"><span class="pill">住院医师匹配</span><span class="pill">择校分配</span><span class="pill">高考平行志愿</span></div>' +
       '稳定匹配与最优指派，把“公平配置”写成了可执行的算法。</div>';
   }
   function renderViz(st) {

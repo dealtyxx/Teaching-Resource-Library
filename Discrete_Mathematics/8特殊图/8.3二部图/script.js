@@ -33,8 +33,9 @@ let edgeElements = new Map();
 
 // Constants
 const NODE_RADIUS = 30;
+// 左侧用泛指的“干部”，避免随机连边被误读为真实人物的历史分工
 const LEFT_CADRES = [
-    "李大钊", "毛泽东", "周恩来", "朱德", "邓小平", "陈云"
+    "干部甲", "干部乙", "干部丙", "干部丁", "干部戊", "干部己"
 ];
 const RIGHT_TASKS = [
     "组织建设", "宣传工作", "军事指挥", "经济建设", "外交事务", "文化教育"
@@ -259,7 +260,7 @@ async function findAugmentingPath(start, visited, matchedRight) {
     const leftEl = nodeElements.get(start);
     leftEl.classList.add('current');
 
-    statusText.textContent = `探索: ${leftNode.name}`;
+    statusText.textContent = `探索：${leftNode.name}`;
     await sleep(getDelay() / 2);
 
     // Get all edges from this left node
@@ -277,7 +278,7 @@ async function findAugmentingPath(start, visited, matchedRight) {
 
         if (!matchedRight.has(rightId)) {
             // Found unmatched right node - augmenting path found!
-            statusText.textContent = `找到增广路径! ${rightNodes.find(n => n.id === rightId).name} 未匹配`;
+            statusText.textContent = `找到增广路：${rightNodes.find(n => n.id === rightId).name} 尚未匹配`;
             return [edge];
         } else {
             // Right node is matched, follow the matching edge
@@ -303,9 +304,49 @@ async function findAugmentingPath(start, visited, matchedRight) {
     return null;
 }
 
-// Hungarian Algorithm (Augmenting Path Method)
+// 沿增广路翻转：path 中的边都是“非匹配边”，每条边的右端点若已有匹配，先拆掉旧匹配再连新边。
+// 翻转后匹配数恰好 +1（增广路的非匹配边比匹配边多一条）。
+async function applyAugmentingPath(path, matchedRight) {
+    for (const edge of path) {
+        const oldLeftId = matchedRight.get(edge.rightId);
+        if (oldLeftId !== undefined) {
+            const oldEdge = edges.find(e => e.leftId === oldLeftId && e.rightId === edge.rightId);
+            if (oldEdge) edgeElements.get(oldEdge.id)?.classList.remove('matched', 'alternating');
+            matching.delete(oldLeftId);
+        }
+        matching.set(edge.leftId, edge.rightId);
+        matchedRight.set(edge.rightId, edge.leftId);
+
+        const edgeEl = edgeElements.get(edge.id);
+        edgeEl.classList.remove('augmenting', 'alternating');
+        edgeEl.classList.add('matched');
+        nodeElements.get(edge.leftId).classList.add('matched');
+        nodeElements.get(edge.rightId).classList.add('matched');
+        await sleep(getDelay() / 2);
+    }
+    renderMatchDisplay();
+    updateStats();
+}
+
+function renderMatchDisplay() {
+    clearMatchDisplay();
+    leftNodes.forEach(l => { if (matching.has(l.id)) addToMatchDisplay(l.id, matching.get(l.id)); });
+}
+
+function finishMessage(prefix) {
+    const maxPossible = Math.min(leftNodes.length, rightNodes.length);
+    if (matching.size === leftNodes.length && leftNodes.length === rightNodes.length) {
+        return `${prefix}完美匹配：${matching.size} 对，两侧顶点全部配上。`;
+    }
+    if (matching.size === maxPossible) {
+        return `${prefix}最大匹配 ${matching.size} 对：较小一侧全部配上（两侧人数不等，不可能是完美匹配）。`;
+    }
+    return `${prefix}最大匹配 ${matching.size} 对（上界 ${maxPossible}）：已不存在增广路，无法再增加。`;
+}
+
+// 匈牙利算法：依次为每个左顶点找增广路
 async function hungarianAlgorithm() {
-    statusText.textContent = '匈牙利算法: 寻找最大匹配...';
+    statusText.textContent = '匈牙利算法：依次为每个左侧顶点找增广路……';
     matching.clear();
 
     const matchedRight = new Map(); // rightId -> leftId
@@ -313,70 +354,30 @@ async function hungarianAlgorithm() {
     for (const leftNode of leftNodes) {
         if (shouldStop) break;
 
-        statusText.textContent = `为 ${leftNode.name} 寻找匹配...`;
+        statusText.textContent = `为 ${leftNode.name} 寻找增广路……`;
 
         const visited = new Set();
         const path = await findAugmentingPath(leftNode.id, visited, matchedRight);
 
         if (path) {
-            // Apply the augmenting path.
-            // path[] contains only the NEW (unmatched→matched) edges.
-            // For each edge in path: the right node's old left partner must be displaced first.
-            for (let i = 0; i < path.length; i++) {
-                const edge = path[i];
-
-                // Remove old match for this right node (if any), then add new match
-                const oldLeftId = matchedRight.get(edge.rightId);
-                if (oldLeftId !== undefined) {
-                    // Displace old match: un-highlight the old matched edge
-                    const oldEdgeId = [...edges].find(e => e.leftId === oldLeftId && e.rightId === edge.rightId)?.id;
-                    if (oldEdgeId) {
-                        edgeElements.get(oldEdgeId)?.classList.remove('matched');
-                    }
-                    matching.delete(oldLeftId);
-                }
-
-                matching.set(edge.leftId, edge.rightId);
-                matchedRight.set(edge.rightId, edge.leftId);
-
-                const edgeEl = edgeElements.get(edge.id);
-                edgeEl.classList.remove('augmenting', 'alternating');
-                edgeEl.classList.add('matched');
-
-                nodeElements.get(edge.leftId).classList.add('matched');
-                nodeElements.get(edge.rightId).classList.add('matched');
-
-                addToMatchDisplay(edge.leftId, edge.rightId);
-
-                await sleep(getDelay() / 2);
-            }
-
-            updateStats();
-            statusText.textContent = `成功匹配 ${leftNode.name}! 当前匹配数: ${matching.size}`;
+            await applyAugmentingPath(path, matchedRight);
+            statusText.textContent = `${leftNode.name} 配对成功，当前匹配数：${matching.size}`;
             await sleep(getDelay());
         } else {
-            statusText.textContent = `${leftNode.name} 无法找到匹配`;
+            statusText.textContent = `${leftNode.name} 找不到增广路，本轮不增加匹配`;
             await sleep(getDelay() / 2);
         }
 
-        // Clear current states
         nodeElements.forEach(el => el.classList.remove('current'));
         edgeElements.forEach(el => el.classList.remove('augmenting', 'alternating'));
     }
 
-    if (!shouldStop) {
-        const maxPossible = Math.min(leftNodes.length, rightNodes.length);
-        if (matching.size === maxPossible) {
-            statusText.textContent = `完美匹配! 达到最大匹配数 ${matching.size}`;
-        } else {
-            statusText.textContent = `最大匹配完成! 匹配数: ${matching.size}/${maxPossible}`;
-        }
-    }
+    if (!shouldStop) statusText.textContent = finishMessage('');
 }
 
-// Augmenting Path Visualization
+// 增广路可视化：先整条高亮（新边=金色，途经的旧匹配边=虚线），停顿后再翻转
 async function augmentingPathVisualization() {
-    statusText.textContent = '增广路径算法: 逐步可视化...';
+    statusText.textContent = '增广路算法：逐条展示增广路再翻转……';
     matching.clear();
 
     const matchedRight = new Map();
@@ -384,58 +385,31 @@ async function augmentingPathVisualization() {
     for (const leftNode of leftNodes) {
         if (shouldStop) break;
 
-        statusText.textContent = `为 ${leftNode.name} 寻找增广路径...`;
+        statusText.textContent = `为 ${leftNode.name} 寻找增广路……`;
 
         const visited = new Set();
         const path = await findAugmentingPath(leftNode.id, visited, matchedRight);
 
         if (path) {
-            statusText.textContent = `找到增广路径! 长度: ${path.length}`;
-
-            // Visualize the entire path
-            for (const edge of path) {
-                const edgeEl = edgeElements.get(edge.id);
-                edgeEl.classList.add('augmenting');
-            }
-
-            await sleep(getDelay() * 1.5);
-
-            // Apply the path
-            for (let i = 0; i < path.length; i++) {
-                const edge = path[i];
-                const edgeEl = edgeElements.get(edge.id);
-
-                edgeEl.classList.remove('augmenting');
-
-                if (i % 2 === 0) {
-                    matching.set(edge.leftId, edge.rightId);
-                    matchedRight.set(edge.rightId, edge.leftId);
-
-                    edgeEl.classList.add('matched');
-                    nodeElements.get(edge.leftId).classList.add('matched');
-                    nodeElements.get(edge.rightId).classList.add('matched');
-
-                    addToMatchDisplay(edge.leftId, edge.rightId);
+            path.forEach(edge => {
+                edgeElements.get(edge.id).classList.add('augmenting');
+                const oldLeftId = matchedRight.get(edge.rightId);
+                if (oldLeftId !== undefined) {
+                    const oldEdge = edges.find(e => e.leftId === oldLeftId && e.rightId === edge.rightId);
+                    if (oldEdge) edgeElements.get(oldEdge.id)?.classList.add('alternating');
                 }
-
-                await sleep(getDelay() / 2);
-            }
-
-            updateStats();
+            });
+            statusText.textContent = `找到增广路：${path.length} 条非匹配边 + ${path.length - 1} 条匹配边，翻转后匹配数 +1`;
+            await sleep(getDelay() * 1.5);
+            await applyAugmentingPath(path, matchedRight);
             await sleep(getDelay());
         }
 
         nodeElements.forEach(el => el.classList.remove('current'));
+        edgeElements.forEach(el => el.classList.remove('augmenting', 'alternating'));
     }
 
-    if (!shouldStop) {
-        const maxPossible = Math.min(leftNodes.length, rightNodes.length);
-        if (matching.size === maxPossible) {
-            statusText.textContent = `完美匹配! 所有${leftNodes.length}个干部都有任务!`;
-        } else {
-            statusText.textContent = `最大匹配: ${matching.size}/${maxPossible} - 资源优化配置完成!`;
-        }
-    }
+    if (!shouldStop) statusText.textContent = finishMessage('');
 }
 
 // Main Algorithm Runner

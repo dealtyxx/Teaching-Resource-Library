@@ -73,7 +73,7 @@
                     <label>算法选择</label>
                     <select id="algorithmSelect" class="apple-select">
                         <option value="hungarian">匈牙利算法 - 最大匹配</option>
-                        <option value="augmenting">增广路径算法 - 可视化路径</option>
+                        <option value="augmenting">增广路演示 - 先高亮再翻转</option>
                     </select>
                 </div>
 
@@ -84,14 +84,14 @@
                 </div>
 
                 <div class="control-group">
-                    <label>左右节点数: <span id="nodeSizeLabel">5-5</span></label>
+                    <label>左右顶点数：<span id="nodeSizeLabel">5-5</span></label>
                     <div class="slider-group">
                         <div>
-                            <small>左侧:</small>
+                            <small>左侧：</small>
                             <input type="range" id="leftSize" min="3" max="6" value="5">
                         </div>
                         <div>
-                            <small>右侧:</small>
+                            <small>右侧：</small>
                             <input type="range" id="rightSize" min="3" max="6" value="5">
                         </div>
                     </div>
@@ -112,23 +112,23 @@
                                 <span id="matchCount" class="stat-value">0</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">最大可能</span>
+                                <span class="stat-label">上界 min(|X|,|Y|)</span>
                                 <span id="maxPossible" class="stat-value">0</span>
                             </div>
                         </div>
                         <div class="match-display">
-                            <span>当前匹配:</span>
+                            <span>当前匹配：</span>
                             <div id="matchList"></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="info-box">
-                    <h3>💡 革命意义</h3>
+                    <h3>💡 知识要点</h3>
                     <div id="conceptInfo">
-                        <p><strong>二部图匹配:</strong> 将革命干部与任务、地区与资源进行最优配对。</p>
-                        <p><strong>最大匹配:</strong> 实现资源利用最大化,体现统筹协调思想。</p>
-                        <p><strong>完美匹配:</strong> 人人有责、物尽其用,实现完美分工。</p>
+                        <p><strong>增广路：</strong>从未匹配的 X 顶点出发、非匹配边与匹配边交替、终于未匹配的 Y 顶点的路；沿它翻转，匹配数 +1。</p>
+                        <p><strong>最大匹配（Berge）：</strong>匹配 M 最大 ⟺ 不存在 M 的增广路。</p>
+                        <p><strong>Hall 定理：</strong>存在饱和 X 的匹配 ⟺ 对任意 S ⊆ X 有 |N(S)| ≥ |S|；|X| = |Y| 时即完美匹配。</p>
                     </div>
                 </div>
             </div>
@@ -144,11 +144,11 @@
                 <div class="legend">
                     <div class="legend-item">
                         <span class="legend-dot" style="background: var(--left-color)"></span>
-                        <span>革命干部</span>
+                        <span>干部（X 侧）</span>
                     </div>
                     <div class="legend-item">
                         <span class="legend-dot" style="background: var(--right-color)"></span>
-                        <span>革命任务</span>
+                        <span>任务（Y 侧）</span>
                     </div>
                     <div class="legend-item">
                         <span class="legend-line" style="background: var(--edge-matched)"></span>
