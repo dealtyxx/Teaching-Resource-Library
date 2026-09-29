@@ -1398,6 +1398,114 @@
 })();
 /* @@END */
 
+/* ---------- 4.7 函数的运算 ---------- */
+(function () {
+  var C = C4.COL, esc = C4.esc;
+  var FN = {
+    dbl: { name: 'x ↦ 2x', f: function (x) { return 2 * x; } },
+    inc: { name: 'x ↦ x + 3', f: function (x) { return x + 3; } },
+    sq: { name: 'x ↦ x²', f: function (x) { return x * x; } },
+    neg: { name: 'x ↦ −x', f: function (x) { return -x; } },
+    m5: { name: 'x ↦ x mod 5', f: function (x) { return ((x % 5) + 5) % 5; } }
+  };
+  var OPTS = Object.keys(FN).map(function (k) { return [k, FN[k].name]; });
+
+  C4.def('funcops/basic', {
+    badge: '两条流水线对比',
+    mission: '把 f、g 看成两道工序。上面一条先 f 后 g，得到 (g∘f)(x)；下面一条先 g 后 f，得到 (f∘g)(x)。改变输入与工序，观察<b>顺序</b>是否影响结果。',
+    controls: [
+      { type: 'select', id: 'f', label: '工序 f', value: 'dbl', options: OPTS },
+      { type: 'select', id: 'g', label: '工序 g', value: 'inc', options: OPTS },
+      { type: 'range', id: 'x', label: '输入 x', text: '输入 x', min: -5, max: 8, value: 2 }
+    ],
+    stages: [
+      { id: 'pipe', title: '两条流水线' },
+      { id: 'table', title: '取值表：x = 0 … 5' },
+      { id: 'out', title: '结论' }
+    ],
+    points: [
+      '(g∘f)(x) = g(f(x))：<b>先 f 后 g</b>，书写顺序与执行顺序相反。',
+      'f : A→B，g : B→C 时 g∘f : A→C 才有定义（f 的陪域要落在 g 的定义域里）。',
+      '复合满足结合律：h∘(g∘f) = (h∘g)∘f。',
+      '复合一般不满足交换律：g∘f ≠ f∘g。'
+    ],
+    render: function (S) {
+      var f = FN[S.v.f], g = FN[S.v.g], x = S.v.x;
+      var fx = f.f(x), gfx = g.f(fx), gx = g.f(x), fgx = f.f(gx);
+      var box = function (t, sub, cls) { return '<span class="box ' + (cls || '') + '">' + t + '<small>' + sub + '</small></span>'; };
+      var ar = function (t) { return '<span class="arrow">—' + t + '→</span>'; };
+      S.set('pipe', '<p><b>g∘f</b>（先 f 后 g）</p><div class="c4-flow">' + box(x, '输入') + ar('f') + box(fx, 'f(x)', 'gold') + ar('g') + box(gfx, '(g∘f)(x)', 'hot') + '</div>' +
+        '<p style="margin-top:12px"><b>f∘g</b>（先 g 后 f）</p><div class="c4-flow">' + box(x, '输入') + ar('g') + box(gx, 'g(x)', 'gold') + ar('f') + box(fgx, '(f∘g)(x)', 'hot') + '</div>');
+      var X = [0, 1, 2, 3, 4, 5], diff = 0;
+      var t = '<div class="c4-table-wrap"><table class="c4-table"><tr><th>x</th>' + X.map(function (v) { return '<th>' + v + '</th>'; }).join('') + '</tr>';
+      var r1 = X.map(function (v) { return g.f(f.f(v)); }), r2 = X.map(function (v) { return f.f(g.f(v)); });
+      t += '<tr><th>(g∘f)(x)</th>' + r1.map(function (v, i) { if (v !== r2[i]) diff++; return '<td class="mono ' + (v === r2[i] ? 'ok' : 'bad') + '">' + v + '</td>'; }).join('') + '</tr>';
+      t += '<tr><th>(f∘g)(x)</th>' + r2.map(function (v, i) { return '<td class="mono ' + (v === r1[i] ? 'ok' : 'bad') + '">' + v + '</td>'; }).join('') + '</tr></table></div>';
+      S.set('table', t + '<p class="c4-note" style="margin-top:6px">绿色：两种顺序结果相同；红色：不同。</p>');
+      S.set('out', '<p>' + (diff ? '<span class="c4-chip bad">g∘f ≠ f∘g</span> 在 6 个输入中有 ' + diff + ' 个结果不同——工序顺序改变，产品就不同。' : '<span class="c4-chip ok">本例 g∘f = f∘g</span> 这两道工序恰好可交换，但这只是特例。') + '</p>');
+      C4.result('(g∘f)(' + x + ') = ' + gfx + '，(f∘g)(' + x + ') = ' + fgx, gfx === fgx ? '本输入下结果相同' : '顺序影响结果', 'g∘f 读作「g 复合 f」，执行时先 f 后 g。');
+    }
+  });
+
+  /* ----- 拓展层：管道与加解密 ----- */
+  var A26 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  var gcd = function (a, b) { while (b) { var t = a % b; a = b; b = t; } return a; };
+  var modinv = function (a, m) { for (var i = 1; i < m; i++) if ((a * i) % m === 1) return i; return null; };
+  var MSG = { a: 'HELLO', b: 'XIANGJIANG', c: 'MATH' };
+
+  C4.def('funcops/extend', {
+    badge: '仿射密码 · 加密链',
+    mission: '两层加密 E = E₂∘E₁：先<b>仿射变换</b> E₁(x) = (a·x + b) mod 26，再<b>凯撒移位</b> E₂(y) = (y + k) mod 26。解密必须<b>倒序</b>：D = E₁⁻¹∘E₂⁻¹。当 gcd(a, 26) ≠ 1 时 E₁ 不是双射，密文无法唯一还原。',
+    controls: [
+      { type: 'select', id: 'msg', label: '明文', value: 'a', options: [['a', 'HELLO'], ['b', 'XIANGJIANG'], ['c', 'MATH']] },
+      { label: '密钥', items: [
+        { type: 'range', id: 'a', text: '仿射乘数 a', min: 1, max: 25, value: 5 },
+        { type: 'range', id: 'b', text: '仿射偏移 b', min: 0, max: 25, value: 8 },
+        { type: 'range', id: 'k', text: '凯撒移位 k', min: 0, max: 25, value: 3 }
+      ] },
+      { type: 'select', id: 'ord', label: '解密顺序', value: 'right', options: [['right', '正确：先撤 E₂，再撤 E₁'], ['wrong', '错误：先撤 E₁，再撤 E₂']] }
+    ],
+    stages: [
+      { id: 'chain', title: '加密链与解密链' },
+      { id: 'table', title: '逐字母追踪' },
+      { id: 'out', title: '结论' }
+    ],
+    points: [
+      '多层加密就是函数复合：E = E₂∘E₁。',
+      '(E₂∘E₁)⁻¹ = E₁⁻¹∘E₂⁻¹：解密顺序与加密相反。',
+      '仿射 E₁(x) = (ax + b) mod 26 是双射 ⇔ gcd(a, 26) = 1，此时 E₁⁻¹(y) = a⁻¹(y − b) mod 26。',
+      '函数式编程的「管道」同理：compose(g, f) = x ⇒ g(f(x))。'
+    ],
+    render: function (S) {
+      var a = S.v.a, b = S.v.b, k = S.v.k, P = MSG[S.v.msg];
+      var ok = gcd(a, 26) === 1, ai = modinv(a, 26);
+      var E1 = function (x) { return (a * x + b) % 26; }, E2 = function (y) { return (y + k) % 26; };
+      var E2i = function (z) { return (z - k + 26) % 26; }, E1i = function (y) { return ai == null ? null : ((ai * (y - b)) % 26 + 26) % 26; };
+      var xs = P.split('').map(function (c) { return A26.indexOf(c); });
+      var ys = xs.map(E1), zs = ys.map(E2);
+      var right = S.v.ord === 'right';
+      var back = zs.map(function (z) { return right ? E1i(E2i(z)) : (function () { var t = E1i(z); return t == null ? null : E2i(t); })(); });
+      var str = function (arr) { return arr.map(function (v) { return v == null ? '?' : A26[v]; }).join(''); };
+      S.set('chain', '<div class="c4-flow"><span class="box">' + P + '<small>明文</small></span><span class="arrow">—E₁→</span><span class="box gold">' + str(ys) + '<small>中间</small></span><span class="arrow">—E₂→</span><span class="box hot">' + str(zs) + '<small>密文</small></span></div>' +
+        '<div class="c4-flow" style="margin-top:10px"><span class="box hot">' + str(zs) + '<small>密文</small></span><span class="arrow">—' + (right ? 'E₂⁻¹ 再 E₁⁻¹' : 'E₁⁻¹ 再 E₂⁻¹') + '→</span><span class="box ' + (str(back) === P ? 'ok' : '') + '">' + str(back) + '<small>还原</small></span></div>' +
+        '<p class="c4-note" style="margin-top:8px">E₁(x) = (' + a + 'x + ' + b + ') mod 26；' + (ok ? 'a⁻¹ = ' + ai + '（' + a + '×' + ai + ' ≡ 1 mod 26），E₁⁻¹(y) = ' + ai + '(y − ' + b + ') mod 26。' : '<b style="color:#C0392B">gcd(' + a + ', 26) = ' + gcd(a, 26) + ' ≠ 1，a 没有模 26 逆元，E₁ 不是双射。</b>') + '</p>');
+      var t = '<div class="c4-table-wrap"><table class="c4-table"><tr><th>字母</th>' + P.split('').map(function (c) { return '<th>' + c + '</th>'; }).join('') + '</tr>';
+      t += '<tr><th>x</th>' + xs.map(function (v) { return '<td class="mono">' + v + '</td>'; }).join('') + '</tr>';
+      t += '<tr><th>E₁(x)</th>' + ys.map(function (v) { return '<td class="mono soft">' + v + '</td>'; }).join('') + '</tr>';
+      t += '<tr><th>E₂(E₁(x))</th>' + zs.map(function (v) { return '<td class="mono hit">' + v + '</td>'; }).join('') + '</tr>';
+      t += '<tr><th>还原</th>' + back.map(function (v, i) { return '<td class="mono ' + (v === xs[i] ? 'ok' : 'bad') + '">' + (v == null ? '?' : v) + '</td>'; }).join('') + '</tr></table></div>';
+      S.set('table', t);
+      var collide = null;
+      if (!ok) { for (var p = 0; p < 26 && !collide; p++) for (var q = p + 1; q < 26 && !collide; q++) if (E1(p) === E1(q)) collide = [p, q]; }
+      S.set('out', '<p>' + (!ok ? '<span class="c4-chip bad">不可解密</span> 例如 ' + A26[collide[0]] + ' 与 ' + A26[collide[1]] + ' 都被 E₁ 加密成 ' + A26[E1(collide[0])] + '——非单射，信息丢失。请把 a 调成与 26 互素的数（1,3,5,7,9,11,15,17,19,21,23,25）。'
+        : str(back) === P ? '<span class="c4-chip ok">还原成功</span> 解密顺序正确：(E₂∘E₁)⁻¹ = E₁⁻¹∘E₂⁻¹。'
+          : '<span class="c4-chip bad">还原失败</span> 顺序错了：E₂⁻¹∘E₁⁻¹ ≠ (E₂∘E₁)⁻¹。像穿脱鞋袜——先穿的后脱。') + '</p>');
+      C4.result('E = E₂∘E₁', ok ? (str(back) === P ? '可逆，解密正确' : '可逆，但解密顺序错误') : 'E₁ 非双射，不可逆', 'a 与 26 互素的取值共 φ(26) = 12 个。');
+    }
+  });
+})();
+/* @@END */
+
 /* @@UNITS@@ */
 
 C4.boot();
