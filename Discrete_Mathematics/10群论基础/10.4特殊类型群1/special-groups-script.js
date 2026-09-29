@@ -1,786 +1,232 @@
-/**
- * 特殊类型群可视化系统 - 增强交互版本
- * Special Types of Groups Visualization - Enhanced Interactive Version
+/* 10.4 特殊类型群（一）—— 三层模块（由 ../group-lab/group-lab.js 渲染）
+ *   基础层：循环群（Zₙ 的生成轨道、ord(g)=n/gcd(g,n)、φ(n) 个生成元）
+ *   进阶层：对称群与二面体群（S₃ 的 3! 个置换、正方形的对称 D₄、凯莱定理）
+ *   拓展层：密钥与置换密码（Diffie–Hellman 密钥交换、分组置换密码）
  */
+(function () {
+  "use strict";
+  var GL = window.GroupLab, U = GL.U, G = GL.G, D = GL.D, P = GL.P;
 
-// DOM Elements
-const typeButtons = document.querySelectorAll('.type-btn');
-const subtypeButtons = document.querySelectorAll('.subtype-btn');
-const permutationTypes = document.getElementById('permutationTypes');
-const exampleSelect = document.getElementById('exampleSelect');
-const orderValue = document.getElementById('orderValue');
-const propertyValue = document.getElementById('propertyValue');
-const elementSelector = document.getElementById('elementSelector');
-const resultDisplay = document.getElementById('resultDisplay');
-const conceptTitle = document.getElementById('conceptTitle');
-const conceptContent = document.getElementById('conceptContent');
-const mainTitle = document.getElementById('mainTitle');
-const mainSubtitle = document.getElementById('mainSubtitle');
-const quoteText = document.getElementById('quoteText');
-const quoteAuthor = document.getElementById('quoteAuthor');
-const ideologyTitle = document.getElementById('ideologyTitle');
-const ideologyText = document.getElementById('ideologyText');
-const analogyText = document.getElementById('analogyText');
-const groupSvg = document.getElementById('groupSvg');
-const structureGroup = document.getElementById('structureGroup');
-const cayleyTable = document.getElementById('cayleyTable');
-const demonstrateBtn = document.getElementById('demonstrateBtn');
-const resetBtn = document.getElementById('resetBtn');
-
-// State
-let currentType = 'abelian';
-let currentExample = 'klein';
-let selectedElements = [];
-
-// Type Data
-const TYPES = {
-    abelian: {
-        name: '交换群',
-        nameEn: 'Abelian Group',
-        title: '和谐平等',
-        quote: '"和而不同，和实生物，同则不继。"',
-        author: '— 《国语·郑语》',
-        ideology: '交换群体现了和谐平等的精神。无论运算顺序如何，结果都相同，象征着组织成员地位平等、相互尊重、和谐共处。',
-        analogy: '如同民主协商机制，不论先听谁的意见，最终达成的共识是一致的，体现了平等参与、和谐决策的理念。',
-        conceptInfo: `
-            <p><strong>数学定义:</strong> 满足交换律ab=ba的群。</p>
-            <p><strong>核心思想:</strong> 运算顺序不影响结果。</p>
-            <p><strong>社会意义:</strong> 和谐平等的组织关系。</p>
-        `
-    },
-    cyclic: {
-        name: '循环群',
-        nameEn: 'Cyclic Group',
-        title: '周而复始',
-        quote: '"天行健，君子以自强不息。"',
-        author: '— 《周易·乾》',
-        ideology: '循环群象征着生生不息、周而复始的发展规律。由一个生成元通过不断运算产生整个群，体现了持续发展和自我完善的精神。',
-        analogy: '如同四季轮回、日月更替，遵循自然规律不断循环发展。又如干部轮岗制度，通过有序轮换实现全面发展。',
-        conceptInfo: `
-            <p><strong>数学定义:</strong> 由单个元素生成的群，G=⟨g⟩。</p>
-            <p><strong>核心思想:</strong> 一个元素生成整个群。</p>
-            <p><strong>社会意义:</strong> 周而复始、持续发展。</p>
-        `
-    },
-    permutation: {
-        name: '置换群',
-        nameEn: 'Permutation Group',
-        title: '统筹调度',
-        quote: '"运筹帷幄之中，决胜千里之外。"',
-        author: '— 《史记·高祖本纪》',
-        ideology: '置换群体现了统筹调度的管理智慧。通过合理的排列组合，实现资源的优化配置和人员的科学调度。',
-        analogy: '如同生产调度系统，根据不同情况灵活调整人员和资源配置，实现效率最大化。',
-        conceptInfo: `
-            <p><strong>数学定义:</strong> 集合的所有排列构成的群。</p>
-            <p><strong>核心思想:</strong> 排列组合与调度优化。</p>
-            <p><strong>社会意义:</strong> 统筹兼顾、科学调度。</p>
-        `
+  /* ---------------- 基础层：循环群 ---------------- */
+  function cyclic(n, g) {
+    var S = G.Zadd(n), orbit = S.powers(g), m = orbit.length, d = U.gcd(g, n) || n;
+    var gens = U.range(n).filter(function (k) { return U.gcd(k, n) === 1; });
+    var steps = [];
+    for (var i = 1; i <= m; i++) {
+      var v = (i * g) % n;
+      steps.push({ t: i + "·" + g + " ≡ " + v, d: i === 1 ? "从 0 出发走一步 " + g + "，到达 " + v + "。" : U.m((i - 1) * g % n + " + " + g + " ≡ " + v + " (mod " + n + ")") + (v === 0 ? "，" + U.ok("回到 0") + "，轨道闭合。" : "。") });
     }
-};
+    steps.push({ t: "ord(" + g + ") = n / gcd(g, n) = " + m, d: U.m("gcd(" + g + ", " + n + ") = " + d) + "，所以 " + U.m("ord(" + g + ") = " + n + " / " + d + " = " + m) + "。" + (m === n ? U.ok(g + " 是生成元") + "：" + U.m("Z" + U.sub(n) + " = ⟨" + g + "⟩") + "。" : "⟨" + g + "⟩ 只是 " + m + " 阶子群。") });
+    steps.push({ t: "全部生成元：gcd(k, n) = 1", d: "Z" + U.sub(n) + " 的生成元为 " + U.m(U.set(gens)) + "，共 " + U.m("φ(" + n + ") = " + gens.length) + " 个。" });
+    return {
+      titles: { struct: ["轨道 0 → g → 2g → …", "Z" + U.sub(n) + "，步长 g = " + g], viz: ["钟面上的星形轨道", "红 = 当前一步"] },
+      intro: "循环群由一个元素反复运算得到。在钟面 Zₙ 上每次走 g 格，看能否走遍所有点。",
+      steps: steps,
+      struct: function (k) {
+        var rows = orbit.map(function (v, i) { return [i, U.m(i + "·" + g), i <= k + 1 ? U.m(v) : "…"]; });
+        var h = D.table(["步", "倍数", "位置"], rows, { compact: true, rowCls: function (r) { return r === k + 1 && k < m ? "cur" : ""; } });
+        if (k >= m + 1) h += D.sets([{ name: "生成元", body: U.set(gens), cls: "ok", note: "φ(" + n + ") = " + gens.length }, { name: "非生成元", body: U.set(U.range(n).filter(function (x) { return gens.indexOf(x) < 0; })), cls: "dim" }]);
+        return h;
+      },
+      viz: function (k) {
+        var cls = U.range(n).map(function () { return ""; }), arrows = [];
+        if (k >= m + 1) { cls = U.range(n).map(function (x) { return gens.indexOf(x) >= 0 ? "ok" : ""; }); cls[g] = "cur"; }
+        for (var i = 1; i <= Math.min(k + 1, m); i++) {
+          arrows.push({ a: orbit[i - 1], b: orbit[i % m], cls: i === k + 1 ? "cur" : "on" });
+          if (k < m + 1) cls[orbit[i % m]] = i === k + 1 ? "cur" : "on";
+        }
+        if (k < m + 1) cls[0] = cls[0] || "ok";
+        return D.ring({ labels: U.range(n).map(String), cls: cls, arrows: arrows, center: ["⟨" + g + "⟩", k >= m - 1 ? "阶 " + m : "…"] });
+      },
+      verdict: { kind: m === n ? "ok" : "info", chip: m === n ? g + " 生成 Z" + U.sub(n) : "⟨" + g + "⟩ 为 " + m + " 阶子群",
+        reason: "在 Z" + U.sub(n) + " 中 " + U.m("ord(" + g + ") = " + n + "/gcd(" + g + "," + n + ") = " + m) + "；k 是生成元当且仅当 gcd(k, n) = 1。",
+        insight: "任何 n 阶循环群都同构于 Zₙ，任何无限循环群都同构于整数加法群 ⟨Z, +⟩ = ⟨1⟩ = ⟨−1⟩——循环群是结构最简单、被研究得最透彻的一类群。" }
+    };
+  }
+  var basic = {
+    legend: [["⟨g⟩", "g 生成的循环群"], ["ord(g)", "= n / gcd(g, n)"], ["φ(n)", "生成元个数"], ['<i class="dot on"></i>', "轨道上已到达的点"], ['<i class="dot ok"></i>', "单位元 0 / 生成元"]],
+    caseLabel: "选择循环群",
+    cases: [
+      { label: "Z₁₂（钟面）", params: [{ id: "g", label: "步长 g", type: "range", min: 1, max: 11, value: 5 }], build: function (p) { return cyclic(12, p.g); } },
+      { label: "Z₁₀", params: [{ id: "g", label: "步长 g", type: "range", min: 1, max: 9, value: 4 }], build: function (p) { return cyclic(10, p.g); } },
+      { label: "Z₉", params: [{ id: "g", label: "步长 g", type: "range", min: 1, max: 8, value: 2 }], build: function (p) { return cyclic(9, p.g); } },
+      { label: "Z₇（素数阶）", params: [{ id: "g", label: "步长 g", type: "range", min: 1, max: 6, value: 3 }], build: function (p) { return cyclic(7, p.g); } }
+    ]
+  };
 
-// Permutation Subtypes
-const SUBTYPES = {
-    general: { name: '置换', desc: '集合元素的重新排列' },
-    odd: { name: '奇置换', desc: '由奇数个对换组成' },
-    even: { name: '偶置换', desc: '由偶数个对换组成' },
-    cycle: { name: '轮换', desc: '循环移动元素' },
-    transposition: { name: '对换', desc: '交换两个元素' }
-};
-
-// Examples
-const EXAMPLES = {
-    z4: {
-        name: 'ℤ₄',
-        fullName: '循环群 ℤ₄',
-        order: 4,
-        property: '交换的循环群',
-        elements: [0, 1, 2, 3],
-        operation: (a, b) => (a + b) % 4,
-        generator: 1,
-        isAbelian: true,
-        isCyclic: true
-    },
-    klein: {
-        name: 'V₄',
-        fullName: '克莱因四元群 V₄',
-        order: 4,
-        property: '交换但非循环',
-        elements: ['e', 'a', 'b', 'c'],
-        operation: (x, y) => {
-            const table = {
-                'e': { 'e': 'e', 'a': 'a', 'b': 'b', 'c': 'c' },
-                'a': { 'e': 'a', 'a': 'e', 'b': 'c', 'c': 'b' },
-                'b': { 'e': 'b', 'a': 'c', 'b': 'e', 'c': 'a' },
-                'c': { 'e': 'c', 'a': 'b', 'b': 'a', 'c': 'e' }
-            };
-            return table[x][y];
-        },
-        generator: null,
-        isAbelian: true,
-        isCyclic: false
-    },
-    s3: {
-        name: 'S₃',
-        fullName: '对称群 S₃',
-        order: 6,
-        property: '非交换置换群',
-        elements: ['e', 'r', 'r²', 's', 'sr', 'sr²'],
-        operation: (x, y) => {
-            const table = {
-                'e': { 'e': 'e', 'r': 'r', 'r²': 'r²', 's': 's', 'sr': 'sr', 'sr²': 'sr²' },
-                'r': { 'e': 'r', 'r': 'r²', 'r²': 'e', 's': 'sr', 'sr': 'sr²', 'sr²': 's' },
-                'r²': { 'e': 'r²', 'r': 'e', 'r²': 'r', 's': 'sr²', 'sr': 's', 'sr²': 'sr' },
-                's': { 'e': 's', 'r': 'sr²', 'r²': 'sr', 's': 'e', 'sr': 'r²', 'sr²': 'r' },
-                'sr': { 'e': 'sr', 'r': 's', 'r²': 'sr²', 's': 'r', 'sr': 'e', 'sr²': 'r²' },
-                'sr²': { 'e': 'sr²', 'r': 'sr', 'r²': 's', 's': 'r²', 'sr': 'r', 'sr²': 'e' }
-            };
-            return table[x][y];
-        },
-        generator: null,
-        isAbelian: false,
-        isCyclic: false
-    },
-    a3: {
-        name: 'A₃',
-        fullName: '交错群 A₃',
-        order: 3,
-        property: '循环的交换群',
-        elements: ['e', 'r', 'r²'],
-        operation: (x, y) => {
-            const table = {
-                'e': { 'e': 'e', 'r': 'r', 'r²': 'r²' },
-                'r': { 'e': 'r', 'r': 'r²', 'r²': 'e' },
-                'r²': { 'e': 'r²', 'r': 'e', 'r²': 'r' }
-            };
-            return table[x][y];
-        },
-        generator: 'r',
-        isAbelian: true,
-        isCyclic: true
-    }
-};
-
-// Update Type
-function updateType(type) {
-    currentType = type;
-    const data = TYPES[type];
-
-    typeButtons.forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.type === type);
+  /* ---------------- 进阶层 ---------------- */
+  function s3List() {
+    var S = G.S3(), n = 6;
+    var steps = [{ t: "计数：3 × 2 × 1 = 3!", d: "置换就是 {1,2,3} 到自身的双射：1 的像有 3 种选法，2 的像剩 2 种，3 的像只剩 1 种，共 " + U.m("3! = 6") + " 个。一般地 " + U.m("|Sₙ| = n!") + "。" }];
+    U.range(n).forEach(function (i) {
+      var p = S.elems[i];
+      steps.push({ t: "σ" + U.sub(i + 1) + " = " + S.lab(i), d: "两行式 1→" + (p[0] + 1) + "，2→" + (p[1] + 1) + "，3→" + (p[2] + 1) + "；轮换式 " + U.m(S.lab(i)) + "，阶 " + P.order(p) + "，" + (P.even(p) ? "偶置换" : "奇置换") + "。" });
     });
-
-    permutationTypes.style.display = type === 'permutation' ? 'block' : 'none';
-
-    conceptTitle.textContent = data.title;
-    conceptContent.innerHTML = data.conceptInfo;
-    mainTitle.textContent = `${data.name} - ${data.title}`;
-    mainSubtitle.textContent = data.nameEn;
-    quoteText.textContent = data.quote;
-    quoteAuthor.textContent = data.author;
-    ideologyTitle.textContent = data.title;
-    ideologyText.textContent = data.ideology;
-    analogyText.textContent = data.analogy;
-
-    let targetExample = currentExample;
-    if (type === 'abelian') {
-        targetExample = 'klein';
-    } else if (type === 'cyclic') {
-        targetExample = 'z4';
-    } else if (type === 'permutation') {
-        targetExample = 's3';
-    }
-
-    exampleSelect.value = targetExample;
-    if (targetExample !== currentExample) {
-        updateExample(targetExample);
-    } else {
-        renderStructure(EXAMPLES[currentExample]);
-    }
-}
-
-// Update Example
-function updateExample(exampleId) {
-    currentExample = exampleId;
-    const example = EXAMPLES[exampleId];
-
-    orderValue.textContent = example.order;
-    propertyValue.textContent = example.property;
-
-    renderElementSelector(example);
-    renderCayleyTable(example);
-    renderStructure(example);
-
-    resultDisplay.innerHTML = '<p style="color: var(--text-secondary);">💡 点击凯莱表单元格或SVG节点查看运算详情</p>';
-    selectedElements = [];
-}
-
-// Render Element Selector
-function renderElementSelector(example) {
-    elementSelector.innerHTML = '';
-    example.elements.forEach(el => {
-        const div = document.createElement('div');
-        div.className = 'element-item';
-        div.textContent = el;
-        div.dataset.value = el;
-        div.addEventListener('click', () => selectElement(el, example));
-        elementSelector.appendChild(div);
-    });
-}
-
-// Render Cayley Table
-function renderCayleyTable(example) {
-    cayleyTable.innerHTML = '';
-    const elements = example.elements;
-
-    const headerRow = cayleyTable.insertRow();
-    headerRow.insertCell().textContent = '*';
-    elements.forEach(el => {
-        const th = document.createElement('th');
-        th.textContent = el;
-        headerRow.appendChild(th);
-    });
-
-    elements.forEach(rowEl => {
-        const row = cayleyTable.insertRow();
-        const th = document.createElement('th');
-        th.textContent = rowEl;
-        row.appendChild(th);
-
-        elements.forEach(colEl => {
-            const result = example.operation(rowEl, colEl);
-            const cell = row.insertCell();
-            cell.textContent = result;
-
-            cell.addEventListener('click', function () {
-                selectedElements = [];
-                showOperationDetail(rowEl, colEl, result, example);
-                highlightCayleyCell(this);
-            });
-
-            cell.addEventListener('mouseenter', function () {
-                this.style.background = 'rgba(255, 180, 0, 0.4)';
-                this.style.transform = 'scale(1.1)';
-                this.style.transition = 'all 0.2s';
-            });
-
-            cell.addEventListener('mouseleave', function () {
-                if (!this.classList.contains('highlighted')) {
-                    this.style.background = 'rgba(255, 255, 255, 0.6)';
-                    this.style.transform = 'scale(1)';
-                }
-            });
+    var ab = S.T[1][2], ba = S.T[2][1];
+    steps.push({ t: "S₃ 不交换", d: U.m("(12)(13) = " + S.lab(ab)) + "（先 (13) 后 (12)），" + U.m("(13)(12) = " + S.lab(ba)) + "。S₃ 是最小的非交换群。" });
+    return {
+      titles: { struct: ["S₃ 运算表", "στ：先 τ 后 σ"], viz: ["当前置换的箭头图", "同色 = 同一轮换"] },
+      intro: "对称群 Sₙ = 集合 {1,…,n} 上全体置换在复合下构成的群。先数一数 S₃ 有几个元素。",
+      steps: steps,
+      struct: function (k) {
+        return D.cayley(S, {
+          row: function (i) { return k >= 1 && k <= n && i === k - 1 ? "cur" : ""; },
+          cell: function (i, j) { if (k === n + 1 && ((i === 1 && j === 2) || (i === 2 && j === 1))) return "cur"; return k >= 1 && k <= n && i > k - 1 ? "dim" : ""; }
         });
+      },
+      viz: function (k) {
+        var i = k >= 1 && k <= n ? k - 1 : k > n ? ab : 4, p = S.elems[i];
+        return permRing(p, S.lab(i)) + (k >= 1 && k <= n ? P.twoLine(p) : "");
+      },
+      verdict: { kind: "info", chip: "|S₃| = 3! = 6", reason: "S₃ 的元素：" + U.m(U.set(U.range(n).map(S.lab))) + "；其中 3 个对换（奇）、2 个 3-轮换与恒等（偶）。",
+        insight: "Sₙ 的阶 n! 增长极快：S₁₀ 已有 3628800 个元素。它是「一切有限群的容器」——见凯莱定理。" }
+    };
+  }
+  function permRing(p, name) {
+    var cyc = P.cycles(p, true), cls = [], arrows = [];
+    cyc.forEach(function (c, ci) { c.forEach(function (x) { cls[x] = c.length > 1 ? "c" + (ci % 6) : ""; arrows.push({ a: x, b: p[x], cls: c.length > 1 ? "c" + (ci % 6) : "dim" }); }); });
+    return D.ring({ labels: U.range(p.length).map(function (x) { return x + 1; }), cls: cls, arrows: arrows, center: [name, "阶 " + P.order(p)], height: 300 });
+  }
+
+  function dihedral(nn) {
+    var S = G.D(nn), n = 2 * nn;
+    var steps = U.range(n).map(function (i) {
+      var k = i % nn, refl = i >= nn;
+      return { t: "对称 " + S.lab(i), d: refl ? "翻折（沿绿色对称轴）：顶点置换 " + U.m(P.str(S.perm(i))) + "。" : i === 0 ? "恒等：什么都不动。" : "旋转 " + k * 360 / nn + "°：顶点置换 " + U.m(P.str(S.perm(i))) + "。" };
     });
-}
+    steps.push({ t: "|D" + U.sub(nn) + "| = 2 × " + nn + " = " + n, d: "正 " + nn + " 边形有 " + nn + " 个旋转（含恒等）和 " + nn + " 个翻折。" + U.m("rs = " + S.lab(S.T[1][nn]) + " ≠ sr = " + S.lab(S.T[nn][1])) + "，D" + U.sub(nn) + " 不交换。" });
+    return {
+      titles: { struct: ["D" + U.sub(nn) + " 运算表", "rᵏs：先 s 后 rᵏ"], viz: ["正" + (nn === 4 ? "方形" : nn + "边形"), "数字=顶点 · 位i=位置"] },
+      intro: "二面体群 Dₙ = 正 n 边形的全部对称（旋转 + 翻折）。逐个观看它们如何移动顶点。",
+      steps: steps,
+      struct: function (k) {
+        return D.cayley(S, { row: function (i) { return i === k ? "cur" : ""; },
+          cell: function (i, j) { return k === n && ((i === 1 && j === nn) || (i === nn && j === 1)) ? "cur" : ""; } });
+      },
+      viz: function (k) {
+        var i = k >= 0 && k < n ? k : k === n ? S.T[1][nn] : 0, kk = i % nn;
+        return D.polygon({ n: nn, perm: S.perm(i), axis: i >= nn ? kk / 2 : null, rot: i < nn ? kk : 0 });
+      },
+      verdict: { kind: "info", chip: "|D" + U.sub(nn) + "| = " + n, reason: "D" + U.sub(nn) + " 是 " + n + " 阶非交换群；把它看成 " + nn + " 个顶点的置换，它是 S" + U.sub(nn) + "（" + (nn === 4 ? "24" : "6") + " 阶）的子群" + (nn === 3 ? "，且恰好等于 S₃。" : "——并非所有顶点置换都能由刚体运动实现。"),
+        insight: "雪花、窗花、分子结构的对称都可以用二面体群描述；化学与晶体学用群来给对称性分类。" }
+    };
+  }
 
-function highlightCayleyCell(cell) {
-    document.querySelectorAll('#cayleyTable td').forEach(c => {
-        c.classList.remove('highlighted');
-        c.style.background = 'rgba(255, 255, 255, 0.6)';
-        c.style.transform = 'scale(1)';
+  function cayleyThm(key) {
+    var S = key === "k4" ? G.U(8) : key === "z4" ? G.Zadd(4) : G.S3(), n = S.n;
+    var lam = U.range(n).map(function (g) { return S.T[g]; });   // λ_g(x) = g∘x
+    var steps = U.range(n).map(function (g) {
+      return { t: "λ" + U.sub(g + 1) + "：x ↦ " + S.lab(g) + S.sym + "x", d: "运算表第 " + S.lab(g) + " 行就是一个置换：" + U.range(n).map(function (x) { return U.m(S.lab(x) + "→" + S.lab(lam[g][x])); }).join("，") + "；按元素编号 1…" + n + " 写成 " + U.m(P.str(lam[g])) + "。" };
     });
+    steps.push({ t: "g ↦ λ_g 是单同态", d: U.m("λ_g∘λ_h = λ_{gh}") + "（结合律），不同的 g 给出不同的置换，于是 " + U.m(S.name + " ≅ {λ_g} ≤ S" + U.sub(n)) + "。" });
+    return {
+      titles: { struct: ["左乘置换表", S.name + " 的元素编号 1…" + n], viz: ["左乘映射 x ↦ g∘x", "它是 G 上的双射"] },
+      intro: "凯莱定理：每个群都同构于某个置换群。办法是让 g 通过左乘去「重排」G 自己的元素。",
+      steps: steps,
+      struct: function (k) {
+        var rows = U.range(n).map(function (g) { return [U.m(S.lab(g)), k >= g ? U.m(P.str(lam[g])) : "…"]; });
+        return D.table(["g", "λ_g（轮换式）"], rows, { rowCls: function (r) { return r === k ? "cur" : ""; } }) +
+          D.note("编号：" + U.range(n).map(function (x) { return (x + 1) + "=" + S.lab(x); }).join("，"));
+      },
+      viz: function (k) {
+        var g = k >= 0 && k < n ? k : 1;
+        return D.mapping({ L: U.range(n).map(S.lab), R: U.range(n).map(S.lab), map: lam[g], titles: ["x", S.lab(g) + S.sym + "x"], acls: lam[g].map(function () { return "on"; }), boxW: 64 });
+      },
+      verdict: { kind: "ok", chip: S.name + " ↪ S" + U.sub(n), reason: "映射 " + U.m("g ↦ λ_g") + " 是从 " + S.name + " 到 S" + U.sub(n) + " 的单同态，" + S.name + " 同构于 S" + U.sub(n) + " 的一个 " + n + " 阶子群。",
+        insight: "凯莱定理说明对称群是「万能」的：研究有限群，原则上都可以在置换群里进行。" }
+    };
+  }
 
-    cell.classList.add('highlighted');
-    cell.style.background = 'var(--accent-gold)';
-    cell.style.fontWeight = 'bold';
-}
+  var advanced = {
+    legend: [["n!", "Sₙ 的阶"], ["2n", "Dₙ 的阶"], ["rᵏs", "先翻折 s 再旋转 rᵏ"], ["λ_g", "左乘置换 x ↦ gx"], ["στ", "先 τ 后 σ"]],
+    caseLabel: "选择主题",
+    cases: [
+      { label: "对称群 S₃：3! 个置换", build: s3List },
+      { label: "二面体群 D₄：正方形的对称", build: function () { return dihedral(4); } },
+      { label: "凯莱定理：群 ↪ 置换群", params: [{ id: "g", label: "群", type: "select", value: "k4", options: [["k4", "U(8) = {1,3,5,7}（克莱因四元群）"], ["z4", "⟨Z₄, +⟩"], ["s3", "S₃"]] }],
+        build: function (p) { return cayleyThm(p.g); } }
+    ]
+  };
 
-// Select Element
-function selectElement(element, example) {
-    selectedElements.push(element);
+  /* ---------------- 拓展层 ---------------- */
+  function dh(a, b) {
+    var p = 23, g = 5, A = U.powmod(g, a, p), B = U.powmod(g, b, p), K = U.powmod(B, a, p), K2 = U.powmod(A, b, p);
+    var steps = [
+      { t: "公开参数 p = 23，g = 5", d: "5 是模 23 的本原根，⟨5⟩ = Z₂₃*（22 阶循环群）。p、g 对所有人公开。" },
+      { t: "甲：私钥 a = " + a + "，发送 A = 5ᵃ", d: U.m("A = 5" + U.sup(a) + " mod 23 = " + A) + "，a 保密。" },
+      { t: "乙：私钥 b = " + b + "，发送 B = 5ᵇ", d: U.m("B = 5" + U.sup(b) + " mod 23 = " + B) + "，b 保密。" },
+      { t: "甲算 Bᵃ，乙算 Aᵇ", d: U.m("K甲 = " + B + U.sup(a) + " mod 23 = " + K) + "，" + U.m("K乙 = " + A + U.sup(b) + " mod 23 = " + K2) + "。" },
+      { t: "双方得到同一密钥", d: U.m("(gᵇ)ᵃ = gᵃᵇ = (gᵃ)ᵇ") + "——循环群中幂运算可交换顺序，共享密钥 " + U.m("K = " + K) + "。" },
+      { t: "窃听者看到什么", d: "只有 p、g、A = " + A + "、B = " + B + "；要算 K 需先求离散对数 a 或 b。小例子能穷举，大素数下不可行。" }
+    ];
+    return {
+      titles: { struct: ["密钥交换流程", "p = 23，g = 5"], viz: ["Z₂₃* 上的位置", "红=A · 金=B · 绿=K"] },
+      intro: "Diffie–Hellman：双方只交换 gᵃ 与 gᵇ，就能在公开信道上约定出只有彼此知道的 gᵃᵇ。",
+      steps: steps,
+      struct: function (k) {
+        var show = function (s, v) { return k >= s ? U.m(v) : "?"; };
+        return '<div class="gl-flow"><div class="gl-party"><h4>甲</h4>' + D.kv([["私钥 a", show(1, a)], ["发送 A", show(1, A)], ["算 Bᵃ", show(3, K)]]) + "</div>" +
+          '<div class="gl-chan"><span>公开信道</span><span class="gl-m">p=23, g=5</span>' + (k >= 1 ? '<span class="gl-m">A=' + A + " →</span>" : "") + (k >= 2 ? '<span class="gl-m">← B=' + B + "</span>" : "") + "</div>" +
+          '<div class="gl-party"><h4>乙</h4>' + D.kv([["私钥 b", show(2, b)], ["发送 B", show(2, B)], ["算 Aᵇ", show(3, K2)]]) + "</div></div>" +
+          (k >= 4 ? D.note("共享密钥 " + U.m("K = 5" + U.sup(a * b % 22 || 22) + " = " + K) + "（指数按模 22 计算）。") : "");
+      },
+      viz: function (k) {
+        var cls = U.range(22).map(function () { return ""; });
+        if (k >= 1) cls[A - 1] = "cur";
+        if (k >= 2) cls[B - 1] = "on";
+        if (k >= 3) cls[K - 1] = "ok";
+        var tags = U.range(22).map(function (i) { var t = []; if (k >= 1 && i === A - 1) t.push("A"); if (k >= 2 && i === B - 1) t.push("B"); if (k >= 3 && i === K - 1) t.push("K"); return t.join(","); });
+        return D.ring({ labels: U.range(22, 1).map(String), cls: cls, tags: tags, arrows: [], center: ["Z₂₃*", k >= 4 ? "K = " + K : "…"] });
+      },
+      verdict: { kind: K === K2 ? "ok" : "bad", chip: "共享密钥 K = " + K, reason: "甲、乙各自计算得到 " + U.m("K = " + K) + "；窃听者只掌握 A、B，需要解离散对数。",
+        insight: "DH 只解决「约定密钥」，不能单独防止中间人冒充，实际协议还要配合身份认证（数字签名、证书）。" }
+    };
+  }
 
-    document.querySelectorAll('.element-item').forEach(item => {
-        item.classList.remove('selected');
+  function transCipher(key) {
+    var sig = { a: [1, 3, 0, 2], b: [2, 0, 3, 1], c: [1, 0, 3, 2] }[key];   // 第 i 个明文字母放到密文第 σ(i) 位
+    var msg = "GROUPSYMMETRY".slice(0, 12), blocks = [msg.slice(0, 4), msg.slice(4, 8), msg.slice(8, 12)];
+    var enc = blocks.map(function (b) { var c = []; b.split("").forEach(function (ch, i) { c[sig[i]] = ch; }); return c.join(""); });
+    var si = P.inv(sig), ord = P.order(sig);
+    var steps = blocks.map(function (b, i) {
+      return { t: "第 " + (i + 1) + " 组 " + b + " → " + enc[i], d: "按 σ = " + U.m(P.str(sig)) + " 把第 i 个字母放到第 σ(i) 位：" + b.split("").map(function (ch, j) { return U.m(ch + ":" + (j + 1) + "→" + (sig[j] + 1)); }).join(" ") + "。" };
     });
-
-    if (selectedElements.length === 1) {
-        document.querySelector(`[data-value="${element}"]`).classList.add('selected');
-        resultDisplay.innerHTML = `<p>已选择: <strong style="color: var(--accent-red);">${element}</strong></p><p>再选择一个元素进行运算</p>`;
-    } else if (selectedElements.length === 2) {
-        const [a, b] = selectedElements;
-        const result = example.operation(a, b);
-        showOperationDetail(a, b, result, example);
-        selectedElements = [];
-    }
-}
-
-function showOperationDetail(a, b, result, example) {
-    resultDisplay.innerHTML = `
-        <p style="font-size: 1rem; margin-bottom: 10px;">
-            <strong style="color: var(--accent-red);">${a}</strong> 
-            <span style="color: var(--text-secondary);">*</span> 
-            <strong style="color: var(--accent-red);">${b}</strong> 
-            = 
-            <strong style="color: var(--accent-gold);">${result}</strong>
-        </p>
-        ${example.isAbelian ? `
-            <p style="font-size: 0.85rem; color: var(--color-abelian);">
-                ✓ 满足交换律: ${b} * ${a} = ${example.operation(b, a)}
-            </p>
-        ` : `
-            <p style="font-size: 0.85rem; color: var(--text-secondary);">
-                非交换: ${b} * ${a} = ${example.operation(b, a)} ${example.operation(b, a) !== result ? '≠ ' + result : ''}
-            </p>
-        `}
-        ${example.isCyclic && example.generator ? `
-            <p style="font-size: 0.85rem; color: var(--color-cyclic);">
-                🔄 生成元: ${example.generator}
-            </p>
-        ` : ''}
-    `;
-
-    animateOperation(a, b, result, example);
-}
-
-// Render Structure
-function renderStructure(example) {
-    structureGroup.innerHTML = '';
-    const arrowsGroup = document.getElementById('arrowsGroup');
-    if (arrowsGroup) arrowsGroup.innerHTML = '';
-
-    const WIDTH = groupSvg.clientWidth || 400;
-    const HEIGHT = groupSvg.clientHeight || 300;
-    const centerX = WIDTH / 2;
-    const centerY = HEIGHT / 2;
-
-    if (currentType === 'abelian' && !example.isCyclic) {
-        renderAbelianLayout(example, WIDTH, HEIGHT, centerX, centerY);
-    } else if (currentType === 'cyclic' || (currentType === 'abelian' && example.isCyclic)) {
-        renderCyclicLayout(example, WIDTH, HEIGHT, centerX, centerY);
-    } else if (currentType === 'permutation') {
-        renderPermutationLayout(example, WIDTH, HEIGHT, centerX, centerY);
-    } else {
-        renderCircularLayout(example, WIDTH, HEIGHT, centerX, centerY);
-    }
-}
-
-// 交换群：对称圆形布局（缩小 - 半径更小）
-function renderAbelianLayout(example, WIDTH, HEIGHT, centerX, centerY) {
-    const radius = Math.min(WIDTH, HEIGHT) / 2.8; // 缩小交换群布局
-    const n = example.elements.length;
-
-    example.elements.forEach((el, i) => {
-        const angle = (2 * Math.PI * i) / n - Math.PI / 2;
-        const x = centerX + radius * Math.cos(angle);
-        const y = centerY + radius * Math.sin(angle);
-
-        createNode(el, x, y);
-
-        if (i < n / 2) {
-            const oppositeIdx = (i + Math.floor(n / 2)) % n;
-            const angle2 = (2 * Math.PI * oppositeIdx) / n - Math.PI / 2;
-            const x2 = centerX + radius * Math.cos(angle2);
-            const y2 = centerY + radius * Math.sin(angle2);
-
-            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            line.setAttribute('x1', x);
-            line.setAttribute('y1', y);
-            line.setAttribute('x2', x2);
-            line.setAttribute('y2', y2);
-            line.setAttribute('stroke', 'var(--color-abelian)');
-            line.setAttribute('stroke-width', '1');
-            line.setAttribute('opacity', '0.2');
-            structureGroup.insertBefore(line, structureGroup.firstChild);
-        }
-    });
-}
-
-// 循环群：螺旋布局（扩大 - 半径更大）
-function renderCyclicLayout(example, WIDTH, HEIGHT, centerX, centerY) {
-    const maxRadius = Math.min(WIDTH, HEIGHT) / 1.7; // 扩大循环群布局
-    const n = example.elements.length;
-
-    example.elements.forEach((el, i) => {
-        const angle = (2 * Math.PI * i) / n - Math.PI / 2;
-        const radiusFactor = 0.3 + (i / n) * 0.7;
-        const x = centerX + maxRadius * radiusFactor * Math.cos(angle);
-        const y = centerY + maxRadius * radiusFactor * Math.sin(angle);
-
-        createNode(el, x, y);
-
-        if (i < n - 1) {
-            const nextAngle = (2 * Math.PI * (i + 1)) / n - Math.PI / 2;
-            const nextRadiusFactor = 0.3 + ((i + 1) / n) * 0.7;
-            const x2 = centerX + maxRadius * nextRadiusFactor * Math.cos(nextAngle);
-            const y2 = centerY + maxRadius * nextRadiusFactor * Math.sin(nextAngle);
-
-            drawArrow(x, y, x2, y2, 'var(--color-cyclic)', 2);
-        } else {
-            const firstAngle = -Math.PI / 2;
-            const firstRadiusFactor = 0.3;
-            const x2 = centerX + maxRadius * firstRadiusFactor * Math.cos(firstAngle);
-            const y2 = centerY + maxRadius * firstRadiusFactor * Math.sin(firstAngle);
-
-            drawArrow(x, y, x2, y2, 'var(--color-cyclic)', 2, true);
-        }
-    });
-
-    if (example.generator !== null && example.generator !== undefined) {
-        const genText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        genText.setAttribute('x', centerX);
-        genText.setAttribute('y', centerY + maxRadius + 30);
-        genText.setAttribute('text-anchor', 'middle');
-        genText.setAttribute('fill', 'var(--color-cyclic)');
-        genText.setAttribute('font-size', '14');
-        genText.setAttribute('font-weight', 'bold');
-        genText.textContent = `生成元: ${example.generator}`;
-        structureGroup.appendChild(genText);
-    }
-}
-
-// 置换群：网格变换布局
-function renderPermutationLayout(example, WIDTH, HEIGHT, centerX, centerY) {
-    const n = example.elements.length;
-    const cols = Math.ceil(Math.sqrt(n));
-    const rows = Math.ceil(n / cols);
-    const spacing = Math.min(WIDTH / (cols + 0.3), HEIGHT / (rows + 0.3));
-
-    example.elements.forEach((el, i) => {
-        const col = i % cols;
-        const row = Math.floor(i / cols);
-        const x = centerX - (cols - 1) * spacing / 2 + col * spacing;
-        const y = centerY - (rows - 1) * spacing / 2 + row * spacing;
-
-        createNode(el, x, y);
-    });
-
-    for (let i = 0; i <= cols; i++) {
-        const x = centerX - (cols - 1) * spacing / 2 + (i - 0.5) * spacing;
-        if (i > 0 && i < cols) {
-            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            line.setAttribute('x1', x);
-            line.setAttribute('y1', centerY - rows * spacing / 2);
-            line.setAttribute('x2', x);
-            line.setAttribute('y2', centerY + rows * spacing / 2);
-            line.setAttribute('stroke', '#ddd');
-            line.setAttribute('stroke-width', '0.5');
-            line.setAttribute('opacity', '0.5');
-            structureGroup.insertBefore(line, structureGroup.firstChild);
-        }
-    }
-}
-
-// 通用圆形布局
-function renderCircularLayout(example, WIDTH, HEIGHT, centerX, centerY) {
-    const radius = Math.min(WIDTH, HEIGHT) / 2.2;
-    const n = example.elements.length;
-
-    example.elements.forEach((el, i) => {
-        const angle = (2 * Math.PI * i) / n - Math.PI / 2;
-        const x = centerX + radius * Math.cos(angle);
-        const y = centerY + radius * Math.sin(angle);
-
-        createNode(el, x, y);
-    });
-}
-
-// 创建节点
-function createNode(el, x, y) {
-    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    g.setAttribute('class', 'group-node');
-    g.setAttribute('transform', `translate(${x}, ${y})`);
-    g.setAttribute('data-element', el);
-
-    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circle.setAttribute('r', 25);
-    circle.setAttribute('class', 'node-circle');
-    circle.setAttribute('fill', '#d63b1d');
-    circle.setAttribute('stroke', '#fff');
-    circle.setAttribute('stroke-width', 2);
-    circle.setAttribute('filter', 'url(#glow)');
-
-    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    text.setAttribute('class', 'node-label');
-    text.setAttribute('y', 5);
-    text.textContent = el;
-
-    g.appendChild(circle);
-    g.appendChild(text);
-    structureGroup.appendChild(g);
-
-    g.addEventListener('click', () => {
-        if (selectedElements.length < 2) {
-            const example = EXAMPLES[currentExample];
-            selectElement(el, example);
-            highlightNode(el);
-        }
-    });
-}
-
-// 绘制箭头
-function drawArrow(x1, y1, x2, y2, color, strokeWidth = 1.5, dashed = false) {
-    const arrowsGroup = document.getElementById('arrowsGroup');
-    if (!arrowsGroup) return;
-
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const shortenDist = 28;
-
-    const newX2 = x2 - (dx / dist) * shortenDist;
-    const newY2 = y2 - (dy / dist) * shortenDist;
-    const newX1 = x1 + (dx / dist) * shortenDist;
-    const newY1 = y1 + (dy / dist) * shortenDist;
-
-    const midX = (newX1 + newX2) / 2;
-    const midY = (newY1 + newY2) / 2;
-
-    const d = `M ${newX1} ${newY1} Q ${midX} ${midY} ${newX2} ${newY2}`;
-    path.setAttribute('d', d);
-    path.setAttribute('stroke', color);
-    path.setAttribute('stroke-width', strokeWidth);
-    path.setAttribute('fill', 'none');
-    path.setAttribute('marker-end', 'url(#arrowRed)');
-
-    if (dashed) {
-        path.setAttribute('stroke-dasharray', '5,5');
-        path.setAttribute('opacity', '0.5');
-    } else {
-        path.setAttribute('opacity', '0.6');
-    }
-
-    arrowsGroup.appendChild(path);
-}
-
-function highlightNode(element) {
-    document.querySelectorAll('.group-node').forEach(node => {
-        const circle = node.querySelector('.node-circle');
-        if (node.dataset.element === element) {
-            circle.setAttribute('fill', 'var(--accent-gold)');
-            circle.setAttribute('r', 30);
-        } else {
-            circle.setAttribute('fill', '#d63b1d');
-            circle.setAttribute('r', 25);
-        }
-    });
-}
-
-// Animate Operation (增强版 - 带箭头连接线)
-async function animateOperation(a, b, result, example) {
-    document.querySelectorAll('.group-node').forEach(node => {
-        node.querySelector('.node-circle').setAttribute('fill', '#d63b1d');
-        node.querySelector('.node-circle').setAttribute('r', 25);
-    });
-
-    const animationGroup = document.getElementById('arrowsGroup');
-
-    await sleep(200);
-    const nodeA = document.querySelector(`[data-element="${a}"]`);
-    const nodeB = document.querySelector(`[data-element="${b}"]`);
-    const nodeResult = document.querySelector(`[data-element="${result}"]`);
-
-    if (!nodeA || !nodeB || !nodeResult) return;
-
-    const transformA = nodeA.getAttribute('transform');
-    const transformB = nodeB.getAttribute('transform');
-    const transformResult = nodeResult.getAttribute('transform');
-
-    const posA = extractPosition(transformA);
-    const posB = extractPosition(transformB);
-    const posResult = extractPosition(transformResult);
-
-    if (nodeA) {
-        nodeA.querySelector('.node-circle').setAttribute('fill', 'var(--accent-red)');
-        nodeA.querySelector('.node-circle').setAttribute('r', 30);
-    }
-
-    await sleep(300);
-
-    if (nodeB) {
-        nodeB.querySelector('.node-circle').setAttribute('fill', 'var(--accent-red)');
-        nodeB.querySelector('.node-circle').setAttribute('r', 30);
-
-        drawAnimatedArrow(posA.x, posA.y, posB.x, posB.y, '#ff6b6b', 'operation-line-1');
-    }
-
-    await sleep(500);
-
-    if (nodeResult) {
-        nodeResult.querySelector('.node-circle').setAttribute('fill', 'var(--accent-gold)');
-        nodeResult.querySelector('.node-circle').setAttribute('r', 35);
-
-        drawAnimatedArrow(posB.x, posB.y, posResult.x, posResult.y, '#ffd93d', 'operation-line-2');
-
-        setTimeout(() => {
-            drawAnimatedArrow(posA.x, posA.y, posResult.x, posResult.y, 'var(--accent-gold)', 'operation-line-3', true);
-        }, 200);
-    }
-
-    await sleep(400);
-
-    if (nodeResult) {
-        for (let i = 0; i < 3; i++) {
-            await sleep(200);
-            nodeResult.querySelector('.node-circle').setAttribute('r', 30);
-            await sleep(200);
-            nodeResult.querySelector('.node-circle').setAttribute('r', 35);
-        }
-
-        await sleep(500);
-        nodeResult.querySelector('.node-circle').setAttribute('r', 25);
-    }
-
-    await sleep(300);
-    if (animationGroup) {
-        const animLines = animationGroup.querySelectorAll('[id^="operation-line-"]');
-        animLines.forEach(line => {
-            line.style.opacity = '0';
-            setTimeout(() => line.remove(), 300);
-        });
-    }
-}
-
-function extractPosition(transform) {
-    const match = transform.match(/translate\(([\d.]+),\s*([\d.]+)\)/);
-    if (match) {
-        return { x: parseFloat(match[1]), y: parseFloat(match[2]) };
-    }
-    return { x: 0, y: 0 };
-}
-
-function drawAnimatedArrow(x1, y1, x2, y2, color, id, dashed = false) {
-    const arrowsGroup = document.getElementById('arrowsGroup');
-    if (!arrowsGroup) return;
-
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const shortenDist = 30;
-
-    const newX1 = x1 + (dx / dist) * shortenDist;
-    const newY1 = y1 + (dy / dist) * shortenDist;
-    const newX2 = x2 - (dx / dist) * shortenDist;
-    const newY2 = y2 - (dy / dist) * shortenDist;
-
-    const controlX = (newX1 + newX2) / 2 + (newY2 - newY1) * 0.2;
-    const controlY = (newY1 + newY2) / 2 - (newX2 - newX1) * 0.2;
-
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    const d = `M ${newX1} ${newY1} Q ${controlX} ${controlY} ${newX2} ${newY2}`;
-
-    path.setAttribute('id', id);
-    path.setAttribute('d', d);
-    path.setAttribute('stroke', color);
-    path.setAttribute('stroke-width', '3');
-    path.setAttribute('fill', 'none');
-    path.setAttribute('marker-end', 'url(#arrowRed)');
-    path.setAttribute('opacity', '0');
-
-    if (dashed) {
-        path.setAttribute('stroke-dasharray', '8,4');
-    }
-
-    const length = path.getTotalLength();
-    path.style.strokeDasharray = length;
-    path.style.strokeDashoffset = length;
-    path.style.transition = 'stroke-dashoffset 0.6s ease-out, opacity 0.3s';
-
-    arrowsGroup.appendChild(path);
-
-    setTimeout(() => {
-        path.setAttribute('opacity', '0.8');
-        path.style.strokeDashoffset = '0';
-    }, 50);
-}
-
-// Demonstrate Operation
-async function demonstrateOperation() {
-    const example = EXAMPLES[currentExample];
-    demonstrateBtn.disabled = true;
-    demonstrateBtn.textContent = '演示中...';
-
-    if (example.isCyclic && example.generator) {
-        resultDisplay.innerHTML = `
-            <p style="font-size: 0.9rem; color: var(--color-cyclic); margin-bottom: 8px;">
-                <strong>🔄 循环生成演示</strong>
-            </p>
-            <p style="font-size: 0.85rem;">生成元: <strong>${example.generator}</strong></p>
-        `;
-
-        let current = example.elements[0];
-        for (let i = 0; i < example.elements.length; i++) {
-            highlightNode(current);
-            await sleep(800);
-
-            if (i < example.elements.length - 1) {
-                current = example.operation(current, example.generator);
-                resultDisplay.innerHTML += `<p style="font-size: 0.8rem; margin: 4px 0;">第${i + 1}步: → <strong style="color: var(--accent-gold);">${current}</strong></p>`;
-            }
-        }
-
-        await sleep(1000);
-    }
-
-    resultDisplay.innerHTML = '<p style="font-size: 0.9rem; color: var(--accent-red);"><strong>🎲 随机运算演示</strong></p>';
-
-    for (let i = 0; i < 3; i++) {
-        const a = example.elements[Math.floor(Math.random() * example.elements.length)];
-        const b = example.elements[Math.floor(Math.random() * example.elements.length)];
-        const result = example.operation(a, b);
-
-        resultDisplay.innerHTML = `
-            <p style="font-size: 0.9rem; margin-bottom: 8px;"><strong>示例 ${i + 1}:</strong></p>
-            <p style="font-size: 1rem;">
-                <strong style="color: var(--accent-red);">${a}</strong> * 
-                <strong style="color: var(--accent-red);">${b}</strong> = 
-                <strong style="color: var(--accent-gold);">${result}</strong>
-            </p>
-            ${example.isAbelian ? `<p style="font-size: 0.85rem; color: var(--color-abelian);">✓ ${b} * ${a} = ${example.operation(b, a)}</p>` : ''}
-        `;
-
-        await animateOperation(a, b, result, example);
-        await sleep(1500);
-    }
-
-    document.querySelectorAll('.group-node').forEach(node => {
-        node.querySelector('.node-circle').setAttribute('fill', '#d63b1d');
-        node.querySelector('.node-circle').setAttribute('r', 25);
-    });
-
-    resultDisplay.innerHTML = '<p style="color: var(--color-abelian);">✓ 演示完成！点击凯莱表或SVG节点探索更多</p>';
-
-    demonstrateBtn.disabled = false;
-    demonstrateBtn.textContent = '▶ 演示运算';
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// Event Listeners
-function attachEventListeners() {
-    typeButtons.forEach(btn => {
-        btn.addEventListener('click', () => updateType(btn.dataset.type));
-    });
-
-    subtypeButtons.forEach(btn => {
-        btn.addEventListener('click', function () {
-            subtypeButtons.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            const info = SUBTYPES[this.dataset.subtype];
-            resultDisplay.innerHTML = `
-                <p><strong style="color: var(--accent-red);">${info.name}</strong></p>
-                <p style="color: var(--text-secondary);">${info.desc}</p>
-            `;
-        });
-    });
-
-    exampleSelect.addEventListener('change', (e) => {
-        updateExample(e.target.value);
-    });
-
-    demonstrateBtn.addEventListener('click', demonstrateOperation);
-
-    resetBtn.addEventListener('click', () => {
-        location.reload();
-    });
-}
-
-// Initialization
-window.addEventListener('load', () => {
-    updateType('abelian');
-    updateExample('klein');
-    attachEventListeners();
-});
+    steps.push({ t: "用 σ⁻¹ 解密", d: U.m("σ⁻¹ = " + P.str(si)) + "；对每组密文再作 σ⁻¹，得回明文 " + U.m(msg) + "。" });
+    steps.push({ t: "重复加密 " + ord + " 次回到明文", d: U.m("ord(σ) = " + ord) + "：连续用同一个密钥加密 " + ord + " 次等于什么都没做。" });
+    steps.push({ t: "密钥空间 4! = 24", d: "分组长 4 的全部置换密钥构成 S₄，只有 24 个；两次置换加密 = 一次置换加密（群的封闭性），叠加不会增加密钥空间。" });
+    return {
+      titles: { struct: ["分组置换加密", "分组长 4，σ = " + P.str(sig)], viz: ["位置置换 σ", "第 i 位 → 第 σ(i) 位"] },
+      intro: "置换密码不改字母、只改位置：每组 4 个字母按密钥置换 σ ∈ S₄ 重排。",
+      steps: steps,
+      struct: function (k) {
+        var rows = blocks.map(function (b, i) { return [i + 1, U.m(b), k >= i ? U.m(enc[i]) : "…", k >= 3 ? U.m(b) : ""]; });
+        return D.table(["组", "明文", "密文", "解密"], rows, { rowCls: function (r) { return r === k ? "cur" : ""; } }) +
+          D.note("密文：" + U.m(k >= 2 ? enc.join(" ") : "……") + "　两行式：") + P.twoLine(sig);
+      },
+      viz: function (k) {
+        var bi = Math.max(0, Math.min(k, 2)), b = blocks[bi], c = enc[bi];
+        var inv = k === 3;
+        return D.mapping({ L: (inv ? c : b).split("").map(function (ch, i) { return (i + 1) + " " + ch; }), R: (inv ? b : c).split("").map(function (ch, i) { return (i + 1) + " " + ch; }),
+          map: inv ? si : sig, acls: [0, 1, 2, 3].map(function (x) { return "c" + x; }), lcls: [0, 1, 2, 3].map(function (x) { return "c" + (inv ? si[x] : x); }), rcls: [0, 1, 2, 3].map(function (x) { return "c" + (inv ? x : si[x]); }),
+          titles: inv ? ["密文位置", "σ⁻¹ → 明文"] : ["明文位置", "σ → 密文"], boxW: 64 });
+      },
+      verdict: { kind: "info", chip: "密文 " + enc.join(""), reason: "置换密码的加密族 {E_σ | σ ∈ S₄} 与 S₄ 同构：可逆性来自逆置换，周期来自置换的阶。",
+        insight: "单独的置换（换位）或代换都不安全；现代分组密码把「代换 + 置换」交替迭代多轮（SPN 结构），见 10.8 拓展层。" }
+    };
+  }
+
+  var extend = {
+    legend: [["gᵃ", "公开的「半把钥匙」"], ["gᵃᵇ", "共享密钥"], ["σ", "位置置换密钥"], ["σ⁻¹", "解密置换"], ["ord(σ)", "重复加密回到明文的次数"]],
+    caseLabel: "选择方案",
+    cases: [
+      { label: "Diffie–Hellman 密钥交换", params: [
+          { id: "a", label: "甲的私钥 a", type: "range", min: 2, max: 21, value: 6 },
+          { id: "b", label: "乙的私钥 b", type: "range", min: 2, max: 21, value: 15 }],
+        build: function (p) { return dh(p.a, p.b); } },
+      { label: "分组置换密码（S₄）", params: [{ id: "k", label: "密钥 σ", type: "select", value: "a", options: [["a", "σ = (1243)"], ["b", "σ = (1342)"], ["c", "σ = (12)(34)"]] }],
+        build: function (p) { return transCipher(p.k); } }
+    ]
+  };
+
+  GL.define({ basic: basic, advanced: advanced, extend: extend });
+})();

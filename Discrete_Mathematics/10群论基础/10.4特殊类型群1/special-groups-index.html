@@ -1,185 +1,63 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
-    <meta charset="UTF-8">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
-    <!-- Open Graph / 社交分享（微信、钉钉、Telegram 等）。部署域名变更时全局替换下方 BASE 即可 -->
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
-    <meta property="og:locale" content="zh_CN">
-    <meta property="og:title" content="对称群与二面体群 · 进阶层｜10.4 特殊类型群（一） - 离散数学课程资源库">
-    <meta property="og:description" content="第10章 群论基础 · 10.4 特殊类型群（一） · 进阶层：Sₙ 阶 n! / Dₙ / 凯莱定理。理解对称群的『万能』性。">
-    <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/10%E7%BE%A4%E8%AE%BA%E5%9F%BA%E7%A1%80/10.4%E7%89%B9%E6%AE%8A%E7%B1%BB%E5%9E%8B%E7%BE%A41/special-groups-index.html">
-    <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="对称群与二面体群 · 进阶层｜10.4 特殊类型群（一） - 离散数学课程资源库">
-    <meta name="twitter:description" content="第10章 群论基础 · 10.4 特殊类型群（一） · 进阶层：Sₙ 阶 n! / Dₙ / 凯莱定理。理解对称群的『万能』性。">
-    <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>对称群与二面体群 · 进阶层｜10.4 特殊类型群（一） - 离散数学课程资源库</title>
-    <meta name="description" content="第10章 群论基础 · 10.4 特殊类型群（一） · 进阶层：Sₙ 阶 n! / Dₙ / 凯莱定理。理解对称群的『万能』性。">
-
-    <link rel="stylesheet" href="special-groups-style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap"></noscript>
-    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
-    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:title" content="对称群与二面体群 · 进阶层｜10.4 特殊类型群（一） - 离散数学课程资源库">
+  <meta property="og:description" content="第10章 群论基础 · 10.4 特殊类型群（一） · 进阶层：Sₙ 阶 n! / Dₙ / 凯莱定理。理解对称群的『万能』性。">
+  <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/10%E7%BE%A4%E8%AE%BA%E5%9F%BA%E7%A1%80/10.4%E7%89%B9%E6%AE%8A%E7%B1%BB%E5%9E%8B%E7%BE%A41/special-groups-index.html">
+  <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="对称群与二面体群 · 进阶层｜10.4 特殊类型群（一） - 离散数学课程资源库">
+  <meta name="twitter:description" content="第10章 群论基础 · 10.4 特殊类型群（一） · 进阶层：Sₙ 阶 n! / Dₙ / 凯莱定理。理解对称群的『万能』性。">
+  <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>对称群与二面体群 · 进阶层｜10.4 特殊类型群（一） - 离散数学课程资源库</title>
+  <meta name="description" content="第10章 群论基础 · 10.4 特殊类型群（一） · 进阶层：Sₙ 阶 n! / Dₙ / 凯莱定理。理解对称群的『万能』性。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap"></noscript>
+  <link rel="stylesheet" href="../group-lab/group-lab.css">
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
-
 <body>
-    <a class="home-link" href="../../index.html#chapter10">← 返回课程主页</a>
+  <a class="home-link" href="../../index.html#chapter10">← 返回课程主页</a>
 
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="window-controls">
-                    <span class="dot red"></span>
-                    <span class="dot yellow"></span>
-                    <span class="dot green"></span>
-                </div>
-                <h1>红色数理 <span class="highlight">进阶层</span></h1>
-                <p class="subtitle">循环群轨道实验室 · 群</p>
-            </div>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="eyebrow">进阶层 · 第10章 群论基础</div>
+      <h1>对称群与二面体群</h1>
+      <p class="subtitle">Sₙ 阶 n! / Dₙ / 凯莱定理</p>
+      <p class="tier-line">核心掌握 · 建模求解</p>
+      <p class="intro">🎯 理解对称群的『万能』性。</p>
+      <div id="controls"></div>
+      <div class="legend-panel" id="legendPanel"></div>
+    </aside>
 
-            <div class="controls-wrapper">
-                <div class="control-group">
-                    <label>选择类型</label>
-                    <div class="type-buttons">
-                        <button class="type-btn active" data-type="abelian" aria-label="交换群">交换群</button>
-                        <button class="type-btn" data-type="cyclic" aria-label="循环群">循环群</button>
-                        <button class="type-btn" data-type="permutation" aria-label="置换群">置换群</button>
-                    </div>
-                </div>
+    <main class="glass-pane">
+      <section class="mission-card" id="glMission">
+        <span><b>互动任务：</b>数出 S₃ 的 3! 个置换，观看正方形的 8 个对称（D₄），再用凯莱定理把任意群变成置换群。</span>
+        <div class="visual-badge">Sₙ · Dₙ · 凯莱定理</div>
+      </section>
+      <div id="glRoot"><noscript><p class="gl-note">本页交互演示需要启用 JavaScript。</p></noscript></div>
+    </main>
+  </div>
 
-                <div class="control-group" id="permutationTypes" style="display: none;">
-                    <label>置换类型</label>
-                    <div class="subtype-buttons">
-                        <button class="subtype-btn active" data-subtype="general" aria-label="置换">置换</button>
-                        <button class="subtype-btn" data-subtype="odd" aria-label="奇置换">奇置换</button>
-                        <button class="subtype-btn" data-subtype="even" aria-label="偶置换">偶置换</button>
-                        <button class="subtype-btn" data-subtype="cycle" aria-label="轮换">轮换</button>
-                        <button class="subtype-btn" data-subtype="transposition" aria-label="对换">对换</button>
-                    </div>
-                </div>
+  <footer class="site-footer">
+      <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
+      <p>版权所有 · 项目总负责人：谢鑫</p>
+  </footer>
 
-                <div class="control-group">
-                    <label>选择示例</label>
-                    <select id="exampleSelect" class="apple-select">
-                        <option value="z4">ℤ₄ - 循环群</option>
-                        <option value="klein" selected>V₄ - 克莱因群</option>
-                        <option value="s3">S₃ - 对称群</option>
-                        <option value="a3">A₃ - 交错群</option>
-                    </select>
-                </div>
-
-                <div class="control-group">
-                    <label>群的性质</label>
-                    <div class="info-panel">
-                        <p><strong>阶：</strong><span id="orderValue">4</span></p>
-                        <p><strong>特性：</strong><span id="propertyValue">交换但非循环</span></p>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <label>选择元素</label>
-                    <div id="elementSelector" class="element-selector"></div>
-                </div>
-
-                <div class="control-group">
-                    <label>运算结果</label>
-                    <div id="resultDisplay" class="result-display">
-                        <p style="color: var(--text-secondary);">💡 点击元素或凯莱表查看运算</p>
-                    </div>
-                </div>
-
-                <div class="info-box">
-                    <h3>💡 <span id="conceptTitle">和谐平等</span></h3>
-                    <div id="conceptContent">
-                        <p><strong>数学定义:</strong> 满足交换律ab=ba的群。</p>
-                        <p><strong>核心思想:</strong> 运算顺序不影响结果。</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="actions-footer">
-                <button id="demonstrateBtn" class="apple-btn action-btn" aria-label="▶ 演示运算">▶ 演示运算</button>
-                <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置">🔄 重置</button>
-            </div>
-        </aside>
-
-        <main class="visualizer-stage">
-            <div class="glass-pane">
-                <div class="graph-title">
-                    <h2 id="mainTitle">交换群 - 和谐平等</h2>
-                    <p id="mainSubtitle">Abelian Group</p>
-                </div>
-
-                <div class="quote-banner">
-                    <div class="quote-icon">💬</div>
-                    <p class="quote-text" id="quoteText">"和而不同，和实生物，同则不继。"</p>
-                    <p class="quote-author" id="quoteAuthor">— 《国语·郑语》</p>
-                </div>
-
-                <div class="visualization-container">
-                    <svg id="groupSvg" width="400" height="300">
-                        <defs>
-                            <filter id="glow">
-                                <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-                                <feMerge>
-                                    <feMergeNode in="coloredBlur" />
-                                    <feMergeNode in="SourceGraphic" />
-                                </feMerge>
-                            </filter>
-                            <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"
-                                markerUnits="strokeWidth">
-                                <path d="M0,0 L0,6 L9,3 z" fill="var(--accent-red)" />
-                            </marker>
-                        </defs>
-                        <g id="structureGroup"></g>
-                        <g id="arrowsGroup"></g>
-                    </svg>
-                </div>
-
-                <div class="cayley-container">
-                    <h3>凯莱表</h3>
-                    <table id="cayleyTable"></table>
-                </div>
-
-                <div class="ideology-content-box">
-                    <div class="ideology-header">
-                        <span class="red-star">★</span>
-                        <h3 id="ideologyTitle">和谐平等</h3>
-                    </div>
-                    <div class="ideology-text" id="ideologyText">
-                        交换群体现了和谐平等的精神。无论运算顺序如何，结果都相同，象征着组织成员地位平等、相互尊重、和谐共处。
-                    </div>
-                    <div class="social-analogy">
-                        <label>社会类比</label>
-                        <p id="analogyText">如同民主协商机制，不论先听谁的意见，最终达成的共识是一致的，体现了平等参与、和谐决策的理念。</p>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-    <script src="special-groups-script.js"></script>
-
-<!-- 固定底部版权信息 -->
-<footer class="site-footer">
-    <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
-    <p>版权所有 · 项目总负责人：谢鑫</p>
-</footer>
-
-
-
-    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
-    <script>
+  <script>
     window.SECTION_META = {
       "layers": [
             {
@@ -204,7 +82,7 @@
       "chapter": "第10章 群论基础",
       "section": "10.4 特殊类型群（一）",
       "title": "特殊类型群（循环群与对称群）",
-      "grounding": "本节主题：循环群（由单个生成元生成，Zₙ 与 Z）、对称群 Sₙ（n 元置换，阶 n!）、二面体群 Dₙ（正 n 边形对称）。循环群是最简单的群，对称群『包罗万象』（凯莱定理：任何群同构于某置换群的子群）。",
+      "grounding": "本节主题：循环群（由单个生成元生成，Zₙ 与 Z）、对称群 Sₙ（n 元置换，阶 n!）、二面体群 Dₙ（正 n 边形对称）。循环群是最简单的群，对称群『包罗万象』（凯莱定理：任何群都同构于某个对称群的子群）。",
       "steps": [
             {
                   "name": "情境引入",
@@ -224,7 +102,7 @@
             },
             {
                   "name": "程序验证",
-                  "desc": "用本页交互生成循环群/对称群，观察结构。"
+                  "desc": "用本页交互生成循环群轨道、列举 S₃ 与 D₄ 的元素、构造左乘置换。"
             },
             {
                   "name": "迁移反思",
@@ -243,7 +121,7 @@
       },
       "reflect": [
             "循环群一定是阿贝尔群，对称群 Sₙ(n≥3) 却不是——差别从何而来？",
-            "凯莱定理说『任何群都同构于某置换群的子群』，这为什么意义重大？",
+            "凯莱定理说『任何群都同构于某个对称群的子群』，这为什么意义重大？",
             "二面体群 Dₙ 既有旋转又有翻转，它为什么不交换？"
       ],
       "transfer": [
@@ -254,9 +132,10 @@
             }
       ]
 };
-    </script>
-    <script src="../../shared/ai-tutor.js" defer></script>
-
+  </script>
+  <script>window.GROUP_LAB_LEVEL = "advanced";</script>
+  <script src="../group-lab/group-lab.js"></script>
+  <script src="special-groups-script.js"></script>
+  <script src="../../shared/ai-tutor.js" defer></script>
 </body>
-
 </html>
