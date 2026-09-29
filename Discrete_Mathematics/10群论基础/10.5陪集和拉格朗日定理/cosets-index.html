@@ -1,223 +1,63 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
-    <meta charset="UTF-8">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
-    <!-- Open Graph / 社交分享（微信、钉钉、Telegram 等）。部署域名变更时全局替换下方 BASE 即可 -->
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
-    <meta property="og:locale" content="zh_CN">
-    <meta property="og:title" content="拉格朗日定理 · 进阶层｜10.5 陪集和拉格朗日定理 - 离散数学课程资源库">
-    <meta property="og:description" content="第10章 群论基础 · 10.5 陪集和拉格朗日定理 · 进阶层：|H| 整除 |G| / 指数 [G:H]。用定理推断阶与结构。">
-    <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/10%E7%BE%A4%E8%AE%BA%E5%9F%BA%E7%A1%80/10.5%E9%99%AA%E9%9B%86%E5%92%8C%E6%8B%89%E6%A0%BC%E6%9C%97%E6%97%A5%E5%AE%9A%E7%90%86/cosets-index.html">
-    <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="拉格朗日定理 · 进阶层｜10.5 陪集和拉格朗日定理 - 离散数学课程资源库">
-    <meta name="twitter:description" content="第10章 群论基础 · 10.5 陪集和拉格朗日定理 · 进阶层：|H| 整除 |G| / 指数 [G:H]。用定理推断阶与结构。">
-    <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>拉格朗日定理 · 进阶层｜10.5 陪集和拉格朗日定理 - 离散数学课程资源库</title>
-    <meta name="description" content="第10章 群论基础 · 10.5 陪集和拉格朗日定理 · 进阶层：|H| 整除 |G| / 指数 [G:H]。用定理推断阶与结构。">
-
-    <link rel="stylesheet" href="cosets-style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap"></noscript>
-    <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
-    <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23D63B1D'/%3E%3Cg%20stroke='%23FFE7B3'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cline%20x1='9'%20y1='11'%20x2='22'%20y2='9'/%3E%3Cline%20x1='9'%20y1='11'%20x2='12'%20y2='23'/%3E%3Cline%20x1='22'%20y1='9'%20x2='23'%20y2='22'/%3E%3Cline%20x1='12'%20y1='23'%20x2='23'%20y2='22'/%3E%3C/g%3E%3Cg%20fill='%23FFB400'%3E%3Ccircle%20cx='9'%20cy='11'%20r='3'/%3E%3Ccircle%20cx='22'%20cy='9'%20r='3'/%3E%3Ccircle%20cx='12'%20cy='23'%20r='3'/%3E%3Ccircle%20cx='23'%20cy='22'%20r='3'/%3E%3C/g%3E%3C/svg%3E">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="离散数学课程资源库 · 湖南信息学院">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:title" content="拉格朗日定理 · 进阶层｜10.5 陪集和拉格朗日定理 - 离散数学课程资源库">
+  <meta property="og:description" content="第10章 群论基础 · 10.5 陪集和拉格朗日定理 · 进阶层：|H| 整除 |G| / 指数 [G:H]。用定理推断阶与结构。">
+  <meta property="og:url" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/10%E7%BE%A4%E8%AE%BA%E5%9F%BA%E7%A1%80/10.5%E9%99%AA%E9%9B%86%E5%92%8C%E6%8B%89%E6%A0%BC%E6%9C%97%E6%97%A5%E5%AE%9A%E7%90%86/cosets-index.html">
+  <meta property="og:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="离散数学课程资源库 · 湖南信息学院">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="拉格朗日定理 · 进阶层｜10.5 陪集和拉格朗日定理 - 离散数学课程资源库">
+  <meta name="twitter:description" content="第10章 群论基础 · 10.5 陪集和拉格朗日定理 · 进阶层：|H| 整除 |G| / 指数 [G:H]。用定理推断阶与结构。">
+  <meta name="twitter:image" content="https://dealtyxx.github.io/Teaching-Resource-Library/Discrete_Mathematics/shared/og-cover.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>拉格朗日定理 · 进阶层｜10.5 陪集和拉格朗日定理 - 离散数学课程资源库</title>
+  <meta name="description" content="第10章 群论基础 · 10.5 陪集和拉格朗日定理 · 进阶层：|H| 整除 |G| / 指数 [G:H]。用定理推断阶与结构。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap"></noscript>
+  <link rel="stylesheet" href="../group-lab/group-lab.css">
+  <link rel="stylesheet" href="../../shared/discrete-ui.css" data-dm-ui="1">
+  <script src="../../shared/mathjax-auto.js" data-dm-mathjax="1"></script>
 </head>
-
 <body>
-    <a class="home-link" href="../../index.html#chapter10">← 返回课程主页</a>
+  <a class="home-link" href="../../index.html#chapter10">← 返回课程主页</a>
 
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="window-controls">
-                    <span class="dot red"></span>
-                    <span class="dot yellow"></span>
-                    <span class="dot green"></span>
-                </div>
-                <h1>红色数理 <span class="highlight">进阶层</span></h1>
-                <p class="subtitle">陪集分块拼图 · 体系</p>
-            </div>
+  <div class="app-container">
+    <aside class="side-panel">
+      <div class="eyebrow">进阶层 · 第10章 群论基础</div>
+      <h1>拉格朗日定理</h1>
+      <p class="subtitle">|H| 整除 |G| / 指数 [G:H]</p>
+      <p class="tier-line">核心掌握 · 建模求解</p>
+      <p class="intro">🎯 用定理推断阶与结构。</p>
+      <div id="controls"></div>
+      <div class="legend-panel" id="legendPanel"></div>
+    </aside>
 
-            <div class="controls-wrapper">
-                <div class="control-group">
-                    <label>陪集类型导航</label>
-                    <div class="type-nav">
-                        <button class="type-btn active" data-type="left" aria-label="⬅ 左陪集 Left Cosets">
-                            <span class="icon">⬅️</span>
-                            <div class="btn-content">
-                                <strong>左陪集</strong>
-                                <small>Left Cosets</small>
-                            </div>
-                        </button>
-                        <button class="type-btn" data-type="right" aria-label="右陪集 Right Cosets">
-                            <span class="icon">➡️</span>
-                            <div class="btn-content">
-                                <strong>右陪集</strong>
-                                <small>Right Cosets</small>
-                            </div>
-                        </button>
-                        <button class="type-btn" data-type="lagrange" aria-label="拉格朗日定理 Lagrange's Theorem">
-                            <span class="icon">📐</span>
-                            <div class="btn-content">
-                                <strong>拉格朗日定理</strong>
-                                <small>Lagrange's Theorem</small>
-                            </div>
-                        </button>
-                    </div>
-                </div>
+    <main class="glass-pane">
+      <section class="mission-card" id="glMission">
+        <span><b>互动任务：</b>比较 S₃ 的左、右陪集，验证拉格朗日定理与「元素的阶整除群的阶」，再在 A₄ 中看到逆命题为何不成立。</span>
+        <div class="visual-badge">|H| 整除 |G|</div>
+      </section>
+      <div id="glRoot"><noscript><p class="gl-note">本页交互演示需要启用 JavaScript。</p></noscript></div>
+    </main>
+  </div>
 
-                <div class="control-group">
-                    <label>群与子群选择</label>
-                    <div class="demo-panel">
-                        <select id="groupSelect" class="apple-select">
-                            <option value="s3">对称群 S₃ (阶数: 6)</option>
-                            <option value="z6">循环群 ℤ₆ (阶数: 6)</option>
-                            <option value="z8">循环群 ℤ₈ (阶数: 8)</option>
-                            <option value="d4">二面体群 D₄ (阶数: 8)</option>
-                        </select>
-                        <div class="example-info" id="exampleInfo">
-                            <p><strong>群阶数:</strong> <span id="groupOrderValue">6</span></p>
-                            <p><strong>子群阶数:</strong> <span id="subgroupOrderValue">3</span></p>
-                            <p><strong>陪集数量:</strong> <span id="cosetCountValue">2</span></p>
-                        </div>
-                    </div>
-                </div>
+  <footer class="site-footer">
+      <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
+      <p>版权所有 · 项目总负责人：谢鑫</p>
+  </footer>
 
-                <div class="control-group">
-                    <label>子群选择</label>
-                    <div id="subgroupSelector" class="subgroup-selector"></div>
-                </div>
-
-                <div class="control-group">
-                    <label>代表元选择</label>
-                    <div class="interactive-panel" id="interactivePanel">
-                        <p class="hint-text">选择群元素构造陪集</p>
-                        <div class="element-selector" id="elementSelector"></div>
-                        <div class="result-display" id="resultDisplay">
-                            <p style="color: var(--text-secondary);">💡 选择元素查看陪集分解</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="info-box">
-                    <h3>💡 <span id="conceptTitle">团结协作</span></h3>
-                    <div id="conceptContent">
-                        <p><strong>陪集:</strong> 子群与群元素的乘积构成的集合。</p>
-                        <p><strong>核心思想:</strong> 整体分解为互不重叠的部分。</p>
-                        <p><strong>社会意义:</strong> 组织中的团队协作与分工。</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="actions-footer">
-                <button id="demonstrateBtn" class="apple-btn action-btn" aria-label="▶ 演示陪集分解">▶ 演示陪集分解</button>
-                <button id="resetBtn" class="apple-btn danger-btn" aria-label="重置">重置</button>
-            </div>
-        </aside>
-
-        <main class="visualizer-stage">
-            <div class="glass-pane">
-                <div class="graph-title">
-                    <h2 id="mainTitle">陪集理论 - 团结协作的组织智慧</h2>
-                    <p id="mainSubtitle">Coset Theory - Unity and Cooperation in Organizations</p>
-                </div>
-
-                <!-- Ideology Quote -->
-                <div class="quote-banner">
-                    <div class="quote-icon">💬</div>
-                    <p class="quote-text" id="quoteText">"众人拾柴火焰高，团结就是力量。"</p>
-                    <p class="quote-author" id="quoteAuthor">— 中国谚语</p>
-                </div>
-
-                <!-- Visualization Area -->
-                <div class="visualization-area">
-                    <!-- Main SVG Diagram -->
-                    <div class="svg-container">
-                        <svg id="cosetSvg" width="100%" height="100%">
-                            <defs>
-                                <filter id="glow">
-                                    <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-                                    <feMerge>
-                                        <feMergeNode in="coloredBlur" />
-                                        <feMergeNode in="SourceGraphic" />
-                                    </feMerge>
-                                </filter>
-                                <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="8" refY="3"
-                                    orient="auto">
-                                    <polygon points="0 0, 10 3, 0 6" fill="#d63b1d" />
-                                </marker>
-                            </defs>
-                            <g id="cosetGroup"></g>
-                        </svg>
-                    </div>
-
-                    <!-- Coset Table -->
-                    <div class="coset-table-container" id="cosetContainer">
-                        <h4>陪集分解表</h4>
-                        <div id="cosetTableContent"></div>
-                    </div>
-                </div>
-
-                <!-- Lagrange Theorem Display -->
-                <div class="lagrange-box" id="lagrangeBox">
-                    <div class="theorem-header">
-                        <span class="red-star">★</span>
-                        <h3>拉格朗日定理</h3>
-                    </div>
-                    <div class="theorem-content">
-                        <div class="formula">
-                            |G| = |H| × [G:H]
-                        </div>
-                        <p id="formulaExplanation">
-                            群的阶数 = 子群的阶数 × 陪集的个数
-                        </p>
-                        <div class="calculation" id="calculationDisplay">
-                            6 = 3 × 2
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Ideology Content Box -->
-                <div class="ideology-content-box">
-                    <div class="ideology-header">
-                        <span class="red-star">★</span>
-                        <h3 id="ideologyTitle">团结协作 · 分工合作</h3>
-                    </div>
-                    <div class="ideology-text" id="ideologyText">
-                        <p>陪集理论体现了"分而治之"的管理智慧。将整体合理分解为若干互不重叠的部分，每个部分既保持独立性，又服从整体规律。这正如组织中的团队分工：各司其职，协同配合，共同完成组织使命。</p>
-                    </div>
-                    <div class="social-analogy">
-                        <label>社会类比</label>
-                        <p id="analogyText">如同企业的部门划分，每个部门（陪集）都有自己的职能和成员，但都遵循企业的整体战略（群结构）。拉格朗日定理告诉我们：企业规模 = 部门规模 ×
-                            部门数量，体现了科学的组织架构原则。</p>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <script src="cosets-script.js"></script>
-
-<!-- 固定底部版权信息 -->
-<footer class="site-footer">
-    <p>© 2025-2026 湖南信息学院 · 计算机科学与工程课程资源库建设团队</p>
-    <p>版权所有 · 项目总负责人：谢鑫</p>
-</footer>
-
-
-
-    <!-- ===== 共享升级框架：学习助手（AI助教 / 六步流程 / 价值引领 / 反思迁移）===== -->
-    <script>
+  <script>
     window.SECTION_META = {
       "layers": [
             {
@@ -262,7 +102,7 @@
             },
             {
                   "name": "程序验证",
-                  "desc": "用本页交互生成陪集，验证等分与整除。"
+                  "desc": "用本页交互生成陪集，验证等分与整除，并用陪集译码。"
             },
             {
                   "name": "迁移反思",
@@ -285,16 +125,17 @@
             "由拉格朗日定理推出『素数阶群必循环』，思路是什么？"
       ],
       "transfer": [
-            "(7,4)汉明码的陪集首译码把收码按陪集分类纠错（第10.7、10.8案例）。",
+            "(7,4) 汉明码的陪集首译码把收码按陪集分类纠错（本节拓展层与 10.7 案例）。",
             {
                   "t": "商群的前奏",
                   "d": "当陪集本身能构成群时就得到商群（10.6），陪集是其构件。"
             }
       ]
 };
-    </script>
-    <script src="../../shared/ai-tutor.js" defer></script>
-
+  </script>
+  <script>window.GROUP_LAB_LEVEL = "advanced";</script>
+  <script src="../group-lab/group-lab.js"></script>
+  <script src="cosets-script.js"></script>
+  <script src="../../shared/ai-tutor.js" defer></script>
 </body>
-
 </html>
