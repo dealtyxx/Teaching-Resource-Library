@@ -31,6 +31,10 @@ let keysGenerated = false;
 let encryptedVal = null;
 let originalVal = null;
 
+const hintBox = document.getElementById('hintBox');
+const keyLog = document.getElementById('keyLog');
+function showHint(t) { hintBox.textContent = t; hintBox.classList.toggle('hidden', !t); }
+
 // Helper Functions
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -76,9 +80,10 @@ async function generateKeys() {
     q = parseInt(qSelect.value);
 
     if (p === q) {
-        alert("p 和 q 不能相同！");
+        showHint('p 和 q 必须是两个不同的素数（p = q 时 n = p² 可直接开方破解），请重新选择。');
         return;
     }
+    showHint('');
 
     n = p * q;
     phi = (p - 1) * (q - 1);
@@ -92,6 +97,14 @@ async function generateKeys() {
     // Calculate d
     d = modInverse(e, phi);
 
+    // 密钥生成过程
+    const skipped = [];
+    for (let t = 3; t < e; t += 2) skipped.push(t);
+    keyLog.innerHTML = `<b>密钥生成：</b>n = ${p} × ${q} = ${n}；φ(n) = (${p}−1)(${q}−1) = ${phi}；`
+        + `取与 φ(n) 互素的最小奇数 e = ${e}${skipped.length ? `（${skipped.join('、')} 与 ${phi} 不互素）` : ''}；`
+        + `扩展欧几里得求 d = ${d}，验证 e·d = ${e * d} = ${Math.floor(e * d / phi)} × ${phi} + 1 ≡ 1 (mod ${phi})。`;
+    keyLog.classList.remove('hidden');
+
     // Update UI
     pubKeyVal.textContent = `e=${e}, n=${n}`;
     privKeyVal.textContent = `d=${d}, n=${n}`;
@@ -102,20 +115,18 @@ async function generateKeys() {
 
     keysGenerated = true;
     encryptBtn.disabled = false;
-    genKeyBtn.disabled = true;
-    pSelect.disabled = true;
-    qSelect.disabled = true;
 
     szTitle.textContent = '制度建设';
     szDesc.textContent = `密钥对已生成。公钥(e=${e}, n=${n})如同设立了公开的意见箱，私钥(d=${d}, n=${n})则是开启意见箱的唯一凭证，保障了信息安全。`;
 }
 
 async function encryptMessage() {
-    const m = parseInt(msgInput.value);
-    if (isNaN(m) || m >= n) {
-        alert(`请输入小于 n (${n}) 的数字`);
+    const m = Number(msgInput.value);
+    if (!Number.isInteger(m) || m < 0 || m >= n) {
+        showHint(`明文必须是 0 ≤ m < n = ${n} 的整数。`);
         return;
     }
+    showHint('');
 
     originalVal = m;
 
@@ -166,6 +177,7 @@ async function decryptMessage() {
     messageObj.classList.remove('encrypted');
     msgContent.textContent = decrypted;
 
+    logStep2.textContent += decrypted === originalVal ? '  ✓ 与明文一致' : '  ✗ 与明文不一致';
     szTitle.textContent = '倾听民意';
     szDesc.textContent = '党组织使用金钥匙（私钥）开启信箱，还原群众心声（解密）。这象征着对人民意见的高度重视和有效反馈。';
 
@@ -195,9 +207,22 @@ resetBtn.addEventListener('click', () => {
 
     messageObj.style.left = '100px';
     msgInput.value = '5';
+    keyLog.classList.add('hidden');
+    showHint('');
 
     szTitle.textContent = '群众路线';
     szDesc.textContent = '红色信箱（公钥）面向广大群众开放，任何人都可以投递建议（加密）；只有党组织掌握金钥匙（私钥），才能开启信箱，倾听心声（解密）。';
+    pSelect.value = '5'; qSelect.value = '11';
+    generateKeys();
 });
 
 // Init
+generateKeys();
+// 更换 p、q 时自动重新生成密钥，并清空上一轮的传输过程
+[pSelect, qSelect].forEach(sel => sel.addEventListener('change', () => {
+    encryptedVal = null; originalVal = null;
+    messageObj.classList.add('hidden'); calcLog.classList.add('hidden');
+    decryptBtn.disabled = true; encryptBtn.disabled = true;
+    pubKeyCard.classList.add('hidden'); privKeyCard.classList.add('hidden'); keyLog.classList.add('hidden');
+    generateKeys();
+}));
