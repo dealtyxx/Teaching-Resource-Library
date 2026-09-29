@@ -41,7 +41,7 @@
           '<button type="button" class="tb-btn" id="' + id + 'Prev">◀ 上一步</button>' +
           '<button type="button" class="tb-btn primary" id="' + id + 'Next">下一步 ▶</button>' +
           '<button type="button" class="tb-btn" id="' + id + 'Auto">⏵ 自动播放</button>' +
-          '<button type="button" class="tb-btn ghost" id="' + id + 'Reset">↺ 重置</button>' +
+          '<button type="button" class="tb-btn ghost" id="' + id + 'Reset">重置</button>' +
         '</div>' +
         '<label class="tb-speed" for="' + id + 'Speed"><span>播放速度</span><select id="' + id + 'Speed">' +
           '<option value="2600">慢</option><option value="1600" selected>中</option><option value="900">快</option></select></label>' +

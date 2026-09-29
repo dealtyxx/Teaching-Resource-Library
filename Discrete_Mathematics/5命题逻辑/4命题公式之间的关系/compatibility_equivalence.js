@@ -369,7 +369,7 @@
             '<button type="button" class="sym-step-btn" id="relPrev">◀ 上一步</button>' +
             '<button type="button" class="sym-step-btn sym-primary" id="relNext">下一步 ▶</button>' +
             '<button type="button" class="sym-step-btn" id="relAuto">⏵ 自动播放</button>' +
-            '<button type="button" class="sym-step-btn sym-reset" id="relReset">↺ 重置</button>' +
+            '<button type="button" class="sym-step-btn sym-reset" id="relReset">重置</button>' +
           '</div>' +
           '<div class="sym-speed-row"><label for="relSpeed">播放速度</label>' +
             '<select id="relSpeed"><option value="1600">慢</option><option value="1000" selected>中</option><option value="550">快</option></select></div>' +

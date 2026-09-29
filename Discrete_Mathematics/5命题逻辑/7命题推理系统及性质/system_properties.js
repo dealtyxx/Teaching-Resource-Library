@@ -279,7 +279,7 @@
             '<button type="button" class="sym-step-btn sym-secondary" id="spPrev">◀ 上一步</button>' +
             '<button type="button" class="sym-step-btn sym-primary" id="spNext">下一步 ▶</button>' +
             '<button type="button" class="sym-step-btn sym-secondary" id="spAuto">▶ 自动播放</button>' +
-            '<button type="button" class="sym-step-btn sym-reset" id="spReset">↺ 重置</button>' +
+            '<button type="button" class="sym-step-btn sym-reset" id="spReset">重置</button>' +
           '</div>' +
           '<div class="sym-speed"><label for="spSpeed">播放速度</label><select id="spSpeed">' + sp + '</select></div>' +
         '</div>' +

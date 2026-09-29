@@ -363,7 +363,7 @@
             '<button type="button" class="sym-step-btn" id="symPrev">◀ 上一步</button>' +
             '<button type="button" class="sym-step-btn sym-primary" id="symNext">下一步 ▶</button>' +
             '<button type="button" class="sym-step-btn" id="symAuto">⏵ 自动播放</button>' +
-            '<button type="button" class="sym-step-btn sym-reset" id="symReset">↺ 重置</button>' +
+            '<button type="button" class="sym-step-btn sym-reset" id="symReset">重置</button>' +
           '</div>' +
           '<div class="sym-speed-row"><label for="symSpeed">播放速度</label>' +
             '<select id="symSpeed"><option value="1600">慢</option><option value="1000" selected>中</option><option value="550">快</option></select></div>' +
@@ -670,7 +670,7 @@
             '<div class="wff-fb" aria-live="polite"></div></div>';
         }).join("") + '</div>' +
         '<div class="wff-foot"><span class="wff-score" id="symWffScore"></span>' +
-        '<button type="button" class="sym-step-btn sym-reset wff-reset" id="symWffReset">↺ 重做练习</button></div>';
+        '<button type="button" class="sym-step-btn sym-reset wff-reset" id="symWffReset">重做练习</button></div>';
 
       function score() {
         var n = 0, right = 0;

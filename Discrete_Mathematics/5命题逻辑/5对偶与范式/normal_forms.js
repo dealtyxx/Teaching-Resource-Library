@@ -237,7 +237,7 @@
             '<button type="button" class="sym-step-btn" id="nfPrev">◀ 上一步</button>' +
             '<button type="button" class="sym-step-btn sym-primary" id="nfNext">下一步 ▶</button>' +
             '<button type="button" class="sym-step-btn" id="nfAuto">⏵ 自动播放</button>' +
-            '<button type="button" class="sym-step-btn sym-reset" id="nfReset">↺ 重置</button>' +
+            '<button type="button" class="sym-step-btn sym-reset" id="nfReset">重置</button>' +
           "</div>" +
           '<div class="sym-speed"><label for="nfSpeed">播放速度</label><select id="nfSpeed">' +
             '<option value="1600">慢速</option><option value="1000" selected>标准</option><option value="550">快速</option>' +

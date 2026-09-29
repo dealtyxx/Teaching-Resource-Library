@@ -310,7 +310,7 @@
             '<button type="button" class="sym-step-btn" id="ipPrev">◀ 上一步</button>' +
             '<button type="button" class="sym-step-btn sym-primary" id="ipNext">下一步 ▶</button>' +
             '<button type="button" class="sym-step-btn" id="ipAuto">⏵ 自动播放</button>' +
-            '<button type="button" class="sym-step-btn sym-reset" id="ipReset">↺ 重置</button>' +
+            '<button type="button" class="sym-step-btn sym-reset" id="ipReset">重置</button>' +
           "</div>" +
           '<div class="sym-speed"><label for="ipSpeed">播放速度</label><select id="ipSpeed">' +
             '<option value="1700">慢速</option><option value="1100" selected>标准</option><option value="600">快速</option>' +
