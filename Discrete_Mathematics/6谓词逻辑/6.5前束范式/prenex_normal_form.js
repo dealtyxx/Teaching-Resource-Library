@@ -24,7 +24,7 @@
         ["量词前缀", "Q1x1 … Qnxn"],
         ["母式", "不含量词的部分"],
         ["¬∀=∃¬", "量词否定（否定深入）"],
-        ["外提", "把量词提到最前"]
+        ["外提", "被提变元不在另一侧出现时，把量词提到最前"]
       ],
       cases: [
         { label: "∀x¬∀yR(x,y)", goal: "∀x∃y · ¬R(x,y)",
@@ -35,7 +35,8 @@
         { label: "∀xP(x) ∧ ∃yQ(y)", goal: "∀x∃y · (P(x)∧Q(y))",
           steps: [
             { f: "∀x P(x) ∧ ∃y Q(y)", rule: "原式", note: "两个量词分别在合取两侧，未在最前。", prefix: [], matrix: "∀x P(x) ∧ ∃y Q(y)" },
-            { f: "∀x ∃y ( P(x) ∧ Q(y) )", rule: "量词外提", note: "x、y 是不同变元，可把 ∀x、∃y 提到最前。", prefix: ["∀x", "∃y"], matrix: "P(x) ∧ Q(y)" }
+            { f: "∀x ( P(x) ∧ ∃y Q(y) )", rule: "量词外提", note: "x 不在 ∃y Q(y) 中出现：∀x A(x) ∧ B ⇔ ∀x ( A(x) ∧ B )，∀x 提到最前。", prefix: ["∀x"], matrix: "P(x) ∧ ∃y Q(y)" },
+            { f: "∀x ∃y ( P(x) ∧ Q(y) )", rule: "量词外提", note: "y 不在 P(x) 中出现，∃y 也可外提。若先提 ∃y，会得到 ∃y ∀x ( P(x) ∧ Q(y) )——同样正确：前束范式不唯一。", prefix: ["∀x", "∃y"], matrix: "P(x) ∧ Q(y)" }
           ] },
         { label: "∃x(P(x) → Q(x))  已是前束", goal: "∃x · (P(x)→Q(x))",
           steps: [
@@ -48,9 +49,12 @@
       legend: [
         ["消蕴含", "A→B ⇔ ¬A∨B"],
         ["否定深入", "¬∀=∃¬, ¬∃=∀¬"],
-        ["变元改名", "避免量词外提时约束捕获"],
-        ["量词外提", "把量词提到最前"],
-        ["前束范式", "量词前缀 + 无量词母式"], ["⇔", "等价转换"]
+        ["消等价", "A↔B ⇔ (A→B)∧(B→A)"],
+        ["换名规则", "改约束变元名，避免冲突"],
+        ["代替规则", "改自由变元名，避免冲突"],
+        ["前件翻转", "∀xA(x)→B ⇔ ∃x(A(x)→B)"],
+        ["量词外提", "被提变元不在另一侧自由出现"],
+        ["前束范式", "量词前缀 + 无量词母式"], ["⇔", "等值：任意解释下真值相同"]
       ],
       cases: [
         { label: "∀x(P(x) → ∃yQ(x,y))", goal: "∀x∃y · (¬P(x)∨Q(x,y))",
@@ -70,32 +74,62 @@
             { f: "∀x P(x) → ∀x Q(x)", rule: "原式", note: "两处都用变元 x，直接外提会发生约束捕获！", prefix: [], matrix: "∀x P(x) → ∀x Q(x)" },
             { f: "¬∀x P(x) ∨ ∀x Q(x)", rule: "消蕴含", note: "A→B ⇔ ¬A∨B。", prefix: [], matrix: "¬∀x P(x) ∨ ∀x Q(x)" },
             { f: "∃x ¬P(x) ∨ ∀x Q(x)", rule: "否定深入", note: "¬∀x ⇔ ∃x¬。", prefix: [], matrix: "∃x ¬P(x) ∨ ∀x Q(x)" },
-            { f: "∃x ¬P(x) ∨ ∀z Q(z)", rule: "变元改名", note: "把后一个 x 改名为 z，避免外提时把两个 x 混为一谈。", prefix: [], matrix: "∃x ¬P(x) ∨ ∀z Q(z)" },
-            { f: "∃x ∀z ( ¬P(x) ∨ Q(z) )", rule: "量词外提", note: "改名后量词互不干扰，提到最前。", prefix: ["∃x", "∀z"], matrix: "¬P(x) ∨ Q(z)" }
+            { f: "∃x ¬P(x) ∨ ∀z Q(z)", rule: "换名规则", note: "把后一个约束变元 x（连同其辖域内的全部约束出现）改名为新变元 z，避免外提时把两个 x 混为一谈。", prefix: [], matrix: "∃x ¬P(x) ∨ ∀z Q(z)" },
+            { f: "∃x ∀z ( ¬P(x) ∨ Q(z) )", rule: "量词外提", note: "z 不在 ¬P(x) 中出现、x 不在 Q(z) 中出现，两个量词依次提到最前。（也可先提 ∀z 得 ∀z∃x(…)，前束范式不唯一。）", prefix: ["∃x", "∀z"], matrix: "¬P(x) ∨ Q(z)" }
+          ] },
+        { label: "∀xF(x,y) → ∃yG(x,y)  ⚠同名冲突", goal: "∃t∃w · (F(t,y)→G(x,w))",
+          steps: [
+            { f: "∀x F(x,y) → ∃y G(x,y)", rule: "原式", note: "x 在前件中约束、在后件中自由；y 在前件中自由、在后件中约束——同名变元既约束又自由，直接外提会发生捕获。", prefix: [], matrix: "∀x F(x,y) → ∃y G(x,y)" },
+            { f: "∀t F(t,y) → ∃w G(x,w)", rule: "换名规则", note: "把前件的约束变元 x 换成 t、后件的约束变元 y 换成 w（新名不在原式中出现）；自由出现的 y、x 保持不动。（也可用代替规则改自由变元：∀x F(x,z) → ∃y G(u,y)。）", prefix: [], matrix: "∀t F(t,y) → ∃w G(x,w)" },
+            { f: "∃t ( F(t,y) → ∃w G(x,w) )", rule: "前件外提 · 翻转", note: "∀t A(t) → B ⇔ ∃t ( A(t) → B )（t 不在 B 中自由出现）：量词从前件提出时 ∀ 变 ∃。原因：A→B ⇔ ¬A∨B，前件带着一个否定。", prefix: ["∃t"], matrix: "F(t,y) → ∃w G(x,w)" },
+            { f: "∃t ∃w ( F(t,y) → G(x,w) )", rule: "后件外提", note: "A → ∃w B(w) ⇔ ∃w ( A → B(w) )（w 不在 A 中自由出现）：从后件提出的量词不变。x、y 仍是自由变元。", prefix: ["∃t", "∃w"], matrix: "F(t,y) → G(x,w)" }
+          ] },
+        { label: "∀xP(x) ↔ Q  ⚠消等价后需换名", goal: "∃x∀y · ((¬P(x)∨Q)∧(¬Q∨P(y)))",
+          steps: [
+            { f: "∀x P(x) ↔ Q", rule: "原式", note: "Q 为命题（0 元谓词）。↔ 两边各自既作前件又作后件，量词不能直接外提，先消去 ↔。", prefix: [], matrix: "∀x P(x) ↔ Q" },
+            { f: "( ∀x P(x) → Q ) ∧ ( Q → ∀x P(x) )", rule: "消等价", note: "A↔B ⇔ (A→B)∧(B→A)：∀x P(x) 被复制成两份，一份在前件、一份在后件。", prefix: [], matrix: "( ∀x P(x) → Q ) ∧ ( Q → ∀x P(x) )" },
+            { f: "( ¬∀x P(x) ∨ Q ) ∧ ( ¬Q ∨ ∀x P(x) )", rule: "消蕴含", note: "A→B ⇔ ¬A∨B。", prefix: [], matrix: "( ¬∀x P(x) ∨ Q ) ∧ ( ¬Q ∨ ∀x P(x) )" },
+            { f: "( ∃x ¬P(x) ∨ Q ) ∧ ( ¬Q ∨ ∀x P(x) )", rule: "否定深入", note: "¬∀x ⇔ ∃x¬：前件那一份的 ∀ 翻成了 ∃，另一份仍是 ∀。", prefix: [], matrix: "( ∃x ¬P(x) ∨ Q ) ∧ ( ¬Q ∨ ∀x P(x) )" },
+            { f: "( ∃x ¬P(x) ∨ Q ) ∧ ( ¬Q ∨ ∀y P(y) )", rule: "换名规则", note: "两份都用 x，把第二份的约束变元改名为 y。", prefix: [], matrix: "( ∃x ¬P(x) ∨ Q ) ∧ ( ¬Q ∨ ∀y P(y) )" },
+            { f: "∃x ( ¬P(x) ∨ Q ) ∧ ∀y ( ¬Q ∨ P(y) )", rule: "量词外提", note: "Q 中无 x、y，∃x、∀y 先各自提到所在析取式最前。", prefix: [], matrix: "∃x ( ¬P(x) ∨ Q ) ∧ ∀y ( ¬Q ∨ P(y) )" },
+            { f: "∃x ∀y ( ( ¬P(x) ∨ Q ) ∧ ( ¬Q ∨ P(y) ) )", rule: "量词外提", note: "x 不在右合取项中、y 不在左合取项中，再提到整个公式最前，得前束范式。", prefix: ["∃x", "∀y"], matrix: "( ¬P(x) ∨ Q ) ∧ ( ¬Q ∨ P(y) )" }
           ] }
       ]
     },
     extend: {
-      introStatus: "选择一个公式，先化前束范式，再 Skolem 化消去存在量词、去全称前缀得子句形——这是归结定理证明的标准预处理。",
+      introStatus: "选择一个公式，先化前束范式，再 Skolem 化消去存在量词、去全称前缀得子句形——这是归结定理证明的标准预处理。注意：Skolem 化只保持可满足性，不保持等价。",
+      goalLead: "化为<b>子句形</b>（前束范式 → Skolem 化 → 母式化 CNF → 去全称前缀；与原式<b>等可满足</b>，但一般不等价）",
+      evalIntro: "点「下一步」逐步执行：前束化 → Skolem 化 → 得子句 → 归结。",
+      pendingHint: "母式已无量词；前缀中若还有 ∃ 就继续 Skolem 化，最后去掉全称前缀。",
+      doneNote: "✅ 已得子句形：∃ 已被 Skolem 函数/常量取代，∀ 前缀省略（子句中的变元默认全称）；与原式等可满足。",
       legend: [
         ["前束范式", "量词前缀 + 母式"],
-        ["Skolem化", "∃ 用函数/常量替换"],
-        ["Skolem函数", "f(x)：依赖前面的全称变元"],
-        ["Skolem常量", "c：不在任何 ∀ 辖域内"],
-        ["子句形", "去全称前缀的 CNF"], ["归结", "自动证明"]
+        ["Skolem化", "∃ 用新函数/常量替换"],
+        ["Skolem函数", "f(x)：依赖该 ∃ 左侧的全部 ∀ 变元"],
+        ["Skolem常量", "c：该 ∃ 左侧没有 ∀"],
+        ["等可满足", "Skolem 化后可满足性不变，但不等价"],
+        ["子句形", "去全称前缀的 CNF"],
+        ["归结", "互补文字合一消去；推出 □ 即不可满足"]
       ],
       cases: [
         { label: "∀x∃yP(x,y)  →  Skolem", goal: "子句 P(x, f(x))",
           steps: [
             { f: "∀x ∃y P(x,y)", rule: "前束范式", note: "已是前束，准备 Skolem 化。", prefix: ["∀x", "∃y"], matrix: "P(x,y)" },
-            { f: "∀x P(x, f(x))", rule: "Skolem化", note: "∃y 在 ∀x 辖域内 → 用 Skolem 函数 y = f(x)。", prefix: ["∀x"], matrix: "P(x, f(x))" },
+            { f: "∀x P(x, f(x))", rule: "Skolem化", note: "∃y 左侧有 ∀x → 用新函数符号 f，令 y := f(x)。∀x P(x, f(x)) 蕴含 ∀x ∃y P(x,y)，反之不成立：两式不等价，只是等可满足（一个可满足当且仅当另一个可满足）。", prefix: ["∀x"], matrix: "P(x, f(x))" },
             { f: "P(x, f(x))", rule: "去全称 · 子句", note: "去掉全称前缀（隐含全称），得子句，可用于归结。", prefix: [], matrix: "P(x, f(x))" }
           ] },
         { label: "∃x∀yP(x,y)  →  Skolem", goal: "子句 P(c, y)",
           steps: [
             { f: "∃x ∀y P(x,y)", rule: "前束范式", note: "准备 Skolem 化。", prefix: ["∃x", "∀y"], matrix: "P(x,y)" },
-            { f: "∀y P(c, y)", rule: "Skolem化", note: "∃x 不在任何 ∀ 辖域内 → 用 Skolem 常量 c。", prefix: ["∀y"], matrix: "P(c, y)" },
-            { f: "P(c, y)", rule: "去全称 · 子句", note: "得子句形。", prefix: [], matrix: "P(c, y)" }
+            { f: "∀y P(c, y)", rule: "Skolem化", note: "∃x 左侧没有 ∀ → 用新常量 c（原式中未出现）替换 x。", prefix: ["∀y"], matrix: "P(c, y)" },
+            { f: "P(c, y)", rule: "去全称 · 子句", note: "去掉全称前缀得子句形（y 默认全称）。", prefix: [], matrix: "P(c, y)" }
+          ] },
+        { label: "∀x∃y∀z∃wP(x,y,z,w)  →  Skolem", goal: "子句 P(x, f(x), z, g(x,z))",
+          steps: [
+            { f: "∀x ∃y ∀z ∃w P(x,y,z,w)", rule: "前束范式", note: "已是前束。∃y 左侧只有 ∀x；∃w 左侧有 ∀x、∀z。", prefix: ["∀x", "∃y", "∀z", "∃w"], matrix: "P(x,y,z,w)" },
+            { f: "∀x ∀z ∃w P(x, f(x), z, w)", rule: "Skolem化", note: "y := f(x)：f 只依赖 ∃y 左侧的 x，不依赖它右侧的 z。", prefix: ["∀x", "∀z", "∃w"], matrix: "P(x, f(x), z, w)" },
+            { f: "∀x ∀z P(x, f(x), z, g(x,z))", rule: "Skolem化", note: "w := g(x,z)：∃w 左侧有 ∀x、∀z，g 依赖二者；f、g 都须是原式中未出现的新函数符号。", prefix: ["∀x", "∀z"], matrix: "P(x, f(x), z, g(x,z))" },
+            { f: "P(x, f(x), z, g(x,z))", rule: "去全称 · 子句", note: "去掉全称前缀得子句。", prefix: [], matrix: "P(x, f(x), z, g(x,z))" }
           ] },
         { label: "∀x(P(x)→∃yQ(x,y))  →  子句", goal: "子句 ¬P(x)∨Q(x,f(x))",
           steps: [
@@ -103,6 +137,18 @@
             { f: "∀x ∃y ( ¬P(x) ∨ Q(x,y) )", rule: "前束范式", note: "消蕴含 + 外提得 PNF。", prefix: ["∀x", "∃y"], matrix: "¬P(x) ∨ Q(x,y)" },
             { f: "∀x ( ¬P(x) ∨ Q(x, f(x)) )", rule: "Skolem化", note: "∃y → f(x)（依赖 ∀x）。", prefix: ["∀x"], matrix: "¬P(x) ∨ Q(x, f(x))" },
             { f: "¬P(x) ∨ Q(x, f(x))", rule: "子句形 (CNF)", note: "去全称前缀，得归结所需的子句。", prefix: [], matrix: "¬P(x) ∨ Q(x, f(x))" }
+          ] },
+        { label: "归结反驳：∀x(P(x)→Q(x)), P(a) ⊢ Q(a)", goal: "推出空子句 □，故 Q(a) 是前提的逻辑结论",
+          goalLead: "用<b>归结反驳</b>证明推理有效：前提 ∧ ¬结论 → 子句集 → 归结出空子句 □",
+          doneNote: "✅ 推出空子句 □：子句集不可满足，故前提 ∧ ¬结论 不可满足，即前提逻辑蕴含结论。",
+          steps: [
+            { f: "∀x ( P(x) → Q(x) ) ∧ P(a) ∧ ¬Q(a)", rule: "前提 ∧ ¬结论", note: "归结是反驳法：把结论取否定并入前提，目标是证明合取式不可满足。", prefix: [], matrix: "∀x ( P(x) → Q(x) ) ∧ P(a) ∧ ¬Q(a)" },
+            { f: "∀x ( ( ¬P(x) ∨ Q(x) ) ∧ P(a) ∧ ¬Q(a) )", rule: "前束范式 · CNF", note: "消蕴含，∀x 外提（P(a)、¬Q(a) 中无 x）。没有 ∃，无需 Skolem 化。", prefix: ["∀x"], matrix: "( ¬P(x) ∨ Q(x) ) ∧ P(a) ∧ ¬Q(a)" },
+            { f: "{ ¬P(x) ∨ Q(x),  P(a),  ¬Q(a) }", rule: "子句集", note: "去全称前缀，按合取拆成 3 个子句。", prefix: [], matrix: "{ ¬P(x) ∨ Q(x),  P(a),  ¬Q(a) }",
+              snote: "得到子句集；下面在子句之间做归结。" },
+            { f: "Q(a)", rule: "归结 · 合一 x:=a", note: "¬P(x)∨Q(x) 与 P(a)：用合一 x:=a 使 ¬P(a) 与 P(a) 互补，消去后得归结式 Q(a)。", prefix: [], matrix: "新子句 Q(a)",
+              snote: "归结式 Q(a) 加入子句集。" },
+            { f: "□", rule: "归结 → 空子句", note: "Q(a) 与 ¬Q(a) 归结得空子句 □。归结是可靠的，推出 □ 说明子句集不可满足；反之子句集不可满足时也必能归结出 □（反驳完备性）。", prefix: [], matrix: "□（空子句）" }
           ] }
       ]
     }
@@ -112,10 +158,10 @@
     var steps = c.steps.map(function (s, i) {
       var prev = i > 0 ? c.steps[i - 1].prefix : [];
       var added = (s.prefix || []).filter(function (q) { return prev.indexOf(q) < 0; });
-      return { i: i, f: s.f, rule: s.rule, note: s.note, prefix: s.prefix || [], matrix: s.matrix, added: added,
+      return { i: i, f: s.f, rule: s.rule, note: s.note, prefix: s.prefix || [], matrix: s.matrix, added: added, snote: s.snote || null,
         isLast: i === c.steps.length - 1, isPNF: (s.matrix && !/[∀∃]/.test(s.matrix)) };
     });
-    return { goal: c.goal, steps: steps, start: c.steps[0].f };
+    return { goal: c.goal, steps: steps, start: c.steps[0].f, goalLead: c.goalLead || null, doneNote: c.doneNote || null };
   }
 
   if (typeof module !== "undefined" && module.exports) {
@@ -158,8 +204,10 @@
             '<button class="sym-step-btn" id="pnPrev">◀ 上一步</button>' +
             '<button class="sym-step-btn sym-primary" id="pnNext">下一步 ▶</button>' +
             '<button class="sym-step-btn" id="pnAuto">⏵ 自动播放</button>' +
-            '<button class="sym-step-btn" id="pnReset">↺ 重置</button>' +
-          '</div></div>' +
+            '<button class="sym-step-btn sym-ghost" id="pnReset">↺ 重置</button>' +
+          '</div>' +
+          '<div class="sym-speed"><span>慢</span><input type="range" id="pnSpeed" min="1" max="100" value="55" aria-label="自动播放速度"><span>快</span></div>' +
+        '</div>' +
         '<div class="control-group"><label><span>进度</span></label>' +
           '<div class="sym-progress-wrap"><div class="sym-progress"><i id="pnProgBar"></i></div>' +
           '<span class="sym-progress-num" id="pnProgNum">0 / 0</span></div></div>' +
@@ -172,7 +220,9 @@
       nextBtn.addEventListener("click", function () { stopAuto(); step(1); });
       byId("pnReset").addEventListener("click", function () { stopAuto(); p = 0; manualFocus = null; render(); });
       autoBtn.addEventListener("click", toggleAuto);
+      byId("pnSpeed").addEventListener("input", function () { if (autoTimer) { stopAuto(); toggleAuto(); } });
     }
+    function autoDelay() { var sp = byId("pnSpeed"); return Math.max(280, 1500 - Number(sp ? sp.value : 55) * 12); }
 
     function renderLegend() {
       var box = byId("legendPanel"); if (!box) return;
@@ -191,7 +241,7 @@
 
     function renderGoal() {
       goalEl.innerHTML = '<div class="pg-f">' + esc(cc.start) + '</div>' +
-        '<div class="pg-meta"><b>目标：</b>化为等价的<b>前束范式</b>（量词全部前缀 + 无量词母式）　·　' + cc.steps.length + ' 步　·　' + esc(cc.goal) + '</div>';
+        '<div class="pg-meta"><b>目标：</b>' + (cc.goalLead || cfg.goalLead || '化为等价的<b>前束范式</b>（量词全部前缀 + 无量词母式）') + '　·　' + cc.steps.length + ' 步　·　' + esc(cc.goal) + '</div>';
     }
 
     function renderSteps() {
@@ -221,8 +271,10 @@
           '<div class="pn-zone z-matrix"><span class="z-label">母式' + (/[∀∃]/.test(s.matrix) ? '（仍含量词）' : '（无量词）') + '</span><div class="pn-matrix-body">' + esc(s.matrix) + '</div></div>' +
         '</div>' +
         '<div class="pn-struct-note' + (done ? " is-pnf" : "") + '">' +
-          (done ? '✅ 已得前束范式：所有量词在前缀，母式不含量词。' :
-            (/[∀∃]/.test(s.matrix) ? '母式中仍有量词，需继续否定深入 / 外提。' : '母式已无量词，继续把前缀补齐即成前束范式。')) +
+          (s.snote ? esc(s.snote) :
+            done ? (cc.doneNote || cfg.doneNote || '✅ 已得前束范式：所有量词在前缀，母式不含量词。') :
+            (/[∀∃]/.test(s.matrix) ? '母式中仍有量词，需继续消去 → / ↔、否定深入、换名、外提。' :
+              (cfg.pendingHint || '母式已无量词，继续把前缀补齐即成前束范式。'))) +
         '</div>';
     }
 
@@ -239,7 +291,7 @@
       if (autoTimer) { stopAuto(); return; }
       if (p >= total()) { p = 0; manualFocus = null; render(); }
       autoBtn.classList.add("sym-playing"); autoBtn.textContent = "⏸ 暂停";
-      autoTimer = setInterval(function () { if (p >= total()) { stopAuto(); return; } manualFocus = null; p += 1; render(); }, 1100);
+      autoTimer = setInterval(function () { if (p >= total()) { stopAuto(); return; } manualFocus = null; p += 1; render(); }, autoDelay());
     }
     function stopAuto() { if (autoTimer) { clearInterval(autoTimer); autoTimer = null; } if (autoBtn) { autoBtn.classList.remove("sym-playing"); autoBtn.textContent = "⏵ 自动播放"; } }
 
@@ -264,11 +316,11 @@
     }
 
     function evalHTML(focusRow, done) {
-      if (focusRow == null) return '<span style="color:#6b4a38">点「下一步」逐步执行等值改写。每一步把量词向最前移动，或把否定深入到谓词。</span>';
+      if (focusRow == null) return '<span style="color:#6b4a38">' + (cfg.evalIntro || '点「下一步」逐步执行等值改写。每一步把量词向最前移动，或把否定深入到谓词。') + '</span>';
       var s = cc.steps[focusRow];
       var head = '<div>第 <b>' + (focusRow + 1) + '</b> 步：<span class="ev-f">' + esc(s.f) + '</span></div>';
       var body = '<div style="margin-top:4px">规则 <span class="ev-rule">' + esc(s.rule) + '</span>：' + esc(s.note) + '</div>';
-      if (done && s.isLast) body += '<div style="margin-top:6px;color:#1d6b43;font-weight:800">✅ 转换完成：' + esc(cc.goal) + '。</div>';
+      if (done && s.isLast) body += '<div style="margin-top:6px;color:#1d6b43;font-weight:800">✅ 完成：' + esc(cc.goal) + '。</div>';
       return head + body;
     }
 
@@ -277,7 +329,7 @@
       if (focusRow != null) {
         var s = cc.steps[focusRow];
         var msg = '第 <b>' + (focusRow + 1) + '</b> 步（' + esc(s.rule) + '）：<b>' + esc(s.f) + '</b>。';
-        if (pp >= total() && s.isLast) msg = '✅ <b>转换完成</b>：' + esc(cc.goal) + '。可点任意步回看。';
+        if (pp >= total() && s.isLast) msg = '✅ <b>完成</b>：' + esc(cc.goal) + '。可点任意步回看。';
         return msg;
       }
       return "";
