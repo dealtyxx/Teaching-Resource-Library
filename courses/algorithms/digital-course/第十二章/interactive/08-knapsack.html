@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>背包近似 · 第12章 概率算法和近似算法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">12</div>算法可视化 · <span>第12章 概率算法和近似算法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-prob.html">概率概述</a><a class="pill" href="02-pi.html">求π</a><a class="pill" href="03-monte.html">蒙特卡罗</a><a class="pill" href="04-vegas.html">拉斯维加斯</a><a class="pill" href="05-sherwood.html">舍伍德</a><a class="pill" href="06-approx.html">近似概述</a><a class="pill" href="07-sched.html">多机调度</a><a class="pill active" href="08-knapsack.html">背包近似</a><a class="pill" href="09-tsp.html">TSP近似</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 8 · FPTAS 思想</div>
+  <h1>背包问题的近似</h1>
+  <p>对价值缩放后做 DP，用精度换时间，得到 (1−ε) 近似。贪心按价值密度也可给常数近似。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>指出</b>纯价值密度贪心对 0/1 背包<b>没有常数近似比</b>，并给出反例。</li>
+  <li>能够<b>说明</b>"密度贪心 vs 最大单件取较大者"如何得到 1/2-近似。</li>
+  <li>能够<b>复述</b> FPTAS 的<b>值域缩放</b>思想：v'<sub>i</sub> = ⌊v<sub>i</sub>/K⌋，K = εP/n。</li>
+  <li>能够<b>证明</b>缩放 DP 输出 ≥ (1−ε)·OPT，时间 O(n³/ε)。</li>
+  <li>能够<b>区分</b>分数背包（密度贪心最优）与 0/1 背包（密度贪心不最优）。</li>
+</ol></div>
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="dens">价值密度贪心</button>
+    <button class="btn" id="opt">最优（小实例枚举）</button>
+  </div>
+  <div id="items"></div>
+  <div class="stat-row">
+    <div class="stat"><span>容量 W</span><b class="blue">15</b></div>
+    <div class="stat"><span>ALG 价值</span><b class="amber" id="alg">—</b></div>
+    <div class="stat"><span>OPT 价值</span><b class="green" id="optv">—</b></div>
+    <div class="stat"><span>ALG/OPT</span><b class="orange" id="rat">—</b></div>
+  </div>
+  <div class="formula">缩放价值 → DP 状态数下降 → 误差可控（FPTAS）</div>
+  <div class="tip">0/1 背包有 FPTAS；这是伪多项式 DP 的典型用法。</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>价值密度贪心及其局限</h2><span class="sub">直觉很好，但对 0/1 背包会失手</span></div>
+<div class="defn"><span class="lbl">定义 · 0/1 背包（最大化）</span><p>给定容量 W 与 n 件物品，第 i 件重 w<sub>i</sub>、值 v<sub>i</sub>，每件<b>只能整取或不取</b>（0/1）。在总重不超过 W 的前提下<b>最大化总价值</b>。该问题 NP-难，但存在 FPTAS。</p></div>
+<div class="tip warn"><b>纯价值密度贪心对 0/1 背包没有任何常数近似比。</b>反例：容量 W，物品 1（w=1, v=2, 密度 2）、物品 2（w=W, v=W, 密度 1）。贪心先取密度高的物品 1（占 1，剩 W−1 装不下物品 2），得 ALG=2；而 OPT 取物品 2 得 W。比值 2/W → 0，可任意坏。</div>
+<div class="deriv">
+<span class="step">修正为 <b>1/2-近似</b>：同时算两个候选，取较大者</span>
+<span class="step">① G = 价值密度贪心（按 v<sub>i</sub>/w<sub>i</sub> 降序装，装得下就装）所得价值</span>
+<span class="step">② H = 单件价值最大且能装下的物品价值 = max{ v<sub>i</sub> : w<sub>i</sub> ≤ W }</span>
+<span class="step">③ 输出 ALG = max(G, H)，可证 <b>ALG ≥ OPT/2</b> <span class="why">大件被 H 兜底，碎件由 G 兜底</span></span>
+<span class="step">∴ 修正贪心是 2-近似（最大化：ALG ≥ OPT/ρ，ρ=2）</span>
+</div>
+<div class="tip info"><b>注意区分：</b>对<b>分数背包</b>（物品可切分），价值密度贪心是<b>最优</b>算法；正是"0/1 不可切分"让贪心失去了最优性，只能退到近似。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>FPTAS：值域缩放 + 按价值 DP</h2><span class="sub">用精度换时间，得 (1−ε) 近似</span></div>
+<div class="tip">思路：0/1 背包有<b>按价值</b>的 DP —— dp[v] = 达到总价值 v 所需的最小重量，时间 O(n·Σv<sub>i</sub>) 是<b>伪多项式</b>（价值可指数大）。把价值<b>缩小刻度</b>后状态数骤降，只损失可控误差。</div>
+<div class="deriv">
+<span class="step">记 P = max<sub>i</sub> v<sub>i</sub>（单件最大价值），取<b>缩放粒度</b> K = εP/n</span>
+<span class="step">缩放价值 v'<sub>i</sub> = ⌊v<sub>i</sub>/K⌋，对 v'<sub>i</sub> 跑按价值 DP，得集合 S'</span>
+<span class="step">每件的取整夹逼：v<sub>i</sub> − K ≤ K·v'<sub>i</sub> ≤ v<sub>i</sub> <span class="why">因 ⌊x⌋ ≥ x−1</span></span>
+<span class="step">设 O 为真正最优集；因 S' 对缩放价值最优，Σ<sub>S'</sub> v'<sub>i</sub> ≥ Σ<sub>O</sub> v'<sub>i</sub></span>
+<span class="step">val(S') = Σ<sub>S'</sub> v<sub>i</sub> ≥ Σ<sub>S'</sub> K·v'<sub>i</sub> ≥ Σ<sub>O</sub> K·v'<sub>i</sub> ≥ Σ<sub>O</sub>(v<sub>i</sub> − K) = OPT − |O|·K</span>
+<span class="step">因 |O| ≤ n，故 val(S') ≥ OPT − nK = OPT − εP</span>
+<span class="step">又 OPT ≥ P（最优解至少能装下价值最大的可行单件），故 εP ≤ ε·OPT</span>
+<span class="step">∴ val(S') ≥ OPT − ε·OPT = <b>(1 − ε)·OPT</b>，是 (1−ε)-近似 ∎</span>
+<span class="step">时间 = O(n·Σv'<sub>i</sub>) = O(n · nP/K) = <b>O(n³/ε)</b>，对 n 与 1/ε 都多项式 → FPTAS</span>
+</div>
+<div class="formula lg">v'<sub>i</sub> = ⌊v<sub>i</sub>/K⌋，K = εP/n　⟹　val ≥ (1 − ε)·OPT，时间 O(n³/ε)</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>FPTAS 的代码骨架</h2><span class="sub">C++ · 缩放价值后按价值 DP</span></div>
+<div class="code"><span class="cm">// 0/1 背包 FPTAS：值域缩放 + 按价值 DP，得 (1-ε) 近似，时间 O(n^3/ε)</span>
+<span class="kw">double</span> <span class="fn">knapsackFPTAS</span>(vector&lt;<span class="kw">int</span>&gt;&amp; w, vector&lt;<span class="kw">int</span>&gt;&amp; v, <span class="kw">int</span> W, <span class="kw">double</span> eps) {
+    <span class="kw">int</span> n = v.<span class="fn">size</span>(), P = *<span class="fn">max_element</span>(v.<span class="fn">begin</span>(), v.<span class="fn">end</span>());
+    <span class="kw">double</span> K = eps * P / n;                 <span class="cm">// 缩放粒度</span>
+    vector&lt;<span class="kw">int</span>&gt; vs(n); <span class="kw">int</span> Vsum = 0;
+    <span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt; n; ++i) { vs[i] = (<span class="kw">int</span>)(v[i] / K); Vsum += vs[i]; }  <span class="cm">// v'_i = floor(v_i/K)</span>
+    <span class="kw">const</span> <span class="kw">long long</span> INF = 1e18;
+    vector&lt;<span class="kw">long long</span>&gt; dp(Vsum + 1, INF); dp[0] = 0;  <span class="cm">// dp[val]=达到缩放价值 val 的最小重量</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt; n; ++i)
+        <span class="kw">for</span> (<span class="kw">int</span> val = Vsum; val &gt;= vs[i]; --val)
+            dp[val] = <span class="fn">min</span>(dp[val], dp[val - vs[i]] + w[i]);
+    <span class="kw">int</span> best = 0;
+    <span class="kw">for</span> (<span class="kw">int</span> val = 0; val &lt;= Vsum; ++val) <span class="kw">if</span> (dp[val] &lt;= W) best = val;
+    <span class="kw">return</span> best * K;                        <span class="cm">// 还原近似价值，≥ (1-ε)·OPT</span>
+}</div>
+</section>
+
+<div class="terms">
+  <span class="term"><b>0/1 背包</b>0/1 knapsack</span>
+  <span class="term"><b>价值密度</b>value density v/w</span>
+  <span class="term"><b>分数背包</b>fractional knapsack</span>
+  <span class="term"><b>值域缩放</b>value scaling</span>
+  <span class="term"><b>伪多项式</b>pseudo-polynomial</span>
+  <span class="term"><b>FPTAS</b>fully polynomial-time approximation scheme</span>
+</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>以为价值密度贪心对 0/1 背包有常数近似比。</b>没有，可任意坏（反例 w={1,W}, v={2,W}）。必须改成 max(密度贪心, 最大可装单件) 才得 1/2-近似。</li>
+  <li><b>把分数背包与 0/1 背包混为一谈。</b>密度贪心对<b>分数</b>背包最优、对 <b>0/1</b> 背包不最优——差别就在能否切分。</li>
+  <li><b>缩放缩错对象。</b>FPTAS 缩的是<b>价值</b>不是重量：容量约束必须精确（重量不能超 W），只能对价值做近似。</li>
+  <li><b>(1−ε) 方向记反。</b>最大化问题 ALG ≥ (1−ε)·OPT，等价于 ρ = 1/(1−ε) ≥ 1；ε 越小越准、时间越大。</li>
+  <li><b>把伪多项式当多项式。</b>按价值 DP 的 O(n·Σv) 里 Σv 可随输入位数指数增长，不是多项式；缩放后 O(n³/ε) 才是关于输入规模与 1/ε 的多项式，这正是"完全"的含义。</li>
+  <li><b>以为所有 NP-难问题都有 FPTAS。</b>背包是<b>弱 NP-难</b>（伪多项式可解）才有 FPTAS；<b>强 NP-难</b>问题（如一般 TSP）在 P≠NP 下无 FPTAS。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>纯价值密度贪心对 0/1 背包<b>无常数近似比</b>；改成"贪心 vs 最大可装单件取较大者"可得 <b>1/2-近似</b>（ρ=2）。</li>
+  <li>0/1 背包有<b>按价值的伪多项式 DP</b>：dp[v] = 达到价值 v 的最小重量，时间 O(n·Σv)。</li>
+  <li><b>FPTAS 值域缩放</b>：v'<sub>i</sub>=⌊v<sub>i</sub>/K⌋、K=εP/n，缩放后 DP 时间 <b>O(n³/ε)</b>，输出 <b>≥ (1−ε)·OPT</b>。</li>
+  <li>证明关键：取整每件损失 ≤ K，n 件共损失 ≤ nK = εP ≤ εOPT（用 OPT ≥ P）。</li>
+  <li>背包有 FPTAS 源于它是<b>弱 NP-难</b>；强 NP-难问题一般无 FPTAS。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>对 0/1 背包只用"按价值密度降序装"的纯贪心，它的近似比是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>2-近似</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>3/2-近似</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>没有任何常数近似比（可任意坏）</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>最优（比值恒为 1）</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>纯密度贪心对 0/1 背包可任意坏：w={1,W}, v={2,W} 时 ALG=2、OPT=W，比值 2/W→0，故 C。要得到常数近似必须<b>补上"最大可装单件"</b>再取较大者，那样才是 1/2-近似（ρ=2，选项 A 描述的是这个修正版而非纯贪心）。D 是分数背包的结论，不是 0/1。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>背包 FPTAS 用 v'<sub>i</sub>=⌊v<sub>i</sub>/K⌋、K=εP/n 缩放价值。它缩放的是什么、总时间是多少？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>缩放重量；时间 O(nW)</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>缩放价值；时间 O(n³/ε)</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>缩放价值；时间 O(n·2ⁿ)</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>缩放容量；时间 O(n log n)</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>FPTAS 缩放的是<b>价值</b>（重量/容量必须精确，否则可能超载），按价值 DP 状态数从 O(Σv) 降到 O(nP/K)=O(n²/ε)，总时间 O(n·n²/ε)=<b>O(n³/ε)</b>，对 n 与 1/ε 都多项式，故 B。A、D 缩错对象；C 是枚举法的指数时间，不是 FPTAS。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>FPTAS 保证 val(S') ≥ (1−ε)·OPT，证明里"n 件累计损失 ≤ εP ≤ εOPT"用到了哪个关键事实？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>Σv<sub>i</sub> ≤ P</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>OPT ≥ P（最优解至少装得下价值最大的可行单件）</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>OPT ≤ P</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>W ≥ n</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>每件取整损失 ≤ K，n 件累计 ≤ nK = n·(εP/n) = εP。要把 εP 换成 εOPT，需要 <b>OPT ≥ P</b>：价值最大的那件（能装下）本身就是一个可行解，故最优不低于 P，即 B。C 方向反了；A、D 与推导无关。</div>
+</div>
+</div>
+
+<div class="page-nav"><a href="07-sched.html"><span class="dir">← 上一节</span><span class="name">多机调度</span></a><a href="09-tsp.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">TSP近似</span></a></div>
+<div class="footer">算法设计与分析 · <b>第12章 概率算法和近似算法</b> · 强交互可视化版<br/>随机 · 近似 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(156,116,32,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const items=[{w:2,v:6},{w:3,v:8},{w:4,v:10},{w:5,v:11},{w:6,v:12},{w:7,v:14}];
+const W=15;
+function render(sel=new Set()){
+  document.getElementById('items').innerHTML=items.map((it,i)=>`
+    <div class="list-step" style="${sel.has(i)?'border-color:#9C7420;background:#fffbeb':''}">
+      <div class="n">${i+1}</div>
+      <div class="body">物品 ${i+1} · w=${it.w} v=${it.v} · 密度 ${(it.v/it.w).toFixed(2)} ${sel.has(i)?'← 选中':''}</div>
+    </div>`).join('');
+}
+function greedy(){
+  const order=items.map((it,i)=>({...it,i,d:it.v/it.w})).sort((a,b)=>b.d-a.d);
+  let rem=W, val=0; const sel=new Set();
+  for(const it of order){ if(it.w<=rem){ rem-=it.w; val+=it.v; sel.add(it.i);} }
+  render(sel); alg.textContent=val; return val;
+}
+function exact(){
+  let best=0, bestS=0, n=items.length;
+  for(let m=0;m<(1<<n);m++){
+    let w=0,v=0;
+    for(let i=0;i<n;i++) if(m>>i&1){ w+=items[i].w; v+=items[i].v; }
+    if(w<=W && v>best){ best=v; bestS=m; }
+  }
+  const sel=new Set(); for(let i=0;i<n;i++) if(bestS>>i&1) sel.add(i);
+  render(sel); optv.textContent=best; return best;
+}
+dens.onclick=()=>{ const a=greedy(); const o=+optv.textContent||exact(); rat.textContent=(a/o).toFixed(3); };
+opt.onclick=()=>{ const o=exact(); const a=+alg.textContent||greedy(); rat.textContent=(a/o).toFixed(3); };
+render();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>拟阵 · 第8章 贪心法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">08</div>算法可视化 · <span>第8章 贪心法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-activity.html">活动安排</a><a class="pill" href="03-merge.html">区间合并</a><a class="pill" href="04-rooms.html">会议室</a><a class="pill" href="05-fractional.html">分数背包</a><a class="pill" href="06-tianji.html">田忌赛马</a><a class="pill" href="07-coin.html">零钱兑换</a><a class="pill" href="08-huffman.html">哈夫曼</a><a class="pill active" href="09-matroid.html">拟阵</a><a class="pill" href="10-schedule.html">任务调度</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 9 · 理论</div>
+  <h1>拟阵 · 贪心正确性的「保险箱」</h1>
+  <p>若问题可建模为加权拟阵，则「按权降序加入仍独立的元素」一定得到最优。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能陈述拟阵两大公理：<b>遗传性</b>（独立集的子集仍独立）与<b>交换性质</b>（小独立集可从大独立集借入元素）。</li>
+  <li>能说出加权拟阵贪心定理：<b>按权排序 + 保持独立</b> ⇒ 得到最大权基。</li>
+  <li>能验证 Kruskal 是图拟阵上的贪心（独立集 = 无环边集/森林）。</li>
+  <li>能用<b>交换性质</b>给出贪心最优的证明思路。</li>
+  <li>能对示例边集算出 <b>MST 权 = 7</b>，理解"成环即破坏独立"。</li>
+</ol></div>
+
+<div class="grid grid-3 stagger">
+  <div class="card"><div class="badge">遗传性</div><h3>子集封闭</h3><p class="desc">独立集的子集仍独立</p></div>
+  <div class="card"><div class="badge blue">交换性</div><h3>可扩充</h3><p class="desc">较小独立集可从较大者借入元素</p></div>
+  <div class="card"><div class="badge amber">加权贪心</div><h3>定理</h3><p class="desc">按权排序 + 保持独立 ⇒ 最优</p></div>
+</div>
+<div class="card" style="margin-top:16px">
+  <h3>经典例子</h3>
+  <div class="list-step"><div class="n">1</div><div class="body"><b>图拟阵</b>：无环边子集 → Kruskal 正确性</div></div>
+  <div class="list-step"><div class="n">2</div><div class="body"><b>矩阵拟阵</b>：线性无关列子集</div></div>
+  <div class="list-step"><div class="n">3</div><div class="body"><b>均匀拟阵</b>：大小 ≤k 的子集</div></div>
+  <div class="tip">不是所有贪心题都是拟阵，但拟阵给出了一大类「可证明」的场景。</div>
+</div>
+<div class="card" style="margin-top:16px">
+  <div class="toolbar"><button class="btn primary" id="run">Kruskal 式加边（拟阵视角）</button></div>
+  <div class="log" id="log">边按权加入，不成环则独立</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>拟阵的定义</h2><span class="sub">matroid · 贪心可证的抽象框架</span></div>
+<div class="defn"><span class="lbl">定义</span><p>拟阵是一个二元组 M = (E, ℐ)，其中 E 是有限<b>基础集</b>，ℐ 是 E 的若干子集构成的<b>独立集族</b>，满足两条公理：</p></div>
+<div class="defn prop"><span class="lbl">公理 ① 遗传性</span><p>若 A ∈ ℐ 且 B ⊆ A，则 B ∈ ℐ。<br/>——独立集的<b>任意子集</b>仍独立。</p></div>
+<div class="defn prop"><span class="lbl">公理 ② 交换性质</span><p>若 A, B ∈ ℐ 且 |A| &lt; |B|，则<b>存在</b> x ∈ B ∖ A 使 A ∪ {x} ∈ ℐ。<br/>——较小的独立集总能从较大的独立集中<b>借入</b>一个元素而保持独立。</p></div>
+<div class="tip info"><strong>秩与基：</strong><b>秩（rank）</b>＝极大独立集的大小，<b>基（base）</b>＝极大独立集本身。交换性质保证<b>所有基等势</b>，从而局部最优不会把你引入死胡同——这正是贪心能全局最优的结构性根源。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>加权拟阵贪心定理</h2><span class="sub">Rado–Edmonds · 贪心正确性的理论基础</span></div>
+<div class="defn thm"><span class="lbl">定理</span><p>给每个元素 e 赋非负权 w(e)。将元素按权<b>降序</b>排列，依次尝试加入，<b>只要加入后仍是独立集就保留</b>，否则丢弃。该贪心得到的独立集是<b>权和最大的基</b>。反之，若某个下降贪心对一切权函数都最优，则该结构必是拟阵。</p></div>
+<div class="deriv">
+<span class="step"><b>证明思路（交换论证 + 交换性质）</b></span>
+<span class="step">设贪心解 G = {g<sub>1</sub>, …, g<sub>k</sub>}（按加入序，即权降序），O 为任意最优基</span>
+<span class="step">由拟阵性质可证所有基等势 ⇒ |O| = |G| = k <span class="why">秩相同</span></span>
+<span class="step">设 g<sub>i</sub> 是 G 与 O 第一处不同的元素，前缀 A = {g<sub>1</sub>, …, g<sub>i−1</sub>} ⊆ O</span>
+<span class="step">对独立集 A ∪ {g<sub>i</sub>} 与更大的 O 反复用<b>交换性质</b>，可在 O 中换入 g<sub>i</sub>、换出某元素 o</span>
+<span class="step">因贪心按权降序考察，g<sub>i</sub> 是 A 之后能加入的<b>权最大</b>元素 ⇒ w(g<sub>i</sub>) ≥ w(o)</span>
+<span class="step">故 O&#39; = O − {o} + {g<sub>i</sub>} 仍是基且 w(O&#39;) ≥ w(O)，公共前缀增长 <span class="why">不劣性</span></span>
+<span class="step">对分歧点归纳 ⇒ 可把 O 改造成 G 而权不减 ⇒ G 最优 ∎</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>实例：图拟阵与 Kruskal</h2><span class="sub">独立集 = 无环边集（森林）· 对应上方演示</span></div>
+<div class="defn"><span class="lbl">图拟阵</span><p>基础集 E = 图的<b>边集</b>；一个边子集"独立" ⟺ 它<b>不含环</b>（构成森林）。验证两公理：森林的子集仍是森林（遗传性 ✓）；若森林 A 边数少于森林 B，则 B 中必有一条边连接 A 的两棵不同的树，加入 A 不成环（交换性质 ✓）。</p></div>
+<div class="tip info"><strong>Kruskal = 图拟阵上的加权贪心：</strong>求<b>最小</b>生成树时按权<b>升序</b>加边（等价于对相反权求最大基），"加入不成环"就是"保持独立"，"成环"就是"破坏独立"。</div>
+<div class="deriv">
+<span class="step">边集 (u,v,w)：(0,1,1) (1,2,2) (0,2,3) (2,3,4) (1,3,5)，按权升序考察（求 MST）：</span>
+<span class="step">(0,1) w=1：不成环 ⇒ <b>加入</b>，总权 = 1 <span class="why">独立</span></span>
+<span class="step">(1,2) w=2：不成环 ⇒ <b>加入</b>，总权 = 1+2 = 3</span>
+<span class="step">(0,2) w=3：0 与 2 已连通 ⇒ <b>跳过</b>（成环，破坏独立）</span>
+<span class="step">(2,3) w=4：不成环 ⇒ <b>加入</b>，总权 = 3+4 = 7</span>
+<span class="step">(1,3) w=5：已连通 ⇒ <b>跳过</b>（成环）</span>
+<span class="step"><b>MST：{(0,1),(1,2),(2,3)}，权 = 1+2+4 = 7</b>（3 条边 = 4 结点 − 1，正好一棵生成树）</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>C++ 实现与复杂度</h2><span class="sub">并查集判独立性</span></div>
+<div class="code"><span class="cm">// 加权拟阵贪心 · 以图拟阵（Kruskal 求 MST）为例</span>
+<span class="cm">// 独立集 = 无环边集（森林）；用并查集判"加入是否成环"</span>
+<span class="kw">struct</span> Edge { <span class="kw">int</span> u, v, w; };
+<span class="kw">int</span> <span class="fn">find</span>(vector&lt;<span class="kw">int</span>&gt; &amp;fa, <span class="kw">int</span> x){ <span class="kw">return</span> fa[x] == x ? x : fa[x] = <span class="fn">find</span>(fa, fa[x]); }
+
+<span class="kw">int</span> <span class="fn">kruskal</span>(vector&lt;Edge&gt; &amp;es, <span class="kw">int</span> n) {
+    <span class="fn">sort</span>(es.<span class="fn">begin</span>(), es.<span class="fn">end</span>(), [](<span class="kw">const</span> Edge &amp;a, <span class="kw">const</span> Edge &amp;b){
+        <span class="kw">return</span> a.w &lt; b.w;             <span class="cm">// MST 按权升序；求最大权基则改降序</span>
+    });
+    vector&lt;<span class="kw">int</span>&gt; fa(n);
+    <span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt; n; ++i) fa[i] = i;
+    <span class="kw">int</span> tot = 0, cnt = 0;
+    <span class="kw">for</span> (Edge &amp;e : es) {
+        <span class="kw">int</span> ru = <span class="fn">find</span>(fa, e.u), rv = <span class="fn">find</span>(fa, e.v);
+        <span class="kw">if</span> (ru != rv) {              <span class="cm">// 不成环 ⇒ 仍是独立集</span>
+            fa[ru] = rv; tot += e.w; ++cnt;
+        }                            <span class="cm">// 成环 ⇒ 破坏独立，跳过</span>
+    }
+    <span class="kw">return</span> cnt == n - 1 ? tot : -1;  <span class="cm">// 不连通返回 -1</span>
+}</div>
+<div class="formula">T(m) = O(m log m) <span>（排序）</span> + O(m · α(n)) <span>（并查集）</span> ≈ <b>O(m log m)</b></div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>以为"任何贪心题都是拟阵"。</b>拟阵只覆盖一大类可证问题；活动安排、哈夫曼等不套拟阵框架也各有证明。</li>
+  <li><b>混淆遗传性与交换性质。</b>遗传性管"子集封闭"，交换性质管"小集可扩充"，缺一不构成拟阵。</li>
+  <li><b>求最大权基与最小权基搞反排序方向。</b>最大权基按权降序，MST（最小）按权升序或取相反权。</li>
+  <li><b>把"独立"误当成"元素互不相同"。</b>独立性由 ℐ 定义（如无环），不是简单的不重复。</li>
+  <li><b>Kruskal 忘判连通性。</b>加入的边数应为 n−1；不足说明图不连通，没有生成树。</li>
+  <li><b>并查集不做路径压缩/按秩合并。</b>退化成链会使单次 find 变 O(n)，总复杂度劣化。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>拟阵 M = (E, ℐ) 由<b>遗传性</b>与<b>交换性质</b>两公理定义，交换性质保证所有基等势。</li>
+  <li><b>加权拟阵贪心定理</b>：按权排序 + 保持独立，即得最大权基；这是一大类贪心正确性的统一来源。</li>
+  <li><b>图拟阵</b>以无环边集为独立集，Kruskal 就是其上的加权贪心："成环 = 破坏独立"。</li>
+  <li>示例边集 Kruskal 得 <b>MST 权 = 7</b>（边 (0,1)、(1,2)、(2,3)），跳过成环的 (0,2)、(1,3)。</li>
+  <li>用并查集判独立性，复杂度约 <b>O(m log m)</b>，排序主导。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>下列哪一条是拟阵的<b>交换性质</b>？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>独立集的任意子集仍是独立集</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>若 A、B 独立且 |A| &lt; |B|，则存在 x∈B∖A 使 A∪{x} 独立</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>任意两个独立集的并仍独立</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>所有元素的权互不相同</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>A 是<b>遗传性</b>；C 一般不成立（两个森林之并可能成环）；D 与拟阵定义无关。交换性质是 B：较小独立集总能从较大者借入一个元素保持独立，它保证了所有极大独立集（基）等势。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>加权拟阵贪心（求最大权基）的正确做法是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>按权升序，能加就加</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>按权降序依次尝试，加入后仍独立则保留，否则丢弃</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>随机加入元素直到不能再加</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>先枚举出所有基再取权最大的</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>求<b>最大</b>权基应按权<b>降序</b>贪心并保持独立性（选 B），由 Rado–Edmonds 定理保证最优。升序（A）对应最小权基/MST。D 枚举所有基是指数级，没必要。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>边集 (0,1,1) (1,2,2) (0,2,3) (2,3,4) (1,3,5) 上 Kruskal 求得的最小生成树权是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>6</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>7</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>10</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>15</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>按权升序：加 (0,1)=1、(1,2)=2；(0,2)=3 时 0、2 已连通成环跳过；加 (2,3)=4；(1,3)=5 成环跳过。MST = 1+2+4 = <b>7</b>，3 条边连通 4 个结点，选 B。15 是所有边权之和，不是 MST。</div>
+</div>
+</div>
+
+<div class="terms">
+  <span class="term"><b>拟阵</b>matroid</span>
+  <span class="term"><b>遗传性</b>hereditary property</span>
+  <span class="term"><b>交换性质</b>exchange property</span>
+  <span class="term"><b>基</b>base</span>
+  <span class="term"><b>图拟阵</b>graphic matroid</span>
+</div>
+
+<div class="page-nav"><a href="08-huffman.html"><span class="dir">← 上一节</span><span class="name">哈夫曼</span></a><a href="10-schedule.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">任务调度</span></a></div>
+<div class="footer">算法设计与分析 · <b>第8章 贪心法</b> · 强交互可视化版<br/>时间轴 · 扫描线 · 树生长 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:30},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.12-Math.random()*.28, a:.12+Math.random()*.3}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(59,122,87,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const edges=[[0,1,1],[1,2,2],[0,2,3],[2,3,4],[1,3,5]];
+run.onclick=async()=>{
+  const parent=[0,1,2,3];
+  const find=x=>parent[x]===x?x:(parent[x]=find(parent[x]));
+  const es=edges.slice().sort((a,b)=>a[2]-b[2]);
+  let lines=[], tot=0;
+  for(const [u,v,w] of es){
+    const ru=find(u), rv=find(v);
+    if(ru===rv){ lines.push(`跳过 (${u},${v}) w=${w} —— 破坏独立（成环）`); }
+    else { parent[ru]=rv; tot+=w; lines.push(`加入 (${u},${v}) w=${w} —— 仍独立`); }
+    log.textContent=lines.join('\\n'); await sleep(400);
+  }
+  lines.push('MST 权='+tot+' （拟阵贪心）'); log.textContent=lines.join('\\n');
+};
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>三种情况 · 第1章 绪论</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">01</div>算法可视化 · <span>第1章 绪论</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-algorithm.html">算法定义</a><a class="pill" href="02-design-steps.html">设计步骤</a><a class="pill" href="03-complexity.html">复杂度</a><a class="pill" href="04-asymptotic.html">渐进界</a><a class="pill active" href="05-cases.html">三种情况</a><a class="pill" href="06-stl.html">STL</a><a class="pill" href="07-sequence.html">序列容器</a><a class="pill" href="08-adapters.html">适配器</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 5 · 加深</div><h1>最好 · 最坏 · 平均</h1>
+<p>以插入排序为例：已序最好 O(n)，逆序最坏 O(n²)。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>说出</b>最好、最坏、平均三种情况各自的定义，并指出平均情况为什么是<b>期望值</b>而非"随便跑一次"。</li>
+  <li>能够<b>写出</b>插入排序的 C++ 实现，并指明其基本操作。</li>
+  <li>能够<b>推导</b>插入排序最坏情况的比较次数 ∑<sub>i=1</sub><sup>n&minus;1</sup> i = n(n&minus;1)/2 = O(n<sup>2</sup>)。</li>
+  <li>能够<b>解释</b>为什么工程上通常以最坏情况作为算法性能的承诺。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn" id="best">最好（已序）</button>
+    <button class="btn primary" id="worst">最坏（逆序）</button>
+    <button class="btn" id="rand">随机输入（单次抽样）</button>
+  </div>
+  <div class="stage-wrap light"><canvas class="stage" id="cv" width="900" height="260"></canvas>
+    <div class="stage-hud"><span class="hud-pill light" id="hud">—</span></div></div>
+  <div class="stat-row">
+    <div class="stat"><span>比较</span><b class="p" id="cmp">0</b></div>
+    <div class="stat"><span>移动</span><b class="a" id="mov">0</b></div>
+  </div>
+  <div class="log" id="log">插入排序：将 a[i] 插入到左侧有序区。</div>
+</div>
+
+<div class="tip warn"><strong>关于"随机输入"按钮：</strong>它每次只生成<b>一个</b>随机数组并跑一遍，得到的是<b>某一次抽样</b>的结果，多点几次会发现数字每次都不一样。这<b>不等于</b>平均情况复杂度——平均情况是对<b>全部</b>可能输入按概率加权求出的<b>期望值</b> E[T(n)]，是一个确定的数学量，不能通过跑一次得到。详见下文第三部分。</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>一、三种情况的定义</h2><span class="sub">Best / Worst / Average Case</span></div>
+  <p class="desc">同一个算法对不同的输入，执行的基本操作次数可能相差很大。设 D<sub>n</sub> 为规模为 n 的全部合法输入构成的集合，T(I) 为算法在输入 I 上的基本操作次数。</p>
+
+  <div class="defn"><span class="lbl">定义</span><p><b>最好情况（Best Case）</b>：B(n) = min<sub>I ∈ D<sub>n</sub></sub> T(I)，即在所有规模为 n 的输入中，算法执行次数最少的那一个。</p></div>
+  <div class="defn"><span class="lbl">定义</span><p><b>最坏情况（Worst Case）</b>：W(n) = max<sub>I ∈ D<sub>n</sub></sub> T(I)，即在所有规模为 n 的输入中，算法执行次数最多的那一个。它给出了运行时间的<b>上界保证</b>。</p></div>
+  <div class="defn"><span class="lbl">定义</span><p><b>平均情况（Average Case）</b>：A(n) = E[T(I)] = ∑<sub>I ∈ D<sub>n</sub></sub> P(I)·T(I)，其中 P(I) 为输入 I 出现的概率，∑P(I) = 1。它是对<b>所有</b>输入按概率加权的<b>数学期望</b>。</p></div>
+  <div class="formula lg">A(n) = ∑<sub>I ∈ D<sub>n</sub></sub> P(I) · T(I)　　（通常假定各输入等概率，即 P(I) = 1/|D<sub>n</sub>|）</div>
+  <div class="formula">B(n) ≤ A(n) ≤ W(n)</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>二、插入排序的 C++ 实现与推导</h2><span class="sub">Insertion Sort</span></div>
+  <div class="code"><span class="cm">// 直接插入排序：把 a[i] 插入到左侧已排好序的 a[0..i-1] 中</span>
+<span class="cm">// 基本操作：关键字比较 a[j] &gt; key</span>
+<span class="kw">void</span> <span class="fn">insertSort</span>(<span class="kw">int</span> a[], <span class="kw">int</span> n) {
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">1</span>; i &lt; n; i++) {      <span class="cm">// 外层：n-1 趟</span>
+        <span class="kw">int</span> key = a[i];               <span class="cm">// 待插入元素（哨兵）</span>
+        <span class="kw">int</span> j = i - <span class="nu">1</span>;
+        <span class="kw">while</span> (j &gt;= <span class="nu">0</span> &amp;&amp; a[j] &gt; key) {  <span class="cm">// 比较：基本操作</span>
+            a[j + <span class="nu">1</span>] = a[j];           <span class="cm">// 移动</span>
+            j--;
+        }
+        a[j + <span class="nu">1</span>] = key;               <span class="cm">// 落位</span>
+    }
+}</div>
+
+  <p class="desc"><b>最好情况（输入已升序，如 1 2 3 … 8）：</b>每趟 while 的条件 <code>a[j] &gt; key</code> 第一次判断即为假，立刻退出。</p>
+  <div class="deriv">
+    <span class="step">每趟比较 1 次，移动 0 次 <span class="why">a[i-1] ≤ a[i] 立即成立</span></span>
+    <span class="step">B(n) = ∑<sub>i=1</sub><sup>n&minus;1</sup> 1 = n &minus; 1 <span class="why">外层共 n-1 趟</span></span>
+    <span class="step">⇒ B(n) = Θ(n) <span class="why">线性阶</span></span>
+  </div>
+
+  <p class="desc"><b>最坏情况（输入已降序，如 8 7 6 … 1）：</b>每趟 key 都比左侧有序区的所有元素小，必须一直比较到 j &lt; 0 为止。</p>
+  <div class="deriv">
+    <span class="step">第 i 趟（i = 1, 2, …, n&minus;1）左侧有序区含 i 个元素</span>
+    <span class="step">key 小于其中每一个 ⇒ 该趟比较 i 次、移动 i 次 <span class="why">一直退到数组左端</span></span>
+    <span class="step">W(n) = ∑<sub>i=1</sub><sup>n&minus;1</sup> i <span class="why">对所有趟求和</span></span>
+    <span class="step">　　　= 1 + 2 + 3 + … + (n&minus;1) <span class="why">展开</span></span>
+    <span class="step">　　　= [(n&minus;1) + 1] · (n&minus;1) / 2 <span class="why">等差数列：(首项+末项)×项数/2</span></span>
+    <span class="step">　　　= n(n&minus;1)/2 = n<sup>2</sup>/2 &minus; n/2</span>
+    <span class="step">⇒ W(n) = Θ(n<sup>2</sup>) <span class="why">保留最高阶，舍去常数 1/2</span></span>
+  </div>
+  <div class="formula lg">W(n) = ∑<sub>i=1</sub><sup>n&minus;1</sup> i = n(n&minus;1)/2 = O(n<sup>2</sup>)</div>
+  <p class="desc"><b>验算</b>：演示中 n = 8，公式给 8×7/2 = 28。点击"最坏（逆序）"按钮，比较计数最终恰为 28，移动计数也是 28，与推导完全一致。而点击"最好（已序）"，比较为 7 = n&minus;1，移动为 0。</p>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>三、平均情况的正确算法</h2><span class="sub">期望，而不是"跑一次随机数据"</span></div>
+  <p class="desc">求 A(n) 必须建立概率模型。对插入排序，标准假设是：<b>输入为 n 个互不相同元素的随机排列，n! 种排列等概率出现</b>。</p>
+  <div class="deriv">
+    <span class="step">第 i 趟：key = a[i] 要插入到有序区 a[0..i&minus;1] 中</span>
+    <span class="step">它可能落在 i+1 个位置之一，且各位置等概率 <span class="why">随机排列假设</span></span>
+    <span class="step">落在第 k 个位置需比较约 k 次（k = 1, 2, …, i），退到最左端需比较 i 次</span>
+    <span class="step">该趟期望比较次数 ≈ (1 + 2 + … + i)/(i+1) + … ≈ (i+1)/2 <span class="why">平均落在中间</span></span>
+    <span class="step">A(n) = ∑<sub>i=1</sub><sup>n&minus;1</sup> (i+1)/2 ≈ (1/2)·∑<sub>i=1</sub><sup>n&minus;1</sup> i <span class="why">对所有趟求期望之和</span></span>
+    <span class="step">　　　≈ n(n&minus;1)/4 = n<sup>2</sup>/4 &minus; n/4</span>
+    <span class="step">⇒ A(n) = Θ(n<sup>2</sup>) <span class="why">与最坏情况同阶，只差常数因子 1/2</span></span>
+  </div>
+  <div class="tip danger"><strong>务必区分：</strong>页面上的"随机输入（单次抽样）"按钮做的是 <b>T(I<sub>随机</sub>)</b>——单个样本的观测值，每次都不同；而 <b>A(n) = E[T(I)]</b> 是遍历全部 n! 种输入按概率加权的期望，是一个确定的数。若要用实验<b>估计</b> A(n)，正确做法是跑<b>大量</b>随机样本再取算术平均（蒙特卡洛方法），且只是估计而非精确值。</div>
+  <div class="tip info"><strong>为什么平均情况分析常被回避？</strong>① 必须先给出输入的概率分布，而现实中的分布往往未知；② 期望的推导数学难度远高于最坏情况。因此工程上通常以<b>最坏情况</b>作为性能承诺——它不依赖任何分布假设，且给出的是"绝不会更差"的硬保证。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>四、三种情况并排对照</h2><span class="sub">插入排序，n 个元素</span></div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>情况</th><th>典型输入</th><th>比较次数</th><th>移动次数</th><th>时间复杂度</th><th>n=8 实测</th></tr>
+    <tr><td>最好 Best</td><td>已升序 1,2,…,n</td><td>n &minus; 1</td><td class="path">0</td><td class="path">Θ(n)</td><td>比较 7 / 移动 0</td></tr>
+    <tr><td>平均 Average</td><td>随机排列（期望）</td><td>≈ n(n&minus;1)/4</td><td>≈ n(n&minus;1)/4</td><td class="hl">Θ(n<sup>2</sup>)</td><td>期望约 14</td></tr>
+    <tr><td>最坏 Worst</td><td>已降序 n,…,2,1</td><td>n(n&minus;1)/2</td><td>n(n&minus;1)/2</td><td class="hl">Θ(n<sup>2</sup>)</td><td>比较 28 / 移动 28</td></tr>
+  </table></div>
+  <p class="desc"><b>结论</b>：插入排序的最好与最坏相差一个数量级（n 与 n<sup>2</sup>），说明它对<b>基本有序</b>的数据非常友好——这也是 <code>std::sort</code> 在子区间较短时切换为插入排序、以及 Timsort 大量利用已有序段的原因。</p>
+  <div class="defn prop"><span class="lbl">性质</span><p>插入排序的空间复杂度为 <b>S(n) = O(1)</b>（只用 key、i、j 三个变量），且是<b>稳定排序</b>——相等元素的相对次序不变，因为 while 条件用的是严格大于 <code>a[j] &gt; key</code> 而非 <code>&gt;=</code>。</p></div>
+
+  <div class="terms">
+    <span class="term"><b>最好情况</b>Best Case</span>
+    <span class="term"><b>最坏情况</b>Worst Case</span>
+    <span class="term"><b>平均情况</b>Average Case</span>
+    <span class="term"><b>数学期望</b>Expectation</span>
+    <span class="term"><b>稳定排序</b>Stable Sort</span>
+  </div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>以为"跑一次随机数据"就得到了平均情况。</b>A(n) 是<b>期望</b> ∑P(I)·T(I)，需要概率模型；单次随机试验只是一个样本点。</li>
+  <li><b>把"最好/最坏/平均"与"O/Ω/Θ"混为一谈。</b>前者说的是<b>选哪个输入</b>，后者说的是<b>函数的界</b>。可以说"最好情况是 Θ(n)"，也可以说"最坏情况是 O(n<sup>2</sup>)"——两个维度互相独立。</li>
+  <li><b>认为平均情况一定介于最好与最坏的正中间。</b>只保证 B(n) ≤ A(n) ≤ W(n)。插入排序的 A(n) ≈ n<sup>2</sup>/4 与 W(n) ≈ n<sup>2</sup>/2 <b>同阶</b>，并不"居中"于 n 与 n<sup>2</sup> 之间；快速排序则相反，平均 Θ(n log n) 与最坏 Θ(n<sup>2</sup>) <b>不同阶</b>。</li>
+  <li><b>推导时把求和上下限写错。</b>外层 <code>for (i = 1; i &lt; n; i++)</code> 共 n&minus;1 趟，故求和是 ∑<sub>i=1</sub><sup>n&minus;1</sup>，结果 n(n&minus;1)/2；若误写成 ∑<sub>i=1</sub><sup>n</sup> 会得到 n(n+1)/2。虽同为 O(n<sup>2</sup>)，但精确值错了。</li>
+  <li><b>忽略移动次数。</b>比较与移动是两种不同的基本操作，最好情况下插入排序比较 n&minus;1 次但移动 <b>0</b> 次，二者不能混同。</li>
+  <li><b>误以为最坏情况一定罕见。</b>逆序数组在实际中相当常见（例如把降序榜单当升序处理），最坏情况并非"理论假想"。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>三种情况定义：<b>B(n) = min T(I)</b>、<b>W(n) = max T(I)</b>、<b>A(n) = ∑P(I)·T(I)</b>（期望），恒有 B(n) ≤ A(n) ≤ W(n)。</li>
+  <li>插入排序：最好 <b>Θ(n)</b>（已序，比较 n&minus;1 次、移动 0 次）；最坏 <b>Θ(n<sup>2</sup>)</b>（逆序，比较与移动均为 n(n&minus;1)/2）；平均 <b>Θ(n<sup>2</sup>)</b>（约 n(n&minus;1)/4）。</li>
+  <li>最坏情况推导核心一步：<b>∑<sub>i=1</sub><sup>n&minus;1</sup> i = n(n&minus;1)/2</b>。</li>
+  <li>平均情况是<b>对全部输入按概率加权的期望</b>，不能用一次随机运行代替；实验估计需大量样本取均值。</li>
+  <li>工程上以<b>最坏情况</b>作性能承诺：不依赖分布假设，给出硬上界。</li>
+  <li>插入排序空间 <b>O(1)</b>、<b>稳定</b>，对基本有序数据表现优异，故被用作高级排序算法的小规模子过程。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>关于算法的平均情况时间复杂度 A(n)，下列理解<b>正确</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>随机生成一组输入运行一次所测得的操作次数</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>最好情况与最坏情况的算术平均，即 (B(n)+W(n))/2</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>在给定输入概率分布下，操作次数的数学期望 ∑P(I)·T(I)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>去掉最好和最坏两个极端后，其余所有输入的平均</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>正确答案 C。<br/>A 是单次抽样的观测值，每次运行结果都不同，而 A(n) 是确定的数学量——本页"随机输入（单次抽样）"按钮做的正是 A 所描述的事，因此它<b>不能</b>用来读出平均复杂度。<br/>B 是最流行的误解：以插入排序为例，B(n) ≈ n、W(n) ≈ n<sup>2</sup>/2，(B+W)/2 ≈ n<sup>2</sup>/4 恰好数值接近，但这是巧合；对快速排序，B、W 分别是 n log n 与 n<sup>2</sup>，其平均却是 n log n，绝非二者的算术平均。<br/>D 是无依据的杜撰，期望必须包含<b>所有</b>输入。</div>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>用直接插入排序对 n 个元素的<b>逆序</b>数组排序，关键字比较次数为？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>n &minus; 1</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>n(n+1)/2</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>n(n&minus;1)/2</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>n<sup>2</sup></span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>正确答案 C。外层 <code>for (i = 1; i &lt; n; i++)</code> 共执行 n&minus;1 趟；第 i 趟左侧有序区有 i 个元素且 key 比它们都小，需比较 i 次。故总数 ∑<sub>i=1</sub><sup>n&minus;1</sup> i = n(n&minus;1)/2。n = 8 时为 28，与演示计数一致。<br/>A 是<b>最好情况</b>（已升序）的答案。<br/>B 是把求和上限误写为 n 的结果（∑<sub>i=1</sub><sup>n</sup> i = n(n+1)/2），是最常见的计算错误。<br/>D 只是同阶的粗略值，不是精确次数。</div>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>下列说法中<b>错误</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>插入排序最好情况下比较 n&minus;1 次，但移动 0 次</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>插入排序的平均情况与最坏情况同为 Θ(n<sup>2</sup>)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>因为最坏情况用 O 表示、最好情况用 Ω 表示，所以 O 就是最坏、Ω 就是最好</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>插入排序是稳定排序，且空间复杂度为 O(1)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>错误的是 C，故选 C。这是本章最顽固的概念混淆：<b>最好/最坏/平均</b> 描述的是"在哪一类<b>输入</b>上分析"，而 <b>O/Ω/Θ</b> 描述的是"函数的<b>界</b>是什么"。二者是<b>正交</b>的两个维度——完全可以说"最好情况的时间是 Θ(n)"，也可以说"最坏情况的时间是 Ω(n<sup>2</sup>)"。<br/>A 正确：已序时 while 条件首次即假，不进入循环体，故无移动。<br/>B 正确：平均约 n(n&minus;1)/4，与最坏 n(n&minus;1)/2 只差常数因子。<br/>D 正确：条件用严格 <code>&gt;</code> 保证了稳定性。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="04-asymptotic.html"><span class="dir">← 上一节</span><span class="name">渐进界</span></a><a href="06-stl.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">STL</span></a></div>
+<div class="footer">算法设计与分析 · <b>第1章 绪论</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(194,96,63,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+let a=[];
+function paint(hi={}){ barDraw(ctx,cv.width,cv.height,a,hi); }
+async function insertion(){
+  let cmp=0,mov=0;
+  for(let i=1;i<a.length;i++){
+    let key=a[i], j=i-1;
+    paint({i, range:[0,i]}); hud.textContent='插入 a['+i+']='+key; await sleep(250);
+    while(j>=0){ cmp++; document.getElementById('cmp').textContent=cmp;
+      if(a[j]>key){ a[j+1]=a[j]; mov++; document.getElementById('mov').textContent=mov; j--; paint({i:j+1, active:new Set([j+1])}); await sleep(150); }
+      else break;
+    }
+    a[j+1]=key; paint({sorted:new Set([...Array(i+1).keys()])}); await sleep(200);
+  }
+  paint({sorted:new Set(a.map((_,i)=>i))}); hud.textContent='完成';
+}
+best.onclick=()=>{ a=[1,2,3,4,5,6,7,8]; document.getElementById('cmp').textContent=0; document.getElementById('mov').textContent=0; paint({}); insertion(); };
+worst.onclick=()=>{ a=[8,7,6,5,4,3,2,1]; document.getElementById('cmp').textContent=0; document.getElementById('mov').textContent=0; paint({}); insertion(); };
+rand.onclick=()=>{ a=Array.from({length:8},()=>1+Math.floor(Math.random()*20)); document.getElementById('cmp').textContent=0; document.getElementById('mov').textContent=0; paint({}); insertion(); };
+a=[5,2,4,6,1,3]; paint({});
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

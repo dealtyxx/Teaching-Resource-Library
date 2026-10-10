@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>分配TSP · 第3章 穷举法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">03</div>算法可视化 · <span>第3章 穷举法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-enumerate.html">列举</a><a class="pill" href="03-prefix.html">前缀和</a><a class="pill" href="04-uf.html">并查集</a><a class="pill" href="05-maxsub.html">最大子段</a><a class="pill" href="06-powerset.html">幂集</a><a class="pill" href="07-perm.html">全排列</a><a class="pill" href="08-nqueens.html">n皇后</a><a class="pill active" href="09-assign-tsp.html">分配TSP</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 9 · 加深</div><h1>任务分配 / TSP 穷举</h1>
+<p>全排列求最小分配成本，并在 TSP 示意点上画最优回路。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+<li>能够<b>写出</b>指派问题与旅行商问题（TSP）的形式化定义与目标函数。</li>
+<li>能够<b>计算</b>两者的解空间规模：指派问题 n! 种分配、TSP 固定起点后 (n&minus;1)! 条有向回路（对称时 (n&minus;1)!/2）。</li>
+<li>能够用 <code>next_permutation</code> 或递归交换法<b>写出</b>穷举求最优的 C++ 代码。</li>
+<li>能够<b>推导</b>穷举的时间复杂度 &Theta;(n&middot;n!)，并解释它为何只适合很小的 n。</li>
+<li>能够<b>说明</b> TSP 属 NP 难问题，穷举不可扩展，须用动态规划 / 分支限界 / 近似算法。</li>
+</ol></div>
+<div class="grid grid-2">
+  <div class="card">
+    <h3>任务分配</h3>
+    <div class="toolbar"><button class="btn primary" id="asg">穷举最优分配</button></div>
+    <div id="mat"></div>
+    <div class="stat-row"><div class="stat"><span>最小成本</span><b class="p" id="bc">—</b></div><div class="stat"><span>排列数</span><b class="a" id="pc">0</b></div></div>
+  </div>
+  <div class="card">
+    <h3>TSP 4 城</h3>
+    <div class="toolbar"><button class="btn primary" id="tsp">穷举回路</button></div>
+    <div class="stage-wrap light" style="height:260px"><canvas class="stage" id="cv" width="400" height="260"></canvas></div>
+    <div class="stat-row"><div class="stat"><span>最短</span><b class="g" id="tl">—</b></div></div>
+  </div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、两个问题的形式化</h2><span class="sub">Assignment &amp; TSP</span></div>
+<div class="defn"><span class="lbl">定义（指派问题）</span><p><b>指派问题（assignment problem）</b>：有 n 个人和 n 项任务，第 i 人做第 j 项任务的成本为 C[i][j]。要求给每人分配<b>恰好一项</b>任务、每项任务<b>恰好一人</b>做（即一个排列 &pi;），使总成本 <span style="font-family:var(--mono)">&Sigma;<sub>i</sub> C[i][&pi;(i)]</span> <b>最小</b>。</p></div>
+<div class="defn"><span class="lbl">定义（旅行商问题）</span><p><b>旅行商问题（TSP，travelling salesman problem）</b>：给定 n 座城市及两两距离 D[i][j]，求一条从某城出发、<b>经过每座城恰好一次</b>再回到出发城的回路（哈密顿回路），使总路程最短。</p></div>
+<div class="tip info"><strong>共同点：</strong>两者的解都是一个<b>排列</b>，都可用穷举法「列举所有排列 &rarr; 逐一计算目标值 &rarr; 取最优」。区别在于指派问题有多项式算法（匈牙利算法 O(n<sup>3</sup>)），而 TSP 至今没有多项式精确算法。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、解空间规模与复杂度</h2><span class="sub">为什么穷举只能对付小 n</span></div>
+<div class="formula">指派问题：n! 种分配&nbsp;&nbsp;|&nbsp;&nbsp;TSP：固定起点后 (n&minus;1)! 条有向回路（对称距离再 &divide;2）</div>
+<div class="defn prop"><span class="lbl">复杂度</span><p>枚举一个排列后，计算其目标值需 O(n)（累加 n 项）。故穷举总时间为 <b>&Theta;(n&middot;n!)</b>（指派）与 <b>&Theta;(n&middot;(n&minus;1)!)=&Theta;(n!)</b>（TSP）。TSP 固定起点可去掉 n 个「旋转等价」的回路，对称距离下再去掉「反向等价」，故<b>本质不同</b>的回路只有 (n&minus;1)!/2 条。</p></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>n</th><th>n!（指派枚举量）</th><th>(n&minus;1)!（TSP 固定起点）</th><th>穷举可行性</th></tr>
+  <tr><td>4</td><td>24</td><td>6</td><td class="hl">瞬间</td></tr>
+  <tr><td>10</td><td>3 628 800</td><td>362 880</td><td>秒级</td></tr>
+  <tr><td>13</td><td>&asymp;6.2&times;10<sup>9</sup></td><td>&asymp;4.8&times;10<sup>8</sup></td><td>已吃力</td></tr>
+  <tr><td>20</td><td>&asymp;2.4&times;10<sup>18</sup></td><td>&asymp;1.2&times;10<sup>17</sup></td><td>不可行</td></tr>
+</table></div>
+<div class="tip warn"><strong>阶乘爆炸：</strong>n 每加 1，枚举量乘以 n。穷举法只适合 n&le;10~12 的小规模；再大就必须换<b>动态规划（Held–Karp，O(n<sup>2</sup>&middot;2<sup>n</sup>)）、分支限界</b>（第 6 章）或<b>近似算法</b>。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、C++ 穷举实现</h2><span class="sub">与上方两个演示一致</span></div>
+<div class="code"><span class="cm">// ===== 指派问题：枚举全部 n! 个排列，取总成本最小 =====</span>
+<span class="cm">// C[i][j] = 第 i 人做第 j 项任务的成本</span>
+<span class="kw">int</span> <span class="fn">assign</span>(<span class="kw">int</span> C[][N], <span class="kw">int</span> n) {
+    <span class="kw">int</span> perm[N];
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; ++i) perm[i] = i;   <span class="cm">// 初始排列 0,1,…,n-1</span>
+    <span class="kw">int</span> best = INT_MAX;
+    <span class="kw">do</span> {
+        <span class="kw">int</span> s = <span class="nu">0</span>;
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; ++i) s += C[i][perm[i]]; <span class="cm">// O(n) 累加</span>
+        best = <span class="fn">min</span>(best, s);
+    } <span class="kw">while</span> (<span class="fn">next_permutation</span>(perm, perm + n));      <span class="cm">// 遍历 n! 个排列</span>
+    <span class="kw">return</span> best;
+}
+
+<span class="cm">// ===== TSP：固定起点城市 0，排列其余 n-1 座城市 =====</span>
+<span class="kw">int</span> <span class="fn">tsp</span>(<span class="kw">int</span> D[][N], <span class="kw">int</span> n) {
+    <span class="kw">int</span> perm[N];
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n - <span class="nu">1</span>; ++i) perm[i] = i + <span class="nu">1</span>; <span class="cm">// 城市 1..n-1</span>
+    <span class="kw">int</span> best = INT_MAX;
+    <span class="kw">do</span> {
+        <span class="kw">int</span> s = D[<span class="nu">0</span>][perm[<span class="nu">0</span>]];                       <span class="cm">// 起点 0 → 第一城</span>
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i + <span class="nu">1</span> &lt; n - <span class="nu">1</span>; ++i)
+            s += D[perm[i]][perm[i + <span class="nu">1</span>]];          <span class="cm">// 相邻城市间距离</span>
+        s += D[perm[n - <span class="nu">2</span>]][<span class="nu">0</span>];                    <span class="cm">// 最后一城 → 回到起点</span>
+        best = <span class="fn">min</span>(best, s);
+    } <span class="kw">while</span> (<span class="fn">next_permutation</span>(perm, perm + n - <span class="nu">1</span>)); <span class="cm">// (n-1)! 条回路</span>
+    <span class="kw">return</span> best;
+}</div>
+<div class="tip"><strong>固定起点的作用：</strong>回路「0→2→3→1→0」与「2→3→1→0→2」是同一条环，只是起点不同。固定城市 0 为起点可一次性排除这 n 个旋转副本，把枚举量从 n! 降到 (n&minus;1)!。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、例题：用演示中的数据手算</h2><span class="sub">Worked Example</span></div>
+<div class="tip info"><strong>指派成本矩阵（左侧演示）：</strong>C = [[9,2,7,8],[6,4,3,7],[5,8,1,8],[7,6,9,4]]。求最小总成本分配。</div>
+<div class="deriv">
+  <span class="step">观察各行/列的小值：C[2][2]=1、C[0][1]=2 都很小，尝试同时选中</span>
+  <span class="step">取分配 &pi; = (人0→任务1, 人1→任务0, 人2→任务2, 人3→任务3)</span>
+  <span class="step">总成本 = C[0][1]+C[1][0]+C[2][2]+C[3][3] = 2 + 6 + 1 + 4 = <b>13</b> <span class="why">四项分列不同列，合法</span></span>
+  <span class="step">穷举全部 4! = 24 个排列验证，13 即为最小值</span>
+</div>
+<div class="tip info"><strong>TSP 距离矩阵（右侧演示，有向）：</strong>D = [[0,2,9,10],[1,0,6,4],[15,7,0,8],[6,3,12,0]]，起点 0。固定起点后共 3! = 6 条回路。</div>
+<div class="deriv">
+  <span class="step">0→1→2→3→0：2+6+8+6 = 22</span>
+  <span class="step">0→1→3→2→0：2+4+12+15 = 33</span>
+  <span class="step">0→2→1→3→0：9+7+4+6 = 26</span>
+  <span class="step">0→2→3→1→0：9+8+3+1 = <b>21</b> ✓ 最短</span>
+  <span class="step">0→3→1→2→0：10+3+6+15 = 34</span>
+  <span class="step">0→3→2→1→0：10+12+7+1 = 30</span>
+  <span class="step">∴ 最短回路 0→2→3→1→0，长度 21（与演示结果一致）</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>五、易错点</h2><span class="sub">Common Pitfalls</span></div>
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+<li><b>把 TSP 回路数记成 n!</b>：固定起点后应是 (n&minus;1)!；若距离对称还要再 &divide;2（正反两向同长）。</li>
+<li><b>穷举 TSP 时忘记加「回到起点」那条边</b> D[末城][起点]，算出的是路径而非回路。</li>
+<li><b>指派问题误用贪心</b>：每行各取最小值往往<b>列冲突</b>（多人抢同一任务），不是合法分配，贪心也不保证最优。</li>
+<li><b>复杂度只写 n!，漏掉每个排列 O(n) 的求值</b>，正确是 &Theta;(n&middot;n!)。</li>
+<li><b>用 next_permutation 前忘记把数组排成升序</b>：它只从当前排列生成「字典序更大」的下一个，起始若非最小排列会漏掉一部分。</li>
+<li><b>混淆「NP 难」与「无解」</b>：TSP 有解且穷举必能找到最优，只是<b>时间</b>不可接受；NP 难说的是效率，不是可行性。</li>
+</ul></div>
+</section>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+<li>指派问题与 TSP 的解都是<b>排列</b>，穷举法「列举排列 → 求值 → 取最优」通用。</li>
+<li>枚举量：指派 n!、TSP 固定起点 (n&minus;1)!（对称再 &divide;2）；每次求值 O(n)，总复杂度 &Theta;(n&middot;n!)。</li>
+<li>阶乘爆炸使穷举只适合 n&le;10~12；用 <code>next_permutation</code> 可简洁实现全排列枚举。</li>
+<li>演示数据核对：指派最小成本 13，TSP 最短回路 0→2→3→1→0 长 21。</li>
+<li>TSP 是 NP 难问题，大规模须换动态规划（Held–Karp O(n<sup>2</sup>2<sup>n</sup>)）、分支限界或近似算法。</li>
+</ul></div>
+
+<section class="sec"><div class="sec-head"><h2>自测题</h2><span class="sub">点击选项查看解析</span></div>
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>用穷举法求解 n 个城市的对称 TSP，固定一个起点后需要考察的<b>本质不同</b>回路条数是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>n!</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>(n&minus;1)!</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>(n&minus;1)!/2</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>2<sup>n</sup></span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。固定起点排除 n 个旋转等价回路，得 (n&minus;1)!；对称距离下每条回路与其反向回路等长，再除以 2，得 (n&minus;1)!/2。A 未固定起点；B 是<b>有向</b>（非对称）情形；D 是子集数，与排列无关。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>穷举法求解 n 阶指派问题的时间复杂度是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>&Theta;(n!)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>&Theta;(n&middot;n!)</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>&Theta;(n<sup>3</sup>)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>&Theta;(2<sup>n</sup>)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。共 n! 个排列，每个排列累加 n 项成本需 O(n)，故 &Theta;(n&middot;n!)。A 漏掉了每次求值的 O(n)；C 是匈牙利算法（多项式精确解）的复杂度，不是穷举；D 是子集型搜索的规模。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>关于「TSP 是 NP 难问题」，下列理解正确的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>TSP 无解，任何算法都求不出答案</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>只要计算机够快，多项式时间内一定能精确求解</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>穷举一定能得到最优解，但时间随 n 阶乘增长而不可接受，目前无已知多项式精确算法</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>NP 难意味着近似算法也不可能有效</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。NP 难刻画的是<b>求解效率</b>而非可行性：穷举必能找到最优解，只是耗时阶乘级。B 错在「多项式精确算法是否存在」正是 P vs NP 未解难题；A 混淆了难解与无解；D 错在度量 TSP（满足三角不等式）有 Christofides 等常数比近似算法，近似恰恰是应对 NP 难的常用手段。</div>
+  </div>
+</div>
+</section>
+
+<div class="page-nav"><a href="08-nqueens.html"><span class="dir">← 上一节</span><span class="name">n皇后</span></a><div></div></div>
+<div class="footer">算法设计与分析 · <b>第3章 穷举法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(53,111,98,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const C=[[9,2,7,8],[6,4,3,7],[5,8,1,8],[7,6,9,4]];
+const D=[[0,2,9,10],[1,0,6,4],[15,7,0,8],[6,3,12,0]];
+const pos=[[60,40],[340,40],[340,200],[60,200]];
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+function table(hl){
+  let h='<table style="border-collapse:collapse;width:100%;font-size:13px">';
+  C.forEach((row,i)=>{ h+='<tr>'; row.forEach((v,j)=>{ const on=hl&&hl[i]===j;
+    h+=`<td style="padding:8px;text-align:center;border:1px solid #E4E0D4;background:${on?'#D3EAE3':'#fff'}">${v}</td>`; }); h+='</tr>'; });
+  mat.innerHTML=h+'</table>';
+}
+asg.onclick=()=>{
+  let best=1e9,bx=null,cnt=0,a=[0,1,2,3];
+  function perm(l){ if(l===4){ cnt++; let s=0; for(let i=0;i<4;i++) s+=C[i][a[i]]; if(s<best){best=s;bx=a.slice();} return; }
+    for(let i=l;i<4;i++){ [a[l],a[i]]=[a[i],a[l]]; perm(l+1); [a[l],a[i]]=[a[i],a[l]]; } }
+  perm(0); bc.textContent=best; pc.textContent=cnt; table(bx);
+};
+function draw(path){
+  ctx.clearRect(0,0,400,260);
+  ctx.strokeStyle='#D5CFC1'; for(let i=0;i<4;i++) for(let j=i+1;j<4;j++){ ctx.beginPath(); ctx.moveTo(pos[i][0],pos[i][1]); ctx.lineTo(pos[j][0],pos[j][1]); ctx.stroke(); }
+  if(path){ ctx.strokeStyle='#356F62'; ctx.lineWidth=3; ctx.beginPath(); path.forEach((i,t)=>{ t?ctx.lineTo(pos[i][0],pos[i][1]):ctx.moveTo(pos[i][0],pos[i][1]); }); ctx.closePath(); ctx.stroke(); }
+  pos.forEach((p,i)=>{ ctx.beginPath(); ctx.arc(p[0],p[1],16,0,Math.PI*2); ctx.fillStyle='#356F62'; ctx.fill(); ctx.fillStyle='#fff'; ctx.font='bold 12px sans-serif'; ctx.textAlign='center'; ctx.fillText(i,p[0],p[1]+4); });
+}
+tsp.onclick=()=>{
+  let best=1e9,bp=null,a=[1,2,3];
+  function perm(l){
+    if(l===3){ const path=[0,...a,0]; let s=0; for(let i=0;i<path.length-1;i++) s+=D[path[i]][path[i+1]]; if(s<best){best=s;bp=path;} return; }
+    for(let i=l;i<3;i++){ [a[l],a[i]]=[a[i],a[l]]; perm(l+1); [a[l],a[i]]=[a[i],a[l]]; }
+  }
+  perm(0); tl.textContent=best; draw(bp);
+};
+table(null); draw(null);
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Floyd · 第9章 图算法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">09</div>算法可视化 · <span>第9章 图算法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-prim.html">Prim</a><a class="pill" href="02-kruskal.html">Kruskal</a><a class="pill" href="03-dijkstra.html">Dijkstra</a><a class="pill" href="04-bf-spfa.html">BF/SPFA</a><a class="pill active" href="05-floyd.html">Floyd</a><a class="pill" href="06-flow.html">网络流</a><a class="pill" href="07-ff.html">FF</a><a class="pill" href="08-ek.html">EK</a><a class="pill" href="09-dinic.html">Dinic</a><a class="pill" href="10-match.html">匹配</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 5 · 全源</div>
+  <h1>Floyd-Warshall · 矩阵热力演化</h1>
+  <p>d[i][j] = min(d[i][j], d[i][k]+d[k][j])。观察 k 增大时矩阵如何被「压」得更短。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够写出 Floyd 的 DP 状态 <b>dp[k][i][j]</b>（只允许经过编号更小的中转点）与递推式，并说明它的最优子结构。</li>
+  <li>能够<b>论证</b>为什么循环变量 <b>k 必须放在最外层</b>，并指出把 k 放最内层会漏算哪些路径。</li>
+  <li>能够解释三维状态<b>原地滚动成二维</b>为何仍然正确（本轮 d[i][k]、d[k][j] 不变）。</li>
+  <li>能够推导 <b>O(n<sup>3</sup>)</b> 时间、O(n<sup>2</sup>) 空间，并用 <b>d[i][i]&lt;0</b> 判定负环。</li>
+  <li>能够在 Dijkstra / Bellman-Ford / Floyd 之间根据"单源/全源、是否含负权、图疏密"作出选择。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="run">▶ 运行 Floyd</button>
+    <div class="speed" id="spd"><button data-ms="400">慢</button><button data-ms="180" class="on">中</button><button data-ms="60">快</button></div>
+  </div>
+  <div style="overflow:auto"><table class="data" id="tb"></table></div>
+  <div class="tip" id="tip">∞ 显示为 · · 数字越小颜色越深（越短）</div>
+  <table class="data" style="margin-top:14px">
+    <thead><tr><th>算法</th><th>场景</th><th>复杂度</th></tr></thead>
+    <tbody>
+      <tr><td>Dijkstra</td><td>单源非负</td><td>O(n²)/O(e log n)</td></tr>
+      <tr><td>BF</td><td>单源可负</td><td>O(ne)</td></tr>
+      <tr><td class="hl">Floyd</td><td>全源</td><td>O(n³)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、状态定义与 DP 递推</h2><span class="sub">All-Pairs Shortest Path</span></div>
+
+<div class="defn"><span class="lbl">问题</span><p>给定带权有向图 G = (V, E, W)（可含负权边，但<b>不含负环</b>），<b>全源最短路径</b>（all-pairs shortest path, APSP）要求任意两点 i、j 之间的最短距离 d[i][j]。Floyd-Warshall 用一个 O(n<sup>3</sup>) 的动态规划一次性把整张距离矩阵求出。</p></div>
+
+<div class="defn"><span class="lbl">DP 状态</span><p>记 <b>dp[k][i][j]</b> = 从 i 到 j、且<b>中间点（端点除外）只允许使用编号属于 {0, 1, …, k&minus;1} 的顶点</b>时的最短路径长度。边界 k = 0 时不允许任何中间点，故 dp[0][i][j] = w(i, j)（无边为 &infin;，i = j 为 0）；k = n 时所有顶点都可作中转，dp[n][i][j] 即最终答案。</p></div>
+
+<div class="deriv">
+  <span class="step">决策 从 dp[k] 推到 dp[k+1]，即新解禁顶点 k，i&rarr;j 的最优路径只有两种可能 <span class="why">用 k 中转，或不用</span></span>
+  <span class="step">不经过 k 这条候选长度 = dp[k][i][j] <span class="why">可用中转点集合不变</span></span>
+  <span class="step">经过 k 一次 路径被 k 切成 i&#8669;k 与 k&#8669;j 两段，两段的中间点都只用 {0..k&minus;1} <span class="why">简单最短路上 k 只出现一次；&#9733; 最优子结构</span></span>
+  <span class="step">该候选长度 = dp[k][i][k] + dp[k][k][j] <span class="why">两段各自取最优</span></span>
+  <span class="step">取最小 dp[k+1][i][j] = min( dp[k][i][j], &nbsp; dp[k][i][k] + dp[k][k][j] ) <span class="why">这就是 Floyd 递推</span></span>
+</div>
+
+<div class="formula">dp[k+1][i][j] = min( dp[k][i][j], &nbsp; dp[k][i][k] + dp[k][k][j] )</div>
+
+<div class="tip info"><strong>为什么 k 必须放在最外层：</strong>递推的本质是"<b>逐个解禁</b>中转点"——第 k 轮所有 dp 值都建立在"{0..k&minus;1} 已全部可用"这一前提上，所以必须让某个 k 把<b>整张矩阵</b>全部更新完，再进入 k+1。若误把 k 写成最内层（<span class="cm">for i: for j: for k</span>），对固定 (i, j) 只用<b>原始边权</b>取了一次 min，等价于只考虑"至多两条边"的路径，更长的最优路径会被漏掉，结果偏大。</div>
+
+<div class="tip"><strong>为什么可以原地滚动成二维：</strong>把三维压成 <span class="cm">d[i][j]</span> 原地更新是安全的。第 k 轮用到的 <span class="cm">d[i][k]</span> 与 <span class="cm">d[k][j]</span> 在本轮<b>不会被改写</b>：更新 d[i][k] 需要 <span class="cm">d[i][k] &gt; d[i][k] + d[k][k]</span>，而无负环时 d[k][k] &ge; 0，取不到更小值。既然这两个量本轮恒定，读到新值还是旧值都一样，原地写回不影响正确性，空间从 O(n<sup>3</sup>) 降到 O(n<sup>2</sup>)。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、规范 C++ 代码</h2><span class="sub">三重循环 + 负环判定</span></div>
+
+<div class="code"><span class="cm">// 全源最短路 Floyd-Warshall —— O(n^3) 时间，O(n^2) 空间</span>
+<span class="kw">const</span> <span class="kw">int</span> N = <span class="nu">205</span>, INF = <span class="nu">0x3f3f3f3f</span>;
+<span class="kw">int</span> d[N][N];                 <span class="cm">// d[i][j]：i 到 j 当前最短距离，无边初始化为 INF，d[i][i]=0</span>
+<span class="kw">int</span> path[N][N];              <span class="cm">// path[i][j]：i→j 路径上 j 的前驱，用于还原路径</span>
+
+<span class="kw">void</span> <span class="fn">floyd</span>(<span class="kw">int</span> n) {
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; i++)
+        <span class="kw">for</span> (<span class="kw">int</span> j = <span class="nu">0</span>; j &lt; n; j++) path[i][j] = i;   <span class="cm">// 前驱初值设为 i</span>
+    <span class="kw">for</span> (<span class="kw">int</span> k = <span class="nu">0</span>; k &lt; n; k++)             <span class="cm">// ① k 必须最外层：逐个解禁中转点</span>
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; i++)
+            <span class="kw">for</span> (<span class="kw">int</span> j = <span class="nu">0</span>; j &lt; n; j++)
+                <span class="kw">if</span> (d[i][k] &lt; INF &amp;&amp; d[k][j] &lt; INF          <span class="cm">// ② 防 INF+INF 溢出</span>
+                    &amp;&amp; d[i][k] + d[k][j] &lt; d[i][j]) {
+                    d[i][j] = d[i][k] + d[k][j];
+                    path[i][j] = path[k][j];            <span class="cm">// 经 k 中转：前驱取 k→j 段的前驱</span>
+                }
+}
+
+<span class="cm">// 负环判定：跑完后若存在 d[i][i] &lt; 0，则 i 落在某个负环上</span>
+<span class="kw">bool</span> <span class="fn">hasNegCycle</span>(<span class="kw">int</span> n) {
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; i++) <span class="kw">if</span> (d[i][i] &lt; <span class="nu">0</span>) <span class="kw">return</span> <span class="kw">true</span>;
+    <span class="kw">return</span> <span class="kw">false</span>;
+}</div>
+
+<div class="tip warn"><strong>d[i][i] 的初值：</strong>主对角线应初始化为 <b>0</b>（自己到自己距离为 0），其余无边处为 INF。若把 d[i][i] 也误设成 INF，负环判定会失效，部分最短路也可能算错。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、复杂度与算法选择</h2><span class="sub">与单源算法对比</span></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>算法</th><th>范围</th><th>负权边</th><th>负环</th><th>时间</th><th>求什么</th></tr>
+  <tr><td>Dijkstra（堆）</td><td>单源</td><td>✗ 不可</td><td>—</td><td>O((n+e) log n)</td><td>一个源到各点</td></tr>
+  <tr><td>Bellman-Ford</td><td>单源</td><td>✓ 可</td><td>可检测</td><td>O(ne)</td><td>一个源到各点</td></tr>
+  <tr><td class="hl">Floyd-Warshall</td><td>全源</td><td>✓ 可</td><td>可检测</td><td class="hl">&Theta;(n<sup>3</sup>)</td><td>任意两点</td></tr>
+</table></div>
+
+<div class="deriv">
+  <span class="step">时间 三重循环各 n 次、循环体 O(1)，故 &Theta;(n<sup>3</sup>) <span class="why">与图的疏密无关</span></span>
+  <span class="step">空间 一个 n×n 距离矩阵 O(n<sup>2</sup>)（原地滚动） <span class="why">还原路径再加一个 n×n</span></span>
+  <span class="step">全源对比 Floyd = n<sup>3</sup>；跑 n 次堆 Dijkstra = n·(n+e) log n <span class="why">稠密图 e≈n<sup>2</sup> 时二者同阶，Floyd 常数小、代码短</span></span>
+  <span class="step">选择 稀疏图、无负权求全源：n 次 Dijkstra 更快；稠密图或含负权：Floyd 更省心 <span class="why">Floyd 还天然给出路径矩阵</span></span>
+</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>把 k 写在内层循环</b>（<span class="cm">for i: for j: for k</span>）：这是头号错误，等价于只允许两条边的路径，结果偏大。k 必须是最外层。</li>
+  <li>用 <span class="cm">INT_MAX</span> 作 INF：<span class="cm">d[i][k]+d[k][j]</span> 两个大数相加会溢出成负数，把不可达当成极短。应用 0x3f3f3f3f，并在相加前判 <span class="cm">d[i][k]&lt;INF &amp;&amp; d[k][j]&lt;INF</span>。</li>
+  <li><b>d[i][i] 忘记初始化为 0</b>：负环判定（d[i][i]&lt;0）与部分最短路会出错。</li>
+  <li>在<b>含负环</b>的图上直接用 Floyd 取结果：负环上距离可无限减小，输出无意义，必须先用 d[i][i]&lt;0 检测。</li>
+  <li>无向图中出现<b>负权边</b>：一条无向负边 (u,v) 等价于 u→v、v→u 两条负边，来回即成负环，最短路根本不存在。</li>
+  <li>路径还原时把 <span class="cm">path[i][j]=path[k][j]</span> 误写成 <span class="cm">path[i][j]=k</span> 或 <span class="cm">path[i][k]</span>：会得到断裂或错误的路径。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>Floyd 是<b>动态规划</b>：dp[k][i][j] 表示"中转点只用编号 &lt; k 的顶点"时 i 到 j 的最短距离，递推 dp[k+1][i][j]=min(dp[k][i][j], dp[k][i][k]+dp[k][k][j])。</li>
+  <li>循环变量 <b>k 必须最外层</b>——逐个解禁中转点；放内层会漏算多中转点的更优路径。</li>
+  <li>三维可原地滚动成二维：本轮 d[i][k]、d[k][j] 不因更新而改变（无负环时 d[k][k]&ge;0），故原地写回正确，空间 O(n<sup>2</sup>)。</li>
+  <li>时间 <b>&Theta;(n<sup>3</sup>)</b>、与边数无关；可处理<b>负权边</b>（无负环），并以 <b>d[i][i]&lt;0</b> 判负环。</li>
+  <li>选择：稀疏无负权求全源用 n 次 Dijkstra 更快，稠密或含负权用 Floyd；单源问题不必动用全源算法。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>关于 Floyd 三重循环的顺序，下列说法<b>正确</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>k、i、j 三层可以任意交换，结果都相同</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>k 必须在最外层；若把 k 放最内层，结果可能偏大，因为只算到了"至多两条边"的路径</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>i 必须在最外层，k、j 顺序无所谓</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>只要保证 j 在最内层就一定正确</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。Floyd 的 DP 语义是"逐个解禁中转点 k"，必须让每个 k 把整张矩阵更新完再进入下一个 k，因此 k 只能在最外层。若 k 在最内层，对固定 (i, j) 仅用原始边权取一次 min，等价于只考虑经过至多一个中转点（两条边）的路径，凡是需要多个中转点接力的更短路径都被漏掉，结果偏大。A、C、D 都误以为顺序可换——i、j 两层之间可以互换，但 k 的最外层地位不可动摇。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>Floyd 跑完之后，如何判断原图是否存在负环？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>只要存在某个 d[i][j] &lt; 0 就有负环</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>只要存在某个 d[i][i] &lt; 0（对角线为负）就有负环</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>Floyd 无法检测负环，必须改用 Bellman-Ford</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>只要存在 d[i][j] = INF（不可达）就说明有负环</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。d[i][i] 表示 i 出发、经若干中转再回到 i 的最短距离；正常应为 0，一旦被更新成负数，说明存在一条从 i 回到 i、总权为负的闭合路径，即负环。A 错：含负权边时很多 d[i][j]&lt;0 是正常的最短距离，不代表负环。C 错：Floyd 恰好能顺带检测负环。D 错：INF 只表示不可达，与负环无关。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>关于 Floyd 的复杂度与适用范围，正确的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>时间 O(n<sup>2</sup>)，只能处理非负权图</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>时间 &Theta;(n<sup>3</sup>) 且与边数无关，能处理含负权边（无负环）的图</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>时间 &Theta;(n<sup>3</sup>)，但一旦有负权边就会出错</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>稀疏图上求全源，Floyd 一定比跑 n 次 Dijkstra 快</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。三重 n 循环给出 &Theta;(n<sup>3</sup>)，与边数 e 无关；Floyd 能正确处理负权边，只要不含负环。A 错，是 n<sup>3</sup> 不是 n<sup>2</sup>，且它能处理负权。C 把 Floyd 和 Dijkstra 搞混——Dijkstra 才怕负权。D 错：稀疏图（e = O(n)）求全源，跑 n 次堆 Dijkstra 约 O(n<sup>2</sup> log n)，优于 Floyd 的 n<sup>3</sup>；Floyd 的优势在稠密图或含负权的场景。</div>
+  </div>
+</div>
+
+<div class="terms">
+  <span class="term"><b>全源最短路</b>all-pairs shortest path</span>
+  <span class="term"><b>最优子结构</b>optimal substructure</span>
+  <span class="term"><b>中转点</b>intermediate vertex</span>
+  <span class="term"><b>负环</b>negative cycle</span>
+  <span class="term"><b>滚动数组</b>rolling array</span>
+</div>
+
+<div class="page-nav"><a href="04-bf-spfa.html"><span class="dir">← 上一节</span><span class="name">BF/SPFA</span></a><a href="06-flow.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">网络流</span></a></div>
+<div class="footer">算法设计与分析 · <b>第9章 图算法</b> · 强交互可视化版<br/>MST · 最短路 · 网络流 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:28},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.1-Math.random()*.25, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(110,86,145,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+// shared graph geometry
+const GPOS=[[120,200],[300,80],[520,80],[700,200],[520,320],[300,320]];
+const GEDGES=[[0,1,6],[0,5,5],[1,2,5],[1,5,3],[2,3,4],[2,4,3],[2,5,4],[3,4,5],[4,5,2]];
+
+const n=4;
+const INF=99;
+// init adj
+let base=[
+  [0,5,9,INF],
+  [5,0,4,7],
+  [9,4,0,3],
+  [INF,7,3,0]
+];
+let ms=180;
+spd.querySelectorAll('button').forEach(b=>b.onclick=()=>{spd.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');ms=+b.dataset.ms;});
+function ren(d, hk=-1, hi=-1, hj=-1){
+  let h='<tr><th>i\\\\j</th>';
+  for(let j=0;j<n;j++) h+=`<th>${j}</th>`;
+  h+='</tr>';
+  for(let i=0;i<n;i++){
+    h+=`<tr><th>${i}</th>`;
+    for(let j=0;j<n;j++){
+      const v=d[i][j];
+      const t=v>=INF?0:1-Math.min(v,15)/15;
+      const bg=v>=INF?'#F5F3EC':`rgba(110,86,145,${0.08+t*0.45})`;
+      const cls=(i===hi&&j===hj)?'hl':'';
+      h+=`<td class="${cls}" style="background:${bg}">${v>=INF?'·':v}</td>`;
+    }
+    h+='</tr>';
+  }
+  tb.innerHTML=h;
+  tip.textContent=hk>=0?`中转点 k=${hk}`:'矩阵';
+}
+run.onclick=async()=>{
+  const d=base.map(r=>r.slice());
+  ren(d);
+  for(let k=0;k<n;k++){
+    for(let i=0;i<n;i++) for(let j=0;j<n;j++){
+      if(d[i][k]+d[k][j]<d[i][j]){
+        d[i][j]=d[i][k]+d[k][j];
+        ren(d,k,i,j); await sleep(ms);
+      }
+    }
+    ren(d,k); await sleep(ms*2);
+  }
+  ren(d); tip.innerHTML='<strong>完成</strong> · 全源最短路矩阵';
+};
+ren(base.map(r=>r.slice()));
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

@@ -1,0 +1,101 @@
+---
+module: 3
+moduleName: 循环结构
+order: 15
+title: 流水线传感器批量采样
+level: 进阶选做
+scene: 信创场景
+knowledge: [循环过滤, 数据筛选, 异常值处理]
+stars: 3
+minutes: 90
+goal: 掌握工业数据循环处理思维
+sizheng: 中国制造的良品率，是一次次"剔除不合格"筛出来的
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import SensorFilterLab from '../../components/react/SensorFilterLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：坏数据不能停产线
+
+产线温度巡检仪每分钟采 20 个点。传感器偶尔断线（读数 -999）或短路（999）——这些**异常值**若直接进统计，平均温度会被拉到荒谬的负数。
+
+处理原则是工业软件的共识：**跳过坏点，不停产线**。C 语言的表达就是 `continue`：
+
+```c
+if (t[i] < lo || t[i] > hi) {
+    skipped++;
+    continue;   /* 本圈到此为止，直接进入下一圈 */
+}
+/* continue 之后的语句，坏点永远执行不到 */
+```
+
+对比模块内学过的 `break`：break 是"全线停工"，continue 是"这件次品扔掉，下一件继续"。
+
+## 一步一步看 continue 跳圈
+
+<CStepRunner
+  client:visible
+  title="循环模拟：5 个采样点里剔掉 1 个断线值"
+  badge="continue 模拟"
+  doneNote="第 3 个点触发 continue 后，本圈的 kept++ 和 sum+= 被跳过，但循环没有停——第 4、5 个点照常处理。跳点不停线。"
+  code={`#include <stdio.h>
+
+int main(void) {
+    int t[5] = {52, 61, -999, 58, 47};
+    int kept = 0, sum = 0;
+    for (int i = 0; i < 5; i++) {
+        if (t[i] < 20 || t[i] > 90) {
+            continue;
+        }
+        kept++;
+        sum += t[i];
+    }
+    printf("有效%d个 平均%.1f\\n",
+           kept, (float)sum/kept);
+    return 0;
+}`}
+  steps={[
+    { line: 5, desc: 'i=0：t[0]=52 在 20~90 内，不触发 continue。', vars: { i: '0', kept: '0', sum: '0' } },
+    { line: 9, desc: '正常统计：kept=1，sum=52。', vars: { i: '0', kept: '1', sum: '52' } },
+    { line: 9, desc: 'i=1：61 合格，kept=2，sum=113。', vars: { i: '1', kept: '2', sum: '113' } },
+    { line: 6, desc: 'i=2：t[2]=-999 < 20——异常值现身！', vars: { i: '2', kept: '2', sum: '113' } },
+    { line: 7, desc: 'continue 执行：立即结束本圈，第 9~10 行被跳过。kept 和 sum 纹丝不动。', vars: { i: '2', kept: '2', sum: '113' } },
+    { line: 9, desc: 'i=3：58 合格——循环还活着！kept=3，sum=171。', vars: { i: '3', kept: '3', sum: '171' } },
+    { line: 9, desc: 'i=4：47 合格，kept=4，sum=218。', vars: { i: '4', kept: '4', sum: '218' } },
+    { line: 12, desc: '循环结束。平均 = 218/4 = 54.5——如果没剔除 -999，平均会是 -156.2，完全失真！', out: '有效4个 平均54.5' },
+  ]}
+/>
+
+## 动手实验：调故障率，看筛选器工作
+
+<SensorFilterLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：20 个采样点，剔除范围外值，输出有效数、剔除数、平均值。先想清楚：kept 和 skipped 加起来必须等于 20——这是你的自检公式。
+2. **AI 优化进阶版**：让 AI 增加"连续 3 个异常则报传感器故障"的逻辑。审查它的"连续计数器"在遇到正常值时清零了吗？没清零就是 bug。
+3. **信创加固定稿版**：kept=0 时的除零防护；把 -999/999 定义为 `SENSOR_FAULT_OPEN`/`SENSOR_FAULT_SHORT` 宏；思考"剔除多少比例以上说明产线本身有问题"——过滤器也需要被监控。
+
+## 素养与思政
+
+高铁轮对的出厂检测要经过上百个测点的循环扫描，一个超差就整轮报废；国产大飞机 C919 的每根线缆都被自动测试台逐一"点名"。
+**中国制造从"能用"到"精良"，靠的不是口号，是一条条产线上"剔除不合格"的循环日复一日地转。** 你写的 continue，就是质检员手起手落的那个动作——对次品毫不留情，对流程绝不打断。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="continue 和 break 在循环中的区别是？"
+  options={['完全一样', 'continue 跳过本圈剩余语句进入下一圈；break 直接终止整个循环', 'continue 终止循环；break 跳过本圈', '都只能用在 while 里']}
+  answer={1}
+  explain="记口诀：break『破』掉整条循环，continue『继续』下一圈。产线剔次品用 continue，急停按钮才是 break。"
+/>
+
+<QuizItem
+  client:visible
+  question="若不过滤，把 -999 计入 5 个点的平均值，结果会？"
+  options={['基本不变', '被严重拉低，统计完全失真', '自动被程序忽略', '产生编译错误']}
+  answer={1}
+  explain="(52+61-999+58+47)/5 = -156.2——一个坏点毁掉整组统计。『垃圾进，垃圾出』（GIGO）是数据处理的第一定律，过滤是统计的前提。"
+/>

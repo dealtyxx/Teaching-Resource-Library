@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>区间合并 · 第8章 贪心法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">08</div>算法可视化 · <span>第8章 贪心法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-activity.html">活动安排</a><a class="pill active" href="03-merge.html">区间合并</a><a class="pill" href="04-rooms.html">会议室</a><a class="pill" href="05-fractional.html">分数背包</a><a class="pill" href="06-tianji.html">田忌赛马</a><a class="pill" href="07-coin.html">零钱兑换</a><a class="pill" href="08-huffman.html">哈夫曼</a><a class="pill" href="09-matroid.html">拟阵</a><a class="pill" href="10-schedule.html">任务调度</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 3 · 合并</div>
+  <h1>区间合并 · 扫描合并动画</h1>
+  <p>按左端排序后，能合并就扩展右端，否则开启新段。看色块如何「吸」在一起。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>写出</b>区间合并的完整算法步骤：按左端点排序 → 线性扫描 → 重叠则取 max 扩展右端，否则另起一段。</li>
+  <li>能够<b>论证</b>「排序后可合并的区间必定相邻」，说明为何一遍扫描无需回溯。</li>
+  <li>能够<b>手工合并</b> [1,3] [2,6] [8,10] [15,18] [9,12] 并得到 3 段结果。</li>
+  <li>能够<b>清晰区分</b>本节的「区间合并」与下一节的「最少会议室」——两者输入形式相同、目标完全不同。</li>
+  <li>能够<b>实现</b> C++ 代码并说明为何右端必须取 max。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="run">▶ 合并演示</button>
+    <button class="btn" id="rand">🎲 随机区间</button>
+  </div>
+  <div class="stage-wrap light" style="height:280px">
+    <canvas class="stage" id="cv" width="1000" height="280"></canvas>
+    <div class="stage-hud"><span class="hud-pill light" id="hud">merge</span><span class="hud-pill light" id="hud2">—</span></div>
+  </div>
+  <div class="log" id="log">等待开始</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>问题描述与算法步骤</h2><span class="sub">Merge Intervals · 排序 + 线性扫描</span></div>
+<div class="defn"><span class="lbl">定义</span><p>给定 n 个闭区间 I<sub>1</sub> = [s<sub>1</sub>, e<sub>1</sub>], …, I<sub>n</sub> = [s<sub>n</sub>, e<sub>n</sub>]，其中可能存在两两重叠或包含。要求输出<b>互不重叠</b>的区间集合 R，使得 R 中区间的并集<b>恰等于</b>原区间的并集，且 |R| 最小。<br/>通俗地说：把所有相互重叠（或首尾相接）的区间<b>并成一段</b>。</p></div>
+<div class="formula">&#8746;<sub>I ∈ R</sub> I = &#8746;<sub>i=1..n</sub> [s<sub>i</sub>, e<sub>i</sub>]　　且 R 中任意两区间不相交</div>
+
+<div class="defn prop"><span class="lbl">贪心准则</span><p>按<b>左端点 s<sub>i</sub> 升序</b>排序（左端相同时按右端升序）；维护当前正在生长的合并段 [L, R]，依次考察后续区间 [s<sub>i</sub>, e<sub>i</sub>]：<br/>&nbsp;&nbsp;若 <b>s<sub>i</sub> ≤ R</b>（与当前段重叠或相接）：<b>R ← max(R, e<sub>i</sub>)</b>，段继续生长；<br/>&nbsp;&nbsp;否则（s<sub>i</sub> &gt; R，出现断口）：<b>输出 [L, R]</b>，并令 [L, R] ← [s<sub>i</sub>, e<sub>i</sub>] 另起一段。<br/>扫描结束后别忘了<b>输出最后一段</b>。</p></div>
+
+<div class="list-step"><span class="n">1</span><div class="body"><b>排序</b>：把 n 个区间按左端点升序排列，O(n log n)。</div></div>
+<div class="list-step"><span class="n">2</span><div class="body"><b>初始化</b>：取排序后的第一个区间作为当前段 [L, R]。</div></div>
+<div class="list-step"><span class="n">3</span><div class="body"><b>扫描</b>：对 i = 2..n，按上述准则决定「合并」还是「另起」，每个区间只看一次，O(n)。</div></div>
+<div class="list-step"><span class="n">4</span><div class="body"><b>收尾</b>：循环结束后把最后一段 [L, R] 加入结果——这是最容易漏写的一步。</div></div>
+
+<div class="formula">R<sub>cur</sub> ← max(R<sub>cur</sub>, e<sub>i</sub>)　　<span>（当 s<sub>i</sub> ≤ R<sub>cur</sub>）</span></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>实验数据与手工推演</h2><span class="sub">可离线复算</span></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>原始顺序</th><td>[1, 3]</td><td>[2, 6]</td><td>[8, 10]</td><td>[15, 18]</td><td>[9, 12]</td></tr>
+  <tr><th>按左端排序</th><td class="hl">[1, 3]</td><td class="hl">[2, 6]</td><td class="hl">[8, 10]</td><td class="hl">[9, 12]</td><td class="hl">[15, 18]</td></tr>
+</table></div>
+<div class="deriv">
+<span class="step">排序后：[1,3] [2,6] [8,10] [9,12] [15,18]</span>
+<span class="step">初始化：当前段 [L, R] = [1, 3]</span>
+<span class="step">看 [2, 6]：s=2 ≤ R=3 &#10004; 重叠 &#8658; R ← max(3, 6) = 6，当前段 [1, 6]</span>
+<span class="step">看 [8, 10]：s=8 &gt; R=6 &#10008; 断开 &#8658; <b>输出 [1, 6]</b>，当前段 ← [8, 10]</span>
+<span class="step">看 [9, 12]：s=9 ≤ R=10 &#10004; 重叠 &#8658; R ← max(10, 12) = 12，当前段 [8, 12]</span>
+<span class="step">看 [15, 18]：s=15 &gt; R=12 &#10008; 断开 &#8658; <b>输出 [8, 12]</b>，当前段 ← [15, 18]</span>
+<span class="step">扫描结束，收尾 &#8658; <b>输出 [15, 18]</b></span>
+<span class="step"><b>最终结果：[1, 6]　[8, 12]　[15, 18]，共 3 段</b></span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>正确性论证</h2><span class="sub">为什么一遍扫描就够，不必回头？</span></div>
+<div class="defn thm"><span class="lbl">关键引理</span><p>把区间按左端点升序排序后，若当前区间 [s<sub>i</sub>, e<sub>i</sub>] 与当前合并段 [L, R] <b>不重叠</b>（即 s<sub>i</sub> &gt; R），则<b>其后的所有区间</b>也都不会与 [L, R] 重叠。</p></div>
+<div class="deriv">
+<span class="step"><b>证明</b></span>
+<span class="step">排序保证 s<sub>i</sub> ≤ s<sub>i+1</sub> ≤ … ≤ s<sub>n</sub> <span class="why">排序的直接推论</span></span>
+<span class="step">已知 s<sub>i</sub> &gt; R &#8658; 对一切 k &gt; i 有 s<sub>k</sub> ≥ s<sub>i</sub> &gt; R</span>
+<span class="step">即后续每个区间的左端点都严格大于 R &#8658; 与 [L, R] 无交 &#8718;</span>
+<span class="step">&nbsp;</span>
+<span class="step"><b>推论（贪心选择性质在本题的形态）</b></span>
+<span class="step">一旦出现断口，[L, R] 就可以被<b>安全封存</b>并输出，永远不需要回头修改</span>
+<span class="step">&#8658; 每个区间只被考察一次，扫描阶段 O(n) 且无回溯</span>
+<span class="step">&nbsp;</span>
+<span class="step"><b>结果的最小性</b></span>
+<span class="step">算法输出的相邻两段之间必存在<b>未被任何区间覆盖</b>的空隙</span>
+<span class="step">&#8658; 这些段不可能再被合并 &#8658; 段数已是最少 &#8718;</span>
+</div>
+<div class="tip info"><strong>一句话：</strong>排序把「可合并」这一全局关系转化为「相邻」这一局部关系——这是几乎所有区间类贪心算法的共同套路。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>辨析：区间合并 vs 最少会议室</h2><span class="sub">输入长得一样，问的完全不是一回事</span></div>
+<div class="tip warn"><strong>本节与下一节（04 最少会议室）极易混淆。</strong>两者的输入都是一堆区间，但一个求「并集分成几段」，另一个求「任一时刻最多同时有几个区间在跑」。请务必分清。</div>
+<div class="table-scroll"><table class="data">
+  <tr><th>对比维度</th><th>03 区间合并</th><th>04 最少会议室</th></tr>
+  <tr><td>问的是什么</td><td class="hl">把重叠区间<b>并起来</b>，输出几段</td><td class="hl">求<b>最大同时重叠数</b>，输出几间房</td></tr>
+  <tr><td>输出类型</td><td>一组互不重叠的区间</td><td>一个整数</td></tr>
+  <tr><td>核心量</td><td>并集的<b>连通段数</b></td><td>重叠<b>层数</b>的峰值</td></tr>
+  <tr><td>排序方式</td><td>按左端点升序</td><td>起止事件统一排序 / 按左端排序 + 最小堆</td></tr>
+  <tr><td>扫描时维护</td><td>当前段的右端 R</td><td>当前占用计数 cur 与峰值 peak</td></tr>
+  <tr><td>复杂度</td><td>O(n log n)</td><td>O(n log n)</td></tr>
+</table></div>
+<div class="defn"><span class="lbl">决定性对照</span><p>两个指标<b>互不决定</b>，可以一大一小任意组合：</p></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>数据</th><th>区间合并结果</th><th>最少会议室</th><th>说明</th></tr>
+  <tr><td>[1,2] [3,4] [5,6]</td><td class="hl">3 段</td><td>1 间</td><td>段数多、房间少</td></tr>
+  <tr><td>[1,10] [2,3] [4,5]</td><td>1 段</td><td class="hl">2 间</td><td>段数少、房间多</td></tr>
+  <tr><td>[1,4] [2,5] [7,9]</td><td>2 段 [1,5] [7,9]</td><td>2 间</td><td>恰好相等（巧合）</td></tr>
+</table></div>
+<div class="tip info"><strong>记忆口诀：</strong>合并看<b>横向</b>——时间轴上连不连得起来；会议室看<b>纵向</b>——同一竖线上叠了几层。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>C++ 实现与复杂度</h2><span class="sub">排序 + 一遍扫描</span></div>
+<div class="code"><span class="cm">// 区间合并 · 按左端点排序后线性扫描</span>
+<span class="cm">// 时间 O(n log n)，空间 O(n)（存放结果）</span>
+vector&lt;pair&lt;<span class="kw">int</span>, <span class="kw">int</span>&gt;&gt; <span class="fn">mergeIntervals</span>(vector&lt;pair&lt;<span class="kw">int</span>, <span class="kw">int</span>&gt;&gt; a) {
+    <span class="kw">if</span> (a.<span class="fn">empty</span>()) <span class="kw">return</span> {};
+
+    <span class="fn">sort</span>(a.<span class="fn">begin</span>(), a.<span class="fn">end</span>());        <span class="cm">// ① 左端升序；左端相同则右端升序 O(n log n)</span>
+
+    vector&lt;pair&lt;<span class="kw">int</span>, <span class="kw">int</span>&gt;&gt; res;
+    res.<span class="fn">push_back</span>(a[0]);                <span class="cm">// ② 第一个区间作为初始合并段</span>
+
+    <span class="kw">for</span> (<span class="kw">size_t</span> i = 1; i &lt; a.<span class="fn">size</span>(); ++i) {   <span class="cm">// ③ 一遍扫描 O(n)</span>
+        <span class="kw">if</span> (a[i].first &lt;= res.<span class="fn">back</span>().second)     <span class="cm">// 重叠或相接 &#8594; 合并</span>
+            res.<span class="fn">back</span>().second = <span class="fn">max</span>(res.<span class="fn">back</span>().second, a[i].second);
+        <span class="kw">else</span>                                     <span class="cm">// 出现断口 &#8594; 另起一段</span>
+            res.<span class="fn">push_back</span>(a[i]);
+    }
+    <span class="kw">return</span> res;                          <span class="cm">// ④ 最后一段已在 res 中，无需额外收尾</span>
+}</div>
+<div class="tip info"><strong>实现小技巧：</strong>把「当前段」直接放进结果数组 <code>res.back()</code> 里就地生长，可以省掉一个临时变量，也<b>自动完成收尾</b>——避免了"忘记输出最后一段"这个经典 bug。</div>
+<div class="formula">T(n) = O(n log n)<span>（排序）</span> + O(n)<span>（扫描）</span> = <b>O(n log n)</b>　　S(n) = O(n)</div>
+<div class="table-scroll"><table class="data">
+  <tr><th>阶段</th><th>时间</th><th>空间</th><th>说明</th></tr>
+  <tr><td>排序</td><td class="hl">O(n log n)</td><td>O(log n)</td><td>算法瓶颈</td></tr>
+  <tr><td>扫描合并</td><td>O(n)</td><td>O(1)</td><td>每区间考察一次，无回溯</td></tr>
+  <tr><td>存放结果</td><td>——</td><td>O(n)</td><td>最坏全不重叠，输出 n 段</td></tr>
+  <tr><td><b>合计</b></td><td class="hl">O(n log n)</td><td>O(n)</td><td>若输入已有序则降为 O(n)</td></tr>
+</table></div>
+<div class="terms">
+  <span class="term"><b>区间合并</b>merge intervals</span>
+  <span class="term"><b>重叠</b>overlap</span>
+  <span class="term"><b>包含</b>containment</span>
+  <span class="term"><b>扫描线</b>sweep line</span>
+  <span class="term"><b>并集</b>union</span>
+</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>右端不取 max，直接写 <code>R = e<sub>i</sub></code>。</b>本章最经典的 bug。当后一个区间被前一个<b>完全包含</b>时（如 [1,10] 后接 [2,3]），直接赋值会把右端从 10 缩成 3，结果错成 [1,3]，丢掉 [3,10] 的覆盖。</li>
+  <li><b>忘记输出最后一段。</b>用临时变量维护当前段时，循环结束后必须补一次 push_back。改用 <code>res.back()</code> 就地生长可根治。</li>
+  <li><b>按右端点排序。</b>区间合并必须按<b>左端</b>排序；按右端排序会破坏"可合并者必相邻"的前提。（对比：02 活动安排恰恰要按右端排序——两题排序键相反，务必分清。）</li>
+  <li><b>闭区间与半开区间的边界写错。</b>闭区间 [1,2] 与 [2,3] 相接应当合并，条件用 <code>s &lt;= R</code>；若题目规定半开区间 [1,2) 与 [2,3) 不算重叠，则要改成 <code>s &lt; R</code>。</li>
+  <li><b>与「最少会议室」混为一谈。</b>合并出 1 段不代表只要 1 间会议室，见上方对照表。</li>
+  <li><b>空输入未特判。</b><code>res.push_back(a[0])</code> 前必须确认数组非空。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>区间合并：把相互重叠或相接的区间并成一段，输出并集的<b>连通段</b>。</li>
+  <li>算法三步：<b>按左端点升序排序 → 线性扫描 → s<sub>i</sub> ≤ R 则 R ← max(R, e<sub>i</sub>)，否则另起一段</b>。</li>
+  <li>正确性关键引理：排序后若当前区间与当前段断开，则<b>后续所有区间</b>也必与之断开，故可安全封存、无需回溯。</li>
+  <li>[1,3] [2,6] [8,10] [15,18] [9,12] 的合并结果是 <b>[1,6] [8,12] [15,18]，共 3 段</b>。</li>
+  <li>复杂度 <b>O(n log n)</b>，排序主导；空间 O(n)。</li>
+  <li>与 04 节「最少会议室」<b>不是同一个问题</b>：合并看横向连通段数，会议室看纵向重叠峰值。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>对区间 [1,3] [2,6] [8,10] [15,18] [9,12] 执行区间合并，正确结果是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>[1,6] [8,12] [15,18]</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>[1,6] [8,10] [9,12] [15,18]</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>[1,18]</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>[1,3] [2,6] [8,12] [15,18]</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>排序后为 [1,3] [2,6] [8,10] [9,12] [15,18]。[1,3] 与 [2,6] 重叠（2 ≤ 3）合并为 [1,6]；[8,10] 与 [9,12] 重叠（9 ≤ 10）合并为 [8,12]；[15,18] 独立。故选 A。<br/>B 漏掉了 [8,10] 与 [9,12] 的重叠——注意原始输入里 [9,12] 排在 [15,18] 之后，<b>不排序就直接扫描</b>正是产生这个错误的原因。<br/>C 把毫不相干的段也并了：[6,8] 与 [12,15] 上没有任何区间覆盖，不能跨越空隙合并。<br/>D 漏掉了最前面两个区间的合并（2 ≤ 3 明明重叠）。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>若把合并语句误写成 <code>R = e<sub>i</sub></code>（不取 max），下列哪组数据能<b>暴露</b>这个错误？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>[1,3] [4,6]</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>[1,10] [2,3]</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>[1,2] [2,3]</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>任何数据都不会出错，max 是多余的</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>只有当后一个区间被前一个<b>完全包含</b>时，e<sub>i</sub> 才可能小于当前 R。B 中 [2,3] ⊆ [1,10]，正确答案是 [1,10]，但直接赋值会得到 [1,3]，覆盖范围凭空缩水，错误被暴露，故选 B。<br/>A 的两个区间不重叠（4 &gt; 3），走的是"另起一段"分支，根本不执行合并语句。<br/>C 中 e<sub>i</sub> = 3 恰好大于当前 R = 2，赋值结果与取 max 相同，属于"侥幸正确"，无法暴露 bug——这正是该 bug 常年潜伏、只在特定数据上翻车的原因。<br/>D 错，B 已构成反例。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>给定区间 [1,10] [2,3] [4,5]，其<b>区间合并后的段数</b>与<b>最少会议室数</b>分别是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>1 和 1</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>1 和 2</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>3 和 2</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>3 和 3</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>[2,3] 与 [4,5] 都被 [1,10] 覆盖，三者的并集是连通的 [1,10]，<b>合并后只有 1 段</b>。但在 t = 2 时刻，[1,10] 与 [2,3] <b>同时进行</b>，重叠层数为 2，因此至少需要 <b>2 间</b>会议室，故选 B。<br/>A 错在把"合并成一段"当成"只需一间房"——这正是本节与下一节最典型的混淆。<br/>C、D 把段数算成 3，误以为三个区间互不相干；实际上它们的并集是连通的。<br/>本题的意义在于：<b>连通段数与重叠峰值是两个互不决定的量</b>。</div>
+</div>
+</div>
+
+<div class="page-nav"><a href="02-activity.html"><span class="dir">← 上一节</span><span class="name">活动安排</span></a><a href="04-rooms.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">会议室</span></a></div>
+<div class="footer">算法设计与分析 · <b>第8章 贪心法</b> · 强交互可视化版<br/>时间轴 · 扫描线 · 树生长 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:30},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.12-Math.random()*.28, a:.12+Math.random()*.3}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(59,122,87,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+let segs=[[1,3],[2,6],[8,10],[15,18],[9,12]];
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+function draw(list, cur=null, out=[]){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const pad=40, maxT=20, x=t=>pad+t/maxT*(cv.width-2*pad);
+  ctx.strokeStyle='#D5CFC1'; ctx.beginPath(); ctx.moveTo(pad,220); ctx.lineTo(cv.width-pad,220); ctx.stroke();
+  list.forEach((a,i)=>{
+    ctx.fillStyle='rgba(194,96,63,.35)';
+    ctx.fillRect(x(a[0]), 40+i*18, Math.max(4,x(a[1])-x(a[0])), 12);
+  });
+  if(cur){
+    ctx.fillStyle='#B8862B';
+    ctx.fillRect(x(cur[0]), 160, Math.max(4,x(cur[1])-x(cur[0])), 18);
+    ctx.fillStyle='#1D1B16'; ctx.font='12px ui-monospace'; ctx.fillText('current', x(cur[0]), 155);
+  }
+  out.forEach((a,i)=>{
+    ctx.fillStyle='#4D9268';
+    ctx.fillRect(x(a[0]), 190, Math.max(4,x(a[1])-x(a[0])), 16);
+  });
+}
+run.onclick=async()=>{
+  const a=segs.slice().sort((p,q)=>p[0]-q[0]);
+  const out=[]; let cur=a[0].slice();
+  let lines=['排序: '+JSON.stringify(a)];
+  draw(a, cur, out); log.textContent=lines.join('\\n'); await sleep(400);
+  for(let i=1;i<a.length;i++){
+    hud2.textContent=`看 ${JSON.stringify(a[i])}`;
+    if(a[i][0]<=cur[1]){
+      lines.push(`合并 ${JSON.stringify(cur)} + ${JSON.stringify(a[i])}`);
+      cur[1]=Math.max(cur[1], a[i][1]);
+      lines.push('→ '+JSON.stringify(cur));
+    } else {
+      out.push(cur.slice());
+      lines.push('输出 '+JSON.stringify(cur));
+      cur=a[i].slice();
+    }
+    draw(a, cur, out); log.textContent=lines.join('\\n'); await sleep(500);
+  }
+  out.push(cur); draw(a, null, out);
+  lines.push('结果 '+JSON.stringify(out));
+  log.textContent=lines.join('\\n'); hud2.textContent='done';
+};
+rand.onclick=()=>{
+  segs=Array.from({length:6},()=>{const s=Math.floor(Math.random()*12); return [s,s+1+Math.floor(Math.random()*5)];});
+  draw(segs); log.textContent='新区间: '+JSON.stringify(segs);
+};
+draw(segs);
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

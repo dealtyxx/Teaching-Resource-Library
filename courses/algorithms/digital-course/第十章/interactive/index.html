@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>交互总览 · 第10章 计算几何</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">10</div>算法可视化 · <span>第10章 计算几何</span></div>
+<div class="links"><a class="pill active" href="index.html">总览</a><a class="pill" href="01-vector.html">向量运算</a><a class="pill" href="02-direction.html">方向判断</a><a class="pill" href="03-point-seg.html">点与线段</a><a class="pill" href="04-intersect.html">线段相交</a><a class="pill" href="05-inpoly.html">点在多边形</a><a class="pill" href="06-area.html">多边形面积</a><a class="pill" href="07-jarvis.html">礼品包裹</a><a class="pill" href="08-graham.html">Graham</a><a class="pill" href="09-closest.html">最近点对</a><a class="pill" href="10-calipers.html">旋转卡壳</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow"><span class="pulse-dot"></span> Immersive Lab · Chapter 10</div>
+  <h1>计算几何 · 把公式变成可触摸的形</h1>
+  <p>拖动点看叉积变号，看凸包像橡皮筋收紧，看射线法一笔判定内外——几何不再只在黑板上。</p>
+  <div class="hero-meta">
+    <span class="chip teal">📐 10 个实验</span>
+    <span class="chip blue">🖱️ 可拖拽</span>
+    <span class="chip red">🎬 扫描动画</span>
+  </div>
+</section>
+<div class="card" style="--accent:linear-gradient(90deg,#57AC9C,#3E8578,#C2603F);margin-bottom:18px">
+  <div class="formula lg">点积判夹角 · 叉积判转向 · 凸包是外包络</div>
+  <div class="stage-wrap" style="margin-top:14px">
+    <canvas class="stage" id="heroCv" width="1100" height="150"></canvas>
+  </div>
+</div>
+
+<div class="objectives"><h3>本章学习目标</h3><ol>
+  <li>掌握计算几何的<b>两大原语</b>——<b>点积</b>（判夹角、求投影）与<b>叉积</b>（判方向、算有向面积），理解本章一切判定都由这两个 O(1) 运算拼装而成</li>
+  <li>会用叉积完成<b>方向判断、点到线段关系、线段跨立相交、点在多边形内、多边形面积</b>等基础判定</li>
+  <li>掌握两类<b>凸包</b>算法：Jarvis 步进 <b>O(nh)</b> 与 Graham / Andrew 扫描 <b>O(n log n)</b>，并能按点数 n 与凸包规模 h 选择</li>
+  <li>掌握<b>分治</b>求最近点对 <b>O(n log n)</b>，理解中线带状区域「每点只比常数个点」的关键</li>
+  <li>掌握<b>旋转卡壳</b> O(h) 求凸多边形直径，理解对踵点对；建立「浮点误差—eps 容差—整数精确运算」的工程意识</li>
+</ol></div>
+
+<div class="grid grid-2 stagger">
+<a class="feature-card" href="01-vector.html" style="--c:#3E8578" data-ico="➕">
+  <div class="num">图 01</div><h3>向量基础运算</h3><p>加减点积 · 可拖向量</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="02-direction.html" style="--c:#C2603F" data-ico="✖️">
+  <div class="num">图 02</div><h3>方向判断</h3><p>叉积左右转实时</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="03-point-seg.html" style="--c:#7E62A6" data-ico="📏">
+  <div class="num">图 03</div><h3>点与线段</h3><p>投影最近点距离</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="04-intersect.html" style="--c:#A02C55" data-ico="✂️">
+  <div class="num">图 04</div><h3>两线段相交</h3><p>跨立实验动画</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="05-inpoly.html" style="--c:#4A6C8C" data-ico="⬡">
+  <div class="num">图 05</div><h3>点在多边形内</h3><p>射线法计数</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="06-area.html" style="--c:#9C7420" data-ico="📐">
+  <div class="num">图 06</div><h3>多边形面积</h3><p>鞋带公式可视化</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="07-jarvis.html" style="--c:#3E8578" data-ico="🎁">
+  <div class="num">图 07</div><h3>礼品包裹</h3><p>Jarvis 步进动画</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="08-graham.html" style="--c:#C2603F" data-ico="🧭">
+  <div class="num">图 08</div><h3>Graham / Andrew</h3><p>单调链扫描</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="09-closest.html" style="--c:#7E62A6" data-ico="📍">
+  <div class="num">图 09</div><h3>最近点对</h3><p>分治条带动画</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="10-calipers.html" style="--c:#A02C55" data-ico="🔧">
+  <div class="num">图 10</div><h3>旋转卡壳</h3><p>对踵点示意</p><div class="go">进入实验 →</div>
+</a></div>
+
+<section class="sec">
+<div class="sec-head"><h2>本章知识地图 · 依赖关系</h2><span class="sub">从两个原语到五类算法</span></div>
+
+<div class="defn"><span class="lbl">主线</span><p>全章围绕<b>叉积</b>展开：<b>叉积判方向</b>（01→02）是根，向下长出三条枝——<b>距离与相交</b>（03、04）、<b>多边形性质</b>（05 点在内、06 面积）、<b>凸包与其应用</b>（07/08 求包 → 09 最近点对、10 旋转卡壳）。学习时务必先把 01、02 两节的点积 / 叉积模板写熟，后面全部复用。</p></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>小节</th><th>前置依赖</th><th>核心思想</th><th>复杂度</th></tr>
+  <tr><td>01 向量运算</td><td>—</td><td>坐标表示、加减数乘、<b>点积</b>判夹角与投影</td><td class="hl">O(1)</td></tr>
+  <tr><td>02 方向判断</td><td>01</td><td><b>叉积</b> a×b = x<sub>1</sub>y<sub>2</sub>−x<sub>2</sub>y<sub>1</sub>，toLeft 测试判左右转</td><td class="hl">O(1)</td></tr>
+  <tr><td>03 点与线段</td><td>01, 02</td><td>投影求点到线段最近点与距离</td><td>O(1)</td></tr>
+  <tr><td>04 线段相交</td><td>02, 03</td><td>叉积<b>跨立实验</b> + 快速排斥</td><td>O(1)</td></tr>
+  <tr><td>05 点在多边形</td><td>02</td><td><b>射线法</b>计数奇偶判内外</td><td>O(n)</td></tr>
+  <tr><td>06 多边形面积</td><td>02</td><td>叉积 = 有向面积，<b>鞋带公式</b></td><td>O(n)</td></tr>
+  <tr><td>07 礼品包裹</td><td>02</td><td>Jarvis 步进，从极值点逐点包裹</td><td class="hl">O(nh)</td></tr>
+  <tr><td>08 Graham / Andrew</td><td>02</td><td>极角 / 坐标排序 + 栈维护左转</td><td class="hl">O(n log n)</td></tr>
+  <tr><td>09 最近点对</td><td>01</td><td><b>分治</b> + 中线带状区域常数比较</td><td class="hl">O(n log n)</td></tr>
+  <tr><td>10 旋转卡壳</td><td>07 / 08</td><td>凸包 + 平行支撑线求直径（对踵点对）</td><td class="hl">O(n log n)</td></tr>
+</table></div>
+
+<div class="tip info"><strong>推荐学习路径：</strong>先 <b>01 → 02</b> 打牢点积 / 叉积；再横向学 <b>03 → 04</b>（相交）与 <b>05 → 06</b>（多边形）；随后进入凸包主线 <b>07 → 08</b>；最后学以凸包为前置的两个应用 <b>09（最近点对）</b> 与 <b>10（旋转卡壳）</b>。全程谨记：能用整数就别转 double，浮点比较一律走 eps 容差。</div>
+</section>
+
+<div class="page-nav"><div></div><a href="01-vector.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">向量运算</span></a></div>
+<div class="footer">算法设计与分析 · <b>第10章 计算几何</b> · 强交互可视化版<br/>拖拽 · 扫描 · 凸包 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(62,133,120,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const cross=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x);
+const dot=(a,b)=>a.x*b.x+a.y*b.y;
+const sub=(a,b)=>({x:a.x-b.x,y:a.y-b.y});
+const add=(a,b)=>({x:a.x+b.x,y:a.y+b.y});
+const mul=(a,k)=>({x:a.x*k,y:a.y*k});
+const len=a=>Math.hypot(a.x,a.y);
+function dragPoints(cv, pts, onChange){
+  let drag=-1;
+  const pos=e=>{const r=cv.getBoundingClientRect(); return {x:(e.clientX-r.left)*cv.width/r.width, y:(e.clientY-r.top)*cv.height/r.height};};
+  cv.addEventListener('mousedown',e=>{
+    const p=pos(e); drag=pts.findIndex(q=>(q.x-p.x)**2+(q.y-p.y)**2<400);
+    cv.style.cursor=drag>=0?'grabbing':'crosshair';
+  });
+  cv.addEventListener('mousemove',e=>{
+    if(drag<0) return;
+    const p=pos(e);
+    pts[drag].x=Math.max(20,Math.min(cv.width-20,p.x));
+    pts[drag].y=Math.max(20,Math.min(cv.height-20,p.y));
+    onChange();
+  });
+  const up=()=>{drag=-1; cv.style.cursor='crosshair';};
+  cv.addEventListener('mouseup',up); cv.addEventListener('mouseleave',up);
+}
+function drawDot(ctx,p,col,label){
+  ctx.beginPath(); ctx.arc(p.x,p.y,11,0,Math.PI*2);
+  ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=12; ctx.fill(); ctx.shadowBlur=0;
+  if(label){ ctx.fillStyle='#1D1B16'; ctx.font='12px ui-monospace'; ctx.fillText(label, p.x+14, p.y-10); }
+}
+function drawArrow(ctx,a,b,col){
+  ctx.strokeStyle=col; ctx.lineWidth=3; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+  const ang=Math.atan2(b.y-a.y,b.x-a.x);
+  ctx.beginPath();
+  ctx.moveTo(b.x,b.y);
+  ctx.lineTo(b.x-12*Math.cos(ang-0.4), b.y-12*Math.sin(ang-0.4));
+  ctx.lineTo(b.x-12*Math.cos(ang+0.4), b.y-12*Math.sin(ang+0.4));
+  ctx.closePath(); ctx.fillStyle=col; ctx.fill();
+}
+
+const cv=heroCv, ctx=cv.getContext('2d');
+let t=0;
+const pts=Array.from({length:12},(_,i)=>({
+  x:150+i*70+Math.sin(i)*20, y:75+Math.sin(i*1.3)*25
+}));
+function andrew(points){
+  const p=points.slice().sort((a,b)=>a.x-b.x||a.y-b.y);
+  const cr=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x);
+  const lo=[],up=[];
+  for(const pt of p){while(lo.length>=2&&cr(lo.at(-2),lo.at(-1),pt)<=0)lo.pop();lo.push(pt);}
+  for(let i=p.length-1;i>=0;i--){const pt=p[i];while(up.length>=2&&cr(up.at(-2),up.at(-1),pt)<=0)up.pop();up.push(pt);}
+  lo.pop();up.pop(); return lo.concat(up);
+}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  pts.forEach((p,i)=>{ p.y=75+Math.sin(t*0.03+i*0.7)*28; p.x=100+i*((cv.width-160)/11)+Math.cos(t*0.02+i)*6; });
+  const h=andrew(pts);
+  ctx.strokeStyle='rgba(45,212,191,.85)'; ctx.lineWidth=2.5;
+  ctx.beginPath(); h.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)); ctx.closePath(); ctx.stroke();
+  ctx.fillStyle='rgba(45,212,191,.1)'; ctx.fill();
+  pts.forEach(p=>{ ctx.beginPath(); ctx.arc(p.x,p.y,5,0,Math.PI*2); ctx.fillStyle=h.includes(p)?'#3E8578':'#E39A7C'; ctx.fill(); });
+  t++;
+}
+setInterval(draw,40); draw();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>向量运算 · 第10章 计算几何</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">10</div>算法可视化 · <span>第10章 计算几何</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill active" href="01-vector.html">向量运算</a><a class="pill" href="02-direction.html">方向判断</a><a class="pill" href="03-point-seg.html">点与线段</a><a class="pill" href="04-intersect.html">线段相交</a><a class="pill" href="05-inpoly.html">点在多边形</a><a class="pill" href="06-area.html">多边形面积</a><a class="pill" href="07-jarvis.html">礼品包裹</a><a class="pill" href="08-graham.html">Graham</a><a class="pill" href="09-closest.html">最近点对</a><a class="pill" href="10-calipers.html">旋转卡壳</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 1 · 基础</div>
+  <h1>向量加减与点积</h1>
+  <p>拖动橙色端点 P 与红色端点 Q，实时显示 p+q 的平行四边形、点积 p·q、两向量模长 |p| |q| 与夹角 θ。（p−q 的坐标算法见下方公式与代码）</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够用<b>坐标</b>表示平面向量，并正确进行加法、减法与数乘运算</li>
+  <li>能够写出<b>模长公式</b> |a| = √(x<sup>2</sup>+y<sup>2</sup>)，并由此得到单位向量</li>
+  <li>能够计算<b>点积</b>，并说明它的几何意义是「一个向量在另一个方向上的投影 × 该方向的长度」</li>
+  <li>能够由点积的<b>符号</b>判定两向量夹角为锐角、直角还是钝角</li>
+  <li>能够用 C++ 定义 <b>Point / Vector 结构体</b>并实现基本运算</li>
+  <li>理解浮点误差为何使 <b>== 0</b> 失效，会用 eps 容差与 clamp 保护 acos</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar"><button class="btn ghost" id="reset">重置</button></div>
+  <div class="stage-wrap light">
+    <canvas class="stage" id="cv" width="1000" height="400"></canvas>
+    <div class="stage-hud"><span class="hud-pill light">drag endpoints</span><span class="hud-pill light" id="hud">—</span></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>p · q</span><b class="teal" id="dp">—</b></div>
+    <div class="stat"><span>|p|</span><b class="blue" id="lp">—</b></div>
+    <div class="stat"><span>|q|</span><b class="red" id="lq">—</b></div>
+  </div>
+  <div class="formula">p·q = |p||q|cosθ · 符号判锐/钝/直角</div>
+</div>
+
+<section class="sec">
+<div class="sec-head"><h2>一、向量的坐标表示与线性运算</h2><span class="sub">vector · coordinate representation</span></div>
+
+<div class="defn"><span class="lbl">定义</span><p>在平面直角坐标系中，既有<b>大小</b>又有<b>方向</b>的量称为<b>向量</b>（vector），记作 a = (x, y)。若向量由点 A(x<sub>1</sub>, y<sub>1</sub>) 指向点 B(x<sub>2</sub>, y<sub>2</sub>)，则该<b>有向线段</b>对应的向量为 AB = B − A = (x<sub>2</sub>−x<sub>1</sub>, y<sub>2</sub>−y<sub>1</sub>)。</p></div>
+
+<div class="formula">a + b = (x<sub>1</sub>+x<sub>2</sub>, y<sub>1</sub>+y<sub>2</sub>)　　a − b = (x<sub>1</sub>−x<sub>2</sub>, y<sub>1</sub>−y<sub>2</sub>)　　k·a = (kx<sub>1</sub>, ky<sub>1</sub>)</div>
+
+<div class="list-step"><span class="n">1</span><div class="body"><b>加法（平行四边形法则）</b>：以 O 为公共起点作 p 与 q，则 p+q 是以它们为邻边的平行四边形的对角线。演示中的虚线框就是这个平行四边形。</div></div>
+<div class="list-step"><span class="n">2</span><div class="body"><b>减法（三角形法则）</b>：p − q 是<b>从 q 的终点指向 p 的终点</b>的向量。记忆口诀「<b>指向被减数</b>」。在演示里它等于连接 Q → P 的那条箭头。</div></div>
+<div class="list-step"><span class="n">3</span><div class="body"><b>数乘</b>：k &gt; 0 时 k·a 与 a 同向、长度伸缩 k 倍；k &lt; 0 时反向。k = 0 得零向量 (0, 0)。</div></div>
+
+<div class="tip info"><strong>点与向量共用一个结构体：</strong>代码里 <b>Point</b> 与 <b>Vector</b> 都是 (x, y)，但语义必须分清 —— <b>点 − 点 = 向量</b>（有几何意义）、<b>点 + 向量 = 点</b>（平移）、<b>向量 + 向量 = 向量</b>；而<b>点 + 点</b>在几何上<u>没有意义</u>（只有取中点等加权平均才有意义）。</div>
+</section>
+
+<section class="sec">
+<div class="sec-head"><h2>二、模长与单位向量</h2><span class="sub">length · normalization</span></div>
+
+<div class="formula lg">|a| = √(x<sup>2</sup> + y<sup>2</sup>)　　　â = a / |a|　（|a| ≠ 0）</div>
+
+<div class="defn prop"><span class="lbl">性质</span><p>模长即向量的长度，也就是两点间的欧几里得距离：dist(A, B) = |B − A| = √((x<sub>2</sub>−x<sub>1</sub>)<sup>2</sup> + (y<sub>2</sub>−y<sub>1</sub>)<sup>2</sup>)。<b>单位向量</b> â 保留方向、长度为 1，常用于「沿某方向前进 d 个单位」这类构造：P′ = P + d·â。</p></div>
+
+<div class="tip warn"><strong>只比大小时不要开方：</strong>若只需比较 dist(A,B) 与 dist(C,D) 的大小，直接比较<b>距离的平方</b>即可。平方运算在整数坐标下是<b>精确</b>的，而 sqrt 会引入舍入误差且慢得多——这是计算几何最常用的提速兼提精技巧。</div>
+</section>
+
+<section class="sec">
+<div class="sec-head"><h2>三、点积及其几何意义</h2><span class="sub">dot product · projection</span></div>
+
+<div class="defn"><span class="lbl">定义</span><p><b>点积</b>（dot product，又称数量积、内积）定义为 a·b = x<sub>1</sub>x<sub>2</sub> + y<sub>1</sub>y<sub>2</sub>。它的结果是一个<b>标量</b>（数），不是向量。</p></div>
+
+<div class="formula">a · b = x<sub>1</sub>x<sub>2</sub> + y<sub>1</sub>y<sub>2</sub> = |a| |b| cos θ</div>
+
+<div class="deriv">
+  <span class="step">第一步：设 a、b 夹角为 θ，由余弦定理 |a−b|<sup>2</sup> = |a|<sup>2</sup> + |b|<sup>2</sup> − 2|a||b|cos θ <span class="why">三角形三边关系</span></span>
+  <span class="step">第二步：把左端按坐标展开 |a−b|<sup>2</sup> = (x<sub>1</sub>−x<sub>2</sub>)<sup>2</sup> + (y<sub>1</sub>−y<sub>2</sub>)<sup>2</sup> <span class="why">代入模长公式</span></span>
+  <span class="step">第三步：整理得 |a−b|<sup>2</sup> = |a|<sup>2</sup> + |b|<sup>2</sup> − 2(x<sub>1</sub>x<sub>2</sub> + y<sub>1</sub>y<sub>2</sub>) <span class="why">完全平方展开后归并</span></span>
+  <span class="step">第四步：两式对照，立得 x<sub>1</sub>x<sub>2</sub> + y<sub>1</sub>y<sub>2</sub> = |a||b|cos θ <span class="why">坐标式与几何式等价</span></span>
+  <span class="step">第五步：于是 cos θ = (a·b) / (|a||b|)，而 a 在 b 方向上的<b>投影长度</b> = |a|cos θ = (a·b) / |b| <span class="why">点积的几何意义</span></span>
+</div>
+
+<div class="defn prop"><span class="lbl">性质</span><p><b>符号判角</b>：由于 |a|、|b| 恒非负，a·b 的符号完全由 cos θ 决定 ——<br/>a·b &gt; 0 ⇔ θ &lt; 90°（<b>锐角</b>，方向大致相同）；<br/>a·b = 0 ⇔ θ = 90°（<b>垂直</b>）；<br/>a·b &lt; 0 ⇔ θ &gt; 90°（<b>钝角</b>，方向大致相反）。</p></div>
+
+<div class="defn prop"><span class="lbl">性质</span><p>点积满足交换律 a·b = b·a、分配律 a·(b+c) = a·b + a·c、与数乘相容 (ka)·b = k(a·b)；且 a·a = |a|<sup>2</sup>，这正是「用点积算模长」的依据。</p></div>
+</section>
+
+<section class="sec">
+<div class="sec-head"><h2>四、C++ 实现</h2><span class="sub">Point / Vector 基础库</span></div>
+
+<div class="code"><span class="cm">// ---------- 计算几何基础模板（本章反复使用）----------</span>
+<span class="kw">const</span> <span class="kw">double</span> EPS = <span class="nu">1e-8</span>;              <span class="cm">// 容差：坐标量级约 1e3 时的经验取值</span>
+<span class="kw">int</span> <span class="fn">sgn</span>(<span class="kw">double</span> x) {                     <span class="cm">// 三态符号函数，避免直接和 0 比较</span>
+    <span class="kw">if</span> (<span class="fn">fabs</span>(x) &lt; EPS) <span class="kw">return</span> <span class="nu">0</span>;         <span class="cm">// |x| 足够小就当作 0</span>
+    <span class="kw">return</span> x &lt; <span class="nu">0</span> ? -<span class="nu">1</span> : <span class="nu">1</span>;
+}
+
+<span class="kw">struct</span> <span class="fn">Point</span> {                            <span class="cm">// 点与向量共用同一结构</span>
+    <span class="kw">double</span> x, y;
+    <span class="fn">Point</span>(<span class="kw">double</span> x = <span class="nu">0</span>, <span class="kw">double</span> y = <span class="nu">0</span>) : x(x), y(y) {}
+};
+<span class="kw">typedef</span> Point Vector;                    <span class="cm">// 语义别名：Vector 表示自由向量</span>
+
+<span class="cm">// 线性运算：点−点=向量，点+向量=点</span>
+Vector <span class="kw">operator</span>+(Vector a, Vector b) { <span class="kw">return</span> Vector(a.x + b.x, a.y + b.y); }
+Vector <span class="kw">operator</span>-(Point  a, Point  b) { <span class="kw">return</span> Vector(a.x - b.x, a.y - b.y); }
+Vector <span class="kw">operator</span>*(Vector a, <span class="kw">double</span> k) { <span class="kw">return</span> Vector(a.x * k, a.y * k); }
+Vector <span class="kw">operator</span>/(Vector a, <span class="kw">double</span> k) { <span class="kw">return</span> Vector(a.x / k, a.y / k); }
+
+<span class="cm">// 点积、模长、距离</span>
+<span class="kw">double</span> <span class="fn">Dot</span>(Vector a, Vector b)   { <span class="kw">return</span> a.x * b.x + a.y * b.y; }
+<span class="kw">double</span> <span class="fn">Length2</span>(Vector a)        { <span class="kw">return</span> <span class="fn">Dot</span>(a, a); }        <span class="cm">// 模长平方：无开方，优先使用</span>
+<span class="kw">double</span> <span class="fn">Length</span>(Vector a)         { <span class="kw">return</span> <span class="fn">sqrt</span>(<span class="fn">Dot</span>(a, a)); }
+<span class="kw">double</span> <span class="fn">Dist</span>(Point a, Point b)   { <span class="kw">return</span> <span class="fn">Length</span>(b - a); }
+
+<span class="cm">// 单位向量：调用前必须保证 a 不是零向量</span>
+Vector <span class="fn">Normalize</span>(Vector a) {
+    <span class="kw">double</span> L = <span class="fn">Length</span>(a);
+    <span class="kw">if</span> (<span class="fn">sgn</span>(L) == <span class="nu">0</span>) <span class="kw">return</span> Vector(<span class="nu">0</span>, <span class="nu">0</span>);   <span class="cm">// 防除零：零向量无方向</span>
+    <span class="kw">return</span> a / L;
+}
+
+<span class="cm">// 夹角（弧度，取值 [0, π]）；必须把 cosθ 夹到 [-1,1]，否则 acos 返回 NaN</span>
+<span class="kw">double</span> <span class="fn">Angle</span>(Vector a, Vector b) {
+    <span class="kw">double</span> c = <span class="fn">Dot</span>(a, b) / (<span class="fn">Length</span>(a) * <span class="fn">Length</span>(b));
+    <span class="kw">if</span> (c &gt; <span class="nu">1.0</span>) c = <span class="nu">1.0</span>;
+    <span class="kw">if</span> (c &lt; -<span class="nu">1.0</span>) c = -<span class="nu">1.0</span>;
+    <span class="kw">return</span> <span class="fn">acos</span>(c);
+}
+
+<span class="cm">// 垂直判定：不能写 Dot(a,b) == 0 ！</span>
+<span class="kw">bool</span> <span class="fn">Perpendicular</span>(Vector a, Vector b) { <span class="kw">return</span> <span class="fn">sgn</span>(<span class="fn">Dot</span>(a, b)) == <span class="nu">0</span>; }</div>
+</section>
+
+<section class="sec">
+<div class="sec-head"><h2>五、复杂度分析</h2><span class="sub">全部为 O(1)，但常数差别很大</span></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>运算</th><th>时间</th><th>浮点开销</th><th>整数坐标下是否精确</th></tr>
+  <tr><td>加 / 减 / 数乘</td><td class="hl">O(1)</td><td>1 次加减</td><td>精确</td></tr>
+  <tr><td>点积 Dot</td><td class="hl">O(1)</td><td>2 乘 1 加</td><td><b>精确</b>（不溢出时）</td></tr>
+  <tr><td>模长平方 Length2</td><td class="hl">O(1)</td><td>2 乘 1 加</td><td><b>精确</b></td></tr>
+  <tr><td>模长 Length</td><td>O(1)</td><td>含 1 次 sqrt（约 10~20 倍乘法）</td><td>否，有舍入</td></tr>
+  <tr><td>夹角 Angle</td><td>O(1)</td><td>含 sqrt + acos（最慢）</td><td>否，误差最大</td></tr>
+</table></div>
+
+<div class="tip info"><strong>结论：</strong>能用 <b>Dot / Length2</b> 表达的判定，就绝不写 <b>Length / Angle</b>。整数坐标下 Dot 与 Length2 是<b>零误差</b>的，这也是后续叉积判定能做到「几乎不出错」的根本原因。</div>
+</section>
+
+<section class="sec">
+<div class="sec-head"><h2>六、退化情形与浮点精度</h2><span class="sub">本章的生死线</span></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>退化 / 陷阱</th><th>后果</th><th>正确处理</th></tr>
+  <tr><td>零向量 a = (0,0)</td><td>Normalize 除零得 inf/nan；夹角无定义</td><td>先 <code>sgn(Length(a))==0</code> 判空并单独返回</td></tr>
+  <tr><td>Dot/( |a||b| ) 因舍入超出 [−1,1]</td><td>acos 返回 <b>NaN</b>，之后所有比较都为 false</td><td>先 clamp 到 [−1, 1] 再 acos</td></tr>
+  <tr><td>写 <code>Dot(a,b) == 0</code> 判垂直</td><td>几乎永远为 false，逻辑失效</td><td>写 <code>fabs(Dot(a,b)) &lt; EPS</code></td></tr>
+  <tr><td>EPS 取得过大 / 过小</td><td>过大：不同的点被当成同一点；过小：等价的量被判为不等</td><td>按<b>坐标量级</b>选：坐标 ~1e3 用 1e-8；坐标 ~1e9 需用相对误差</td></tr>
+  <tr><td>坐标是大整数且用了 int 存点积</td><td>x<sub>1</sub>x<sub>2</sub> 溢出，符号翻转</td><td>用 <code>long long</code> 或 <code>double</code>，并估算量级</td></tr>
+</table></div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li>把模长写成 x<sup>2</sup>+y<sup>2</sup> 而<b>忘记开方</b>——或者反过来，明明只比大小却多此一举开了方。</li>
+  <li>用 <code>==</code> 直接比较两个浮点数（判重合、判垂直、判共线都不行）。</li>
+  <li>把 a·b 当成向量：点积的结果是<b>标量</b>，不能再拿去做叉积。</li>
+  <li>把「点 + 点」写进代码——除非是在求中点 (A+B)/2，否则几何上没有意义。</li>
+  <li>acos 之前不 clamp，遇到两向量几乎同向时得到 NaN。</li>
+  <li>误以为 a·b = 0 就一定是垂直：若 a 或 b 是<b>零向量</b>，点积也是 0，但此时夹角根本没有定义。</li>
+</ul></div>
+</section>
+
+<section class="sec">
+<div class="sec-head"><h2>七、承上启下</h2><span class="sub">两个原语撑起一整章</span></div>
+<div class="tip info"><strong>点积与叉积是本章一切几何判定的基础。</strong>点积回答「夹角是<b>锐</b>还是<b>钝</b>」，叉积（下一节）回答「在<b>左</b>还是在<b>右</b>」。此后的方向判断、点到线段距离、跨立相交、点在多边形内、多边形面积、凸包扫描、旋转卡壳，全部都是由这两个 <b>O(1)</b> 的原语拼装出来的——把它们写对、写稳，本章就成功了一半。</div>
+
+<div class="terms">
+  <span class="term"><b>向量</b>vector</span>
+  <span class="term"><b>模长</b>magnitude / length</span>
+  <span class="term"><b>单位向量</b>unit vector</span>
+  <span class="term"><b>点积</b>dot product</span>
+  <span class="term"><b>投影</b>projection</span>
+  <span class="term"><b>容差</b>epsilon / tolerance</span>
+  <span class="term"><b>退化情形</b>degenerate case</span>
+</div>
+</section>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>向量用坐标 (x, y) 表示；<b>点 − 点 = 向量</b>是把几何问题代数化的第一步。</li>
+  <li>加减遵循平行四边形 / 三角形法则，数乘只改变长度与朝向，运算全部逐分量进行。</li>
+  <li>模长 |a| = √(x<sup>2</sup>+y<sup>2</sup>)；只作大小比较时用<b>模长平方</b>，既快又精确。</li>
+  <li>点积 a·b = x<sub>1</sub>x<sub>2</sub>+y<sub>1</sub>y<sub>2</sub> = |a||b|cos θ，几何意义是投影；<b>符号</b>直接给出锐角 / 直角 / 钝角。</li>
+  <li>所有基本运算都是 O(1)，但 sqrt 与 acos 既慢又有误差，能不用就不用。</li>
+  <li>浮点比较一律走 <b>sgn(x)</b> 容差函数；acos 之前一定要 clamp；零向量必须单独判。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>已知 a = (3, 4)，b = (−4, 3)，则 a·b 与两向量的夹角分别是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>a·b = 0，夹角为 90°</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>a·b = 25，夹角为 0°</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>a·b = 24，夹角为锐角</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>a·b = −24，夹角为钝角</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>a·b = 3×(−4) + 4×3 = −12 + 12 = <b>0</b>，故两向量垂直，选 A。B 的 25 其实是 |a|·|b| = 5×5，是<b>模长的乘积</b>而非点积，把公式 a·b = |a||b|cos θ 里的 cos θ 漏掉了；C、D 是把两项符号搞错（写成 3×4 + 4×3 或 3×(−4) − 4×3）的结果。注意：这里点积为 0 能推出垂直，是因为 a、b 都<b>不是零向量</b>。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>要判断向量 a 与 b 是否垂直，下列 C++ 写法中<b>唯一正确</b>的是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span><code>if (Dot(a, b) == 0)</code></span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span><code>if (Dot(a, b) &lt; EPS)</code></span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span><code>if (fabs(Dot(a, b)) &lt; EPS)</code></span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span><code>if (Angle(a, b) == acos(0))</code></span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 C。A 用 <code>==</code> 比较浮点，由于舍入误差实际算出的可能是 3.55e-15 而非严格的 0，条件几乎永远不成立。B 是最有迷惑性的错误：<code>Dot &lt; EPS</code> 只卡住了<b>上界</b>，任何很大的负点积（比如 −1000，明显是钝角）都会被误判为垂直，必须取绝对值。D 同样是浮点相等比较，而且经过 sqrt 与 acos 两次放大，误差比 A 还大。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>在一个整数坐标点集中反复比较「哪两点更近」，最佳做法是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>用 <code>Length</code> 求出距离后比较，代码最直观</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>比较<b>距离的平方</b> <code>Length2</code>，避免 sqrt</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>比较 <code>Angle</code>，角度小的点更近</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>先 Normalize 再比较单位向量</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 B。因为 t ↦ t<sup>2</sup> 在非负区间上<b>单调递增</b>，比较 d 与比较 d<sup>2</sup> 结论完全一致；而整数坐标下 d<sup>2</sup> 是精确整数，既<b>零误差</b>又省掉每次约 10~20 倍乘法开销的 sqrt。A 结论正确但慢且引入舍入误差；C 完全跑偏——夹角与距离无关，两个夹角很小的点可能相距很远；D 归一化后长度信息被抹掉了，根本无从比较远近。</div>
+</div>
+</div>
+
+<div class="page-nav"><a href="index.html"><span class="dir">← 上一节</span><span class="name">总览</span></a><a href="02-direction.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">方向判断</span></a></div>
+<div class="footer">算法设计与分析 · <b>第10章 计算几何</b> · 强交互可视化版<br/>拖拽 · 扫描 · 凸包 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(62,133,120,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const cross=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x);
+const dot=(a,b)=>a.x*b.x+a.y*b.y;
+const sub=(a,b)=>({x:a.x-b.x,y:a.y-b.y});
+const add=(a,b)=>({x:a.x+b.x,y:a.y+b.y});
+const mul=(a,k)=>({x:a.x*k,y:a.y*k});
+const len=a=>Math.hypot(a.x,a.y);
+function dragPoints(cv, pts, onChange){
+  let drag=-1;
+  const pos=e=>{const r=cv.getBoundingClientRect(); return {x:(e.clientX-r.left)*cv.width/r.width, y:(e.clientY-r.top)*cv.height/r.height};};
+  cv.addEventListener('mousedown',e=>{
+    const p=pos(e); drag=pts.findIndex(q=>(q.x-p.x)**2+(q.y-p.y)**2<400);
+    cv.style.cursor=drag>=0?'grabbing':'crosshair';
+  });
+  cv.addEventListener('mousemove',e=>{
+    if(drag<0) return;
+    const p=pos(e);
+    pts[drag].x=Math.max(20,Math.min(cv.width-20,p.x));
+    pts[drag].y=Math.max(20,Math.min(cv.height-20,p.y));
+    onChange();
+  });
+  const up=()=>{drag=-1; cv.style.cursor='crosshair';};
+  cv.addEventListener('mouseup',up); cv.addEventListener('mouseleave',up);
+}
+function drawDot(ctx,p,col,label){
+  ctx.beginPath(); ctx.arc(p.x,p.y,11,0,Math.PI*2);
+  ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=12; ctx.fill(); ctx.shadowBlur=0;
+  if(label){ ctx.fillStyle='#1D1B16'; ctx.font='12px ui-monospace'; ctx.fillText(label, p.x+14, p.y-10); }
+}
+function drawArrow(ctx,a,b,col){
+  ctx.strokeStyle=col; ctx.lineWidth=3; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+  const ang=Math.atan2(b.y-a.y,b.x-a.x);
+  ctx.beginPath();
+  ctx.moveTo(b.x,b.y);
+  ctx.lineTo(b.x-12*Math.cos(ang-0.4), b.y-12*Math.sin(ang-0.4));
+  ctx.lineTo(b.x-12*Math.cos(ang+0.4), b.y-12*Math.sin(ang+0.4));
+  ctx.closePath(); ctx.fillStyle=col; ctx.fill();
+}
+
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const O={x:200,y:220};
+let P={x:420,y:120}, Q={x:380,y:300};
+function redraw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  // axes
+  ctx.strokeStyle='rgba(162,156,144,.35)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(40,O.y); ctx.lineTo(960,O.y); ctx.moveTo(O.x,20); ctx.lineTo(O.x,380); ctx.stroke();
+  const p=sub(P,O), q=sub(Q,O), sum=add(P,{x:q.x,y:q.y}), dif={x:O.x+p.x-q.x,y:O.y+p.y-q.y};
+  // p+q parallelogram
+  ctx.strokeStyle='rgba(62,133,120,.35)'; ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.moveTo(P.x,P.y); ctx.lineTo(sum.x,sum.y); ctx.lineTo(Q.x,Q.y); ctx.stroke(); ctx.setLineDash([]);
+  drawArrow(ctx,O,P,'#B8862B'); drawArrow(ctx,O,Q,'#C2603F');
+  drawArrow(ctx,O,sum,'#3E8578');
+  drawDot(ctx,O,'#7A746A','O'); drawDot(ctx,P,'#B8862B','P'); drawDot(ctx,Q,'#C2603F','Q'); drawDot(ctx,sum,'#3E8578','P+Q');
+  const d=dot(p,q);
+  dp.textContent=d.toFixed(1); lp.textContent=len(p).toFixed(1); lq.textContent=len(q).toFixed(1);
+  const ang=Math.acos(Math.max(-1,Math.min(1,d/(len(p)*len(q)||1))))*180/Math.PI;
+  hud.textContent=`θ≈${ang.toFixed(1)}° · `+(d>1?'锐角':d<-1?'钝角':'≈直角');
+}
+dragPoints(cv,[P,Q],redraw);
+// also allow O fixed - drag only P Q by putting them in array - need O not draggable
+// rebind: only P and Q
+cv.onmousedown=null; // clear dragPoints partial - rewrite drag
+let drag=-1;
+const pts=[P,Q];
+cv.onmousedown=e=>{
+  const r=cv.getBoundingClientRect(), x=(e.clientX-r.left)*cv.width/r.width, y=(e.clientY-r.top)*cv.height/r.height;
+  drag=pts.findIndex(q=>(q.x-x)**2+(q.y-y)**2<500);
+};
+cv.onmousemove=e=>{
+  if(drag<0) return;
+  const r=cv.getBoundingClientRect();
+  pts[drag].x=Math.max(30,Math.min(cv.width-30,(e.clientX-r.left)*cv.width/r.width));
+  pts[drag].y=Math.max(30,Math.min(cv.height-30,(e.clientY-r.top)*cv.height/r.height));
+  redraw();
+};
+cv.onmouseup=cv.onmouseleave=()=>drag=-1;
+reset.onclick=()=>{P.x=420;P.y=120;Q.x=380;Q.y=300;redraw();};
+redraw();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

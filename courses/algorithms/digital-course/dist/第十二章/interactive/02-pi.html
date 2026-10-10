@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>求π · 第12章 概率算法和近似算法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">12</div>算法可视化 · <span>第12章 概率算法和近似算法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-prob.html">概率概述</a><a class="pill active" href="02-pi.html">求π</a><a class="pill" href="03-monte.html">蒙特卡罗</a><a class="pill" href="04-vegas.html">拉斯维加斯</a><a class="pill" href="05-sherwood.html">舍伍德</a><a class="pill" href="06-approx.html">近似概述</a><a class="pill" href="07-sched.html">多机调度</a><a class="pill" href="08-knapsack.html">背包近似</a><a class="pill" href="09-tsp.html">TSP近似</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 2 · 数值概率</div>
+  <h1>投点法估计 π</h1>
+  <p>正方形内切圆：π ≈ 4 × (圆内点数 / 总点数)。点数越多，估计越稳。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>推导</b>投点法的概率原理：随机点落入内切圆的概率 = 圆面积 / 正方形面积 = π/4。</li>
+  <li>能够<b>说明</b>为什么估计量 4·N<sub>in</sub>/N 是 π 的无偏估计，并写出它的方差与标准差。</li>
+  <li>能够<b>记住并解释</b>数值概率算法的核心局限：误差量级为 O(1/√N)，<b>精度每提高一位十进制数，采样量要增加约 100 倍</b>。</li>
+  <li>能够<b>写出</b>投点法的 C++ 实现，并分析其时间与空间复杂度。</li>
+  <li>能够<b>迁移</b>该方法去估计任意定积分（蒙特卡罗积分）。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="run">投 1000 点</button>
+    <button class="btn" id="mega">投 5000</button>
+    <button class="btn" id="reset">清空</button>
+  </div>
+  <div class="stage-wrap light" style="height:380px;max-width:380px;margin:0 auto">
+    <canvas class="stage" id="cv" width="380" height="380"></canvas>
+    <div class="stage-hud"><span class="hud-pill light">Monte Carlo π</span><span class="hud-pill light" id="hud">0 pts</span></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>π 估计</span><b class="amber" id="est">?</b></div>
+    <div class="stat"><span>相对误差</span><b class="orange" id="err">—</b></div>
+    <div class="stat"><span>圆内 / 总</span><b class="green" id="cnt">0/0</b></div>
+  </div>
+  <div class="formula">π ≈ 4 · N<sub>in</sub> / N<sub>total</sub></div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>概率原理：为什么是 π/4</h2><span class="sub">几何概型 · 面积比即概率</span></div>
+<div class="defn"><span class="lbl">问题与模型</span><p>取边长为 1 的正方形 S = [0,1] × [0,1]，其中<b>四分之一圆</b> C = { (x,y) ∈ S : x<sup>2</sup> + y<sup>2</sup> ≤ 1 }。在 S 中<b>均匀独立</b>地随机投掷 N 个点，记落入 C 的点数为 N<sub>in</sub>。<br/>（页面演示用的是"正方形 + 内切圆"，两者完全等价：内切圆恰好由四个这样的四分之一圆拼成，面积比相同。）</p></div>
+<div class="deriv">
+<span class="step">① 几何概型：点均匀落在 S 上，落入子区域 A 的概率 = |A| / |S| <span class="why">面积比即概率</span></span>
+<span class="step">② 正方形面积 |S| = 1<sup>2</sup> = 1；四分之一圆面积 |C| = (1/4)·π·1<sup>2</sup> = π/4</span>
+<span class="step">③ 故单点落入圆内的概率 <b>p = |C| / |S| = π/4 ≈ 0.7854</b> <span class="why">这就是"π/4"的来历</span></span>
+<span class="step">④ 令 X<sub>i</sub> = 1（第 i 点落入圆内）或 0（落在圆外），则 X<sub>i</sub> ~ Bernoulli(p)，E[X<sub>i</sub>] = p</span>
+<span class="step">⑤ N<sub>in</sub> = Σ X<sub>i</sub> ~ B(N, p)，由期望的线性性 E[N<sub>in</sub>] = N·p = N·π/4</span>
+<span class="step">⑥ 取估计量 <b>π&#770; = 4·N<sub>in</sub>/N</b>，则 E[π&#770;] = 4·E[N<sub>in</sub>]/N = 4·(N·π/4)/N = <b>π</b> <span class="why">无偏估计</span></span>
+<span class="step">∴ 用频率 N<sub>in</sub>/N 逼近概率 π/4，再乘 4 即得 π 的估计 ∎</span>
+</div>
+<div class="formula lg">P(点落入圆内) = 圆面积 / 正方形面积 = π/4　⟹　π ≈ 4 · N<sub>in</sub> / N</div>
+<div class="tip info"><strong>为什么必须"均匀且独立"？</strong>均匀保证"面积比 = 概率"这一步成立；独立保证 N<sub>in</sub> 服从二项分布，从而下面的方差计算可用。若随机数发生器有周期短、低维相关等缺陷，采样点会在平面上形成规则条纹，估计值将系统性偏离 π——这在实践中是真实存在的陷阱。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>误差分析：O(1/√N) 的铁律</h2><span class="sub">数值概率算法最关键、也最"劝退"的性质</span></div>
+<div class="deriv">
+<span class="step">① N<sub>in</sub> ~ B(N, p)，二项分布方差 Var[N<sub>in</sub>] = N·p·(1 − p)</span>
+<span class="step">② π&#770; = 4·N<sub>in</sub>/N，由 Var[aX] = a<sup>2</sup>Var[X] 得</span>
+<span class="step">&nbsp;&nbsp;&nbsp;Var[π&#770;] = (4/N)<sup>2</sup> · N·p(1−p) = <b>16·p(1−p) / N</b> <span class="why">方差与 N 成反比</span></span>
+<span class="step">③ 标准差（即典型误差量级）σ(π&#770;) = 4·√(p(1−p)) / √N <span class="why">开方后变成 1/√N</span></span>
+<span class="step">④ 代入 p = π/4 ≈ 0.7854：√(p(1−p)) = √(0.7854 × 0.2146) ≈ 0.4105</span>
+<span class="step">&nbsp;&nbsp;&nbsp;σ(π&#770;) ≈ 4 × 0.4105 / √N ≈ <b>1.64 / √N</b></span>
+<span class="step">∴ <b>误差 = Θ(1/√N)</b>，与被估计的量、与维数都无关，是蒙特卡罗方法的普适规律 ∎</span>
+</div>
+<div class="defn thm"><span class="lbl">关键推论 · 100 倍定律</span><p>要把误差<b>缩小到原来的 1/10</b>（即多得到一位十进制有效数字），由 1/√N 可知需要 √N 增大 10 倍，即 <b>N 增大 100 倍</b>。<br/>这就是数值概率算法的<b>根本局限</b>：它能极快地给出 2～3 位有效数字，但要拿到 8 位有效数字则需要约 10<sup>16</sup> 个采样点——实际不可行。因此蒙特卡罗方法<b>不适合追求高精度</b>，它的用武之地是<b>高维、不规则、解析方法失效</b>的场合（此时传统数值方法的复杂度随维数指数爆炸，而蒙特卡罗的 O(1/√N) 与维数无关）。</p></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>采样点数 N</th><th>√N</th><th>误差量级 ≈ 1.64/√N</th><th>大致有效数字</th></tr>
+  <tr><td>10<sup>2</sup> = 100</td><td>10</td><td>≈ 0.16</td><td>1 位（3.x）</td></tr>
+  <tr><td>10<sup>4</sup> = 1 万</td><td>100</td><td class="hl">≈ 0.016</td><td>2 位（3.1x）</td></tr>
+  <tr><td>10<sup>6</sup> = 100 万</td><td>1000</td><td class="hl">≈ 0.0016</td><td>3 位（3.14x）</td></tr>
+  <tr><td>10<sup>8</sup> = 1 亿</td><td>10<sup>4</sup></td><td>≈ 0.00016</td><td>4 位（3.141x）</td></tr>
+  <tr><td>10<sup>16</sup></td><td>10<sup>8</sup></td><td>≈ 1.6 × 10<sup>−8</sup></td><td>8 位（已不现实）</td></tr>
+</table></div>
+<div class="tip warn"><strong>动手验证：</strong>在上方演示中连点"投 5000"，观察"相对误差"这一栏。它<b>不会单调下降</b>——某一次可能因为运气好而误差极小，下一次又变大。这恰恰说明误差是<b>随机变量</b>，1.64/√N 描述的是它的<b>标准差（典型量级）</b>，而不是每次都成立的确定上界。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>C++ 实现</h2><span class="sub">投点求 π 与蒙特卡罗积分</span></div>
+<div class="code"><span class="cm">// 投点法（Monte Carlo）估计 π</span>
+<span class="cm">// 思路：在单位正方形内均匀撒 N 个点，统计落入 1/4 圆内的个数 cnt</span>
+<span class="cm">//       P(落入) = (π/4)/1 = π/4  ==&gt;  π ≈ 4 * cnt / N</span>
+<span class="cm">// 时间 O(N)，空间 O(1)；误差量级 Θ(1/√N)</span>
+<span class="kw">double</span> <span class="fn">estimatePi</span>(<span class="kw">long</span> <span class="kw">long</span> N) {
+    <span class="fn">srand</span>((<span class="kw">unsigned</span>)<span class="fn">time</span>(<span class="nu">0</span>));
+    <span class="kw">long</span> <span class="kw">long</span> cnt = <span class="nu">0</span>;
+    <span class="kw">for</span> (<span class="kw">long</span> <span class="kw">long</span> i = <span class="nu">0</span>; i &lt; N; ++i) {
+        <span class="kw">double</span> x = (<span class="kw">double</span>)<span class="fn">rand</span>() / RAND_MAX;   <span class="cm">// x ~ U[0,1]</span>
+        <span class="kw">double</span> y = (<span class="kw">double</span>)<span class="fn">rand</span>() / RAND_MAX;   <span class="cm">// y ~ U[0,1]</span>
+        <span class="kw">if</span> (x * x + y * y &lt;= <span class="nu">1.0</span>) ++cnt;        <span class="cm">// 落入 1/4 圆</span>
+    }
+    <span class="kw">return</span> <span class="nu">4.0</span> * cnt / N;                     <span class="cm">// 无偏估计：E[结果] = π</span>
+}
+
+<span class="cm">// 推广：蒙特卡罗积分，估计 ∫[a,b] f(x) dx</span>
+<span class="cm">// 原理：∫f = (b-a) * E[f(U)]，U ~ 均匀分布[a,b]；用样本均值代替期望</span>
+<span class="kw">double</span> <span class="fn">integrate</span>(<span class="kw">double</span> (*f)(<span class="kw">double</span>), <span class="kw">double</span> a, <span class="kw">double</span> b, <span class="kw">long</span> <span class="kw">long</span> N) {
+    <span class="kw">double</span> sum = <span class="nu">0</span>;
+    <span class="kw">for</span> (<span class="kw">long</span> <span class="kw">long</span> i = <span class="nu">0</span>; i &lt; N; ++i) {
+        <span class="kw">double</span> x = a + (b - a) * <span class="fn">rand</span>() / RAND_MAX;
+        sum += <span class="fn">f</span>(x);
+    }
+    <span class="kw">return</span> (b - a) * sum / N;                 <span class="cm">// 同样是 Θ(1/√N) 误差</span>
+}</div>
+<div class="formula">T(N) = O(N)　　S(N) = O(1)　　误差 σ ≈ 1.64/√N　　欲减小误差 10 倍需 N × 100</div>
+<div class="tip info"><strong>工程注记：</strong><code>rand()</code> 在多数实现中 RAND_MAX 仅 32767，低位随机性差，用于大规模采样会引入系统偏差；C++11 起应改用 <code>std::mt19937</code> + <code>std::uniform_real_distribution&lt;double&gt;</code>。另外注意 <code>x*x + y*y &lt;= 1.0</code> 中<b>不要开平方</b>——比较平方即可，省一次开方且避免精度损失。</div>
+<div class="terms">
+  <span class="term"><b>数值概率算法</b>numerical probabilistic algorithm</span>
+  <span class="term"><b>几何概型</b>geometric probability</span>
+  <span class="term"><b>无偏估计</b>unbiased estimator</span>
+  <span class="term"><b>方差</b>variance</span>
+  <span class="term"><b>蒙特卡罗积分</b>Monte Carlo integration</span>
+  <span class="term"><b>大数定律</b>law of large numbers</span>
+</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>把误差写成 O(1/N)。</b>正确是 <b>O(1/√N)</b>——方差与 N 成反比，标准差要再开一次方。写错这一条，"100 倍定律"就整个塌掉。</li>
+  <li><b>误以为增大 N 一定使本次估计更准。</b>误差是随机变量，单次运行完全可能"N 更大反而更偏"；1/√N 说的是<b>标准差</b>（典型量级），不是逐次单调的保证。</li>
+  <li><b>忘记乘 4。</b>N<sub>in</sub>/N 收敛到的是 π/4 ≈ 0.785，不是 π。</li>
+  <li><b>判定圆内时写成 <code>sqrt(x*x+y*y) &lt;= 1</code>。</b>虽不算错，但多一次开方、且引入浮点误差；直接比较平方更好。</li>
+  <li><b>用低质量随机数发生器</b>（如未播种的 <code>rand()</code>、或周期极短的 LCG）。采样点若在平面上呈规则格纹，"均匀"假设失效，估计值会稳定偏离真值，且<b>增大 N 也救不回来</b>。</li>
+  <li><b>误以为蒙特卡罗方法总比数值积分好。</b>一维光滑函数上，辛普森法等确定性方法误差可达 O(h<sup>4</sup>)，远胜 O(1/√N)；蒙特卡罗的优势只在<b>高维</b>（误差不随维数恶化）与<b>不规则区域</b>。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>投点法的概率原理：均匀随机点落入内切圆的概率 = <b>圆面积 / 正方形面积 = π/4</b>，故 π ≈ 4·N<sub>in</sub>/N，且该估计是<b>无偏</b>的。</li>
+  <li>误差分析：N<sub>in</sub> ~ B(N, π/4)，Var[π&#770;] = 16p(1−p)/N，标准差 <b>σ ≈ 1.64/√N</b>——误差量级为 <b>Θ(1/√N)</b>。</li>
+  <li><b>100 倍定律</b>：精度每提高一位十进制数，采样量需增加约 100 倍。这是数值概率算法的根本局限，也是它不适合高精度计算的原因。</li>
+  <li>算法时间 O(N)、空间 O(1)；同样的思路可直接推广为<b>蒙特卡罗积分</b>，其优势在于误差率 O(1/√N) <b>与维数无关</b>。</li>
+  <li>随机数质量是隐形前提：非均匀或有相关性的随机源会造成<b>系统偏差</b>，增大 N 也无法消除。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>用投点法估计 π 时，若希望误差缩小为原来的 1/10，采样点数 N 大约需要变为原来的多少倍？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>10 倍</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>100 倍</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>√10 ≈ 3.16 倍</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>1000 倍</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>误差量级为 σ ≈ 1.64/√N。要让 σ 变为 1/10，需 √N 变为 10 倍，故 <b>N 变为 10<sup>2</sup> = 100 倍</b>。A 是把误差误当成 O(1/N) 的典型错误；C 恰好把关系倒过来用了（以为 N 增大 √10 倍就够）；D 对应误差缩小到 1/√1000 ≈ 1/31.6，过头了。记住这条"<b>100 倍定律</b>"：想多要一位有效数字，就得多花 100 倍算力——这正是蒙特卡罗方法无法用于高精度计算的原因。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>在边长为 1 的正方形内均匀随机投一点，它落入其内切圆的概率是多少？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>π ≈ 3.1416</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>π/4 ≈ 0.7854</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>π/2 ≈ 1.5708</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>1/4 = 0.25</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>内切圆半径 r = 1/2，圆面积 = π·(1/2)<sup>2</sup> = π/4；正方形面积 = 1。由几何概型，概率 = 面积比 = <b>π/4 ≈ 0.7854</b>。A、C 大于 1，<b>概率不可能超过 1</b>——这是一眼可以排除的；A 实际上是"概率乘 4"之后的估计值，正说明为什么代码里最后要写 <code>4.0 * cnt / N</code>。D 是把"四分之一圆"的<b>形状</b>误当成了<b>面积比</b>。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>关于投点法（数值概率算法）的性质，下列说法<b>错误</b>的是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>它的运行时间是确定的，由采样点数 N 决定，为 O(N)</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>4·N<sub>in</sub>/N 是 π 的无偏估计，即其数学期望恰好等于 π</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>只要 N 取得足够大，就能得到 π 的精确值</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>误差量级为 Θ(1/√N)，且该量级与问题维数无关</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>C 错——这正是<b>数值概率算法</b>的定义要点：它给出的是<b>近似解</b>，精度随采样量提高但<b>永远不会精确</b>。而且 4·N<sub>in</sub>/N 是有理数，π 是无理数，二者不可能相等，从这个角度也能立刻否定 C。A 对——时间确定是数值概率与蒙特卡罗共有的特征。B 对——见推导 ⑥：E[4N<sub>in</sub>/N] = 4·(Nπ/4)/N = π。D 对——这既是它的局限（一维时打不过辛普森法），也是它的优势（<b>高维时不随维数指数恶化</b>，这才是蒙特卡罗方法在实际科学计算中的真正价值）。</div>
+</div>
+</div>
+
+<div class="page-nav"><a href="01-prob.html"><span class="dir">← 上一节</span><span class="name">概率概述</span></a><a href="03-monte.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">蒙特卡罗</span></a></div>
+<div class="footer">算法设计与分析 · <b>第12章 概率算法和近似算法</b> · 强交互可视化版<br/>随机 · 近似 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(156,116,32,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let inn=0,tot=0;
+const m=30, side=320, cx=m+side/2, cy=m+side/2, r=side/2;
+function frame(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.strokeStyle='#A29C90'; ctx.lineWidth=2; ctx.strokeRect(m,m,side,side);
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.strokeStyle='#9C7420'; ctx.stroke();
+  ctx.fillStyle='rgba(156,116,32,.06)'; ctx.fill();
+}
+function clear(){
+  inn=0;tot=0; frame(); est.textContent='?'; err.textContent='—'; cnt.textContent='0/0'; hud.textContent='0 pts';
+}
+async function throwN(n){
+  for(let i=0;i<n;i++){
+    const x=m+Math.random()*side, y=m+Math.random()*side;
+    const ok=(x-cx)**2+(y-cy)**2<=r*r; tot++; if(ok)inn++;
+    ctx.fillStyle=ok?'#3B7A57':'#A02C55'; ctx.fillRect(x-1.2,y-1.2,2.4,2.4);
+    if(i%100===0){
+      const e=4*inn/tot; est.textContent=e.toFixed(6);
+      err.textContent=((Math.abs(e-Math.PI)/Math.PI)*100).toFixed(3)+'%';
+      cnt.textContent=inn+'/'+tot; hud.textContent=tot+' pts';
+      await sleep(0);
+    }
+  }
+  const e=4*inn/tot; est.textContent=e.toFixed(6);
+  err.textContent=((Math.abs(e-Math.PI)/Math.PI)*100).toFixed(3)+'%';
+  cnt.textContent=inn+'/'+tot; hud.textContent=tot+' pts';
+}
+reset.onclick=clear; run.onclick=()=>throwN(1000); mega.onclick=()=>throwN(5000); clear();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

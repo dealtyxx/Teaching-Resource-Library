@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>EK · 第9章 图算法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">09</div>算法可视化 · <span>第9章 图算法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-prim.html">Prim</a><a class="pill" href="02-kruskal.html">Kruskal</a><a class="pill" href="03-dijkstra.html">Dijkstra</a><a class="pill" href="04-bf-spfa.html">BF/SPFA</a><a class="pill" href="05-floyd.html">Floyd</a><a class="pill" href="06-flow.html">网络流</a><a class="pill" href="07-ff.html">FF</a><a class="pill active" href="08-ek.html">EK</a><a class="pill" href="09-dinic.html">Dinic</a><a class="pill" href="10-match.html">匹配</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 8 · BFS 增广</div>
+  <h1>Edmonds-Karp · 增广动画</h1>
+  <p>每次 BFS 找边数最少的增广路，沿路灌入瓶颈流量。看 residual 如何变化。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够说明 Edmonds-Karp = Ford-Fulkerson + <b>用 BFS 找边数最少的增广路</b>。</li>
+  <li>理解 BFS 找最短增广路使残量图中 <b>&delta;<sub>f</sub>(s, v) 单调不减</b>这一关键引理。</li>
+  <li>掌握"<b>关键边</b>"论证：一条边两次成为瓶颈之间 &delta;(s, u) 至少 +2，故每边至多关键 O(V) 次。</li>
+  <li>能够由此推出增广次数 <b>O(V&middot;E)</b>、总复杂度 <b>O(V&middot;E<sup>2</sup>)</b>，且与容量数值无关。</li>
+  <li>能够默写 BFS 版最大流代码（记录前驱边、回溯找瓶颈、正减反加）。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="run">▶ 增广一轮轮播放</button>
+    <button class="btn ghost" id="reset">重置</button>
+  </div>
+  <div class="stage-wrap">
+    <canvas class="stage" id="cv" width="900" height="360"></canvas>
+    <div class="stage-hud"><span class="hud-pill">Edmonds-Karp</span><span class="hud-pill" id="hud">flow=0</span></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>当前最大流</span><b class="green" id="flowV">0</b></div>
+    <div class="stat"><span>增广次数</span><b class="ind" id="augN">0</b></div>
+  </div>
+  <div class="log" id="log">网络: s-a-t 与 s-b-t 双路径示意</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、用 BFS 找最短增广路</h2><span class="sub">Edmonds-Karp</span></div>
+
+<div class="defn"><span class="lbl">Edmonds-Karp 算法</span><p>Edmonds-Karp 是 Ford-Fulkerson 方法的具体化：每一轮都用 <b>BFS</b> 在残量网络中找一条<b>边数最少</b>（最短）的 s&rarr;t 增广路，沿路推入瓶颈流量。用 BFS 而非任意找路，是 EK 相对朴素 FF 的<b>唯一改动</b>，却把复杂度从依赖流值的 O(E&middot;|f*|) 改进为与容量数值<b>无关</b>的 O(V&middot;E<sup>2</sup>)。</p></div>
+
+<div class="tip info"><strong>为什么"最短"能带来改进：</strong>任意找路（如 DFS）可能反复走很长的路、每次只增广一点点，轮数与容量挂钩。BFS 保证每次增广路是残量图中<b>边数最少</b>的，配合下面的引理，可证增广的总次数被 O(V&middot;E) 这个<b>纯粹由图规模决定</b>的量卡住，与容量多大无关。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、复杂度 O(V·E²) 的论证</h2><span class="sub">关键边计数</span></div>
+
+<div class="deriv">
+  <span class="step">记号 &delta;<sub>f</sub>(s, v) = 残量网络中 s 到 v 的<b>最短边数</b>（BFS 层数） <span class="why">每次增广前重新 BFS</span></span>
+  <span class="step">引理 1 随着不断增广，对每个 v，&delta;<sub>f</sub>(s, v) <b>单调不减</b> <span class="why">增广只可能新增反向边，不会缩短 s 到任何点的距离</span></span>
+  <span class="step">关键边 一次增广中，残量恰等于瓶颈 &Delta; 而被"用光"的边 (u, v) 称为<b>关键边</b>；此时 &delta;(s, v) = &delta;(s, u) + 1 <span class="why">它在最短增广路上</span></span>
+  <span class="step">引理 2 (u, v) 再次成为关键边前，必须先由反向边 (v, u) 复活，那时 &delta;(s, u) = &delta;(s, v) + 1 <span class="why">(v,u) 在某条最短路上</span></span>
+  <span class="step">推论 两次关键之间 &delta;(s, u) 至少增加 2 <span class="why">由引理 1、2 合并</span></span>
+  <span class="step">计数 &delta;(s, u) &isin; [0, V]，故每条边至多关键 O(V) 次；边数 O(E)（含反向），关键事件共 O(V&middot;E) <span class="why">每次增广至少产生一条关键边</span></span>
+  <span class="step">总计 增广次数 O(V&middot;E)，每轮 BFS O(E)，总时间 <b>O(V&middot;E<sup>2</sup>)</b> <span class="why">与容量数值无关</span></span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、规范 C++ 代码</h2><span class="sub">BFS 版最大流</span></div>
+
+<div class="code"><span class="cm">// Edmonds-Karp —— BFS 找最短增广路，O(V·E^2)。成对存边，e[i^1] 为反向边</span>
+<span class="kw">const</span> <span class="kw">int</span> N = <span class="nu">1005</span>, INF = <span class="nu">0x3f3f3f3f</span>;
+<span class="kw">struct</span> Edge { <span class="kw">int</span> to, cap; };
+vector&lt;Edge&gt; e; vector&lt;<span class="kw">int</span>&gt; g[N];
+<span class="kw">int</span> S, T, n, pre[N];              <span class="cm">// pre[v]：BFS 树中进入 v 的边下标</span>
+
+<span class="kw">void</span> <span class="fn">addEdge</span>(<span class="kw">int</span> u, <span class="kw">int</span> v, <span class="kw">int</span> c) {
+    g[u].<span class="fn">push_back</span>(e.<span class="fn">size</span>()); e.<span class="fn">push_back</span>({v, c});
+    g[v].<span class="fn">push_back</span>(e.<span class="fn">size</span>()); e.<span class="fn">push_back</span>({u, <span class="nu">0</span>});
+}
+
+<span class="kw">bool</span> <span class="fn">bfs</span>() {                       <span class="cm">// 找一条最短增广路，成功则 pre[] 记录路径</span>
+    <span class="fn">fill</span>(pre, pre + n, <span class="nu">-1</span>);
+    queue&lt;<span class="kw">int</span>&gt; q; q.<span class="fn">push</span>(S); pre[S] = <span class="nu">-2</span>;   <span class="cm">// -2 标记源已访问，区别于 -1</span>
+    <span class="kw">while</span> (!q.<span class="fn">empty</span>()) {
+        <span class="kw">int</span> u = q.<span class="fn">front</span>(); q.<span class="fn">pop</span>();
+        <span class="kw">for</span> (<span class="kw">int</span> id : g[u]) {
+            Edge &amp;ed = e[id];
+            <span class="kw">if</span> (pre[ed.to] == <span class="nu">-1</span> &amp;&amp; ed.cap &gt; <span class="nu">0</span>) {   <span class="cm">// 未访问且有残量</span>
+                pre[ed.to] = id;
+                <span class="kw">if</span> (ed.to == T) <span class="kw">return</span> <span class="kw">true</span>;
+                q.<span class="fn">push</span>(ed.to);
+            }
+        }
+    }
+    <span class="kw">return</span> <span class="kw">false</span>;
+}
+
+<span class="kw">int</span> <span class="fn">maxflow</span>() {
+    <span class="kw">int</span> flow = <span class="nu">0</span>;
+    <span class="kw">while</span> (<span class="fn">bfs</span>()) {
+        <span class="kw">int</span> d = INF;
+        <span class="kw">for</span> (<span class="kw">int</span> v = T; v != S; v = e[pre[v] ^ <span class="nu">1</span>].to)   <span class="cm">// 回溯找瓶颈</span>
+            d = min(d, e[pre[v]].cap);
+        <span class="kw">for</span> (<span class="kw">int</span> v = T; v != S; v = e[pre[v] ^ <span class="nu">1</span>].to) { <span class="cm">// 再回溯一次更新残量</span>
+            e[pre[v]].cap -= d;            <span class="cm">// 正向 −Δ</span>
+            e[pre[v] ^ <span class="nu">1</span>].cap += d;        <span class="cm">// 反向 +Δ</span>
+        }
+        flow += d;
+    }
+    <span class="kw">return</span> flow;
+}</div>
+
+<div class="tip"><strong>回溯技巧：</strong>pre[v] 存"进入 v 的边下标"，那么这条边的<b>反向边</b> <span class="cm">e[pre[v]^1].to</span> 恰是 v 的前驱结点。于是 <span class="cm">v = e[pre[v]^1].to</span> 即可沿增广路一路回到 S，两趟循环分别求瓶颈与更新残量。</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li>把 EK 的 <b>BFS 写成 DFS</b>：那就退回朴素 FF，丢掉 O(V&middot;E<sup>2</sup>) 的保证，大容量图上可能极慢。</li>
+  <li>BFS 里用 <b>vis 标记却忘了区分源点</b>：源点也要标记已访问（这里用 pre[S]=&minus;2），否则可能把源当未访问重复入队。</li>
+  <li>回溯前驱时把 <span class="cm">e[pre[v]^1].to</span> 写成 <span class="cm">e[pre[v]].to</span>：后者是 v 自己，前驱应由<b>反向边</b>取得。</li>
+  <li>只回溯一趟就边求瓶颈边更新：瓶颈要<b>先整条求出</b>再更新，否则前面改了残量会影响后面求 min。</li>
+  <li>误以为"增广次数取决于容量"：EK 的增广次数是 O(V&middot;E)，<b>与容量数值无关</b>，这正是它优于朴素 FF 的地方。</li>
+  <li>把复杂度记成 O(V<sup>2</sup>&middot;E)：那是 Dinic；EK 是 <b>O(V&middot;E<sup>2</sup>)</b>，别混淆。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>Edmonds-Karp = Ford-Fulkerson + <b>BFS 找边数最少的增广路</b>，是对朴素 FF 的最小而关键的改动。</li>
+  <li>关键引理：增广过程中残量图内 <b>&delta;<sub>f</sub>(s, v) 单调不减</b>；一条边两次成为瓶颈之间 &delta;(s, u) 至少 +2。</li>
+  <li>由 &delta; &isin; [0, V] 得每边至多关键 O(V) 次，边数 O(E)，故增广次数 <b>O(V&middot;E)</b>。</li>
+  <li>每轮 BFS O(E)，总复杂度 <b>O(V&middot;E<sup>2</sup>)</b>，<b>与容量数值无关</b>，克服了朴素 FF 的伪多项式缺陷。</li>
+  <li>实现要点：BFS 记前驱边、回溯先求瓶颈再更新残量、正向 &minus;&Delta; 反向 +&Delta;；下一节 Dinic 用分层图进一步降到 O(V<sup>2</sup>&middot;E)。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>Edmonds-Karp 相对朴素 Ford-Fulkerson 的核心改动是什么？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>不再需要反向边</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>每次用 BFS 找边数最少的增广路，而不是任意找路</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>改用 Dijkstra 找容量最大的增广路</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>把有向图改成无向图处理</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。EK 就是"FF + BFS 找最短增广路"，其余（残量网络、反向边、正减反加）与 FF 完全一致，所以 A 错。C 描述的是另一类"最大容量增广路"策略，不是 EK。D 与网络流无关。正因为改用 BFS，才能证出与容量无关的 O(V&middot;E<sup>2</sup>)。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>Edmonds-Karp 的时间复杂度及其含义，正确的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>O(E&middot;|f*|)，随容量数值增长</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>O(V&middot;E<sup>2</sup>)，与容量数值无关</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>O(V<sup>2</sup>&middot;E)，与容量数值无关</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>O(V<sup>3</sup>)，仅适用于稠密图</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。增广次数 O(V&middot;E)（每边至多关键 O(V) 次），每轮 BFS O(E)，相乘得 O(V&middot;E<sup>2</sup>)，且不含流值，故与容量数值无关。A 是朴素 FF 的伪多项式复杂度——EK 的意义正是摆脱它。C 是 Dinic 的复杂度，常被与 EK 混淆。D 不是 EK 的结论。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>EK 复杂度证明中，"每条边至多成为 O(V) 次关键边"依赖于哪条事实？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>每次增广后残量图中 &delta;(s, v) 单调不减，且一条边两次关键之间 &delta;(s, u) 至少增加 2</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>每条边的容量至多为 V</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>BFS 每次只访问 V 个结点</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>增广路长度恒定不变</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>A 正确。关键计数的核心是两条引理：&delta;<sub>f</sub>(s, v) 随增广单调不减；边 (u, v) 两次成为关键边之间，&delta;(s, u) 至少 +2。由于 &delta;(s, u) 的取值范围是 [0, V]，故每条边至多关键 O(V) 次，从而增广次数 O(V&middot;E)。B 与容量无关（EK 复杂度本就与容量数值无关）。C 只是单次 BFS 的代价，不解释关键次数。D 恰恰错误——增广路长度是<b>单调不减</b>而非不变。</div>
+  </div>
+</div>
+
+<div class="terms">
+  <span class="term"><b>最短增广路</b>shortest augmenting path</span>
+  <span class="term"><b>关键边</b>critical edge</span>
+  <span class="term"><b>层数 / 最短边数</b>&delta;<sub>f</sub>(s, v)</span>
+  <span class="term"><b>单调不减</b>monotonically non-decreasing</span>
+</div>
+
+<div class="page-nav"><a href="07-ff.html"><span class="dir">← 上一节</span><span class="name">FF</span></a><a href="09-dinic.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">Dinic</span></a></div>
+<div class="footer">算法设计与分析 · <b>第9章 图算法</b> · 强交互可视化版<br/>MST · 最短路 · 网络流 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:28},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.1-Math.random()*.25, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(110,86,145,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+// shared graph geometry
+const GPOS=[[120,200],[300,80],[520,80],[700,200],[520,320],[300,320]];
+const GEDGES=[[0,1,6],[0,5,5],[1,2,5],[1,5,3],[2,3,4],[2,4,3],[2,5,4],[3,4,5],[4,5,2]];
+
+// residual on edges: list of {u,v,c,f}
+// nodes: s=0,a=1,b=2,t=3
+const POS=[[100,180],[350,80],[350,280],[650,180]];
+const names=['s','a','b','t'];
+let edges, flow, aug;
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+function initNet(){
+  // undirected residual modeled as two directed
+  edges=[
+    {u:0,v:1,c:10,f:0},{u:1,v:0,c:0,f:0},
+    {u:0,v:2,c:10,f:0},{u:2,v:0,c:0,f:0},
+    {u:1,v:3,c:10,f:0},{u:3,v:1,c:0,f:0},
+    {u:2,v:3,c:10,f:0},{u:3,v:2,c:0,f:0},
+    {u:1,v:2,c:4,f:0},{u:2,v:1,c:0,f:0},
+  ];
+  flow=0; aug=0; flowV.textContent=0; augN.textContent=0; hud.textContent='flow=0';
+  draw(); log.textContent='重置完成';
+}
+function res(e){ return e.c-e.f; }
+function draw(path=[]){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  // only draw forward-ish edges with c>0 originally for clarity
+  const show=[[0,1,10],[0,2,10],[1,3,10],[2,3,10],[1,2,4]];
+  show.forEach(([u,v,c])=>{
+    const e=edges.find(x=>x.u===u&&x.v===v);
+    const f=e?e.f:0;
+    const onPath=path.includes(u)&&path.includes(v);
+    ctx.strokeStyle='#443F37'; ctx.lineWidth=12; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(POS[u][0],POS[u][1]); ctx.lineTo(POS[v][0],POS[v][1]); ctx.stroke();
+    const t=c?f/c:0;
+    ctx.strokeStyle=onPath?'#D0A344':'#6E9AB6'; ctx.lineWidth=8;
+    ctx.beginPath(); ctx.moveTo(POS[u][0],POS[u][1]);
+    ctx.lineTo(POS[u][0]+(POS[v][0]-POS[u][0])*t, POS[u][1]+(POS[v][1]-POS[u][1])*t); ctx.stroke();
+    ctx.fillStyle='#E4E0D4'; ctx.font='12px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(`${f}/${c}`, (POS[u][0]+POS[v][0])/2, (POS[u][1]+POS[v][1])/2-12);
+  });
+  POS.forEach((p,i)=>{
+    ctx.beginPath(); ctx.arc(p[0],p[1],26,0,Math.PI*2);
+    ctx.fillStyle=i===0?'#D0A344':i===3?'#6FB48B':'#8E7EB8'; ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 15px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(names[i],p[0],p[1]);
+  });
+}
+function bfs(){
+  const q=[0], prev=Array(4).fill(null), pe=Array(4).fill(null), seen=[true,false,false,false];
+  let h=0;
+  while(h<q.length){
+    const u=q[h++];
+    for(const e of edges){
+      if(e.u===u && res(e)>0 && !seen[e.v]){
+        seen[e.v]=true; prev[e.v]=u; pe[e.v]=e; q.push(e.v);
+        if(e.v===3) {
+          // reconstruct
+          const path=[]; let x=3; while(x!=null){ path.push(x); x=prev[x]; } path.reverse();
+          return {path, pe};
+        }
+      }
+    }
+  }
+  return null;
+}
+function augment(path, pe){
+  let x=3, delta=1e9; const used=[];
+  while(x!==0){ const e=pe[x]; delta=Math.min(delta,res(e)); used.push(e); x=e.u; }
+  x=3;
+  while(x!==0){
+    const e=pe[x]; e.f+=delta;
+    const rev=edges.find(r=>r.u===e.v&&r.v===e.u); if(rev) rev.f-=delta;
+    x=e.u;
+  }
+  return delta;
+}
+run.onclick=async()=>{
+  initNet();
+  let rounds=0; log.textContent='开始增广…';
+  while(true){
+    const r=bfs();
+    if(!r) break;
+    draw(r.path); hud.textContent='增广路 '+r.path.map(i=>names[i]).join('→'); await sleep(700);
+    const d=augment(r.path, r.pe); flow+=d; aug++; rounds++;
+    flowV.textContent=flow; augN.textContent=aug;
+    log.textContent+='\n第'+rounds+'次增广 Δ='+d+' · 总流='+flow;
+    draw(); await sleep(500);
+  }
+  hud.textContent='最大流='+flow; log.textContent+='\n无增广路 · 最大流='+flow;
+};
+reset.onclick=initNet; initNet();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

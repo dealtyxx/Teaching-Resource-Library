@@ -1,0 +1,164 @@
+---
+module: 1
+moduleName: 绪论
+order: 4
+title: 多源异构数据采集整合
+level: 进阶选做
+scene: 企业数据采集
+knowledge: [多数据源, 数据整合, 质量校验]
+stars: 3
+minutes: 50
+goal: 掌握多源数据整合方法
+sizheng: 建立数据质量评估思维
+dims: [科研诚信, 创新思维]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import PyStepRunner from '../../components/react/PyStepRunner';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+
+## 场景导入
+
+实习第一天，导师甩给你三个文件：教务处导出的 CSV、合作方接口返回的 JSON，还有学长手工登记的一份名单（Python 字典列表）。三份数据说的都是学生成绩，可格式各不相同，字段还缺东少西。你的任务：把它们**整合成一张统一的表**，并且老老实实告诉导师——这批数据，到底有多少真能用。
+
+## 动手实验
+
+整合的第一步是「对齐」：不管来源是 CSV、JSON 还是字典，都先读成统一的 `sid / name / score` 结构。第二步是「体检」：逐条检查缺不缺字段、分数能不能转成数字，把结果记进一张质量报告。运行看看六条记录里，最后几条合格：
+
+<PyPlayground
+  client:visible
+  title="多源数据整合 + 质量校验"
+  note="改改三份数据——把某个 name 清空、或把 score 写成一段文字，再运行，看质量报告里的数字怎么跟着变。"
+  code={`import json, csv, io
+
+# 来源一：CSV 字符串（教务系统导出）
+csv_src = """sid,name,score
+2025101,张小葵,88
+2025102,李明,not_a_number
+2025103,,76"""
+
+# 来源二：JSON 字符串（第三方接口返回）
+json_src = '[{"sid": "2025104", "name": "王芳", "score": 91}, {"sid": "2025105", "name": "赵磊"}]'
+
+# 来源三：字典列表（人工登记）
+dict_src = [{"sid": "2025106", "name": "陈晨", "score": 82}]
+
+def load_all():
+    rows = []                                  # 三个来源统一收进一个列表
+    for r in csv.DictReader(io.StringIO(csv_src)):
+        rows.append(dict(r))
+    rows.extend(json.loads(json_src))
+    rows.extend(dict_src)
+    return rows
+
+report = {"总数": 0, "缺字段": 0, "类型错误": 0, "合格": 0}
+clean = []
+for r in load_all():
+    report["总数"] += 1
+    sid, name, score = r.get("sid"), r.get("name"), r.get("score")
+    if not sid or not name or score in (None, ""):     # 缺字段
+        report["缺字段"] += 1
+        continue
+    try:
+        score = int(score)                     # 分数必须能转成整数
+    except (ValueError, TypeError):
+        report["类型错误"] += 1
+        continue
+    report["合格"] += 1
+    clean.append({"sid": sid, "name": name, "score": score})
+
+print("整合后的合格记录：")
+for r in clean:
+    print("  ", r)
+print("\\n质量报告：", report)`}
+/>
+
+## 逐行看懂
+
+整合代码里最关键的是那段「逐条体检」的循环。我们抽出三条典型记录，一步步看它怎么把「合格 / 缺字段 / 类型错误」分门别类数清楚：
+
+<PyStepRunner
+  client:visible
+  title="质量校验：给每条记录做体检"
+  fileName="quality_check.py"
+  code={`rows = [{"sid": "2025101", "name": "张小葵", "score": "88"},
+        {"sid": "2025102", "name": "李明", "score": "x"},
+        {"sid": "2025103", "name": "", "score": "76"}]
+report = {"合格": 0, "缺字段": 0, "类型错误": 0}
+for r in rows:
+    if not r["sid"] or not r["name"] or not r["score"]:
+        report["缺字段"] += 1
+        continue
+    try:
+        int(r["score"])
+    except ValueError:
+        report["类型错误"] += 1
+        continue
+    report["合格"] += 1
+print(report)`}
+  steps={[
+    { line: 0, desc: '三条来自不同来源、但已经对齐成同一结构（sid / name / score）的记录。', vars: { rows: '3 条待检记录' } },
+    { line: 3, desc: '准备一张质量记分卡，三类结果都从 0 开始计数。', vars: { report: '合格 0 · 缺字段 0 · 类型错误 0' } },
+    { line: 4, desc: '开始逐条体检。第 1 条：张小葵，score 是 "88"。' },
+    { line: 5, desc: 'sid、name、score 都非空，过了「缺字段」这一关。' },
+    { line: 9, desc: 'int("88") 成功——字符串能转成数字，类型没问题。' },
+    { line: 13, desc: '一切合格，合格 +1。', vars: { report: '合格 1 · 缺字段 0 · 类型错误 0' } },
+    { line: 5, desc: '第 2 条：李明，score 是 "x"。字段都不空，先放行到类型检查。', vars: { rows: '轮到第 2 条' } },
+    { line: 9, desc: 'int("x") 抛出 ValueError——这压根不是个数字。' },
+    { line: 11, desc: '异常被 except 接住，类型错误 +1，跳过这条。', vars: { report: '合格 1 · 缺字段 0 · 类型错误 1' } },
+    { line: 5, desc: '第 3 条：name 是空字符串，not name 成立。', vars: { rows: '轮到第 3 条' } },
+    { line: 6, desc: '判定为缺字段，缺字段 +1 后 continue 跳过。', vars: { report: '合格 1 · 缺字段 1 · 类型错误 1' } },
+    { line: 14, desc: '三条体检完毕，打印质量报告——一份不隐瞒、可复现的成绩单。', out: "{'合格': 1, '缺字段': 1, '类型错误': 1}", vars: { report: '合格 1 · 缺字段 1 · 类型错误 1' } },
+  ]}
+/>
+
+## 思政会客厅
+
+<DimCard dim="科研诚信" title="质量报告不是摆设">
+  <ul>
+    <li>整合数据时，「有多少脏数据」必须如实上报——瞒报合格率、偷偷丢弃不合格记录再谎称「数据很干净」，都是学术不端的雏形。</li>
+    <li>剔除坏数据要留痕、可复现：谁、为什么、剔了几条，都要说得清，别人才能验证你的结论。</li>
+    <li>数据不够好，就说不够好。诚实标注局限，比伪造一份漂亮报表更有价值。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="创新思维" title="统一 schema 是整合的地基">
+  <ul>
+    <li>多源异构的难点不在「读进来」，而在「对齐」——先定义统一 schema，再让每个来源向它靠拢，是应对复杂数据的通用思路。</li>
+    <li>校验规则可以不断进化：今天查缺字段与类型，明天就能加上范围校验、去重、交叉验证。</li>
+    <li>把「整合 + 质检」抽象成一条可复用的管道，下次换一批数据源也能快速接上——这就是工程化的创新。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="🔬" tone="blue" title="数据可以不完美，报告必须诚实">
+科研与工程里，真正致命的从来不是「有脏数据」，而是「假装没有脏数据」。一张写明总数、缺字段、类型错误的质量报告，就是数据工作者的诚信底线。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p04-d1"
+  question="整合时遇到一条 score 写成 not_a_number 的记录，你会直接丢弃、尝试修正，还是先标记保留？为什么？"
+  hints={['丢弃最省事，但可能丢掉本可挽救的样本，也会让合格率「虚高」', '修正要有依据，凭感觉改数据就成了造假', '很多团队选择「标记 + 隔离」：不进主表，但留档等人工核查']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="用统一规则给三个来源（CSV、JSON、字典）做质检时，一条 name 为空字符串的记录会被判为？"
+  options={['合格', '缺字段', '类型错误', '直接报错、中断整个程序']}
+  answer={1}
+  explain="空字符串在 Python 里是假值，not name 成立，于是记入「缺字段」并 continue 跳过；它既不算合格，也不会让整个循环崩掉。"
+/>
+
+<QuizItem
+  client:visible
+  question="质检发现这批数据合格率只有五成，导师却催着交「干净数据」。最讲诚信的做法是？"
+  options={['偷偷补几条假数据凑够数量', '如实提交质量报告，并说明不合格记录的处理方式', '把不合格的直接删掉，只说合格的部分', '把合格率改成九成先交差再说']}
+  answer={1}
+  explain="科研诚信要求如实呈现数据质量。隐瞒、编造或选择性删除都会扭曲结论，一份透明的质量报告才是负责任的交付。"
+/>

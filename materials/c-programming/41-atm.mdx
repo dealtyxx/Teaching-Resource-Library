@@ -1,0 +1,97 @@
+---
+module: 7
+moduleName: 结构体
+order: 41
+title: ATM取款机模拟
+level: 进阶选做
+scene: 金融应用
+knowledge: [嵌套结构体, 业务流程, 状态管理]
+stars: 5
+minutes: 140
+goal: 复杂业务系统的结构体建模
+sizheng: 每一笔取款背后的确定性——金融软件的严谨是信用的地基
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import AtmLab from '../../components/react/AtmLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：复杂业务的两根支柱
+
+ATM 看似简单，实则是"复杂业务系统"的微缩模型。拆开看只有两根支柱：
+
+- **结构体管数据**：账户嵌套卡片（`Account` 含 `BankCard`），从属关系直译成嵌套——`acct.card.locked`；
+- **状态机管流程**：`enum AtmState` 定义"现在处于哪一步"，switch 决定"此刻允许做什么"。**待机时不能取款、验密没过不能进菜单**——把"不允许"写死在状态里，比在每处操作前打补丁可靠得多。
+
+再叠加你的老朋友：验密三次锁卡（项目 16）、先查余额后扣款（项目 7 的先防护后操作）、strcmp 比密码（项目 29）。
+
+## 一步一步看一笔取款
+
+<CStepRunner
+  client:visible
+  title="业务模拟：验密→取款→退卡的状态流转"
+  badge="状态机模拟"
+  doneNote="每一步操作都问两个问题：当前状态允许吗（状态机）？数据条件满足吗（结构体成员判断）？双重把关，才配叫金融代码。"
+  code={`#include <stdio.h>
+#include <string.h>
+
+typedef struct { char pin[8]; int locked; } BankCard;
+typedef struct { BankCard card; int balance; } Account;
+typedef enum { IDLE, PIN_CHECK, MENU } AtmState;
+
+int main(void) {
+    Account acct = { {"1234", 0}, 3600 };
+    AtmState st = IDLE;
+    st = PIN_CHECK;               /* 插卡 */
+    char input[8] = "1234";
+    if (strcmp(input, acct.card.pin) == 0)
+        st = MENU;                /* 验密通过 */
+    int amt = 500;
+    if (st == MENU && amt <= acct.balance)
+        acct.balance -= amt;      /* 取款 */
+    printf("余额:%d\\n", acct.balance);
+    return 0;
+}`}
+  steps={[
+    { line: 8, desc: '账户就位：嵌套初始化 {{"1234",0},3600}——外层大括号是 Account，内层是 BankCard。', vars: { 'acct.balance': '3600', st: 'IDLE' } },
+    { line: 10, desc: '插卡事件：状态 IDLE→PIN_CHECK。注意此刻即使代码想扣款，状态机也不允许——流程即防线。', vars: { st: 'PIN_CHECK' } },
+    { line: 12, desc: '用户输入密码，strcmp 与 acct.card.pin 比对（链式访问跨两层）——返回 0，匹配！', vars: { st: 'PIN_CHECK', 比对: 'strcmp==0' } },
+    { line: 13, desc: '状态晋级 PIN_CHECK→MENU：交易资格已获得。', vars: { st: 'MENU' } },
+    { line: 15, desc: '取款 500：双重检查——状态是 MENU 吗？余额够吗？两个条件用 && 串联（项目 8 的一票否决）。', vars: { st: 'MENU', amt: '500' } },
+    { line: 16, desc: '两关都过：acct.balance -= 500。写的是嵌套结构体最外层的成员。', vars: { 'acct.balance': '3100' } },
+    { line: 17, desc: '打印新余额。一笔取款=一次状态流转+两次成员判断+一次成员写入。', out: '余额:3100' },
+  ]}
+/>
+
+## 动手实验：操作一台真 ATM
+
+<AtmLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：实现"插卡→验密（3次机会）→取款→退卡"主循环。先画状态迁移图：4 个状态、每条箭头标注触发条件。
+2. **AI 优化进阶版**：让 AI 增加"转账"功能（两个 Account 之间）。审查关键点：转出方扣款和转入方入账**必须同时成功或同时失败**——AI 有没有意识到"转出成功转入失败"会凭空蒸发钱？（事务性思维的启蒙。）
+3. **信创加固定稿版**：金额用"分"存储（int）而非"元"（float）——第 3 章"金融用整数"策略的正式落地；每笔操作追加日志记录（谁、何时、多少、余额）；取款限额与当日累计（新成员 + 新校验）。
+
+## 素养与思政
+
+你在 ATM 上取过的每一笔钱，背后都有一套绝不含糊的代码：状态不对不动账、余额不足不吐钞、三次错密即锁卡。金融软件的浪漫，是**万无一失的无聊**。
+中国的银行核心系统正在经历国产化替换——数据库、中间件、操作系统逐层替代。替代的门槛不是功能（功能好抄），是**几十年沉淀的严谨**：每个边界条件、每条异常路径都被真金白银验证过。你今天写的双重校验，就是这种严谨的第一课。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="acct.card.locked = 1; 这行代码在做什么？"
+  options={['锁定整个结构体不可修改', '通过两层成员访问，把嵌套在 Account 里的 BankCard 的 locked 成员置 1（锁卡）', '创建一个新卡片', '比较 locked 是否为 1']}
+  answer={1}
+  explain="链式点号逐层深入：acct → card → locked。业务上的『账户的卡被锁』与代码里的访问路径一字对应——嵌套建模的表达力所在。"
+/>
+
+<QuizItem
+  client:visible
+  question="为什么用状态机（enum + switch）管理 ATM 流程，而不是用一堆布尔标志（inserted/verified/...）？"
+  options={['enum 更省内存', '状态机保证任意时刻只处于一个明确状态，非法组合（如『未验密却已在交易』）从结构上不可能出现', 'switch 比 if 快', '布尔变量不能超过3个']}
+  answer={1}
+  explain="N 个布尔有 2 的 N 次方种组合，多数是无意义甚至危险的；单一状态变量把可能性收窄到枚举值集合内。『让非法状态不可表示』是可靠软件的设计箴言。"
+/>

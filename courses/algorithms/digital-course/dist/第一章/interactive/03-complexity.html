@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>复杂度 · 第1章 绪论</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">01</div>算法可视化 · <span>第1章 绪论</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-algorithm.html">算法定义</a><a class="pill" href="02-design-steps.html">设计步骤</a><a class="pill active" href="03-complexity.html">复杂度</a><a class="pill" href="04-asymptotic.html">渐进界</a><a class="pill" href="05-cases.html">三种情况</a><a class="pill" href="06-stl.html">STL</a><a class="pill" href="07-sequence.html">序列容器</a><a class="pill" href="08-adapters.html">适配器</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 3 · 加深</div><h1>时间复杂度增长</h1>
+<p>拖动 n，对数纵轴对比 O(1), O(log n), O(n), O(n log n), O(n²), O(2ⁿ) 六条曲线。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>说明</b>时间复杂度 T(n) 与空间复杂度 S(n) 的定义，并指出为什么用"基本操作次数"而不用秒数来度量。</li>
+  <li>能够<b>从代码出发数出循环执行次数</b>，写出精确的 T(n) 表达式并化简为复杂度等级。</li>
+  <li>能够<b>默写</b>常数阶到指数阶六个复杂度等级的名称、记号与增长关系。</li>
+  <li>能够<b>估算</b>在 10<sup>8</sup> 次基本操作/秒的前提下，各复杂度等级可处理的数据规模上限。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar"><label>n=<b id="nv">20</b></label><input type="range" id="nr" min="2" max="40" value="20" style="width:220px;accent-color:#C2603F"/></div>
+  <div class="stage-wrap light" style="height:340px"><canvas class="stage" id="cv" width="900" height="340"></canvas></div>
+  <div class="legend">
+    <span><i style="background:#4A6C8C"></i>1</span>
+    <span><i style="background:#7E62A6"></i>log n</span>
+    <span><i style="background:#3B7A57"></i>n</span>
+    <span><i style="background:#C2603F"></i>n log n</span>
+    <span><i style="background:#9C7420"></i>n²</span>
+    <span><i style="background:#A02C55"></i>2ⁿ</span>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>n²</span><b class="a" id="s2">—</b></div>
+    <div class="stat"><span>2ⁿ</span><b class="r" id="s2n">—</b></div>
+  </div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>一、时间复杂度的形式化定义</h2><span class="sub">Time Complexity</span></div>
+
+  <div class="defn"><span class="lbl">定义</span><p><b>问题规模（Problem Size）n</b>：刻画输入数据量大小的参数。排序问题中 n 是元素个数，矩阵运算中 n 是阶数，图算法中常用顶点数 n 与边数 e。</p></div>
+
+  <div class="defn"><span class="lbl">定义</span><p><b>基本操作（Basic Operation）</b>：算法中最主要、执行次数与总运行时间成正比的那个操作。排序算法取"元素比较"，矩阵乘法取"乘法"，查找算法取"关键字比较"。</p></div>
+
+  <div class="defn"><span class="lbl">定义</span><p><b>时间复杂度（Time Complexity）</b>：设算法对规模为 n 的输入所执行的基本操作次数为 T(n)，则 T(n) 称为该算法的时间复杂度（的精确表达）。通常我们只关心 n 充分大时 T(n) 的<b>增长数量级</b>，记作 T(n) = O(f(n))。</p></div>
+
+  <div class="formula lg">T(n) = 算法在规模为 n 的输入上执行的基本操作次数</div>
+
+  <div class="tip info"><strong>为什么不用"秒"来度量？</strong>同一算法在不同 CPU、不同编译器、不同负载下的秒数完全不同，无法比较两个算法的优劣。而<b>基本操作次数只取决于算法本身与输入规模</b>，与硬件无关。这就是"事前分析估算法"优于"事后统计法"的原因。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>二、例题：从代码数循环次数推导 T(n)</h2><span class="sub">最核心的基本功</span></div>
+
+  <p class="desc"><b>例 1（嵌套循环，上三角）</b>：求下列代码段的时间复杂度，以 <code>cnt++</code> 为基本操作。</p>
+  <div class="code"><span class="cm">// 例 1：内层循环上界依赖外层变量</span>
+<span class="kw">int</span> cnt = <span class="nu">0</span>;
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">1</span>; i &lt;= n; i++)          <span class="cm">// 外层执行 n 次</span>
+    <span class="kw">for</span> (<span class="kw">int</span> j = i; j &lt;= n; j++)      <span class="cm">// 内层执行 n - i + 1 次</span>
+        cnt++;                        <span class="cm">// 基本操作</span></div>
+
+  <p class="desc"><b>推导</b>：固定外层的 i，内层 j 从 i 走到 n，执行 n &minus; i + 1 次。对 i 求和：</p>
+  <div class="deriv">
+    <span class="step">T(n) = ∑<sub>i=1</sub><sup>n</sup> (n &minus; i + 1) <span class="why">按外层逐层累加</span></span>
+    <span class="step">　　 = n + (n&minus;1) + (n&minus;2) + … + 2 + 1 <span class="why">展开，i=1 时为 n，i=n 时为 1</span></span>
+    <span class="step">　　 = ∑<sub>k=1</sub><sup>n</sup> k <span class="why">换元 k = n &minus; i + 1，只是倒序</span></span>
+    <span class="step">　　 = n(n+1)/2 <span class="why">等差数列求和公式</span></span>
+    <span class="step">　　 = n<sup>2</sup>/2 + n/2 <span class="why">展开</span></span>
+    <span class="step">⇒ T(n) = O(n<sup>2</sup>) <span class="why">保留最高次项，舍去系数 1/2 与低阶项 n/2</span></span>
+  </div>
+  <div class="formula">T(n) = n(n+1)/2 = O(n<sup>2</sup>)</div>
+  <p class="desc"><b>验算</b>：n = 4 时公式给 4×5/2 = 10；手工数 4+3+2+1 = 10，吻合。注意这里内层<b>不是</b>每次都跑 n 次，所以精确值是 n<sup>2</sup>/2 而非 n<sup>2</sup>——但两者<b>同阶</b>，都是 O(n<sup>2</sup>)。</p>
+
+  <p class="desc"><b>例 2（步长倍增，对数阶）</b>：</p>
+  <div class="code"><span class="cm">// 例 2：循环变量以乘法方式增长</span>
+<span class="kw">int</span> cnt = <span class="nu">0</span>;
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">1</span>; i &lt;= n; i = i * <span class="nu">2</span>)
+    cnt++;</div>
+  <div class="deriv">
+    <span class="step">设循环体共执行 m 次 <span class="why">待求</span></span>
+    <span class="step">i 的取值依次为 1, 2, 4, …, 2<sup>m&minus;1</sup> <span class="why">每次翻倍</span></span>
+    <span class="step">循环继续的条件：2<sup>m&minus;1</sup> ≤ n <span class="why">最后一次仍进入循环体</span></span>
+    <span class="step">两边取以 2 为底的对数：m &minus; 1 ≤ log<sub>2</sub>n</span>
+    <span class="step">⇒ m = ⌊log<sub>2</sub>n⌋ + 1 = O(log n) <span class="why">对数阶</span></span>
+  </div>
+  <div class="tip ok"><strong>识别口诀：</strong>循环变量<b>做加法</b>递增 ⇒ 线性相关；循环变量<b>做乘除法</b>变化 ⇒ 对数相关。这是判断 O(n) 与 O(log n) 的最快方法。</div>
+
+  <p class="desc"><b>例 3（并列 vs 嵌套）</b>：两条法则可以处理绝大多数代码段。</p>
+  <div class="defn prop"><span class="lbl">性质</span><p><b>加法法则（并列结构）</b>：若程序由两段先后执行的代码构成，T<sub>1</sub>(n) = O(f(n))，T<sub>2</sub>(n) = O(g(n))，则总复杂度 T(n) = O(max(f(n), g(n)))。<br/><b>乘法法则（嵌套结构）</b>：若一段复杂度为 O(g(n)) 的代码被嵌套在执行 O(f(n)) 次的循环中，则 T(n) = O(f(n)·g(n))。</p></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>三、空间复杂度</h2><span class="sub">Space Complexity · 与时间同等重要</span></div>
+
+  <div class="defn"><span class="lbl">定义</span><p><b>空间复杂度（Space Complexity）S(n)</b>：算法在执行过程中所需<b>辅助存储空间</b>的数量级，是问题规模 n 的函数。<br/>注意"辅助"二字：<b>输入数据本身占用的空间不计入</b>，只统计算法额外申请的临时变量、辅助数组、递归调用栈等。</p></div>
+
+  <div class="formula">S(n) = 算法运行期间额外占用的存储单元数</div>
+
+  <div class="table-scroll"><table class="data">
+    <tr><th>算法 / 结构</th><th>额外空间来源</th><th>S(n)</th><th>名称</th></tr>
+    <tr><td>冒泡排序 / 插入排序</td><td>1 个临时变量</td><td class="hl">O(1)</td><td>原地（in-place）算法</td></tr>
+    <tr><td>二分查找（迭代版）</td><td>low / high / mid 三个变量</td><td>O(1)</td><td>原地</td></tr>
+    <tr><td>二分查找（递归版）</td><td>递归栈深度 log<sub>2</sub>n</td><td>O(log n)</td><td>对数辅助空间</td></tr>
+    <tr><td>归并排序</td><td>与原数组等长的辅助数组</td><td class="hl">O(n)</td><td>非原地</td></tr>
+    <tr><td>快速排序（平均）</td><td>递归栈深度</td><td>O(log n)</td><td>—</td></tr>
+    <tr><td>计数排序</td><td>计数数组，k 为值域大小</td><td>O(n + k)</td><td>以空间换时间</td></tr>
+  </table></div>
+
+  <div class="tip warn"><strong>时空权衡（Time-Space Tradeoff）：</strong>降低时间往往要付出空间代价，反之亦然。计数排序用 O(n+k) 空间把排序时间降到 O(n+k)，突破了比较排序 Ω(n log n) 的下界；哈希表用额外空间把查找降到均摊 O(1)。<b>分析算法时两者都要报告，不能只说时间。</b></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>四、复杂度等级对照表</h2><span class="sub">必须默写</span></div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>记号</th><th>中文名称</th><th>英文名称</th><th>典型算法</th><th>n=1000 时的量级</th></tr>
+    <tr><td class="hl">O(1)</td><td>常数阶</td><td>Constant</td><td>数组随机访问、哈希查找</td><td>1</td></tr>
+    <tr><td class="hl">O(log n)</td><td>对数阶</td><td>Logarithmic</td><td>二分查找、平衡树查找</td><td>≈ 10</td></tr>
+    <tr><td class="hl">O(n)</td><td>线性阶</td><td>Linear</td><td>顺序查找、遍历求和</td><td>10<sup>3</sup></td></tr>
+    <tr><td class="hl">O(n log n)</td><td>线性对数阶</td><td>Linearithmic</td><td>归并排序、堆排序、快排平均</td><td>≈ 10<sup>4</sup></td></tr>
+    <tr><td class="hl">O(n<sup>2</sup>)</td><td>平方阶</td><td>Quadratic</td><td>冒泡 / 插入 / 选择排序</td><td>10<sup>6</sup></td></tr>
+    <tr><td>O(n<sup>3</sup>)</td><td>立方阶</td><td>Cubic</td><td>朴素矩阵乘法、Floyd 算法</td><td>10<sup>9</sup></td></tr>
+    <tr><td class="hl">O(2<sup>n</sup>)</td><td>指数阶</td><td>Exponential</td><td>子集枚举、朴素 TSP</td><td>≈ 10<sup>301</sup></td></tr>
+    <tr><td>O(n!)</td><td>阶乘阶</td><td>Factorial</td><td>全排列枚举</td><td>天文数字</td></tr>
+  </table></div>
+  <div class="formula lg">O(1) &lt; O(log n) &lt; O(n) &lt; O(n log n) &lt; O(n<sup>2</sup>) &lt; O(n<sup>3</sup>) &lt; O(2<sup>n</sup>) &lt; O(n!)</div>
+
+  <p class="desc"><b>可解规模估计</b>（按 1 秒约执行 10<sup>8</sup> 次基本操作估算）：</p>
+  <div class="table-scroll"><table class="data">
+    <tr><th>复杂度</th><th>1 秒内可处理的 n</th><th>工程含义</th></tr>
+    <tr><td>O(log n)</td><td>几乎无上限</td><td>随便用</td></tr>
+    <tr><td>O(n)</td><td>≈ 10<sup>8</sup></td><td>大规模数据可行</td></tr>
+    <tr><td>O(n log n)</td><td>≈ 5×10<sup>6</sup></td><td>百万级排序的现实选择</td></tr>
+    <tr><td>O(n<sup>2</sup>)</td><td>≈ 10<sup>4</sup></td><td class="hl">上万即吃力</td></tr>
+    <tr><td>O(n<sup>3</sup>)</td><td>≈ 460</td><td>仅适合小规模</td></tr>
+    <tr><td>O(2<sup>n</sup>)</td><td>≈ 26</td><td class="hl">n 稍大即不可行</td></tr>
+  </table></div>
+  <p class="desc">把上方演示中的 n 从 20 拖到 40，可以直观看到：纵轴虽然已是<b>对数刻度</b>，O(2<sup>n</sup>) 的曲线仍然近乎直线地冲向顶端——这正是"指数爆炸"的含义。相比之下 O(1) 与 O(log n) 两条曲线几乎贴着底部，说明它们对 n 的增长几乎不敏感。</p>
+
+  <div class="terms">
+    <span class="term"><b>问题规模</b>Problem Size</span>
+    <span class="term"><b>基本操作</b>Basic Operation</span>
+    <span class="term"><b>时间复杂度</b>Time Complexity</span>
+    <span class="term"><b>空间复杂度</b>Space Complexity</span>
+    <span class="term"><b>原地算法</b>In-place Algorithm</span>
+    <span class="term"><b>时空权衡</b>Time-Space Tradeoff</span>
+  </div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>把 O(n<sup>2</sup>/2) 写进答案。</b>渐进复杂度中<b>常数因子必须舍去</b>，n<sup>2</sup>/2、3n<sup>2</sup>、n<sup>2</sup>+100n 统统写作 O(n<sup>2</sup>)。同理 O(2n) 应写成 O(n)。</li>
+  <li><b>看到双重循环就断定 O(n<sup>2</sup>)。</b>要看内层<b>实际执行次数</b>：内层为 <code>j = i; j &lt;= n</code> 时总数是 n(n+1)/2（仍是 O(n<sup>2</sup>)），但内层为 <code>j *= 2</code> 时总数是 O(n log n)，内层若与 n 无关则只是 O(n)。</li>
+  <li><b>把空间复杂度算成"数组总长度"。</b>S(n) 只统计<b>辅助空间</b>。对长度为 n 的输入数组做冒泡排序，S(n) = O(1) 而不是 O(n)——输入本身不计入。</li>
+  <li><b>忘记递归调用栈也占空间。</b>递归版二分查找时间是 O(log n)，空间也是 O(log n)（栈深度），不是 O(1)。这是笔试高频陷阱。</li>
+  <li><b>用运行秒数比较两个算法。</b>秒数依赖硬件与编译器；O(n<sup>2</sup>) 的算法在快机器上可能比 O(n log n) 在慢机器上更快，但 n 增大后必然反超。<b>复杂度比较的是趋势，不是某一次的实测值。</b></li>
+  <li><b>对数的底数纠结。</b>O(log<sub>2</sub>n)、O(log<sub>10</sub>n)、O(ln n) 是<b>同一个数量级</b>，因为换底只差常数因子 log<sub>a</sub>b。故统一写 O(log n)。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li><b>T(n)</b> 定义为算法在规模 n 的输入上执行的<b>基本操作次数</b>；用次数而非秒数度量，才能做到与硬件无关。</li>
+  <li>推导 T(n) 的标准动作：<b>确定基本操作 → 按循环层次写求和式 → 用求和公式化简 → 保留最高阶项、舍去常数</b>。</li>
+  <li>循环变量做<b>加法</b>递增得线性相关；做<b>乘除法</b>变化得对数相关。并列用加法法则取 max，嵌套用乘法法则相乘。</li>
+  <li><b>S(n)</b> 只统计辅助空间，输入数据不计；递归算法必须把调用栈深度算进去。</li>
+  <li>等级序列：<b>O(1) &lt; O(log n) &lt; O(n) &lt; O(n log n) &lt; O(n<sup>2</sup>) &lt; O(n<sup>3</sup>) &lt; O(2<sup>n</sup>) &lt; O(n!)</b>；O(n<sup>2</sup>) 的实用规模约 10<sup>4</sup>，O(2<sup>n</sup>) 约 26。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>下列代码段以 <code>x++</code> 为基本操作，其时间复杂度为？</div>
+    <div class="code"><span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">1</span>; i &lt;= n; i++)
+    <span class="kw">for</span> (<span class="kw">int</span> j = <span class="nu">1</span>; j &lt;= i; j++)
+        x++;</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>O(n)</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>O(n log n)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>O(n<sup>2</sup>)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>O(n<sup>2</sup>/2)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>正确答案 C。T(n) = ∑<sub>i=1</sub><sup>n</sup> i = n(n+1)/2 = n<sup>2</sup>/2 + n/2 = O(n<sup>2</sup>)。<br/>D 是最具迷惑性的选项：n(n+1)/2 的精确值确实约为 n<sup>2</sup>/2，但<b>渐进记号中必须舍去常数因子</b>，写 O(n<sup>2</sup>/2) 是不规范的——O(n<sup>2</sup>/2) 与 O(n<sup>2</sup>) 是同一个集合，按惯例只写后者。<br/>A 错在忽略了内层循环随 i 增长；B 是把 <code>j &lt;= i</code> 误看成 <code>j *= 2</code> 的结果。</div>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>对长度为 n 的数组执行<b>递归版</b>二分查找，其时间复杂度和空间复杂度分别是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>O(log n) 和 O(1)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>O(log n) 和 O(log n)</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>O(log n) 和 O(n)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>O(n) 和 O(log n)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>正确答案 B。每次递归把区间减半，递归深度为 ⌊log<sub>2</sub>n⌋+1，故时间 O(log n)。<br/>A 是最常见的错误：它是<b>迭代版</b>的答案。递归版每层都要在调用栈上压入一帧（保存 low、high、返回地址），栈深度等于递归深度 log n，因此空间是 <b>O(log n)</b> 而非 O(1)。<br/>C 把栈深度误当作元素个数；D 混淆了顺序查找。<br/><b>教训：分析递归算法的空间时，永远先问"栈有多深"。</b></div>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>某算法的精确操作次数为 T(n) = 3n<sup>2</sup> + 100n·log<sub>2</sub>n + 5000。下列说法<b>正确</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>因为 5000 很大，n 较小时该算法很慢，故复杂度应记为 O(5000)</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>因为 100n·log<sub>2</sub>n 的系数最大，故复杂度为 O(n log n)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>复杂度为 O(n<sup>2</sup>)，因为 n 充分大时 n<sup>2</sup> 项占绝对主导</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>复杂度为 O(3n<sup>2</sup>)，系数 3 必须保留以体现实际代价</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>正确答案 C。渐进分析关心的是 <b>n → ∞ 时的增长趋势</b>：n<sup>2</sup> 增长快于 n log n，n log n 又快于常数，因此只保留最高阶项 n<sup>2</sup> 并舍去系数。<br/>A、B 都犯了"用小规模下的数值大小判断阶"的错误——系数 100 再大，当 n 超过某个 n<sub>0</sub> 后 3n<sup>2</sup> 必然超过 100n·log<sub>2</sub>n（约 n &gt; 500 时）。<br/>D 错在渐进记号按定义已允许乘以任意正常数 c，保留系数没有意义。<br/><b>注意：</b>常数因子在工程上仍然重要，但它属于"常数优化"，不属于复杂度<b>等级</b>的讨论范畴。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="02-design-steps.html"><span class="dir">← 上一节</span><span class="name">设计步骤</span></a><a href="04-asymptotic.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">渐进界</span></a></div>
+<div class="footer">算法设计与分析 · <b>第1章 绪论</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(194,96,63,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+function upd(){
+  const n=+nr.value; nv.textContent=n;
+  s2.textContent=n*n; s2n.textContent=n>25?'巨大':(2**n);
+  const W=cv.width,H=cv.height,pad=40;
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='#D5CFC1'; ctx.beginPath(); ctx.moveTo(pad,pad); ctx.lineTo(pad,H-pad); ctx.lineTo(W-pad,H-pad); ctx.stroke();
+  const curves=[
+    {f:x=>1, col:'#4A6C8C'},
+    {f:x=>Math.log2(x), col:'#7E62A6'},
+    {f:x=>x, col:'#3B7A57'},
+    {f:x=>x*Math.log2(x), col:'#C2603F'},
+    {f:x=>x*x, col:'#9C7420'},
+    {f:x=>Math.pow(2,Math.min(x,20)), col:'#A02C55'},
+  ];
+  let ymax=1;
+  curves.forEach(c=>{ for(let i=1;i<=n;i++) ymax=Math.max(ymax,c.f(i)); });
+  const logM=Math.log10(ymax+1);
+  function X(x){return pad+(x-1)/(n-1||1)*(W-2*pad);}
+  function Y(v){return H-pad-(Math.log10(Math.max(v,1))/logM)*(H-2*pad);}
+  curves.forEach(c=>{
+    ctx.strokeStyle=c.col; ctx.lineWidth=2.5; ctx.beginPath();
+    for(let i=1;i<=n;i++){ const x=X(i),y=Y(c.f(i)); i===1?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+    ctx.stroke();
+  });
+  ctx.strokeStyle='rgba(194,96,63,.4)'; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(X(n),pad); ctx.lineTo(X(n),H-pad); ctx.stroke(); ctx.setLineDash([]);
+}
+nr.oninput=upd; upd();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

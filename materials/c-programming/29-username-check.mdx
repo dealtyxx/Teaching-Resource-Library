@@ -1,0 +1,91 @@
+---
+module: 5
+moduleName: 函数
+order: 29
+title: 用户名校验函数
+level: 进阶选做
+scene: 系统应用
+knowledge: [字符串函数, 返回状态码]
+stars: 4
+minutes: 90
+goal: 掌握校验类函数的设计方法
+sizheng: 规则清晰、有错必明——好的校验对用户是一种尊重
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import UsernameCheckLab from '../../components/react/UsernameCheckLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：注册页背后的那个函数
+
+每个注册页都有一位隐形守门员：用户名 4~16 字符、字母数字下划线、不能数字开头……
+这类**校验函数**有一套标准设计范式：
+
+- **返回状态码**：0 表示合法，负数区分具体错误——调用方拿着错误码给用户精准提示（项目 16 登录、第 3 章信创版都用过这套约定，如今由你亲手设计）；
+- **早退结构**（early return）：一条条检查、一失败立刻 return，不合格的数据不配进入下一关；
+- **字符串工具箱**：`strlen` 量长度，`ctype.h` 的 `isdigit`/`isalnum` 判字符类别——它们本身就是别人封装好的函数。
+
+## 一步一步看早退链
+
+<CStepRunner
+  client:visible
+  title="校验模拟：用户名 9lives 闯关记"
+  badge="早退结构模拟"
+  doneNote="9lives 过了长度关却倒在『数字开头』关——早退结构让函数在发现问题的第一现场立刻返回，代码没有嵌套金字塔，每条 return 都对应一个明确的拒绝理由。"
+  code={`#include <string.h>
+#include <ctype.h>
+
+int check_username(const char *name) {
+    size_t len = strlen(name);
+    if (len < 4)  return -2;
+    if (len > 16) return -3;
+    if (isdigit((unsigned char)name[0]))
+        return -4;
+    for (size_t i = 0; i < len; i++) {
+        if (!isalnum((unsigned char)name[i])
+            && name[i] != '_') return -5;
+    }
+    return 0;
+}`}
+  steps={[
+    { line: 4, desc: '待检字符串 "9lives"。strlen 数到 \\0 为止：len=6。', vars: { name: '"9lives"', len: '6' } },
+    { line: 5, desc: '第 1 关（太短？）：6 大于等于 4，通过。注意没有 else——通过就顺流而下。', vars: { len: '6' } },
+    { line: 6, desc: '第 2 关（太长？）：6 未超 16，通过。', vars: { len: '6' } },
+    { line: 7, desc: "第 3 关（数字开头？）：name[0]='9'，isdigit 返回真——闯关失败！", vars: { 'name[0]': "'9'" } },
+    { line: 8, desc: 'return -4，立即离场。第 4 关的循环根本没有机会执行——这就是早退：错误发生地=返回发生地。', vars: {} },
+    { line: 8, desc: '调用方收到 -4，对照约定表提示用户："用户名不能以数字开头"。状态码是函数与调用者之间的语言。' },
+  ]}
+/>
+
+## 动手实验：当一回守门员
+
+<UsernameCheckLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：实现五关校验函数 + main 里打印对应中文提示（switch 接住状态码——项目 9 回归）。
+2. **AI 优化进阶版**：让 AI 增加"保留字检查"（admin/root/test 禁止注册）。审查它用什么比较字符串——如果写了 `name == "admin"` 就是比地址不比内容的经典错误，必须 `strcmp`。
+3. **信创加固定稿版**：补 NULL 检查（-1）放在最前；状态码定义成枚举并写文档注释；思考大小写问题——ADMIN 要不要也拦？（提示：逐字符 `tolower` 后再比。）
+
+## 素养与思政
+
+差的报错是"用户名无效"，好的报错是"用户名不能以数字开头"——同一个函数，五个错误码的差别，就是用户体验里的**被尊重感**。
+《个人信息保护法》要求产品"以显著方式、清晰易懂的语言"告知用户规则。把规则写成清晰的状态码，把状态码翻译成明白的提示——**技术上的严谨与表达上的诚恳，加起来才是对用户的尊重**。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="校验函数返回 0 表示成功、负数表示各类错误，这种约定的好处是？"
+  options={['0 算得最快', '调用方能区分『是否成功』和『为何失败』：if (ret) 判失败，switch(ret) 分流提示', '负数占内存更小', '没有特别好处']}
+  answer={1}
+  explain="一个返回值携带两层信息。这套『0 成功、负数错误』约定贯穿 Linux 内核与 POSIX 接口——你正在学习的是产业级的接口方言。"
+/>
+
+<QuizItem
+  client:visible
+  question="比较两个字符串内容是否相同，正确写法是？"
+  options={['if (s1 == s2)', 'if (strcmp(s1, s2) == 0)', 'if (s1 = s2)', 'if (strlen(s1) == strlen(s2))']}
+  answer={1}
+  explain="s1 == s2 比较的是两个地址（第 6 章：数组名≈首地址）；内容比较必须 strcmp，相等时返回 0。选项 D 只能说明长度相同——『长度相同』不等于『内容相同』。"
+/>

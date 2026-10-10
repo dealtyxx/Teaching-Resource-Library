@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>点在多边形 · 第10章 计算几何</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">10</div>算法可视化 · <span>第10章 计算几何</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-vector.html">向量运算</a><a class="pill" href="02-direction.html">方向判断</a><a class="pill" href="03-point-seg.html">点与线段</a><a class="pill" href="04-intersect.html">线段相交</a><a class="pill active" href="05-inpoly.html">点在多边形</a><a class="pill" href="06-area.html">多边形面积</a><a class="pill" href="07-jarvis.html">礼品包裹</a><a class="pill" href="08-graham.html">Graham</a><a class="pill" href="09-closest.html">最近点对</a><a class="pill" href="10-calipers.html">旋转卡壳</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 5 · 射线法</div>
+  <h1>点在多边形内吗？</h1>
+  <p>从点向右发射水平射线，与多边形边界相交<b>奇数</b>次则在内、<b>偶数</b>次则在外。拖动测试点，观察射线与交点计数。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够正式写出射线法的<b>奇偶规则</b>（Jordan 曲线定理的算法化表述）</li>
+  <li>能够解释「每穿越一次边界，内外状态就翻转一次」这一<b>奇偶不变量</b></li>
+  <li>能够用 C++ 实现射线法，并说明 <code>(a.y &gt; p.y) != (b.y &gt; p.y)</code> 这一<b>半开区间</b>写法如何一举解决顶点退化</li>
+  <li>能够列举三类退化情形：射线<b>穿过顶点</b>、射线与边<b>共线</b>、点<b>落在边界上</b></li>
+  <li>能够叙述<b>绕数法</b>的原理，并说明它与射线法在<b>自交多边形</b>上结论的差异</li>
+  <li>能够为凸多边形选择更快的 O(log n) 判定方法</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="rand">🎲 随机多边形</button>
+  </div>
+  <div class="stage-wrap light" style="height:420px">
+    <canvas class="stage" id="cv" width="1000" height="420"></canvas>
+    <div class="stage-hud"><span class="hud-pill light">ray casting</span><span class="hud-pill light" id="hud">—</span></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>交点数</span><b class="blue" id="cn">0</b></div>
+    <div class="stat"><span>判定</span><b id="ans">—</b></div>
+  </div>
+  <div class="formula">P ∈ 多边形内部 ⇔ crossings(P) mod 2 = 1</div>
+</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul><li><b>射线法原理</b>：从待判点向任一方向引射线，统计与多边形各边的交点数，<strong>奇数在内、偶数在外</strong>。</li><li><b>退化情形要特判</b>：射线恰好穿过顶点、或与某条水平边共线时，交点会重复计数，需统一约定（如只算“下端点”）。</li><li><b>叉积绕数法</b>：累加待判点对各边张成的有向角 / 叉积符号，绕数非 0 则在内，适合任意简单多边形。</li><li><b>凸多边形捷径</b>：点在凸多边形内 ⟺ 它在所有边（同向遍历）的同一侧，即所有叉积同号。</li><li><b>边界点归属</b>：落在边或顶点上算“内”还是“外”要事先约定，叉积 = 0 即在边上。</li><li><b>浮点误差</b>：比较时用容差 <code>eps</code>，避免临界点误判。</li></ul></div>
+<div class="summary"><span class="lbl">本节小结</span><ul><li>点在多边形内的两大判定：射线法（奇偶交点）与叉积绕数法。</li><li>射线法：交点数为奇则在内，偶则在外；需处理穿顶点 / 水平边等退化。</li><li>凸多边形可用“所有边叉积同号”在 <code>O(n)</code> 内快速判定。</li><li>叉积 = 0 表示点落在边所在直线上，边界归属需显式约定。</li><li>一般简单多边形判定复杂度 <code>O(n)</code>，注意浮点容差。</li></ul></div>
+<div class="quiz"><div class="quiz-item"><div class="quiz-q"><span class="qn">1</span>射线法判定点在简单多边形内外，依据是？</div><div class="quiz-opts"><div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>交点数为奇数 → 在内</span></div><div class="quiz-opt"><span class="mk">B</span><span>交点数为偶数 → 在内</span></div><div class="quiz-opt"><span class="mk">C</span><span>交点数为 0 → 在内</span></div></div><div class="quiz-exp">射线穿过边界奇数次说明从外进到了内。</div></div><div class="quiz-item"><div class="quiz-q"><span class="qn">2</span>判断点是否在<strong>凸</strong>多边形内，最简洁的方法是？</div><div class="quiz-opts"><div class="quiz-opt"><span class="mk">A</span><span>射线法数交点</span></div><div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>检查该点在所有边的同一侧（叉积同号）</span></div><div class="quiz-opt"><span class="mk">C</span><span>计算多边形面积</span></div></div><div class="quiz-exp">凸多边形沿同向遍历，内部点对每条有向边的叉积符号一致。</div></div><div class="quiz-item"><div class="quiz-q"><span class="qn">3</span>射线法中必须特殊处理的退化情形是？</div><div class="quiz-opts"><div class="quiz-opt"><span class="mk">A</span><span>多边形是凸的</span></div><div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>射线恰好穿过顶点或与水平边共线</span></div><div class="quiz-opt"><span class="mk">C</span><span>点在多边形外</span></div></div><div class="quiz-exp">穿顶点 / 共线水平边会导致交点重复计数，需统一计数规则。</div></div></div>
+<div class="page-nav"><a href="04-intersect.html"><span class="dir">← 上一节</span><span class="name">线段相交</span></a><a href="06-area.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">多边形面积</span></a></div>
+<div class="footer">算法设计与分析 · <b>第10章 计算几何</b> · 强交互可视化版<br/>拖拽 · 扫描 · 凸包 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(62,133,120,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const cross=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x);
+const dot=(a,b)=>a.x*b.x+a.y*b.y;
+const sub=(a,b)=>({x:a.x-b.x,y:a.y-b.y});
+const add=(a,b)=>({x:a.x+b.x,y:a.y+b.y});
+const mul=(a,k)=>({x:a.x*k,y:a.y*k});
+const len=a=>Math.hypot(a.x,a.y);
+function dragPoints(cv, pts, onChange){
+  let drag=-1;
+  const pos=e=>{const r=cv.getBoundingClientRect(); return {x:(e.clientX-r.left)*cv.width/r.width, y:(e.clientY-r.top)*cv.height/r.height};};
+  cv.addEventListener('mousedown',e=>{
+    const p=pos(e); drag=pts.findIndex(q=>(q.x-p.x)**2+(q.y-p.y)**2<400);
+    cv.style.cursor=drag>=0?'grabbing':'crosshair';
+  });
+  cv.addEventListener('mousemove',e=>{
+    if(drag<0) return;
+    const p=pos(e);
+    pts[drag].x=Math.max(20,Math.min(cv.width-20,p.x));
+    pts[drag].y=Math.max(20,Math.min(cv.height-20,p.y));
+    onChange();
+  });
+  const up=()=>{drag=-1; cv.style.cursor='crosshair';};
+  cv.addEventListener('mouseup',up); cv.addEventListener('mouseleave',up);
+}
+function drawDot(ctx,p,col,label){
+  ctx.beginPath(); ctx.arc(p.x,p.y,11,0,Math.PI*2);
+  ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=12; ctx.fill(); ctx.shadowBlur=0;
+  if(label){ ctx.fillStyle='#1D1B16'; ctx.font='12px ui-monospace'; ctx.fillText(label, p.x+14, p.y-10); }
+}
+function drawArrow(ctx,a,b,col){
+  ctx.strokeStyle=col; ctx.lineWidth=3; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+  const ang=Math.atan2(b.y-a.y,b.x-a.x);
+  ctx.beginPath();
+  ctx.moveTo(b.x,b.y);
+  ctx.lineTo(b.x-12*Math.cos(ang-0.4), b.y-12*Math.sin(ang-0.4));
+  ctx.lineTo(b.x-12*Math.cos(ang+0.4), b.y-12*Math.sin(ang+0.4));
+  ctx.closePath(); ctx.fillStyle=col; ctx.fill();
+}
+
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let poly=[], P={x:500,y:210}, drag=-1;
+function makePoly(){
+  const n=6, cx=500, cy=210, R=120;
+  poly=Array.from({length:n},(_,i)=>{
+    const a=i/n*Math.PI*2-Math.PI/2 + (Math.random()-.5)*.3;
+    const r=R+(Math.random()-.5)*40;
+    return {x:cx+Math.cos(a)*r*1.4, y:cy+Math.sin(a)*r};
+  });
+}
+function crossings(p, poly){
+  let cnt=0; const n=poly.length;
+  const hits=[];
+  for(let i=0,j=n-1;i<n;j=i++){
+    const a=poly[i], b=poly[j];
+    if((a.y>p.y)!==(b.y>p.y)){
+      const x=a.x+(b.x-a.x)*(p.y-a.y)/(b.y-a.y);
+      if(x>p.x){ cnt++; hits.push({x,y:p.y}); }
+    }
+  }
+  return {cnt, hits};
+}
+function redraw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  // poly
+  ctx.beginPath(); poly.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)); ctx.closePath();
+  ctx.fillStyle='rgba(62,133,120,.1)'; ctx.fill();
+  ctx.strokeStyle='#3E8578'; ctx.lineWidth=3; ctx.stroke();
+  poly.forEach(p=>drawDot(ctx,p,'#3E8578'));
+  // ray
+  const {cnt,hits}=crossings(P,poly);
+  ctx.strokeStyle='rgba(184,134,43,.7)'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.moveTo(P.x,P.y); ctx.lineTo(cv.width-20,P.y); ctx.stroke(); ctx.setLineDash([]);
+  hits.forEach(h=>{ ctx.beginPath(); ctx.arc(h.x,h.y,6,0,Math.PI*2); ctx.fillStyle='#B8862B'; ctx.fill(); });
+  drawDot(ctx,P,'#C2603F','P');
+  const inside=cnt%2===1;
+  cn.textContent=cnt; ans.textContent=inside?'内部 ✓':'外部';
+  ans.className=inside?'green':'red';
+  hud.textContent=inside?'INSIDE':'OUTSIDE · crossings='+cnt;
+}
+cv.onmousedown=e=>{
+  const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*cv.width/r.width,y=(e.clientY-r.top)*cv.height/r.height;
+  if((P.x-x)**2+(P.y-y)**2<600) drag=0;
+};
+cv.onmousemove=e=>{
+  if(drag<0)return;
+  const r=cv.getBoundingClientRect();
+  P.x=Math.max(20,Math.min(cv.width-20,(e.clientX-r.left)*cv.width/r.width));
+  P.y=Math.max(20,Math.min(cv.height-20,(e.clientY-r.top)*cv.height/r.height));
+  redraw();
+};
+cv.onmouseup=cv.onmouseleave=()=>drag=-1;
+rand.onclick=()=>{makePoly();redraw();};
+makePoly(); redraw();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

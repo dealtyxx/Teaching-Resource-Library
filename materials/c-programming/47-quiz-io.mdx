@@ -1,0 +1,112 @@
+---
+module: 8
+moduleName: 文件
+order: 47
+title: 云平台题库导入导出
+level: 进阶选做
+scene: 平台应用
+knowledge: [文件批量处理, 格式转换, 数据交互]
+stars: 5
+minutes: 140
+goal: 平台级数据文件交互能力
+sizheng: 优质题库跨校流动——数据标准化是教育公平的隐形桥梁
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import QuizIoLab from '../../components/react/QuizIoLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：老师上传的 CSV，你敢直接入库吗
+
+在线教育平台的日常：老师批量上传 CSV 题库、平台导出给另一所学校。平台级文件交互的第一原则：
+
+> **永远假设上传的文件是坏的。**
+
+字段缺失、难度超纲、编码混乱……坏行必然存在。健壮的导入器三层设防：
+
+- `sscanf(...) != 4` —— 字段数不对，整行拒收（返回值验收，项目 44 的锁钥原则）；
+- 范围校验 —— 难度必须 1~5，超纲拦截（第 3 章的类型自觉）；
+- **报行号** —— "第 3 行字段缺失"让老师能自己修文件，"导入失败"只会让他打客服电话。
+
+坏行处理用 `continue` 剔坏保好（项目 15），好数据一条不少、坏数据一条不进。
+
+## 一步一步看解析防线
+
+<CStepRunner
+  client:visible
+  title="导入模拟：三行 CSV，一行被拒"
+  badge="逐行解析模拟"
+  doneNote="fgets 读行 → sscanf 拆字段 → 返回值+范围双重验收 → 坏行报号跳过。四步流水线是一切『上传文件』功能的骨架。"
+  code={`#include <stdio.h>
+
+typedef struct { int id; char stem[64];
+                 char ans[32]; int diff; } Quiz;
+
+int main(void) {
+    /* quiz.csv:
+       101,指针的本质,地址,2
+       103,缺字段的坏行,3
+       106,fopen失败返回,NULL,3 */
+    FILE *fp = fopen("quiz.csv", "r");
+    if (fp == NULL) return -1;
+    Quiz qs[10]; char line[160];
+    int n = 0, lineno = 0;
+    while (fgets(line, 160, fp) != NULL) {
+        lineno++;
+        Quiz q;
+        int got = sscanf(line, "%d,%63[^,],%31[^,],%d",
+                     &q.id, q.stem, q.ans, &q.diff);
+        if (got != 4) {
+            printf("第%d行:字段错,跳过\\n", lineno);
+            continue;
+        }
+        qs[n++] = q;
+    }
+    fclose(fp);
+    printf("入库%d条\\n", n);
+    return 0;
+}`}
+  steps={[
+    { line: 14, desc: 'fgets 读入第 1 行。lineno=1——行号计数器从读取那一刻就开始工作，报错全靠它。', vars: { lineno: '1' } },
+    { line: 17, desc: 'sscanf 按格式拆解：%63[^,] 意为"读到逗号为止、最多63字符"——比 %s 更懂 CSV，且限宽防溢出。四个字段全中，返回 4。', vars: { got: '4', 'q.id': '101' } },
+    { line: 23, desc: '验收通过，入库 qs[0]。', vars: { n: '1' } },
+    { line: 14, desc: '第 2 行"103,缺字段的坏行,3"——只有 3 个字段。', vars: { lineno: '2' } },
+    { line: 17, desc: 'sscanf 只成功匹配 3 个，返回 3 ≠ 4——坏行现形！', vars: { got: '3' } },
+    { line: 20, desc: '报出行号并 continue：这行被拒之门外，但循环继续——一颗老鼠屎，不坏一锅粥（项目 15 的产线哲学）。', out: '第2行:字段错,跳过', vars: { n: '1' } },
+    { line: 17, desc: '第 3 行四字段齐全，入库 qs[1]。', vars: { lineno: '3', n: '2' } },
+    { line: 26, desc: '收官：3 行进来，2 条入库，1 条被拒且有据可查——这就是平台级导入该有的样子。', out: '入库2条' },
+  ]}
+/>
+
+## 动手实验：亲手修一份坏 CSV
+
+<QuizIoLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：实现 CSV 导入（含字段数与难度范围校验）+ 导出。用实验里的坏数据自测：拒收行数对得上吗？
+2. **AI 优化进阶版**：让 AI 增加 JSON 导出。审查两个刁钻点：题干含引号怎么转义？最后一条记录后面不能有逗号——AI 常在这两处翻车。
+3. **信创加固定稿版**：题干含逗号的场景（CSV 的老大难：加引号包裹并解析）；导入前先全文件"预检"再入库（发现坏行先报告、经确认再导入——事务思维，项目 41 转账问题的续篇）；限制单文件最大行数防资源耗尽。
+
+## 素养与思政
+
+国家中小学智慧教育平台汇聚了数千万条优质资源，让山区学校能用上名校题库——前提是**格式标准化**：同一份 CSV/JSON 规范，各校系统才能互认互通。
+数据标准是看不见的桥：格式约定越严谨，优质资源流动越顺畅。你写的每一行校验代码，都在为这座桥加固——**教育公平的实现路径里，有一段是用解析器铺的**。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question='sscanf 格式串中 %63[^,] 的含义是？'
+  options={['读63个逗号', '最多读63个字符，遇到逗号停止——既按分隔符切字段，又限宽防缓冲区溢出', '跳过逗号', '读取第63列']}
+  answer={1}
+  explain="[^,] 是『字符集取反』：读取一切非逗号字符。63 是宽度上限（缓冲区64留1个给 \\0）。这一个格式符同时解决『CSV切分』和『安全限宽』两件事。"
+/>
+
+<QuizItem
+  client:visible
+  question="导入器发现坏行时，最专业的处理是？"
+  options={['整个文件拒绝导入', '静默跳过，不告诉用户', '跳过坏行继续处理，同时记录行号和原因反馈给用户', '程序直接退出']}
+  answer={2}
+  explain="全拒过于粗暴（一行错误毁千行劳动），静默跳过则是数据悄悄丢失（用户以为全导入了）。『尽量成功 + 如实报告』兼顾体验与诚实——错误处理的成熟度，就是软件的成熟度。"
+/>

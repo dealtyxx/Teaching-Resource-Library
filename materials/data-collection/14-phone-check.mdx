@@ -1,0 +1,115 @@
+---
+module: 4
+moduleName: 正则表达式
+order: 14
+title: 手机号格式校验器
+level: 基础必做
+scene: 表单验证
+knowledge: ["match()", 字符集, 数量词, raw字符串]
+stars: 2
+minutes: 25
+goal: 掌握正则基础语法，能编写手机号校验规则
+sizheng: 一条正则守住入口——严谨是工程师的第一美德
+dims: [科研诚信]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+import RegexRangeLab from '../../components/react/labs/RegexRangeLab';
+
+## 场景导入
+
+注册校园活动、绑定图书馆账号、找回密码……几乎每张表单都要你填手机号。前端那句冷冰冰的「手机号格式不正确」，背后往往只是一行正则在把关。今天我们就来写这行「守门员」：用最基础的正则语法，判断一串数字到底是不是合法的中国大陆手机号。
+
+## 玩一玩
+
+先别急着写代码。下面这个「正则靶场」有三关——手机号、邮箱、日期。编辑你的正则，命中的目标会实时高亮成金色，误伤则标红。先把第一靶「手机号」打到十环，再回来看代码：
+
+<RegexRangeLab client:visible />
+
+## 动手实验
+
+一行手机号正则，拆开看其实很有条理：
+
+```python
+# 手机号正则拆解： r'1[3-9]\d{9}$'
+#   1        第一位固定是 1
+#   [3-9]    字符集：第二位只能是 3 到 9
+#   \d       匹配一个数字（0-9）
+#   {9}      数量词：让前面的 \d 再重复 9 次
+#   $        结尾锚点：整串到此为止，多一位少一位都不行
+```
+
+`re.match` 从字符串开头匹配，再加上结尾锚点，就要求「整串」恰好是 11 位合法号码。下面这个校验器先用简单检查给出友好原因，最后交给正则做权威判定——改改 `numbers` 列表，看它判得准不准：
+
+<PyPlayground
+  client:visible
+  title="手机号批量校验器"
+  note="把正则里的 [3-9] 改成 [0-9]，再运行——原本被拒的 12345678901 就混了进来，这就是号段边界的意义。"
+  code={`import re
+
+# 手机号规则：第一位1，第二位3-9，其后9位数字，整串共11位
+PATTERN = r'1[3-9]\\d{9}$'
+
+def check(num):
+    """校验单个号码，返回（是否通过, 原因）"""
+    s = num.strip()
+    if not s.isdigit():
+        return False, "含非数字字符"
+    if len(s) != 11:
+        return False, f"长度{len(s)}位（应为11位）"
+    if re.match(PATTERN, s):
+        return True, "格式正确"
+    return False, "首位或号段不符（须1开头、第二位3-9）"
+
+numbers = ["13812345678", "15987654321", "12345678901",
+           "1381234567", "008613812345678", "138-1234-5678"]
+
+for n in numbers:
+    ok, why = check(n)
+    mark = "通过" if ok else "拒绝"
+    print(f"[{mark}] {n.ljust(16)} {why}")`}
+/>
+
+## 思政会客厅
+
+<DimCard dim="科研诚信" title="严谨是第一美德">
+  <ul>
+    <li>一条看似简单的手机号规则，却是数据入口的第一道闸门。写规则时多问一句「边界在哪」，胜过事后清洗一万条脏数据。</li>
+    <li>校验不是刁难用户，而是对数据质量负责：错误号码会让验证码、回访、通知全部失效，源头把关就是诚信。</li>
+    <li>别用「差不多能跑」交差。忘了结尾锚点，12 位、13 位的假号也可能被放过——魔鬼藏在你没测到的边界里。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="🎯" tone="gold" title="十环法则">
+正则靶场里，「全中目标、零误伤」才算十环。工程里也一样：既不放过一个真号，也不错杀一个用户。所谓严谨，就是让规则刚好贴合真实。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p14-d1"
+  question="有人说「手机号校验交给前端就行，后端不用再验一遍」，你同意吗？"
+  hints={['前端校验能提升体验，但用户可以绕过——改请求、关脚本都行', '后端是数据进入数据库前的最后一道闸，必须独立再验一次', '安全与数据质量讲究纵深防御：不把鸡蛋放进同一个篮子']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="正则里的 [3-9] 属于「字符集」，它的含义是？"
+  options={['匹配连续的字符串 3-9', '匹配一个字符，取值为 3 到 9 之间的任一数字', '匹配 3 到 9 个任意字符', '匹配一个减号']}
+  answer={1}
+  explain="方括号是字符集，[3-9] 表示这一位可以是 3、4、5、6、7、8、9 中的任意一个，正好对应中国大陆手机号第二位的合法取值。"
+/>
+
+<QuizItem
+  client:visible
+  question="关于「入口校验」，下面哪种态度更符合工程师的严谨？"
+  options={['能拦住大部分就行，边界情况无所谓', '先想清楚合法与非法的边界，再写规则并测试边界', '正则写得越复杂越显水平', '交给前端，后端一概不管']}
+  answer={1}
+  explain="严谨体现在对边界的定义与测试上：先明确「什么算合法」，再用规则精确表达，并专门测试临界与异常输入。"
+/>

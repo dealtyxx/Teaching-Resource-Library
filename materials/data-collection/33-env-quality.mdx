@@ -1,0 +1,137 @@
+---
+module: 8
+moduleName: 数据预处理
+order: 33
+title: 环境监测数据预处理质控平台
+level: 综合挑战
+scene: 环保数据
+knowledge: [清洗+集成+转换, 多维质量评估, 操作审计]
+stars: 4
+minutes: 80
+goal: 构建全流程预处理体系
+sizheng: 培养德才兼备的数据工程师素养
+dims: [社会责任, 科研诚信]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+import CleaningLab from '../../components/react/labs/CleaningLab';
+
+## 场景导入
+
+这是全书 33 个项目的最后一战。你负责两个空气质量监测站的数据预处理：东站的 PM2.5 单位是 μg/m³，西站上报的却是 mg/m³；东站漏报了两个时段，西站混进一个传感器故障值。数据处理完要上报环保部门——在这条流水线上，每一次「清洗」都必须走在**科研诚信与法律**的轨道内：环境监测数据造假，是要追刑责的。
+
+## 玩一玩
+
+先在清洗操作台上复习核心手法——注意右侧「诚信档案」如何记录每一步操作：
+
+<CleaningLab client:visible />
+
+## 动手实验
+
+现在把「清洗 + 集成 + 转换 + 质量评估 + 审计」整条流水线跑起来：
+
+<PyPlayground
+  client:visible
+  title="环境数据质控平台：全流程一次跑通"
+  height={360}
+  note="试着把西站故障值 9.99 改成 0.05（正常值），看质量评分与审计日志如何变化；再试着把审计日志删掉一行——体会「没有审计的清洗」为什么不可信。"
+  code={`import statistics as st
+
+east = [("08:00", 35.2), ("09:00", 38.1), ("10:00", None),
+        ("11:00", 41.5), ("12:00", None), ("13:00", 39.8)]   # μg/m3
+west = [("08:00", 0.033), ("09:00", 0.036), ("10:00", 9.99),
+        ("11:00", 0.040), ("12:00", 0.038), ("13:00", 0.037)]  # mg/m3！
+
+audit = []
+
+# ① 单位转换：西站 mg/m3 → μg/m3
+west_ug = [(t, v * 1000) for t, v in west]
+audit.append("转换：西站单位 mg/m3 -> μg/m3（×1000）")
+
+# ② 异常隔离：3σ 边界外的值标记隔离，不删除
+vals = [v for _, v in west_ug]
+mean, std = st.mean(vals), st.pstdev(vals)
+quarantine = [(t, v) for t, v in west_ug if abs(v - mean) > 3 * std]
+west_ok = [(t, v) for t, v in west_ug if abs(v - mean) <= 3 * std]
+audit.append(f"清洗：西站隔离异常 {len(quarantine)} 条（进隔离区，原始保留）")
+
+# ③ 缺失填充：东站 None 用中位数补，并标记
+med = st.median(v for _, v in east if v is not None)
+east_ok = [(t, v if v is not None else med) for t, v in east]
+n_fill = sum(1 for _, v in east if v is None)
+audit.append(f"填充：东站缺失 {n_fill} 条用中位数 {med} 补齐（已标记）")
+
+# ④ 质量评估：完整性 / 准确性 / 一致性
+integ = 1 - n_fill / len(east)
+accu = 1 - len(quarantine) / len(west)
+score = round((integ + accu + 1.0) / 3 * 100, 1)   # 一致性：单位已统一记 1.0
+audit.append(f"评估：完整性 {integ:.2f} 准确性 {accu:.2f} 一致性 1.00")
+
+print(f"东站(处理后): {[(t, round(v,1)) for t, v in east_ok]}")
+print(f"西站(处理后): {[(t, round(v,1)) for t, v in west_ok]}")
+print(f"隔离区: {quarantine}")
+print(f"综合质量评分: {score} / 100")
+print()
+print("=== 操作审计（上报材料附件） ===")
+for i, line in enumerate(audit, 1):
+    print(f"{i}. {line}")`}
+/>
+
+## 思政会客厅
+
+<Callout icon="⚖️" tone="red" title="这条红线通着刑法">
+《环境保护法》第63条与两高司法解释明确：篡改、伪造环境监测数据可依破坏计算机信息系统罪等追究刑事责任。生态环境部历年公开通报的监测数据造假案中，涉事企业与直接责任人均被依法处理——「改一个数」在这条流水线上不是技术操作，是违法行为。
+</Callout>
+
+<DimCard dim="社会责任" title="你处理的是公众呼吸的空气">
+  <ul>
+    <li>环境数据下游连着限行决策、健康预警、治污投入——预处理的每个选择都会被放大成公共后果。</li>
+    <li>故障值 9.99 mg/m³ 若不隔离，会拉爆均值触发假警报；若被悄悄删除，又可能掩盖真超标——隔离并注明，才是对公众负责。</li>
+    <li>新基建时代，监测网络就是城市感官：让感官诚实，是数据工程师的公共义务。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="科研诚信" title="德才兼备的「德」，落在审计日志里">
+  <ul>
+    <li>全流程可追溯：转换、隔离、填充、评估每一步入档——审计日志与数据一起上报。</li>
+    <li>原始数据永不销毁：隔离区与标记就是「可复核」的承诺。</li>
+    <li>质量评分不遮丑：完整性 0.67 就写 0.67，把不确定性如实交给使用者——这是本课程想留给你的最后一课。</li>
+  </ul>
+</DimCard>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p33-d1"
+  question="西站那个 9.99 mg/m³，怎么区分是「传感器故障」还是「真实污染尖峰」？贸然隔离会不会掩盖真超标？"
+  hints={['交叉验证：对照东站同时段与邻近站点数据，孤立尖峰更可能是故障', '查设备日志与运维记录：故障常伴随通信异常或校准过期', '不确定时保留双版本上报并注明存疑——把判断权留给复核，而不是替数据做决定']}
+/>
+
+<DiscussCard
+  client:visible
+  storageKey="p33-d2"
+  question="走完 33 个项目，「德才兼备的数据工程师」在你心里是什么样子？写下你的版本。"
+  hints={['才：从采集、解析到清洗入库的全链路手艺', '德：法律红线（个保法/数据安全法/环保法）+ 职业习惯（最小化、留痕、不造假）', '合在一起：让每一行代码都经得起复核，也经得起良心']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="对西站的故障值 9.99，代码的处理方式是「移入隔离区」而不是删除，根本原因是？"
+  options={['删除操作太慢', '保留原始记录以便复核追溯，符合科研诚信要求', '隔离区数据还要参与均值计算', 'Python 无法删除列表元素']}
+  answer={1}
+  explain="清洗的边界在「可复核」：隔离+标记让任何人都能还原处理前的样子；直接删除则销毁了证据链，与数据造假只有一步之遥。"
+/>
+
+<QuizItem
+  client:visible
+  question="下列哪种行为已越过「合理清洗」进入「数据造假」？"
+  options={['把 mg/m³ 统一换算成 μg/m³', '将超标时段的数值改小后上报', '用中位数填充缺失并标注填充位置', '把 3σ 外的值移入隔离区并注明']}
+  answer={1}
+  explain="单位换算、标注填充、隔离标记都保持真实且可追溯；唯独「改小超标值」改变了数据反映的事实——这正是环保法规与刑法打击的篡改监测数据行为。"
+/>

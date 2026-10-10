@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>剪支 · 第5章 回溯法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">05</div>算法可视化 · <span>第5章 回溯法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-trees.html">树类型</a><a class="pill" href="03-powerset.html">幂集</a><a class="pill active" href="04-prune.html">剪支</a><a class="pill" href="05-knapsack.html">背包</a><a class="pill" href="06-coloring.html">着色</a><a class="pill" href="07-perm.html">全排列</a><a class="pill" href="08-nqueens.html">n皇后</a><a class="pill" href="09-opt.html">任务分配</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 4 · 加深</div><h1>子集和 · 可行性剪支</h1>
+<p>在子集树搜索和为 t 的子集；当前和已超 t 或剩余全加仍不够则剪支。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>形式化描述</b>子集和问题，并说明它的解空间树是 2<sup>n</sup> 规模的子集树。</li>
+  <li>能够<b>写出</b>两条剪支条件的一般形式：约束函数 <b>constraint(i)</b> 控制左支、限界函数 <b>bound(i)</b> 控制右支。</li>
+  <li>能够<b>论证</b>这两条剪支的正确性，并<b>指出它们成立的前提是所有元素非负</b>——含负数时二者<b>同时失效</b>。</li>
+  <li>能够<b>独立写出</b>带剪支的子集和 C++ 代码，并用后缀和把每结点的判定代价降到 O(1)。</li>
+  <li>能够<b>分析</b>复杂度：剪支后最坏仍为 &Theta;(2<sup>n</sup>)，并解释剪支为何只改善实际结点数。</li>
+</ol></div>
+<div class="card">
+  <div class="toolbar">
+    <label>目标和 t=<b id="tv">9</b></label>
+    <input type="range" id="tr" min="5" max="20" value="9" style="width:160px;accent-color:#6E5691"/>
+    <button class="btn primary" id="run">▶ 搜索</button>
+  </div>
+  <div class="cells" id="arr"></div>
+  <div class="stat-row">
+    <div class="stat"><span>访问结点</span><b class="p" id="vis">0</b></div>
+    <div class="stat"><span>剪支次数</span><b class="a" id="cut">0</b></div>
+    <div class="stat"><span>解数</span><b class="g" id="sol">0</b></div>
+  </div>
+  <div class="log" id="log">a=[3,5,2,8,1,6]</div>
+  <div id="sols" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>问题定义与剪支的一般形式</h2><span class="sub">约束函数管左支，限界函数管右支</span></div>
+
+<div class="defn"><span class="lbl">定义 · 子集和问题</span><p>给定 n 个<b>正整数</b> a[0..n&minus;1] 与一个正整数 t，求 a 的<b>所有</b>子集，使子集内元素之和恰好等于 t。形式化地：求所有 x = (x<sub>0</sub>,&hellip;,x<sub>n&minus;1</sub>) &isin; {0,1}<sup>n</sup>，满足 <b>&sum;<sub>i</sub> a[i]&middot;x[i] = t</b>。这是一个经典的 <b>NP 完全</b>问题（subset-sum problem）。</p></div>
+
+<div class="tip info"><strong>与 §03 的关系：</strong>解空间树完全相同（都是 2<sup>n</sup> 规模的子集树），差别只在于：幂集问题每个叶子都是解，本问题只有极少数叶子满足 &sum; = t。正因为"绝大多数分支注定无解"，剪支才有意义——这是本节要引入剪支的动机。</div>
+
+<div class="defn prop"><span class="lbl">记号</span><p>设搜索到第 i 层（即将决定 a[i] 选或不选），令<br/>&emsp;<b>sum</b> = &sum;<sub>k&lt;i</sub> a[k]&middot;x[k]，即已做出的选择所累积的和；<br/>&emsp;<b>rest[i]</b> = a[i] + a[i+1] + &hellip; + a[n&minus;1]，即尚未考察的元素之总和（<b>后缀和</b>）。</p></div>
+
+<div class="formula lg">constraint(i)：sum + a[i] &le; t&emsp;&emsp;bound(i)：sum + rest[i+1] &ge; t</div>
+
+<div class="list-step"><span class="n">1</span><div class="body"><b>左剪支 &mdash; 约束函数 constraint(i)</b>：只有当 <b>sum + a[i] &le; t</b> 时才进入"选 a[i]"的左分支。若已经超过 t，由于后面再加的都是<b>正数</b>，和只会越来越大，永远回不到 t，该子树内不含任何解，属于<b>可行性剪支</b>。</div></div>
+<div class="list-step"><span class="n">2</span><div class="body"><b>右剪支 &mdash; 限界函数 bound(i)</b>：只有当 <b>sum + rest[i+1] &ge; t</b> 时才进入"不选 a[i]"的右分支。这里 rest[i+1] 是剩余元素能贡献的<b>最大可能值</b>（全选）；若连它都凑不到 t，该子树内同样不含解。这是用"最乐观估计"作界，属于<b>限界剪支</b>。</div></div>
+
+<div class="defn thm"><span class="lbl">定理 · 两条剪支的正确性</span><p>若 a 中<b>所有元素均为非负数</b>，则上述两条剪支<b>不会丢失任何解</b>。</p></div>
+
+<div class="deriv">
+  <span class="step">设结点 v 处已累积 sum，其子树内任一叶子对应的总和记为 S <span class="why">S 是完整解的值</span></span>
+  <span class="step">S = sum + (在 a[i..n&minus;1] 中所选元素之和) <span class="why">解的和可拆为"已定"与"待定"两部分</span></span>
+  <span class="step">元素非负 &rArr; 待定部分 &isin; [0, rest[i]] <span class="why">最少一个不选得 0，最多全选得 rest[i]</span></span>
+  <span class="step">&rArr; sum &le; S &le; sum + rest[i]，即 [sum, sum+rest[i]] 是子树内所有 S 的<b>取值范围上界与下界</b> <span class="why">夹逼</span></span>
+  <span class="step">若 sum &gt; t，则 S &ge; sum &gt; t，子树内无解 &rArr; 左剪支正确 <span class="why">下界已超标</span></span>
+  <span class="step">若 sum + rest[i] &lt; t，则 S &le; sum+rest[i] &lt; t，子树内无解 &rArr; 右剪支正确 <span class="why">上界仍不足</span></span>
+</div>
+
+<div class="tip warn"><strong>前提条件（本节最重要的一句话）：</strong>上述推导第 3 步<b>用到了"元素非负"</b>。一旦 a 中出现<b>负数</b>，"待定部分 &isin; [0, rest[i]]"就不成立，两条剪支<b>同时失效</b>，算法会丢解。这不是理论上的吹毛求疵——考试与工程中把"子集和"直接搬到含负数的数据上，是本章最高频的错误。</div>
+
+<div class="defn prop"><span class="lbl">反例 1 · 左剪支失效</span><p>取 a = {8, &minus;3, 1}，t = 6。真解是 {8, &minus;3, 1}（8&minus;3+1 = 6）。但搜索到第 0 层选中 8 后 sum = 8 &gt; 6 = t，按 <b>sum &gt; t &rArr; 剪支</b> 会立刻砍掉整棵左子树，<b>唯一的解被丢弃</b>，程序报告"无解"。</p></div>
+
+<div class="defn prop"><span class="lbl">反例 2 · 右剪支失效</span><p>取 a = {2, &minus;5, 7}，t = 9。真解是 {2, 7}（2+7 = 9）。但 rest[0] = 2&minus;5+7 = 4，在<b>根结点</b>就有 sum + rest[0] = 0 + 4 = 4 &lt; 9，按 <b>sum + rest &lt; t &rArr; 剪支</b> 会把<b>整棵解空间树</b>一次剪光，一个结点都不再展开。</p></div>
+
+<div class="defn"><span class="lbl">含负数时的正确做法</span><p>把"全选"这个上界换成"<b>只选正数</b>"，把"全不选"这个下界换成"<b>只选负数</b>"：<br/>&emsp;maxRest[i] = &sum;<sub>j&ge;i</sub> max(a[j], 0)&emsp;（剩余部分能达到的最大贡献）<br/>&emsp;minRest[i] = &sum;<sub>j&ge;i</sub> min(a[j], 0)&emsp;（剩余部分能达到的最小贡献）<br/>剪支条件相应改为 <b>sum + maxRest[i] &lt; t</b> 或 <b>sum + minRest[i] &gt; t</b>。此外，找到 sum == t 时<b>不能立即 return</b>，因为后面还可能存在若干和为 0 的元素组合，构成另外的解。</p></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>算法实现</h2><span class="sub">C++ · 对应上方演示的 a = {3,5,2,8,1,6}</span></div>
+
+<div class="code"><span class="cm">// ── 子集和问题 · 带两类剪支的回溯（要求 a[i] &gt; 0）──────</span>
+<span class="kw">const</span> <span class="kw">int</span> n = <span class="nu">6</span>;
+<span class="kw">int</span> a[n] = {<span class="nu">3</span>, <span class="nu">5</span>, <span class="nu">2</span>, <span class="nu">8</span>, <span class="nu">1</span>, <span class="nu">6</span>};
+<span class="kw">int</span> t = <span class="nu">9</span>;
+<span class="kw">int</span> x[n];                 <span class="cm">// x[i]=1 表示选中 a[i]</span>
+<span class="kw">int</span> rest[n + <span class="nu">1</span>];         <span class="cm">// rest[i] = a[i]+…+a[n-1]（后缀和）</span>
+<span class="kw">int</span> cnt = <span class="nu">0</span>;             <span class="cm">// 解的个数</span>
+
+<span class="kw">void</span> <span class="fn">init</span>() {            <span class="cm">// O(n) 预处理 ⇒ 每次剪支判定只需 O(1)</span>
+    rest[n] = <span class="nu">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> i = n - <span class="nu">1</span>; i &gt;= <span class="nu">0</span>; i--) rest[i] = rest[i + <span class="nu">1</span>] + a[i];
+}
+
+<span class="kw">void</span> <span class="fn">dfs</span>(<span class="kw">int</span> i, <span class="kw">int</span> sum) {           <span class="cm">// sum：x[0..i-1] 已选元素之和</span>
+    <span class="kw">if</span> (i &gt;= n) {                       <span class="cm">// 叶子结点</span>
+        <span class="kw">if</span> (sum == t) { cnt++; <span class="fn">output</span>(x); }
+        <span class="kw">return</span>;
+    }
+    <span class="cm">// ── 左支：选 a[i] ── 约束函数 constraint(i)</span>
+    <span class="kw">if</span> (sum + a[i] &lt;= t) {              <span class="cm">// 不超标才进（正数前提！）</span>
+        x[i] = <span class="nu">1</span>;
+        <span class="fn">dfs</span>(i + <span class="nu">1</span>, sum + a[i]);
+        x[i] = <span class="nu">0</span>;                       <span class="cm">// 回溯还原</span>
+    }
+    <span class="cm">// ── 右支：不选 a[i] ── 限界函数 bound(i)</span>
+    <span class="kw">if</span> (sum + rest[i + <span class="nu">1</span>] &gt;= t) {      <span class="cm">// 剩余全选还够得着才进</span>
+        x[i] = <span class="nu">0</span>;
+        <span class="fn">dfs</span>(i + <span class="nu">1</span>, sum);
+    }
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() { <span class="fn">init</span>(); <span class="fn">dfs</span>(<span class="nu">0</span>, <span class="nu">0</span>); <span class="fn">printf</span>(<span class="st">"共 %d 个解\n"</span>, cnt); }</div>
+
+<div class="code"><span class="cm">// ── 等价写法：在结点入口统一判定（上方动画采用的形式）──</span>
+<span class="kw">void</span> <span class="fn">dfs2</span>(<span class="kw">int</span> i, <span class="kw">int</span> sum) {
+    <span class="kw">if</span> (sum == t) { cnt++; <span class="fn">output</span>(x); <span class="kw">return</span>; }  <span class="cm">// 正数 ⇒ 再加只会更大，可提前返回</span>
+    <span class="kw">if</span> (i &gt;= n)          <span class="kw">return</span>;                 <span class="cm">// 走到底仍未凑够</span>
+    <span class="kw">if</span> (sum &gt; t)         <span class="kw">return</span>;                 <span class="cm">// ① 已超出 ⇒ 剪支（约束）</span>
+    <span class="kw">if</span> (sum + rest[i] &lt; t) <span class="kw">return</span>;               <span class="cm">// ② 全加也不够 ⇒ 剪支（限界）</span>
+    x[i] = <span class="nu">1</span>; <span class="fn">dfs2</span>(i + <span class="nu">1</span>, sum + a[i]);
+    x[i] = <span class="nu">0</span>; <span class="fn">dfs2</span>(i + <span class="nu">1</span>, sum);
+}</div>
+
+<div class="tip"><strong>两种写法哪个好？</strong>第一种（在<b>进入分支前</b>判定）剪得更早——不满足条件的子结点<b>根本不会被生成</b>；第二种（在<b>结点入口</b>判定）会先生成子结点再判死，多访问一层结点，但代码更短、逻辑更统一。渐进复杂度相同，教材两种都用。上方演示的"访问结点"计数器采用的是第二种，所以数值会略高。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>复杂度分析</h2><span class="sub">剪支救不了最坏情况</span></div>
+
+<div class="deriv">
+  <span class="step">解空间是高度 n 的子集树，结点总数 2<sup>n+1</sup>&minus;1 <span class="why">完全二叉树</span></span>
+  <span class="step">用后缀和预处理后，每个结点的两次剪支判定均为 O(1) <span class="why">rest[] 已预先算好</span></span>
+  <span class="step">&rArr; 最坏情况 T(n) = O(2<sup>n</sup>)；若每次现算 rest 则退化为 O(n&middot;2<sup>n</sup>) <span class="why">动画中即为现算</span></span>
+  <span class="step">构造最坏实例：a[i] 全为 1、t = n/2 <span class="why">此时几乎所有分支都"有希望"</span></span>
+  <span class="step">此时 sum &le; t 与 sum+rest &ge; t 在树的大部分区域同时成立，剪支近乎失效 <span class="why">解有 C(n, n/2) 个之多</span></span>
+  <span class="step">&rArr; 最坏时间下界 &Omega;(2<sup>n</sup>)，与上界匹配，故为 &Theta;(2<sup>n</sup>) <span class="why">剪支不改变渐进阶</span></span>
+</div>
+
+<div class="formula lg">T<sub>最坏</sub>(n) = &Theta;(2<sup>n</sup>)&emsp;&emsp;S(n) = &Theta;(n)&emsp;&emsp;预处理 &Theta;(n)</div>
+
+<div class="defn prop"><span class="lbl">性质 · 剪支的真实收益</span><p>剪支<b>不降低</b>渐进阶，它降低的是<b>实际访问的结点数</b>。请亲手对比：把上方滑块的 t 调到两端（如 t = 5 与 t = 20）观察"访问结点"与"剪支次数"两个计数器的变化——t 越极端，剪支越频繁、访问结点越少；t 取在总和 25 的一半附近时，剪支最难生效、访问结点最多。这直观说明了"剪支效果强烈依赖数据分布"这一回溯法的普遍特点。</p></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>例题</h2><span class="sub">a = {3,5,2,8,1,6}，t = 9</span></div>
+
+<div class="defn prop"><span class="lbl">例题 1</span><p>对上方演示的数据求出全部解，并写出算法<b>发现它们的先后次序</b>（按"先左支后右支"，即先尝试"选"）。</p></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>发现次序</th><th>解向量 x</th><th>子集</th><th>验算</th></tr>
+  <tr><td>1</td><td>(1,1,0,0,1,0)</td><td class="hl">{3, 5, 1}</td><td>3+5+1 = 9</td></tr>
+  <tr><td>2</td><td>(1,0,0,0,0,1)</td><td class="hl">{3, 6}</td><td>3+6 = 9</td></tr>
+  <tr><td>3</td><td>(0,0,1,0,1,1)</td><td class="hl">{2, 1, 6}</td><td>2+1+6 = 9</td></tr>
+  <tr><td>4</td><td>(0,0,0,1,1,0)</td><td class="hl">{8, 1}</td><td>8+1 = 9</td></tr>
+</table></div>
+
+<div class="tip info"><strong>剪支实况举例：</strong>沿路径"选 3 &rarr; 选 5"到达 sum = 8 的结点后，再试"选 2"会得到 sum = 10 &gt; 9，<b>约束函数</b>立即剪掉——注意这一剪同时砍掉了 a[3], a[4], a[5] 的全部 2<sup>3</sup> = 8 个叶子。另一端：在"不选 3、不选 5、不选 2"之后 sum = 0 而 rest[3] = 8+1+6 = 15 &ge; 9，右支得以保留；但若再"不选 8"，则 sum + rest[4] = 0 + 7 = 7 &lt; 9，<b>限界函数</b>把余下整棵子树剪掉。</div>
+
+<div class="defn prop"><span class="lbl">例题 2</span><p>若把数据改成 a = {3, 5, &minus;2, 8, 1, 6}、t = 9，直接运行上面的代码会怎样？</p></div>
+
+<div class="list-step"><span class="n">1</span><div class="body"><b>会丢解</b>。例如 {3, 8, &minus;2} 之和为 9，但搜索到"选 3、选 5"之外的路径"选 3 &rarr; 不选 5 &rarr; 不选 &minus;2 &rarr; 选 8"时 sum = 11 &gt; 9 触发剪支；而真解需要先取到 11 再靠 &minus;2 降回 9。含负数后"sum 单调不减"的前提被破坏，剪支逻辑不再成立。</div></div>
+<div class="list-step"><span class="n">2</span><div class="body"><b>正确改法</b>：改用 maxRest/minRest 双向界（见前文），并去掉 <code>sum == t</code> 处的提前 return。代价是剪支强度大幅下降，实际结点数接近完全枚举。</div></div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>把两条剪支直接用到含负数（或含 0 的最优化变形）的数据上。</b>这是本节头号陷阱：<code>sum &gt; t</code> 与 <code>sum + rest &lt; t</code> 的正确性<b>都</b>依赖"元素非负"，含负数时二者<b>同时</b>失效且<b>不报错、只丢解</b>。</li>
+  <li><b>右剪支的下标写成 rest[i] 而非 rest[i+1]。</b>右支表示"<b>不选</b> a[i]"，因此剩余可用的是 a[i+1..n&minus;1]，界应为 sum + rest[i+1]。写成 rest[i] 等于把已经放弃的 a[i] 又算了一遍，界偏大，剪支变弱（不会出错，但会变慢）。</li>
+  <li><b>每次现场重算 rest 而不预处理后缀和。</b>把单结点代价从 O(1) 抬到 O(n)，总时间从 &Theta;(2<sup>n</sup>) 变成 &Theta;(n&middot;2<sup>n</sup>)，n = 30 时相差 30 倍。</li>
+  <li><b>找到 sum == t 就 return（在含 0 元素时）。</b>若数组含 0，{3,6} 与 {3,6,0} 是两个不同的解向量；提前 return 会漏掉后者。题目若要求"所有解向量"须走到叶子再判定。</li>
+  <li><b>混淆"剪支次数多"与"算法更优"。</b>剪支次数的绝对值没有意义，要看的是"访问结点数 / 2<sup>n+1</sup>&minus;1"这一比值。</li>
+  <li><b>声称加了剪支后复杂度变成多项式。</b>子集和是 NP 完全问题，剪支后最坏仍为 &Theta;(2<sup>n</sup>)。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li><b>子集和问题</b>：在 2<sup>n</sup> 规模的子集树上求所有满足 &sum; a[i]x[i] = t 的解，是 NP 完全问题。</li>
+  <li>两条剪支的一般形式：左支用<b>约束函数</b> <b>sum + a[i] &le; t</b>（可行性），右支用<b>限界函数</b> <b>sum + rest[i+1] &ge; t</b>（最乐观估计仍够得着）。</li>
+  <li>正确性证明的核心是"待定部分 &isin; [0, rest[i]]"这一夹逼，<b>该式仅在所有元素非负时成立</b>。含负数时须改用 maxRest（正数和）与 minRest（负数和）作双向界，且不能在 sum == t 处提前返回。</li>
+  <li>用<b>后缀和</b> rest[] 预处理，可把每结点的剪支判定降为 O(1)。</li>
+  <li>复杂度：最坏 <b>&Theta;(2<sup>n</sup>)</b>，空间 <b>&Theta;(n)</b>。剪支只压低实际结点数，<b>不改变渐进阶</b>。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>在子集和的回溯算法中，进入"<b>不选</b> a[i]"这一右分支的限界条件应写作？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>sum + a[i] &le; t</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>sum + rest[i] &ge; t</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>sum + rest[i+1] &ge; t</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>sum &ge; t</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。右支意味着<b>放弃</b> a[i]，此后能动用的只有 a[i+1..n&minus;1]，其总和为 rest[i+1]；只有"把剩下的全选上"仍能达到 t，这条分支才值得走。A 是<b>左</b>支的约束函数，管的是"选了会不会超标"。B 把已放弃的 a[i] 也算进了剩余量，界偏大——注意它<b>不会导致错解</b>（界只是变松），但剪支强度下降、算法变慢，属于"能通过但不优"的写法。D 与限界毫无关系：sum &ge; t 时未必无解（sum == t 本身就是解），据此剪支会直接丢解。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>已知 a = {2, &minus;5, 7}，t = 9。若直接套用"sum &gt; t 剪支 / sum + rest &lt; t 剪支"的标准代码，运行结果是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>正确输出唯一解 {2, 7}</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>输出 {2, 7} 和 {2, &minus;5, 7} 两个解</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>输出"无解"，因为在根结点就被限界函数剪光了</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>程序陷入死循环或数组越界</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。rest[0] = 2 + (&minus;5) + 7 = 4，在根结点 sum = 0 时就有 sum + rest[0] = 4 &lt; 9 = t，限界条件立即成立，<b>整棵解空间树被一次剪光</b>，程序报"无解"。而真解 {2, 7} 明明存在——这说明"剩余全选即为上界"的假设被负数破坏了：剩余部分的真实最大贡献应是<b>只选正数</b>的 2 + 7 = 9，而不是含负数的总和 4。A 是不了解前提条件的想当然。B 错在 2&minus;5+7 = 4 &ne; 9，并非解。D 错，剪支只会让搜索提前结束，不会越界或死循环——<b>错得"安静"正是这个陷阱最危险的地方</b>。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>关于子集和回溯算法的复杂度，正确的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>加上两条剪支后为 O(n<sup>2</sup>)</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>剪支使平均与最坏都降到 O(n&middot;t)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>最坏仍为 &Theta;(2<sup>n</sup>)，空间为 &Theta;(n)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>因为要存后缀和数组，空间为 &Theta;(2<sup>n</sup>)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。取 a[i] 全为 1、t = n/2 的实例，此时树的大部分区域两条剪支都不触发，必须访问 &Theta;(2<sup>n</sup>) 个结点；空间只需递归栈 O(n) 加上后缀和数组 O(n)，合计 &Theta;(n)。A 荒谬——子集和是 NP 完全问题，若能多项式求解则 P = NP。B 混淆了<b>回溯法</b>与<b>动态规划</b>：O(n&middot;t) 是子集和 DP 的伪多项式复杂度，且它依赖 t 为整数且不太大，与本节的回溯法无关。D 错在后缀和只有 n+1 个单元，是 &Theta;(n) 而非 &Theta;(2<sup>n</sup>)——回溯法从不保存整棵树。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="03-powerset.html"><span class="dir">← 上一节</span><span class="name">幂集</span></a><a href="05-knapsack.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">背包</span></a></div>
+<div class="footer">算法设计与分析 · <b>第5章 回溯法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(110,86,145,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const a=[3,5,2,8,1,6];
+function show(hi=new Set(), mode=''){
+  arr.innerHTML=a.map((v,i)=>`<div class="cell ${hi.has(i)?(mode||'on'):''}">${v}</div>`).join('');
+}
+tr.oninput=()=>tv.textContent=tr.value;
+run.onclick=async()=>{
+  const t=+tr.value; let vis=0,cut=0,sols=[];
+  const total=a.reduce((x,y)=>x+y,0);
+  async function dfs(i,sum,path){
+    vis++; document.getElementById('vis').textContent=vis;
+    show(new Set(path),'on'); log.textContent=`i=${i} sum=${sum} path=[${path.map(j=>a[j])}]`; await sleep(120);
+    if(sum===t){ sols.push(path.map(j=>a[j])); document.getElementById('sol').textContent=sols.length;
+      document.getElementById('sols').innerHTML=sols.map(s=>`<div class="cell hit" style="min-width:auto;padding:8px 10px;font-size:12px">{${s}</div>`).join('');
+      return; }
+    if(i>=a.length) return;
+    // prune
+    if(sum>t){ cut++; document.getElementById('cut').textContent=cut; log.textContent+=` · 剪(超过)`; return; }
+    const rem=a.slice(i).reduce((x,y)=>x+y,0);
+    if(sum+rem<t){ cut++; document.getElementById('cut').textContent=cut; log.textContent+=` · 剪(不足)`; return; }
+    path.push(i); await dfs(i+1,sum+a[i],path); path.pop();
+    await dfs(i+1,sum,path);
+  }
+  document.getElementById('vis').textContent=0; document.getElementById('cut').textContent=0; document.getElementById('sol').textContent=0;
+  document.getElementById('sols').innerHTML='';
+  await dfs(0,0,[]);
+  log.textContent+=`\\n完成：${sols.length} 个解，剪支 ${cut} 次`;
+};
+show();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

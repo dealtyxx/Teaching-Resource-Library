@@ -1,0 +1,98 @@
+---
+module: 8
+moduleName: 文件
+order: 44
+title: 学生成绩文件存档
+level: 基础必做
+scene: 校园应用
+knowledge: [文件读写, 格式化IO, 数据持久化]
+stars: 4
+minutes: 90
+goal: 掌握结构化数据的文件存储
+sizheng: 学籍档案一存几十年——数据的生命周期远长于程序
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import GradeFileLab from '../../components/react/GradeFileLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：存进去，还要读得回来
+
+项目 43 只是往文件"扔"文本；真实系统要的是**往返闭环**：结构体数组 → 文件（序列化），文件 → 结构体数组（反序列化）。文本格式的对仗工整：
+
+- **写**：`fprintf(fp, "%d %s %.1f\n", ...)` —— 每条记录一行、字段空格隔开；
+- **读**：`fscanf(fp, "%d %15s %f", ...)` —— 按同样格式逐行解析；
+- **灵魂细节**：`fscanf` 的返回值 = 成功读到的字段数。`while (fscanf(...) == 3)` 意思是"三个字段都齐才收这条"——文件尾（EOF）或坏行自动退出循环。
+
+**写和读的格式必须像锁和钥匙一样咬合**——多一个空格、错一个 %，读回来就是乱码。
+
+## 一步一步看反序列化
+
+<CStepRunner
+  client:visible
+  title="读档模拟：fscanf 从文件恢复两条记录"
+  badge="fscanf 解析模拟"
+  doneNote="while (fscanf(...)==3) 的循环条件身兼三职：正常读取、检测文件尾、拦截坏行——返回值就是文件 IO 的『体检报告』。"
+  code={`#include <stdio.h>
+
+typedef struct { int id; char name[16]; float score; } Stu;
+
+int main(void) {
+    /* grades.txt 内容:
+       2301 LiLei 92.5
+       2302 HanMei 88.0  */
+    FILE *fp = fopen("grades.txt", "r");
+    if (fp == NULL) return 0;
+    Stu a[10];
+    int n = 0;
+    while (n < 10 && fscanf(fp, "%d %15s %f",
+           &a[n].id, a[n].name, &a[n].score) == 3) {
+        n++;
+    }
+    fclose(fp);
+    printf("恢复%d条,第1条:%s %.1f\\n",
+           n, a[0].name, a[0].score);
+    return 0;
+}`}
+  steps={[
+    { line: 8, desc: '以 "r" 只读打开。文件不存在？返回 NULL——首次运行没有存档是正常情况，必须优雅处理。', vars: { fp: '有效', n: '0' } },
+    { line: 12, desc: '第 1 轮 fscanf：按 "%d %15s %f" 从文件流里依次抓整数、字符串、浮点——2301、"LiLei"、92.5 各就各位，返回 3。', vars: { n: '0', 读到: '2301 LiLei 92.5 (返回3)' } },
+    { line: 14, desc: '==3 成立，这条有效：n=1。注意 &a[n].id 的取地址（fscanf 要写回变量——模块六的指针在标准库里无处不在），而 a[n].name 是数组名无需 &。', vars: { n: '1' } },
+    { line: 12, desc: '第 2 轮：读到 2302、"HanMei"、88.0，返回 3——n=2。', vars: { n: '2', 读到: '2302 HanMei 88.0' } },
+    { line: 12, desc: '第 3 轮：文件已到尽头，fscanf 返回 EOF（-1）≠3——循环干净退出。若文件中途有坏行，同样 ≠3 退出，不会读进半条脏记录。', vars: { n: '2', 返回: 'EOF' } },
+    { line: 17, desc: '两条记录满血复活。上周录的成绩，这周的程序照样认——数据跨越了进程的生死。', out: '恢复2条,第1条:LiLei 92.5' },
+  ]}
+/>
+
+## 动手实验：保存→清空→加载的完整仪式
+
+<GradeFileLab client:only="react" />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：实现 save/load 一对函数，走完"录入→保存→重启（清空数组）→加载"闭环。存前读后打印对比，逐字段核对。
+2. **AI 优化进阶版**：让 AI 支持姓名含空格（换用 `fgets` 整行读 + `sscanf` 解析，或改逗号分隔）。审查它是否意识到 `%s` 遇空格截断的坑（第 3 章 scanf 注意事项的复仇）。
+3. **信创加固定稿版**：文件第一行写"版本号+记录数"做头部校验；load 时先验头再读体；思考格式升级（加一个字段）后旧文件怎么兼容——数据格式的向后兼容是所有长寿系统的必修课。
+
+## 素养与思政
+
+你的高考成绩、学籍记录，会在教育系统的档案里保存几十年——**当年写入它们的程序早已退役，数据却必须继续可读**。这就是"数据的生命周期远长于程序"：格式要文档化、编码要标准化、校验要内建。
+国家档案局的电子档案标准要求"来源可靠、程序规范、要素合规"。你今天设计的一行 `%d %s %.1f`，就是最小的"档案格式规范"——认真对待它，是对未来读档人的负责。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="while (fscanf(fp, ..., ...) == 3) 中，与 3 比较的意义是？"
+  options={['循环最多3次', 'fscanf 返回成功读取的字段数：等于3表示整条记录完整读到；EOF 或格式错误时不等于3，循环退出', '文件里只有3行', '3 是错误码']}
+  answer={1}
+  explain="返回值判断一石三鸟：正常收条、文件尾退出、坏行止损。忽略 fscanf 返回值的代码，会把解析失败的残留值当真数据用——安静而致命。"
+/>
+
+<QuizItem
+  client:visible
+  question={'fscanf(fp, "%d", &a[n].id) 中 id 前要加 & 而 name 不用，因为？'}
+  options={['写法习惯', 'fscanf 需要目标变量的地址才能写入（指针传参）；name 是数组名，本身就代表首地址', 'name 不需要读取', '字符串特殊语法']}
+  answer={1}
+  explain="模块六的知识在标准库兑现：函数要修改你的变量，就得拿到地址。int 变量须 &，数组名天然是地址——忘 & 是 scanf 家族的经典段错误来源。"
+/>

@@ -1,0 +1,98 @@
+---
+module: 5
+moduleName: 函数
+order: 25
+title: 阶乘与斐波那契数列计算
+level: 基础必做
+scene: 数学基础
+knowledge: [函数定义, 调用, 返回值]
+stars: 3
+minutes: 60
+goal: 掌握函数的基本定义与调用
+sizheng: 每一项都站在前两项的肩膀上——递推是科学积累的数学表达
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import FactorialFibLab from '../../components/react/FactorialFibLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：给一段代码起个名字
+
+前四个模块里，所有逻辑都挤在 main 里。计算 5! 要写一个循环，计算 8! 再抄一遍？
+**函数**让你给一段逻辑起名字、定接口，然后随处调用：
+
+```c
+long long fact(int n) { ... }   /* 定义:返回类型 名字(参数表) */
+long long f = fact(5);          /* 调用:传入5,接回120 */
+```
+
+调用的本质是**控制流的跳转**：程序跳进函数体执行，遇到 `return` 带着结果跳回调用点。参数是入口，返回值是出口——函数就是一台"值的加工机"。
+
+## 一步一步看调用与返回
+
+<CStepRunner
+  client:visible
+  title="函数调用模拟：main 与 fact(4) 的一次往返"
+  badge="调用-返回模拟"
+  doneNote="调用像出差：main 停在原地等，fact 干完活用 return 把结果带回来，main 从暂停处继续。一次调用、一次返回，控制流永远成对往返。"
+  code={`#include <stdio.h>
+
+long long fact(int n) {
+    long long result = 1;
+    for (int i = 2; i <= n; i++) {
+        result *= i;
+    }
+    return result;
+}
+
+int main(void) {
+    int x = 4;
+    long long f = fact(x);
+    printf("%d! = %lld\\n", x, f);
+    return 0;
+}`}
+  steps={[
+    { line: 11, desc: '程序从 main 开始（不是从第 1 行！）。x=4。', vars: { 'main.x': '4' } },
+    { line: 12, desc: '调用 fact(x)：实参 x 的值 4 被拷贝给形参 n，控制流跳向第 3 行——main 在此暂停。', vars: { 'main.x': '4', 'fact.n': '4' } },
+    { line: 3, desc: '进入 fact 的世界：形参 n=4，局部变量 result=1。这些变量只属于本次调用。', vars: { 'fact.n': '4', 'fact.result': '1' } },
+    { line: 5, desc: '循环干活：i=2，result=2。', vars: { 'fact.result': '2' } },
+    { line: 5, desc: 'i=3，result=6。', vars: { 'fact.result': '6' } },
+    { line: 5, desc: 'i=4，result=24。循环结束。', vars: { 'fact.result': '24' } },
+    { line: 7, desc: 'return 24——带着结果跳回 main 的调用点，fact 的局部变量随之销毁。', vars: { 'fact.result': '24' } },
+    { line: 12, desc: '回到 main：返回值 24 赋给 f。main 从暂停处继续。', vars: { 'main.x': '4', 'main.f': '24' } },
+    { line: 13, desc: '打印结果。', out: '4! = 24' },
+  ]}
+/>
+
+## 动手实验：拉高 n，看函数与溢出赛跑
+
+<FactorialFibLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：定义 `fact` 与 `fib` 两个函数并在 main 中调用。先只写函数**原型**（声明），体会"接口先行"。
+2. **AI 优化进阶版**：让 AI 写递归版 `fib`，并问它 fib(40) 递归要算多少次（答案超过 3 亿次——重复计算爆炸）。审查它有没有主动提醒你效率问题。
+3. **信创加固定稿版**：给 fact 加参数校验（n 为负或超过 20 返回错误约定值）；思考"用返回值报错"与"用返回值传结果"冲突时怎么办（伏笔：第 9 章指针出参）。
+
+## 素养与思政
+
+斐波那契数列的每一项都是前两项之和——**没有凭空出现的数字，正如没有凭空出现的成果**。从"两弹一星"到北斗组网，每一代工程师都在前人的 F(n−1) 和 F(n−2) 之上写出自己的 F(n)。
+函数思维也是如此：把可靠的逻辑封装好、命好名，后人调用即可，不必重新发明。**科学的积累性，就藏在"调用"这个动作里。**
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="函数执行到 return 语句时会发生什么？"
+  options={['继续执行函数体剩余语句', '立即结束本函数，带着返回值回到调用点', '程序整体退出', '进入下一个函数']}
+  answer={1}
+  explain="return 是函数的『出口』：立即终止函数体，把值交回调用表达式处。main 里的 return 0 才是交给操作系统（第 2 章）。"
+/>
+
+<QuizItem
+  client:visible
+  question="fact 函数里的 result 变量，在 main 函数里能直接访问吗？"
+  options={['能，变量是全局共享的', '不能——它是 fact 的局部变量，只在本次调用期间存在，函数返回即销毁', '能，但要加前缀', '取决于编译器']}
+  answer={1}
+  explain="局部变量活在函数自己的『栈帧』里（第 1 章内存布局的栈区），调用结束就释放。作用域隔离让函数之间互不干扰——这是模块化的地基。"
+/>

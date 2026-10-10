@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>近似概述 · 第12章 概率算法和近似算法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">12</div>算法可视化 · <span>第12章 概率算法和近似算法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-prob.html">概率概述</a><a class="pill" href="02-pi.html">求π</a><a class="pill" href="03-monte.html">蒙特卡罗</a><a class="pill" href="04-vegas.html">拉斯维加斯</a><a class="pill" href="05-sherwood.html">舍伍德</a><a class="pill active" href="06-approx.html">近似概述</a><a class="pill" href="07-sched.html">多机调度</a><a class="pill" href="08-knapsack.html">背包近似</a><a class="pill" href="09-tsp.html">TSP近似</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 6 · 近似比</div>
+  <h1>近似算法概述</h1>
+  <p>对 NP-hard 优化问题，多项式时间给出有保证的次优解。拖动滑块观察 ρ 与解质量。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>复述</b>近似比 ρ 的定义，并分清最小化（A ≤ ρ·OPT）与最大化（A ≥ OPT/ρ）两个方向，牢记 ρ 恒 ≥ 1、越接近 1 越好。</li>
+  <li>能够<b>解释</b>为什么不能直接和 OPT 比，并掌握"对 OPT 找可计算下界/上界"的近似比证明套路。</li>
+  <li>能够<b>区分</b> PTAS 与 FPTAS——判据是"运行时间关于 1/ε 是否也是多项式"。</li>
+  <li>能够<b>说明</b>近似算法（管解的质量）与随机算法（管随机性）是两个正交维度，近似算法可以完全确定性。</li>
+  <li>能够<b>判断</b>"并非所有 NP-难问题都有 PTAS"——存在 APX-难问题。</li>
+</ol></div>
+<div class="card">
+  <div class="grid grid-2">
+    <div>
+      <div class="list-step"><div class="n">min</div><div class="body"><b>最小化</b> ALG ≤ ρ · OPT（ρ≥1）</div></div>
+      <div class="list-step"><div class="n">max</div><div class="body"><b>最大化</b> ALG ≥ OPT / ρ</div></div>
+      <div class="toolbar">
+        <label>ρ = <b id="rv">1.5</b></label>
+        <input type="range" id="rr" min="10" max="30" value="15" style="width:200px;accent-color:#9C7420"/>
+      </div>
+      <div class="tip">ρ 越接近 1 越好。PTAS / FPTAS 可让误差任意小（时间随 1/ε 变差）。</div>
+    </div>
+    <div class="stage-wrap light">
+      <canvas class="stage" id="cv" width="480" height="260"></canvas>
+    </div>
+  </div>
+  <div class="formula lg" style="margin-top:12px">ρ-近似：解的质量与 OPT 之比有界</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>近似比 ρ 的正式定义</h2><span class="sub">先把"有多接近最优"量化</span></div>
+<div class="defn"><span class="lbl">定义 · 近似算法</span><p>对一个 <b>NP-难优化问题</b>，若算法 A 能在<b>多项式时间</b>内对任意实例 I 求出一个<b>可行解</b>，且其目标值 A(I) 与最优值 OPT(I) 之比有一个<b>与实例无关的常数界</b>，则称 A 为该问题的<b>近似算法</b>。近似算法牺牲"最优性"换取"多项式时间 + 可证明的质量保证"。</p></div>
+<div class="defn"><span class="lbl">定义 · 近似比 ρ</span><p>设 ρ ≥ 1。<br/>· <b>最小化问题</b>（如 makespan、度量 TSP）：称 A 为 <b>ρ-近似</b>，若对一切实例 I 有 <b>A(I) / OPT(I) ≤ ρ</b>，即 A(I) ≤ ρ·OPT(I)。<br/>· <b>最大化问题</b>（如 0/1 背包）：称 A 为 <b>ρ-近似</b>，若 <b>OPT(I) / A(I) ≤ ρ</b>，即 <b>A(I) ≥ OPT(I) / ρ</b>。<br/>统一写法：ρ = sup<sub>I</sub> max( A(I)/OPT(I), OPT(I)/A(I) )。无论最大化还是最小化，<b>ρ 恒 ≥ 1，越接近 1 越好</b>。相对误差 ε 定义为 ρ = 1 + ε（最小化）或 ρ = 1/(1−ε)（最大化）。</p></div>
+<div class="formula lg">最小化：A(I) ≤ ρ·OPT(I)　　最大化：A(I) ≥ OPT(I)/ρ　　（ρ ≥ 1）</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>近似比的证明套路</h2><span class="sub">对 OPT 找一个可计算的界</span></div>
+<div class="tip info">直接和 OPT 比是不可能的——OPT 本身 NP-难、算不出来。套路是：<b>找一个能多项式计算、又能证明夹住 OPT 的界</b>，再把 ALG 和这个界比。</div>
+<div class="deriv">
+<span class="step">目标（最小化）：证明 A(I) ≤ ρ·OPT(I) 对一切 I 成立</span>
+<span class="step">① 构造一个<b>可计算下界</b> LB(I)，并证明 <b>LB(I) ≤ OPT(I)</b> <span class="why">OPT 再优也不会低于 LB</span></span>
+<span class="step">② 证明算法输出满足 <b>A(I) ≤ ρ·LB(I)</b> <span class="why">这一步只用到算法本身，可算</span></span>
+<span class="step">③ 合并：A(I) ≤ ρ·LB(I) ≤ ρ·OPT(I) <span class="why">因 LB ≤ OPT 且 ρ &gt; 0</span></span>
+<span class="step">∴ A 是 ρ-近似算法 ∎</span>
+<span class="step">对<b>最大化</b>问题对称：找<b>可计算上界</b> UB ≥ OPT，证 A ≥ UB/ρ ≥ OPT/ρ</span>
+</div>
+<div class="tip">§07 多机调度用 LB = max( max p<sub>i</sub> , Σp<sub>i</sub>/m )；§09 度量 TSP 用 LB = MST 权——都是这个套路的实例。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>PTAS 与 FPTAS</h2><span class="sub">把 ρ 做到任意接近 1</span></div>
+<div class="defn"><span class="lbl">定义 · PTAS</span><p><b>多项式时间近似方案</b>（Polynomial-Time Approximation Scheme）：一族算法 {A<sub>ε</sub>}，对<b>任意固定</b> ε &gt; 0，A<sub>ε</sub> 是 (1+ε)-近似（最小化）算法，且运行时间关于 <b>n 是多项式</b>。注意：时间<b>允许关于 1/ε 呈指数</b>，例如 O(n<sup>1/ε</sup>)——ε 取小时会急剧变慢。</p></div>
+<div class="defn"><span class="lbl">定义 · FPTAS</span><p><b>完全多项式时间近似方案</b>（Fully Polynomial-Time Approximation Scheme）：比 PTAS 更强——运行时间关于 <b>n 和 1/ε 都是多项式</b>，例如 O(n<sup>3</sup>/ε)。§08 的背包缩放 DP 就是 FPTAS。显然 <b>FPTAS ⟹ PTAS</b>，反之不然。</p></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>概念</th><th>质量保证</th><th>时间对 n</th><th>时间对 1/ε</th><th>例子</th></tr>
+  <tr><td><b>ρ-近似</b></td><td>固定常数 ρ</td><td>多项式</td><td>—</td><td>List 调度 2−1/m</td></tr>
+  <tr><td><b>PTAS</b></td><td class="hl">任意 (1+ε)</td><td>多项式</td><td>可指数（如 n<sup>1/ε</sup>）</td><td>欧氏平面 TSP</td></tr>
+  <tr><td><b>FPTAS</b></td><td class="hl">任意 (1+ε)</td><td>多项式</td><td class="hl">多项式（如 n³/ε）</td><td>0/1 背包（§08）</td></tr>
+</table></div>
+<div class="tip warn">并非所有 NP-难问题都有 PTAS。存在 <b>APX-难</b>问题（如一般图的顶点覆盖、一般 TSP），若 P≠NP 则它们<b>连 PTAS 都没有</b>，只能停在某个固定常数 ρ。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>近似比验证的代码骨架</h2><span class="sub">C++ · "对下界比"的通用写法</span></div>
+<div class="code"><span class="cm">// 通用套路：ALG 与"OPT 的可计算下界 LB"作比，得到近似比上界</span>
+<span class="cm">// 以最小化问题为例（makespan / 度量 TSP 均适用）</span>
+<span class="kw">double</span> <span class="fn">approxRatio</span>(<span class="kw">const</span> Instance&amp; I) {
+    <span class="kw">double</span> alg = <span class="fn">runApprox</span>(I);   <span class="cm">// 多项式时间的近似算法输出</span>
+    <span class="kw">double</span> lb  = <span class="fn">lowerBound</span>(I);  <span class="cm">// 可计算下界，已证 lb &lt;= OPT</span>
+    <span class="kw">return</span> alg / lb;              <span class="cm">// 因 lb&lt;=OPT，故 alg/OPT &lt;= alg/lb（即 rho 的可算上界）</span>
+}
+<span class="cm">// FPTAS 外壳：精度 eps 作参数，时间同时对 n 与 1/eps 多项式</span>
+<span class="kw">double</span> <span class="fn">fptas</span>(<span class="kw">const</span> Instance&amp; I, <span class="kw">double</span> eps) {
+    <span class="cm">// 值域/规模缩放 -&gt; 状态数降为 poly(n, 1/eps) -&gt; 保证 (1-eps)·OPT</span>
+    <span class="kw">return</span> <span class="fn">scaledDP</span>(I, eps);
+}</div>
+</section>
+
+<div class="terms">
+  <span class="term"><b>近似算法</b>approximation algorithm</span>
+  <span class="term"><b>近似比</b>approximation ratio ρ</span>
+  <span class="term"><b>相对误差</b>relative error ε</span>
+  <span class="term"><b>PTAS</b>polynomial-time approximation scheme</span>
+  <span class="term"><b>FPTAS</b>fully polynomial-time approximation scheme</span>
+  <span class="term"><b>APX-难</b>APX-hard</span>
+</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>近似比方向搞反。</b>最小化是 A/OPT ≤ ρ（解可能偏大）；最大化是 OPT/A ≤ ρ 即 <b>A ≥ OPT/ρ</b>（解可能偏小）。不要给最大化问题写 A/OPT ≤ ρ。</li>
+  <li><b>以为 ρ 可以小于 1。</b>按定义 ρ 恒 <b>≥ 1</b>，最大化最小化都一样；ρ=1 才是最优，越接近 1 越好。</li>
+  <li><b>混淆 PTAS 与 FPTAS。</b>二者都能做到任意 (1+ε)，区别只在<b>时间对 1/ε 是否多项式</b>：PTAS 允许 n<sup>1/ε</sup> 这类关于 1/ε 的指数，FPTAS 要求如 n³/ε 的多项式。FPTAS 更强。</li>
+  <li><b>把"近似"与"随机"混为一谈。</b>近似算法约束的是<b>解的质量</b>，可以完全确定性（本章 §07–§09 都是确定性近似）；随机算法约束的是<b>随机性</b>。二者正交。</li>
+  <li><b>以为每个 NP-难问题都有常数近似。</b>一般 TSP、一般图独立集等在 P≠NP 下<b>没有任何常数近似比</b>（§09 会证一般 TSP 这一点）。</li>
+  <li><b>证明时直接拿 ALG 和 OPT 比。</b>OPT 算不出来，必须借助<b>可计算的下界/上界</b>夹住 OPT，再和 ALG 比。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>近似算法 = 多项式时间 + 可证明的质量保证；用<b>近似比 ρ ≥ 1</b> 衡量，最小化为 A ≤ ρ·OPT、最大化为 A ≥ OPT/ρ。</li>
+  <li>证近似比的通用套路：找<b>可计算的下界 LB ≤ OPT</b>（最小化），证 ALG ≤ ρ·LB，则 ALG ≤ ρ·OPT。</li>
+  <li><b>PTAS</b> 对任意 ε 给 (1+ε)-近似、时间对 n 多项式（对 1/ε 可指数）；<b>FPTAS</b> 时间对 n 与 1/ε 都多项式，更强，FPTAS⟹PTAS。</li>
+  <li>近似算法与随机算法是<b>两个正交的维度</b>：前者管解的质量，后者管随机性。</li>
+  <li>并非所有 NP-难问题都有好近似：存在 APX-难问题，P≠NP 下连 PTAS 都没有。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>某最大化问题的算法 A 满足：对一切实例 A(I) ≥ OPT(I)/2。下列哪个说法正确？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>A 是 2-近似算法，解的价值至少是最优的一半</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>A 是 0.5-近似算法，近似比小于 1 说明很好</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>A 是 2-近似算法，解的价值至多是最优的两倍</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>A(I)/OPT(I) ≤ 2，所以近似比是 2</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>最大化问题近似比定义为 OPT/A ≤ ρ。由 A ≥ OPT/2 得 OPT/A ≤ 2，故 <b>ρ = 2</b>，即"解至少是最优的一半"。B 错——近似比恒 ≥ 1，不存在 0.5-近似。C 错——最大化的解只会<b>偏小</b>（≤OPT），不会"两倍于最优"。D 把方向写成了最小化的 A/OPT，最大化应是 OPT/A。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>关于 PTAS 与 FPTAS，<b>正确</b>的是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>PTAS 的运行时间必须关于 1/ε 也是多项式</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>FPTAS 的运行时间关于 n 和 1/ε 都是多项式，比 PTAS 更强</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>有 PTAS 就一定有 FPTAS</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>只要问题 NP-难，就一定存在 PTAS</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>B 正是 FPTAS 定义（如背包 O(n³/ε)），且 FPTAS⟹PTAS。A 说反了——那是 FPTAS 的要求；PTAS 只需对 n 多项式，允许 O(n<sup>1/ε</sup>) 这种对 1/ε 的指数。C 错——FPTAS 严格强于 PTAS，反向不成立。D 错——存在 APX-难问题，P≠NP 下连 PTAS 都没有。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>要证明某最小化近似算法的近似比是 ρ，最常用的套路是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>先精确算出 OPT，再直接比较 ALG 和 OPT</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>构造可计算下界 LB ≤ OPT，证 ALG ≤ ρ·LB，从而 ALG ≤ ρ·OPT</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>构造可计算上界 UB ≥ OPT，证 ALG ≤ ρ·UB</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>随机抽若干实例，统计 ALG/OPT 的平均值</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>OPT 是 NP-难的、算不出来，A 不可行。正确套路是 B：用<b>可计算的下界</b> LB 夹住 OPT（LB≤OPT），再证 ALG≤ρ·LB，链式得 ALG≤ρ·LB≤ρ·OPT。C 方向错——最小化要对<b>下界</b>放缩才能得到 ALG≤ρ·OPT。D 是实验统计，不能给出对<b>一切</b>实例成立的证明。</div>
+</div>
+</div>
+
+<div class="page-nav"><a href="05-sherwood.html"><span class="dir">← 上一节</span><span class="name">舍伍德</span></a><a href="07-sched.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">多机调度</span></a></div>
+<div class="footer">算法设计与分析 · <b>第12章 概率算法和近似算法</b> · 强交互可视化版<br/>随机 · 近似 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(156,116,32,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const OPT=100;
+function draw(rho){
+  rv.textContent=rho.toFixed(1);
+  const ALG=OPT*rho; // min problem: ALG can be up to rho*OPT
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const base=40, maxH=180, scale=maxH/(OPT*3);
+  // OPT bar
+  const hO=OPT*scale, hA=ALG*scale;
+  ctx.fillStyle='#3B7A57'; ctx.fillRect(100,220-hO,80,hO);
+  ctx.fillStyle='#9C7420'; ctx.fillRect(280,220-hA,80,hA);
+  ctx.fillStyle='#1D1B16'; ctx.font='bold 13px sans-serif';
+  ctx.fillText('OPT', 118, 240); ctx.fillText('ALG≤ρ·OPT', 270, 240);
+  ctx.fillText(String(OPT), 120, 210-hO); ctx.fillText(ALG.toFixed(0), 300, 210-hA);
+  ctx.strokeStyle='#A02C55'; ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(90,220-hO*rho); ctx.lineTo(380,220-hO*rho); ctx.stroke();
+  ctx.setLineDash([]); ctx.fillStyle='#A02C55'; ctx.fillText('ρ·OPT 上界', 390, 224-hO*rho);
+}
+rr.oninput=()=>draw(+rr.value/10); draw(1.5);
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

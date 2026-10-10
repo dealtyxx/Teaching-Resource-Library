@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>编辑距离 · 第7章 动态规划</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">07</div>算法可视化 · <span>第7章 动态规划</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-principle.html">原理</a><a class="pill" href="03-models.html">模型</a><a class="pill" href="04-maxsub.html">最大子段和</a><a class="pill" href="05-lis.html">LIS</a><a class="pill" href="06-triangle.html">三角形</a><a class="pill" href="07-lcs.html">LCS</a><a class="pill active" href="08-edit.html">编辑距离</a><a class="pill" href="09-knapsack.html">01背包</a><a class="pill" href="10-multi.html">完全/多重</a><a class="pill" href="11-tsp.html">状压TSP</a><a class="pill" href="12-interval-tree.html">区间/树形</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 8 · 编辑距离</div>
+  <h1>把单词 A「改」成 B 的最少操作</h1>
+  <p>插入 / 删除 / 替换。填表动画后回溯操作序列。</p>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>学习目标</h2><span class="sub">Learning Objectives</span></div>
+  <div class="objectives"><h3>本节学完后你应当</h3><ol>
+    <li>能写出 <b>dp[i][j] 的状态定义</b>：把 A 的前 i 个字符变成 B 的前 j 个字符所需的最少编辑操作数。</li>
+    <li>能把<b>插入、删除、替换</b>三种操作分别对应到 dp[i][j−1]、dp[i−1][j]、dp[i−1][j−1]，写出 <b>min 三项</b>的转移方程。</li>
+    <li>能写出<b>边界 dp[i][0] = i、dp[0][j] = j</b>，并解释它们分别对应「全删」与「全插」。</li>
+    <li>能用 <b>Θ(nm)</b> 的 C++ 填表实现，并<b>回溯出一条具体的操作序列</b>。</li>
+    <li>能说明编辑距离与 LCS 的<b>联系与区别</b>（都用二维前缀表，但一个取 max、一个取 min）。</li>
+  </ol></div>
+</section>
+<div class="card">
+  <div class="toolbar">
+    <input id="s1" value="kitten" style="padding:8px 12px;border-radius:10px;border:1px solid var(--line)"/>
+    <span style="font-weight:800;color:var(--muted)">→</span>
+    <input id="s2" value="sitting" style="padding:8px 12px;border-radius:10px;border:1px solid var(--line)"/>
+    <button class="btn primary" id="run">▶ 计算</button>
+  </div>
+  <div style="overflow:auto"><table class="data" id="tb"></table></div>
+  <div class="stat-row">
+    <div class="stat"><span>编辑距离</span><b class="red" id="ans">—</b></div>
+  </div>
+  <div class="log" id="log">操作序列将显示在这里</div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>① 状态定义</h2><span class="sub">State Definition</span></div>
+  <div class="defn"><span class="lbl">状态定义</span>
+    <p><b>dp[i][j]</b> 表示<b>把字符串 A 的前 i 个字符 A[1..i] 编辑成 B 的前 j 个字符 B[1..j] 所需的最少操作次数</b>（允许的操作：插入一个字符、删除一个字符、替换一个字符，每次代价均为 1）。<br/>与 LCS 一样使用「两个前缀长度」作二维下标：每处理一对末字符，就把某一端（或两端）缩短一位，落到更小的子问题上。</p></div>
+  <div class="defn thm"><span class="lbl">三种操作如何对应到三个子状态</span>
+    <p>要得到 dp[i][j]，考察 A 的第 i 个字符与 B 的第 j 个字符，四种走法：<br/><b>· 字符相同 A[i] = B[j]</b>：无需操作，直接继承 <b>dp[i−1][j−1]</b>。<br/><b>· 替换</b>：把 A[i] 改成 B[j]，代价 1，再解决 dp[i−1][j−1] → <b>dp[i−1][j−1] + 1</b>。<br/><b>· 删除</b>：删掉 A[i]，代价 1，剩 A[1..i−1] 变 B[1..j] → <b>dp[i−1][j] + 1</b>。<br/><b>· 插入</b>：在 A 末尾插入 B[j]，代价 1，剩 A[1..i] 变 B[1..j−1] → <b>dp[i][j−1] + 1</b>。<br/>每个子问题只依赖更短前缀、其值一旦定下不受后续影响——<b>无后效性</b>成立。</p></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>② 转移方程 ③ 边界 ④ 计算顺序</h2><span class="sub">Transition</span></div>
+  <div class="formula lg">dp[i][j] = dp[i−1][j−1]　　　　　　　　　　　　当 A[i] = B[j]</div>
+  <div class="formula lg">dp[i][j] = 1 + min( dp[i−1][j−1], dp[i−1][j], dp[i][j−1] )　当 A[i] ≠ B[j]</div>
+  <p class="desc">min 里的三项依次对应<b>替换、删除、插入</b>。</p>
+  <div class="defn"><span class="lbl">边界条件</span>
+    <p><b>dp[i][0] = i</b>：把 A 的前 i 个字符变成空串，只能<b>删 i 次</b>。<br/><b>dp[0][j] = j</b>：把空串变成 B 的前 j 个字符，只能<b>插 j 次</b>。<br/>其中 dp[0][0] = 0（空变空，无需操作）。这两条边界是整张表的「地基」，漏写会让第一行、第一列全错。</p></div>
+  <div class="defn prop"><span class="lbl">计算顺序 · 答案位置</span>
+    <p>dp[i][j] 依赖左上、上、左三格，按 <b>i、j 均从小到大</b>逐行填表即可。<br/>答案在<b>右下角 dp[n][m]</b>（对应「整个 A 变整个 B」），n = |A|、m = |B|。</p></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>例题演算 · A = kitten → B = sitting</h2><span class="sub">Worked Example</span></div>
+  <p class="desc">第 0 行填 0…m，第 0 列填 0…n；相同字符直接抄左上格，不同则取左上/上/左三格最小值再 +1。绿色为一条回溯路径。</p>
+  <div class="table-scroll"><table class="data">
+    <tr><th>dp</th><th>ε</th><th>s</th><th>i</th><th>t</th><th>t</th><th>i</th><th>n</th><th>g</th></tr>
+    <tr><th>ε</th><td class="path">0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td></tr>
+    <tr><th>k</th><td>1</td><td class="path">1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td></tr>
+    <tr><th>i</th><td>2</td><td>2</td><td class="path">1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td></tr>
+    <tr><th>t</th><td>3</td><td>3</td><td>2</td><td class="path">1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr>
+    <tr><th>t</th><td>4</td><td>4</td><td>3</td><td>2</td><td class="path">1</td><td>2</td><td>3</td><td>4</td></tr>
+    <tr><th>e</th><td>5</td><td>5</td><td>4</td><td>3</td><td>2</td><td class="path">2</td><td>3</td><td>4</td></tr>
+    <tr><th>n</th><td>6</td><td>6</td><td>5</td><td>4</td><td>3</td><td>3</td><td class="path">2</td><td class="hl">3</td></tr>
+  </table></div>
+  <div class="tip ok"><strong>答案：</strong>编辑距离 = <b>dp[6][7] = 3</b>。回溯得到一条最优操作序列：<b>① 替换 k→s　② 替换 e→i　③ 插入 g</b>。<br/>验证：kitten →(k→s) sitten →(e→i) sittin →(插 g) sitting，恰好 3 步。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑤ C++ 代码 · 填表 + 回溯操作序列</h2><span class="sub">Implementation</span></div>
+  <div class="code"><span class="cm">// dp[i][j] = 把 A[1..i] 编辑成 B[1..j] 的最少操作数，Θ(nm)</span>
+<span class="kw">int</span> editDistance(<span class="kw">const string</span>&amp; A, <span class="kw">const string</span>&amp; B, <span class="kw">vector</span>&lt;<span class="kw">string</span>&gt;&amp; ops) {
+    <span class="kw">int</span> n = A.size(), m = B.size();
+    <span class="kw">vector</span>&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt; dp(n + 1, <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;(m + 1, 0));
+    <span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt;= n; ++i) dp[i][0] = i;   <span class="cm">// 边界：A 前 i 个全删</span>
+    <span class="kw">for</span> (<span class="kw">int</span> j = 0; j &lt;= m; ++j) dp[0][j] = j;   <span class="cm">// 边界：空串插 j 个</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = 1; i &lt;= n; ++i)
+        <span class="kw">for</span> (<span class="kw">int</span> j = 1; j &lt;= m; ++j)
+            <span class="kw">if</span> (A[i-1] == B[j-1]) dp[i][j] = dp[i-1][j-1];        <span class="cm">// 相同，免费继承</span>
+            <span class="kw">else</span> dp[i][j] = 1 + min({dp[i-1][j-1],               <span class="cm">// 替换</span>
+                                    dp[i-1][j],                 <span class="cm">// 删除</span>
+                                    dp[i][j-1]});               <span class="cm">// 插入</span>
+
+    <span class="cm">// 回溯：从 (n,m) 反推每一步用的是哪种操作</span>
+    <span class="kw">int</span> i = n, j = m; ops.clear();
+    <span class="kw">while</span> (i &gt; 0 || j &gt; 0) {
+        <span class="kw">if</span> (i &gt; 0 &amp;&amp; j &gt; 0 &amp;&amp; A[i-1] == B[j-1]) { --i; --j; }               <span class="cm">// 匹配，无操作</span>
+        <span class="kw">else if</span> (i &gt; 0 &amp;&amp; j &gt; 0 &amp;&amp; dp[i][j] == dp[i-1][j-1] + 1) {
+            ops.push_back(<span class="st">"替换 "</span> + string(1, A[i-1]) + <span class="st">"→"</span> + B[j-1]); --i; --j;
+        } <span class="kw">else if</span> (i &gt; 0 &amp;&amp; dp[i][j] == dp[i-1][j] + 1) {
+            ops.push_back(<span class="st">"删除 "</span> + string(1, A[i-1])); --i;
+        } <span class="kw">else</span> {
+            ops.push_back(<span class="st">"插入 "</span> + string(1, B[j-1])); --j;
+        }
+    }
+    reverse(ops.begin(), ops.end());    <span class="cm">// 回溯是逆序，反转得到正向操作序列</span>
+    <span class="kw">return</span> dp[n][m];
+}
+<span class="cm">// editDistance("kitten","sitting",ops) → 返回 3，ops = {替换 k→s, 替换 e→i, 插入 g}</span></div>
+  <div class="tip info"><strong>回溯的判定顺序有讲究：</strong>先判「匹配（字符相同）」，再依次判替换、删除、插入。多种操作可能同时达到最优（min 出现并列），此时任选一种都对，只是得到的<b>操作序列不同但步数相同</b>。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑥ 与 LCS 的对照</h2><span class="sub">Edit Distance vs LCS</span></div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>对比项</th><th>编辑距离</th><th>最长公共子序列 LCS</th></tr>
+    <tr><td>状态定义</td><td>A 前 i 变 B 前 j 的最少操作</td><td>X 前 i 与 Y 前 j 的公共子序列长度</td></tr>
+    <tr><td>相等时</td><td>dp[i−1][j−1]（免费）</td><td>dp[i−1][j−1] + 1</td></tr>
+    <tr><td>不等时</td><td class="hl">1 + min(左上, 上, 左)</td><td class="hl">max(上, 左)</td></tr>
+    <tr><td>优化方向</td><td>求最小</td><td>求最大</td></tr>
+    <tr><td>边界</td><td>dp[i][0]=i, dp[0][j]=j</td><td>dp[i][0]=dp[0][j]=0</td></tr>
+    <tr><td>答案位置</td><td>dp[n][m]</td><td>dp[n][m]</td></tr>
+  </table></div>
+  <div class="terms">
+    <span class="term"><b>编辑距离</b>edit / Levenshtein distance</span>
+    <span class="term"><b>插入</b>insertion</span>
+    <span class="term"><b>删除</b>deletion</span>
+    <span class="term"><b>替换</b>substitution</span>
+    <span class="term"><b>回溯</b>traceback</span>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑦ 易错点</h2><span class="sub">Pitfalls</span></div>
+  <div class="pitfall"><span class="lbl">易错点</span><ul>
+    <li><b>漏写边界 dp[i][0]=i 或 dp[0][j]=j</b>。若把第 0 行、第 0 列默认成 0，会算出偏小的错误答案——把空串变成长为 j 的串明明要 j 次插入。</li>
+    <li><b>相等时误加 1</b>。字符相同应<b>直接继承 dp[i−1][j−1]</b>，不产生操作；写成 dp[i−1][j−1]+1 会把距离整体算大。</li>
+    <li><b>min 里漏掉一项</b>。三项<b>替换 dp[i−1][j−1]、删除 dp[i−1][j]、插入 dp[i][j−1]</b> 缺一不可，漏项会得到非法的偏大值。</li>
+    <li><b>把删除与插入的下标弄反</b>。删除 A[i] 走 dp[i−1][j]（A 缩短），插入走 dp[i][j−1]（B 缩短）；反了会导致回溯出的操作与结果不符。</li>
+    <li><b>下标偏移</b>。dp 为 1-based，字符 0-based，比较必须 <span class="kbd">A[i-1] == B[j-1]</span>。</li>
+    <li><b>回溯忘记 reverse</b>。从右下角回溯得到的操作是<b>逆序</b>，需反转后才是从头到尾的操作序列。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>本节小结</h2><span class="sub">Summary</span></div>
+  <div class="summary"><span class="lbl">本节小结</span><ul>
+    <li>状态定义：<b>dp[i][j] = 把 A 前 i 个字符变成 B 前 j 个字符的最少操作数</b>。</li>
+    <li>转移：相等 <b>dp[i][j] = dp[i−1][j−1]</b>，不等 <b>dp[i][j] = 1 + min(替换 dp[i−1][j−1], 删除 dp[i−1][j], 插入 dp[i][j−1])</b>。</li>
+    <li>边界 <b>dp[i][0] = i</b>（全删）、<b>dp[0][j] = j</b>（全插）；答案在<b>右下角 dp[n][m]</b>，复杂度 <b>Θ(nm)</b>。</li>
+    <li>回溯时按「匹配→替换→删除→插入」判定每步来向，收集后 <b>reverse</b> 得到操作序列。</li>
+    <li>与 LCS 同构：都用二维前缀表、都从右下角回溯，区别在<b>编辑距离取 min、LCS 取 max</b>，且边界不同。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>自测题</h2><span class="sub">点击选项查看解析</span></div>
+  <div class="quiz">
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">1</span>编辑距离的边界 dp[0][j] 应等于？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>0，因为还没开始编辑</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>j，即把空串插入 j 个字符变成 B 的前 j 个字符</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>1，插入一次即可</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>|B|，即 B 的总长度</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。dp[0][j] 表示「把空串变成 B[1..j]」，唯一办法是<b>逐个插入 j 个字符</b>，故等于 j。A 是最常见的错误（把整行默认成 0），会让答案偏小；C 只插一次显然不够；D 混淆了 j 与 m——这里是前 j 个字符而非整个 B。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">2</span>转移 <span class="kbd">dp[i][j] = 1 + min(dp[i−1][j−1], dp[i−1][j], dp[i][j−1])</span> 中，dp[i−1][j] 对应哪种操作？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>替换 A[i]→B[j]</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>删除 A[i]</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>插入 B[j]</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>字符相等，无操作</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。dp[i−1][j] 表示「A 已缩短一位、B 不变」，正是<b>删除 A[i]</b> 后剩下 A[1..i−1] 要变成 B[1..j]。替换对应 dp[i−1][j−1]（两端同缩），插入对应 dp[i][j−1]（B 缩短）。D 的「相等无操作」走的是不 +1 的那条分支。记忆口诀：<b>行下标 i 减小 = 删 A，列下标 j 减小 = 插 B，都减小 = 替换</b>。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">3</span>把编辑距离转移里的 <span class="kbd">1 + min(...)</span> 改成 <span class="kbd">max(dp[i−1][j], dp[i][j−1])</span>（相等时改成 dp[i−1][j−1]+1），得到的是？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>仍是编辑距离</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>最长公共子序列 LCS</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>最长公共子串</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>什么都不是，方程非法</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。这两个问题是「同构」的——都用二维前缀表、相等时走对角线、不等时组合左上/上/左三格，唯一的差别是<b>编辑距离取 min（求代价最小）、LCS 取 max（求公共部分最长）</b>，且边界不同（编辑距离 dp[i][0]=i，LCS 为 0）。C 公共子串不等时归零，不是这个式子；D 错，改完是完全合法且有意义的 LCS 递推。</div>
+    </div>
+  </div>
+</section>
+
+<div class="page-nav"><a href="07-lcs.html"><span class="dir">← 上一节</span><span class="name">LCS</span></a><a href="09-knapsack.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">01背包</span></a></div>
+<div class="footer">算法设计与分析 · <b>第7章 动态规划</b> · 强交互可视化版<br/>Canvas 填表 · 路径回溯 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:32},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.12-Math.random()*.3, a:.12+Math.random()*.3}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(185,100,52,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+run.onclick=async()=>{
+  const A=s1.value, B=s2.value, n=A.length, m=B.length;
+  const dp=Array.from({length:n+1},()=>Array(m+1).fill(0));
+  for(let i=0;i<=n;i++) dp[i][0]=i; for(let j=0;j<=m;j++) dp[0][j]=j;
+  const ren=(hi,hj)=>{
+    let h='<tr><th></th><th>ε</th>'+[...B].map(c=>`<th>${c}</th>`).join('')+'</tr>';
+    for(let i=0;i<=n;i++){ h+='<tr><th>'+(i?A[i-1]:'ε')+'</th>';
+      for(let j=0;j<=m;j++) h+=`<td class="${i===hi&&j===hj?'hl':''}">${dp[i][j]}</td>`;
+      h+='</tr>'; }
+    tb.innerHTML=h;
+  };
+  for(let i=1;i<=n;i++) for(let j=1;j<=m;j++){
+    dp[i][j]=A[i-1]===B[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j-1],dp[i-1][j],dp[i][j-1]);
+    ren(i,j); await sleep(25);
+  }
+  ans.textContent=dp[n][m];
+  // ops
+  let i=n,j=m, ops=[];
+  while(i>0||j>0){
+    if(i>0&&j>0&&A[i-1]===B[j-1]){ i--; j--; continue; }
+    if(i>0&&j>0&&dp[i][j]===dp[i-1][j-1]+1){ ops.push(`替换 ${A[i-1]}→${B[j-1]}`); i--; j--; }
+    else if(i>0&&dp[i][j]===dp[i-1][j]+1){ ops.push(`删除 ${A[i-1]}`); i--; }
+    else { ops.push(`插入 ${B[j-1]}`); j--; }
+  }
+  log.textContent=ops.reverse().join('\\n')||'(无需操作)';
+  ren(-1,-1);
+};
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Graham · 第10章 计算几何</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">10</div>算法可视化 · <span>第10章 计算几何</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-vector.html">向量运算</a><a class="pill" href="02-direction.html">方向判断</a><a class="pill" href="03-point-seg.html">点与线段</a><a class="pill" href="04-intersect.html">线段相交</a><a class="pill" href="05-inpoly.html">点在多边形</a><a class="pill" href="06-area.html">多边形面积</a><a class="pill" href="07-jarvis.html">礼品包裹</a><a class="pill active" href="08-graham.html">Graham</a><a class="pill" href="09-closest.html">最近点对</a><a class="pill" href="10-calipers.html">旋转卡壳</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 8 · O(n log n)</div>
+  <h1>Andrew 单调链 · 上下包扫描</h1>
+  <p>按 x 排序后扫下包再扫上包，弹出破坏左转的点。比 Jarvis 更适合点数多的情形。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>掌握 Graham 扫描的思路：以<b>最低点</b>为基准按<b>极角排序</b>，再用<b>栈</b>逐点入栈、弹出所有非左转的点</li>
+  <li>能用<b>叉积</b>判断连续三点是<b>左转（CCW，保留）</b>还是<b>右转/共线（弹栈）</b>，理解「凸包边界一路左转」的不变量</li>
+  <li>能分析 Graham 扫描复杂度为 <b>O(n log n)</b>：排序 O(n log n) 主导，栈扫描每点<b>至多进出一次</b>为 O(n)</li>
+  <li>理解本页演示采用的 <b>Andrew 单调链</b> 变体：按 x（而非极角）排序，分别扫上、下两条链，避免极角计算</li>
+  <li>能正确处理<b>极角相同</b>、<b>共线</b>、<b>重合点</b>等退化情形，并选定共线点的保留策略</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="run">▶ 扫描动画</button>
+    <button class="btn" id="rand">🎲 随机点</button>
+    <div class="speed" id="spd"><button data-ms="400">慢</button><button data-ms="180" class="on">中</button><button data-ms="60">快</button></div>
+  </div>
+  <div class="stage-wrap light">
+    <canvas class="stage" id="cv" width="1000" height="420"></canvas>
+    <div class="stage-hud"><span class="hud-pill light">Andrew chain</span><span class="hud-pill light" id="hud">—</span></div>
+  </div>
+  <div class="stat-row"><div class="stat"><span>凸包顶点数</span><b class="teal" id="hn">0</b></div></div>
+</div>
+
+<section class="sec">
+<div class="sec-head"><h2>一、Graham 扫描的思路</h2><span class="sub">polar sort + stack</span></div>
+
+<div class="defn"><span class="lbl">思路</span><p>Graham 扫描分三步：① 选一个<b>必在凸包上</b>的基准点（取 <b>y 最小、并列取 x 最小</b>的最低点 O）；② 其余点按相对 O 的<b>极角</b>从小到大排序；③ 依序把点压入一个<b>栈</b>，每次入栈前，只要栈顶两点与新点构成的转向<b>不是严格左转</b>（右转或共线），就把栈顶<b>弹出</b>，直到恢复左转再压入。扫描一遍后，栈中留下的就是凸包（逆时针序）。</p></div>
+
+<div class="list-step"><span class="n">1</span><div class="body"><b>选基准</b>：最低点 O 一定在凸包上；它是所有点的极角原点，其余点相对它的极角都在 [0, π) 内，排序无歧义。</div></div>
+<div class="list-step"><span class="n">2</span><div class="body"><b>极角排序</b>：用<b>叉积当比较器</b>——Cross(O, a, b) &gt; 0 表示 a 的极角更小，排在前；<b>极角相同</b>（共线）时按<b>到 O 的距离近→远</b>排列。全程不必真正调用 atan2。</div></div>
+<div class="list-step"><span class="n">3</span><div class="body"><b>栈扫描</b>：维护不变量「<b>栈内相邻三点一路左转</b>」。新点若使栈顶产生右转/共线，说明栈顶那个点被「兜」进了凸包内部，弹出它；如此保证栈中始终是凸的。</div></div>
+
+<div class="tip info"><strong>核心不变量：</strong>凸多边形逆时针走一圈，<b>每个拐点都是左转</b>。Graham 扫描就是不断用叉积检查并强制维持这个「只左转」的性质，把所有造成右转的点剔除。</div>
+</section>
+
+<section class="sec">
+<div class="sec-head"><h2>二、左转 / 右转判定</h2><span class="sub">cross product test</span></div>
+
+<div class="formula">Cross(A, B, C) = (B−A) × (C−A)　　&gt; 0 左转(CCW，保留)　　&lt; 0 右转(弹栈)　　= 0 共线(按需)</div>
+
+<div class="defn prop"><span class="lbl">判据</span><p>设栈顶下方点为 A、栈顶为 B、待入点为 C。若 <b>Cross(A, B, C) ≤ 0</b>（右转或共线），则 B 不该留在凸包上，<b>弹出 B</b>；重复直到 Cross(A, B, C) &gt; 0（严格左转）再把 C 压栈。把弹栈条件取 <b>≤ 0</b> 会顺带删去共线的中间点；取 <b>&lt; 0</b> 则保留共线点——按题目对「边上的点算不算凸包顶点」的要求二选一。</p></div>
+
+<div class="tip warn"><strong>屏幕坐标提醒：</strong>本页 canvas 的 y 轴<b>向下</b>，数学上的「左转（CCW，叉积&gt;0）」在屏幕上<b>看起来像右转</b>。判据只依赖<b>符号是否一致</b>，因此算法完全正确，只是视觉方向与读数相反时不必惊讶。</div>
+</section>
+
+<section class="sec">
+<div class="sec-head"><h2>三、复杂度分析</h2><span class="sub">O(n log n)</span></div>
+
+<div class="formula">T(n) = O(n log n)<sub>排序</sub> + O(n)<sub>栈扫描</sub> = O(n log n)</div>
+
+<div class="defn prop"><span class="lbl">分析</span><p><b>极角排序</b>是复杂度瓶颈，为 O(n log n)。<b>栈扫描</b>看似有嵌套 while，但每个点<b>最多入栈一次、出栈一次</b>，压/弹总次数不超过 2n，故整趟扫描是 <b>O(n)</b>（<b>摊还分析</b>）。两者相加由排序主导，总复杂度 <b>O(n log n)</b>，与点是否都在凸包上无关——这正是它比 Jarvis 的 O(nh) 在稠密凸包上更稳的原因。</p></div>
+</section>
+
+<section class="sec">
+<div class="sec-head"><h2>四、Andrew 单调链（本页演示）</h2><span class="sub">monotone chain · Graham 的等价变体</span></div>
+
+<div class="defn"><span class="lbl">变体</span><p>本页动画用的是 Graham 思想的实用变体 <b>Andrew 单调链</b>：把点按 <b>x（并列按 y）排序</b>，然后从左到右扫出<b>下凸包</b>、再从右到左扫出<b>上凸包</b>，拼接即得完整凸包。它用<b>坐标排序</b>代替极角排序，<b>避免了 atan2 与象限判断</b>，数值更稳、编码更短，复杂度同为 <b>O(n log n)</b>，弹栈判据与 Graham 完全一致。</p></div>
+
+<div class="code"><span class="cm">// —— 写法 A：Graham 扫描（极角排序 + 单栈）——</span>
+<span class="cm">// 依赖基础模板：Point / Cross(a,b,c) / sgn / Length2</span>
+vector&lt;Point&gt; <span class="fn">Graham</span>(vector&lt;Point&gt; p) {
+    <span class="kw">int</span> n = p.size();
+    <span class="kw">if</span> (n &lt; <span class="nu">3</span>) <span class="kw">return</span> p;
+    <span class="kw">int</span> low = <span class="nu">0</span>;                          <span class="cm">// 1) 最低点作基准，必在凸包上</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">1</span>; i &lt; n; i++)
+        <span class="kw">if</span> (p[i].y &lt; p[low].y ||
+           (p[i].y == p[low].y &amp;&amp; p[i].x &lt; p[low].x)) low = i;
+    <span class="fn">swap</span>(p[<span class="nu">0</span>], p[low]);
+    Point o = p[<span class="nu">0</span>];
+    <span class="fn">sort</span>(p.begin() + <span class="nu">1</span>, p.end(), [&amp;](Point a, Point b) {
+        <span class="kw">double</span> c = <span class="fn">Cross</span>(o, a, b);          <span class="cm">// 2) 极角排序：叉积当比较器</span>
+        <span class="kw">if</span> (<span class="fn">sgn</span>(c) != <span class="nu">0</span>) <span class="kw">return</span> c &gt; <span class="nu">0</span>;      <span class="cm">// c>0：a 的极角更小，排前</span>
+        <span class="kw">return</span> <span class="fn">Length2</span>(a - o) &lt; <span class="fn">Length2</span>(b - o); <span class="cm">// 共线取近的在前</span>
+    });
+    vector&lt;Point&gt; st;                          <span class="cm">// 3) 栈扫描，维持一路左转</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; i++) {
+        <span class="kw">while</span> (st.size() &gt;= <span class="nu">2</span> &amp;&amp;
+               <span class="fn">sgn</span>(<span class="fn">Cross</span>(st[st.size()-<span class="nu">2</span>], st.back(), p[i])) &lt;= <span class="nu">0</span>)
+            st.pop_back();                    <span class="cm">// 右转或共线 → 弹栈</span>
+        st.push_back(p[i]);
+    }
+    <span class="kw">return</span> st;                                <span class="cm">// 逆时针凸包</span>
+}
+
+<span class="cm">// —— 写法 B：Andrew 单调链（本页演示用，按 x 排序扫上下包）——</span>
+vector&lt;Point&gt; <span class="fn">Andrew</span>(vector&lt;Point&gt; p) {
+    <span class="kw">int</span> n = p.size(), k = <span class="nu">0</span>;
+    <span class="kw">if</span> (n &lt; <span class="nu">3</span>) <span class="kw">return</span> p;
+    <span class="fn">sort</span>(p.begin(), p.end(), [](Point a, Point b) {
+        <span class="kw">return</span> a.x &lt; b.x || (a.x == b.x &amp;&amp; a.y &lt; b.y);
+    });
+    vector&lt;Point&gt; h(<span class="nu">2</span> * n);
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; i++) {           <span class="cm">// 下凸包：从左到右</span>
+        <span class="kw">while</span> (k &gt;= <span class="nu">2</span> &amp;&amp; <span class="fn">sgn</span>(<span class="fn">Cross</span>(h[k-<span class="nu">2</span>], h[k-<span class="nu">1</span>], p[i])) &lt;= <span class="nu">0</span>) k--;
+        h[k++] = p[i];
+    }
+    <span class="kw">for</span> (<span class="kw">int</span> i = n - <span class="nu">2</span>, t = k + <span class="nu">1</span>; i &gt;= <span class="nu">0</span>; i--) { <span class="cm">// 上凸包：从右到左</span>
+        <span class="kw">while</span> (k &gt;= t &amp;&amp; <span class="fn">sgn</span>(<span class="fn">Cross</span>(h[k-<span class="nu">2</span>], h[k-<span class="nu">1</span>], p[i])) &lt;= <span class="nu">0</span>) k--;
+        h[k++] = p[i];
+    }
+    h.resize(k - <span class="nu">1</span>);                        <span class="cm">// 去掉重复计入的起点</span>
+    <span class="kw">return</span> h;
+}</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li>基准点<b>没选最低点</b>（或极值点），极角排序失去参照，凸包出错。</li>
+  <li>极角<b>相同（共线）</b>时不按到 O 的距离排序，导致同角点次序混乱、凸包缺顶点。</li>
+  <li>弹栈条件 <b>≤ 0 与 &lt; 0 混用</b>：前者删共线点、后者保留，用错会与题目「边上点算不算顶点」的要求矛盾。</li>
+  <li>叉积前<b>不检查栈内至少 2 个点</b>（<code>st.size()&gt;=2</code>），发生越界访问。</li>
+  <li>Andrew 拼接上下链时<b>重复计入首尾点</b>，忘记 <code>resize(k-1)</code> 去掉重复起点。</li>
+  <li>改用 <code>atan2</code> 做极角排序，引入浮点误差与 ±π 象限边界问题；用叉积比较更稳。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>Graham 扫描：<b>最低点为基准 + 极角排序 + 栈维护一路左转</b>，得逆时针凸包。</li>
+  <li>用<b>叉积符号</b>判左转（保留）/ 右转或共线（弹栈），核心不变量是「边界只左转」。</li>
+  <li>复杂度 <b>O(n log n)</b>：极角排序主导，栈扫描每点至多进出一次为 O(n)（摊还）。</li>
+  <li><b>Andrew 单调链</b>是等价变体，按 x 排序扫上下包，免极角计算，本页演示即用它。</li>
+  <li>相比 Jarvis 的 O(nh)，Graham/Andrew 对 h 较大的稠密凸包<b>更稳定</b>。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>Graham 扫描的总复杂度是 O(n log n)，其中的 <b>log n</b> 因子来自哪一步？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>对所有点按极角<b>排序</b></span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>栈扫描时每点的弹栈操作</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>寻找最低基准点</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>计算每对点之间的叉积</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 A。排序是 O(n log n)，是复杂度<b>瓶颈</b>。B 的栈扫描虽含嵌套 while，但每点最多入栈一次、出栈一次，摊还后是 O(n)；C 找最低点是一趟 O(n)；D「每对点」是错觉，算法只对<b>连续三点</b>做 O(1) 叉积，不是 O(n²)。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>栈扫描时，若栈顶下方点 A、栈顶 B 与待入点 C 满足 <b>Cross(A,B,C) &lt; 0</b>，应当？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>直接把 C 压栈</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>这是<b>右转</b>，说明 B 落在凸包内部，<b>弹出 B</b> 后再判</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>弹出 C</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>交换 A、B 的位置</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 B。Cross &lt; 0 是<b>右转</b>，破坏了「只左转」的凸性不变量，问题出在栈顶 B 上，应<b>弹出 B</b>，再用新的栈顶继续判定，直到恢复左转才压入 C。栈里被弹掉的点就是被后来点「兜」进内部、不属于凸包的点。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>本页演示的 Andrew 单调链与经典 Graham 扫描相比，最主要的区别是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>复杂度更低，是 O(n)</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>按 <b>x 坐标排序</b>并分扫上下两条链，<b>不需极角计算</b>，复杂度同为 O(n log n)</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>它得到的凸包与 Graham 不同</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>它不需要用到叉积</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 B。Andrew 用坐标排序代替极角排序，规避 atan2 的误差与象限问题，分别构造下包和上包，复杂度仍是 O(n log n)。A 错在复杂度——排序下限就是 O(n log n)；C 错——两者得到<b>相同</b>的凸包；D 错——弹栈判据依旧靠叉积。</div>
+</div>
+</div>
+
+<div class="page-nav"><a href="07-jarvis.html"><span class="dir">← 上一节</span><span class="name">礼品包裹</span></a><a href="09-closest.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">最近点对</span></a></div>
+<div class="footer">算法设计与分析 · <b>第10章 计算几何</b> · 强交互可视化版<br/>拖拽 · 扫描 · 凸包 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(62,133,120,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const cross=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x);
+const dot=(a,b)=>a.x*b.x+a.y*b.y;
+const sub=(a,b)=>({x:a.x-b.x,y:a.y-b.y});
+const add=(a,b)=>({x:a.x+b.x,y:a.y+b.y});
+const mul=(a,k)=>({x:a.x*k,y:a.y*k});
+const len=a=>Math.hypot(a.x,a.y);
+function dragPoints(cv, pts, onChange){
+  let drag=-1;
+  const pos=e=>{const r=cv.getBoundingClientRect(); return {x:(e.clientX-r.left)*cv.width/r.width, y:(e.clientY-r.top)*cv.height/r.height};};
+  cv.addEventListener('mousedown',e=>{
+    const p=pos(e); drag=pts.findIndex(q=>(q.x-p.x)**2+(q.y-p.y)**2<400);
+    cv.style.cursor=drag>=0?'grabbing':'crosshair';
+  });
+  cv.addEventListener('mousemove',e=>{
+    if(drag<0) return;
+    const p=pos(e);
+    pts[drag].x=Math.max(20,Math.min(cv.width-20,p.x));
+    pts[drag].y=Math.max(20,Math.min(cv.height-20,p.y));
+    onChange();
+  });
+  const up=()=>{drag=-1; cv.style.cursor='crosshair';};
+  cv.addEventListener('mouseup',up); cv.addEventListener('mouseleave',up);
+}
+function drawDot(ctx,p,col,label){
+  ctx.beginPath(); ctx.arc(p.x,p.y,11,0,Math.PI*2);
+  ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=12; ctx.fill(); ctx.shadowBlur=0;
+  if(label){ ctx.fillStyle='#1D1B16'; ctx.font='12px ui-monospace'; ctx.fillText(label, p.x+14, p.y-10); }
+}
+function drawArrow(ctx,a,b,col){
+  ctx.strokeStyle=col; ctx.lineWidth=3; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+  const ang=Math.atan2(b.y-a.y,b.x-a.x);
+  ctx.beginPath();
+  ctx.moveTo(b.x,b.y);
+  ctx.lineTo(b.x-12*Math.cos(ang-0.4), b.y-12*Math.sin(ang-0.4));
+  ctx.lineTo(b.x-12*Math.cos(ang+0.4), b.y-12*Math.sin(ang+0.4));
+  ctx.closePath(); ctx.fillStyle=col; ctx.fill();
+}
+
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let pts=[], ms=180;
+spd.querySelectorAll('button').forEach(b=>b.onclick=()=>{spd.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');ms=+b.dataset.ms;});
+function randomize(){ pts=Array.from({length:22},()=>({x:60+Math.random()*880,y:40+Math.random()*340})); draw([]); hn.textContent=0; }
+function draw(hull, hi=null){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  if(hull.length>=2){
+    ctx.strokeStyle='#3E8578'; ctx.lineWidth=3; ctx.beginPath();
+    hull.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)); ctx.stroke();
+    ctx.fillStyle='rgba(62,133,120,.08)'; ctx.beginPath();
+    hull.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)); ctx.closePath(); ctx.fill();
+  }
+  pts.forEach(p=>{
+    ctx.beginPath(); ctx.arc(p.x,p.y, p===hi?8:5,0,Math.PI*2);
+    ctx.fillStyle=hull.includes(p)?'#3E8578':(p===hi?'#B8862B':'#E39A7C'); ctx.fill();
+  });
+}
+run.onclick=async()=>{
+  const p=pts.slice().sort((a,b)=>a.x-b.x||a.y-b.y);
+  const cr=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x);
+  const lo=[];
+  hud.textContent='下包 →';
+  for(const pt of p){
+    while(lo.length>=2&&cr(lo.at(-2),lo.at(-1),pt)<=0){ lo.pop(); draw(lo,pt); await sleep(ms); }
+    lo.push(pt); draw(lo,pt); hn.textContent=lo.length; await sleep(ms);
+  }
+  const up=[];
+  hud.textContent='上包 ←';
+  for(let i=p.length-1;i>=0;i--){
+    const pt=p[i];
+    while(up.length>=2&&cr(up.at(-2),up.at(-1),pt)<=0){ up.pop(); draw(lo.slice(0,-1).concat(up),pt); await sleep(ms); }
+    up.push(pt); draw(lo.slice(0,-1).concat(up),pt); await sleep(ms);
+  }
+  lo.pop(); up.pop();
+  const hull=lo.concat(up);
+  draw(hull); hn.textContent=hull.length; hud.textContent='完成 h='+hull.length;
+};
+document.getElementById('rand').onclick=randomize; randomize();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

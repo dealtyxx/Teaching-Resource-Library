@@ -1,0 +1,146 @@
+---
+module: 5
+moduleName: XPath库
+order: 19
+title: 图片链接属性提取器
+level: 基础必做
+scene: 资源采集
+knowledge: ["@属性提取", 节点筛选, 列表结果处理]
+stars: 2
+minutes: 35
+goal: 掌握属性提取语法，能批量提取网页资源链接
+sizheng: 批量下载有版权——图片资源采集的知识产权意识
+dims: [法治意识, 开源共享]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import PyStepRunner from '../../components/react/PyStepRunner';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, CaseFileCard, Callout } from '../../components/react/ui';
+
+## 场景导入
+
+社团要办一面「校园活动海报墙」，你负责把各院系官网的活动海报图片「搬」过来。图片地址都藏在 `img` 标签的 `src` 属性里，几十张一张张复制太慢——XPath 的 `@` 属性提取正为此而生：一行 `//img/@src`，所有链接尽入囊中。但「抓得到」不等于「用得了」，这中间隔着两个字：版权。
+
+## 动手实验
+
+`//img/@src` 负责「全都抓到」，谓语 `[@license='cc']` 负责「挑出能用的」。下面这个提取器把图片分成「可复用」与「需授权」两栏——采集的同时，先把版权分好类。
+
+<PyPlayground
+  client:visible
+  title="图片链接分流提取器"
+  note="把某张 img 的 license 从 cc 改成 all-rights，或给没有 license 的图片补上 cc，再运行——看看两栏清单怎么变。"
+  packages={['lxml']}
+  height={360}
+  code={`from lxml import etree
+
+# 内联一个图库页面：每张图片带 src，部分标注了 license 授权协议
+gallery = """
+<gallery>
+  <img src="sunset.jpg" license="cc"/>
+  <img src="logo_brand.png" license="all-rights"/>
+  <img src="flow_chart.svg" license="cc"/>
+  <img src="poster_movie.jpg"/>
+  <img src="icon_open.png" license="cc"/>
+</gallery>
+"""
+
+# 内联 XML 用 etree.XML 解析
+tree = etree.XML(gallery)
+
+# @属性提取：//img/@src 一次抓到所有图片地址
+all_src = tree.xpath("//img/@src")
+print("共发现图片：", len(all_src), "张")
+print()
+
+# 谓语 [@license='cc'] 只留标注 CC 协议、可复用的图片
+reusable = tree.xpath("//img[@license='cc']/@src")
+
+print("【可复用 · CC 协议】")
+for s in reusable:
+    print("  可用   ", s)
+print()
+
+print("【需授权 · 勿直接商用】")
+for s in all_src:
+    if s not in reusable:
+        print("  需授权 ", s)`}
+/>
+
+## 逐行看懂
+
+属性提取只有三步：定位、筛选、分流。单步走一遍，看清每个 XPath 表达式到底「抓」回了什么。
+
+<PyStepRunner
+  client:visible
+  title="属性提取三步走"
+  fileName="img_extract.py"
+  code={`from lxml import etree
+tree = etree.XML(gallery_html)
+all_src = tree.xpath("//img/@src")
+cc = tree.xpath("//img[@license='cc']/@src")
+need = [s for s in all_src if s not in cc]
+print("可复用：", cc)
+print("需授权：", need)`}
+  steps={[
+    { line: 0, desc: "导入 lxml 的 etree——XPath 解析的核心。" },
+    { line: 1, desc: "把内联图库 HTML 解析成可寻址的元素树。", vars: { tree: "gallery 元素树" } },
+    { line: 2, desc: "//img/@src：沿任意层级取出所有 img 的 src 属性值。", vars: { all_src: "['sunset.jpg', 'logo_brand.png', 'flow_chart.svg', 'poster_movie.jpg', 'icon_open.png']" } },
+    { line: 3, desc: "加谓语 [@license='cc']，只留标注 CC 协议的可复用图片。", vars: { cc: "['sunset.jpg', 'flow_chart.svg', 'icon_open.png']" } },
+    { line: 4, desc: "列表推导挑出「不在可复用清单」的——即需授权图片。", vars: { need: "['logo_brand.png', 'poster_movie.jpg']" } },
+    { line: 5, desc: "打印可复用清单。", out: "可复用： ['sunset.jpg', 'flow_chart.svg', 'icon_open.png']" },
+    { line: 6, desc: "打印需授权清单——采集前先分流，版权意识落到代码里。", out: "需授权： ['logo_brand.png', 'poster_movie.jpg']" },
+  ]}
+/>
+
+## 思政会客厅
+
+<DimCard dim="法治意识" title="抓得到，不等于用得了">
+  <ul>
+    <li>图片是受《著作权法》保护的作品。爬虫技术上能批量下载，不代表法律上能随意商用——「技术可行」与「法律许可」是两码事。</li>
+    <li>能不能用，要看授权：有没有标注可复用协议？是否要求署名？用于商业还是仅供学习？采集前先读「许可证」，是数据工程师的职业底线。</li>
+  </ul>
+</DimCard>
+
+<CaseFileCard name="视觉中国「黑洞照片」版权风波" year={2019} tag="图片版权" verdict="天津网信办约谈视觉中国并责令整改，网站一度关闭。">
+2019 年 4 月，人类首张黑洞照片发布当天，视觉中国将其纳入版权图库、标注「商用需授权」；随后国旗、国徽等图片也被指挂上版权标签，舆论哗然。事件把「图片版权到底归谁、维权的边界在哪」推成了公共议题——保护版权天经地义，滥用「维权」同样越界。
+</CaseFileCard>
+
+<DimCard dim="开源共享" title="CC 协议：开放世界的礼物">
+  <ul>
+    <li>知识共享（Creative Commons，简称 CC）协议，让创作者主动讲清「我的作品你可以怎么用」——署名 BY、相同方式共享 SA、非商业 NC 等条款自由组合。</li>
+    <li>维基百科的配图、海量开源素材都采用 CC 协议。善用 license 标注去筛选可复用资源，既高效又体面：站在别人「开放」的肩膀上，也别忘了回馈开放。</li>
+  </ul>
+</DimCard>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p19-d1"
+  question="你的爬虫一夜之间下载了某网站上万张图片，用于自己的商业 App。技术上无懈可击，但这样做有什么风险？怎么改进？"
+  hints={[
+    '未经授权批量商用他人图片，可能构成侵权，面临下架与赔偿风险',
+    '改进：优先采集标注了 CC 等可复用协议的资源，或先联系版权方获取授权',
+    'robots 协议与版权是两层约束——能抓到只是第一关，能合法使用才是终点',
+  ]}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="要一次性取出页面中所有图片的地址，正确的 XPath 是？"
+  options={['//img', '//img/@src', '//src', '/img/text()']}
+  answer={1}
+  explain="@ 用于提取属性。//img/@src 表示「任意层级 img 元素的 src 属性值」，返回所有图片地址组成的列表；//img 取到的是元素节点本身，而非地址字符串。"
+/>
+
+<QuizItem
+  client:visible
+  question="爬虫技术上能下载某网站的全部图片，下列做法最稳妥的是？"
+  options={['能下就下，先拿到再说', '只使用标注了 CC 等可复用协议、或已获授权的图片', '把图片改个名就能规避版权', '只要不盈利就可以随便用']}
+  answer={1}
+  explain="「技术可行」不等于「法律许可」。图片受著作权保护，优先采集 CC 等明确可复用的资源、或取得授权，才是既高效又合规的做法；非商业用途也不当然免责。"
+/>

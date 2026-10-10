@@ -1,0 +1,319 @@
+---
+chapter: 3
+chapterName: 套接字编程
+order: 3
+title: TCP/IP协议栈与网络主权
+subtitle: 从13台根服务器到雪人计划——关键基础设施必须自主可控
+position: 3.1 网络基础知识 → 3.3 TCP编程实战
+knowledge: [TCP/IP协议, socket编程, 三次握手, 多线程服务器, IPv6]
+mainDims: [家国情怀, 创新思维]
+subDims: [科学精神]
+minutes: 12
+quote: 互联网不是"无主之地"——根服务器、核心路由关乎国家安全
+icon: "🛰️"
+color: "#c62828"
+segments:
+  - { name: 导入, minutes: 2 }
+  - { name: 技术讲解, minutes: 5 }
+  - { name: 思政融入, minutes: 4 }
+  - { name: 互动, minutes: 1 }
+---
+
+import PyStepRunner from '../../components/react/PyStepRunner';
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, CaseFileCard, Callout } from '../../components/react/ui';
+import TcpHandshakeLab from '../../components/react/labs/TcpHandshakeLab';
+import RootServerLab from '../../components/react/labs/RootServerLab';
+
+## 章节定位
+
+本案例位于第 3 章「套接字编程」，贯穿 3.1 计算机网络基础知识到 3.3 TCP 编程案例实战：从 TCP/IP 四层模型、三次握手讲到可运行的 TCP Echo 服务器与多线程并发服务器。知识点与思政的结合点在于：socket 编程里的每一个常量——`AF_INET`、`SOCK_STREAM`——背后都是一段关于协议话语权的历史。写代码的人，也应当知道这套协议从哪里来、命脉握在谁手里。
+
+## 背景导入：谁控制着互联网？
+
+1969 年，美国国防部的 ARPANET 项目孕育了 TCP/IP 协议——今天全球互联网的通用语言。技术无国界，但技术的**控制权**从一开始就有明确的归属：
+
+- **DNS 根服务器**：IPv4 时代全球仅 13 台，其中 10 台在美国，瑞典、荷兰、日本各 1 台；
+- **IPv4 地址分配**：美国占全球 50% 以上；
+- **ICANN**（互联网名称与数字地址分配机构）：长期受美国政府监管；
+- 2016 年，美国拒绝将「.中国」域名根服务器部署权交给中国——理论上，控制根服务器的一方可以在解析链路上切断任何一个国家的互联网。
+
+<Callout icon="🛰️" tone="red" title="课前一问">
+互联网是「自由」的吗？谁控制着互联网？当我们在代码里写下 connect() 的那一刻，报文经过的每一台根服务器、每一台核心路由器，归谁管理？
+</Callout>
+
+两起真实事件，把这个问题从理论变成了现实：
+
+<CaseFileCard name="斯诺登事件与「棱镜」计划" year={2013} tag="大规模监控" verdict="全球范围引发对网络主权与数据安全的重新审视">
+美国国家安全局（NSA）承包商雇员斯诺登披露：NSA 长期监控全球互联网，「棱镜」（PRISM）计划可直接访问 Google、Facebook 等公司的服务器，中国的网络流量同样在被监听之列。
+</CaseFileCard>
+
+<CaseFileCard name="思科路由器后门事件" year={2014} tag="供应链安全" verdict="中国政府采购清单剔除思科产品，国产网络设备加速替代">
+斯诺登曝光的文件显示，NSA 曾在思科（Cisco）网络设备中植入后门，可监听流经设备的数据。核心网络设备一旦「带病上岗」，一个国家的通信安全便无从谈起。
+</CaseFileCard>
+
+面对挑战，中国的应对是体系化的：
+
+- **IPv6 规模部署**：2023 年中国 IPv6 地址数量全球第一，摆脱 IPv4 地址不足的限制；
+- **根服务器镜像**：在国内部署多台根镜像，提升解析速度、降低对外依赖；
+- **国产网络设备**：华为、中兴等逐步替代思科；5G 标准制定中国占主导，华为主推的 Polar 码被采纳为 5G 控制信道编码；
+- **雪人计划（2016 年）**：中国主导的 IPv6 根服务器工程，在全球部署 25 台根服务器，其中中国 1 台主根、3 台辅根——打破根服务器垄断。
+
+## 可视化实验
+
+### 实验一：根服务器分布——从 13 台到 25 台
+
+先用数据感受「垄断」与「破局」。切换下方两个时代，注意观察代表中国的那根柱子：
+
+<RootServerLab client:visible />
+
+IPv4 时代的 13 台根服务器格局延续了三十多年；雪人计划借 IPv6 技术换代重新洗牌——这就是「换道超车」：在旧赛道上追赶，不如在新赛道上提前布局。
+
+### 实验二：三次握手与四次挥手
+
+网络主权的底气，来自对协议本身的深刻理解。TCP 能成为互联网的可靠基石，靠的是严谨到极致的连接管理设计。逐步播放下面的动画，观察两端的报文交换与状态迁移：
+
+<TcpHandshakeLab client:visible />
+
+<Callout icon="🔬" tone="blue" title="为什么偏偏是三次？">
+两次握手不够——服务器无法确认自己发出的应答已被对方收到；四次建连又浪费——SYN 与 ACK 可以合并在同一个报文里。三次，是让「双方都确认彼此收发能力」的最小次数。挥手要四次，则是因为 TCP 全双工，两个方向的关闭必须分别确认。协议设计的每一处取舍，都是工程师精益求精的科学精神。
+</Callout>
+
+## 技术讲解
+
+TCP/IP 协议栈分为四层，Python 的 socket 模块正是对它的封装：
+
+- **应用层**：HTTP、FTP、SMTP、DNS——对应 requests、smtplib 等库；
+- **传输层**：TCP（可靠）与 UDP（快速）——对应 `socket.SOCK_STREAM` 与 `socket.SOCK_DGRAM`；
+- **网络层**：IP 地址与路由——对应 `socket.AF_INET`（IPv4）与 `socket.AF_INET6`（IPv6）；
+- **链路层**：以太网、WiFi——由操作系统与网卡处理，Python 一般不直接操作。
+
+本章核心代码：多线程 TCP Echo 服务器与客户端（真实 socket 程序，请在本机 Python 环境中运行）：
+
+```python
+import socket
+import threading
+
+def handle_client(client_socket, client_address):
+    """处理单个客户端：循环回显消息"""
+    try:
+        print(f"🔗 客户端连接: {client_address}")
+        while True:
+            data = client_socket.recv(1024)
+            if not data:                      # 对方关闭连接
+                break
+            message = data.decode('utf8')
+            print(f"📨 [{client_address}] {message}")
+            client_socket.sendall(f"Echo: {message}".encode('utf8'))
+    finally:
+        client_socket.close()
+        print(f"🔌 [{client_address}] 断开连接")
+
+def threaded_tcp_server(host='0.0.0.0', port=8888):
+    """多线程 TCP 服务器：并发服务多个客户端"""
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_socket.bind((host, port))
+    server_socket.listen(5)
+    print(f"✅ 多线程TCP服务器启动，监听 {host}:{port}")
+    try:
+        while True:
+            client_socket, client_address = server_socket.accept()
+            t = threading.Thread(target=handle_client,
+                                 args=(client_socket, client_address))
+            t.daemon = True                   # 主线程退出时一并结束
+            t.start()
+    except KeyboardInterrupt:
+        print("⏹️ 服务器关闭")
+    finally:
+        server_socket.close()
+
+def tcp_client(host='127.0.0.1', port=8888, message="Hello, Server!"):
+    """TCP 客户端"""
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        client_socket.connect((host, port))   # 三次握手在这一行完成
+        client_socket.sendall(message.encode('utf8'))
+        response = client_socket.recv(1024).decode('utf8')
+        print(f"📥 收到响应: {response}")
+    finally:
+        client_socket.close()                 # 从这里开始四次挥手
+```
+
+把 `AF_INET` 换成 `AF_INET6`、地址换成 `('::1', 8888)`，同一套代码就运行在 IPv6 上——这正是中国大规模推进 IPv6 的工程底座。先用逐行模拟，看清一个最小 Echo 服务器的关键步骤：
+
+<PyStepRunner
+  client:visible
+  title="逐行执行模拟：最小 TCP Echo 服务器"
+  fileName="echo_server.py"
+  code={`import socket
+
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+server.bind(('0.0.0.0', 8888))
+server.listen(5)
+print("服务器启动，监听 8888 端口")
+conn, addr = server.accept()
+print(f"客户端接入: {addr}")
+data = conn.recv(1024)
+msg = data.decode('utf8')
+print(f"收到消息: {msg}")
+conn.sendall(f"Echo: {msg}".encode('utf8'))
+conn.close()
+server.close()
+print("连接关闭，回显服务结束")`}
+  steps={[
+    { line: 0, desc: '导入标准库 socket 模块——Python 对 TCP/IP 协议栈的封装。', vars: { '协议栈': 'TCP/IP' } },
+    { line: 2, desc: 'AF_INET 选择 IPv4 地址族（换成 AF_INET6 即为 IPv6），SOCK_STREAM 选择 TCP。套接字刚创建，尚未接入网络。', vars: { '服务器状态': 'CLOSED' } },
+    { line: 3, desc: '开启 SO_REUSEADDR 端口复用，避免服务器重启时报 Address already in use 错误。', vars: { '服务器状态': 'CLOSED' } },
+    { line: 4, desc: '把套接字绑定到地址与端口。0.0.0.0 表示监听本机所有网卡。', vars: { '服务器状态': 'CLOSED', '监听端口': '8888' } },
+    { line: 5, desc: 'listen(5) 进入被动打开，等待队列最多容纳 5 个连接。服务器状态迁移为 LISTEN。', vars: { '服务器状态': 'LISTEN' } },
+    { line: 6, desc: '向控制台打印启动信息。', out: '服务器启动，监听 8888 端口', vars: { '服务器状态': 'LISTEN' } },
+    { line: 7, desc: 'accept() 阻塞等待。客户端 connect() 触发三次握手，完成后返回全新的已连接套接字 conn。', vars: { '服务器状态': 'ESTABLISHED', '客户端': '127.0.0.1:52344' } },
+    { line: 8, desc: '打印客户端地址二元组。', out: "客户端接入: ('127.0.0.1', 52344)", vars: { '服务器状态': 'ESTABLISHED' } },
+    { line: 9, desc: 'recv(1024) 从内核缓冲区最多读取 1024 字节，返回 bytes 类型。', vars: { '服务器状态': 'ESTABLISHED', '收到字节数': '21' } },
+    { line: 10, desc: 'decode 把 UTF-8 字节序列还原为字符串。', vars: { 'msg': '你好，网络主权' } },
+    { line: 11, desc: '打印收到的消息。', out: '收到消息: 你好，网络主权', vars: { 'msg': '你好，网络主权' } },
+    { line: 12, desc: 'sendall 把回显内容编码后全部发出，TCP 保证可靠送达。', vars: { '回显内容': 'Echo: 你好，网络主权' } },
+    { line: 13, desc: '关闭已连接套接字——从这里开始四次挥手。', vars: { '连接状态': '四次挥手 → CLOSED' } },
+    { line: 14, desc: '关闭监听套接字，释放 8888 端口。', vars: { '服务器状态': 'CLOSED' } },
+    { line: 15, desc: '服务结束。真实服务器会用 while 循环加多线程持续服务，见上方核心代码。', out: '连接关闭，回显服务结束', vars: { '服务器状态': 'CLOSED' } },
+  ]}
+/>
+
+看懂之后，在浏览器里跑一个纯 Python 的 TCP 状态机模拟（不建立真实连接），把握手、传输、挥手全过程「演」一遍：
+
+<PyPlayground
+  client:visible
+  title="在线实验：纯 Python 模拟 TCP 状态机"
+  height={340}
+  note="纯计算模拟，不建立真实连接（Pyodide 环境无法使用真实 socket）。试着修改 msg 的内容，或在挥手前增加几轮 Echo 往返，观察状态输出的变化。"
+  code={`# TCP 连接状态机模拟：不建真实连接，纯计算复现握手 / 挥手全过程
+class Endpoint:
+    def __init__(self, name, state):
+        self.name, self.state = name, state
+
+    def move(self, event, new_state):
+        print(f"   {self.name}: {self.state} --[{event}]--> {new_state}")
+        self.state = new_state
+
+c = Endpoint("客户端", "CLOSED")
+s = Endpoint("服务器", "LISTEN")
+
+print("== 三次握手 ==")
+print("1) 客户端 -> 服务器  SYN, seq=100")
+c.move("发送 SYN", "SYN_SENT")
+s.move("收到 SYN", "SYN_RCVD")
+print("2) 服务器 -> 客户端  SYN+ACK, seq=300, ack=101")
+c.move("收到 SYN+ACK", "ESTABLISHED")
+print("3) 客户端 -> 服务器  ACK, ack=301")
+s.move("收到 ACK", "ESTABLISHED")
+
+print("== 数据传输（Echo）==")
+msg = "你好，雪人计划"
+print(f"   客户端发送: {msg}")
+print(f"   服务器回显: Echo: {msg}")
+
+print("== 四次挥手 ==")
+print("1) 客户端 -> 服务器  FIN, seq=200")
+c.move("发送 FIN", "FIN_WAIT_1")
+s.move("收到 FIN", "CLOSE_WAIT")
+print("2) 服务器 -> 客户端  ACK, ack=201")
+c.move("收到 ACK", "FIN_WAIT_2")
+print("3) 服务器 -> 客户端  FIN, seq=400")
+s.move("发送 FIN", "LAST_ACK")
+c.move("收到 FIN", "TIME_WAIT")
+print("4) 客户端 -> 服务器  ACK, ack=401")
+s.move("收到 ACK", "CLOSED")
+print("   客户端: 等待 2MSL 后 -> CLOSED")
+
+print("== 地址空间对比 ==")
+print(f"   IPv4: 2**32  = {2**32:,} 个地址")
+print(f"   IPv6: 2**128 约 3.4e38 个地址, 是 IPv4 的 {2**128 // 2**32:,} 倍")`}
+/>
+
+## 思政引导
+
+<DimCard dim="家国情怀" title="网络主权：关键基础设施必须自主可控">
+<ul>
+<li>互联网不是「无主之地」：根服务器、核心路由器关乎国家安全，命脉不能握在别人手里。</li>
+<li>中国的突破：雪人计划打破根服务器垄断；IPv6 从跟随者变为引领者；5G 中国标准走向全球。</li>
+<li>从斯诺登事件到思科后门：安全不能寄希望于他人的善意，只能建立在自主可控的技术之上。</li>
+</ul>
+</DimCard>
+
+<DimCard dim="创新思维" title="换道超车：技术标准竞争的战略智慧">
+<ul>
+<li>IPv4 时代中国被动接受既定格局，IPv6 时代主动布局——不在旧赛道追赶，而在新赛道领跑。</li>
+<li>开放与自主并不矛盾：学习借鉴 TCP/IP 的优秀设计，但核心技术必须掌握在自己手中。</li>
+<li>华为 5G 标准之争：Polar 码被采纳为 5G 控制信道编码，从技术跟随走向标准引领。</li>
+</ul>
+</DimCard>
+
+<DimCard dim="科学精神" title="协议设计的严谨与标准化的力量">
+<ul>
+<li>三次握手保证可靠建连，四次挥手保证正确关闭——每一个报文都有不可替代的使命，这是工程师的精益求精。</li>
+<li>TCP/IP 用统一标准连接了全球网络：标准是工程世界的「通用语」，也是话语权的载体。</li>
+<li>中国深度参与 5G、IPv6 国际标准制定：以严谨的技术贡献赢得规则制定的席位。</li>
+</ul>
+</DimCard>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="c3-d1"
+  question="根服务器的战略意义是什么？假如一个国家的域名解析在根上被切断，会发生什么？"
+  hints={['DNS 解析自根服务器开始：根不可达，全球域名体系对该国即告失效', '根镜像与雪人计划是降低风险的两条技术路线——前者治标，后者在新赛道重新布局', '关键基础设施自主可控，是网络主权的底线']}
+/>
+
+<DiscussCard
+  client:visible
+  storageKey="c3-d2"
+  question="TCP 为什么需要三次握手，两次行不行？挥手为什么又是四次？"
+  hints={['两次握手时，服务器无法确认自己的 SYN+ACK 已被收到，可能为失效连接白白分配资源', 'TCP 是全双工的：两个方向的数据流必须分别关闭、分别确认', '从「最小而充分」的设计里，体会协议工程师的严谨与精益求精']}
+/>
+
+<DiscussCard
+  client:visible
+  storageKey="c3-d3"
+  question="作为未来的网络工程师，你可以为维护网络主权做些什么？"
+  hints={['积极参与 IPv6、5G 等国际标准制定——开放合作，而非闭门造车', '在关键系统选型中重视自主可控的软硬件生态', '把每一行网络代码写扎实：安全与规范本身就是主权能力的一部分']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="socket.socket(socket.AF_INET, socket.SOCK_STREAM) 创建的套接字，对应哪一组协议？"
+  options={['IPv4 + TCP', 'IPv4 + UDP', 'IPv6 + TCP', 'IPv6 + UDP']}
+  answer={0}
+  explain="AF_INET 表示 IPv4 地址族，SOCK_STREAM 表示面向连接的 TCP；UDP 对应 SOCK_DGRAM，IPv6 对应 AF_INET6。"
+/>
+
+<QuizItem
+  client:visible
+  question="TCP 建立连接需要三次握手，最核心的原因是？"
+  options={['三是协议规定的固定参数，没有特殊含义', '让双方都确认「自己能发、对方能收」，三次是可靠建连的最小次数', '握手次数越多越安全，三次是安全与性能的折中', '前两次用于传输数据，第三次用于加密协商']}
+  answer={1}
+  explain="两次握手时服务器无法确认自己的应答已被收到；三次恰好让双方各自完成一次「发送 + 被确认」，是可靠建立连接的最小充分设计。"
+/>
+
+<QuizItem
+  client:visible
+  question="2016 年启动的雪人计划在全球部署 25 台 IPv6 根服务器，中国部署了几台？"
+  options={['0 台', '1 台', '4 台（1 台主根 + 3 台辅根）', '13 台']}
+  answer={2}
+  explain="雪人计划由中国主导发起，中国部署 1 台主根与 3 台辅根共 4 台，打破了 IPv4 时代 13 台根服务器中 10 台在美国的垄断格局。"
+/>
+
+## 配套资源
+
+- 说课视频（10 分钟）：TCP/IP 协议与网络主权
+- 教学课件（PPT，28 页）：TCP/IP 协议栈详解、根服务器分布图、雪人计划架构、华为 5G 标准贡献
+- 视频素材：雪人计划新闻报道（3 分钟）、TCP 三次握手动画（2 分钟）、华为 5G 标准发布会（5 分钟）
+- 代码示例：TCP 服务器 / 客户端完整代码、多线程服务器、UDP 对比示例
+- 技术文档：TCP/IP 协议 RFC 文档、IPv6 技术白皮书、雪人计划技术方案
+- 讨论问题（6 个）：三次握手的必要性、IPv6 与地址枯竭、根服务器的战略意义、雪人计划的破局逻辑、5G 标准之争、网络工程师与网络主权

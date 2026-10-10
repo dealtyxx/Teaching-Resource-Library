@@ -1,0 +1,115 @@
+---
+module: 5
+moduleName: XPath库
+order: 18
+title: 网页标题XPath提取练习
+level: 基础必做
+scene: 语法入门
+knowledge: [基本路径, etree解析, 绝对/相对路径]
+stars: 2
+minutes: 25
+goal: 掌握XPath基础路径，能提取目标节点文本
+sizheng: 路径即秩序——按规则寻址的工程思维
+dims: [创新思维]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+import XPathTreasureLab from '../../components/react/labs/XPathTreasureLab';
+
+## 场景导入
+
+期末大作业要做一个「高校新闻标题聚合器」，你决定先拿学校官网练手。按下 F12，标题就那么一行 `h1`，却被裹在 `body` → `div` → `h1` 的层层标签里。怎么把它精准地「指」出来？答案是 XPath——一套给网页节点写「门牌号」的语言。这一节我们只做一件事：学会用路径找到标题文本。
+
+## 玩一玩
+
+XPath 就像一张寻宝地图：从根节点出发，一段一段拼出通往宝藏的路径。下面这关「XPath 寻宝」让你在选择中把表达式一步步拼完整——选错也别慌，每一步都有讲解。
+
+<XPathTreasureLab client:visible />
+
+## 动手实验
+
+游戏里拼路径，代码里验路径。同一个 `h1` 标题，既能用**绝对路径**从 `/html` 一级级写到底，也能用**相对路径** `//h1` 一步到位。它们真的指向同一个节点吗？跑一下就知道。
+
+<PyPlayground
+  client:visible
+  title="绝对路径 vs 相对路径"
+  note="把 h1 里的文字改一改再运行；或在 div 里再嵌一层 section 包住 h1，看绝对路径为什么断了、相对路径为什么还稳。"
+  packages={['lxml']}
+  height={320}
+  code={`from lxml import etree
+
+# 内联一张最小网页——注意 body / div / h1 的层层嵌套
+html = """
+<html>
+  <body>
+    <div class="container">
+      <h1>数据采集与预处理</h1>
+      <p>模块五 · XPath 库</p>
+    </div>
+  </body>
+</html>
+"""
+
+# etree.HTML 把字符串解析成可寻址的元素树
+tree = etree.HTML(html)
+
+# 绝对路径：从根 /html 出发，一级一级写到 h1
+abs_path = "/html/body/div/h1/text()"
+# 相对路径：// 表示任意层级，一步锁定 h1
+rel_path = "//h1/text()"
+
+r1 = tree.xpath(abs_path)
+r2 = tree.xpath(rel_path)
+
+print("绝对路径：", abs_path, "→", r1)
+print("相对路径：", rel_path, "→", r2)
+print("命中同一个节点？", r1 == r2)`}
+/>
+
+## 思政会客厅
+
+<DimCard dim="创新思维" title="路径即秩序">
+  <ul>
+    <li>绝对路径像「省市区街道门牌」，精确却脆弱——页面一改结构就失效；相对路径像「找那栋红房子」，灵活却可能撞名。工程里没有最好，只有最合适。</li>
+    <li>XPath 的本质是「按规则寻址」：把一张杂乱的网页，看成一棵有秩序的树。先建立秩序感，才谈得上自动化。</li>
+    <li>同一个目标常有多条路径，选哪条体现判断力——可维护、抗变化、够精确，是衡量好路径的三把尺子。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="🧭" tone="gold" title="给节点一个门牌号">
+在混乱里建立秩序，是工程师的浪漫。XPath 教我们的第一课不是语法，而是：任何复杂系统，都可以被一套清晰的规则重新组织。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p18-d1"
+  question="网站改版后，你写的绝对路径 /html/body/div/h1 突然抓不到标题了，相对路径 //h1 却还能用。这说明了什么？以后你更倾向用哪种？"
+  hints={[
+    '绝对路径依赖完整的层级结构，页面多包一层 div 就断了',
+    '相对路径 // 抗结构变化，但页面若有多个 h1 就可能抓到多余节点',
+    '真实工程常两者结合：先用相对路径锚定一个稳定节点，再往下写一小段路径',
+  ]}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="在只有一个 h1 的页面上，//h1/text() 与 /html/body/div/h1/text() 的结果是？"
+  options={['前者会报错', '两者结果相同', '后者抓不到', '前者抓到更多节点']}
+  answer={1}
+  explain="// 表示任意层级，在只有一个 h1 时，它与写全的绝对路径命中同一节点，text() 取出的文本一致；差别只在抗结构变化的能力不同。"
+/>
+
+<QuizItem
+  client:visible
+  question="面对「绝对路径 vs 相对路径」该怎么选，最专业的态度是？"
+  options={['永远用绝对路径，最精确', '永远用相对路径，最省事', '按页面结构稳定性与目标唯一性来权衡', '无所谓，能抓到就行']}
+  answer={2}
+  explain="没有放之四海皆准的最优路径。用「可维护、抗变化、够精确」三把尺子权衡，正是「路径即秩序」的工程思维——规则始终服务于目标。"
+/>

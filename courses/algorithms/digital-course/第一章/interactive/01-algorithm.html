@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>算法定义 · 第1章 绪论</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">01</div>算法可视化 · <span>第1章 绪论</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill active" href="01-algorithm.html">算法定义</a><a class="pill" href="02-design-steps.html">设计步骤</a><a class="pill" href="03-complexity.html">复杂度</a><a class="pill" href="04-asymptotic.html">渐进界</a><a class="pill" href="05-cases.html">三种情况</a><a class="pill" href="06-stl.html">STL</a><a class="pill" href="07-sequence.html">序列容器</a><a class="pill" href="08-adapters.html">适配器</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 1</div><h1>算法的定义与五大特性</h1>
+<p>有穷性、确定性、可行性、有输入、有输出。点击特性高亮说明。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>复述</b>算法的严格定义，并说明它与"程序"的三点区别。</li>
+  <li>能够<b>逐条解释</b>五大特性各自解决什么问题，以及违反后会产生什么后果。</li>
+  <li>能够<b>判定</b>给定的一段描述是否构成算法，并指出它违反了哪一条特性。</li>
+  <li>能够<b>写出</b>欧几里得算法的 C++ 实现，并说明它为什么满足有穷性。</li>
+</ol></div>
+
+<section class="sec">
+  <div class="sec-head"><h2>一、算法的定义</h2><span class="sub">Definition of Algorithm</span></div>
+  <div class="defn"><span class="lbl">定义</span><p><b>算法（Algorithm）</b>是求解某一特定问题的一组<b>有限</b>的指令序列。对于该问题的任何一个合法输入，算法都能在<b>执行有限步</b>之后终止，并产生满足要求的输出。</p></div>
+  <p class="desc">这个定义中有三个关键词必须抠住：<b>"特定问题"</b>说明算法是有适用范围的（gcd 算法不能拿来排序）；<b>"有限的指令序列"</b>说明算法本身长度有限，不能是无穷长的描述；<b>"执行有限步之后终止"</b>说明算法的<i>运行过程</i>也必须有限。二者缺一不可——一个只有 3 行的死循环程序，描述有限但运行无限，仍然不是算法。</p>
+  <div class="terms">
+    <span class="term"><b>算法</b>Algorithm</span>
+    <span class="term"><b>指令序列</b>Instruction Sequence</span>
+    <span class="term"><b>合法输入</b>Legal Input</span>
+    <span class="term"><b>终止</b>Termination</span>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>二、五大特性 · 交互演示</h2><span class="sub">点击卡片查看要点</span></div>
+</section>
+<div class="grid grid-3" id="props">
+  <div class="card prop" data-t="步骤有限，必须停机"><span class="badge">1</span><h3>有穷性</h3><p>Finiteness</p></div>
+  <div class="card prop" data-t="每步语义明确，无歧义"><span class="badge">2</span><h3>确定性</h3><p>Definiteness</p></div>
+  <div class="card prop" data-t="原则上可用纸笔完成"><span class="badge">3</span><h3>可行性</h3><p>Effectiveness</p></div>
+  <div class="card prop" data-t="零个或多个输入"><span class="badge">4</span><h3>有输入</h3><p>Input</p></div>
+  <div class="card prop" data-t="至少一个输出"><span class="badge">5</span><h3>有输出</h3><p>Output</p></div>
+</div>
+<div class="tip" id="tip">点击上方卡片查看要点。</div>
+<div class="card" style="margin-top:14px">
+  <div class="toolbar"><button class="btn primary" id="run">▶ 欧几里得算法演示</button></div>
+  <div class="formula" id="out">gcd(a,b)=gcd(b,a mod b)</div>
+  <div class="log" id="log">—</div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>三、五大特性详解</h2><span class="sub">为什么必要 · 违反后会怎样</span></div>
+
+  <div class="defn"><span class="lbl">性质 1</span><p><b>有穷性（Finiteness）</b>：算法必须在执行有限步之后终止，且每一步都在有限时间内完成。<br/><b>为什么必要</b>：算法的目的是"给出答案"。若永不终止，就永远拿不到输出，算法失去意义。<br/><b>违反后果</b>：程序死循环、进程挂起、资源被无限占用。<br/><b>反例</b>：<code>while (x != 0) x = x + 2;</code> 当 x 为正奇数时 x 永远不等于 0，该过程不是算法。</p></div>
+
+  <div class="defn"><span class="lbl">性质 2</span><p><b>确定性（Definiteness）</b>：算法的每一条指令都有确切的含义，不存在二义性；相同的输入在相同的条件下只能得到相同的执行路径。<br/><b>为什么必要</b>：算法要能被机械地执行，执行者（人或计算机）不能在中途"自行判断"。<br/><b>违反后果</b>：不同执行者得到不同结果，算法不可复现、无法验证正确性。<br/><b>反例</b>："把数组适当地调整一下，使它看起来比较有序" ——"适当"和"比较有序"含糊不清，无法机械执行。</p></div>
+
+  <div class="defn"><span class="lbl">性质 3</span><p><b>可行性（Effectiveness）</b>：算法中的每一步都必须是基本运算，原则上可以用纸笔在有限时间内精确完成。<br/><b>为什么必要</b>：确保算法能被真实的计算模型实现，而不是停留在数学描述层面。<br/><b>违反后果</b>：算法在纸面上"正确"，却无法编码实现。<br/><b>反例</b>："取 x 为 π 的精确十进制值" ——π 是无理数，无穷不循环，不可能在有限步内精确写出。又如"求解一个一般的丢番图方程"（希尔伯特第十问题）已被证明不存在通用算法。</p></div>
+
+  <div class="defn"><span class="lbl">性质 4</span><p><b>有输入（Input）</b>：算法有零个或多个输入，输入取自某个特定的对象集合（即问题的合法输入域）。<br/><b>为什么必要</b>：输入刻画了算法的作用对象与适用范围。<br/><b>说明</b>：注意是"<b>零个</b>或多个"——例如"打印 1 到 100 的所有素数"没有外部输入，数据已内嵌在算法中，它仍然是合法算法。</p></div>
+
+  <div class="defn"><span class="lbl">性质 5</span><p><b>有输出（Output）</b>：算法有一个或多个输出，输出是与输入有确定关系的量，即问题的解。<br/><b>为什么必要</b>：没有输出的计算过程无法向外界传递结果，等于什么也没做。<br/><b>违反后果</b>：算法"跑完了"但无人知道答案。<br/><b>反例</b>：一个只在内部把数组排好序、既不返回也不打印、结束时局部变量全部销毁的过程，对外没有任何可观测结果。<br/><b>注意</b>：与输入不同，输出<b>至少要有一个</b>，不能为零。</p></div>
+
+  <div class="tip warn"><strong>记忆口诀：</strong>"<b>有穷、确定、可行；零入、必出</b>"。前三条约束算法的<i>过程</i>，后两条约束算法的<i>接口</i>。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>四、算法 vs 程序</h2><span class="sub">Algorithm vs. Program</span></div>
+  <p class="desc">两者常被混用，但在本课程中必须区分：<b>算法是解决问题的方法与步骤（思想层面）</b>，<b>程序是算法在某种程序设计语言下的具体实现（代码层面）</b>。同一个算法可以有 C++、Java、Python 等多种程序实现。</p>
+  <div class="table-scroll"><table class="data">
+    <tr><th>对比项</th><th>算法 Algorithm</th><th>程序 Program</th></tr>
+    <tr><td>本质</td><td>求解问题的方法与步骤</td><td>算法用某种语言的具体表述</td></tr>
+    <tr><td>描述方式</td><td>自然语言、流程图、伪代码</td><td>必须是特定程序设计语言的语法</td></tr>
+    <tr><td>有穷性</td><td class="hl">必须满足，否则不是算法</td><td>不要求，如操作系统是"死循环"程序</td></tr>
+    <tr><td>与机器的关系</td><td>与语言、机器无关</td><td>依赖语言、编译器、运行环境</td></tr>
+    <tr><td>关注点</td><td>正确性、复杂度</td><td>可读性、可维护性、工程实现</td></tr>
+  </table></div>
+  <div class="tip info"><strong>经典结论：</strong>操作系统是一个"永不终止"的程序，它<b>不是算法</b>——因为它违反有穷性。但操作系统<b>内部</b>的进程调度、页面置换等模块，每一次调用都在有限步内结束，那些是算法。所以：<b>程序不一定是算法，算法可以用程序实现</b>。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>五、实例：欧几里得算法</h2><span class="sub">Euclidean Algorithm · 上方演示的 C++ 实现</span></div>
+  <div class="defn thm"><span class="lbl">定理</span><p>对任意整数 a &gt; 0、b &gt; 0，有 gcd(a, b) = gcd(b, a mod b)。<br/>证明要点：若 d 同时整除 a 与 b，则 d 也整除 a &minus; ⌊a/b⌋·b = a mod b；反之亦然。故 {a,b} 与 {b, a mod b} 的公约数集合完全相同，最大者自然相等。</p></div>
+
+  <div class="code"><span class="cm">// 欧几里得（辗转相除）算法：求 a 与 b 的最大公约数</span>
+<span class="cm">// 输入：整数 a &gt; 0, b &gt;= 0     输出：gcd(a, b)</span>
+<span class="kw">int</span> <span class="fn">gcd</span>(<span class="kw">int</span> a, <span class="kw">int</span> b) {
+    <span class="kw">while</span> (b != <span class="nu">0</span>) {          <span class="cm">// b 变为 0 时停机 —— 有穷性的保证</span>
+        <span class="kw">int</span> t = a % b;        <span class="cm">// 余数 t 满足 0 &lt;= t &lt; b</span>
+        a = b;
+        b = t;                <span class="cm">// 新的 b 严格小于旧的 b</span>
+    }
+    <span class="kw">return</span> a;                 <span class="cm">// 有输出：返回最大公约数</span>
+}
+
+<span class="cm">// 递归写法，逻辑等价</span>
+<span class="kw">int</span> <span class="fn">gcd2</span>(<span class="kw">int</span> a, <span class="kw">int</span> b) {
+    <span class="kw">return</span> b == <span class="nu">0</span> ? a : <span class="fn">gcd2</span>(b, a % b);
+}</div>
+
+  <p class="desc"><b>五大特性逐条验证：</b></p>
+  <div class="list-step"><span class="n">1</span><div class="body"><b>有穷性</b>：每轮循环后新的 b 等于旧的 a mod b，满足 0 ≤ 新b &lt; 旧b。非负整数序列严格递减必在有限步内到达 0，循环必然终止。</div></div>
+  <div class="list-step"><span class="n">2</span><div class="body"><b>确定性</b>：<code>%</code>、赋值、比较均为语义明确的运算，无歧义。</div></div>
+  <div class="list-step"><span class="n">3</span><div class="body"><b>可行性</b>：取模与赋值都是基本运算，纸笔可算（演示中 1071 与 462 只需 4 步）。</div></div>
+  <div class="list-step"><span class="n">4</span><div class="body"><b>有输入</b>：两个整数 a、b。</div></div>
+  <div class="list-step"><span class="n">5</span><div class="body"><b>有输出</b>：一个整数 gcd(a, b)。</div></div>
+
+  <p class="desc"><b>步数上界推导（为什么很快）：</b>考察连续两轮迭代。</p>
+  <div class="deriv">
+    <span class="step">设当前为 (a, b)，且 a ≥ b <span class="why">一轮之后自动满足</span></span>
+    <span class="step">若 b ≤ a/2，则 a mod b &lt; b ≤ a/2 <span class="why">余数小于除数</span></span>
+    <span class="step">若 b &gt; a/2，则 a mod b = a &minus; b &lt; a/2 <span class="why">此时商恰为 1</span></span>
+    <span class="step">⇒ 两种情形都有 a mod b &lt; a/2 <span class="why">每两轮至少减半</span></span>
+    <span class="step">⇒ 迭代次数 ≤ 2·log<sub>2</sub>a = O(log a) <span class="why">对数级，极快</span></span>
+  </div>
+  <div class="formula">T(a, b) = O(log min(a, b))</div>
+  <p class="desc">演示中 gcd(1071, 462) 仅用 4 步得到 21，而 log<sub>2</sub>462 ≈ 8.9，与上界吻合。相比之下，"从 min(a,b) 开始逐个往下试除"的朴素算法是 O(min(a,b))，当 a、b 达到 10<sup>9</sup> 量级时前者约 30 步，后者约 10<sup>9</sup> 步。</p>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>把有穷性理解成"运行时间短"。</b>有穷性只要求<b>步数有限</b>，不要求快。一个需要执行 2<sup>100</sup> 步的算法虽然实际跑不完，但它<b>满足</b>有穷性；而一个每步都很快的死循环<b>不满足</b>有穷性。"能否终止"是定性问题，"跑多久"是 §03 复杂度的定量问题，两者不可混淆。</li>
+  <li><b>认为输入必须至少一个。</b>输入可以是<b>零个</b>（如"输出前 100 个素数"），但<b>输出必须至少一个</b>。两者不对称，考试常在此设陷阱。</li>
+  <li><b>把程序等同于算法。</b>操作系统、服务器守护进程都是不终止的程序，它们不是算法；算法必须终止。</li>
+  <li><b>混淆确定性与可行性。</b>确定性说的是"指令<b>是否有歧义</b>"，可行性说的是"指令<b>能否在有限步内精确完成</b>"。"取 π 的精确值"含义十分明确（满足确定性），但不可行。</li>
+  <li><b>认为确定性等于"没有随机"。</b>严格定义下的确定性指每步含义明确；随机化算法（如随机快排）每步语义仍然明确，只是引入了随机源，属于对经典定义的扩展，并非违反确定性。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>算法是求解特定问题的<b>有限指令序列</b>，对任何合法输入都能在<b>有限步内终止</b>并给出正确输出。</li>
+  <li>五大特性：<b>有穷性、确定性、可行性、有输入（零个或多个）、有输出（至少一个）</b>。前三条约束过程，后两条约束接口。</li>
+  <li><b>算法 ≠ 程序</b>：算法与语言无关且必须有穷；程序是算法的语言实现，可以不有穷（如操作系统）。</li>
+  <li>欧几里得算法基于 gcd(a,b) = gcd(b, a mod b)，因"每两轮 a 至少减半"而终止，时间复杂度 <b>O(log min(a,b))</b>。</li>
+  <li>判定"是不是算法"的标准动作：逐条比对五大特性，找出被违反的那一条。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>下列关于算法特性的说法，<b>正确</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>算法必须有至少一个输入和至少一个输出</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>满足有穷性意味着算法的运行时间足够短，可以接受</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>算法可以没有输入，但必须至少有一个输出</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>用 C++ 写出的、能通过编译的代码就一定是算法</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>正确答案 C。<br/>A 错在输入可以为<b>零个</b>，如"输出前 100 个素数"内嵌了全部数据，仍是合法算法。<br/>B 是最典型的误解：有穷性只要求<b>步数有限</b>，不对时间长短作要求；执行 2<sup>100</sup> 步的算法仍满足有穷性。<br/>D 错在能编译的代码可能是死循环（违反有穷性），程序不等于算法。</div>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>"把数组中较大的那些元素往后挪一挪，使数组大致有序"——这段描述违反了算法的哪条特性？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>有穷性</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>确定性</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>可行性</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>有输出</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>正确答案 B。"较大"没有给出比较基准，"挪一挪"没有说明挪多少位，"大致有序"没有可判定的终止条件——这些都是<b>二义性</b>，不同执行者会得到不同结果，违反<b>确定性</b>。<br/>它并不违反可行性（C）：挪动元素本身是完全可以用纸笔完成的基本操作，问题出在"指令说不清楚"而非"做不到"。这正是确定性与可行性的分界线。</div>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>对 gcd(a, b) 的欧几里得算法，下列说法<b>错误</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>循环必然终止，因为 b 构成严格递减的非负整数序列</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>其时间复杂度为 O(min(a, b))，因为最多做 min(a,b) 次取模</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>每经过两轮迭代，a 的值至少减半</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>它的正确性依赖于 gcd(a, b) = gcd(b, a mod b) 这一定理</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>错误的是 B，故选 B。O(min(a,b)) 是"逐个试除"朴素算法的复杂度。欧几里得算法由 C 所述的"两轮减半"性质可得迭代次数为 <b>O(log min(a,b))</b>——例如 a、b 约为 10<sup>9</sup> 时仅需约 30 轮，而非 10<sup>9</sup> 轮。A、C、D 分别是终止性论证、减半推导与正确性依据，均正确。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="index.html"><span class="dir">← 上一节</span><span class="name">总览</span></a><a href="02-design-steps.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">设计步骤</span></a></div>
+<div class="footer">算法设计与分析 · <b>第1章 绪论</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(194,96,63,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+document.querySelectorAll('.prop').forEach(el=>{
+  el.style.cursor='pointer';
+  el.onclick=()=>{ tip.innerHTML='<strong>'+el.querySelector('h3').textContent+'：</strong>'+el.dataset.t;
+    document.querySelectorAll('.prop').forEach(x=>x.style.outline=''); el.style.outline='2px solid #C2603F'; };
+});
+run.onclick=async()=>{
+  let a=1071,b=462, lines=[];
+  while(b){ lines.push(`gcd(${a},${b}) → a%b=${a%b}`); log.textContent=lines.join('\\n'); out.textContent=`gcd(${a},${b})`;
+    const t=a%b; a=b; b=t; await sleep(500); }
+  lines.push(`结果 = ${a}`); log.textContent=lines.join('\\n'); out.textContent='gcd = '+a;
+};
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

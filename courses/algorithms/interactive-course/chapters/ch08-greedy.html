@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第8章 贪心法 · 算法互动课堂</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/common.css">
+</head>
+<body data-chapter="ch08">
+<button class="menu-toggle" onclick="toggleSidebar()" aria-label="菜单">☰</button>
+
+<div class="app-shell">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <a href="../index.html">
+      <div class="logo"><span>AD</span>算法互动课堂</div>
+      <div class="sub">玩中学 · 看见算法</div>
+    </a>
+  </div>
+  <div class="nav-section">本页导航</div>
+  <a class="nav-link toc" href="#s1">开场</a>
+<a class="nav-link toc" href="#s2">性质</a>
+<a class="nav-link toc" href="#s3">活动安排</a>
+<a class="nav-link toc" href="#s4">对比背包</a>
+<a class="nav-link toc" href="#s5">双测</a>
+  <div class="nav-section">全部章节</div>
+  <a class="nav-link" href="ch01-intro.html"><span class="dot"></span>🚀 01 绪论</a>
+<a class="nav-link" href="ch02-recursion.html"><span class="dot"></span>🪞 02 递归</a>
+<a class="nav-link" href="ch03-brute.html"><span class="dot"></span>🔍 03 穷举法</a>
+<a class="nav-link" href="ch04-divide.html"><span class="dot"></span>⚔️ 04 分治法</a>
+<a class="nav-link" href="ch05-backtrack.html"><span class="dot"></span>♟️ 05 回溯法</a>
+<a class="nav-link" href="ch06-branch.html"><span class="dot"></span>🗺️ 06 分支限界</a>
+<a class="nav-link" href="ch07-dp.html"><span class="dot"></span>💎 07 动态规划</a>
+<a class="nav-link active" href="ch08-greedy.html"><span class="dot"></span>🎯 08 贪心法</a>
+<a class="nav-link" href="ch09-graph.html"><span class="dot"></span>🕸️ 09 图算法</a>
+<a class="nav-link" href="ch10-geometry.html"><span class="dot"></span>📐 10 计算几何</a>
+<a class="nav-link" href="ch11-complexity.html"><span class="dot"></span>🌌 11 计算复杂性</a>
+<a class="nav-link" href="ch12-prob-approx.html"><span class="dot"></span>🎲 12 概率与近似</a>
+  <div class="nav-section">返回</div>
+  <a class="nav-link" href="../index.html">🏠 课程大厅</a>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a href="../index.html">课程大厅</a> <span>/</span>
+      <span>第8章 贪心法</span>
+    </div>
+    <span class="badge badge-fun">🎮 互动课堂</span>
+  </div>
+  <div class="progress-track" title="阅读进度"><div class="fill"></div></div>
+  
+  <div class="card card-hero fade-in" data-section="s1" id="s1">
+    <span class="hero-emoji">🎯</span>
+    <span class="badge badge-accent" style="margin-left:.5rem">第8章 · 贪心法</span>
+    <h1 style="margin-top:.6rem">每一步都选「当前看起来最好」</h1>
+    <p style="color:var(--text-dim);margin-top:.7rem;font-size:1.02rem">
+      贪心爽是真爽，但必须证明：<strong>贪心选择性质 + 最优子结构</strong>。
+      证明不了就别硬贪——0/1 背包会打脸。
+    </p>
+    <div class="card-grid" style="margin-top:1.2rem">
+      <div class="metric"><div class="num">局部</div><div class="label">每步最优选择</div></div>
+      <div class="metric"><div class="num">不悔</div><div class="label">选定不回退</div></div>
+      <div class="metric"><div class="num">证明</div><div class="label">正确性关键</div></div>
+    </div>
+  </div>
+  <div class="fun-tip">
+    <div class="avatar">🦊</div>
+    <div class="bubble"><strong>助教：</strong>活动安排「最早结束优先」是可证明的经典；换「最短时长优先」就可能错。策略要配证明！</div>
+  </div>
+
+  <section data-section="s2" id="s2">
+    <h2>两大性质 · 翻转</h2>
+    <div class="flip-grid">
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">①</div>最优子结构</div>
+        <div class="flip-back">全局最优包含子问题最优</div>
+      </div></div>
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">②</div>贪心选择</div>
+        <div class="flip-back">局部最优可扩展成全局最优</div>
+      </div></div>
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">✓</div>活动安排</div>
+        <div class="flip-back">最早结束优先 · 可证明</div>
+      </div></div>
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">✗</div>0/1 背包</div>
+        <div class="flip-back">性价比贪心可能错 · 用 DP</div>
+      </div></div>
+    </div>
+  </section>
+
+  <section data-section="s3" id="s3">
+    <h2>活动安排 · 时间轴博弈 📅</h2>
+    <div class="demo-panel">
+      <div class="demo-header">
+        <h3><span class="pulse"></span> 最早结束优先</h3>
+        <div class="demo-controls" style="margin:0">
+          <div class="speed-chips" id="actSpeed">
+            <button data-speed="700">慢</button>
+            <button data-speed="400" class="on">中</button>
+            <button data-speed="150">快</button>
+          </div>
+          <button class="btn btn-primary" id="actRun">贪心开选</button>
+          <button class="btn" id="actWrong">❌ 错误策略对比</button>
+          <button class="btn" id="actReset">重置</button>
+        </div>
+      </div>
+      <div class="demo-body">
+        <canvas id="actCv" width="740" height="300" style="width:100%;height:auto;display:block;background:#060a14;border-radius:14px;border:1px solid var(--border)"></canvas>
+        <div class="viz-legend">
+          <span><i style="background:#10b981"></i>选中</span>
+          <span><i style="background:#3b82f6"></i>考察中</span>
+          <span><i style="background:#2a3548"></i>未选/跳过</span>
+        </div>
+        <div class="status-bar" id="actStatus">按结束时间排序 → 能放就放。正确贪心策略可证最优。</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-section="s4" id="s4">
+    <h2>⚠️ 不能瞎贪 · 0/1 背包反例</h2>
+    <div class="callout callout-warn">
+      <div class="callout-title">反例 W=5</div>
+      物品 A(3,4)、B(3,4)、C(4,5)。按性价比：A/B 为 4/3≈1.33，C 为 1.25，贪心拿 A+B 装不下；若只拿 C 得 5，但最优是 A 或 B 得 4？实际最优拿 A 或 B 价值 4，C 价值 5 更优——等等 W=5 只能装一件大的或……更清晰反例：W=10，(6,6)(5,5)(5,5)，性价比都 1，贪心拿 (6,6) 后装不下，最优两件 5 得 10。
+    </div>
+    <div class="card-grid">
+      <div class="feature-card"><span class="ico">✅</span><h3>分数背包</h3><p>可按性价比贪心，物品可拆</p></div>
+      <div class="feature-card"><span class="ico">❌</span><h3>0/1 背包</h3><p>不可拆 → 必须 DP 或搜索</p></div>
+      <div class="feature-card"><span class="ico">✅</span><h3>活动安排</h3><p>最早结束 · 有证明</p></div>
+      <div class="feature-card"><span class="ico">✅</span><h3>Huffman</h3><p>每次合并最小两棵 · 可证</p></div>
+    </div>
+  </section>
+
+  <section data-section="s5" id="s5">
+    <h2>挑战测验</h2>
+    <div class="challenge-bar"><div class="title">🏆 第8章挑战</div></div>
+    <div class="quiz-card" data-quiz id="q8a" data-xp="40">
+      <span class="q-badge">Q1 · +40XP</span>
+      <p style="font-weight:700;margin:.6rem 0 .7rem">活动安排标准贪心策略？</p>
+      <button class="quiz-option" data-correct="0">持续时间最短</button>
+      <button class="quiz-option" data-correct="1">结束时间最早的兼容活动</button>
+      <button class="quiz-option" data-correct="0">开始时间最早</button>
+      <button class="quiz-option" data-correct="0">价值最高</button>
+      <div class="quiz-feedback callout callout-success" style="display:none;margin-top:.8rem">最早结束 → 剩余时间轴最长，可证贪心选择性质。</div>
+    </div>
+    <div class="quiz-card" data-quiz id="q8b" data-xp="40">
+      <span class="q-badge">Q2 · +40XP</span>
+      <p style="font-weight:700;margin:.6rem 0 .7rem">下列哪项通常不能直接按「性价比」贪心？</p>
+      <button class="quiz-option" data-correct="0">分数背包</button>
+      <button class="quiz-option" data-correct="1">0/1 背包</button>
+      <button class="quiz-option" data-correct="0">活动安排（时间兼容）</button>
+      <button class="quiz-option" data-correct="0">找零（面额为 canonical 时）</button>
+      <div class="quiz-feedback callout callout-success" style="display:none;margin-top:.8rem">0/1 不可拆分，贪心可能丢最优。</div>
+    </div>
+  </section>
+
+  <div class="chapter-nav"><a href="ch07-dp.html"><span class="dir">← 上一章</span><span class="name">💎 第7章 动态规划</span></a><a href="ch09-graph.html" style="text-align:right"><span class="dir">下一章 →</span><span class="name">🕸️ 第9章 图算法</span></a></div>
+
+</main>
+</div>
+<script src="../assets/common.js"></script>
+<script>
+
+const actSp=makeSpeed(400); actSp.bind(document.getElementById('actSpeed'));
+const ACTS=[[1,4],[3,5],[0,6],[5,7],[3,9],[5,9],[6,10],[8,11],[8,12],[2,14],[12,16]];
+
+function drawActs(hl=-1, sel=[], bad=[]){
+  const cv=document.getElementById('actCv'), ctx=cv.getContext('2d');
+  const W=cv.width, H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  const pad=44, x=t=>pad+t/16*(W-2*pad);
+  ctx.strokeStyle='rgba(148,163,184,.35)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(pad,H-32); ctx.lineTo(W-pad,H-32); ctx.stroke();
+  for(let t=0;t<=16;t+=2){
+    ctx.fillStyle='#6b7a99'; ctx.font='11px JetBrains Mono';
+    ctx.fillText(String(t), x(t)-4, H-12);
+  }
+  ACTS.forEach((a,i)=>{
+    const y=18+i*22;
+    let col='#2a3548';
+    if(sel.includes(i)) col='#10b981';
+    else if(bad.includes(i)) col='#ef4444';
+    else if(i===hl) col='#3b82f6';
+    ctx.fillStyle=col;
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(x(a[0]),y,Math.max(4,x(a[1])-x(a[0])),15,4);
+    else ctx.rect(x(a[0]),y,Math.max(4,x(a[1])-x(a[0])),15);
+    ctx.fill();
+    ctx.fillStyle='#e2e8f0'; ctx.font='10px JetBrains Mono';
+    ctx.fillText('A'+(i+1), x(a[0])+5, y+11);
+  });
+}
+
+async function runGreedy(orderFn, label){
+  const idx=[...ACTS.keys()].sort(orderFn);
+  const chosen=[]; let end=-1;
+  for(const i of idx){
+    drawActs(i, chosen);
+    setStatus('#actStatus',`${label} · 考察 A${i+1} [${ACTS[i][0]},${ACTS[i][1]})`);
+    await sleep(actSp.ms);
+    if(ACTS[i][0]>=end){
+      chosen.push(i); end=ACTS[i][1];
+      drawActs(-1, chosen);
+      setStatus('#actStatus',`✅ 选 A${i+1} · 结束线=${end}`);
+      await sleep(actSp.ms*0.7);
+    } else {
+      setStatus('#actStatus',`跳过 A${i+1}`);
+      await sleep(actSp.ms*0.5);
+    }
+  }
+  drawActs(-1, chosen);
+  setStatus('#actStatus',`<strong>${label} 选了 ${chosen.length} 个</strong>：`+chosen.map(i=>'A'+(i+1)).join(' '));
+  return chosen.length;
+}
+
+document.getElementById('actReset').onclick=()=>{drawActs();setStatus('#actStatus','已重置');};
+document.getElementById('actRun').onclick=async()=>{
+  const n=await runGreedy((i,j)=>ACTS[i][1]-ACTS[j][1]||ACTS[i][0]-ACTS[j][0], '最早结束');
+  confetti(35); addXP(18,'活动安排通关');
+  toast(`正确策略：${n} 个活动`,'🎯');
+};
+document.getElementById('actWrong').onclick=async()=>{
+  // wrong: shortest duration first
+  const wrong=await runGreedy((i,j)=>{
+    const di=ACTS[i][1]-ACTS[i][0], dj=ACTS[j][1]-ACTS[j][0];
+    return di-dj;
+  }, '❌ 最短时长优先');
+  await sleep(600);
+  const right=await runGreedy((i,j)=>ACTS[i][1]-ACTS[j][1]||ACTS[i][0]-ACTS[j][0], '✅ 最早结束');
+  setStatus('#actStatus',`对比：错误策略 ${wrong} 个 vs 正确策略 <strong>${right}</strong> 个`+(wrong<right?' · 策略错就少选！':''));
+  addXP(12,'策略对比');
+};
+drawActs();
+
+</script>
+</body>
+</html>

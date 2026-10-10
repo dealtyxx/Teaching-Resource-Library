@@ -1,0 +1,127 @@
+---
+module: 2
+moduleName: 网络爬虫基础
+order: 7
+title: Robots协议合规校验器
+level: 基础必做
+scene: 合规检测
+knowledge: [Robots协议, User-Agent]
+stars: 1
+minutes: 25
+goal: 掌握Robots校验方法
+sizheng: 树立爬虫合法使用的法治意识
+dims: [法治意识]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, CaseFileCard } from '../../components/react/ui';
+import RobotsRefereeLab from '../../components/react/labs/RobotsRefereeLab';
+
+## 场景导入
+
+爬虫拿到 URL 就冲？慢——先看门口的告示牌。几乎每个网站的根目录都放着一份 `robots.txt`（例如 `https://example.com/robots.txt`），用几行朴素文本宣告：哪些路径欢迎抓取、哪些谢绝来访、对哪个爬虫另有约法。它没有密码、没有防火墙，技术上拦不住任何人——但在法庭上，它是被反复引用的「行业规矩」。这一课，我们让代码替你读懂它、遵守它。
+
+## 玩一玩
+
+先当一回裁判。左边是站点的 robots.txt 原文，右边送来六单抓取申请——你来吹哨，允许还是禁止？判错也没关系，裁判会当场讲解：
+
+<RobotsRefereeLab client:visible />
+
+## 动手实验
+
+裁判当熟了，就让标准库替你值班。`urllib.robotparser` 是 Python 自带的 robots 裁判，无需安装任何第三方包。真实环境里它自己上网读协议：
+
+```python
+# 真实环境：裁判自己去读站点的 robots.txt
+from urllib.robotparser import RobotFileParser
+
+rp = RobotFileParser()
+rp.set_url("https://www.example.com/robots.txt")
+rp.read()                                  # 发起真实请求读取协议
+print(rp.can_fetch("study-bot", "https://www.example.com/news/1.html"))
+```
+
+在沙箱里我们用 `parse()` 直接喂入一份内联的 robots.txt 文本，判决逻辑完全一样——批量审查一份抓取计划：
+
+<PyPlayground
+  client:visible
+  title="Robots 合规校验器"
+  note="试着在通配组里加一行 Disallow: /search，再往 plans 里添一条 study-bot 访问 /search 页面的计划，看判决怎么变。"
+  code={`# 标准库自带的 robots 裁判：urllib.robotparser
+from urllib.robotparser import RobotFileParser
+
+# 内联一份 robots.txt（相当于从 https://example-news.cn/robots.txt 读到的内容）
+robots_txt = """User-agent: *
+Disallow: /admin/
+Disallow: /user/
+Allow: /news/
+Crawl-delay: 2
+
+User-agent: bad-bot
+Disallow: /
+"""
+
+rp = RobotFileParser()
+rp.parse(robots_txt.splitlines())   # 喂入文本行，不发任何网络请求
+
+# 待审查的抓取计划：(爬虫身份 User-Agent, 目标 URL)
+plans = [
+    ("study-bot", "https://example-news.cn/news/20260721.html"),
+    ("study-bot", "https://example-news.cn/admin/login"),
+    ("study-bot", "https://example-news.cn/user/10086/profile"),
+    ("bad-bot",   "https://example-news.cn/news/20260721.html"),
+]
+
+print("=== Robots 合规判决书 ===")
+for ua, url in plans:
+    verdict = "可以抓取 ✅" if rp.can_fetch(ua, url) else "禁止抓取 ⛔"
+    print(f"[{verdict}] UA={ua}  ->  {url}")
+
+# 别漏了礼貌条款：两次请求至少间隔几秒？
+print(f"\\n站点要求的 Crawl-delay：{rp.crawl_delay('study-bot')} 秒")`}
+/>
+
+把 `can_fetch()` 放在每个请求发出之前，返回 False 就一票否决——这一行 if，就是你的爬虫与麻烦之间的隔离带。
+
+## 思政会客厅
+
+<DimCard dim="法治意识" title="从君子协定到裁判文书">
+  <ul>
+    <li>Robots 协议 1994 年由工程师社区自发提出，是互联网最早的「君子协定」之一；我国司法实践普遍将其认定为内容行业公认的商业道德。</li>
+    <li>违反 robots 不必然违法，但「无视告示牌 + 替代性使用他人内容」的组合，多次被法院依《反不正当竞争法》认定为不正当竞争。</li>
+    <li>合规的正确姿势是写进代码：请求发出之前先 can_fetch，禁止就不抓——让程序替你守住底线，比事后解释可靠得多。</li>
+  </ul>
+</DimCard>
+
+<CaseFileCard name="今日头条诉趣头条不正当竞争案" year={2018} tag="不正当竞争" verdict="法院认定构成不正当竞争，判决赔偿 500 万元。">
+  趣头条未经许可，大量抓取「今日头条」App 内的资讯内容与用户评论充实自家产品，被诉至法院。法院认为，此类无视协议约束的「搬运式」抓取实质性替代了原告产品，违背诚实信用原则和公认的商业道德。给爬虫工程师的启示很直接：抓取在技术上可行，从来不是免责理由；是否正当、是否守约，才是。
+</CaseFileCard>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p07-d1"
+  question="robots.txt 技术上拦不住任何人，服务器也不会因为你违反它就报错——那遵守它的意义究竟是什么？"
+  hints={['拦不住是技术事实，约束力来自行业共识与司法态度（想想 500 万判赔）', '协议的本质是降低整个互联网的信任成本：大家都守，大家都省', '守规矩也是保护自己：完整的合规校验记录，是发生纠纷时最好的证据']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="某站 robots.txt 只有两行：User-agent: BaiduSpider 与 Disallow: /draft/。你的爬虫（UA 为 study-bot）用 can_fetch 判断 /draft/a.html，结果是？"
+  options={['禁止——Disallow 对所有爬虫生效', '允许——这条规则只约束 BaiduSpider', '报错——缺少通配组规则', '无法确定——取决于解析顺序']}
+  answer={1}
+  explain="robots 规则按 User-agent 分组生效：具名组只约束命中的爬虫。study-bot 没有命中任何分组，默认允许。但「协议允许」只是合规起点，数据性质与使用方式是否合法还要另行判断。"
+/>
+
+<QuizItem
+  client:visible
+  question="关于 robots.txt 的法律属性，下列说法最准确的是？"
+  options={['国家强制性技术标准，违反即构成犯罪', '行业公认的商业道德与惯例，无视它抓取可能构成不正当竞争', '纯技术建议，没有任何法律意义', '只对搜索引擎公司有约束力的私下协议']}
+  answer={1}
+  explain="robots 协议本身不是法律，但司法实践（如今日头条诉趣头条案）将其视为行业公认的商业道德：违背它抓取并替代性使用他人内容，可依《反不正当竞争法》追究责任。"
+/>

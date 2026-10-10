@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>拉斯维加斯 · 第12章 概率算法和近似算法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">12</div>算法可视化 · <span>第12章 概率算法和近似算法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-prob.html">概率概述</a><a class="pill" href="02-pi.html">求π</a><a class="pill" href="03-monte.html">蒙特卡罗</a><a class="pill active" href="04-vegas.html">拉斯维加斯</a><a class="pill" href="05-sherwood.html">舍伍德</a><a class="pill" href="06-approx.html">近似概述</a><a class="pill" href="07-sched.html">多机调度</a><a class="pill" href="08-knapsack.html">背包近似</a><a class="pill" href="09-tsp.html">TSP近似</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 4 · Las Vegas</div>
+  <h1>拉斯维加斯 · 随机化 n 皇后</h1>
+  <p>随机决定放子顺序；成功则解一定正确；失败则重来。时间是随机变量。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>写出</b>拉斯维加斯算法的正式定义，并说明它与蒙特卡罗算法在"时间/正确性"上的对偶关系。</li>
+  <li>能够<b>推导</b>"成功率为 p 的一次尝试反复重启"的<b>期望运行时间</b>公式 E[T] = t / p，并解释为什么拉斯维加斯算法只能用期望时间衡量。</li>
+  <li>能够<b>推导</b>更一般的 E[T] = (1−p)/p · t<sub>fail</sub> + t<sub>succ</sub>，并据此判断"何时该早点放弃重启"。</li>
+  <li>能够<b>说明</b>本页演示（每行重新打乱列顺序的随机化回溯）与教材经典模型（整体随机放置 + 失败即重启）的差别。</li>
+  <li>能够<b>写出</b>随机化 n 皇后的 C++ 实现。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="run">▶ 随机尝试直到成功</button>
+    <button class="btn" id="once">只试一次</button>
+  </div>
+  <div class="stage-wrap light" style="max-width:360px;margin:0 auto">
+    <canvas class="stage" id="cv" width="360" height="360"></canvas>
+    <div class="stage-hud"><span class="hud-pill light">n=8 Queens</span><span class="hud-pill light" id="hud">—</span></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>尝试次数</span><b class="amber" id="tries">0</b></div>
+    <div class="stat"><span>状态</span><b class="green" id="st">就绪</b></div>
+  </div>
+  <div class="formula">结果正确（或报告失败） · 运行时间随机</div>
+  <div class="tip">对比蒙特卡罗：MC 时间稳、可能错；LV 结果稳、时间飘。</div>
+</div>
+
+<div class="tip warn"><strong>关于本页演示与教材的差异，请先读这一条：</strong>本页实现的是<b>「每放一行都重新随机打乱列的尝试顺序」的随机化回溯</b>（randomized backtracking）——它仍然带回溯，因此单次调用的成功率极高，往往一次就找到解。<br/>而<b>李春葆教材中的经典拉斯维加斯 n 皇后模型</b>是<b>「整体随机放置 + 失败即整体重启」</b>：不做任何回溯，逐行在<b>当前所有安全列</b>中<b>等概率随机</b>挑一列放子，一旦某行无安全列可放，就<b>整盘作废、从头再来</b>。这才是"结果一定正确、运行时间随机"最纯粹的形态，也是下面 E[T] = t/p 公式直接对应的模型。<br/>两者都是合法的拉斯维加斯算法（都绝不返回错解），但<b>单次成功率 p 和期望时间的数值完全不同</b>，对照课本时请注意区分。教材还常给出<b>混合策略</b>：前 stopVegas 行随机放置，其余行改用确定性回溯——实验表明这种混合往往比纯随机或纯回溯都快。</div>
+
+<section class="sec"><div class="sec-head"><h2>拉斯维加斯算法的正式定义</h2><span class="sub">与蒙特卡罗恰好对偶</span></div>
+<div class="defn"><span class="lbl">定义 · 拉斯维加斯算法</span><p><b>拉斯维加斯算法</b>（Las Vegas algorithm）：一种概率算法，它<b>绝不返回错误的解</b>。对任意输入，算法的每次运行只有两种结局：<br/>&nbsp;&nbsp;① <b>成功</b>——返回一个解，且该解<b>必定正确</b>；<br/>&nbsp;&nbsp;② <b>失败</b>——不返回任何解，只诚实地报告"本次未能求解"。<br/>失败<b>不是错误</b>：算法没有说谎，只是这一轮的随机选择运气不好。因此只需<b>重启</b>再试一次，正确性永不受损。<br/>由于是否成功、成功前要试多少轮都是随机的，<b>运行时间是随机变量</b>，其最坏情形通常<b>无界</b>（理论上可以永远失败下去，尽管概率趋于 0）。</p></div>
+<div class="defn prop"><span class="lbl">核心度量 · 期望运行时间</span><p>正因为最坏时间无界，评价拉斯维加斯算法<b>不能用最坏时间复杂度</b>，唯一有意义的指标是<b>期望运行时间</b>（expected running time）<b>E[T]</b>。<br/>这是它与前面所有确定性算法的根本差别：确定性算法看 T<sub>worst</sub>(n)，蒙特卡罗算法看"确定的 T(n) + 错误率"，而拉斯维加斯算法看 <b>E[T(n)]</b>。<br/>此外还常用<b>高概率界</b>（with high probability，w.h.p.）：例如"以 ≥ 1 − n<sup>−c</sup> 的概率在 O(f(n)) 时间内结束"。</p></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>对比维度</th><th>蒙特卡罗 Monte Carlo</th><th>拉斯维加斯 Las Vegas</th></tr>
+  <tr><td>运行时间</td><td class="hl">确定、有界</td><td>随机变量，最坏可能无界</td></tr>
+  <tr><td>输出结果</td><td>总有输出，<b>可能是错的</b></td><td class="hl">要么正确，要么<b>报告失败</b>（绝不输出错解）</td></tr>
+  <tr><td>核心度量</td><td class="hl">错误概率（≤ 2<sup>−k</sup>）</td><td class="hl">期望运行时间 E[T]</td></tr>
+  <tr><td>重复运行的作用</td><td>降低<b>错误率</b></td><td>降低<b>失败率</b>（提高在给定时间内成功的概率）</td></tr>
+  <tr><td>能否互相转化</td><td colspan="2">LV → MC：给 LV 设时间上限，超时就随便输出一个答案，即得 MC。反向一般<b>不成立</b>（除非能高效验证 MC 的答案；能验证时 MC + 验证 → LV）。</td></tr>
+  <tr><td>典型例子</td><td>主元素判定、Miller-Rabin</td><td>随机化 n 皇后、随机化快排（视角不同）</td></tr>
+</table></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>期望运行时间的推导</h2><span class="sub">几何分布 · E[尝试次数] = 1/p</span></div>
+<div class="deriv">
+<span class="step">设单次尝试成功的概率为 p（0 &lt; p ≤ 1），各次尝试<b>相互独立</b>（每轮重新掷随机数）</span>
+<span class="step">① 设 X = "首次成功所需的尝试轮数"，则 Pr[X = i] = (1−p)<sup>i−1</sup>·p <span class="why">几何分布</span></span>
+<span class="step">② E[X] = Σ<sub>i≥1</sub> i·(1−p)<sup>i−1</sup>·p</span>
+<span class="step">&nbsp;&nbsp;&nbsp;令 q = 1−p，利用 Σ<sub>i≥1</sub> i·q<sup>i−1</sup> = 1/(1−q)<sup>2</sup> = 1/p<sup>2</sup></span>
+<span class="step">&nbsp;&nbsp;&nbsp;得 E[X] = p · (1/p<sup>2</sup>) = <b>1 / p</b> <span class="why">成功率 1/10 就平均试 10 次</span></span>
+<span class="step">③ 若每轮耗时均为 t，则 <b>E[T] = t · E[X] = t / p</b></span>
+<span class="step">④ 更精确：失败一轮往往比成功一轮<b>更早</b>就中止（一撞墙就退出），设失败耗时 t<sub>f</sub>、成功耗时 t<sub>s</sub></span>
+<span class="step">&nbsp;&nbsp;&nbsp;失败轮数的期望 = E[X] − 1 = (1−p)/p</span>
+<span class="step">&nbsp;&nbsp;&nbsp;<b>E[T] = ((1−p)/p) · t<sub>f</sub> + t<sub>s</sub></b> <span class="why">教材常用形式</span></span>
+<span class="step">⑤ 失败 k 轮后仍未成功的概率 = (1−p)<sup>k</sup>，随 k <b>指数下降</b></span>
+<span class="step">∴ 只要 p 是不随 n 衰减的常数，E[T] 就与单轮代价同阶；p 越小，重启开销越大 ∎</span>
+</div>
+<div class="formula lg">E[T] = t / p　　（一般形式：E[T] = <span>(1−p)/p</span> · t<sub>f</sub> + t<sub>s</sub>）</div>
+<div class="defn thm"><span class="lbl">推论 · 何时该"早点放弃"</span><p>公式 E[T] = ((1−p)/p)·t<sub>f</sub> + t<sub>s</sub> 给出了一条重要的工程直觉：<b>如果失败能被更早地发现（t<sub>f</sub> 更小），即使成功率 p 下降，期望时间也可能更优。</b><br/>这正是"整体随机放置 + 失败即重启"模型能跑得快的原因——它一撞墙就<b>立刻整盘作废</b>（t<sub>f</sub> 很小），而不像回溯那样在一个注定无解的分支里苦苦挣扎。这也解释了现代 SAT 求解器中的<b>重启策略</b>（restart policy）：与其在一棵坏搜索树上耗到底，不如定期推倒重来。</p></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>单次成功率 p</th><th>期望尝试轮数 1/p</th><th>10 轮内仍未成功的概率 (1−p)<sup>10</sup></th></tr>
+  <tr><td>1/2</td><td>2</td><td>≈ 0.098%</td></tr>
+  <tr><td>1/5</td><td>5</td><td>≈ 10.7%</td></tr>
+  <tr><td>1/10</td><td class="hl">10</td><td class="hl">≈ 34.9%</td></tr>
+  <tr><td>1/100</td><td>100</td><td>≈ 90.4%</td></tr>
+</table></div>
+<div class="tip info"><strong>动手观察：</strong>反复点击上方"只试一次"按钮并记录成功/失败次数，即可估计本实现的单次成功率 p&#770;；再点"随机尝试直到成功"，观察"尝试次数"这一栏——它每次都<b>不一样</b>，这就是"运行时间是随机变量"最直观的证据。多试几轮取平均，看看是否接近 1/p&#770;。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>C++ 实现</h2><span class="sub">经典模型 · 随机放置 + 重启 · 以及混合策略</span></div>
+<div class="code"><span class="cm">// ============ 模型一：教材经典 —— 整体随机放置 + 失败即重启（无回溯）============</span>
+<span class="cm">// x[i] 表示第 i 行皇后所在的列；n 为棋盘规模</span>
+<span class="cm">// 判断在 (row, col) 放子是否与已放的 0..row-1 行冲突</span>
+<span class="kw">bool</span> <span class="fn">place</span>(<span class="kw">int</span> x[], <span class="kw">int</span> row, <span class="kw">int</span> col) {
+    <span class="kw">for</span> (<span class="kw">int</span> r = <span class="nu">0</span>; r &lt; row; ++r)
+        <span class="kw">if</span> (x[r] == col || <span class="fn">abs</span>(x[r] - col) == row - r)   <span class="cm">// 同列 或 同对角线</span>
+            <span class="kw">return</span> <span class="kw">false</span>;
+    <span class="kw">return</span> <span class="kw">true</span>;
+}
+
+<span class="cm">// 一次拉斯维加斯尝试：逐行在【当前所有安全列】中等概率随机挑一列</span>
+<span class="cm">// 成功返回 true（x[] 一定是合法解）；某行无安全列则整盘作废，返回 false</span>
+<span class="kw">bool</span> <span class="fn">queensLV</span>(<span class="kw">int</span> x[], <span class="kw">int</span> n) {
+    <span class="kw">for</span> (<span class="kw">int</span> row = <span class="nu">0</span>; row &lt; n; ++row) {
+        <span class="kw">int</span> cand[<span class="nu">64</span>], cnt = <span class="nu">0</span>;
+        <span class="kw">for</span> (<span class="kw">int</span> col = <span class="nu">0</span>; col &lt; n; ++col)         <span class="cm">// 收集本行全部安全列</span>
+            <span class="kw">if</span> (<span class="fn">place</span>(x, row, col)) cand[cnt++] = col;
+        <span class="kw">if</span> (cnt == <span class="nu">0</span>) <span class="kw">return</span> <span class="kw">false</span>;               <span class="cm">// 撞墙：t_f 很小，立刻放弃</span>
+        x[row] = cand[<span class="fn">rand</span>() % cnt];               <span class="cm">// 唯一的随机点：等概率选一列</span>
+    }
+    <span class="kw">return</span> <span class="kw">true</span>;                                  <span class="cm">// 绝不返回错解</span>
+}
+
+<span class="cm">// 重启外壳：期望调用 1/p 次；E[T] = ((1-p)/p)*t_f + t_s</span>
+<span class="kw">void</span> <span class="fn">solveByRestart</span>(<span class="kw">int</span> x[], <span class="kw">int</span> n, <span class="kw">int</span> &amp;tries) {
+    tries = <span class="nu">0</span>;
+    <span class="kw">while</span> (<span class="kw">true</span>) {                    <span class="cm">// 循环次数不确定 ==&gt; 时间是随机变量</span>
+        ++tries;
+        <span class="kw">if</span> (<span class="fn">queensLV</span>(x, n)) <span class="kw">return</span>;    <span class="cm">// 成功即返回，解必定正确</span>
+    }
+}
+
+<span class="cm">// ============ 模型二：教材混合策略 —— 前 stopVegas 行随机，其余行确定性回溯 ============</span>
+<span class="cm">// 实验表明混合往往优于两个极端：纯随机 p 太低、纯回溯易陷入坏分支</span>
+<span class="kw">bool</span> <span class="fn">backtrack</span>(<span class="kw">int</span> x[], <span class="kw">int</span> n, <span class="kw">int</span> row) {      <span class="cm">// 确定性回溯，补完剩余行</span>
+    <span class="kw">if</span> (row == n) <span class="kw">return</span> <span class="kw">true</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> col = <span class="nu">0</span>; col &lt; n; ++col)
+        <span class="kw">if</span> (<span class="fn">place</span>(x, row, col)) {
+            x[row] = col;
+            <span class="kw">if</span> (<span class="fn">backtrack</span>(x, n, row + <span class="nu">1</span>)) <span class="kw">return</span> <span class="kw">true</span>;
+        }
+    <span class="kw">return</span> <span class="kw">false</span>;
+}
+
+<span class="kw">bool</span> <span class="fn">queensHybrid</span>(<span class="kw">int</span> x[], <span class="kw">int</span> n, <span class="kw">int</span> stopVegas) {
+    <span class="kw">for</span> (<span class="kw">int</span> row = <span class="nu">0</span>; row &lt; stopVegas; ++row) {   <span class="cm">// 前段：随机放置</span>
+        <span class="kw">int</span> cand[<span class="nu">64</span>], cnt = <span class="nu">0</span>;
+        <span class="kw">for</span> (<span class="kw">int</span> col = <span class="nu">0</span>; col &lt; n; ++col)
+            <span class="kw">if</span> (<span class="fn">place</span>(x, row, col)) cand[cnt++] = col;
+        <span class="kw">if</span> (cnt == <span class="nu">0</span>) <span class="kw">return</span> <span class="kw">false</span>;
+        x[row] = cand[<span class="fn">rand</span>() % cnt];
+    }
+    <span class="kw">return</span> <span class="fn">backtrack</span>(x, n, stopVegas);            <span class="cm">// 后段：确定性收尾</span>
+}</div>
+<div class="formula">单次尝试 T = O(n<sup>2</sup>)（每行扫 n 列、每列查 O(n) 冲突为 O(n<sup>3</sup>)，用列/对角线标记数组可降到 O(n<sup>2</sup>)）　　E[总时间] = O(n<sup>2</sup>) / p</div>
+<div class="tip info"><strong>为什么 n 皇后适合拉斯维加斯：</strong>当 n 较大时，n 皇后的解<b>非常多</b>（n = 8 有 92 个解，n = 20 已超过 3 900 万个），随机撒子撞上其中一个的概率相当可观；同时"撞墙"能被<b>极早发现</b>（t<sub>f</sub> 小）。二者结合使 E[T] 远优于确定性回溯的最坏情形——后者可能在解空间的某个死角里穷举很久。</div>
+<div class="terms">
+  <span class="term"><b>拉斯维加斯算法</b>Las Vegas algorithm</span>
+  <span class="term"><b>期望运行时间</b>expected running time</span>
+  <span class="term"><b>几何分布</b>geometric distribution</span>
+  <span class="term"><b>重启策略</b>restart policy</span>
+  <span class="term"><b>随机化回溯</b>randomized backtracking</span>
+  <span class="term"><b>高概率界</b>with high probability (w.h.p.)</span>
+</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>用最坏时间复杂度评价拉斯维加斯算法。</b>它的最坏时间<b>无界</b>（理论上可以一直失败），唯一有意义的指标是<b>期望运行时间 E[T]</b>。</li>
+  <li><b>把"失败"当成"输出了错误答案"。</b>拉斯维加斯永不输出错解；失败是<b>诚实报告"没算出来"</b>。这与蒙特卡罗"给出可能错的答案"是本质区别。</li>
+  <li><b>把 E[X] = 1/p 记成 E[X] = p。</b>成功率 1/10 意味着平均要试 <b>10</b> 次，不是 0.1 次。</li>
+  <li><b>重启时没有重新掷随机数</b>（例如复用同一随机种子）。那样每轮结果完全相同，永远陷在同一个失败上，<b>独立性是几何分布成立的前提</b>。</li>
+  <li><b>把本页演示直接当成教材模型去算 p。</b>本页是<b>带回溯</b>的随机化变体，单次成功率极高（几乎必成），与教材"无回溯 + 整体重启"模型的 p 差别很大。对照课本习题时务必先确认是哪种模型。</li>
+  <li><b>误以为"随机放置"就是"随机选一列然后看行不行"。</b>正确做法是<b>先求出本行的全部安全列，再在其中等概率抽一个</b>；若在所有 n 列里盲抽再判断，等价于做了不均匀采样，会显著降低成功率。</li>
+  <li><b>误以为拉斯维加斯一定比确定性算法快。</b>不一定。它的价值在于<b>期望</b>时间好、且<b>没有可被对手构造的最坏输入</b>；单次运行完全可能比确定性算法慢。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li><b>拉斯维加斯算法</b>：绝不返回错解——要么给出正确解，要么报告失败；<b>运行时间是随机变量</b>，最坏情形通常无界。</li>
+  <li>因此它的核心度量是<b>期望运行时间 E[T]</b>，而不是最坏时间。这与蒙特卡罗"时间确定、看错误率"恰好对偶。</li>
+  <li>期望时间推导：首次成功轮数服从<b>几何分布</b>，E[轮数] = <b>1/p</b>，故 <b>E[T] = t/p</b>；更精确的形式为 E[T] = ((1−p)/p)·t<sub>f</sub> + t<sub>s</sub>。失败 k 轮的概率 (1−p)<sup>k</sup> 指数下降。</li>
+  <li>由 E[T] 公式可知：<b>让失败更早暴露（t<sub>f</sub> 变小）有时比提高 p 更有效</b>——这正是重启策略的理论依据。</li>
+  <li><b>本页演示是"每行重新打乱列顺序"的随机化回溯变体</b>，与教材经典的"整体随机放置 + 失败即整体重启"模型不同；教材还给出前 stopVegas 行随机、其余行回溯的<b>混合策略</b>。</li>
+  <li>LV 可通过"设时限、超时即乱答"转成 MC；反向一般不行，除非答案可高效验证。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>某拉斯维加斯算法单次尝试的成功概率 p = 1/4，每次尝试（无论成败）耗时均为 t。求首次成功的期望总运行时间。</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>t / 4</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>4t</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>t</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>无法计算，因为最坏情况下可能永远不成功</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>首次成功所需轮数服从参数为 p 的<b>几何分布</b>，期望为 E[X] = 1/p = 4；每轮耗时 t，故 <b>E[T] = t/p = 4t</b>。A 是把 1/p 错写成 p（成功率越低应该越<b>慢</b>，而 t/4 反而更快，从量纲直觉上就该警觉）。C 忽略了重启。D 是本题最有价值的迷惑项：<b>最坏时间确实无界</b>（可以一直失败下去），但这恰恰说明<b>必须</b>改用期望来度量——期望存在且有限，正是拉斯维加斯算法可用的理论保证。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>下列关于拉斯维加斯算法与蒙特卡罗算法的比较，<b>正确</b>的是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>拉斯维加斯算法运行时间确定，结果可能有误；蒙特卡罗算法运行时间随机，结果一定正确</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>给拉斯维加斯算法加一个时间上限，超时后随意输出一个答案，即可将其转化为蒙特卡罗算法</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>任何蒙特卡罗算法都可以直接改造成期望时间相同的拉斯维加斯算法</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>两类算法都可以通过独立重复运行把"结果出错"的概率降到 2<sup>−k</sup></span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>A 把两者<b>完全说反了</b>——蒙特卡罗是"时间确定、可能错"，拉斯维加斯是"时间随机、结果对或失败"，这是本章最高频的考点。B 正确：LV 超时后强行给个答案，就变成了"时间有界、可能错"，正是 MC 的定义。C 错——反向转化需要能<b>高效验证</b> MC 给出的答案；对于无法快速验证的问题（如很多优化问题）这条路走不通。D 错——拉斯维加斯算法的结果<b>本来就永不出错</b>，重复运行降低的是<b>失败率</b>而非错误率；说它"把出错概率降到 2<sup>−k</sup>"隐含承认了它会出错，与定义矛盾。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>教材经典的拉斯维加斯 n 皇后算法（整体随机放置、无回溯），在第 row 行放子时的正确做法是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>在 0..n−1 中随机挑一列直接放下，之后若发现冲突再回溯修改</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>先求出本行全部与前 row 行不冲突的"安全列"，再在这些安全列中等概率随机挑一列；若安全列为空则整盘作废重启</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>把 0..n−1 打乱后依次尝试，冲突就试下一列，全部冲突才失败</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>总是放在第一个安全列，只在最后一行使用随机数</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>B 是教材模型：<b>先筛后抽</b>——在安全列集合上做等概率抽样，一旦集合为空就<b>整盘重启</b>（不回溯）。A 错在"再回溯修改"，那已经不是无回溯的重启模型，而且盲抽再判断相当于在整个列集上做了<b>不均匀</b>采样，会明显拉低单次成功率 p。C 描述的正是<b>本页演示</b>使用的随机化回溯变体——它是合法的拉斯维加斯算法，但不是教材的经典模型，成功率与期望时间的分析都不一样，对照课本时最容易在这里产生困惑。D 完全退化成了确定性回溯的贪心版本，几乎没有随机性可言。</div>
+</div>
+</div>
+
+<div class="page-nav"><a href="03-monte.html"><span class="dir">← 上一节</span><span class="name">蒙特卡罗</span></a><a href="05-sherwood.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">舍伍德</span></a></div>
+<div class="footer">算法设计与分析 · <b>第12章 概率算法和近似算法</b> · 强交互可视化版<br/>随机 · 近似 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(156,116,32,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const N=8, cell=360/N;
+function draw(board, conflict=null){
+  ctx.clearRect(0,0,360,360);
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++){
+    ctx.fillStyle=(r+c)%2? '#F6E6D6':'#fff7ed';
+    ctx.fillRect(c*cell,r*cell,cell,cell);
+  }
+  if(board){
+    board.forEach((c,r)=>{
+      if(c<0) return;
+      ctx.font=`${cell*0.6}px serif`; ctx.textAlign='center';
+      ctx.fillStyle=(conflict&&conflict.has(r))?'#A02C55':'#8A6420';
+      ctx.fillText('♛', c*cell+cell/2, r*cell+cell*0.72);
+    });
+  }
+}
+function safe(board,row,col){
+  for(let r=0;r<row;r++){
+    if(board[r]===col||Math.abs(board[r]-col)===row-r) return false;
+  }
+  return true;
+}
+function tryOnce(){
+  const board=Array(N).fill(-1);
+  const order=Array.from({length:N},(_,i)=>i);
+  for(let i=N-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [order[i],order[j]]=[order[j],order[i]]; }
+  // place row by row with random column perm attempt
+  function dfs(row){
+    if(row===N) return true;
+    const cols=order.slice();
+    for(let i=cols.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [cols[i],cols[j]]=[cols[j],cols[i]]; }
+    for(const c of cols){
+      if(safe(board,row,c)){ board[row]=c; if(dfs(row+1)) return true; board[row]=-1; }
+    }
+    return false;
+  }
+  const ok=dfs(0);
+  return {ok, board};
+}
+async function runAll(limit=200){
+  let t=0;
+  while(t<limit){
+    t++; tries.textContent=t;
+    const {ok,board}=tryOnce();
+    draw(board);
+    if(ok){ hud.textContent='成功！'; st.textContent='FOUND'; st.className='green'; return; }
+    hud.textContent='失败重试…'; st.textContent='retry'; await sleep(40);
+  }
+  st.textContent='达上限';
+}
+run.onclick=()=>runAll();
+once.onclick=()=>{
+  const {ok,board}=tryOnce();
+  draw(board); tries.textContent='1';
+  st.textContent=ok?'FOUND':'FAIL'; st.className=ok?'green':'red';
+  hud.textContent=ok?'一次成功':'本次失败';
+};
+draw(null);
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

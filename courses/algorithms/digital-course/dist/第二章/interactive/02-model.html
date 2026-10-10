@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>递归模型 · 第2章 递归算法设计技术</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">02</div>算法可视化 · <span>第2章 递归算法设计技术</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-concept.html">概念</a><a class="pill active" href="02-model.html">模型</a><a class="pill" href="03-cases.html">情形</a><a class="pill" href="04-stack.html">系统栈</a><a class="pill" href="05-fib-tree.html">Fib树</a><a class="pill" href="06-hanoi.html">汉诺塔</a><a class="pill" href="07-induction.html">归纳</a><a class="pill" href="08-knapsack.html">背包递归</a><a class="pill" href="09-recurrence.html">递推式</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 2</div><h1>递归出口 + 递归体</h1>
+<p>每个递归函数必须同时具备：边界返回与缩小规模的递归调用。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+<li>能够<b>写出</b>递归模型的抽象数学形式：边界条件 f(n)=g(n) 与递归体 f(n)=h(n, f(n−1))。</li>
+<li>能够<b>把任意可递归问题翻译成</b>"递归出口 + 递归体"两行式子，再机械地转成 C++ 代码。</li>
+<li>能够<b>在两个不同问题</b>（阶乘、连续和 / 快速幂）上复用同一套建模步骤，体会模型的泛化性。</li>
+<li>能够<b>判别</b>尾递归（tail recursion）与非尾递归，并说明尾递归为何可被编译器优化成迭代。</li>
+</ol></div>
+
+<div class="grid grid-2">
+  <div class="card"><h3>错误：无出口</h3><div class="code">int f(int n){
+  return n*f(n-1); // 栈溢出
+}</div><div class="tip">永远不会停</div></div>
+  <div class="card"><h3>正确模型</h3><div class="code">int f(int n){
+  if(n&lt;=1) return 1; // 出口
+  return n*f(n-1);   // 递归体
+}</div></div>
+</div>
+<div class="card" style="margin-top:14px">
+  <div class="toolbar"><label>n=<b id="nv">6</b></label><input type="range" id="nr" min="1" max="10" value="6" style="width:160px;accent-color:#7E62A6"/>
+    <button class="btn primary" id="run">计算 n!</button></div>
+  <div class="stat-row"><div class="stat"><span>结果</span><b class="p" id="res">—</b></div><div class="stat"><span>调用次数</span><b class="a" id="calls">0</b></div></div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、递归模型的抽象数学表示</h2><span class="sub">Abstract Recursive Model</span></div>
+
+<div class="defn"><span class="lbl">定义 2.3 · 递归模型</span><p>设待求解问题为 f(n)。<b>递归模型</b>（recursive model）由两部分组成：<b>递归出口</b>（边界条件 boundary condition）给出最小规模 n<sub>0</sub> 处的<b>已知</b>解；<b>递归体</b>（recursive body）给出 n &gt; n<sub>0</sub> 时如何由<b>更小规模的解</b>构造 f(n)。二者合称该问题的递归模型，是编写递归代码<b>唯一</b>的依据。</p></div>
+
+<div class="formula lg">f(n) = g(n)，　　　　　　　当 n = n<sub>0</sub>　　<em>（边界条件 / 递归出口）</em><br/>f(n) = h(n, f(n−1))，　当 n &gt; n<sub>0</sub>　　<em>（递归体）</em></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>符号</th><th>含义</th><th>说明</th><th>阶乘中的取值</th></tr>
+  <tr><td>n<sub>0</sub></td><td>最小规模</td><td>递归停止的边界点，必须<b>可达</b></td><td>0</td></tr>
+  <tr><td>g(n)</td><td class="hl">边界解</td><td><b>不含递归调用</b>的已知函数，通常是常量</td><td>g(0) = 1</td></tr>
+  <tr><td>h(·)</td><td class="hl">合并函数</td><td>由子问题解构造原解，须在 O(1)~多项式时间内完成</td><td>h(n, x) = n × x</td></tr>
+  <tr><td>f(n−1)</td><td>子问题解</td><td>规模严格更小；一般形式可为 f(n−1)、f(n/2) 或多个子问题</td><td>fact(n−1)</td></tr>
+</table></div>
+
+<div class="tip info"><strong>更一般的形式：</strong>子问题不必只有一个、也不必只减 1。一般写作 f(n) = h( n, f(n<sub>1</sub>), f(n<sub>2</sub>), …, f(n<sub>k</sub>) )，其中每个 n<sub>i</sub> &lt; n。例如 Fib：f(n)=f(n−1)+f(n−2)（两个子问题）；二分查找：f(n)=f(n/2)（规模折半）；汉诺塔：f(n)=2f(n−1)+1（同一子问题用两次）。</div>
+
+<div class="deriv">
+  <span class="step">三步建模法：</span>
+  <span class="step">① 定义 f(n) 的<b>确切语义</b>　　　<span class="why">f(n) 到底"是什么"，必须一句话说清</span></span>
+  <span class="step">② 找边界 n<sub>0</sub> 与 g(n<sub>0</sub>)　　　　<span class="why">规模最小、答案显然的那个情形</span></span>
+  <span class="step">③ 假设 f(n−1) <b>已经</b>求出，写 h　<span class="why">这一步等价于数学归纳法的归纳步（见 §07）</span></span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、实例一：阶乘 fact(n)</h2><span class="sub">Instance 1 · Factorial</span></div>
+
+<div class="deriv">
+  <span class="step">① 语义：fact(n) = n!，即 1×2×…×n</span>
+  <span class="step">② 边界：n<sub>0</sub> = 0，g(0) = 1　　　　<span class="why">0! 规定为 1</span></span>
+  <span class="step">③ 递归体：h(n, x) = n × x　　　<span class="why">n! = n × (n−1)!</span></span>
+</div>
+
+<div class="formula">fact(n) = 1，当 n = 0　　　　　fact(n) = n × fact(n−1)，当 n &gt; 0</div>
+
+<div class="code"><span class="cm">// 模型 → 代码：两行式子一一对应两条语句</span>
+<span class="kw">long</span> <span class="kw">long</span> <span class="fn">fact</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n == <span class="nu">0</span>) <span class="kw">return</span> <span class="nu">1</span>;              <span class="cm">// f(n) = g(n),  n = n0</span>
+    <span class="kw">return</span> (<span class="kw">long</span> <span class="kw">long</span>)n * <span class="fn">fact</span>(n - <span class="nu">1</span>);  <span class="cm">// f(n) = h(n, f(n-1)), n &gt; n0</span>
+}</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、实例二：连续和与快速幂</h2><span class="sub">Instance 2 · 模型的泛化对照</span></div>
+
+<div class="tip"><strong>为什么要看第二个例子：</strong>只看阶乘容易误以为"递归 = 乘一下减一"。换两个 h 完全不同的问题，才能看清<b>模型骨架不变、只是 g 和 h 换了</b>。</div>
+
+<div class="deriv">
+  <span class="step">【连续和】① 语义：sum(n) = 1+2+…+n</span>
+  <span class="step">　　　　　② 边界：n<sub>0</sub> = 1，g(1) = 1</span>
+  <span class="step">　　　　　③ 递归体：h(n, x) = n + x　　<span class="why">只把"×"换成了"+"</span></span>
+  <span class="step">【快速幂】① 语义：power(a, n) = a<sup>n</sup></span>
+  <span class="step">　　　　　② 边界：n<sub>0</sub> = 0，g = 1</span>
+  <span class="step">　　　　　③ 递归体：a<sup>n</sup> = (a<sup>n/2</sup>)<sup>2</sup>（n 偶）；a<sup>n</sup> = a × (a<sup>(n−1)/2</sup>)<sup>2</sup>（n 奇）<span class="why">子问题规模<b>折半</b>而非减 1</span></span>
+</div>
+
+<div class="code"><span class="cm">// 实例 2a：连续和 —— 与 fact 结构完全同构，只换了合并运算</span>
+<span class="kw">int</span> <span class="fn">sum</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n == <span class="nu">1</span>) <span class="kw">return</span> <span class="nu">1</span>;        <span class="cm">// g(1) = 1</span>
+    <span class="kw">return</span> n + <span class="fn">sum</span>(n - <span class="nu">1</span>);      <span class="cm">// h(n, x) = n + x</span>
+}
+
+<span class="cm">// 实例 2b：快速幂 —— 规模折半，递归深度从 O(n) 降到 O(log n)</span>
+<span class="kw">long</span> <span class="kw">long</span> <span class="fn">power</span>(<span class="kw">long</span> <span class="kw">long</span> a, <span class="kw">int</span> n) {
+    <span class="kw">if</span> (n == <span class="nu">0</span>) <span class="kw">return</span> <span class="nu">1</span>;                    <span class="cm">// g(0) = 1</span>
+    <span class="kw">long</span> <span class="kw">long</span> half = <span class="fn">power</span>(a, n / <span class="nu">2</span>);      <span class="cm">// 只算一次子问题！</span>
+    <span class="kw">if</span> (n % <span class="nu">2</span> == <span class="nu">0</span>) <span class="kw">return</span> half * half;
+    <span class="kw">return</span> half * half * a;
+}</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>问题</th><th>n<sub>0</sub> / g</th><th>合并函数 h</th><th>子问题规模</th><th>递推式</th><th>时间</th><th>栈空间</th></tr>
+  <tr><td>fact(n)</td><td>0 / 1</td><td>n × x</td><td>n−1</td><td>T(n)=T(n−1)+O(1)</td><td>O(n)</td><td>O(n)</td></tr>
+  <tr><td>sum(n)</td><td>1 / 1</td><td>n + x</td><td>n−1</td><td>T(n)=T(n−1)+O(1)</td><td>O(n)</td><td>O(n)</td></tr>
+  <tr><td>power(a,n)</td><td>0 / 1</td><td>x·x 或 x·x·a</td><td class="hl">n/2</td><td>T(n)=T(n/2)+O(1)</td><td class="hl">O(log n)</td><td>O(log n)</td></tr>
+</table></div>
+
+<div class="tip info"><strong>关键对照：</strong>前两行的 g、h 不同但<b>骨架完全一样</b>，说明模型可以机械套用；第三行改变的是<b>子问题规模的缩小方式</b>（−1 变成 /2），复杂度就从 O(n) 掉到 O(log n)。<b>决定递归效率的不是 h 有多复杂，而是规模缩小得有多快</b>——这正是 §09 主定理要量化的事。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、复杂度分析</h2><span class="sub">递推式建立与求解</span></div>
+
+<div class="deriv">
+  <span class="step">【fact / sum】每层做 O(1) 工作，产生 1 个规模 n−1 的子问题：</span>
+  <span class="step">T(n) = T(n−1) + c，T(0) = c　　　<span class="why">建立递推式</span></span>
+  <span class="step">　　 = T(n−2) + c + c　　　　　　<span class="why">展开一层</span></span>
+  <span class="step">　　 = T(n−3) + 3c</span>
+  <span class="step">　　 = … = T(0) + n·c = (n+1)c　　<span class="why">共展开 n 层</span></span>
+  <span class="step">⇒ T(n) = Θ(n)，空间 S(n) = Θ(n)（最大栈深 n+1 层）</span>
+  <span class="step"> </span>
+  <span class="step">【power】每层 O(1)，子问题规模折半：</span>
+  <span class="step">T(n) = T(n/2) + c，T(1) = c</span>
+  <span class="step">　　 = T(n/4) + 2c</span>
+  <span class="step">　　 = T(n/2<sup>k</sup>) + k·c　　　　　　<span class="why">展开 k 层</span></span>
+  <span class="step">取 k = log<sub>2</sub>n 使 n/2<sup>k</sup> = 1：</span>
+  <span class="step">⇒ T(n) = c + c·log<sub>2</sub>n = Θ(log n)</span>
+</div>
+
+<div class="tip"><strong>空间复杂度的一般结论：</strong>不使用额外数据结构时，递归算法的空间复杂度 = <b>最大递归深度 × 单个栈帧大小</b> = O(最大递归深度)。fact 是 O(n)，power 是 O(log n)。详见 §04 系统栈。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>五、尾递归 vs 非尾递归</h2><span class="sub">Tail Recursion</span></div>
+
+<div class="defn"><span class="lbl">定义 2.4 · 尾递归</span><p>若递归调用是函数<b>返回前执行的最后一个操作</b>，且其返回值<b>不再参与任何运算</b>（直接 <code>return f(...)</code>），则称该递归为<b>尾递归</b>（tail recursion）。此时当前栈帧中的信息在调用后已无用，编译器可用新栈帧<b>覆盖</b>旧栈帧，把递归转化为循环，这一优化称为<b>尾调用消除</b>（tail call elimination / TCO）。</p></div>
+
+<div class="code"><span class="cm">// (1) 非尾递归：递归返回后还要做一次乘法 n * (...)，</span>
+<span class="cm">//     所以 n 必须保留在栈帧里 ⇒ 栈深 O(n)，不能优化掉</span>
+<span class="kw">int</span> <span class="fn">fact</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n == <span class="nu">0</span>) <span class="kw">return</span> <span class="nu">1</span>;
+    <span class="kw">return</span> n * <span class="fn">fact</span>(n - <span class="nu">1</span>);        <span class="cm">// ← 调用回来还有活干</span>
+}
+
+<span class="cm">// (2) 尾递归：用累加器 acc 把"待做的乘法"提前做完，</span>
+<span class="cm">//     调用返回后直接把结果原样送出 ⇒ 可被编译器改写成循环</span>
+<span class="kw">int</span> <span class="fn">factTail</span>(<span class="kw">int</span> n, <span class="kw">int</span> acc = <span class="nu">1</span>) {
+    <span class="kw">if</span> (n == <span class="nu">0</span>) <span class="kw">return</span> acc;
+    <span class="kw">return</span> <span class="fn">factTail</span>(n - <span class="nu">1</span>, acc * n);  <span class="cm">// ← 调用即返回，无后续运算</span>
+}
+
+<span class="cm">// (3) 编译器优化后等价于（g++ -O2 实际生成的就是这个）</span>
+<span class="kw">int</span> <span class="fn">factLoop</span>(<span class="kw">int</span> n) {
+    <span class="kw">int</span> acc = <span class="nu">1</span>;
+    <span class="kw">while</span> (n != <span class="nu">0</span>) { acc *= n; --n; }   <span class="cm">// 栈深 O(1)</span>
+    <span class="kw">return</span> acc;
+}</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>对比项</th><th>非尾递归 fact</th><th>尾递归 factTail</th></tr>
+  <tr><td>递归调用的位置</td><td>返回表达式的<b>一部分</b>（n × …）</td><td class="hl">整个返回表达式</td></tr>
+  <tr><td>返回后还需运算</td><td>需要（乘 n）</td><td class="hl">不需要</td></tr>
+  <tr><td>结果构造时机</td><td>回溯阶段（自底向上拼）</td><td>递推阶段（自顶向下累积到 acc）</td></tr>
+  <tr><td>理论栈空间</td><td>O(n)</td><td>O(n)（未优化时）</td></tr>
+  <tr><td>开启 <code>-O2</code> 后实际栈空间</td><td>O(n)</td><td class="hl">O(1)</td></tr>
+  <tr><td>能否 n=10<sup>6</sup> 安全运行</td><td>否，栈溢出</td><td>是（若编译器实施了 TCO）</td></tr>
+</table></div>
+
+<div class="tip info"><strong>C++ 的现实：</strong>C++ 标准<b>并不强制</b>要求实现尾调用消除。g++/clang 在 <code>-O2</code> 及以上通常会做，但 <code>-O0</code>（调试模式）下不会。因此在竞赛与工程中，<b>不要把程序正确性寄托在 TCO 上</b>：递归深度可能超过 10<sup>5</sup> 时，应手工改写为迭代。Scheme、Erlang 等语言则由标准保证 TCO。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>六、例题演算</h2><span class="sub">Worked Example</span></div>
+
+<div class="tip"><strong>例题：</strong>求一维数组 a[0..n−1] 中的最大元素，写出其递归模型并给出代码与复杂度。</div>
+
+<div class="deriv">
+  <span class="step">① 语义：maxE(a, n) = a[0..n−1] 中的最大值</span>
+  <span class="step">② 边界：n = 1 时只有一个元素 ⇒ g = a[0]</span>
+  <span class="step">③ 归纳步：假设 maxE(a, n−1) 已知（前 n−1 个的最大值），</span>
+  <span class="step">　 则只需把它与新来的 a[n−1] 比一次大小：</span>
+  <span class="step">　 h(n, x) = max(x, a[n−1])</span>
+</div>
+
+<div class="formula">maxE(a,n) = a[0]，当 n = 1；　　maxE(a,n) = max( maxE(a,n−1), a[n−1] )，当 n &gt; 1</div>
+
+<div class="code"><span class="kw">int</span> <span class="fn">maxE</span>(<span class="kw">int</span> a[], <span class="kw">int</span> n) {
+    <span class="kw">if</span> (n == <span class="nu">1</span>) <span class="kw">return</span> a[<span class="nu">0</span>];                    <span class="cm">// 出口</span>
+    <span class="kw">return</span> <span class="fn">max</span>(<span class="fn">maxE</span>(a, n - <span class="nu">1</span>), a[n - <span class="nu">1</span>]);   <span class="cm">// 递归体</span>
+}</div>
+
+<div class="deriv">
+  <span class="step">演算 a = {3, 9, 2, 7}，n = 4：</span>
+  <span class="step">maxE(a,4) = max( maxE(a,3), a[3]=7 )</span>
+  <span class="step">maxE(a,3) = max( maxE(a,2), a[2]=2 )</span>
+  <span class="step">maxE(a,2) = max( maxE(a,1), a[1]=9 )</span>
+  <span class="step">maxE(a,1) = 3　　　　　　　　　　<span class="why">触底，开始回溯</span></span>
+  <span class="step">maxE(a,2) = max(3, 9) = 9</span>
+  <span class="step">maxE(a,3) = max(9, 2) = 9</span>
+  <span class="step">maxE(a,4) = max(9, 7) = <b>9</b>　　　　<span class="why">共 4 次调用，3 次比较</span></span>
+  <span class="step">⇒ T(n) = T(n−1) + O(1) = Θ(n)，空间 Θ(n)</span>
+</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+<li><b>边界写成 n == 0 却去访问 a[0]。</b>本例语义要求数组非空，n<sub>0</sub> 必须取 1；若取 0 则 g 无意义（空数组没有最大值），或需返回 <code>INT_MIN</code> 作哨兵。<b>先定语义，再定边界。</b></li>
+<li><b>递归体里重复调用同一个子问题。</b>写成 <code>maxE(a,n-1) &gt; a[n-1] ? maxE(a,n-1) : a[n-1]</code> 会把子问题算<b>两遍</b>，T(n)=2T(n−1)+O(1) ⇒ 复杂度从 Θ(n) 恶化到 Θ(2<sup>n</sup>)。快速幂同理：必须先存 <code>half</code>，不能写 <code>power(a,n/2)*power(a,n/2)</code>。</li>
+<li><b>把"有 return 语句"当成"有出口"。</b>出口的实质是"<b>不再发生递归调用</b>"的分支。若某分支仍然调用自身，它就不是出口。</li>
+<li><b>误认为尾递归天然省栈。</b>尾递归只是<b>让编译器有机会</b>优化；未开优化或编译器不支持时，栈深依然是 O(n)。</li>
+<li><b>误把 fact 改成"尾递归"却仍写 <code>return n*factTail(n-1,acc)</code>。</b>只要返回值还参与运算，就<b>不是</b>尾递归。判据只有一条：<b>递归调用的结果是否被原样返回</b>。</li>
+<li><b>递归体中改变了 f 的语义。</b>如让 maxE 有时返回下标、有时返回值。<b>整个递归过程中 f(n) 的语义必须始终如一</b>，否则归纳步的假设失效。</li>
+</ul></div>
+</section>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+<li><b>递归模型</b>由两行式子构成：f(n) = g(n)（n = n<sub>0</sub>，边界条件）与 f(n) = h(n, f(n−1))（n &gt; n<sub>0</sub>，递归体）。写代码之前先写这两行，代码只是它的机械翻译。</li>
+<li><b>三步建模法</b>：① 定义 f(n) 的确切语义 ② 找最小规模 n<sub>0</sub> 及其已知解 g ③ <b>假设子问题已解决</b>，写出合并函数 h。第 ③ 步就是数学归纳法的归纳步。</li>
+<li>模型可泛化：fact 与 sum 骨架同构（只换 h），power 改变了<b>规模缩小方式</b>（n−1 → n/2），复杂度随即由 Θ(n) 降为 Θ(log n)。<b>效率主要由规模缩小速度决定。</b></li>
+<li>递推式：T(n)=T(n−1)+O(1) ⇒ Θ(n)；T(n)=T(n/2)+O(1) ⇒ Θ(log n)。非尾递归的空间复杂度 = O(最大递归深度)。</li>
+<li><b>尾递归</b>指递归调用的返回值被原样返回、其后无任何运算；它使编译器能复用栈帧（TCO），把 O(n) 栈空间降到 O(1)。但 C++ 标准不保证，<code>-O0</code> 下无效。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>下列哪一个函数是<b>尾递归</b>？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span><code>int f(int n){ if(n==0) return 1; return n*f(n-1); }</code></span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span><code>int f(int n){ if(n==0) return 0; return f(n-1)+n; }</code></span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span><code>int f(int n,int s){ if(n==0) return s; return f(n-1, s+n); }</code></span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span><code>int f(int n){ if(n==0) return 0; return 2*f(n/2); }</code></span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 <b>C</b>。判据只有一条：<b>递归调用的返回值是否被原样返回、其后不再参与任何运算</b>。<br/>A 的返回值还要乘 n，B 还要加 n，D 还要乘 2 —— 三者都必须把 n 保留在当前栈帧里等子调用回来，故都是<b>非尾递归</b>。<br/>C 把待累加的部分提前算进参数 <code>s</code>（累加器 accumulator），<code>return f(...)</code> 之后无事可做，当前栈帧可被复用。<br/><b>注意 D 的迷惑性：</b>虽然规模折半、深度只有 O(log n)，但"深度小"和"是不是尾递归"是<b>两回事</b>。</div>
+</div>
+
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>把快速幂写成 <code>return power(a,n/2) * power(a,n/2);</code>（n 为偶数），时间复杂度会变成？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>仍是 Θ(log n)，因为两次调用参数相同，编译器会自动合并</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>Θ(log<sup>2</sup> n)</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>Θ(n)</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>Θ(n log n)</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 <b>C</b>。递推式从 T(n)=T(n/2)+O(1) 变成 <b>T(n)=2T(n/2)+O(1)</b>。展开：T(n)=2T(n/2)+c=4T(n/4)+2c+c=…=2<sup>k</sup>T(n/2<sup>k</sup>)+(2<sup>k</sup>−1)c，取 k=log<sub>2</sub>n 得 T(n)=n·T(1)+(n−1)c = <b>Θ(n)</b>——退化成了朴素的逐次相乘，<b>快速幂的全部优势荡然无存</b>。<br/>A 是最常见的误解：函数调用<b>有副作用可能</b>，编译器一般<b>不会</b>自动做公共子表达式消除；即使某些情况能优化，也绝不能依赖它。<br/><b>正确做法：用局部变量存下 <code>half = power(a, n/2)</code>，只调用一次。</b>这与 §05 Fib 的重复子问题是同一个病根。</div>
+</div>
+
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>用递归求数组 a[0..n−1] 之和，若递归模型写为"sum(a,n) = sum(a,n−1) + a[n−1]，sum(a,0) = 0"，则其时间与<b>空间</b>复杂度分别是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>时间 Θ(n)，空间 Θ(1)——递归没有申请数组，不占额外空间</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>时间 Θ(n)，空间 Θ(n)</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>时间 Θ(n<sup>2</sup>)，空间 Θ(n)</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>时间 Θ(log n)，空间 Θ(log n)</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 <b>B</b>。T(n)=T(n−1)+O(1)，展开 n 层得 Θ(n)。<br/>A 是<b>本章最高频的错误</b>：递归虽然没写 <code>new</code>／数组，但每层调用都会在<b>系统栈</b>上压入一个栈帧（参数 a、n，返回地址，局部变量）。触底时栈中同时存在 n+1 个栈帧，故空间是 <b>Θ(n)</b>，是<b>隐式</b>占用的。<br/>C 错：每层只做一次加法，不是 n 次。<br/>D 错：规模每次只减 1，不是折半；折半才有 log。<br/><b>牢记：递归算法空间复杂度 = O(最大递归深度)，详见 §04。</b></div>
+</div>
+</div>
+
+<div class="page-nav"><a href="01-concept.html"><span class="dir">← 上一节</span><span class="name">概念</span></a><a href="03-cases.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">情形</span></a></div>
+<div class="footer">算法设计与分析 · <b>第2章 递归算法设计技术</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(126,98,166,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+nr.oninput=()=>nv.textContent=nr.value;
+run.onclick=()=>{
+  let c=0;
+  function fact(n){ c++; if(n<=1) return 1; return n*fact(n-1); }
+  res.textContent=fact(+nr.value); calls.textContent=c;
+};
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

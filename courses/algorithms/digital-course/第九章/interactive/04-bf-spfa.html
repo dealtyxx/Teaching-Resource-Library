@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>BF/SPFA · 第9章 图算法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">09</div>算法可视化 · <span>第9章 图算法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-prim.html">Prim</a><a class="pill" href="02-kruskal.html">Kruskal</a><a class="pill" href="03-dijkstra.html">Dijkstra</a><a class="pill active" href="04-bf-spfa.html">BF/SPFA</a><a class="pill" href="05-floyd.html">Floyd</a><a class="pill" href="06-flow.html">网络流</a><a class="pill" href="07-ff.html">FF</a><a class="pill" href="08-ek.html">EK</a><a class="pill" href="09-dinic.html">Dinic</a><a class="pill" href="10-match.html">匹配</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 4 · 负权</div>
+  <h1>Bellman-Ford 与 SPFA</h1>
+  <p>可处理负权；第 n 轮仍能松弛 ⇒ 存在负环。SPFA 用队列优化，最坏复杂度与朴素 BF 相同。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>解释</b>为什么 Bellman-Ford 只需松弛 n&minus;1 轮，并说明其依据是"最短路径至多含 n&minus;1 条边"。</li>
+  <li>能够<b>手工模拟</b> Bellman-Ford 的逐轮松弛，写出每轮结束后的 dist 数组。</li>
+  <li>能够<b>默写</b> Bellman-Ford 与 SPFA 两版代码，并写出 O(ne) 的复杂度推导。</li>
+  <li>能够<b>准确表述</b> SPFA 的效率地位：平均更快，但<b>最坏仍是 O(ne)</b>，不能想当然认为总是更优。</li>
+  <li>能够<b>用两种方式检测负环</b>：BF 的"第 n 轮仍可松弛"与 SPFA 的"某点入队次数 &ge; n"。</li>
+</ol></div>
+
+<div class="grid grid-2">
+  <div class="card"><div class="badge">Bellman-Ford</div>
+    <h3>对所有边松弛 n−1 轮</h3>
+    <div class="code"><span class="kw">repeat</span> n-1 times:
+  <span class="kw">for</span> each edge u→v:
+    dist[v]=min(dist[v], dist[u]+w)
+<span class="cm">// 再一轮检测负环</span></div>
+  </div>
+  <div class="card"><div class="badge cyan">SPFA</div>
+    <h3>队列优化</h3>
+    <p class="desc">只有 dist 变小的点才入队再扩展。<b>最坏复杂度仍是 O(ne)</b>，与朴素 BF 相同；竞赛中注意卡最坏数据。</p>
+  </div>
+</div>
+<div class="card" style="margin-top:16px">
+  <div class="toolbar"><button class="btn primary" id="run">▶ BF 轮次演示</button></div>
+  <div class="stage-wrap light">
+    <canvas class="stage" id="cv" width="900" height="280"></canvas>
+  </div>
+  <div class="cells" id="row"></div>
+  <div class="tip" id="tip">小图含一条负权边，观察 dist 如何被压低。</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、Bellman-Ford：为什么松弛 n−1 轮就够</h2><span class="sub">Round Bound</span></div>
+
+<div class="defn"><span class="lbl">算法描述</span><p><b>Bellman-Ford 算法</b>：初始 dist[s] = 0、其余为 &infin;。重复 <b>n&minus;1</b> 轮，每轮对<b>全部 e 条边</b>依次执行一次松弛 <span class="cm">if (dist[u] + w &lt; dist[v]) dist[v] = dist[u] + w;</span>。n&minus;1 轮结束后 dist 即为最短距离。若再做<b>第 n 轮</b>仍有某条边可被松弛，则说明图中存在<b>从源点可达的负权回路</b>（negative cycle）。</p></div>
+
+<div class="defn thm"><span class="lbl">轮数定理</span><p>若图中不存在负权回路，则 s 到任意顶点 v 的最短路径都是<b>简单路径</b>（不重复经过顶点），因此至多含 n&minus;1 条边。第 k 轮松弛结束后，<b>所有"至多含 k 条边"的最短路径长度均已被正确算出</b>。故 n&minus;1 轮足够。</p></div>
+
+<div class="deriv">
+  <span class="step">第一步 若最短路径重复经过某顶点，则其中含有一个回路 <span class="why">回路可被删去</span></span>
+  <span class="step">第二步 无负环时该回路权值 &ge; 0，删去它路径不会变长 <span class="why">故必存在一条<b>简单</b>的最短路径</span></span>
+  <span class="step">第三步 简单路径最多经过 n 个顶点，因而最多 n&minus;1 条边 <span class="why">这就是轮数上界的来源</span></span>
+  <span class="step">归纳 设第 k&minus;1 轮后所有"&le; k&minus;1 条边"的最短路已算对 <span class="why">归纳基础：第 0 轮后 dist[s]=0，即"0 条边"的情形正确</span></span>
+  <span class="step">第 k 轮 对最短路径 s &rarr; &hellip; &rarr; u &rarr; v（k 条边），其前缀 s&rarr;u 恰含 k&minus;1 条边且已算对 <span class="why">最优子结构</span></span>
+  <span class="step">该轮必然松弛到边 (u, v)，于是 dist[v] 被更新为正确值 <span class="why">每轮遍历全部边，故边 (u,v) 一定被考察</span></span>
+  <span class="step">结论 第 n&minus;1 轮后，所有至多 n&minus;1 条边的最短路径都已正确 <span class="why">&#9633; 注意：<b>与边的松弛顺序无关</b>，顺序只影响提前收敛的快慢</span></span>
+</div>
+
+<div class="tip info"><strong>负环检测原理：</strong>由上述定理，无负环时第 n 轮<b>必然不会</b>再有任何松弛成功。反过来，若第 n 轮仍有边可松弛，说明存在一条含 &ge; n 条边的"更短路径"，它必定重复经过顶点，即包含一个<b>权值为负的回路</b>——沿该回路无限绕行可让路径长度趋于 &minus;&infin;，最短路径<b>不存在</b>。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、SPFA：队列优化及其真实定位</h2><span class="sub">Shortest Path Faster Algorithm</span></div>
+
+<div class="defn"><span class="lbl">算法描述</span><p><b>SPFA</b>（Shortest Path Faster Algorithm，即队列优化的 Bellman-Ford）观察到：朴素 BF 每轮盲目地松弛全部 e 条边，而<b>只有 dist 发生过变化的顶点</b>才可能让它的出边松弛成功。于是用一个队列存放"dist 刚变小、待用于松弛出边"的顶点：取出队首 u，松弛 u 的所有出边；若某个 v 被成功更新且 v 不在队列中，则把 v 入队。队空时算法结束。</p></div>
+
+<div class="tip danger"><strong>关于"最坏仍可能退化"的准确表述：</strong>SPFA 的最坏时间复杂度<b>仍然是 O(ne)</b>，与朴素 Bellman-Ford <b>完全相同</b>——因为每个顶点最多入队 n&minus;1 次，每次出队要遍历其全部出边，总计 &sum;<sub>v</sub> (n&minus;1)&middot;deg(v) = O(ne)。SPFA 只是在<b>随机图或稀疏图上平均意义</b>更快（经验值约 O(ke)，k 为常数 2&sim;3），<b>这个 k 没有理论保证</b>。稠密图、网格图以及专门构造的卡 SPFA 数据可以稳定把它逼到 O(ne)。<br/><b>结论：不要想当然认为 SPFA 总优于 BF；边权非负时更应直接用 Dijkstra，而不是 SPFA。</b></div>
+
+<div class="defn prop"><span class="lbl">SPFA 判负环</span><p>额外维护 <b>cnt[v]</b>：表示当前 dist[v] 所对应的最短路径所含的<b>边数</b>。每次通过边 (u,v) 成功松弛时令 <span class="cm">cnt[v] = cnt[u] + 1</span>；若出现 <b>cnt[v] &ge; n</b>，则该"路径"含至少 n 条边、必然重复经过顶点，故存在负环。<br/>等价的常用写法是记录<b>入队次数</b> inq_cnt[v]：<b>若某顶点入队次数 &ge; n，则存在负环</b>。两种判据都可用，<b>前者（记边数）更稳健</b>，因为入队次数计数在某些实现下会略微偏松。</p></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、规范 C++ 代码</h2><span class="sub">BF 与 SPFA 两版</span></div>
+
+<div class="code"><span class="cm">// ========== 版本一：Bellman-Ford —— O(n*e)，可判负环 ==========</span>
+<span class="kw">const</span> <span class="kw">int</span> N = <span class="nu">100005</span>, INF = <span class="nu">0x3f3f3f3f</span>;
+<span class="kw">struct</span> Edge { <span class="kw">int</span> u, v, w; };
+vector&lt;Edge&gt; E;                <span class="cm">// 全部 e 条有向边</span>
+<span class="kw">int</span> dist_[N];
+
+<span class="cm">// 返回 true 表示求得最短路；返回 false 表示存在源点可达的负环</span>
+<span class="kw">bool</span> <span class="fn">bellmanFord</span>(<span class="kw">int</span> n, <span class="kw">int</span> s) {
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; i++) dist_[i] = INF;
+    dist_[s] = <span class="nu">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> round = <span class="nu">1</span>; round &lt;= n - <span class="nu">1</span>; round++) {   <span class="cm">// ① 松弛 n-1 轮</span>
+        <span class="kw">bool</span> updated = <span class="kw">false</span>;
+        <span class="kw">for</span> (<span class="kw">const</span> Edge &amp;ed : E)                      <span class="cm">// ② 每轮遍历全部 e 条边</span>
+            <span class="kw">if</span> (dist_[ed.u] != INF &amp;&amp; dist_[ed.u] + ed.w &lt; dist_[ed.v]) {
+                dist_[ed.v] = dist_[ed.u] + ed.w;
+                updated = <span class="kw">true</span>;
+            }
+        <span class="kw">if</span> (!updated) <span class="kw">break</span>;                          <span class="cm">// ③ 提前收敛优化（不改变最坏复杂度）</span>
+    }
+    <span class="kw">for</span> (<span class="kw">const</span> Edge &amp;ed : E)                          <span class="cm">// ④ 第 n 轮：仍能松弛 =&gt; 有负环</span>
+        <span class="kw">if</span> (dist_[ed.u] != INF &amp;&amp; dist_[ed.u] + ed.w &lt; dist_[ed.v])
+            <span class="kw">return</span> <span class="kw">false</span>;
+    <span class="kw">return</span> <span class="kw">true</span>;
+}
+
+<span class="cm">// ========== 版本二：SPFA（队列优化的 BF）—— 平均 O(k*e)，最坏仍 O(n*e) ==========</span>
+vector&lt;pair&lt;<span class="kw">int</span>, <span class="kw">int</span>&gt;&gt; g[N];   <span class="cm">// g[u] = {(v, w), ...} 邻接表</span>
+<span class="kw">int</span> dis[N], cnt[N];              <span class="cm">// cnt[v]：dist[v] 对应路径的边数，用于判负环</span>
+<span class="kw">bool</span> inq[N];                     <span class="cm">// v 当前是否在队列中，避免重复入队</span>
+
+<span class="kw">bool</span> <span class="fn">spfa</span>(<span class="kw">int</span> n, <span class="kw">int</span> s) {
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; i++) { dis[i] = INF; inq[i] = <span class="kw">false</span>; cnt[i] = <span class="nu">0</span>; }
+    queue&lt;<span class="kw">int</span>&gt; q;
+    dis[s] = <span class="nu">0</span>; q.<span class="fn">push</span>(s); inq[s] = <span class="kw">true</span>;
+    <span class="kw">while</span> (!q.<span class="fn">empty</span>()) {
+        <span class="kw">int</span> u = q.<span class="fn">front</span>(); q.<span class="fn">pop</span>(); inq[u] = <span class="kw">false</span>;
+        <span class="kw">for</span> (<span class="kw">auto</span> [v, w] : g[u])
+            <span class="kw">if</span> (dis[u] + w &lt; dis[v]) {              <span class="cm">// 松弛成功</span>
+                dis[v] = dis[u] + w;
+                cnt[v] = cnt[u] + <span class="nu">1</span>;                 <span class="cm">// 路径边数 +1</span>
+                <span class="kw">if</span> (cnt[v] &gt;= n) <span class="kw">return</span> <span class="kw">false</span>;      <span class="cm">// &gt;= n 条边 =&gt; 必有负环</span>
+                <span class="kw">if</span> (!inq[v]) { q.<span class="fn">push</span>(v); inq[v] = <span class="kw">true</span>; }   <span class="cm">// 已在队中就不重复入队</span>
+            }
+    }
+    <span class="kw">return</span> <span class="kw">true</span>;
+}
+
+<span class="cm">// 判负环的等价写法：改用入队次数</span>
+<span class="cm">//   int inqCnt[N];  ...  if (!inq[v]) { q.push(v); inq[v] = true;</span>
+<span class="cm">//                          if (++inqCnt[v] >= n) return false; }</span>
+<span class="cm">// 若要检测"全图任意负环"（不限源点可达），把所有顶点初始 dis 设为 0 并全部入队即可</span></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、时间与空间复杂度</h2><span class="sub">分实现列出</span></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>算法</th><th>最好</th><th>平均（经验）</th><th>最坏</th><th>额外空间</th><th>能力</th></tr>
+  <tr><td>Bellman-Ford（朴素）</td><td>O(e)（一轮即收敛并 break）</td><td>O(ne)</td><td class="hl">&Theta;(ne)</td><td>O(n + e)</td><td>负权 &#10003; · 判负环 &#10003;</td></tr>
+  <tr><td><b>SPFA</b>（队列优化）</td><td>O(e)</td><td>约 O(ke)，k &asymp; 2&sim;3 <b>无理论保证</b></td><td class="hl">&Theta;(ne) <b>与 BF 相同</b></td><td>O(n + e)</td><td>负权 &#10003; · 判负环 &#10003;</td></tr>
+  <tr><td>Dijkstra（堆，对照）</td><td colspan="2">O((n+e) log n)</td><td class="hl">O((n+e) log n)</td><td>O(n + e)</td><td>负权 &#10007;</td></tr>
+</table></div>
+
+<div class="deriv">
+  <span class="step">BF 上界 (n&minus;1) 轮 &times; 每轮 e 次松弛 = O(ne) <span class="why">与边的存储方式无关，只需能遍历边表</span></span>
+  <span class="step">BF 下界 若边按"逆最短路顺序"排列，第 k 轮只能推进一条边 <span class="why">必须跑满 n&minus;1 轮，故最坏是 &Theta;(ne) 而非 O(ne)</span></span>
+  <span class="step">SPFA 上界 每个顶点至多入队 n&minus;1 次 <span class="why">否则 cnt 超过 n&minus;1，判定为负环并退出</span></span>
+  <span class="step">每次出队处理 deg(u) 条边，总计 &sum;<sub>u</sub> (n&minus;1)&middot;deg(u) = (n&minus;1)&middot;2e = O(ne) <span class="why">&#9733; <b>SPFA 最坏与 BF 同阶</b></span></span>
+  <span class="step">SPFA 优势来源 实际图上大多数顶点只入队 1&sim;2 次，冗余松弛被跳过 <span class="why">但网格图 / 菊花图 / 卡 SPFA 数据可使其退化</span></span>
+</div>
+
+<div class="tip warn"><strong>选型建议：</strong>&#9312; 边权全部非负 &rarr; <b>用 Dijkstra（堆优化）</b>，不要用 SPFA；&#9313; 含负权且需要保证复杂度上界 &rarr; <b>用 Bellman-Ford</b>；&#9314; 含负权、图稀疏且数据非对抗性 &rarr; SPFA 更快；&#9315; 只需判断有无负环 &rarr; 两者皆可，SPFA 通常更快发现。工程与竞赛中"SPFA 已死"的说法，指的正是它缺乏最坏情况保证这一点。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>五、例题演算</h2><span class="sub">一个需要跑满 n−1 轮的例子</span></div>
+
+<p class="desc">有向图，n = 4，源点 0。边集与<b>松弛顺序</b>如下（顺序被刻意排成"最不利"）：</p>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>松弛次序</th><th>①</th><th>②</th><th>③</th><th>④</th><th>⑤</th></tr>
+  <tr><td>边 (u&rarr;v, w)</td><td>2&rarr;3, 3</td><td>1&rarr;3, 6</td><td>1&rarr;2, &minus;4</td><td>0&rarr;2, 8</td><td>0&rarr;1, 5</td></tr>
+</table></div>
+
+<div class="deriv">
+  <span class="step">初始 dist = [0, &infin;, &infin;, &infin;] <span class="why">只有源点为 0</span></span>
+  <span class="step">第 1 轮 ①②③ 因起点为 &infin; 全部跳过；④ 得 dist[2]=8；⑤ 得 dist[1]=5 <span class="why">dist = [0, 5, 8, &infin;]</span></span>
+  <span class="step">第 2 轮 ① 8+3=11 &rarr; dist[3]=11；② 5+6=11 不小于 11，不更新；③ 5&minus;4=1 &lt; 8 &rarr; dist[2]=<b>1</b> <span class="why">dist = [0, 5, 1, 11]</span></span>
+  <span class="step">第 3 轮 ① 1+3=4 &lt; 11 &rarr; dist[3]=<b>4</b>；其余无更新 <span class="why">dist = [0, 5, 1, 4]，恰好用满 n&minus;1 = 3 轮</span></span>
+  <span class="step">第 4 轮（检测轮） 遍历 5 条边，无任何松弛成功 <span class="why">&rArr; <b>无负环</b>，答案有效</span></span>
+</div>
+
+<div class="formula">最终 dist = [0, 5, 1, 4]；如 0&rarr;3 的最短路径为 <em>0 &rarr; 1 &rarr; 2 &rarr; 3</em> = 5 + (&minus;4) + 3 = 4</div>
+
+<div class="tip info"><strong>换个松弛顺序会怎样：</strong>若把顺序改为 (0&rarr;1)、(0&rarr;2)、(1&rarr;2)、(1&rarr;3)、(2&rarr;3)，则<b>第 1 轮</b>就能一路推到 dist = [0, 5, 1, 4]，第 2 轮无更新即可 break。这说明：<b>n&minus;1 是与顺序无关的上界保证</b>，实际收敛轮数强烈依赖边的排列——而这正是 SPFA 想利用的"冗余"。</div>
+
+<h3>同一张图上的 SPFA 追踪</h3>
+
+<div class="deriv">
+  <span class="step">初始 dis=[0,&infin;,&infin;,&infin;]，队列 = [0]，inq[0]=1 <span class="why">邻接表：0&rarr;{(1,5),(2,8)}，1&rarr;{(2,&minus;4),(3,6)}，2&rarr;{(3,3)}</span></span>
+  <span class="step">出队 0 松弛 0&rarr;1 得 5（1 入队）、0&rarr;2 得 8（2 入队） <span class="why">队列 = [1, 2]，dis=[0,5,8,&infin;]</span></span>
+  <span class="step">出队 1 松弛 1&rarr;2：5&minus;4=1 &lt; 8 &rarr; dis[2]=1，但 <b>2 已在队中，不重复入队</b>；1&rarr;3 得 11，3 入队 <span class="why">队列 = [2, 3]，dis=[0,5,1,11]</span></span>
+  <span class="step">出队 2 松弛 2&rarr;3：1+3=4 &lt; 11 &rarr; dis[3]=4，3 已在队中不重复入队 <span class="why">队列 = [3]，dis=[0,5,1,4]</span></span>
+  <span class="step">出队 3 无出边，队空，结束 <span class="why">共 4 次出队；cnt 最大值为 2 &lt; n = 4，无负环</span></span>
+  <span class="step">对比 BF 共做 3 轮 &times; 5 条边 = <b>15 次</b>松弛判定；SPFA 只做了 <b>5 次</b> <span class="why">这就是"平均更快"的来源，但它<b>不构成最坏情况保证</b></span></span>
+</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li>把 SPFA 的最坏复杂度写成 O(ke) 或 O(e)：<b>最坏就是 O(ne)</b>，与朴素 BF 同阶。O(ke) 只是经验值，考试作答必须写 O(ne)。</li>
+  <li>边权非负时也用 SPFA："能过就行"的侥幸心理；正确做法是用 Dijkstra，它有 O((n+e) log n) 的硬保证。</li>
+  <li>松弛时不判 <span class="cm">dist_[ed.u] != INF</span>：INF + 负权会小于 INF，把不可达点误更新成一个"较小的大数"，并沿链传播。</li>
+  <li>把 <b>n&minus;1 轮</b> 写成 n 轮或 n&minus;2 轮：n&minus;2 轮会漏掉恰好含 n&minus;1 条边的最短路；多跑一轮虽不出错，但那一轮的作用是<b>检测负环</b>，含义不同。</li>
+  <li>SPFA 中忘记维护 <b>inq[]</b>：同一顶点被反复重复入队，队列膨胀、效率骤降（但结果仍正确）。</li>
+  <li>出队时忘记 <span class="cm">inq[u] = false;</span>：该顶点此后再也无法入队，dist 停止更新，<b>结果错误</b>。</li>
+  <li>用 SPFA 判负环时把 <span class="cm">cnt[v] = cnt[u] + 1</span> 误写成 <span class="cm">cnt[v]++</span>：前者记的是<b>路径边数</b>，后者记的是<b>更新次数</b>，后者可能在无负环时也累计超过 n 而误报。</li>
+  <li>只检测"源点可达的负环"却声称检测了全图负环：需把所有顶点 dis 置 0 并全部入队（等价于建超级源点），才能检测任意负环。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>Bellman-Ford：对全部边松弛 <b>n&minus;1</b> 轮。依据是无负环时最短路径必为简单路径，至多 n&minus;1 条边；第 k 轮后所有"至多 k 条边"的最短路已正确。</li>
+  <li>复杂度 <b>&Theta;(ne)</b>（最坏且紧），空间 O(n+e)。可处理负权，并能<b>判负环</b>：第 n 轮仍能松弛 &rArr; 存在源点可达的负环。</li>
+  <li>SPFA 是 BF 的队列优化：只把 dist 变小的顶点入队，避免无效松弛。<b>最坏复杂度仍是 O(ne)，与 BF 完全相同</b>；平均约 O(ke) 但<b>无理论保证</b>，可被对抗数据卡到最坏。</li>
+  <li>SPFA 判负环：维护 cnt[v] = cnt[u] + 1 记录路径边数，<b>cnt[v] &ge; n</b> 即存在负环；等价写法是<b>某顶点入队次数 &ge; n</b>。</li>
+  <li>选型：非负权用 Dijkstra；含负权需保证上界用 BF；含负权且数据温和用 SPFA。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>关于 SPFA 的时间复杂度，下列表述<b>准确</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>O(ke)，k 为较小常数，因此严格优于 Bellman-Ford 的 O(ne)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>最坏为 O(ne)，与 Bellman-Ford 同阶；O(ke) 只是经验平均值，无理论保证</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>O((n+e) log n)，因为它本质上是带队列的 Dijkstra</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>O(e)，因为每条边只会被松弛一次</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。每个顶点至多入队 n&minus;1 次（否则触发负环判定），每次出队遍历其出边，总计 &sum;<sub>u</sub>(n&minus;1)deg(u) = O(ne)。A 是最常见的错误认知：O(ke) 是随机图上的实测经验，k 无上界证明，网格图与专门构造的数据能把 SPFA 逼到 O(ne)，所以不能说"严格优于"。C 混淆了 SPFA 与 Dijkstra——SPFA 用的是<b>普通 FIFO 队列</b>而非优先队列，顶点可以反复入队，不存在"定型"概念，因此没有 log 因子也没有 Dijkstra 的复杂度保证。D 错，边可被反复松弛正是 BF 系算法与 Dijkstra 的根本区别。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>用 SPFA 检测负环，下列判据中<b>正确且最稳健</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>队列长度超过 n 时判定有负环</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>维护 cnt[v] = cnt[u] + 1 表示路径边数，出现 cnt[v] &ge; n 即判定有负环</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>某个顶点的 dist 变为负数时判定有负环</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>算法运行超过 n−1 轮时判定有负环</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确：cnt[v] 记的是当前 dist[v] 所对应路径的<b>边数</b>，&ge; n 条边的路径必然重复经过顶点，而它又比之前更短，说明其中的回路权为负。等价的常用判据是"某顶点入队次数 &ge; n"。A 错，有了 inq[] 去重后队列长度永远不超过 n，这个条件<b>永远不会触发</b>。C 错得最隐蔽：负数 dist 只说明图中<b>有负权边</b>，与负<b>环</b>无关——本节例题中 dist[2] = 1 由 5+(&minus;4) 得到，若把 0&rarr;1 的权改小则 dist[2] 会变负，但该图并无负环。D 错，SPFA 是基于队列的，<b>根本没有"轮"这个概念</b>，无法直接计轮；"n−1 轮"是 Bellman-Ford 的判据。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>Bellman-Ford 松弛 n&minus;1 轮的依据是什么？若把轮数改成 n&minus;2 会怎样？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>依据是图最多有 n&minus;1 条边；改成 n&minus;2 只是慢一点，结果不变</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>依据是无负环时最短路径必为简单路径、至多含 n&minus;1 条边；改成 n&minus;2 会漏算恰含 n&minus;1 条边的最短路</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>依据是每轮至少定型一个顶点，n&minus;1 轮定型全部；改成 n&minus;2 会少定型一个顶点</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>依据是队列最多进出 n&minus;1 次；改成 n&minus;2 会导致死循环</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。第 k 轮后"至多含 k 条边"的最短路全部正确，而无负环时最短路是简单路径、边数上限 n&minus;1，故需 n&minus;1 轮；少一轮就可能漏掉链状图上那条最长的最短路径。A 前半句是无关事实（图的边数是 e，可远大于 n&minus;1），后半句"结果不变"是错的。C 描述的是 <b>Dijkstra</b> 的"每轮定型一个顶点"，BF 没有定型概念——它的 dist 可以反复变小，某一轮甚至可能一次更新多个顶点、也可能一个都不更新。D 把 BF 与 SPFA 的机制混在了一起，且 BF 是固定轮数的 for 循环，不可能死循环。</div>
+  </div>
+</div>
+
+<div class="terms">
+  <span class="term"><b>松弛</b>relaxation</span>
+  <span class="term"><b>负权回路</b>negative cycle</span>
+  <span class="term"><b>简单路径</b>simple path</span>
+  <span class="term"><b>队列优化</b>queue optimization</span>
+  <span class="term"><b>SPFA</b>Shortest Path Faster Algorithm</span>
+  <span class="term"><b>提前收敛</b>early termination</span>
+</div>
+
+<div class="page-nav"><a href="03-dijkstra.html"><span class="dir">← 上一节</span><span class="name">Dijkstra</span></a><a href="05-floyd.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">Floyd</span></a></div>
+<div class="footer">算法设计与分析 · <b>第9章 图算法</b> · 强交互可视化版<br/>MST · 最短路 · 网络流 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:28},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.1-Math.random()*.25, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(110,86,145,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+// shared graph geometry
+const GPOS=[[120,200],[300,80],[520,80],[700,200],[520,320],[300,320]];
+const GEDGES=[[0,1,6],[0,5,5],[1,2,5],[1,5,3],[2,3,4],[2,4,3],[2,5,4],[3,4,5],[4,5,2]];
+
+// small directed-ish display using undirected weights with one negative
+const POS=[[100,140],[300,60],[500,60],[700,140],[500,220],[300,220]];
+const ED=[[0,1,6],[0,5,5],[1,2,5],[1,5,-2],[2,3,4],[2,4,3],[3,4,5],[4,5,2]];
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let dist;
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ED.forEach(([u,v,w])=>{
+    ctx.strokeStyle=w<0?'#D2705F':'rgba(162,156,144,.4)'; ctx.lineWidth=w<0?3:2;
+    ctx.beginPath(); ctx.moveTo(POS[u][0],POS[u][1]); ctx.lineTo(POS[v][0],POS[v][1]); ctx.stroke();
+    ctx.fillStyle=w<0?'#A02C55':'#7A746A'; ctx.font='12px ui-monospace';
+    ctx.fillText(w,(POS[u][0]+POS[v][0])/2,(POS[u][1]+POS[v][1])/2-6);
+  });
+  POS.forEach((p,i)=>{
+    ctx.beginPath(); ctx.arc(p[0],p[1],18,0,Math.PI*2);
+    ctx.fillStyle='#6E5691'; ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 13px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(i,p[0],p[1]);
+  });
+}
+function show(){ row.innerHTML=dist.map(d=>`<div class="cell">${d>=1e8?'∞':d}</div>`).join(''); }
+run.onclick=async()=>{
+  dist=Array(6).fill(1e9); dist[0]=0; show(); draw();
+  for(let round=1;round<=5;round++){
+    let upd=false;
+    for(const [u,v,w] of ED){
+      if(dist[u]<1e9 && dist[u]+w<dist[v]){ dist[v]=dist[u]+w; upd=true; }
+      if(dist[v]<1e9 && dist[v]+w<dist[u]){ dist[u]=dist[u]; /* undirected relax both */ 
+        if(dist[v]+w<dist[u]){ dist[u]=dist[v]+w; upd=true; }
+      }
+    }
+    // proper undirected relax
+    for(const [u,v,w] of ED){
+      if(dist[u]<1e9 && dist[u]+w<dist[v]){ dist[v]=dist[u]+w; upd=true; }
+      if(dist[v]<1e9 && dist[v]+w<dist[u]){ dist[u]=dist[v]+w; upd=true; }
+    }
+    show(); tip.textContent=`第 ${round} 轮松弛`+(upd?'（有更新）':'（无更新）');
+    await sleep(500);
+    if(!upd) break;
+  }
+  tip.innerHTML=`完成 dist=[${dist.map(d=>d>=1e8?'∞':d).join(', ')}] · 红边为负权`;
+};
+draw(); dist=Array(6).fill(1e9); dist[0]=0; show();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

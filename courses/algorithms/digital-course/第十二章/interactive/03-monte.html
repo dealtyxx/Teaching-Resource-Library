@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>蒙特卡罗 · 第12章 概率算法和近似算法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">12</div>算法可视化 · <span>第12章 概率算法和近似算法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-prob.html">概率概述</a><a class="pill" href="02-pi.html">求π</a><a class="pill active" href="03-monte.html">蒙特卡罗</a><a class="pill" href="04-vegas.html">拉斯维加斯</a><a class="pill" href="05-sherwood.html">舍伍德</a><a class="pill" href="06-approx.html">近似概述</a><a class="pill" href="07-sched.html">多机调度</a><a class="pill" href="08-knapsack.html">背包近似</a><a class="pill" href="09-tsp.html">TSP近似</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 3 · Monte Carlo</div>
+  <h1>蒙特卡罗 · 主元素</h1>
+  <p>随机抽元素检查是否出现 &gt; n/2 次。返回 true 则一定对（偏真）；false 可能漏。重复 k 次错误率 &lt; 2⁻ᵏ。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>写出</b>蒙特卡罗算法的正式定义，以及 p-正确、优势、偏真/偏假等术语的含义。</li>
+  <li>能够<b>区分</b>偏真（true-biased）与偏假（false-biased）蒙特卡罗算法，并判断给定算法属于哪一种。</li>
+  <li>能够<b>完整推导</b>主元素算法的错误率：单次失败概率 ≤ 1/2，独立重复 k 次全错的概率 ≤ 2<sup>−k</sup>。</li>
+  <li>能够<b>计算</b>"要把错误率压到 ε 以下需要重复多少次"（k ≥ log<sub>2</sub>(1/ε)）。</li>
+  <li>能够<b>写出</b>主元素判定的 C++ 实现并分析其时间复杂度。</li>
+</ol></div>
+
+<div class="card">
+  <div class="cells" id="arr"></div>
+  <div class="toolbar">
+    <button class="btn primary" id="run">随机抽 8 次</button>
+    <button class="btn" id="reshuf">换数组</button>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>命中主元次数</span><b class="green" id="hits">0</b></div>
+    <div class="stat"><span>理论错误上界</span><b class="amber" id="bound">2⁻⁸</b></div>
+  </div>
+  <div class="log" id="log">主元素 = 出现超过 n/2 次的值（此处为 7）。</div>
+  <div class="tip">MC：时间稳、可能错；重复独立试验使错误概率指数下降。</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>主元素问题的正式定义</h2><span class="sub">majority element</span></div>
+<div class="defn"><span class="lbl">定义 · 主元素</span><p>设 T[0..n−1] 是含 n 个元素的数组。若某个值 x 在 T 中出现的次数<b>严格大于 n/2</b>，则称 x 为 T 的<b>主元素</b>（majority element）。<br/>两个直接推论：① 主元素<b>至多只有一个</b>（若有两个，出现次数之和 &gt; n，矛盾）；② 若随机抽取一个位置 i，则 T[i] 恰为主元素的概率 <b>&gt; 1/2</b>（因为主元素占据了超过一半的位置）。<br/><b>判定问题</b>：给定 T，判断"T 中是否存在主元素"。</p></div>
+<div class="defn"><span class="lbl">算法 · 随机抽样判定</span><p><b>majority(T, n)</b>：随机取 i ∈ {0,…,n−1}，令 x = T[i]；扫描一遍统计 x 的出现次数 c；若 c &gt; n/2 返回 <b>true</b>，否则返回 <b>false</b>。<br/>时间为 O(n)——<b>确定</b>，与随机结果无关；空间 O(1)。</p></div>
+<div class="defn prop"><span class="lbl">正确性分析</span><p><b>情形 A：T 无主元素。</b>则任何 x 的出现次数都 ≤ n/2，算法必然返回 false，<b>永不出错</b>。<br/><b>情形 B：T 有主元素 m。</b>若抽中的 T[i] = m（概率 &gt; 1/2），则 c &gt; n/2，返回 true，<b>正确</b>；若抽中的是非主元素（概率 &lt; 1/2），则 c ≤ n/2，返回 false，<b>出错（漏报）</b>。<br/>综上：算法<b>返回 true 时一定正确</b>；<b>只有返回 false 时才可能出错</b>，且出错概率 &lt; 1/2。故它是 <b>1/2-正确</b>的，优势为 2×(1/2) − 1 = 0（是"临界"的偏向型算法，靠重复来放大）。</p></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>偏真与偏假：蒙特卡罗算法的两种偏向</h2><span class="sub">本页演示的是偏真型 —— 这个区分是本节的核心概念</span></div>
+<div class="defn"><span class="lbl">定义 · 偏真蒙特卡罗算法</span><p><b>偏真</b>（true-biased）蒙特卡罗算法：对任意实例，若算法返回 <b>true</b>，则答案<b>一定</b>是 true（<b>无假阳性</b>，no false positive）；只有返回 false 时才可能出错（可能漏掉一个真实的"是"）。<br/>形式化：Pr[输出 true | 真答案为 false] = 0，Pr[输出 false | 真答案为 true] ≤ ε。<br/><b>本页的主元素算法正是偏真型</b>：它只在"亲眼数到某元素出现 &gt; n/2 次"时才说 true，这是<b>铁证</b>，不可能错。</p></div>
+<div class="defn"><span class="lbl">定义 · 偏假蒙特卡罗算法</span><p><b>偏假</b>（false-biased）蒙特卡罗算法：若算法返回 <b>false</b>，则答案<b>一定</b>是 false（<b>无假阴性</b>）；只有返回 true 时才可能出错。<br/>典型例子：<b>Miller-Rabin 素性测试</b>的"合数"侧——算法找到一个证据（witness）就断言 n 是合数，这个断言必然正确；但它说"n 是素数"时，n 有可能是伪素数（对该底数恰好通过测试的合数）。以"n 是素数吗？"为判定问题来看，Miller-Rabin 就是<b>偏假</b>的。<br/>另一例：<b>矩阵乘积验证</b>（Freivalds 算法）判断 A×B = C 是否成立——找到随机向量 r 使 A(Br) ≠ Cr 就断定"不相等"，此断言必对；说"相等"则可能错。</p></div>
+<div class="defn thm"><span class="lbl">为什么"偏向"如此重要</span><p>因为<b>只有单侧出错的算法才能靠简单重复把错误率指数压低</b>。<br/>偏真型：重复 k 次，只要<b>有任何一次</b>返回 true，就立即断定答案为 true（因为 true 是铁证）；只有 <b>k 次全部返回 false</b> 才输出 false。于是"输出 false 却错了"要求 k 次全部漏报，概率 ≤ (1/2)<sup>k</sup>。<br/>偏假型对称：k 次里只要有一次返回 false 就输出 false；全 true 才输出 true。<br/>若算法<b>双侧都可能错</b>（如 BPP 型），就不能这样"一票否决"，必须改用<b>多数表决</b>（majority vote），错误率仍指数下降但需要 Chernoff 界来证明，常数更差。</p></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>类型</th><th>返回 true 时</th><th>返回 false 时</th><th>k 次重复的综合规则</th><th>例子</th></tr>
+  <tr><td><b>偏真</b> true-biased</td><td class="hl">一定正确</td><td>可能错（漏报）</td><td>任一次 true ⟹ 输出 true；全 false 才输出 false</td><td>主元素判定（本节）</td></tr>
+  <tr><td><b>偏假</b> false-biased</td><td>可能错（误报）</td><td class="hl">一定正确</td><td>任一次 false ⟹ 输出 false；全 true 才输出 true</td><td>Miller-Rabin 素性测试、Freivalds 验证</td></tr>
+  <tr><td><b>双侧偏差</b> two-sided</td><td>可能错</td><td>可能错</td><td>k 次结果<b>多数表决</b></td><td>一般的 BPP 类算法</td></tr>
+</table></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>错误率推导：从 1/2 到 2<sup>−k</sup></h2><span class="sub">本章最核心的一条推导</span></div>
+<div class="deriv">
+<span class="step">设 T 确有主元素 m，其出现次数 c(m) &gt; n/2 <span class="why">只有这种情形才可能出错</span></span>
+<span class="step">① 单次调用随机抽到位置 i，抽中主元素的概率</span>
+<span class="step">&nbsp;&nbsp;&nbsp;p = c(m)/n &gt; (n/2)/n = <b>1/2</b> <span class="why">主元素占位超过一半</span></span>
+<span class="step">② 故单次调用<b>失败</b>（抽中非主元素、返回 false）的概率</span>
+<span class="step">&nbsp;&nbsp;&nbsp;q = 1 − p &lt; 1 − 1/2 = <b>1/2</b> <span class="why">单次错误率 ≤ 1/2</span></span>
+<span class="step">③ 独立重复调用 k 次（每次<b>重新</b>抽取随机位置，随机位互相独立）</span>
+<span class="step">④ 因偏真性："输出 false 却错了" ⟺ <b>k 次全部失败</b> <span class="why">任何一次 true 都会立刻正确终止</span></span>
+<span class="step">⑤ 由独立性，联合概率等于各次概率之积：</span>
+<span class="step">&nbsp;&nbsp;&nbsp;Pr[k 次全错] = q<sup>k</sup> &lt; (1/2)<sup>k</sup> = <b>2<sup>−k</sup></b> <span class="why">指数下降</span></span>
+<span class="step">⑥ 而"输出 true 却错了"的概率恒为 <b>0</b>（偏真，无假阳性）</span>
+<span class="step">∴ 重复 k 次的算法是 <b>(1 − 2<sup>−k</sup>)-正确</b>的，时间仍为 O(k·n)，<b>确定</b> ∎</span>
+</div>
+<div class="formula lg">Pr[错误] ≤ 2<sup>−k</sup>　　⟹　　欲使 Pr[错误] ≤ ε，取 <b>k ≥ log<sub>2</sub>(1/ε)</b></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>重复次数 k</th><th>错误率上界 2<sup>−k</sup></th><th>直观对照</th><th>总时间</th></tr>
+  <tr><td>1</td><td>1/2 = 50%</td><td>相当于抛硬币</td><td>O(n)</td></tr>
+  <tr><td>8</td><td class="hl">2<sup>−8</sup> ≈ 0.39%</td><td>本页演示的设定</td><td>O(8n)</td></tr>
+  <tr><td>20</td><td>2<sup>−20</sup> ≈ 10<sup>−6</sup></td><td>百万分之一</td><td>O(20n)</td></tr>
+  <tr><td>60</td><td class="hl">2<sup>−60</sup> ≈ 8.7 × 10<sup>−19</sup></td><td>远低于硬件随机故障率</td><td>O(60n)</td></tr>
+  <tr><td>100</td><td>2<sup>−100</sup> ≈ 10<sup>−30</sup></td><td>实践中等同于"绝不出错"</td><td>O(100n)</td></tr>
+</table></div>
+<div class="tip info"><strong>注意错误率的下降有多"便宜"：</strong>k 是<b>线性</b>地增加时间，错误率却是<b>指数</b>地下降。只要付出 60 倍的常数代价，错误概率就低于计算机内存自发翻转比特的概率——此时再纠结"算法可能出错"已无实际意义。这与 §02 数值概率算法"多一位精度要多 100 倍时间"形成鲜明对比：<b>压错误率很便宜，提精度很贵</b>。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>C++ 实现</h2><span class="sub">单次判定 + k 次放大</span></div>
+<div class="code"><span class="cm">// ① 单次蒙特卡罗判定：随机抽一个元素，数它出现多少次</span>
+<span class="cm">// 时间 O(n)（确定），空间 O(1)</span>
+<span class="cm">// 偏真：返回 true 一定正确；返回 false 时错误概率 &lt; 1/2</span>
+<span class="kw">bool</span> <span class="fn">majorityOnce</span>(<span class="kw">int</span> T[], <span class="kw">int</span> n) {
+    <span class="kw">int</span> i = <span class="fn">rand</span>() % n;          <span class="cm">// 唯一的随机点</span>
+    <span class="kw">int</span> x = T[i], c = <span class="nu">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> j = <span class="nu">0</span>; j &lt; n; ++j)
+        <span class="kw">if</span> (T[j] == x) ++c;      <span class="cm">// 亲自数一遍 —— 这就是 true 为铁证的原因</span>
+    <span class="kw">return</span> c &gt; n / <span class="nu">2</span>;            <span class="cm">// 注意是严格大于</span>
+}
+
+<span class="cm">// ② 概率放大（amplification）：独立重复 k 次</span>
+<span class="cm">// 偏真型的综合规则：任一次 true 立刻返回 true；全 false 才返回 false</span>
+<span class="cm">// 时间 O(k·n)（确定），错误率 &lt; 2^(-k)</span>
+<span class="kw">bool</span> <span class="fn">majorityMC</span>(<span class="kw">int</span> T[], <span class="kw">int</span> n, <span class="kw">int</span> k) {
+    <span class="kw">for</span> (<span class="kw">int</span> t = <span class="nu">0</span>; t &lt; k; ++t)
+        <span class="kw">if</span> (<span class="fn">majorityOnce</span>(T, n)) <span class="kw">return</span> <span class="kw">true</span>;   <span class="cm">// 铁证，可立即结论</span>
+    <span class="kw">return</span> <span class="kw">false</span>;                <span class="cm">// k 次全没抽中 —— 可能漏，概率 &lt; 2^(-k)</span>
+}
+
+<span class="cm">// ③ 按目标错误率 eps 自动确定 k：k = ceil(log2(1/eps))</span>
+<span class="kw">bool</span> <span class="fn">majorityEps</span>(<span class="kw">int</span> T[], <span class="kw">int</span> n, <span class="kw">double</span> eps) {
+    <span class="kw">int</span> k = (<span class="kw">int</span>)<span class="fn">ceil</span>(<span class="fn">log2</span>(<span class="nu">1.0</span> / eps));
+    <span class="kw">return</span> <span class="fn">majorityMC</span>(T, n, k);
+}
+
+<span class="cm">// 【对照】确定性解法：Boyer-Moore 摩尔投票，O(n) 时间 O(1) 空间且绝不出错</span>
+<span class="cm">// 说明蒙特卡罗并非此题的最佳解 —— 本题只是用来演示"错误率放大"这一技术</span>
+<span class="kw">bool</span> <span class="fn">majorityExact</span>(<span class="kw">int</span> T[], <span class="kw">int</span> n) {
+    <span class="kw">int</span> cand = T[<span class="nu">0</span>], cnt = <span class="nu">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> j = <span class="nu">0</span>; j &lt; n; ++j) {          <span class="cm">// 第一遍：抵消，选出候选</span>
+        <span class="kw">if</span> (cnt == <span class="nu">0</span>) { cand = T[j]; cnt = <span class="nu">1</span>; }
+        <span class="kw">else</span> cnt += (T[j] == cand) ? <span class="nu">1</span> : -<span class="nu">1</span>;
+    }
+    <span class="kw">int</span> c = <span class="nu">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> j = <span class="nu">0</span>; j &lt; n; ++j) <span class="kw">if</span> (T[j] == cand) ++c;  <span class="cm">// 第二遍：验证</span>
+    <span class="kw">return</span> c &gt; n / <span class="nu">2</span>;
+}</div>
+<div class="formula">单次 T(n) = O(n)　　k 次 T(n) = O(k·n)　　S(n) = O(1)　　错误率 &lt; 2<sup>−k</sup></div>
+<div class="terms">
+  <span class="term"><b>蒙特卡罗算法</b>Monte Carlo algorithm</span>
+  <span class="term"><b>主元素</b>majority element</span>
+  <span class="term"><b>偏真</b>true-biased</span>
+  <span class="term"><b>偏假</b>false-biased</span>
+  <span class="term"><b>假阳性</b>false positive</span>
+  <span class="term"><b>假阴性</b>false negative</span>
+  <span class="term"><b>概率放大</b>probability amplification</span>
+  <span class="term"><b>p-正确</b>p-correct</span>
+  <span class="term"><b>优势</b>advantage</span>
+</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>把 2<sup>−k</sup> 当成"任何情形下的错误率"。</b>它只是<b>"有主元素却输出 false"</b>这一侧的上界；另一侧（无主元素却输出 true）的概率是<b>严格的 0</b>。混为一谈就丢掉了"偏真"这个关键性质。</li>
+  <li><b>k 次重复时没有重新抽取随机数。</b>若复用同一个随机位置，k 次结果完全相同，错误率仍是 1/2，<b>独立性是指数下降的前提</b>。</li>
+  <li><b>把偏真型的综合规则写成"多数表决"。</b>偏真型应当"<b>一票通过</b>"（任一次 true 即输出 true）；改用多数表决反而更弱——k 次里 1 次 true、k−1 次 false，多数表决会错误地输出 false，而事实上那 1 次 true 已是铁证。</li>
+  <li><b>把 Miller-Rabin 说成"偏真"。</b>取决于判定问题怎么问。以"n 是合数吗？"提问它是偏真；以"n 是素数吗？"提问它是<b>偏假</b>。答题时务必先说清判定问题的方向。</li>
+  <li><b>写成 <code>c &gt;= n/2</code>。</b>主元素要求<b>严格大于</b> n/2；用 <code>&gt;=</code> 时 n 为偶数会把"恰好一半"误判为主元素。</li>
+  <li><b>认为蒙特卡罗算法的运行时间也是随机的。</b>不是——本算法无论抽中什么，都恰好扫描 k 遍数组，时间是<b>确定</b>的 O(kn)。时间随机的是拉斯维加斯（§04）。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li><b>主元素</b>：出现次数严格大于 n/2 的值，至多一个；随机抽一个位置抽中它的概率 &gt; 1/2。</li>
+  <li>随机抽样判定算法<b>时间确定</b> O(n)，<b>结果可能错</b>——这正是蒙特卡罗算法的标志。</li>
+  <li>它是<b>偏真</b>（true-biased）算法：返回 true 是亲自数出来的铁证，<b>一定正确</b>；只有返回 false 时才可能漏报。对称地，Miller-Rabin 素性测试在"n 是素数吗"这一提法下是<b>偏假</b>算法。</li>
+  <li>错误率推导：单次失败概率 q &lt; 1/2 ⟹ 独立重复 k 次全错的概率 &lt; (1/2)<sup>k</sup> = <b>2<sup>−k</sup></b>；欲达到错误率 ε 只需 <b>k ≥ log<sub>2</sub>(1/ε)</b>。</li>
+  <li><b>单侧偏差</b>是能靠"一票通过/一票否决"简单放大的前提；双侧偏差算法必须改用多数表决。</li>
+  <li>时间线性增长换错误率指数下降，代价极低——与 §02 数值概率"多一位精度花 100 倍时间"形成对比。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>本节的主元素随机判定算法，当它返回 <b>true</b> 时，结论的可靠性如何？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>有不超过 1/2 的概率是错的，需要重复验证</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>一定正确，因为算法是亲自扫描统计出"出现次数 &gt; n/2"的</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>有不超过 2<sup>−k</sup> 的概率是错的</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>可靠性取决于数组是否有序</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>算法返回 true 的<b>唯一途径</b>是完整扫描一遍、数到 x 出现次数确实 &gt; n/2——这是<b>直接验证</b>而非概率推断，因此绝无假阳性。这正是"<b>偏真</b>（true-biased）"的含义。A 和 C 把出错的那一侧搞反了：1/2 与 2<sup>−k</sup> 都是<b>返回 false 时</b>的错误率上界（漏报概率）。D 与随机化无关——算法对任意排列的数组行为相同，随机性来自算法内部抽样而非输入顺序。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>若希望主元素判定算法的错误概率不超过 0.1%（即 10<sup>−3</sup>），至少需要独立重复调用多少次？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>3 次</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>7 次</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>10 次</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>1000 次</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>错误率上界为 2<sup>−k</sup>，要求 2<sup>−k</sup> ≤ 10<sup>−3</sup>，即 k ≥ log<sub>2</sub>(1000) ≈ 9.97，取 <b>k = 10</b>（2<sup>−10</sup> = 1/1024 ≈ 0.098% ≤ 0.1% ✓；而 k = 9 时 2<sup>−9</sup> ≈ 0.195% &gt; 0.1% ✗）。A 是误把关系当成线性（以为 3 次就到千分之一）；B 对应 2<sup>−7</sup> ≈ 0.78%，还差一个数量级；D 把"错误率 10<sup>−3</sup>"直接当成了重复次数，忽略了<b>指数</b>下降这一核心——正因为是指数下降，只需 10 次而非 1000 次，这才是概率放大技术真正的威力所在。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>关于偏真（true-biased）与偏假（false-biased）蒙特卡罗算法，下列说法<b>正确</b>的是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>两者本质相同，只是叫法不同，都可以用多数表决放大</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>偏真算法返回 false 时一定正确，返回 true 时可能错</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>偏假算法一旦返回 false 便可立即断定答案为 false，只有 k 次全部返回 true 时才输出 true</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>蒙特卡罗算法必然是单侧偏差的，不存在双侧都可能出错的情形</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>C 正确——"偏假"意味着 <b>false 是铁证</b>（无假阴性），所以可以"一票否决"，只有全部 k 次都说 true 才输出 true。B 把偏真的定义<b>说反了</b>：偏真是 <b>true 一定对</b>、false 可能错（本节主元素算法即是）。A 错在两处：偏向的方向不同会导致<b>综合规则相反</b>（一票通过 vs 一票否决），且对单侧偏差算法用多数表决反而<b>更弱</b>——1 次 true、9 次 false 时多数表决会输出 false，可那 1 次 true 已经是铁证了。D 错——存在<b>双侧偏差</b>的蒙特卡罗算法（对应复杂性类 BPP），此时才必须用多数表决，并借助 Chernoff 界证明错误率仍指数下降。</div>
+</div>
+</div>
+
+<div class="page-nav"><a href="02-pi.html"><span class="dir">← 上一节</span><span class="name">求π</span></a><a href="04-vegas.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">拉斯维加斯</span></a></div>
+<div class="footer">算法设计与分析 · <b>第12章 概率算法和近似算法</b> · 强交互可视化版<br/>随机 · 近似 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(156,116,32,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+let a=[7,3,7,7,2,7,1,7,7,4,7,5,7];
+function show(hi=-1, mode=''){
+  arr.innerHTML=a.map((v,j)=>`<div class="cell ${j===hi?(mode||'on'):''}">${v}</div>`).join('');
+}
+show();
+run.onclick=async()=>{
+  let lines=[], h=0;
+  for(let t=0;t<8;t++){
+    const i=Math.floor(Math.random()*a.length), cand=a[i];
+    const cnt=a.filter(x=>x===cand).length, ok=cnt>a.length/2;
+    if(ok) h++;
+    show(i, ok?'hit':'dead');
+    lines.push(`#${t+1} 抽 a[${i}]=${cand} 出现 ${cnt} 次 ${ok?'✓ 主元':'✗'}`);
+    log.textContent=lines.join('\\n'); hits.textContent=h; await sleep(400);
+  }
+  lines.push(`8 次中命中主元 ${h} 次 · 若每次失败概率≤1/2，则全错 ≤ 2⁻⁸`);
+  log.textContent=lines.join('\\n'); bound.textContent='≤ 2⁻⁸';
+};
+reshuf.onclick=()=>{
+  const maj=5+Math.floor(Math.random()*5);
+  a=Array.from({length:13},(_,i)=> i<8?maj:Math.floor(Math.random()*9));
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  show(); log.textContent='新数组主元约为 '+maj+'（出现>6次）'; hits.textContent='0';
+};
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

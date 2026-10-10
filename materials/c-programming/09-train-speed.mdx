@@ -1,0 +1,100 @@
+---
+module: 2
+moduleName: 分支结构
+order: 9
+title: 轨道交通车速分级预警
+level: 进阶选做
+scene: 信创场景
+knowledge: [switch-case, 多级阈值判定]
+stars: 3
+minutes: 80
+goal: 掌握多分支分级处理方法
+sizheng: 中国城轨里程世界第一的背后，是每一级预警阈值的严守
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import TrainSpeedLab from '../../components/react/TrainSpeedLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：换一种方式写多分支
+
+车速预警要分四档：平稳（0-39）、注意（40-59）、预警（60-79）、制动（≥80）。用 `else if` 链当然能写，但当分档规则是**等宽区间**时，C 语言还有一个更优雅的工具：
+
+```c
+int level = speed / 20;   /* 整数除法：55/20 = 2 */
+switch (level) { ... }
+```
+
+先用**整数除法**把连续的车速"压缩"成离散的档位号（0、1、2、3…），再用 `switch-case` 按档号分发——这是嵌入式状态处理的经典范式。模块一里整数除法是"陷阱"（丢小数），这里又变成了"工具"（天然分档）。
+
+## 一步一步看 switch 分发
+
+<CStepRunner
+  client:visible
+  title="分支执行模拟：speed=55 落在哪一档？"
+  badge="switch 分发模拟"
+  doneNote="switch 按档号直接跳转到命中的 case，执行到 break 跳出。case 0 和 case 1 共用分支（贯穿），其余分支被完全跳过。"
+  code={`#include <stdio.h>
+
+int main(void) {
+    int speed = 55;
+    int level = speed / 20;
+    switch (level) {
+    case 0:
+    case 1:
+        printf("绿色:平稳运行\\n");
+        break;
+    case 2:
+        printf("黄色:注意车速\\n");
+        break;
+    default:
+        printf("红色:超速制动\\n");
+        break;
+    }
+    return 0;
+}`}
+  steps={[
+    { line: 3, desc: '当前车速 55 km/h。', vars: { speed: '55' } },
+    { line: 4, desc: '整数除法 55/20 = 2（余 15 丢弃）——连续车速被压缩成档号 2。', vars: { speed: '55', level: '2' } },
+    { line: 5, desc: 'switch 拿着 level=2 找匹配的 case：case 0？不是。case 1？不是。case 2？命中！', vars: { speed: '55', level: '2' } },
+    { line: 11, desc: '直接跳转到 case 2 的语句。注意 case 0/case 1 的绿色分支被整体跳过。', vars: { speed: '55', level: '2' } },
+    { line: 12, desc: '输出黄色预警。', out: '黄色:注意车速' },
+    { line: 13, desc: 'break！立即跳出 switch——没有它，程序会"贯穿"继续执行 default 的代码。', vars: { speed: '55', level: '2' } },
+    { line: 18, desc: 'return 0。一次分发，只执行一个分支。' },
+  ]}
+/>
+
+> **switch vs else-if 怎么选**：判据是**离散等值匹配**（档号、命令码、状态码）用 switch，清晰且编译器可优化成跳转表；判据是**区间/复合条件**用 else-if。本项目先用除法把区间变成离散值，正是为了用上 switch。
+
+## 动手实验：推油门，看四色预警
+
+<TrainSpeedLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：读入车速（int），完成四档判定。故意删掉一个 `break` 编译运行，观察"贯穿"现象——这是最好的反面教材。
+2. **AI 优化进阶版**：让 AI 增加负数车速与超范围（>200）的校验，并为每档增加建议时速差值输出。审查它的 default 分支处理了几种情况？"档号 4 和档号 5"都落进 default 合理吗？
+3. **信创加固定稿版**：档宽 20、限速 80 全部宏定义；增加"传感器故障"码（速度为 -1 时）优先于一切判定；思考 speed=79 和 80 之间的边界是否与需求文档一致。
+
+## 素养与思政
+
+截至 2024 年，中国城市轨道交通运营里程超过 1.1 万公里，居世界第一；列车自动防护系统（ATP）每 200 毫秒就要完成一次超速判定。
+本项目的四色预警只是玩具，但它的骨架——**阈值分级、超限即断、防护优先**——与真实 ATP 的安全逻辑一脉相承。安全不是一句口号，是每一个 `break` 都不缺席的严谨。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="switch 的某个 case 忘写 break 会发生什么？"
+  options={['编译报错', '该 case 执行后继续『贯穿』执行下一个 case 的代码', '程序崩溃', '自动跳出 switch']}
+  answer={1}
+  explain="贯穿（fallthrough）是合法语法——本项目 case 0/case 1 共用分支正是故意利用它。但无意的贯穿是经典 bug 来源，所以每个分支末尾的 break 要当成默认习惯。"
+/>
+
+<QuizItem
+  client:visible
+  question="speed=79 时 level=79/20 的值是？"
+  options={['3.95', '4', '3', '取决于编译器']}
+  answer={2}
+  explain="整数除法向零截断：79/20=3（余 19 丢弃）。79 km/h 落在橙色预警档，80 才进入红色——整除的截断特性天然实现了『左闭右开』区间。"
+/>

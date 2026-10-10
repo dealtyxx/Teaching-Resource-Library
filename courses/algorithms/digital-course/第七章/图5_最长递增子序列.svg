@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="780" viewBox="0 0 1400 780" font-family="'Noto Sans SC','Source Han Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif">
+<rect x="0" y="0" width="1400" height="780" fill="#f9f9f7"/>
+<defs>
+<marker id="arr" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#52514e"/>
+</marker>
+<marker id="arrB" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#2a78d6"/>
+</marker>
+<marker id="arrO" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#eb6834"/>
+</marker>
+<marker id="arrG" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#127a56"/>
+</marker>
+<marker id="arrM" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+  <path d="M1,1 L8,4.5 L1,8 Z" fill="#898781"/>
+</marker>
+</defs>
+<text x="700.0" y="60" font-size="36" fill="#0b0b0b" font-weight="700" text-anchor="middle"   >最长递增子序列 LIS</text>
+<text x="700.0" y="94" font-size="18" fill="#898781" font-weight="normal" text-anchor="middle"   >dp[i] = 以 a[i] 结尾的最长递增子序列长度（7.3）</text>
+<text x="1360" y="40" font-size="13" fill="#898781" font-weight="normal" text-anchor="end"   >算法设计与分析 · 第7章 动态规划</text>
+<rect x="40" y="128" width="496" height="604" fill="#ffffff" stroke="#e1e0d9" stroke-width="1.5" rx="16" opacity="1" />
+<text x="66" y="168" font-size="22" fill="#0b0b0b" font-weight="700" text-anchor="start"   >状态与转移</text>
+<rect x="64" y="188" width="448" height="52" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.2" rx="12" opacity="1" />
+<text x="80" y="210" font-size="13.5" fill="#1c5cab" font-weight="700" text-anchor="start"   >状态定义</text>
+<text x="80" y="230" font-size="13" fill="#0b0b0b" font-weight="700" text-anchor="start"   >dp[i] = 以 a[i] 结尾的最长递增子序列长度</text>
+<rect x="64" y="252" width="448" height="118" fill="#fbfbfa" stroke="#e1e0d9" stroke-width="1.2" rx="12" opacity="1" />
+<text x="80" y="278" font-size="13.5" fill="#0b0b0b" font-weight="700" text-anchor="start"   >转移思路</text>
+<text x="80" y="302" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   >初始 dp[i]=1（只含 a[i] 自己）。</text>
+<text x="80" y="324" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   >考察前面每个 a[j]（j&lt;i）：</text>
+<text x="96" y="346" font-size="12.5" fill="#127a56" font-weight="700" text-anchor="start"   >若 a[j] &lt; a[i]，可接在其后 →</text>
+<text x="96" y="364" font-size="12.5" fill="#127a56" font-weight="700" text-anchor="start"   font-family="ui-monospace,monospace">dp[i] = max(dp[i], dp[j]+1)</text>
+<text x="80" y="406" font-size="13" fill="#0b0b0b" font-weight="700" text-anchor="start"   >对每个 i 回看所有 j&lt;i：</text>
+<rect x="100" y="424" width="70" height="40" fill="#f0efec" stroke="#c3c2b7" stroke-width="1.3" rx="7" opacity="1" />
+<text x="135" y="449" font-size="13" fill="#52514e" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">a[j]</text>
+<text x="198" y="450" font-size="18" fill="#b0491d" font-weight="700" text-anchor="middle"   >&lt;</text>
+<rect x="226" y="424" width="70" height="40" fill="#e9f7f1" stroke="#127a56" stroke-width="1.6" rx="7" opacity="1" />
+<text x="261" y="449" font-size="13" fill="#127a56" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">a[i]</text>
+<path d="M 135 424 C 160 394, 236 394, 261 424" stroke="#127a56" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrG)" />
+<text x="198" y="390" font-size="12" fill="#127a56" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">dp[j]+1</text>
+<rect x="64" y="484" width="448" height="90" fill="#fdf1ec" stroke="#f3c1ac" stroke-width="1.3" rx="12" opacity="1" />
+<text x="80" y="512" font-size="14" fill="#b0491d" font-weight="700" text-anchor="start"   >状态转移方程</text>
+<text x="80" y="538" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">dp[i] = 1                    初始</text>
+<text x="80" y="560" font-size="12.5" fill="#0b0b0b" font-weight="700" text-anchor="start"   font-family="ui-monospace,monospace">dp[i] = max{ dp[j]+1 | a[j]&lt;a[i], j&lt;i }</text>
+<rect x="64" y="588" width="448" height="118" fill="#e9f7f1" stroke="#a9e0cb" stroke-width="1.3" rx="12" opacity="1" />
+<text x="80" y="616" font-size="14" fill="#127a56" font-weight="700" text-anchor="start"   >答案与复杂度</text>
+<text x="80" y="642" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   >ans = max{ dp[i] } = 最长递增子序列长度</text>
+<text x="80" y="666" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   >两重循环 → 时间 O(n²)，空间 O(n)。</text>
+<text x="80" y="690" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   >回推 dp 可得一个具体的最长递增子序列。</text>
+<rect x="560" y="128" width="800" height="604" fill="#ffffff" stroke="#e1e0d9" stroke-width="1.5" rx="16" opacity="1" />
+<text x="586" y="168" font-size="22" fill="#0b0b0b" font-weight="700" text-anchor="start"   >示例</text>
+<text x="642" y="167" font-size="14" fill="#898781" font-weight="normal" text-anchor="start"   >a = {2,1,5,3,6,4,8,9,7}，n=9</text>
+<text x="592" y="305" font-size="15" fill="#0b0b0b" font-weight="700" text-anchor="start"   font-family="ui-monospace,monospace">a</text>
+<text x="588" y="381" font-size="15" fill="#1c5cab" font-weight="700" text-anchor="start"   font-family="ui-monospace,monospace">dp</text>
+<path d="M 730 272 C 740 224, 880 224, 890 272" stroke="#127a56" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrG)" />
+<path d="M 890 272 C 900 224, 1040 224, 1050 272" stroke="#127a56" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrG)" />
+<path d="M 1050 272 C 1060 224, 1120 224, 1130 272" stroke="#127a56" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrG)" />
+<path d="M 1130 272 C 1140 224, 1200 224, 1210 272" stroke="#127a56" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrG)" />
+<text x="970.0" y="220" font-size="12.5" fill="#127a56" font-weight="700" text-anchor="middle"   >一个最长递增子序列 {1, 3, 4, 8, 9} → 长度 5</text>
+<rect x="616" y="278" width="68" height="44" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1.2" rx="7" opacity="1" />
+<text x="650" y="307" font-size="17" fill="#52514e" font-weight="700" text-anchor="middle"   >2</text>
+<rect x="616" y="354" width="68" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="7" opacity="1" />
+<text x="650" y="383" font-size="17" fill="#1c5cab" font-weight="700" text-anchor="middle"   >1</text>
+<text x="650" y="342" font-size="11" fill="#898781" font-weight="600" text-anchor="middle"   >0</text>
+<rect x="696" y="278" width="68" height="44" fill="#e9f7f1" stroke="#127a56" stroke-width="1.8" rx="7" opacity="1" />
+<text x="730" y="307" font-size="17" fill="#127a56" font-weight="700" text-anchor="middle"   >1</text>
+<rect x="696" y="354" width="68" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="7" opacity="1" />
+<text x="730" y="383" font-size="17" fill="#1c5cab" font-weight="700" text-anchor="middle"   >1</text>
+<text x="730" y="342" font-size="11" fill="#898781" font-weight="600" text-anchor="middle"   >1</text>
+<rect x="776" y="278" width="68" height="44" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1.2" rx="7" opacity="1" />
+<text x="810" y="307" font-size="17" fill="#52514e" font-weight="700" text-anchor="middle"   >5</text>
+<rect x="776" y="354" width="68" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="7" opacity="1" />
+<text x="810" y="383" font-size="17" fill="#1c5cab" font-weight="700" text-anchor="middle"   >2</text>
+<text x="810" y="342" font-size="11" fill="#898781" font-weight="600" text-anchor="middle"   >2</text>
+<rect x="856" y="278" width="68" height="44" fill="#e9f7f1" stroke="#127a56" stroke-width="1.8" rx="7" opacity="1" />
+<text x="890" y="307" font-size="17" fill="#127a56" font-weight="700" text-anchor="middle"   >3</text>
+<rect x="856" y="354" width="68" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="7" opacity="1" />
+<text x="890" y="383" font-size="17" fill="#1c5cab" font-weight="700" text-anchor="middle"   >2</text>
+<text x="890" y="342" font-size="11" fill="#898781" font-weight="600" text-anchor="middle"   >3</text>
+<rect x="936" y="278" width="68" height="44" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1.2" rx="7" opacity="1" />
+<text x="970" y="307" font-size="17" fill="#52514e" font-weight="700" text-anchor="middle"   >6</text>
+<rect x="936" y="354" width="68" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="7" opacity="1" />
+<text x="970" y="383" font-size="17" fill="#1c5cab" font-weight="700" text-anchor="middle"   >3</text>
+<text x="970" y="342" font-size="11" fill="#898781" font-weight="600" text-anchor="middle"   >4</text>
+<rect x="1016" y="278" width="68" height="44" fill="#e9f7f1" stroke="#127a56" stroke-width="1.8" rx="7" opacity="1" />
+<text x="1050" y="307" font-size="17" fill="#127a56" font-weight="700" text-anchor="middle"   >4</text>
+<rect x="1016" y="354" width="68" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="7" opacity="1" />
+<text x="1050" y="383" font-size="17" fill="#1c5cab" font-weight="700" text-anchor="middle"   >3</text>
+<text x="1050" y="342" font-size="11" fill="#898781" font-weight="600" text-anchor="middle"   >5</text>
+<rect x="1096" y="278" width="68" height="44" fill="#e9f7f1" stroke="#127a56" stroke-width="1.8" rx="7" opacity="1" />
+<text x="1130" y="307" font-size="17" fill="#127a56" font-weight="700" text-anchor="middle"   >8</text>
+<rect x="1096" y="354" width="68" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="7" opacity="1" />
+<text x="1130" y="383" font-size="17" fill="#1c5cab" font-weight="700" text-anchor="middle"   >4</text>
+<text x="1130" y="342" font-size="11" fill="#898781" font-weight="600" text-anchor="middle"   >6</text>
+<rect x="1176" y="278" width="68" height="44" fill="#e9f7f1" stroke="#127a56" stroke-width="1.8" rx="7" opacity="1" />
+<text x="1210" y="307" font-size="17" fill="#127a56" font-weight="700" text-anchor="middle"   >9</text>
+<rect x="1176" y="354" width="68" height="44" fill="#fdeef4" stroke="#b3406e" stroke-width="2" rx="7" opacity="1" />
+<text x="1210" y="383" font-size="17" fill="#b3406e" font-weight="700" text-anchor="middle"   >5</text>
+<text x="1210" y="342" font-size="11" fill="#898781" font-weight="600" text-anchor="middle"   >7</text>
+<rect x="1256" y="278" width="68" height="44" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1.2" rx="7" opacity="1" />
+<text x="1290" y="307" font-size="17" fill="#52514e" font-weight="700" text-anchor="middle"   >7</text>
+<rect x="1256" y="354" width="68" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="7" opacity="1" />
+<text x="1290" y="383" font-size="17" fill="#1c5cab" font-weight="700" text-anchor="middle"   >4</text>
+<text x="1290" y="342" font-size="11" fill="#898781" font-weight="600" text-anchor="middle"   >8</text>
+<rect x="600" y="448" width="720" height="96" fill="#fbfbfa" stroke="#e1e0d9" stroke-width="1.3" rx="12" opacity="1" />
+<text x="618" y="476" font-size="14" fill="#0b0b0b" font-weight="700" text-anchor="start"   >一步转移：求 dp[6]（a[6]=8）</text>
+<text x="618" y="502" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">回看 j=0..5 中 a[j]&lt;8 的位置，取最大 dp[j]：dp[4]=3（a=6）</text>
+<text x="618" y="526" font-size="13.5" fill="#127a56" font-weight="700" text-anchor="start"   font-family="ui-monospace,monospace">dp[6] = 3 + 1 = 4</text>
+<rect x="600" y="556" width="720" height="148" fill="#f6f4fb" stroke="#cbc4ee" stroke-width="1.3" rx="12" opacity="1" />
+<text x="618" y="584" font-size="14" fill="#4a3aa7" font-weight="700" text-anchor="start"   >核心双重循环</text>
+<text x="618" y="610" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">for(int i=0;i&lt;n;i++){</text>
+<text x="618" y="631" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">  dp[i]=1;</text>
+<text x="618" y="652" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">  for(int j=0;j&lt;i;j++)</text>
+<text x="618" y="673" font-size="12.5" fill="#4a3aa7" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">    if(a[i]&gt;a[j]) dp[i]=max(dp[i], dp[j]+1);</text>
+<text x="618" y="694" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">}  // ans = max(dp)</text>
+</svg>

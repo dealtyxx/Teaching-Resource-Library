@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第9章 图算法 · 算法互动课堂</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/common.css">
+</head>
+<body data-chapter="ch09">
+<button class="menu-toggle" onclick="toggleSidebar()" aria-label="菜单">☰</button>
+
+<div class="app-shell">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <a href="../index.html">
+      <div class="logo"><span>AD</span>算法互动课堂</div>
+      <div class="sub">玩中学 · 看见算法</div>
+    </a>
+  </div>
+  <div class="nav-section">本页导航</div>
+  <a class="nav-link toc" href="#s1">开场</a>
+<a class="nav-link toc" href="#s2">概念</a>
+<a class="nav-link toc" href="#s3">Prim</a>
+<a class="nav-link toc" href="#s4">Dijkstra</a>
+<a class="nav-link toc" href="#s5">Kruskal</a>
+<a class="nav-link toc" href="#s6">双测</a>
+  <div class="nav-section">全部章节</div>
+  <a class="nav-link" href="ch01-intro.html"><span class="dot"></span>🚀 01 绪论</a>
+<a class="nav-link" href="ch02-recursion.html"><span class="dot"></span>🪞 02 递归</a>
+<a class="nav-link" href="ch03-brute.html"><span class="dot"></span>🔍 03 穷举法</a>
+<a class="nav-link" href="ch04-divide.html"><span class="dot"></span>⚔️ 04 分治法</a>
+<a class="nav-link" href="ch05-backtrack.html"><span class="dot"></span>♟️ 05 回溯法</a>
+<a class="nav-link" href="ch06-branch.html"><span class="dot"></span>🗺️ 06 分支限界</a>
+<a class="nav-link" href="ch07-dp.html"><span class="dot"></span>💎 07 动态规划</a>
+<a class="nav-link" href="ch08-greedy.html"><span class="dot"></span>🎯 08 贪心法</a>
+<a class="nav-link active" href="ch09-graph.html"><span class="dot"></span>🕸️ 09 图算法</a>
+<a class="nav-link" href="ch10-geometry.html"><span class="dot"></span>📐 10 计算几何</a>
+<a class="nav-link" href="ch11-complexity.html"><span class="dot"></span>🌌 11 计算复杂性</a>
+<a class="nav-link" href="ch12-prob-approx.html"><span class="dot"></span>🎲 12 概率与近似</a>
+  <div class="nav-section">返回</div>
+  <a class="nav-link" href="../index.html">🏠 课程大厅</a>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a href="../index.html">课程大厅</a> <span>/</span>
+      <span>第9章 图算法</span>
+    </div>
+    <span class="badge badge-fun">🎮 互动课堂</span>
+  </div>
+  <div class="progress-track" title="阅读进度"><div class="fill"></div></div>
+  
+  <div class="card card-hero fade-in" data-section="s1" id="s1">
+    <span class="hero-emoji">🕸️</span>
+    <span class="badge badge-purple" style="margin-left:.5rem">第9章 · 图算法</span>
+    <h1 style="margin-top:.6rem">树在图上「长」出来</h1>
+    <p style="color:var(--text-dim);margin-top:.7rem;font-size:1.02rem">
+      <strong>最小生成树</strong>用 n−1 条最划算的边连通全图；
+      <strong>最短路径</strong>找从源点出发的最小权路径。两者都是图上的贪心思想典范。
+    </p>
+    <div class="card-grid" style="margin-top:1.2rem">
+      <div class="metric"><div class="num">Prim</div><div class="label">稠密图 O(n²)</div></div>
+      <div class="metric"><div class="num">Kruskal</div><div class="label">稀疏图 + 并查集</div></div>
+      <div class="metric"><div class="num">Dijkstra</div><div class="label">非负权最短路</div></div>
+    </div>
+  </div>
+  <div class="fun-tip">
+    <div class="avatar">🌲</div>
+    <div class="bubble"><strong>助教：</strong>Prim 像「种树」：U 集合不断扩张；Kruskal 像「按价买边」：便宜且不成环就买。</div>
+  </div>
+
+  <section data-section="s2" id="s2">
+    <h2>核心直觉 · 翻转卡</h2>
+    <div class="flip-grid">
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">🌲</div>MST</div>
+        <div class="flip-back">连通 + 无环 + 总权最小</div>
+      </div></div>
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">✂️</div>割性质</div>
+        <div class="flip-back">跨越割的轻边一定在某棵 MST 中</div>
+      </div></div>
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">🔗</div>并查集</div>
+        <div class="flip-back">Kruskal 用 Find 判是否同连通块</div>
+      </div></div>
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">🚫</div>负权</div>
+        <div class="flip-back">Dijkstra 不能处理负权边</div>
+      </div></div>
+    </div>
+  </section>
+
+  <section data-section="s3" id="s3">
+    <h2>Prim · 生成树生长动画 🌱</h2>
+    <div class="demo-panel">
+      <div class="demo-header">
+        <h3><span class="pulse"></span> 从顶点 0 发芽</h3>
+        <div class="demo-controls" style="margin:0">
+          <div class="speed-chips" id="primSpeed">
+            <button data-speed="900">慢</button>
+            <button data-speed="500" class="on">中</button>
+            <button data-speed="200">快</button>
+          </div>
+          <button class="btn btn-primary" id="primRun">生长！</button>
+          <button class="btn" id="primStep">单步</button>
+          <button class="btn" id="primReset">重置</button>
+        </div>
+      </div>
+      <div class="demo-body">
+        <canvas id="primCv" width="580" height="380" style="width:100%;max-width:580px;height:auto;display:block;margin:0 auto;background:#060a14;border-radius:14px;border:1px solid var(--border)"></canvas>
+        <div class="status-bar" id="primStatus">每次从割集 (U, V−U) 选权最小的边加入</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-section="s4" id="s4">
+    <h2>Dijkstra · 最短路「尘埃落定」</h2>
+    <div class="demo-panel">
+      <div class="demo-header">
+        <h3><span class="pulse"></span> 源点 0 · dist 松弛</h3>
+        <button class="btn btn-primary" id="dijRun">运行 Dijkstra</button>
+        <button class="btn" id="dijReset">重置</button>
+      </div>
+      <div class="demo-body">
+        <canvas id="dijCv" width="580" height="380" style="width:100%;max-width:580px;height:auto;display:block;margin:0 auto;background:#060a14;border-radius:14px;border:1px solid var(--border)"></canvas>
+        <div class="array-row" id="dijDist" style="margin-top:.8rem"></div>
+        <div class="status-bar" id="dijStatus">黄=源点 · 蓝=正在确定 · 绿=已确定。下方为 dist[]</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-section="s5" id="s5">
+    <h2>Kruskal 三步走</h2>
+    <div class="steps">
+      <div class="step"><div class="step-body">所有边按权值<strong>升序</strong>排序</div></div>
+      <div class="step"><div class="step-body">依次取边：两端不在同一连通分量（并查集）则加入 MST</div></div>
+      <div class="step"><div class="step-body">取满 n−1 条边停止 · 时间主要在排序 O(e log e)</div></div>
+    </div>
+  </section>
+
+  <section data-section="s6" id="s6">
+    <h2>挑战测验</h2>
+    <div class="challenge-bar"><div class="title">🏆 第9章挑战</div></div>
+    <div class="quiz-card" data-quiz id="q9a" data-xp="40">
+      <span class="q-badge">Q1 · +40XP</span>
+      <p style="font-weight:700;margin:.6rem 0 .7rem">Kruskal 判断加边是否成环，通常用？</p>
+      <button class="quiz-option" data-correct="0">拓扑排序</button>
+      <button class="quiz-option" data-correct="1">并查集</button>
+      <button class="quiz-option" data-correct="0">栈</button>
+      <button class="quiz-option" data-correct="0">哈希表</button>
+      <div class="quiz-feedback callout callout-success" style="display:none;margin-top:.8rem">Find 两端是否同根即可 O(α(n))。</div>
+    </div>
+    <div class="quiz-card" data-quiz id="q9b" data-xp="40">
+      <span class="q-badge">Q2 · +40XP</span>
+      <p style="font-weight:700;margin:.6rem 0 .7rem">Dijkstra 算法的前提是？</p>
+      <button class="quiz-option" data-correct="1">边权非负</button>
+      <button class="quiz-option" data-correct="0">必须是有向无环图</button>
+      <button class="quiz-option" data-correct="0">边权必须全为 1</button>
+      <button class="quiz-option" data-correct="0">图必须是树</button>
+      <div class="quiz-feedback callout callout-success" style="display:none;margin-top:.8rem">有负权需 Bellman-Ford / SPFA。</div>
+    </div>
+  </section>
+
+  <div class="chapter-nav"><a href="ch08-greedy.html"><span class="dir">← 上一章</span><span class="name">🎯 第8章 贪心法</span></a><a href="ch10-geometry.html" style="text-align:right"><span class="dir">下一章 →</span><span class="name">📐 第10章 计算几何</span></a></div>
+
+</main>
+</div>
+<script src="../assets/common.js"></script>
+<script>
+
+const primSp=makeSpeed(500); primSp.bind(document.getElementById('primSpeed'));
+const POS=[[90,190],[210,70],[380,70],[500,190],[380,310],[210,310]];
+const EDGES=[[0,1,6],[0,5,5],[1,2,5],[1,5,3],[2,3,4],[2,4,3],[2,5,4],[3,4,5],[4,5,2]];
+// adjacency for dijkstra
+const nV=6;
+function adjList(){
+  const g=Array.from({length:nV},()=>[]);
+  EDGES.forEach(([u,v,w])=>{ g[u].push([v,w]); g[v].push([u,w]); });
+  return g;
+}
+
+let mst=[], U=new Set(), primSteps=[], primI=0;
+
+function drawGraph(cvId, hl=null, mstE=mst, doneSet=U, distLabel=null){
+  const cv=document.getElementById(cvId), ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  EDGES.forEach(([u,v,w])=>{
+    const inM=mstE.some(e=>(e[0]===u&&e[1]===v)||(e[0]===v&&e[1]===u));
+    const isH=hl&&((hl[0]===u&&hl[1]===v)||(hl[0]===v&&hl[1]===u));
+    ctx.strokeStyle=inM?'#34d399':(isH?'#fbbf24':'#334155');
+    ctx.lineWidth=inM||isH?3.5:1.5;
+    ctx.shadowColor=inM?'#34d399':'transparent'; ctx.shadowBlur=inM?12:0;
+    ctx.beginPath(); ctx.moveTo(POS[u][0],POS[u][1]); ctx.lineTo(POS[v][0],POS[v][1]); ctx.stroke();
+    ctx.shadowBlur=0;
+    const mx=(POS[u][0]+POS[v][0])/2, my=(POS[u][1]+POS[v][1])/2;
+    ctx.fillStyle='#94a3b8'; ctx.font='12px JetBrains Mono'; ctx.fillText(w, mx+4, my-4);
+  });
+  POS.forEach((p,i)=>{
+    const on=doneSet.has?doneSet.has(i):doneSet[i];
+    ctx.beginPath(); ctx.arc(p[0],p[1],22,0,Math.PI*2);
+    ctx.fillStyle=on?'#1e3a5f':'#1e2a48';
+    ctx.strokeStyle=on?'#7aa2ff':'#475569';
+    ctx.lineWidth=2.5; ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#fff'; ctx.font='bold 14px JetBrains Mono';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(i, p[0], p[1]-(distLabel?6:0));
+    if(distLabel){
+      const d=distLabel[i];
+      ctx.font='10px JetBrains Mono'; ctx.fillStyle='#ffc14d';
+      ctx.fillText(d>=1e8?'∞':d, p[0], p[1]+10);
+    }
+  });
+}
+
+function buildPrimSteps(){
+  const steps=[]; const UU=new Set([0]); const ME=[];
+  steps.push({U:new Set([0]), mst:[], hl:null, msg:'U={0} 发芽'});
+  for(let s=0;s<nV-1;s++){
+    let best=null,bw=1e9;
+    for(const [u,v,w] of EDGES){
+      if(UU.has(u)!==UU.has(v) && w<bw){ bw=w; best=[u,v,w]; }
+    }
+    if(!best) break;
+    steps.push({U:new Set(UU), mst:ME.slice(), hl:best, msg:`候选轻边 (${best[0]},${best[1]}) w=${best[2]}`});
+    ME.push(best); UU.add(best[0]); UU.add(best[1]);
+    steps.push({U:new Set(UU), mst:ME.slice(), hl:null, msg:`加入 · U={${[...UU].join(',')}}`});
+  }
+  const tot=ME.reduce((s,e)=>s+e[2],0);
+  steps.push({U:new Set(UU), mst:ME.slice(), hl:null, msg:`<strong>MST 完成</strong> 总权 ${tot}`, done:true});
+  return steps;
+}
+
+function showPrim(i){
+  const st=primSteps[i]; if(!st) return;
+  mst=st.mst; U=st.U;
+  drawGraph('primCv', st.hl, mst, U);
+  setStatus('#primStatus', st.msg);
+  if(st.done){ confetti(45); addXP(20,'Prim通关'); }
+}
+
+document.getElementById('primReset').onclick=()=>{
+  primSteps=buildPrimSteps(); primI=0; showPrim(0);
+};
+document.getElementById('primStep').onclick=()=>{
+  if(!primSteps.length) primSteps=buildPrimSteps();
+  if(primI<primSteps.length-1){ primI++; showPrim(primI); }
+};
+document.getElementById('primRun').onclick=async()=>{
+  primSteps=buildPrimSteps(); primI=0; showPrim(0);
+  for(let i=1;i<primSteps.length;i++){
+    await sleep(primSp.ms); primI=i; showPrim(i);
+  }
+};
+
+// Dijkstra
+let dijDist, dijDone;
+function dijInit(){
+  dijDist=Array(nV).fill(1e9); dijDist[0]=0;
+  dijDone=Array(nV).fill(false);
+  drawGraph('dijCv', null, [], new Set([0]), dijDist);
+  renderArray('#dijDist', dijDist.map(d=>d>=1e9?'∞':d), {0:'pivot'});
+  setStatus('#dijStatus','初始化 dist[0]=0，其余 ∞');
+}
+document.getElementById('dijReset').onclick=dijInit;
+document.getElementById('dijRun').onclick=async()=>{
+  dijInit();
+  const g=adjList();
+  for(let iter=0;iter<nV;iter++){
+    let u=-1, best=1e9;
+    for(let i=0;i<nV;i++) if(!dijDone[i]&&dijDist[i]<best){ best=dijDist[i]; u=i; }
+    if(u<0) break;
+    dijDone[u]=true;
+    const doneSet=new Set(dijDone.map((d,i)=>d?i:-1).filter(i=>i>=0));
+    drawGraph('dijCv', null, [], doneSet, dijDist);
+    const st={}; dijDone.forEach((d,i)=>{ if(d) st[i]='done'; }); st[u]='active';
+    renderArray('#dijDist', dijDist.map(d=>d>=1e9?'∞':d), st);
+    setStatus('#dijStatus',`确定顶点 <strong>${u}</strong> · dist=${dijDist[u]}`);
+    await sleep(550);
+    for(const [v,w] of g[u]){
+      if(!dijDone[v] && dijDist[u]+w<dijDist[v]){
+        dijDist[v]=dijDist[u]+w;
+        drawGraph('dijCv', [u,v], [], doneSet, dijDist);
+        setStatus('#dijStatus',`松弛 ${u}→${v} · dist[${v}]=${dijDist[v]}`);
+        renderArray('#dijDist', dijDist.map(d=>d>=1e9?'∞':d), {...st, [v]:'visit'});
+        await sleep(400);
+      }
+    }
+  }
+  const doneSet=new Set([...Array(nV).keys()]);
+  drawGraph('dijCv', null, [], doneSet, dijDist);
+  const st={}; for(let i=0;i<nV;i++) st[i]='done';
+  renderArray('#dijDist', dijDist.map(d=>d>=1e9?'∞':d), st);
+  setStatus('#dijStatus',`<strong>完成</strong> dist = [${dijDist.join(', ')}]`);
+  confetti(40); addXP(20,'Dijkstra通关');
+};
+
+primSteps=buildPrimSteps(); showPrim(0);
+dijInit();
+
+</script>
+</body>
+</html>

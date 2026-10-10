@@ -1,0 +1,88 @@
+---
+module: 4
+moduleName: 数组
+order: 18
+title: 学生成绩统计（平均分）
+level: 基础必做
+scene: 校园应用
+knowledge: [一维数组, 遍历, 求和求平均]
+stars: 3
+minutes: 70
+goal: 掌握一维数组的定义与基本操作
+sizheng: 每个分数背后是一个具体的人——数据要装得下，更要算得对
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import GradeStatsLab from '../../components/react/GradeStatsLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：40 个变量？不，一个数组
+
+要统计 10 名同学的成绩，难道定义 `s1, s2, ..., s10` 十个变量？全校 4000 人呢？
+**数组**一次解决：`int scores[10]` 在内存中申请**连续的** 10×4=40 字节，用**下标**访问每一格：
+
+- `scores[0]` 是第一个元素——**下标从 0 开始**，最后一个是 `scores[9]`；
+- `scores[i]` 的地址 = 首地址 + i×4——下标本质是"偏移量"，这就是它从 0 数起的原因；
+- 数组 + 循环 = 批量处理：模块三的遍历统计三大件（计数、累加、擂台），从此有了真正的用武之地。
+
+## 一步一步看数组遍历
+
+<CStepRunner
+  client:visible
+  title="数组遍历模拟：5 个成绩的求和求平均"
+  badge="数组遍历模拟"
+  doneNote="下标 i 从 0 走到 4，恰好访问全部 5 格且一格不越界——『从 0 开始、条件用 小于N』的循环写法与数组天生一对。"
+  code={`#include <stdio.h>
+
+int main(void) {
+    int scores[5] = {78, 92, 65, 88, 54};
+    int sum = 0;
+    for (int i = 0; i < 5; i++) {
+        sum += scores[i];
+    }
+    printf("平均分=%.1f\\n", (float)sum / 5);
+    return 0;
+}`}
+  steps={[
+    { line: 3, desc: '数组诞生：内存中连续 20 字节被填入 5 个成绩。scores[0]=78 … scores[4]=54。', vars: { 'scores[0..4]': '{78,92,65,88,54}', sum: '0' } },
+    { line: 6, desc: 'i=0：sum += scores[0]，即 0+78。下标 0 = 首地址偏移 0 字节。', vars: { i: '0', 'scores[i]': '78', sum: '78' } },
+    { line: 6, desc: 'i=1：sum += scores[1]（偏移 4 字节处）。', vars: { i: '1', 'scores[i]': '92', sum: '170' } },
+    { line: 6, desc: 'i=2：sum += 65。', vars: { i: '2', 'scores[i]': '65', sum: '235' } },
+    { line: 6, desc: 'i=3：sum += 88。', vars: { i: '3', 'scores[i]': '88', sum: '323' } },
+    { line: 6, desc: 'i=4：sum += 54——最后一格 scores[4]。如果条件误写成 i 不超过 5，下一圈将读到 scores[5]：数组外的未知内存！', vars: { i: '4', 'scores[i]': '54', sum: '377' } },
+    { line: 8, desc: '循环在 i=5 时条件为假、干净退出。(float) 强转防整除截断，输出 377/5=75.4。', out: '平均分=75.4' },
+  ]}
+/>
+
+## 动手实验：编辑全班成绩单
+
+<GradeStatsLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：`scanf` 循环读入 10 个成绩存进数组，输出平均分、最高分、最低分、及格率。先默写数组定义和遍历骨架。
+2. **AI 优化进阶版**：让 AI 增加"高于平均分的人数"统计。审查要点：这需要**两次遍历**（先算平均、再数人数），AI 有没有想当然地在一次循环里做完？
+3. **信创加固定稿版**：输入校验（0~100 之外重新输入）；人数改用 `#define N`；思考若 N 从 10 改到 4000，代码要改几处？（答案应该是 1 处——这就是符号常量的意义。）
+
+## 素养与思政
+
+平均分抹平了差异，最低分却指向一个需要帮助的具体的人。教育部要求"精准资助"，就是拒绝只看平均数的懒惰——你的程序里那行找最低分的擂台代码，对应着现实中一双发现掉队者的眼睛。
+**统计的意义不是数字本身，而是数字背后的人。** 写代码的人若心里有人，冷冰冰的数组也会有温度。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="int a[10]; 的合法下标范围是？"
+  options={['1 到 10', '0 到 10', '0 到 9', '任意整数']}
+  answer={2}
+  explain="10 个元素，下标 0~9。a[10] 是数组外的内存——C 不检查越界，读写它是未定义行为。『N 个元素、下标到 N-1』必须刻进肌肉记忆。"
+/>
+
+<QuizItem
+  client:visible
+  question="为什么数组下标从 0 开始而不是 1？"
+  options={['历史遗留的坏习惯', '下标本质是相对首地址的偏移量：a[i] 的地址 = 首地址 + i×元素大小，首元素偏移为 0', '为了节省一个字节', 'C 语言随机决定的']}
+  answer={1}
+  explain="a[0] 就是首地址本身（偏移 0）。理解『下标=偏移』，第 9 章指针算术（a[i] 等价于 *(a+i)）就是水到渠成的事。"
+/>

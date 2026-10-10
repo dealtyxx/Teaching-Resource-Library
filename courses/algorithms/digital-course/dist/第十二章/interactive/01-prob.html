@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>概率概述 · 第12章 概率算法和近似算法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">12</div>算法可视化 · <span>第12章 概率算法和近似算法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill active" href="01-prob.html">概率概述</a><a class="pill" href="02-pi.html">求π</a><a class="pill" href="03-monte.html">蒙特卡罗</a><a class="pill" href="04-vegas.html">拉斯维加斯</a><a class="pill" href="05-sherwood.html">舍伍德</a><a class="pill" href="06-approx.html">近似概述</a><a class="pill" href="07-sched.html">多机调度</a><a class="pill" href="08-knapsack.html">背包近似</a><a class="pill" href="09-tsp.html">TSP近似</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 1 · 分类</div>
+  <h1>概率算法概述</h1>
+  <p>用随机性换期望性能、高概率正确，或抹平最坏输入。点击卡片高亮对比四类特征。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>复述</b>数值概率、蒙特卡罗、拉斯维加斯、舍伍德四类算法的正式定义。</li>
+  <li>能够对任一给定算法，<b>判断</b>它属于四类中的哪一类，判据是"运行时间是否确定"与"输出是否一定正确"两条。</li>
+  <li>能够<b>解释</b>为什么"随机化"不等于"结果不可靠"——蒙特卡罗错在结果，拉斯维加斯与舍伍德只错在时间。</li>
+  <li>能够<b>说明</b>舍伍德与蒙特卡罗/拉斯维加斯的根本差别：舍伍德不改变正确性，只改变代价的<b>分布</b>。</li>
+</ol></div>
+
+<div class="grid grid-2" id="cards">
+  <div class="card kind" data-k="num" style="cursor:pointer"><span class="badge">数值概率</span>
+    <h3>Numerical</h3><p>近似解，精度随采样/时间提高（如投点求 π）。</p></div>
+  <div class="card kind" data-k="mc" style="cursor:pointer"><span class="badge blue">蒙特卡罗</span>
+    <h3>Monte Carlo</h3><p>时间确定；结果<strong>可能错</strong>，错误率可指数下降。</p></div>
+  <div class="card kind" data-k="lv" style="cursor:pointer"><span class="badge orange">拉斯维加斯</span>
+    <h3>Las Vegas</h3><p>结果正确（或报告失败）；<strong>时间是随机变量</strong>。</p></div>
+  <div class="card kind" data-k="sh" style="cursor:pointer"><span class="badge green">舍伍德</span>
+    <h3>Sherwood</h3><p>总正确；随机化消除特定最坏输入。</p></div>
+</div>
+<div class="card" style="margin-top:14px">
+  <div class="stage-wrap light" style="height:200px">
+    <canvas class="stage" id="cv" width="1000" height="200"></canvas>
+  </div>
+  <div class="tip" id="tip">点击上方卡片，对比「时间是否确定 / 结果是否一定对」。</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>概率算法的正式定义</h2><span class="sub">先把四类的边界划清楚</span></div>
+<div class="defn"><span class="lbl">定义 · 概率算法</span><p><b>概率算法</b>（probabilistic algorithm，又称随机化算法 randomized algorithm）：在执行过程中<b>至少调用一次随机数发生器</b>的算法。对同一个输入实例，不同次运行可能走过不同的执行路径，因而其<b>运行时间</b>、<b>输出结果</b>或二者之一是<b>随机变量</b>。<br/>关键：随机性来自算法内部的掷硬币，而<b>不是</b>来自输入——因此下面所有结论对<b>任意</b>输入实例都成立，不需要"输入服从某分布"这类假设。</p></div>
+
+<div class="defn"><span class="lbl">定义 ① · 数值概率算法</span><p><b>数值概率算法</b>（numerical probabilistic algorithm）：用<b>随机采样</b>求某个数值量的<b>近似解</b>。它得到的解<b>几乎不可能精确</b>，但解的<b>精度随采样量（或允许的运行时间）的增加而提高</b>。<br/>典型用途：数值积分、求 π、大规模矩阵/网络参数估计等本身就只要求"够准"的问题。典型例子：§02 的投点法求 π——采样 N 个点，误差量级为 O(1/√N)。</p></div>
+
+<div class="defn"><span class="lbl">定义 ② · 蒙特卡罗算法</span><p><b>蒙特卡罗算法</b>（Monte Carlo algorithm）：<b>运行时间确定</b>（对规模 n 的输入总在同一个时间界内结束），<b>总是给出一个答案</b>，但这个答案<b>可能是错的</b>。<br/>设算法对任意实例给出正确解的概率至少为 p（1/2 &lt; p &lt; 1），称之为 <b>p-正确</b>（p-correct）；<b>2p − 1</b> 称为该算法的<b>优势</b>（advantage）。由于每次运行使用<b>独立</b>的随机位，<b>独立重复运行并综合结果</b>可使错误概率随重复次数<b>指数下降</b>——这是蒙特卡罗算法可用的根本原因。典型例子：§03 的主元素判定。</p></div>
+
+<div class="defn"><span class="lbl">定义 ③ · 拉斯维加斯算法</span><p><b>拉斯维加斯算法</b>（Las Vegas algorithm）：<b>绝不返回错误答案</b>——它<b>要么给出正确解，要么报告"本次失败、未能求解"</b>；但它<b>是否成功以及花多长时间是随机的</b>，运行时间是随机变量。<br/>因此评价拉斯维加斯算法的正确指标是<b>期望运行时间</b> E[T]，而不是最坏运行时间（最坏时间往往是无穷大）。失败时只需<b>重启</b>再来一次，正确性永远不受损。典型例子：§04 的随机化 n 皇后。</p></div>
+
+<div class="defn"><span class="lbl">定义 ④ · 舍伍德算法</span><p><b>舍伍德算法</b>（Sherwood algorithm）：<b>总能得到正确解</b>（既不出错，也不报告失败）。它的作用是<b>通过随机化消除算法对特定输入的敏感性</b>——当某个确定性算法"平均很快、但对某些特定输入极慢"时，在算法内部引入随机选择，使得<b>每个输入实例的期望代价都等于原算法在所有输入上的平均代价</b>，从而把<b>最坏情形的高代价"摊平"为期望代价</b>。<br/>换句话说：舍伍德<b>不降低</b>平均复杂度，它降低的是"运气不好时被卡住"的风险；代价的<b>期望值与输入无关</b>，只与算法内部的随机源有关。典型例子：§05 的随机化快速选择——固定取首元素作 pivot 时有序输入退化为 O(n<sup>2</sup>)，随机 pivot 后对<b>任何</b>输入期望都是 O(n)。</p></div>
+
+<div class="tip info"><strong>一句话记忆：</strong>数值概率——<b>算不准</b>（近似解）；蒙特卡罗——<b>可能错</b>（时间稳）；拉斯维加斯——<b>可能白跑</b>（结果稳）；舍伍德——<b>一定对、期望稳</b>（只是把最坏摊平）。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四类算法对照表</h2><span class="sub">两条判据 · 一眼定位</span></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>类型</th><th>运行时间是否确定</th><th>结果是否一定正确</th><th>核心度量</th><th>典型例子</th></tr>
+  <tr><td><b>数值概率</b><br/>Numerical</td><td>确定（由采样量 N 决定）</td><td>否 —— 只给<b>近似解</b>，精度随 N 提高</td><td class="hl">误差量级 O(1/√N)</td><td>投点求 π、蒙特卡罗积分（§02）</td></tr>
+  <tr><td><b>蒙特卡罗</b><br/>Monte Carlo</td><td class="hl">确定</td><td>否 —— <b>可能返回错误答案</b></td><td class="hl">错误概率，重复 k 次 ≤ 2<sup>−k</sup></td><td>主元素判定、素性测试（§03）</td></tr>
+  <tr><td><b>拉斯维加斯</b><br/>Las Vegas</td><td>否 —— <b>随机变量</b></td><td class="hl">是（或诚实报告失败）</td><td class="hl">期望运行时间 E[T]</td><td>随机化 n 皇后（§04）</td></tr>
+  <tr><td><b>舍伍德</b><br/>Sherwood</td><td>否 —— 随机变量，但<b>期望有界</b></td><td class="hl">是，且<b>从不失败</b></td><td class="hl">期望复杂度（与输入无关）</td><td>随机化快速选择/快速排序（§05）</td></tr>
+</table></div>
+<div class="tip warn"><strong>最容易混的一对：拉斯维加斯 vs 舍伍德。</strong>二者结果都正确、时间都随机，差别在于——拉斯维加斯<b>可能失败</b>（这一次什么都没算出来，要重来）；舍伍德<b>绝不失败</b>，每次运行都必然产出正确解，只是这次快一点、那次慢一点。此外舍伍德的出发点是"已有一个对某些输入很慢的确定性算法，我来把它的最坏情形消掉"，而拉斯维加斯往往是从零设计的。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四类算法的代码骨架</h2><span class="sub">C++ · 对比同一份"外壳"的差异</span></div>
+<div class="code"><span class="cm">// ① 数值概率：采样 N 次求近似值，N 越大越准（误差 ~ O(1/√N)）</span>
+<span class="kw">double</span> <span class="fn">numerical</span>(<span class="kw">int</span> N) {
+    <span class="kw">double</span> sum = 0;
+    <span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt; N; ++i) sum += <span class="fn">sampleOnce</span>();  <span class="cm">// 时间确定 = O(N)</span>
+    <span class="kw">return</span> sum / N;                     <span class="cm">// 返回的是近似解，几乎不可能精确</span>
+}
+
+<span class="cm">// ② 蒙特卡罗：时间确定；单次可能错，独立重复 k 次把错误率压到 2^(-k)</span>
+<span class="kw">bool</span> <span class="fn">monteCarlo</span>(<span class="kw">int</span> a[], <span class="kw">int</span> n, <span class="kw">int</span> k) {
+    <span class="kw">for</span> (<span class="kw">int</span> t = 0; t &lt; k; ++t)         <span class="cm">// 恰好 k 轮，绝不多也绝不少</span>
+        <span class="kw">if</span> (<span class="fn">oneTrial</span>(a, n)) <span class="kw">return</span> <span class="kw">true</span>;  <span class="cm">// 返回 true 一定对（偏真型）</span>
+    <span class="kw">return</span> <span class="kw">false</span>;                       <span class="cm">// 返回 false 可能错，概率 &lt;= 2^(-k)</span>
+}
+
+<span class="cm">// ③ 拉斯维加斯：结果绝不错；失败就重启，运行时间是随机变量</span>
+<span class="kw">bool</span> <span class="fn">lasVegas</span>(<span class="kw">int</span> res[], <span class="kw">int</span> n) {
+    <span class="kw">while</span> (<span class="kw">true</span>) {                     <span class="cm">// 循环次数不确定 —— 只能谈期望时间</span>
+        <span class="kw">if</span> (<span class="fn">tryOnce</span>(res, n)) <span class="kw">return</span> <span class="kw">true</span>;   <span class="cm">// 成功：res 一定是合法解</span>
+        <span class="cm">// 失败：本轮完全作废，不产生任何错误输出，直接重来</span>
+    }
+}
+
+<span class="cm">// ④ 舍伍德：一定正确、绝不失败；随机化只用来打散"最坏输入"</span>
+<span class="kw">int</span> <span class="fn">sherwoodSelect</span>(<span class="kw">int</span> a[], <span class="kw">int</span> l, <span class="kw">int</span> r, <span class="kw">int</span> k) {
+    <span class="kw">if</span> (l == r) <span class="kw">return</span> a[l];
+    <span class="kw">int</span> p = l + <span class="fn">rand</span>() % (r - l + 1);  <span class="cm">// 唯一的随机点：pivot 随机</span>
+    <span class="fn">swap</span>(a[l], a[p]);
+    <span class="kw">int</span> m = <span class="fn">partition</span>(a, l, r);
+    <span class="kw">if</span> (k == m) <span class="kw">return</span> a[m];          <span class="cm">// 每次调用必然返回正确的第 k 小</span>
+    <span class="kw">return</span> k &lt; m ? <span class="fn">sherwoodSelect</span>(a, l, m - 1, k)
+                 : <span class="fn">sherwoodSelect</span>(a, m + 1, r, k);
+}</div>
+<div class="tip info"><strong>看骨架抓差异：</strong>② 的循环次数是<b>常数 k</b>（时间确定），③ 的循环次数是<b>不确定的 while(true)</b>（时间随机），④ <b>没有重试循环</b>——它一遍就走完，随机性只影响递归深度与划分平衡度。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>随机化到底换来了什么</h2><span class="sub">四类算法的"交易清单"</span></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>类型</th><th>付出（放弃了什么）</th><th>换来（得到了什么）</th></tr>
+  <tr><td>数值概率</td><td>解的<b>精确性</b></td><td>在多项式甚至线性时间内得到可用的数值估计</td></tr>
+  <tr><td>蒙特卡罗</td><td>解的<b>确定正确性</b></td><td>时间界严格可控；错误率可按需压到任意小</td></tr>
+  <tr><td>拉斯维加斯</td><td>时间的<b>确定性</b>（可能白跑几轮）</td><td>结果<b>绝对可信</b>，且期望时间往往远优于确定性算法的最坏时间</td></tr>
+  <tr><td>舍伍德</td><td>几乎不付出（只多花常数级随机数开销）</td><td class="hl">消灭"最坏输入"，期望代价<b>与输入分布无关</b>，抵御恶意构造数据</td></tr>
+</table></div>
+<div class="terms">
+  <span class="term"><b>概率算法</b>probabilistic algorithm</span>
+  <span class="term"><b>随机化算法</b>randomized algorithm</span>
+  <span class="term"><b>数值概率算法</b>numerical probabilistic algorithm</span>
+  <span class="term"><b>蒙特卡罗算法</b>Monte Carlo algorithm</span>
+  <span class="term"><b>拉斯维加斯算法</b>Las Vegas algorithm</span>
+  <span class="term"><b>舍伍德算法</b>Sherwood algorithm</span>
+  <span class="term"><b>p-正确</b>p-correct</span>
+  <span class="term"><b>优势</b>advantage</span>
+  <span class="term"><b>期望运行时间</b>expected running time</span>
+</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>把"概率算法"一律理解成"结果不可靠"。</b>只有<b>数值概率</b>与<b>蒙特卡罗</b>的结果可能不精确/不正确；拉斯维加斯与舍伍德的结果<b>永远正确</b>。</li>
+  <li><b>把拉斯维加斯的"失败"当成"输出了错误答案"。</b>失败是<b>诚实报告"我没算出来"</b>，绝不会伪造一个错解，这正是它与蒙特卡罗的分水岭。</li>
+  <li><b>认为舍伍德能降低平均复杂度。</b>不能。随机化快速选择的期望仍是 O(n)，与"随机输入下确定性算法的平均"同阶；舍伍德改变的是<b>代价在输入上的分布</b>，不是均值。</li>
+  <li><b>误以为蒙特卡罗重复 k 次就"一定对了"。</b>错误率是 ≤ 2<sup>−k</sup>，只能<b>任意接近 0</b>，永远到不了 0。</li>
+  <li><b>把"随机化"与"假设输入随机"混为一谈。</b>随机来自算法掷的硬币；即使输入是对手精心构造的最坏数据，期望界依然成立。</li>
+  <li><b>用最坏运行时间去评价拉斯维加斯算法。</b>它的最坏时间通常无界，正确指标是<b>期望运行时间</b>。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>概率算法 = 执行中调用随机数发生器的算法，其时间和/或结果是<b>随机变量</b>；随机性来自算法内部而非输入假设。</li>
+  <li>用<b>「时间是否确定」×「结果是否一定正确」</b>两条判据即可定位四类：数值概率（时间定、只给近似解）、蒙特卡罗（时间定、可能错）、拉斯维加斯（时间随机、结果对或失败）、舍伍德（时间随机但期望有界、结果一定对且不失败）。</li>
+  <li>蒙特卡罗的核心度量是<b>错误概率</b>（p-正确、优势 2p−1，重复 k 次 ≤ 2<sup>−k</sup>）；拉斯维加斯与舍伍德的核心度量是<b>期望运行时间</b>；数值概率的核心度量是<b>误差量级</b> O(1/√N)。</li>
+  <li>舍伍德的独特价值：把"对某些输入很慢"变成"对<b>任何</b>输入都以高概率不慢"，期望代价与输入分布无关。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>某算法对任意规模为 n 的输入都恰好运行 c·n 步，并总是输出一个答案，但这个答案有不超过 1/3 的概率是错的。它属于哪一类概率算法？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>数值概率算法</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>蒙特卡罗算法</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>拉斯维加斯算法</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>舍伍德算法</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>抓两条判据——"恰好 c·n 步"说明<b>时间确定</b>；"答案有概率是错的"说明<b>结果不保证正确</b>。两条合起来正是蒙特卡罗的定义（这里 p = 2/3 &gt; 1/2，是 2/3-正确的，优势为 2×2/3 − 1 = 1/3）。A 错——数值概率求的是<b>数值量的近似</b>，谈的是精度而非"对/错"；此题输出的是一个离散答案且有明确的错误概率。C 错——拉斯维加斯绝不输出错误答案，它只会说"失败"。D 错——舍伍德结果一定正确，且时间是随机变量而非固定的 c·n。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>下列关于四类概率算法的说法，<b>正确</b>的是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>蒙特卡罗算法的结果一定正确，只是时间不确定</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>拉斯维加斯算法可能返回一个错误的解，因此要重复运行来降低错误率</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>舍伍德算法总能得到正确解，随机化的作用是消除算法对特定输入的敏感性</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>数值概率算法只要采样足够多，就能得到完全精确的解</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>A 把蒙特卡罗和拉斯维加斯<b>说反了</b>——蒙特卡罗是"时间确定、结果可能错"，这是本章最高频的送分/送命点。B 错在"返回错误的解"：拉斯维加斯<b>永不返回错解</b>，重复运行是因为它可能<b>失败（无输出）</b>，重复降低的是"失败概率"而非"错误率"。D 错——数值概率算法的解是<b>近似解</b>，采样越多误差越小（O(1/√N)），但永远达不到精确；而且要多算一位精度就得多花约 100 倍采样点。C 正是舍伍德的定义：正确性不受影响，随机化只把"对某些输入极慢"摊平成"对任何输入期望都不慢"。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>把确定性快速排序的"取首元素为 pivot"改成"随机取一个元素为 pivot"，得到的算法属于哪一类？其平均时间复杂度相比原算法有何变化？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>蒙特卡罗算法；平均复杂度从 O(n<sup>2</sup>) 降为 O(n log n)</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>舍伍德算法；平均复杂度仍是 O(n log n)，但不再存在使其退化的特定最坏输入</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>拉斯维加斯算法；因为它可能排序失败需要重排</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>数值概率算法；因为它给出的是近似有序的序列</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>随机 pivot 的快速排序结果永远完全正确、也永不失败，只是划分是否平衡带随机性——这正是<b>舍伍德</b>。B 的后半句是关键：确定性快排的<b>平均</b>复杂度本来就是 O(n log n)（在"输入随机"的假设下），随机化<b>并没有把均值改好</b>；它改的是"最坏情形出现的条件"——原本已排序的输入必然触发 O(n<sup>2</sup>)，随机化后<b>任何</b>固定输入触发 O(n<sup>2</sup>) 的概率都低到可忽略。A 的"平均从 O(n<sup>2</sup>) 降到 O(n log n)"混淆了<b>最坏</b>与<b>平均</b>。C 错——排序不会"失败"。D 错——输出是<b>完全有序</b>的，不是近似解。</div>
+</div>
+</div>
+
+<div class="page-nav"><a href="index.html"><span class="dir">← 上一节</span><span class="name">总览</span></a><a href="02-pi.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">求π</span></a></div>
+<div class="footer">算法设计与分析 · <b>第12章 概率算法和近似算法</b> · 强交互可视化版<br/>随机 · 近似 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(156,116,32,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const meta={
+  num:{t:'数值概率', time:'随精度变', ok:'近似解', col:'#9C7420'},
+  mc:{t:'蒙特卡罗', time:'确定', ok:'高概率对', col:'#C2603F'},
+  lv:{t:'拉斯维加斯', time:'随机', ok:'一定对/失败', col:'#B96434'},
+  sh:{t:'舍伍德', time:'期望稳', ok:'一定对', col:'#3B7A57'},
+};
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+function draw(k){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const m=meta[k]||meta.mc;
+  ctx.fillStyle='#1D1B16'; ctx.font='bold 22px sans-serif'; ctx.fillText(m.t, 40, 50);
+  // axes labels
+  ctx.font='14px sans-serif'; ctx.fillStyle='#7A746A';
+  ctx.fillText('时间 →', 40, 160); ctx.fillText('正确性 →', 400, 160);
+  // markers
+  const tx=m.time==='确定'?120:(m.time==='随机'?280:200);
+  const ox=m.ok.includes('一定')?720:600;
+  ctx.beginPath(); ctx.arc(tx,100,18,0,Math.PI*2); ctx.fillStyle=m.col; ctx.fill();
+  ctx.fillStyle='#fff'; ctx.font='bold 11px sans-serif'; ctx.fillText('T', tx-5, 104);
+  ctx.beginPath(); ctx.arc(ox,100,18,0,Math.PI*2); ctx.fillStyle=m.col; ctx.fill();
+  ctx.fillStyle='#fff'; ctx.fillText('✓', ox-6, 104);
+  ctx.fillStyle=m.col; ctx.font='13px sans-serif';
+  ctx.fillText('时间：'+m.time, 40, 80); ctx.fillText('结果：'+m.ok, 400, 80);
+  tip.innerHTML='<strong>'+m.t+'：</strong>时间 '+m.time+' · 结果 '+m.ok;
+}
+document.querySelectorAll('.kind').forEach(el=>{
+  el.onclick=()=>{
+    document.querySelectorAll('.kind').forEach(x=>x.style.outline='');
+    el.style.outline='2px solid #9C7420';
+    draw(el.dataset.k);
+  };
+});
+draw('mc');
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

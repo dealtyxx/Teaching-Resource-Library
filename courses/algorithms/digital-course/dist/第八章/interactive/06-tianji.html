@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>田忌赛马 · 第8章 贪心法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">08</div>算法可视化 · <span>第8章 贪心法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-activity.html">活动安排</a><a class="pill" href="03-merge.html">区间合并</a><a class="pill" href="04-rooms.html">会议室</a><a class="pill" href="05-fractional.html">分数背包</a><a class="pill active" href="06-tianji.html">田忌赛马</a><a class="pill" href="07-coin.html">零钱兑换</a><a class="pill" href="08-huffman.html">哈夫曼</a><a class="pill" href="09-matroid.html">拟阵</a><a class="pill" href="10-schedule.html">任务调度</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 6 · 配对</div>
+  <h1>田忌赛马式双端贪心</h1>
+  <p>双方排序后，能赢用最弱能赢的；否则用最弱耗对方最强。看对战连线逐场生成。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能用<b>双端双指针</b>复述田忌赛马贪心：能赢时用最弱的能赢者，赢不了时用最弱者去消耗对方最强者。</li>
+  <li>能对「我方 [2,5,8,10] vs 对方 [3,6,7,11]」<b>手工推演</b>出胜 3 负 1 的结果。</li>
+  <li>能说清<b>平局处理</b>：判胜用严格 <code>&gt;</code>（不是 <code>&gt;=</code>），牺牲最弱马遇相等是平局而非负。</li>
+  <li>能用<b>交换论证</b>说明「最弱马能赢对方最弱马时就让它俩相遇」不会使胜场变少。</li>
+  <li>能解释本策略为何是 O(n log n)，而枚举全排列是 O(n!)。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar"><button class="btn primary" id="run">▶ 对战推演</button></div>
+  <div class="stage-wrap" style="height:360px">
+    <canvas class="stage" id="cv" width="1000" height="360"></canvas>
+    <div class="stage-hud"><span class="hud-pill">Tian Ji</span><span class="hud-pill" id="hud">—</span></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>胜</span><b class="green" id="win">0</b></div>
+    <div class="stat"><span>负</span><b class="red" id="lose">0</b></div>
+  </div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>问题与贪心策略</h2><span class="sub">田忌赛马 · 双端贪心</span></div>
+<div class="defn"><span class="lbl">定义</span><p>我方与对方各有 n 匹马，速度分别记为数组 a、b。每匹马<b>只出场一次</b>，两两配对赛跑，<b>快者胜</b>。目标：安排配对使我方<b>净胜场</b>（胜场数 − 负场数）最大。经典设定中每胜一场 +200 银两、每负一场 −200 银两，等价于最大化净胜场。</p></div>
+<div class="formula">max &nbsp;(胜场 − 负场)&nbsp;&nbsp; s.t. 双方各马恰好配对一次</div>
+<div class="defn prop"><span class="lbl">贪心准则（双端）</span><p>先把 a、b 各自<b>升序</b>排序，用四个指针指向双方当前的最慢/最快马：<br/>① 若<b>我最慢 &gt; 对最慢</b>：让这两匹相遇，稳赢一场（不浪费更快的马）；<br/>② 否则若<b>我最快 &gt; 对最快</b>：让这两匹相遇，稳赢一场；<br/>③ 否则（我最慢连对方最慢都赢不了）：用<b>我最慢马</b>去对<b>对方最快马</b>，把对方最强者消耗掉。</p></div>
+<div class="tip info"><strong>为什么用「最慢马」当炮灰？</strong>一匹赢不了任何对手的马，它的唯一价值就是去"喂"掉对方最难对付的那匹，从而给我方其余的马腾出获胜空间。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>正确性 · 交换论证</h2><span class="sub">贪心选择性质 + 归纳</span></div>
+<div class="defn thm"><span class="lbl">引理（贪心选择性质）</span><p>设双方均升序排列。若<b>我方最慢马 a<sub>1</sub> &gt; 对方最慢马 b<sub>1</sub></b>，则<b>存在</b>一个最优配对方案，其中 a<sub>1</sub> 正好对阵 b<sub>1</sub>。</p></div>
+<div class="deriv">
+<span class="step"><b>证明（交换论证）</b></span>
+<span class="step">取任意最优方案 O。设在 O 中 a<sub>1</sub> 对阵对方某马 b<sub>x</sub>，而 b<sub>1</sub> 对阵我方某马 a<sub>y</sub> <span class="why">取对象</span></span>
+<span class="step">若 x = 1（a<sub>1</sub> 已对 b<sub>1</sub>），命题成立；否则做交换：令 a<sub>1</sub>↔b<sub>1</sub>、a<sub>y</sub>↔b<sub>x</sub> <span class="why">第一处分歧，做交换</span></span>
+<span class="step"><b>【验不劣性】</b>只需证：交换后两场「a<sub>1</sub>–b<sub>1</sub> 与 a<sub>y</sub>–b<sub>x</sub>」的胜场，不少于交换前「a<sub>1</sub>–b<sub>x</sub> 与 a<sub>y</sub>–b<sub>1</sub>」</span>
+<span class="step">&nbsp;&nbsp;a<sub>1</sub> 是我方最慢 ⇒ a<sub>y</sub> ≥ a<sub>1</sub>；又前提 a<sub>1</sub> &gt; b<sub>1</sub> ⇒ a<sub>y</sub> ≥ a<sub>1</sub> &gt; b<sub>1</sub>，故换后 a<sub>1</sub>–b<sub>1</sub> <b>稳赢</b></span>
+<span class="step">&nbsp;&nbsp;对 a<sub>y</sub>–b<sub>x</sub>：因 a<sub>y</sub> ≥ a<sub>1</sub>，"a<sub>y</sub> 是否胜 b<sub>x</sub>"不劣于换前的"a<sub>1</sub> 是否胜 b<sub>x</sub>" <span class="why">不劣性成立</span></span>
+<span class="step">⇒ 交换后总胜场 ≥ 交换前，且仍最优、并含 a<sub>1</sub>–b<sub>1</sub> ⇒ 引理成立 ∎</span>
+</div>
+<div class="defn thm"><span class="lbl">另一情形与归纳</span><p>若 <b>a<sub>1</sub> ≤ b<sub>1</sub></b>，则 a<sub>1</sub> 连对方最慢马都赢不了，对任何对手至多打平，故让它去消耗对方最快马 b<sub>n</sub> 不损失任何可得胜场。两种情形都把问题<b>缩小一场</b>后递归，对 n 作数学归纳即得贪心最优。</p></div>
+<div class="tip warn"><strong>平局的严格性：</strong>判"赢"必须用严格大于 <code>a &gt; b</code>；相等只是平局（0 分），既不能记为胜，牺牲马遇到相等的对手时也<b>不记为负</b>。把 <code>&gt;</code> 误写成 <code>&gt;=</code> 会虚报胜场。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>手工推演（对应上方演示）</h2><span class="sub">我方 [2,5,8,10] · 对方 [3,6,7,11]</span></div>
+<div class="deriv">
+<span class="step">排序后 a = [2,5,8,10]，b = [3,6,7,11]；净胜场 score = 0</span>
+<span class="step">第 1 场：我最慢 2 &gt; 对最慢 3？否；我最快 10 &gt; 对最快 11？否 ⇒ 牺牲：<b>2 对 11，负</b>（2 &lt; 11） <span class="why">score = −1</span></span>
+<span class="step">&nbsp;&nbsp;剩 a = [5,8,10]，b = [3,6,7]</span>
+<span class="step">第 2 场：我最慢 5 &gt; 对最慢 3？是 ⇒ <b>5 对 3，胜</b> <span class="why">score = 0</span></span>
+<span class="step">&nbsp;&nbsp;剩 a = [8,10]，b = [6,7]</span>
+<span class="step">第 3 场：我最慢 8 &gt; 对最慢 6？是 ⇒ <b>8 对 6，胜</b> <span class="why">score = +1</span></span>
+<span class="step">&nbsp;&nbsp;剩 a = [10]，b = [7]</span>
+<span class="step">第 4 场：我最慢 10 &gt; 对最慢 7？是 ⇒ <b>10 对 7，胜</b> <span class="why">score = +2</span></span>
+<span class="step"><b>结果：胜 3、负 1，净胜场 = +2</b>（与上方演示"胜3 负1"一致）</span>
+<span class="step">最优性旁证：我方最快仅 10 &lt; 对方最快 11，必有一匹要败给 11，故胜场至多 3 —— 贪心已达上界</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>C++ 实现与复杂度</h2><span class="sub">排序 + 双端双指针一遍扫描</span></div>
+<div class="code"><span class="cm">// 田忌赛马：最大化净胜场（胜 +1，负 −1，平 0）</span>
+<span class="cm">// a = 我方马速，b = 对方马速，均将被就地排序</span>
+<span class="kw">int</span> <span class="fn">tianji</span>(vector&lt;<span class="kw">int</span>&gt; &amp;a, vector&lt;<span class="kw">int</span>&gt; &amp;b) {
+    <span class="fn">sort</span>(a.<span class="fn">begin</span>(), a.<span class="fn">end</span>());       <span class="cm">// 升序 O(n log n)</span>
+    <span class="fn">sort</span>(b.<span class="fn">begin</span>(), b.<span class="fn">end</span>());
+    <span class="kw">int</span> n = a.<span class="fn">size</span>();
+    <span class="kw">int</span> al = 0, ar = n - 1;             <span class="cm">// 我方最慢 / 最快指针</span>
+    <span class="kw">int</span> bl = 0, br = n - 1;             <span class="cm">// 对方最慢 / 最快指针</span>
+    <span class="kw">int</span> score = 0;
+    <span class="kw">while</span> (al &lt;= ar) {
+        <span class="kw">if</span> (a[al] &gt; b[bl]) {            <span class="cm">// ① 我最慢能赢对最慢：稳赢</span>
+            ++score; ++al; ++bl;
+        } <span class="kw">else</span> <span class="kw">if</span> (a[ar] &gt; b[br]) {    <span class="cm">// ② 我最快能赢对最快：稳赢</span>
+            ++score; --ar; --br;
+        } <span class="kw">else</span> {                       <span class="cm">// ③ 最慢马赢不了：去消耗对方最快</span>
+            <span class="kw">if</span> (a[al] &lt; b[br]) --score;  <span class="cm">// 严格小于才算负；相等为平局</span>
+            ++al; --br;
+        }
+    }
+    <span class="kw">return</span> score;
+}</div>
+<div class="formula">T(n) = O(n log n) <span>（排序主导）</span> + O(n) <span>（扫描）</span> = <b>O(n log n)</b>　　S(n) = O(1)</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>用 <code>&gt;=</code> 判胜。</b>相等是平局不是胜，会把净胜场算多；判胜一律用严格 <code>&gt;</code>。</li>
+  <li><b>牺牲最慢马时把平局记成负。</b>当我方最慢马恰好等于对方最快马时是平局（0），不减分。</li>
+  <li><b>只比最慢马、忘了另一端。</b>漏掉"我最快 &gt; 对最快"这类稳赢机会会导致少赢，两端都要判。</li>
+  <li><b>没排序就上双指针。</b>双端贪心成立的前提是双方各自有序，乱序套指针会得到错误配对。</li>
+  <li><b>把目标误当成"最大化胜场"而忽略负场代价。</b>银两模型下胜、负都计分，需最大化<b>净胜场</b>（不过本贪心对两种目标都最优）。</li>
+  <li><b>企图枚举全排列求最优配对。</b>O(n!) 会超时；双端贪心 O(n log n) 已证最优，无须暴力。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>田忌赛马 = 双方各自<b>升序排序</b>后的<b>双端双指针</b>贪心：能赢用最弱能赢者，赢不了用最弱者耗对方最强者。</li>
+  <li>正确性由<b>交换论证</b>保证：最弱马能赢对方最弱马时让二者相遇不减胜场；赢不了时消耗对方最强者也不损失胜场。</li>
+  <li><b>平局处理</b>是本节关键坑：判胜用严格 <code>&gt;</code>，相等场次既不计胜也不计负。</li>
+  <li>示例 [2,5,8,10] vs [3,6,7,11] 得<b>胜 3 负 1（净 +2）</b>；因我方最快 10 &lt; 对方最快 11，胜场上界即为 3，贪心已达最优。</li>
+  <li>复杂度 <b>O(n log n)</b>，由排序主导；远优于枚举全排列的 O(n!)。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>双端贪心中，当"我方最慢马连对方最慢马都赢不了"时，正确做法是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>放弃比赛，直接判这一轮为平局</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>用我方最慢马去对阵对方最快马，把对方最强者消耗掉</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>用我方最快马去对阵对方最慢马，先赢一场再说</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>把我方最慢马与对方最慢马相遇，接受这一场负</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>我方最慢马既然赢不了任何对手，其最大价值就是充当"炮灰"去消耗对方<b>最难对付</b>的最快马，为其余的马腾出取胜空间（选 B）。C 用最快马打对方最慢马是巨大浪费——这场本可用更弱的马拿下。D 让它去对付对方最慢马，白白搭上一场却没换来任何战略收益。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>我方马速 [2,5,8,10]、对方 [3,6,7,11]，按双端贪心最终胜负场数是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>胜 4 负 0</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>胜 3 负 1</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>胜 2 负 2</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>胜 3 负 0 平 1</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>推演：2 对 11 负；5 对 3 胜；8 对 6 胜；10 对 7 胜 ⇒ <b>胜 3 负 1</b>。因我方最快只有 10，打不过对方最快的 11，必有一匹要败给 11，胜场上界即为 3，贪心恰好达到。数据两两不同、没有平局，故排除 D；A、C 与推演不符。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>若把判胜条件从 <code>a[al] &gt; b[bl]</code> 误写成 <code>a[al] &gt;= b[bl]</code>，会发生什么？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>没有影响，速度相等本来就该算赢</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>会把"速度相等"的平局误记为胜，虚报净胜场</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>会导致死循环</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>会使算法复杂度升到 O(n²)</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>两马速度相等时并列到达，是<b>平局</b>而非胜。用 <code>&gt;=</code> 会把这类平局错误地计为胜场，从而高估净胜场（选 B）。指针每轮仍严格推进，不会死循环，也不改变 O(n log n) 复杂度，故 C、D 均错。</div>
+</div>
+</div>
+
+<div class="terms">
+  <span class="term"><b>双端贪心</b>two-pointer greedy</span>
+  <span class="term"><b>净胜场</b>net wins</span>
+  <span class="term"><b>交换论证</b>exchange argument</span>
+  <span class="term"><b>平局</b>tie / draw</span>
+</div>
+
+<div class="page-nav"><a href="05-fractional.html"><span class="dir">← 上一节</span><span class="name">分数背包</span></a><a href="07-coin.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">零钱兑换</span></a></div>
+<div class="footer">算法设计与分析 · <b>第8章 贪心法</b> · 强交互可视化版<br/>时间轴 · 扫描线 · 树生长 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:30},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.12-Math.random()*.28, a:.12+Math.random()*.3}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(59,122,87,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+// ours vs theirs speeds
+let ours=[2,5,8,10], theirs=[3,6,7,11];
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+function draw(pairs=[], phase=''){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.fillStyle='#A29C90'; ctx.font='14px Segoe UI';
+  ctx.fillText('我方 (田忌)', 120, 40); ctx.fillText('对方 (齐王)', 700, 40);
+  const o=[...ours].sort((a,b)=>a-b), t=[...theirs].sort((a,b)=>a-b);
+  o.forEach((v,i)=>{
+    const y=80+i*55;
+    ctx.beginPath(); ctx.arc(180,y,22,0,Math.PI*2);
+    ctx.fillStyle='#C2603F'; ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 14px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(v,180,y);
+  });
+  t.forEach((v,i)=>{
+    const y=80+i*55;
+    ctx.beginPath(); ctx.arc(780,y,22,0,Math.PI*2);
+    ctx.fillStyle='#A02C55'; ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 14px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(v,780,y);
+  });
+  pairs.forEach(([oi,ti,res])=>{
+    const y1=80+oi*55, y2=80+ti*55;
+    ctx.strokeStyle=res==='W'?'#6FB48B':'#D2705F'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(210,y1); ctx.lineTo(750,y2); ctx.stroke();
+  });
+  if(phase){ ctx.fillStyle='#E4E0D4'; ctx.font='16px Segoe UI'; ctx.textAlign='center'; ctx.fillText(phase, 500, 330); }
+}
+run.onclick=async()=>{
+  const o=[...ours].sort((a,b)=>a-b), t=[...theirs].sort((a,b)=>a-b);
+  let O=o.slice(), T=t.slice(), pairs=[], wins=0, loses=0;
+  const oUsed=Array(o.length).fill(false), tUsed=Array(t.length).fill(false);
+  function takePos(arr, used, val, fromEnd){
+    if(fromEnd){ for(let i=arr.length-1;i>=0;i--) if(!used[i]&&arr[i]===val){ used[i]=true; return i; } }
+    else { for(let i=0;i<arr.length;i++) if(!used[i]&&arr[i]===val){ used[i]=true; return i; } }
+    return 0;
+  }
+  while(O.length){
+    let ov, tv, res, fo=false, ft=false;
+    if(O[0]>T[0]){ ov=O.shift(); tv=T.shift(); res='W'; wins++; }
+    else if(O[O.length-1]>T[T.length-1]){ ov=O.pop(); tv=T.pop(); res='W'; wins++; fo=ft=true; }
+    else { ov=O.shift(); tv=T.pop(); res='L'; loses++; ft=true; }
+    pairs.push([takePos(o,oUsed,ov,fo), takePos(t,tUsed,tv,ft), res]);
+    win.textContent=wins; lose.textContent=loses;
+    hud.textContent=`${ov} vs ${tv} → ${res}`;
+    draw(pairs, `${ov} vs ${tv} (${res==='W'?'胜':'负'})`);
+    await sleep(700);
+  }
+  hud.textContent=`胜${wins} 负${loses}`;
+};
+draw();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

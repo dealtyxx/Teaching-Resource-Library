@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>交互总览 · 第9章 图算法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">09</div>算法可视化 · <span>第9章 图算法</span></div>
+<div class="links"><a class="pill active" href="index.html">总览</a><a class="pill" href="01-prim.html">Prim</a><a class="pill" href="02-kruskal.html">Kruskal</a><a class="pill" href="03-dijkstra.html">Dijkstra</a><a class="pill" href="04-bf-spfa.html">BF/SPFA</a><a class="pill" href="05-floyd.html">Floyd</a><a class="pill" href="06-flow.html">网络流</a><a class="pill" href="07-ff.html">FF</a><a class="pill" href="08-ek.html">EK</a><a class="pill" href="09-dinic.html">Dinic</a><a class="pill" href="10-match.html">匹配</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow"><span class="pulse-dot"></span> Immersive Lab · Chapter 9</div>
+  <h1>图算法 · 边与点的舞蹈</h1>
+  <p>最小生成树如何「长」出来，最短路如何「尘埃落定」，网络流如何一条条增广——全部用<strong>可播放的图动画</strong>呈现。</p>
+  <div class="hero-meta">
+    <span class="chip ind">🕸️ 10 个实验</span>
+    <span class="chip cyan">⚡ 可调速</span>
+    <span class="chip green">🎬 单步 / 自动</span>
+  </div>
+</section>
+
+<div class="objectives"><h3>本章学习目标</h3><ol>
+  <li>能够<b>选择</b>合适的图存储结构：说明邻接矩阵 O(n<sup>2</sup>) 与邻接表 O(n+e) 的空间差异，并根据稠密图/稀疏图给出选型理由。</li>
+  <li>能够<b>手工模拟</b> Prim 与 Kruskal 求最小生成树的全过程，并用<b>割性质</b>（cut property）说明两者为何都正确。</li>
+  <li>能够<b>辨析</b>三种单源最短路算法的适用边界：Dijkstra 要求非负权、Bellman-Ford/SPFA 可处理负权并检测负环、Floyd 求全源最短路。</li>
+  <li>能够<b>构造</b>一个使 Dijkstra 出错的负权反例，并解释"已定型顶点不再更新"这一贪心前提为何失效。</li>
+  <li>能够<b>复述</b>最大流最小割定理，写出割的容量定义与增广路定义，并说明 Ford-Fulkerson → Edmonds-Karp → Dinic 的改进动机。</li>
+  <li>能够<b>建模</b>二分图最大匹配为最大流问题，并说明匈牙利算法中"增广路取反"为何能使匹配数恰好加一。</li>
+  <li>能够<b>默写</b>本章各算法在不同实现下的时间与空间复杂度，并据此为给定规模的图选择算法。</li>
+</ol></div>
+
+<div class="card" style="--accent:linear-gradient(90deg,#8E7EB8,#6E5691,#4A6C8C);margin-bottom:18px">
+  <div class="formula lg">MST · 最短路 · 最大流 —— 图上三大经典</div>
+  <div class="stage-wrap" style="margin-top:14px">
+    <canvas class="stage" id="heroCv" width="1100" height="160"></canvas>
+    <div class="stage-hud"><span class="hud-pill">LIVE graph pulse</span><span class="hud-pill">auto</span></div>
+  </div>
+</div>
+<div class="grid grid-2 stagger">
+<a class="feature-card" href="01-prim.html" style="--c:#6E5691" data-ico="🌲">
+  <div class="num">图 01</div><h3>Prim 算法</h3><p>割集轻边 · 树生长发光</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="02-kruskal.html" style="--c:#4A6C8C" data-ico="🔗">
+  <div class="num">图 02</div><h3>Kruskal 算法</h3><p>排序加边 · 并查集</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="03-dijkstra.html" style="--c:#C2603F" data-ico="📍">
+  <div class="num">图 03</div><h3>Dijkstra</h3><p>dist 松弛 · 尘埃落定</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="04-bf-spfa.html" style="--c:#A02C55" data-ico="⚠️">
+  <div class="num">图 04</div><h3>BF / SPFA</h3><p>负权 · 负环检测</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="05-floyd.html" style="--c:#7E62A6" data-ico="▦">
+  <div class="num">图 05</div><h3>Floyd 全源</h3><p>三重循环热力矩阵</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="06-flow.html" style="--c:#3B7A57" data-ico="💧">
+  <div class="num">图 06</div><h3>网络流概念</h3><p>容量 · 残留 · 割</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="07-ff.html" style="--c:#9C7420" data-ico="➡️">
+  <div class="num">图 07</div><h3>Ford-Fulkerson</h3><p>增广路方法</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="08-ek.html" style="--c:#6E5691" data-ico="🌊">
+  <div class="num">图 08</div><h3>Edmonds-Karp</h3><p>BFS 找增广路动画</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="09-dinic.html" style="--c:#4A6C8C" data-ico="📶">
+  <div class="num">图 09</div><h3>Dinic</h3><p>分层图示意</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="10-match.html" style="--c:#7E62A6" data-ico="🤝">
+  <div class="num">图 10</div><h3>二分图匹配</h3><p>增广路配对</p><div class="go">进入实验 →</div>
+</a></div>
+
+<section class="sec"><div class="sec-head"><h2>一、前置知识：图的存储方式</h2><span class="sub">Graph Representation · 全章公共基础</span></div>
+
+<p class="desc">本章所有算法的复杂度都写成 n（顶点数 |V|）与 e（边数 |E|）的函数，而<b>同一个算法在不同存储结构下复杂度不同</b>。因此在进入 Prim 之前，必须先把图怎么"装进内存"讲清楚。</p>
+
+<div class="defn"><span class="lbl">定义</span><p>设图 G = (V, E)，记 n = |V|、e = |E|。<b>邻接矩阵</b>（adjacency matrix）用一个 n&times;n 的二维数组 A 表示图：A[i][j] 存边 (i, j) 的权值，无边时存 &infin;（无权图存 0/1）。<b>邻接表</b>（adjacency list）为每个顶点 i 挂一条链，链上依次存放 i 的所有出边的终点与权值。</p></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>操作 / 指标</th><th>邻接矩阵</th><th>邻接表</th><th>说明</th></tr>
+  <tr><td>空间</td><td class="hl">&Theta;(n<sup>2</sup>)</td><td class="hl">&Theta;(n + e)</td><td>与实际边数无关 vs 与边数成正比</td></tr>
+  <tr><td>判断边 (u,v) 是否存在</td><td class="hl">O(1)</td><td>O(deg(u))</td><td>矩阵可随机访问</td></tr>
+  <tr><td>遍历 u 的全部邻接点</td><td>O(n)</td><td class="hl">O(deg(u))</td><td>矩阵必须扫完整行</td></tr>
+  <tr><td>遍历全图所有边</td><td>O(n<sup>2</sup>)</td><td class="hl">O(n + e)</td><td>BFS/DFS 的代价差别即源于此</td></tr>
+  <tr><td>增删一条边</td><td class="hl">O(1)</td><td>O(1) 头插 / O(deg) 删除</td><td>—</td></tr>
+  <tr><td>适用图型</td><td>稠密图 e &asymp; &Theta;(n<sup>2</sup>)</td><td>稀疏图 e = O(n)</td><td>见下方判据</td></tr>
+</table></div>
+
+<div class="formula">稠密（dense）：e 接近 n(n&minus;1)/2 &nbsp;&rarr;&nbsp; 邻接矩阵 &nbsp;&nbsp;|&nbsp;&nbsp; 稀疏（sparse）：e = O(n) 或 e &ll; n<sup>2</sup> &nbsp;&rarr;&nbsp; 邻接表</div>
+
+<div class="code"><span class="cm">// ===== 存储方式一：邻接矩阵（适合稠密图，n 不大，如 n &lt;= 1000） =====</span>
+<span class="kw">const</span> <span class="kw">int</span> N = <span class="nu">1005</span>, INF = <span class="nu">0x3f3f3f3f</span>;
+<span class="kw">int</span> A[N][N];                 <span class="cm">// A[i][j] = 权值，无边为 INF，A[i][i] = 0</span>
+
+<span class="kw">void</span> <span class="fn">initMatrix</span>(<span class="kw">int</span> n) {
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; i++)
+        <span class="kw">for</span> (<span class="kw">int</span> j = <span class="nu">0</span>; j &lt; n; j++)
+            A[i][j] = (i == j ? <span class="nu">0</span> : INF);
+}
+<span class="cm">// 无向图加边：对称赋值；有向图只赋一次</span>
+<span class="kw">void</span> <span class="fn">addEdgeM</span>(<span class="kw">int</span> u, <span class="kw">int</span> v, <span class="kw">int</span> w) { A[u][v] = w; A[v][u] = w; }
+
+<span class="cm">// ===== 存储方式二：邻接表 · vector 版（适合稀疏图，最常用） =====</span>
+<span class="kw">struct</span> Edge { <span class="kw">int</span> to, w; };
+vector&lt;Edge&gt; g[N];           <span class="cm">// g[u] 存 u 的所有出边</span>
+
+<span class="kw">void</span> <span class="fn">addEdgeL</span>(<span class="kw">int</span> u, <span class="kw">int</span> v, <span class="kw">int</span> w) {
+    g[u].<span class="fn">push_back</span>({v, w});
+    g[v].<span class="fn">push_back</span>({u, w});   <span class="cm">// 有向图删去此行</span>
+}
+<span class="cm">// 遍历 u 的邻边：只花 O(deg(u))，而不是 O(n)</span>
+<span class="cm">// for (auto [v, w] : g[u]) { ... }</span>
+
+<span class="cm">// ===== 存储方式三：链式前向星（数组模拟邻接表，网络流必备） =====</span>
+<span class="cm">// 成对存边：第 i 条边的反向边下标恰为 i^1，这是残留网络的关键技巧</span>
+<span class="kw">int</span> head[N], nxt[<span class="nu">2</span>*N], to[<span class="nu">2</span>*N], wt[<span class="nu">2</span>*N], cnt = <span class="nu">0</span>;
+
+<span class="kw">void</span> <span class="fn">initStar</span>(<span class="kw">int</span> n) { <span class="fn">memset</span>(head, <span class="nu">-1</span>, <span class="kw">sizeof</span>(head)); cnt = <span class="nu">0</span>; }
+<span class="kw">void</span> <span class="fn">addEdgeS</span>(<span class="kw">int</span> u, <span class="kw">int</span> v, <span class="kw">int</span> w) {
+    to[cnt] = v; wt[cnt] = w; nxt[cnt] = head[u]; head[u] = cnt++;
+}
+<span class="cm">// for (int i = head[u]; i != -1; i = nxt[i]) { int v = to[i], w = wt[i]; ... }</span></div>
+
+<div class="tip info"><strong>选型判据：</strong>若 e &lt; n<sup>2</sup>/32 左右，邻接表在空间上明显占优；若图接近完全图，或算法本身就要 O(n<sup>2</sup>)（如 Floyd、朴素 Prim、朴素 Dijkstra），则直接用矩阵反而更简洁更快（无指针跳转，缓存友好）。<b>Floyd 只能用邻接矩阵</b>，因为它的状态就是矩阵本身。</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li>邻接矩阵初始化时把无边写成 <b>0</b>：最短路中 0 会被误认为"距离为 0 的边"。应写 INF，且 A[i][i] = 0。</li>
+  <li>用 <span class="cm">INF = INT_MAX</span> 做初值：松弛时 <span class="cm">dist[u] + w</span> 会整型溢出变成负数。惯例取 <span class="cm">0x3f3f3f3f</span>（约 10<sup>9</sup>），两个相加仍不溢出，且可用 memset 按字节 0x3f 填充。</li>
+  <li>无向图开边数组只开 e 个：无向图每条边要存两份，链式前向星须开 <b>2e</b>。</li>
+  <li>把复杂度里的 e 当成常数：稠密图中 e 可达 n<sup>2</sup>，O(e log n) 未必优于 O(n<sup>2</sup>)。</li>
+</ul></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、知识地图</h2><span class="sub">Knowledge Map · 三条主线</span></div>
+
+<div class="list-step"><span class="n">1</span><div class="body"><b>最小生成树（MST）· 第 1&sim;2 节</b>：Prim 从点扩张、Kruskal 从边挑选。二者共用同一条正确性依据——<b>割性质</b>。选型看疏密：稠密图用朴素 Prim O(n<sup>2</sup>)，稀疏图用 Kruskal O(e log e) 或堆优化 Prim O((n+e) log n)。</div></div>
+<div class="list-step"><span class="n">2</span><div class="body"><b>最短路 · 第 3&sim;5 节</b>：Dijkstra（单源、非负权、贪心）→ Bellman-Ford / SPFA（单源、可负权、可判负环）→ Floyd（全源、动态规划、O(n<sup>3</sup>)）。三者的分界线是<b>边权能否为负</b>与<b>要不要全源</b>。</div></div>
+<div class="list-step"><span class="n">3</span><div class="body"><b>网络流 · 第 6&sim;10 节</b>：先立概念（容量、流、残留网络、割、增广路），再看方法的三级演进——Ford-Fulkerson（伪多项式 O(e&middot;|f*|)）→ Edmonds-Karp（BFS 选最短增广路，O(n e<sup>2</sup>)，与容量数值无关）→ Dinic（分层图 + 多路增广，O(n<sup>2</sup>e)）。最后用最大流解<b>二分图匹配</b>，与匈牙利算法互为镜像。</div></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>节</th><th>算法</th><th>解决问题</th><th>核心思想</th><th>时间复杂度</th><th>前提 / 限制</th></tr>
+  <tr><td>01</td><td>Prim</td><td>最小生成树</td><td>贪心 · 割集轻边</td><td class="hl">O(n<sup>2</sup>) 矩阵 / O((n+e) log n) 堆</td><td>连通无向图</td></tr>
+  <tr><td>02</td><td>Kruskal</td><td>最小生成树</td><td>贪心 · 排序 + 并查集</td><td class="hl">O(e log e)</td><td>连通无向图</td></tr>
+  <tr><td>03</td><td>Dijkstra</td><td>单源最短路</td><td>贪心 · 逐点定型</td><td class="hl">O(n<sup>2</sup>) / O((n+e) log n)</td><td><b>边权非负</b></td></tr>
+  <tr><td>04</td><td>Bellman-Ford</td><td>单源最短路</td><td>DP · 松弛 n&minus;1 轮</td><td class="hl">O(n e)</td><td>可负权，可判负环</td></tr>
+  <tr><td>04</td><td>SPFA</td><td>单源最短路</td><td>队列优化的 BF</td><td class="hl">平均 O(k e)，最坏仍 O(n e)</td><td>可负权，可判负环</td></tr>
+  <tr><td>05</td><td>Floyd</td><td>全源最短路</td><td>DP · 中转点为阶段</td><td class="hl">O(n<sup>3</sup>)</td><td>可负权，不可有负环</td></tr>
+  <tr><td>07</td><td>Ford-Fulkerson</td><td>最大流</td><td>任意找增广路</td><td class="hl">O(e&middot;|f*|) 伪多项式</td><td>容量须为整数才保证终止</td></tr>
+  <tr><td>08</td><td>Edmonds-Karp</td><td>最大流</td><td>BFS 找最短增广路</td><td class="hl">O(n e<sup>2</sup>)</td><td>与容量数值无关</td></tr>
+  <tr><td>09</td><td>Dinic</td><td>最大流</td><td>分层图 + 多路增广</td><td class="hl">O(n<sup>2</sup>e)；单位容量 O(e&radic;n)</td><td>实践中最常用</td></tr>
+  <tr><td>10</td><td>匈牙利算法</td><td>二分图最大匹配</td><td>反复找增广路</td><td class="hl">O(n e)</td><td>二分图；等价于单位容量最大流</td></tr>
+</table></div>
+
+<div class="tip"><strong>阅读建议：</strong>1&sim;2 节（MST）与 3&sim;5 节（最短路）相互独立，可分开学；6 节是 7&sim;10 节的公共概念基础，<b>不要跳过</b>——割、残留网络、增广路三个定义没立住，后面四节都会变成背代码。</div>
+
+<div class="terms">
+  <span class="term"><b>顶点/边</b>vertex / edge</span>
+  <span class="term"><b>邻接矩阵</b>adjacency matrix</span>
+  <span class="term"><b>邻接表</b>adjacency list</span>
+  <span class="term"><b>稠密图</b>dense graph</span>
+  <span class="term"><b>稀疏图</b>sparse graph</span>
+  <span class="term"><b>度</b>degree</span>
+  <span class="term"><b>最小生成树</b>minimum spanning tree</span>
+  <span class="term"><b>最短路径</b>shortest path</span>
+  <span class="term"><b>网络流</b>network flow</span>
+</div>
+
+<div class="summary"><span class="lbl">本章导读小结</span><ul>
+  <li>本章三条主线：最小生成树、最短路、网络流；分别对应贪心、动态规划/贪心、增广思想。</li>
+  <li>复杂度一律用 n = |V| 与 e = |E| 表述；<b>同一算法在邻接矩阵与邻接表下复杂度不同</b>，作答时必须说明所用存储结构。</li>
+  <li>邻接矩阵 &Theta;(n<sup>2</sup>) 空间、O(1) 查边，适合稠密图；邻接表 &Theta;(n+e) 空间、O(deg) 遍历，适合稀疏图。</li>
+  <li>INF 取 0x3f3f3f3f 而非 INT_MAX，避免松弛时溢出——这是本章代码题最常见的隐性失分点。</li>
+</ul></div>
+</section>
+
+<div class="page-nav"><div></div><a href="01-prim.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">Prim</span></a></div>
+<div class="footer">算法设计与分析 · <b>第9章 图算法</b> · 强交互可视化版<br/>MST · 最短路 · 网络流 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:28},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.1-Math.random()*.25, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(110,86,145,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+// shared graph geometry
+const GPOS=[[120,200],[300,80],[520,80],[700,200],[520,320],[300,320]];
+const GEDGES=[[0,1,6],[0,5,5],[1,2,5],[1,5,3],[2,3,4],[2,4,3],[2,5,4],[3,4,5],[4,5,2]];
+
+const cv=heroCv, ctx=cv.getContext('2d');
+const P=[[100,80],[280,40],[480,40],[680,80],[480,120],[280,120]];
+const E=[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[1,5],[2,4]];
+let t=0;
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  E.forEach(([u,v],i)=>{
+    const pulse=(Math.sin(t*0.05+i)*.5+.5);
+    ctx.strokeStyle=`rgba(129,140,248,${0.25+pulse*0.55})`;
+    ctx.lineWidth=2+pulse*2;
+    ctx.beginPath(); ctx.moveTo(P[u][0]+150,P[u][1]); ctx.lineTo(P[v][0]+150,P[v][1]); ctx.stroke();
+  });
+  P.forEach((p,i)=>{
+    const on=Math.floor(t/20)%6===i;
+    ctx.beginPath(); ctx.arc(p[0]+150,p[1], on?14:11,0,Math.PI*2);
+    const g=ctx.createRadialGradient(p[0]+146,p[1]-4,2,p[0]+150,p[1],14);
+    g.addColorStop(0,on?'#B4A8D4':'#9BBDD1'); g.addColorStop(1,on?'#6E5691':'#4A6C8C');
+    ctx.fillStyle=g; ctx.fill();
+  });
+  t++;
+}
+setInterval(draw,40); draw();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>最大子段和 · 第4章 分治法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">04</div>算法可视化 · <span>第4章 分治法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-quicksort.html">快排</a><a class="pill" href="03-mergesort.html">归并</a><a class="pill" href="04-binsearch.html">二分</a><a class="pill" href="05-median.html">中位数</a><a class="pill active" href="06-maxsub.html">最大子段</a><a class="pill" href="07-chessboard.html">棋盘覆盖</a><a class="pill" href="08-schedule.html">日程</a><a class="pill" href="09-tsp.html">TSP</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 6 · 加深</div><h1>最大连续子段和 · 分治</h1>
+<p>左半 / 右半 / 跨中线 三者取 max。跨中 = 左向最大后缀 + 右向最大前缀。T=Θ(n log n)。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+<li>能够<b>说明</b>最优子段的三种互斥位置（完全在左、完全在右、跨越中点），并论证这三种情况<b>不重不漏</b>。</li>
+<li>能够<b>写出</b> maxCrossing 的 C++ 代码：从中点<b>向左</b>求最大后缀和、<b>向右</b>求最大前缀和，两者相加。</li>
+<li>能够<b>推导</b> T(n)=2T(n/2)+&Theta;(n) ⇒ &Theta;(n log n)，并解释跨中处理为什么是 &Theta;(n) 而非 &Theta;(n<sup>2</sup>)。</li>
+<li>能够<b>对比</b>蛮力 O(n<sup>3</sup>)、前缀和 O(n<sup>2</sup>)、分治 O(n log n)、Kadane 线性扫描 O(n) 四种解法。</li>
+<li>能够<b>处理</b>全负数组等边界情形，区分"允许空子段"与"要求非空子段"两种约定。</li>
+</ol></div>
+<div class="card">
+  <div class="toolbar"><button class="btn primary" id="run">▶ 分治求解</button><button class="btn" id="rand">随机</button></div>
+  <div class="stage-wrap light">
+    <canvas class="stage" id="cv" width="1000" height="280"></canvas>
+    <div class="stage-hud"><span class="hud-pill light">Max Subarray DC</span><span class="hud-pill light" id="hud">—</span></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>答案</span><b class="p" id="ans">—</b></div>
+    <div class="stat"><span>区间</span><b class="g" id="rng">—</b></div>
+  </div>
+  <div class="log" id="log">观察跨中线合并如何产生全局最优。</div>
+</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul><li><b>三种情况不可漏</b>：最大子段和只可能①全在左半、②全在右半、③跨越中点，三者取最大。</li><li><b>跨中点段必须含中点两侧</b>：= “从中点向左的最大后缀和” + “从中点右侧向右的最大前缀和”。</li><li><b>跨中点用线性扫描</b>：从中点分别向两侧累加求最值，<code>O(n)</code>，不是再次分治。</li><li><b>递推式</b>：<code>T(n)=2T(n/2)+O(n)=O(n log n)</code>，与归并排序同量级。</li><li><b>全负数 / 空段约定</b>：若不允许空段，答案为最大的单个元素（负数）；允许空段则为 0，先明确定义。</li><li><b>只比左右忘了跨段</b>：会漏掉横跨中线的最优解，这是最常见错误。</li></ul></div>
+<div class="summary"><span class="lbl">本节小结</span><ul><li>分治把区间从中点一分为二，最大子段和取“左半 / 右半 / 跨中点”三者最大。</li><li>跨中点段 = 左侧最大后缀和 + 右侧最大前缀和，线性求出。</li><li>递推 <code>T(n)=2T(n/2)+O(n)</code>，解得 <code>O(n log n)</code>。</li><li>另有 Kadane 动态规划解法可达 <code>O(n)</code>，分治胜在展示“合并”思想。</li><li>注意空段 / 全负数的定义约定，避免边界答案出错。</li></ul></div>
+<div class="quiz"><div class="quiz-item"><div class="quiz-q"><span class="qn">1</span>分治法求最大连续子段和的时间复杂度是？</div><div class="quiz-opts"><div class="quiz-opt"><span class="mk">A</span><span>O(n)</span></div><div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>O(n log n)</span></div><div class="quiz-opt"><span class="mk">C</span><span>O(n&sup2;)</span></div></div><div class="quiz-exp"><code>T(n)=2T(n/2)+O(n)</code>，主定理情形 2，得 <code>O(n log n)</code>。</div></div><div class="quiz-item"><div class="quiz-q"><span class="qn">2</span>“跨越中点”的最大子段和应如何计算？</div><div class="quiz-opts"><div class="quiz-opt"><span class="mk">A</span><span>左半最大子段和 + 右半最大子段和</span></div><div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>中点向左的最大后缀和 + 中点右侧向右的最大前缀和</span></div><div class="quiz-opt"><span class="mk">C</span><span>整个区间求和</span></div></div><div class="quiz-exp">跨中点段必须连续包含中线两侧，故由两侧的最大后缀 / 前缀拼成。</div></div><div class="quiz-item"><div class="quiz-q"><span class="qn">3</span>分治求解时，若只比较左右两半的结果会怎样？</div><div class="quiz-opts"><div class="quiz-opt"><span class="mk">A</span><span>结果正确</span></div><div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>可能漏掉横跨中线的最优段</span></div><div class="quiz-opt"><span class="mk">C</span><span>复杂度变高</span></div></div><div class="quiz-exp">必须把跨中点情况一并比较，否则漏解。</div></div></div>
+<div class="page-nav"><a href="05-median.html"><span class="dir">← 上一节</span><span class="name">中位数</span></a><a href="07-chessboard.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">棋盘覆盖</span></a></div>
+<div class="footer">算法设计与分析 · <b>第4章 分治法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(74,108,140,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+let a=[-2,1,-3,4,-1,2,1,-5,4];
+function paint(hi={}){
+  // allow negative: shift for bars
+  const base=Math.min(0,...a), vals=a.map(v=>v-base+1);
+  barDraw(ctx,cv.width,cv.height,vals,{...hi, /* map back labels */});
+  // redraw labels as original
+  const n=a.length,pad=28,gap=6,bw=Math.max(8,(cv.width-pad*2)/n-gap), mx=Math.max(...vals,1);
+  a.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(cv.height-pad*2)*(vals[i]/mx), y=cv.height-pad-h;
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+async function cross(lo,mid,hi){
+  let ls=-1e9,s=0,L=mid;
+  for(let i=mid;i>=lo;i--){ s+=a[i]; if(s>ls){ls=s;L=i;} }
+  let rs=-1e9; s=0; let R=mid+1;
+  for(let i=mid+1;i<=hi;i++){ s+=a[i]; if(s>rs){rs=s;R=i;} }
+  return {sum:ls+rs,L,R};
+}
+async function solve(lo,hi){
+  if(lo===hi) return {sum:a[lo],L:lo,R:hi};
+  const mid=(lo+hi)>>1;
+  paint({range:[lo,hi], mid}); hud.textContent=`[${lo},${hi}] mid=${mid}`; await sleep(350);
+  const left=await solve(lo,mid);
+  const right=await solve(mid+1,hi);
+  const cr=await cross(lo,mid,hi);
+  paint({range:[cr.L,cr.R], active:new Set(Array.from({length:cr.R-cr.L+1},(_,i)=>cr.L+i))});
+  await sleep(300);
+  const best=[left,right,cr].sort((x,y)=>y.sum-x.sum)[0];
+  log.textContent=`[${lo},${hi}] left=${left.sum} right=${right.sum} cross=${cr.sum} → ${best.sum}`;
+  return best;
+}
+run.onclick=async()=>{
+  const r=await solve(0,a.length-1);
+  ans.textContent=r.sum; rng.textContent=`[${r.L},${r.R}]`;
+  paint({sorted:new Set(Array.from({length:r.R-r.L+1},(_,i)=>r.L+i))});
+  hud.textContent='OPT='+r.sum;
+};
+rand.onclick=()=>{ a=Array.from({length:10},()=>Math.floor(Math.random()*15)-6); paint({}); ans.textContent='—'; };
+paint({});
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

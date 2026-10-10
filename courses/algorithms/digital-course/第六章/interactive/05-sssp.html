@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>3D迷宫 · 第6章 分支限界法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">06</div>算法可视化 · <span>第6章 分支限界法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述对比</a><a class="pill" href="02-bound.html">限界函数</a><a class="pill" href="03-framework.html">两种框架</a><a class="pill" href="04-bfs.html">广度优先</a><a class="pill active" href="05-sssp.html">3D迷宫</a><a class="pill" href="06-knapsack.html">背包树</a><a class="pill" href="07-assign-tsp.html">TSP巡游</a><a class="pill" href="08-astar.html">A* 可视</a><a class="pill" href="09-8puzzle.html">八数码3D</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 5 · 等距 3D 迷宫</div>
+  <h1>立体迷宫里的最短路波前</h1>
+  <p>等距投影墙体 + 高度感访问块。单位权下，波前第一次碰到终点 = 最短路。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够把网格迷宫<b>建模</b>为隐式图，说清结点、扩展、剪支在本问题中的具体含义。</li>
+  <li>能够<b>实现</b>网格迷宫上的队列式分支限界（BFS）求最短路径，并回溯输出路径本身。</li>
+  <li>能够<b>分析</b>网格 BFS 的时间与空间复杂度 Θ(mn)。</li>
+  <li>能够<b>识别</b>随机生成迷宫可能不连通这一实验设定，并解释算法在无解时的行为。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="run">🚀 搜救</button>
+    <button class="btn" id="neu">🎲 新迷宫</button>
+    <div class="speed" id="spd"><button data-ms="70">慢</button><button data-ms="32" class="on">中</button><button data-ms="10">快</button></div>
+  </div>
+  <div class="stage-wrap">
+    <canvas class="stage" id="maze" width="1000" height="480"></canvas>
+    <div class="stage-hud"><span class="hud-pill">ISOMETRIC MAZE</span><span class="hud-pill" id="mhud">—</span></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>最短步数</span><b class="green" id="steps">—</b></div>
+    <div class="stat"><span>访问</span><b class="blue" id="visN">0</b></div>
+    <div class="stat"><span>队列峰值</span><b id="peak">0</b></div>
+  </div>
+  <div class="tip" id="tip">金块=起点 · 翠块=终点 · 紫高亮=最短路径</div>
+  <div class="tip warn"><strong>关于迷宫生成方式的说明：</strong>本演示的迷宫是在 11×11 的空场地上<strong>随机撒 28 个墙块</strong>得到的，<strong>并不保证起点与终点之间一定连通</strong>。若随机结果恰好把通路堵死，算法会在活结点表变空后正常退出并提示「无通路，换一张」——这不是程序出错，而是分支限界法在<strong>无解</strong>情形下的正确行为。课堂演示时若遇到，点一次「🎲 新迷宫」重新生成即可。（若需要保证连通，应改用 DFS 挖洞、Prim 或 Kruskal 等迷宫生成算法，而非随机撒墙。）</div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>一、把迷宫翻译成本章术语</h2><span class="sub">隐式图上的队列式分支限界</span></div>
+  <p class="desc">迷宫问题里并没有一张显式的图——没有邻接表，也没有边的列表。图是<strong>隐含</strong>在网格结构中的：格子即顶点，相邻且都可走即有边。这类图称为<b>隐式图</b>（implicit graph），是分支限界法最常见的战场。</p>
+
+  <div class="table-scroll"><table class="data">
+    <tr><th>分支限界术语</th><th>迷宫中的对应物</th><th>本演示的表现</th></tr>
+    <tr><td><b>结点 / 状态</b></td><td>一个可通行格子的坐标 (i, j)</td><td>一块矮方块</td></tr>
+    <tr><td class="hl"><b>扩展结点 E-node</b></td><td>当前正在向四周试探的那个格子</td><td class="hl">金黄色、抬得最高的那块（HUD 显示 <code>expand (x,y)</code>）</td></tr>
+    <tr><td class="hl"><b>活结点表</b></td><td>队列 <code>queue&lt;pair&lt;int,int&gt;&gt;</code></td><td class="hl">统计栏中的「队列峰值」</td></tr>
+    <tr><td><b>分支（生成子结点）</b></td><td>上、下、左、右<strong>四个方向</strong>的相邻格</td><td>波前向四周同时推进</td></tr>
+    <tr><td class="hl"><b>约束函数（可行性剪支）</b></td><td>越界？是墙？→ 丢弃</td><td class="hl">深色墙体永不被点亮</td></tr>
+    <tr><td class="hl"><b>限界剪支</b></td><td><code>vis[nx][ny]</code> 判重：已访问过的格子不再入队</td><td class="hl">已变橙的格子不会二次抬升</td></tr>
+    <tr><td><b>死结点</b></td><td>四个方向都试探完的格子</td><td>停止发光、保持橙色</td></tr>
+    <tr><td><b>目标 / 最优解</b></td><td>从 S 到 E 的最少步数及其路径</td><td>紫色高台构成的路径</td></tr>
+  </table></div>
+
+  <div class="defn"><span class="lbl">状态空间的规模</span>
+    <p>m 行 n 列的网格，每个格子最多是一个状态，故状态空间大小为 Θ(mn)；每个状态最多有 4 个后继（四邻域），故边数为 Θ(4mn) ＝ Θ(mn)。<strong>正因为状态数是多项式级的，本问题才能被 BFS 高效解决</strong>——这与第 6、7 节中状态数呈指数级的背包、TSP 形成鲜明对比。</p>
+  </div>
+
+  <div class="tip info"><strong>为什么波前首次碰到终点就是最短路？</strong>迷宫中每走一步的代价都是 1（单位权），因此 FIFO 队列天然按步数分层——先出完所有「1 步可达」的格子，再出「2 步可达」的格子……终点第一次被发现时所处的层号，就是它的最短步数。这正是上一节定理在网格图上的直接应用。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>二、C++ 实现</h2><span class="sub">四方向偏移数组 + 前驱回溯</span></div>
+  <div class="code"><span class="cm">// ===== 队列式分支限界求网格迷宫最短路径 =====</span>
+<span class="kw">const</span> <span class="kw">int</span> M = <span class="nu">11</span>, N = <span class="nu">11</span>;
+<span class="kw">int</span> g[M][N];                  <span class="cm">// 0 = 通路, 1 = 墙</span>
+<span class="kw">int</span> dist[M][N];               <span class="cm">// -1 = 未访问（兼作 vis 标记）</span>
+pair&lt;<span class="kw">int</span>,<span class="kw">int</span>&gt; pre[M][N];      <span class="cm">// 前驱，用于回溯路径</span>
+
+<span class="cm">// 四方向偏移：右、下、左、上</span>
+<span class="kw">const</span> <span class="kw">int</span> dx[<span class="nu">4</span>] = {<span class="nu">0</span>, <span class="nu">1</span>, <span class="nu">0</span>, -<span class="nu">1</span>};
+<span class="kw">const</span> <span class="kw">int</span> dy[<span class="nu">4</span>] = {<span class="nu">1</span>, <span class="nu">0</span>, -<span class="nu">1</span>, <span class="nu">0</span>};
+
+<span class="kw">int</span> <span class="fn">mazeBFS</span>(<span class="kw">int</span> sx, <span class="kw">int</span> sy, <span class="kw">int</span> ex, <span class="kw">int</span> ey) {
+    <span class="fn">memset</span>(dist, -<span class="nu">1</span>, <span class="kw">sizeof</span>(dist));
+
+    queue&lt;pair&lt;<span class="kw">int</span>,<span class="kw">int</span>&gt;&gt; q;         <span class="cm">// ← 活结点表</span>
+    dist[sx][sy] = <span class="nu">0</span>;
+    pre[sx][sy] = {-<span class="nu">1</span>, -<span class="nu">1</span>};
+    q.<span class="fn">push</span>({sx, sy});                <span class="cm">// ← ① 根结点入表</span>
+
+    <span class="kw">while</span> (!q.<span class="fn">empty</span>()) {
+        <span class="kw">auto</span> [x, y] = q.<span class="fn">front</span>(); q.<span class="fn">pop</span>();   <span class="cm">// ← ② 取队首为扩展结点</span>
+
+        <span class="kw">if</span> (x == ex &amp;&amp; y == ey)              <span class="cm">// 单位权 ⇒ 首次到达即最短</span>
+            <span class="kw">return</span> dist[x][y];
+
+        <span class="kw">for</span> (<span class="kw">int</span> d = <span class="nu">0</span>; d &lt; <span class="nu">4</span>; ++d) {          <span class="cm">// ← ③ 生成全部 4 个子结点</span>
+            <span class="kw">int</span> nx = x + dx[d], ny = y + dy[d];
+
+            <span class="cm">// ← ④a 约束函数：越界或撞墙 ⇒ 不可行</span>
+            <span class="kw">if</span> (nx &lt; <span class="nu">0</span> || ny &lt; <span class="nu">0</span> || nx &gt;= M || ny &gt;= N) <span class="kw">continue</span>;
+            <span class="kw">if</span> (g[nx][ny] == <span class="nu">1</span>) <span class="kw">continue</span>;
+
+            <span class="cm">// ← ④b 剪支：已访问过 ⇒ 不可能更短</span>
+            <span class="kw">if</span> (dist[nx][ny] != -<span class="nu">1</span>) <span class="kw">continue</span>;
+
+            dist[nx][ny] = dist[x][y] + <span class="nu">1</span>;
+            pre[nx][ny]  = {x, y};
+            q.<span class="fn">push</span>({nx, ny});                <span class="cm">// ← 存活 ⇒ 入队尾</span>
+        }
+    }
+    <span class="kw">return</span> -<span class="nu">1</span>;                  <span class="cm">// ← ⑤ 队空仍未到终点 ⇒ 不连通，无解</span>
+}
+
+<span class="cm">// 回溯最短路径（从终点倒推回起点）</span>
+vector&lt;pair&lt;<span class="kw">int</span>,<span class="kw">int</span>&gt;&gt; <span class="fn">getPath</span>(<span class="kw">int</span> ex, <span class="kw">int</span> ey) {
+    vector&lt;pair&lt;<span class="kw">int</span>,<span class="kw">int</span>&gt;&gt; path;
+    <span class="kw">if</span> (dist[ex][ey] == -<span class="nu">1</span>) <span class="kw">return</span> path;   <span class="cm">// 无解</span>
+    <span class="kw">for</span> (<span class="kw">auto</span> p = make_pair(ex, ey); p.first != -<span class="nu">1</span>; p = pre[p.first][p.second])
+        path.<span class="fn">push_back</span>(p);
+    <span class="fn">reverse</span>(path.<span class="fn">begin</span>(), path.<span class="fn">end</span>());
+    <span class="kw">return</span> path;
+}</div>
+  <div class="tip"><strong>实现要点：</strong>把 <code>dx/dy</code> 写成偏移数组，可以让「生成全部子结点」变成一个整齐的 4 次循环，避免四段几乎相同的复制粘贴代码。若允许八方向移动，只需把数组扩展为 8 项——<strong>但此时对角移动的代价若仍算 1，最短路含义就变了；若算 √2，则不再是单位权，BFS 失效，必须改用 Dijkstra 或 A<sup>*</sup></strong>。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>三、复杂度分析</h2><span class="sub">Θ(mn) 的推导</span></div>
+  <div class="deriv">
+    <span class="step">状态总数 ＝ 格子数 ＝ mn <span class="why">隐式图的顶点数 V</span></span>
+    <span class="step">每格因 vis 剪支至多入队一次、出队一次 ⇒ 出队总次数 ≤ mn</span>
+    <span class="step">每次出队固定试探 4 个方向，单次试探为 Θ(1) ⇒ 扩展总代价 Θ(4mn)</span>
+    <span class="step">时间 T(m,n) ＝ Θ(mn) + Θ(4mn) ＝ <strong>Θ(mn)</strong> <span class="why">代入 V+E：V＝mn，E＝Θ(4mn)</span></span>
+    <span class="step">空间：dist 与 pre 数组各 Θ(mn)；队列峰值最坏 Θ(mn)（空场地时波前可覆盖大半网格）⇒ <strong>Θ(mn)</strong></span>
+    <span class="step">路径回溯：Θ(路径长度) ≤ Θ(mn)，不改变总阶</span>
+  </div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>方法</th><th>时间</th><th>空间</th><th>能否保证最短</th><th>备注</th></tr>
+    <tr><td class="hl">队列式分支限界（BFS）</td><td class="hl">Θ(mn)</td><td>Θ(mn)</td><td class="hl">能（单位权）</td><td class="hl">本节做法</td></tr>
+    <tr><td>回溯法（DFS 枚举全部路径）</td><td>最坏指数级</td><td>Θ(mn) 栈</td><td>能，但需搜完全部路径</td><td>只适合求「所有出路」</td></tr>
+    <tr><td>优先队列式（Dijkstra）</td><td>Θ(mn log mn)</td><td>Θ(mn)</td><td>能（非负权）</td><td>格子代价不同时使用</td></tr>
+    <tr><td>A<sup>*</sup>（曼哈顿启发）</td><td>最坏同上，实测远小</td><td>Θ(mn)</td><td>能（h 可采纳）</td><td>见本章第 8 节</td></tr>
+  </table></div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>边界检查与访墙检查的顺序写反</b>：必须先判越界再访问 <code>g[nx][ny]</code>，否则数组越界读取，是最典型的段错误来源。</li>
+  <li>把 <code>vis</code> 标记写在出队时——网格图上会造成同一格被 4 个邻居重复入队，队列膨胀数倍。</li>
+  <li>随机撒墙生成的迷宫<strong>可能不连通</strong>，必须处理「队空仍未到终点」的无解分支并返回 −1，否则回溯路径时会陷入死循环或访问非法前驱。</li>
+  <li>把行列下标 (i, j) 与屏幕坐标 (x, y) 搞混——<code>dx</code> 作用于<strong>行</strong>号，<code>dy</code> 作用于<strong>列</strong>号，绘图时才转换为像素。</li>
+  <li>允许八方向移动却仍用 BFS 求「实际距离」最短路——对角线长度是 √2 而非 1，已非单位权，BFS 结论失效。</li>
+  <li>忘记把起点自身标记为已访问，导致它被邻居重新入队，dist 被覆盖为 2。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li><b>建模</b>：格子 ＝ 结点，四邻域 ＝ 分支，越界/撞墙 ＝ 约束剪支，vis 判重 ＝ 限界剪支，队列 ＝ 活结点表。</li>
+  <li><b>隐式图</b>：边不显式存储，而由网格的相邻关系隐含定义；状态数 Θ(mn) 是多项式级，这是本问题可高效求解的根本原因。</li>
+  <li><b>正确性</b>：每步代价为 1（单位权），FIFO 队列天然按步数分层，故终点首次出队时的 dist 即最短步数。</li>
+  <li><b>复杂度</b>：时间 Θ(mn)，空间 Θ(mn)；记录 pre 数组即可回溯出路径本身。</li>
+  <li><b>实验说明</b>：本页迷宫由随机撒墙生成，<strong>不保证连通</strong>；「无通路」提示是无解时的正确输出，而非程序缺陷。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>在 m×n 网格迷宫上用队列式分支限界求最短路，时间与空间复杂度分别是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>时间 Θ(mn log mn)，空间 Θ(mn)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>时间 Θ(mn)，空间 Θ(mn)</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>时间 Θ(4<sup>mn</sup>)，空间 Θ(mn)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>时间 Θ(mn)，空间 Θ(m+n)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。V ＝ mn，E ＝ Θ(4mn)，代入 Θ(V+E) 得 Θ(mn)。A 的 log 因子来自<strong>优先队列</strong>，而本节用的是普通队列，出入队均为 Θ(1)。C 是「不做 vis 剪支」时枚举全部路径的量级——这恰恰说明剪支把指数级压成了线性级，是本题最有教学价值的对比项。D 的空间估计过小：队列峰值可达 Θ(mn)（想象一个空场地，波前是一条长长的对角线，且 dist 与 pre 数组本身就是 Θ(mn)）。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>把本节迷宫改为「每个格子有不同的通行代价 c(i,j) ≥ 1，求总代价最小的路径」。原 BFS 代码还能用吗？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>能，只需把 <code>dist+1</code> 改成 <code>dist+c(nx,ny)</code></span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>不能。已非单位权，须把队列换成按 dist 排序的优先队列（Dijkstra）</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>能，因为代价均为正数，BFS 的分层性质不受影响</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>不能，必须改用回溯法枚举全部路径</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。BFS 的正确性完全建立在「每步代价相同 ⇒ 队列按代价分层」之上。代价不同后，队列中的 dist 不再单调，某格首次出队时的 dist 未必最小，而 vis 判重又不允许它被再次松弛，最优解就此丢失。A 是极具迷惑性的「一行修补」幻觉——改累加式子并不能修复<strong>出队顺序</strong>这个结构性缺陷（与上一节第 3 题同源）。C 混淆了「代价为正」与「代价相同」：分层性质依赖后者，与前者无关。D 过度反应，Dijkstra 或 A<sup>*</sup> 都能多项式时间解决，无需退化到指数级枚举。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>本页迷宫由「在空场地上随机撒 28 个墙块」生成。关于这一设定，下列说法<b>正确</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>随机撒墙保证了迷宫必然连通，因为墙块数远小于格子总数</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>不保证连通；「无通路」提示是分支限界法在无解时活结点表变空后的正确输出</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>不保证连通，此时算法会死循环，需靠超时机制退出</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>随机撒墙一定会把起点或终点封死，所以必须特判起终点周边</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。墙块位置完全随机，完全可能围成一圈把起点隔离，或在中间砌出一道横贯的墙；此时 BFS 会把起点所在连通块全部访问完，队列自然变空并退出，返回「无解」。这是算法的<strong>正确行为</strong>而非缺陷。A 错：墙块少<strong>降低</strong>但不<strong>消除</strong>不连通的概率——概率问题不能当作保证。C 错：vis 剪支保证每格至多入队一次，队列必然在有限步内清空，不可能死循环。D 说反了：代码确实特意把起终点及其相邻格清空（<code>grid[S[0]][S[1]+1]=0</code> 等），但那只是降低被<strong>直接</strong>封死的概率，仍无法保证全局连通。要真正保证连通，应改用挖洞式生成算法。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="04-bfs.html"><span class="dir">← 上一节</span><span class="name">广度优先</span></a><a href="06-knapsack.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">背包树</span></a></div>
+<div class="footer">算法设计与分析 · <b>第6章 分支限界法</b> · 强交互可视化版<br/>Canvas / CSS 3D · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+// ambient particles
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let w,h,parts=[],raf;
+  function resize(){ w=cv.width=innerWidth*devicePixelRatio; h=cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px'; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:36},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2.2, vx:(Math.random()-.5)*.25, vy:-.15-Math.random()*.35, a:.15+Math.random()*.35}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(194,96,63,${p.a})`; ctx.fill();
+    });
+    raf=requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const N=11; let grid,S=[1,1],E=[9,9],ms=32;
+const cv=maze, ctx=cv.getContext('2d');
+// isometric helpers
+const tileW=36, tileH=18, wallH=16;
+function iso(i,j){ // grid row i, col j -> screen
+  const x0=cv.width/2, y0=70;
+  return {x:x0+(j-i)*(tileW/2), y:y0+(i+j)*(tileH/2)};
+}
+function drawPrism(i,j, h, top, sideL, sideR){
+  const p=iso(i,j), tw=tileW/2, th=tileH/2;
+  // order: left, right, top
+  ctx.beginPath(); // left
+  ctx.moveTo(p.x-tw,p.y); ctx.lineTo(p.x,p.y+th); ctx.lineTo(p.x,p.y+th-h); ctx.lineTo(p.x-tw,p.y-h); ctx.closePath();
+  ctx.fillStyle=sideL; ctx.fill();
+  ctx.beginPath(); // right
+  ctx.moveTo(p.x+tw,p.y); ctx.lineTo(p.x,p.y+th); ctx.lineTo(p.x,p.y+th-h); ctx.lineTo(p.x+tw,p.y-h); ctx.closePath();
+  ctx.fillStyle=sideR; ctx.fill();
+  ctx.beginPath(); // top
+  ctx.moveTo(p.x,p.y-h); ctx.lineTo(p.x+tw,p.y-h); ctx.lineTo(p.x,p.y+th-h); ctx.lineTo(p.x-tw,p.y-h); ctx.closePath();
+  ctx.fillStyle=top; ctx.fill();
+}
+function gen(){
+  grid=Array.from({length:N},()=>Array(N).fill(0));
+  for(let i=0;i<N;i++) for(let j=0;j<N;j++) if(!i||!j||i===N-1||j===N-1) grid[i][j]=1;
+  for(let k=0;k<28;k++){ const r=1+Math.floor(Math.random()*(N-2)),c=1+Math.floor(Math.random()*(N-2)); grid[r][c]=1; }
+  S=[1,1]; E=[N-2,N-2]; grid[S[0]][S[1]]=0; grid[E[0]][E[1]]=0; grid[S[0]][S[1]+1]=0; grid[E[0]][E[1]-1]=0;
+  steps.textContent='—'; visN.textContent='0'; peak.textContent='0'; tip.textContent='新迷宫就绪';
+  render({},[]);
+}
+function render(vis={}, path=[], cur=null){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  // draw back-to-front (i+j ascending)
+  const cells=[];
+  for(let i=0;i<N;i++) for(let j=0;j<N;j++) cells.push([i,j]);
+  cells.sort((a,b)=>(a[0]+a[1])-(b[0]+b[1]));
+  cells.forEach(([i,j])=>{
+    const wall=grid[i][j]===1;
+    const onPath=path.some(p=>p[0]===i&&p[1]===j);
+    const visited=!!vis[i+','+j];
+    const isS=i===S[0]&&j===S[1], isE=i===E[0]&&j===E[1];
+    const isCur=cur&&cur[0]===i&&cur[1]===j;
+    if(wall){
+      drawPrism(i,j, wallH+6, '#443F37', '#2B2822', '#1D1B16');
+    } else {
+      let h=6, top='#E4E0D4', L='#D5CFC1', R='#A29C90';
+      if(visited){ h=10; top='#EFBBA3'; L='#E39A7C'; R='#D97757'; }
+      if(onPath){ h=14; top='#C3B2DD'; L='#A992CE'; R='#7E62A6'; }
+      if(isCur){ h=16; top='#E6CE93'; L='#D0A344'; R='#9C7420'; }
+      if(isS){ h=18; top='#DBB55C'; L='#B8862B'; R='#8A6420'; }
+      if(isE){ h=18; top='#98CBAF'; L='#6FB48B'; R='#356F62'; }
+      drawPrism(i,j,h,top,L,R);
+    }
+  });
+}
+async function bfs(){
+  const q=[[...S]], prev={}, vis={}; vis[S.join(',')]=1; prev[S.join(',')]=null;
+  const D=[[0,1],[1,0],[0,-1],[-1,0]]; let h=0,found=false,pk=1;
+  while(h<q.length){
+    const [x,y]=q[h++]; pk=Math.max(pk,q.length-h);
+    peak.textContent=pk; visN.textContent=Object.keys(vis).length; mhud.textContent=`expand (${x},${y})`;
+    render(vis,[], [x,y]); await sleep(ms);
+    if(x===E[0]&&y===E[1]){found=true;break;}
+    for(const [dx,dy] of D){
+      const nx=x+dx,ny=y+dy,k=nx+','+ny;
+      if(nx<0||ny<0||nx>=N||ny>=N||grid[nx][ny]||vis[k]) continue;
+      vis[k]=1; prev[k]=[x,y]; q.push([nx,ny]);
+    }
+  }
+  if(!found){ tip.className='tip danger'; tip.textContent='无通路，换一张'; return; }
+  let path=[],cur=E; while(cur){path.push(cur);cur=prev[cur.join(',')];} path.reverse();
+  // animate path rise
+  for(let k=1;k<=path.length;k++){ render(vis, path.slice(0,k)); await sleep(40); }
+  steps.textContent=path.length-1;
+  tip.className='tip ok'; tip.innerHTML=`<strong>通关！</strong> 最短 ${path.length-1} 步 · 紫色高台为路径`;
+}
+spd.querySelectorAll('button').forEach(b=>b.onclick=()=>{spd.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');ms=+b.dataset.ms;});
+neu.onclick=gen; run.onclick=bfs; gen();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

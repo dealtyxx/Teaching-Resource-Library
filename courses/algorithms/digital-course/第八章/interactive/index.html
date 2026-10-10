@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>交互总览 · 第8章 贪心法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">08</div>算法可视化 · <span>第8章 贪心法</span></div>
+<div class="links"><a class="pill active" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-activity.html">活动安排</a><a class="pill" href="03-merge.html">区间合并</a><a class="pill" href="04-rooms.html">会议室</a><a class="pill" href="05-fractional.html">分数背包</a><a class="pill" href="06-tianji.html">田忌赛马</a><a class="pill" href="07-coin.html">零钱兑换</a><a class="pill" href="08-huffman.html">哈夫曼</a><a class="pill" href="09-matroid.html">拟阵</a><a class="pill" href="10-schedule.html">任务调度</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow"><span class="pulse-dot"></span> Immersive Lab · Chapter 8</div>
+  <h1>贪心法 · 局部最优的艺术</h1>
+  <p>每一步都选「当前看起来最好」——但必须证明。用<strong>时间轴、扫描线、哈夫曼树生长</strong>看清策略如何生效，以及何时会翻车。</p>
+  <div class="hero-meta">
+    <span class="chip green">🎯 10 个实验</span>
+    <span class="chip blue">📈 可对比错误策略</span>
+    <span class="chip amber">⚠️ 含反例警示</span>
+  </div>
+</section>
+<div class="card" style="--accent:linear-gradient(90deg,#6FB48B,#C2603F,#7E62A6);margin-bottom:18px">
+  <div class="formula lg">贪心 ＝ 局部最优选择 ＋（需证明的）全局最优</div>
+  <div class="stage-wrap" style="margin-top:14px">
+    <canvas class="stage" id="heroCv" width="1100" height="140"></canvas>
+    <div class="stage-hud"><span class="hud-pill">LIVE · 贪心选择示意</span><span class="hud-pill">auto</span></div>
+  </div>
+</div>
+<div class="grid grid-2 stagger">
+<a class="feature-card" href="01-overview.html" style="--c:#3B7A57" data-ico="🎯">
+  <div class="num">图 01</div><h3>贪心法概述</h3><p>两大性质 · 3D 翻转卡</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="02-activity.html" style="--c:#C2603F" data-ico="📅">
+  <div class="num">图 02</div><h3>活动安排</h3><p>时间轴贪心动画</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="03-merge.html" style="--c:#7E62A6" data-ico="🔗">
+  <div class="num">图 03</div><h3>区间合并</h3><p>排序扫描合并</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="04-rooms.html" style="--c:#A02C55" data-ico="🏢">
+  <div class="num">图 04</div><h3>最少会议室</h3><p>扫描线峰值</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="05-fractional.html" style="--c:#9C7420" data-ico="🎒">
+  <div class="num">图 05</div><h3>分数背包</h3><p>性价比装包</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="06-tianji.html" style="--c:#4A6C8C" data-ico="🐴">
+  <div class="num">图 06</div><h3>田忌赛马</h3><p>双端贪心配对</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="07-coin.html" style="--c:#B96434" data-ico="🪙">
+  <div class="num">图 07</div><h3>零钱兑换</h3><p>可贪 vs 不可贪</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="08-huffman.html" style="--c:#3B7A57" data-ico="🌳">
+  <div class="num">图 08</div><h3>哈夫曼编码</h3><p>树生长动画</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="09-matroid.html" style="--c:#C2603F" data-ico="📐">
+  <div class="num">图 09</div><h3>拟阵</h3><p>贪心正确性框架</p><div class="go">进入实验 →</div>
+</a>
+<a class="feature-card" href="10-schedule.html" style="--c:#7E62A6" data-ico="⏱️">
+  <div class="num">图 10</div><h3>任务调度</h3><p>策略对比</p><div class="go">进入实验 →</div>
+</a></div>
+
+<section class="sec"><div class="sec-head"><h2>本章学习目标</h2><span class="sub">Chapter Objectives</span></div>
+<div class="objectives"><h3>学完本章，你应当能够</h3><ol>
+  <li>准确<b>陈述</b>贪心法成立的两大前提：<b>贪心选择性质</b>（greedy-choice property）与<b>最优子结构</b>（optimal substructure），并说明二者的区别。</li>
+  <li>独立<b>写出</b>交换论证（exchange argument）的完整证明骨架，并用它<b>证明</b>活动安排、分数背包、田忌赛马、单机 SPT 调度等策略的最优性。</li>
+  <li><b>识别</b>贪心失效的典型场景，并能给出<b>具体反例数据</b>（0/1 背包按性价比贪心、非标准币制的零钱兑换）。</li>
+  <li><b>实现</b>本章全部算法的 C++ 代码，并<b>分析</b>时间复杂度——本章绝大多数算法为 O(n log n)，由排序或堆操作主导。</li>
+  <li><b>判别</b>一个新问题应当用贪心还是动态规划，并说明判据。</li>
+  <li><b>解释</b>哈夫曼编码中前缀码、带权路径长度 WPL 的含义与计算方法。</li>
+</ol></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>知识地图</h2><span class="sub">十节内容一览 · 策略 / 依据 / 复杂度</span></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>节</th><th>问题</th><th>贪心策略</th><th>正确性依据</th><th>时间复杂度</th></tr>
+  <tr><td>01</td><td>贪心法总纲</td><td>——</td><td>贪心选择性质 + 最优子结构</td><td>——</td></tr>
+  <tr><td>02</td><td>活动安排</td><td>最早结束时间优先</td><td class="hl">交换论证 + 归纳</td><td>O(n log n)</td></tr>
+  <tr><td>03</td><td>区间合并</td><td>按左端点排序后线性扫描</td><td>排序后可合并区间必相邻</td><td>O(n log n)</td></tr>
+  <tr><td>04</td><td>最少会议室</td><td>事件扫描峰值 / 最小堆</td><td>下界论证 + 构造达到下界</td><td>O(n log n)</td></tr>
+  <tr><td>05</td><td>分数背包</td><td>单位价值 v/w 降序</td><td class="hl">交换论证</td><td>O(n log n)</td></tr>
+  <tr><td>06</td><td>田忌赛马</td><td>双端指针配对</td><td class="hl">交换论证</td><td>O(n log n)</td></tr>
+  <tr><td>07</td><td>零钱兑换</td><td>最大面额优先</td><td>仅标准币制成立，否则需 DP</td><td>O(n log n + 找零次数)</td></tr>
+  <tr><td>08</td><td>哈夫曼编码</td><td>每次合并权最小的两棵树</td><td>贪心选择引理 + 归纳</td><td>O(n log n)</td></tr>
+  <tr><td>09</td><td>拟阵（选学）</td><td>权降序、保持独立则加入</td><td>拟阵贪心定理</td><td>O(n log n + n·f)</td></tr>
+  <tr><td>10</td><td>单机任务调度</td><td>SPT 最短处理时间优先</td><td class="hl">交换论证</td><td>O(n log n)</td></tr>
+</table></div>
+<div class="tip info"><strong>阅读顺序建议：</strong>01 打底 → 02 精读（本章证明范式的样板）→ 03/04 成对学习（易混）→ 05/07 关注贪心的边界 → 08 重点掌握 → 09 选学 → 10 收尾。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>贪心法 vs 动态规划</h2><span class="sub">何时能贪、何时必须 DP</span></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>对比维度</th><th>贪心法 Greedy</th><th>动态规划 Dynamic Programming</th></tr>
+  <tr><td>决策方式</td><td>每步做<b>一次</b>局部最优选择，选定后<b>不回退</b></td><td>枚举当前步的<b>所有</b>决策，取其中最优</td></tr>
+  <tr><td>依赖性质</td><td class="hl">贪心选择性质 + 最优子结构</td><td>最优子结构 + 重叠子问题</td></tr>
+  <tr><td>子问题数量</td><td>每层只保留 1 个子问题，形成一条<b>链</b></td><td>每层保留多个状态，形成一张 <b>DAG</b></td></tr>
+  <tr><td>典型复杂度</td><td>O(n log n)（排序主导）</td><td>O(n·W)、O(n<sup>2</sup>)、O(n<sup>3</sup>) 等</td></tr>
+  <tr><td>正确性来源</td><td class="hl">必须单独证明（交换论证 / 归纳）</td><td>由状态转移方程的穷举性天然保证</td></tr>
+  <tr><td>典型例题</td><td>活动安排、分数背包、哈夫曼编码</td><td>0/1 背包、最长公共子序列、矩阵连乘</td></tr>
+  <tr><td>用错的后果</td><td>输出<b>可行但次优</b>的解（最危险：不报错）</td><td>状态空间过大导致超时或超内存</td></tr>
+</table></div>
+<div class="defn prop"><span class="lbl">判据</span><p><b>能贪的信号：</b>当前这一步的最优选择<b>不改变</b>剩余子问题的形态与可行性——即"选完就可以把它从问题中彻底删掉"。例如活动安排选定最早结束的活动后，剩下的仍是同类型的活动安排问题；分数背包因为物品<b>可分割</b>，装满剩余容量的方式与已装内容无关。</p></div>
+<div class="defn prop"><span class="lbl">判据</span><p><b>必须 DP 的信号：</b>当前选择会<b>影响</b>后续可选集合的结构，必须同时保留多个候选状态。例如 0/1 背包中"取不取物品 i"会改变剩余容量，而不同剩余容量下的最优组合完全不同，只留一个候选必然丢失最优解。</p></div>
+<div class="tip warn"><strong>关键提醒：</strong>贪心算法即使策略错误也会顺利输出一个<b>可行解</b>，不会崩溃、不会报错。因此<b>「写完就必须证明或找反例」</b>是本章唯一的安全阀。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>核心术语</h2><span class="sub">中英对照</span></div>
+<div class="terms">
+  <span class="term"><b>贪心法</b>greedy algorithm</span>
+  <span class="term"><b>贪心选择性质</b>greedy-choice property</span>
+  <span class="term"><b>最优子结构</b>optimal substructure</span>
+  <span class="term"><b>交换论证</b>exchange argument</span>
+  <span class="term"><b>反例</b>counterexample</span>
+  <span class="term"><b>可行解</b>feasible solution</span>
+  <span class="term"><b>最优解</b>optimal solution</span>
+  <span class="term"><b>前缀码</b>prefix code</span>
+  <span class="term"><b>带权路径长度</b>weighted path length (WPL)</span>
+  <span class="term"><b>拟阵</b>matroid</span>
+  <span class="term"><b>近似比</b>approximation ratio</span>
+</div>
+</section>
+
+<div class="page-nav"><div></div><a href="01-overview.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">概述</span></a></div>
+<div class="footer">算法设计与分析 · <b>第8章 贪心法</b> · 强交互可视化版<br/>时间轴 · 扫描线 · 树生长 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:30},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.12-Math.random()*.28, a:.12+Math.random()*.3}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(59,122,87,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const cv=heroCv, ctx=cv.getContext('2d');
+const acts=[[1,4],[3,5],[0,6],[5,7],[3,9],[5,9],[6,10],[8,11],[8,12],[2,14],[12,16]];
+let sel=[], i=0, phase=0;
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const pad=40, W=cv.width, H=cv.height;
+  const x=t=>pad+t/16*(W-2*pad);
+  ctx.strokeStyle='rgba(162,156,144,.4)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(pad,H-28); ctx.lineTo(W-pad,H-28); ctx.stroke();
+  acts.forEach((a,k)=>{
+    const y=18+k*9;
+    let col='#565046';
+    if(sel.includes(k)) col='#6FB48B';
+    else if(k===i) col='#E39A7C';
+    ctx.fillStyle=col;
+    ctx.fillRect(x(a[0]),y,Math.max(3,x(a[1])-x(a[0])),7);
+  });
+}
+setInterval(()=>{
+  if(phase===0){
+    const idx=[...acts.keys()].sort((a,b)=>acts[a][1]-acts[b][1]);
+    if(i<idx.length){
+      const k=idx[i];
+      const end=sel.length?acts[sel[sel.length-1]][1]:-1;
+      if(acts[k][0]>=end) sel.push(k);
+      i++; draw();
+    } else { phase=1; setTimeout(()=>{sel=[];i=0;phase=0;},1200); }
+  }
+}, 280); draw();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

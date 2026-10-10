@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>原理 · 第7章 动态规划</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">07</div>算法可视化 · <span>第7章 动态规划</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill active" href="02-principle.html">原理</a><a class="pill" href="03-models.html">模型</a><a class="pill" href="04-maxsub.html">最大子段和</a><a class="pill" href="05-lis.html">LIS</a><a class="pill" href="06-triangle.html">三角形</a><a class="pill" href="07-lcs.html">LCS</a><a class="pill" href="08-edit.html">编辑距离</a><a class="pill" href="09-knapsack.html">01背包</a><a class="pill" href="10-multi.html">完全/多重</a><a class="pill" href="11-tsp.html">状压TSP</a><a class="pill" href="12-interval-tree.html">区间/树形</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 2 · 原理</div>
+  <h1>多段图上的状态转移</h1>
+  <p>阶段推进、状态集合、决策转移。点击播放，看最短路从终点「逆序点亮」。</p>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>学习目标</h2><span class="sub">Learning Objectives</span></div>
+  <div class="objectives"><h3>本节学完后你应当</h3><ol>
+    <li>能复述并运用<b>动态规划四步法</b>：划阶段 → 定义状态 → 写转移方程与边界 → 定计算顺序。</li>
+    <li>能在给定的<b>多段图</b>上，按阶段<b>逐格手算出全部 f 值</b>并回溯出最短路径。</li>
+    <li>能写出多段图最短路的<b>逆序法</b>与<b>顺序法</b>两套转移方程，并<b>显式声明边界</b>（f(t)=0 / g(s)=0）。</li>
+    <li>能说明顺序法与逆序法各自的适用场合，以及为什么它们的最优值必然相等。</li>
+    <li>能用 C++ 实现多段图最短路，并分析其 <b>O(n + e)</b> 复杂度。</li>
+  </ol></div>
+</section>
+
+<div class="grid grid-2">
+  <div class="card"><div class="badge blue">逆序</div><h3>从终点往回</h3>
+    <div class="formula">f(s)=min { c(s,s') + f(s') }</div></div>
+  <div class="card"><div class="badge">顺序</div><h3>从起点往前</h3>
+    <div class="formula">f(s)=min { f(s') + c(s',s) }</div></div>
+</div>
+<div class="card" style="margin-top:16px">
+  <div class="toolbar"><button class="btn primary" id="run">▶ 逆序点亮</button><button class="btn ghost" id="reset">重置</button></div>
+  <div class="stage-wrap">
+    <canvas class="stage" id="cv" width="1000" height="340"></canvas>
+    <div class="stage-hud"><span class="hud-pill">multistage graph</span><span class="hud-pill" id="hud">—</span></div>
+  </div>
+  <div class="tip">四步走：划阶段 → 定义状态 → 写转移与边界 → 定计算顺序。</div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>本节例题 · 五阶段多段图</h2><span class="sub">与上方动画完全一致的数据</span></div>
+  <p class="desc">求从源点 A 到终点 E 的最短路径。图被自然地分成 5 个阶段，边只从前一阶段指向后一阶段（这正是「多段图 multistage graph」的定义）。</p>
+  <div class="table-scroll"><table class="data">
+    <tr><th>阶段</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th></tr>
+    <tr><th>结点集合</th><td>A</td><td>B1, B2, B3</td><td>C1, C2</td><td>D1, D2</td><td>E</td></tr>
+  </table></div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>边</th><th>权</th><th>边</th><th>权</th><th>边</th><th>权</th></tr>
+    <tr><td>A→B1</td><td>4</td><td>B1→C1</td><td>3</td><td>C1→D1</td><td>2</td></tr>
+    <tr><td>A→B2</td><td>2</td><td>B1→C2</td><td>6</td><td>C1→D2</td><td>5</td></tr>
+    <tr><td>A→B3</td><td>3</td><td>B2→C1</td><td>4</td><td>C2→D1</td><td>4</td></tr>
+    <tr><td>D1→E</td><td>3</td><td>B2→C2</td><td>2</td><td>C2→D2</td><td>1</td></tr>
+    <tr><td>D2→E</td><td>4</td><td>B3→C1</td><td>5</td><td>B3→C2</td><td>3</td></tr>
+  </table></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>四步法 · 在这个多段图上逐步展开</h2><span class="sub">The Four Steps, Concretely</span></div>
+  <div class="list-step"><span class="n">1</span><div class="body"><b>划阶段（stage）</b>：按「离终点还有几段」把结点分层。本图共 5 个阶段，第 k 阶段的结点只能走到第 k+1 阶段。<b>阶段是决策的先后次序</b>，划错阶段后面全错。判断标准：同一阶段内的结点之间<b>没有边</b>，且每条边恰好跨一个阶段。</div></div>
+  <div class="list-step"><span class="n">2</span><div class="body"><b>定义状态（state）</b>：状态必须「信息足够」，即知道它就能独立地往后决策——这就是<b>无后效性</b>。本题取 <b>f(x) = 从结点 x 出发到终点 E 的最短路径长度</b>。注意状态只含「当前在哪个结点」，不含「怎么走到这里的」，因为后续代价与来路无关。</div></div>
+  <div class="list-step"><span class="n">3</span><div class="body"><b>写转移方程与边界</b>：在 x 处的决策是「下一步走哪条出边」。枚举所有出边取最小值即得逆序方程；边界必须显式声明。</div></div>
+  <div class="list-step"><span class="n">4</span><div class="body"><b>定计算顺序</b>：f(x) 依赖它<b>后继</b>的 f 值，所以要<b>从终点向源点、按阶段递减</b>计算（阶段 3 → 2 → 1 → 0）。顺序错了会读到未计算的 INF。</div></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>① 状态定义 ② 转移方程 ③ 边界 ④ 顺序</h2><span class="sub">逆序法 Backward</span></div>
+  <div class="defn"><span class="lbl">状态定义 · 逆序法</span>
+    <p><b>f(x)</b> 表示从结点 <b>x</b> 出发、沿有向边走到<b>终点 t</b> 的<b>最短路径长度</b>；<b>nxt(x)</b> 记录取到最小值时选的下一个结点，用于回溯路径。</p></div>
+  <div class="formula lg">f(x) = min<sub>(x,y)∈E</sub> { c(x, y) + f(y) }</div>
+  <div class="defn"><span class="lbl">边界条件</span>
+    <p><b>f(t) = 0</b>（终点到自身距离为 0），其余结点初始化为 <b>+∞（INF）</b>。<br/>这一条极易被漏写。若不置 f(E)=0，最后一阶段的 f(D1)、f(D2) 会与 INF 相加而全部失效；若不把其余结点初始化为 INF，未算过的结点会被误当作「距离 0 可达」。</p></div>
+  <div class="defn prop"><span class="lbl">计算顺序</span>
+    <p>按<b>阶段从大到小</b>（4 → 3 → 2 → 1 → 0）依次求解。一般图上则按<b>逆拓扑序</b>计算。理由：f(x) 依赖其所有后继的 f，必须先算完后继。</p></div>
+  <div class="defn thm"><span class="lbl">最优性原理（Principle of Optimality）</span>
+    <p>若 A → … → x → … → E 是一条最短路径，则其中从 x 到 E 的那一段<b>必然</b>是 x 到 E 的最短路径。<br/><b>反证：</b>若存在更短的 x→E 路径，用它替换原段可得到比原路径更短的 A→E 路径，与原路径最短矛盾。<br/>正是这条性质使得「用子问题的最优解拼出大问题的最优解」是合法的——它就是<b>最优子结构</b>在多段图上的具体形态。</p></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>例题演算 · 逆序法逐阶段填表</h2><span class="sub">Worked Example</span></div>
+  <div class="deriv">
+<span class="step">阶段 4：f(E) = 0 <span class="why">边界</span></span>
+<span class="step">阶段 3：f(D1) = 3 + f(E) = 3 <span class="why">→ E</span></span>
+<span class="step">　　　　f(D2) = 4 + f(E) = 4 <span class="why">→ E</span></span>
+<span class="step">阶段 2：f(C1) = min(2 + f(D1), 5 + f(D2)) = min(5, 9) = 5 <span class="why">→ D1</span></span>
+<span class="step">　　　　f(C2) = min(4 + f(D1), 1 + f(D2)) = min(7, 5) = 5 <span class="why">→ D2</span></span>
+<span class="step">阶段 1：f(B1) = min(3 + f(C1), 6 + f(C2)) = min(8, 11) = 8 <span class="why">→ C1</span></span>
+<span class="step">　　　　f(B2) = min(4 + f(C1), 2 + f(C2)) = min(9, 7) = 7 <span class="why">→ C2</span></span>
+<span class="step">　　　　f(B3) = min(5 + f(C1), 3 + f(C2)) = min(10, 8) = 8 <span class="why">→ C2</span></span>
+<span class="step">阶段 0：f(A) = min(4 + f(B1), 2 + f(B2), 3 + f(B3)) = min(12, 9, 11) = 9 <span class="why">→ B2</span></span>
+  </div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>结点 x</th><td>E</td><td>D1</td><td>D2</td><td>C1</td><td>C2</td><td>B1</td><td>B2</td><td>B3</td><td>A</td></tr>
+    <tr><th>f(x)</th><td>0</td><td>3</td><td>4</td><td>5</td><td>5</td><td>8</td><td class="hl">7</td><td>8</td><td class="hl">9</td></tr>
+    <tr><th>nxt(x)</th><td>—</td><td>E</td><td>E</td><td>D1</td><td>D2</td><td>C1</td><td>C2</td><td>C2</td><td>B2</td></tr>
+  </table></div>
+  <div class="tip ok"><strong>回溯路径：</strong>从 A 起沿 nxt 一路跟随 → A → B2 → C2 → D2 → E，长度 = 2 + 2 + 1 + 4 = <b>9</b>，与 f(A) 吻合。<b>这正是「记录决策 + 回溯」的通用套路</b>：dp 数组给出最优值，nxt / pre 数组给出最优解本身。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>顺序法 vs 逆序法</h2><span class="sub">Forward vs Backward</span></div>
+  <div class="defn"><span class="lbl">状态定义 · 顺序法</span>
+    <p><b>g(x)</b> 表示从<b>源点 s</b> 出发走到结点 <b>x</b> 的最短路径长度；<b>pre(x)</b> 记录最优决策的前驱结点。</p></div>
+  <div class="formula lg">g(x) = min<sub>(y,x)∈E</sub> { g(y) + c(y, x) }　　边界 g(s) = 0</div>
+  <div class="deriv">
+<span class="step">g(A) = 0 <span class="why">边界</span></span>
+<span class="step">g(B1) = 4，g(B2) = 2，g(B3) = 3 <span class="why">均由 A 而来</span></span>
+<span class="step">g(C1) = min(4+3, 2+4, 3+5) = min(7, 6, 8) = 6 <span class="why">← B2</span></span>
+<span class="step">g(C2) = min(4+6, 2+2, 3+3) = min(10, 4, 6) = 4 <span class="why">← B2</span></span>
+<span class="step">g(D1) = min(6+2, 4+4) = 8 <span class="why">← C1（与 C2 并列，任取）</span></span>
+<span class="step">g(D2) = min(6+5, 4+1) = 5 <span class="why">← C2</span></span>
+<span class="step">g(E)  = min(8+3, 5+4) = 9 <span class="why">← D2，与逆序法结果一致</span></span>
+  </div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>对比维度</th><th>逆序法（backward）</th><th>顺序法（forward）</th></tr>
+    <tr><td>状态含义</td><td>f(x)：<b>x → 终点</b>的最短距离</td><td>g(x)：<b>源点 → x</b> 的最短距离</td></tr>
+    <tr><td>转移依据</td><td>枚举 x 的<b>出边</b>（后继）</td><td>枚举 x 的<b>入边</b>（前驱）</td></tr>
+    <tr><td>边界</td><td class="hl">f(t) = 0</td><td class="hl">g(s) = 0</td></tr>
+    <tr><td>计算顺序</td><td>阶段递减（逆拓扑序）</td><td>阶段递增（拓扑序）</td></tr>
+    <tr><td>答案位置</td><td>f(s)</td><td>g(t)</td></tr>
+    <tr><td>路径回溯</td><td>存 nxt，从 s <b>正着</b>读出</td><td>存 pre，从 t <b>倒着</b>读出后再反转</td></tr>
+    <tr><td>更适合</td><td><b>单源</b>：一个起点问到所有终点的场景；也便于剪枝</td><td><b>单汇</b>：多个起点问到同一终点；也便于边流式读入时在线更新</td></tr>
+  </table></div>
+  <div class="tip info"><strong>为什么两者结果必然相同？</strong>同一条 A→E 路径的长度是固定的，两种方法只是把这条路径的求和过程分别「从右往左」和「从左往右」拆开做，最优性原理保证任一子段都是最优的，因此最优值 f(s) = g(t)。<b>选哪一种只取决于「哪一端的边更容易枚举」和「题目问的是哪一端」</b>。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>C++ 代码</h2><span class="sub">Implementation</span></div>
+  <div class="code"><span class="cm">// 多段图最短路径 · 逆序法（结点已按拓扑序编号：0 = 源点 s，n-1 = 终点 t）</span>
+<span class="kw">const int</span> MAXV = 1005, INF = 0x3f3f3f3f;
+<span class="kw">struct</span> Edge { <span class="kw">int</span> to, w; };
+<span class="kw">vector</span>&lt;Edge&gt; G[MAXV];              <span class="cm">// G[x]：x 的所有出边</span>
+<span class="kw">int</span> f[MAXV], nxt[MAXV];
+
+<span class="kw">void</span> backward(<span class="kw">int</span> n) {
+    <span class="kw">int</span> t = n - 1;
+    <span class="kw">for</span> (<span class="kw">int</span> x = 0; x &lt; n; ++x) { f[x] = INF; nxt[x] = -1; }
+    f[t] = 0;                          <span class="cm">// ③ 边界：终点到自身为 0</span>
+    <span class="kw">for</span> (<span class="kw">int</span> x = t - 1; x &gt;= 0; --x)  <span class="cm">// ④ 顺序：逆拓扑序，先算后继</span>
+        <span class="kw">for</span> (<span class="kw">int</span> k = 0; k &lt; (<span class="kw">int</span>)G[x].size(); ++k) {
+            <span class="kw">int</span> y = G[x][k].to, w = G[x][k].w;
+            <span class="kw">if</span> (f[y] &lt; INF &amp;&amp; w + f[y] &lt; f[x])   <span class="cm">// ② 转移：min{c(x,y)+f(y)}</span>
+                { f[x] = w + f[y]; nxt[x] = y; }
+        }
+}
+
+<span class="cm">// 回溯输出最短路径：源点 0 沿 nxt 一路走到终点</span>
+<span class="kw">void</span> printPath(<span class="kw">int</span> n) {
+    <span class="kw">for</span> (<span class="kw">int</span> x = 0; x != -1; x = nxt[x]) {
+        cout &lt;&lt; x;
+        <span class="kw">if</span> (nxt[x] != -1) cout &lt;&lt; <span class="st">" -&gt; "</span>;
+    }
+    cout &lt;&lt; <span class="st">"\nlength = "</span> &lt;&lt; f[0] &lt;&lt; <span class="st">"\n"</span>;
+}</div>
+  <div class="code"><span class="cm">// 多段图最短路径 · 顺序法（需要反向邻接表 RG[x]：x 的所有入边）</span>
+<span class="kw">vector</span>&lt;Edge&gt; RG[MAXV];             <span class="cm">// RG[x] 中的 to 表示「前驱结点 y」</span>
+<span class="kw">int</span> g[MAXV], pre[MAXV];
+
+<span class="kw">void</span> forward_(<span class="kw">int</span> n) {
+    <span class="kw">for</span> (<span class="kw">int</span> x = 0; x &lt; n; ++x) { g[x] = INF; pre[x] = -1; }
+    g[0] = 0;                          <span class="cm">// 边界：源点为 0</span>
+    <span class="kw">for</span> (<span class="kw">int</span> x = 1; x &lt; n; ++x)       <span class="cm">// 顺序：拓扑序，先算前驱</span>
+        <span class="kw">for</span> (<span class="kw">int</span> k = 0; k &lt; (<span class="kw">int</span>)RG[x].size(); ++k) {
+            <span class="kw">int</span> y = RG[x][k].to, w = RG[x][k].w;
+            <span class="kw">if</span> (g[y] &lt; INF &amp;&amp; g[y] + w &lt; g[x])
+                { g[x] = g[y] + w; pre[x] = y; }
+        }
+}</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>复杂度分析</h2><span class="sub">Complexity</span></div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>项目</th><th>结果</th><th>说明</th></tr>
+    <tr><td>状态数</td><td>n（结点数）</td><td>每个结点一个 f 值</td></tr>
+    <tr><td>转移总代价</td><td>e（边数）</td><td>每条边恰好被松弛<b>一次</b></td></tr>
+    <tr><td>时间复杂度</td><td class="hl">Θ(n + e)</td><td>邻接表实现；邻接矩阵实现为 Θ(n<sup>2</sup>)</td></tr>
+    <tr><td>空间复杂度</td><td>Θ(n + e)</td><td>f[]、nxt[] 各 O(n)，邻接表 O(n + e)</td></tr>
+    <tr><td>朴素枚举全部路径</td><td>指数级</td><td>若每阶段有 k 个结点、共 s 个阶段，路径数达 k<sup>s−1</sup></td></tr>
+  </table></div>
+  <div class="tip"><strong>再次印证：</strong>DP 时间 ≈ <b>状态数 × 单次转移代价</b>。这里状态数 n、每个状态枚举其出边，累加恰为 e，故总时间 Θ(n + e)——把指数级的路径枚举压成了线性。</div>
+  <div class="terms">
+    <span class="term"><b>多段图</b>multistage graph</span>
+    <span class="term"><b>阶段</b>stage</span>
+    <span class="term"><b>状态</b>state</span>
+    <span class="term"><b>决策</b>decision</span>
+    <span class="term"><b>状态转移方程</b>state transition equation</span>
+    <span class="term"><b>最优性原理</b>principle of optimality</span>
+    <span class="term"><b>拓扑序</b>topological order</span>
+    <span class="term"><b>松弛</b>relaxation</span>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>易错点</h2><span class="sub">Pitfalls</span></div>
+  <div class="pitfall"><span class="lbl">易错点</span><ul>
+    <li><b>漏写边界 f(t)=0</b>：最常见的错误。没有它，最后一阶段结点会与 INF 相加，整张表失效。</li>
+    <li><b>其余结点没初始化为 INF</b>：C++ 中全局数组默认 0，未算过的结点会被当成「0 距离可达」，得到荒谬的小值。用 <span class="kbd">memset(f, 0x3f, sizeof f)</span> 是常用写法。</li>
+    <li><b>INF 相加溢出</b>：若直接写 f[x] = w + f[y] 而不先判 f[y] &lt; INF，当 INF 取 <span class="kbd">INT_MAX</span> 时会整型溢出变成负数。取 <b>0x3f3f3f3f</b>（约 10<sup>9</sup>）的好处正是两个 INF 相加仍为正且不溢出。</li>
+    <li><b>计算顺序与依赖方向不符</b>：逆序法必须按阶段递减算。若照抄顺序法的循环方向，读到的全是 INF。</li>
+    <li><b>把「阶段」和「状态」混为一谈</b>：阶段是决策的<b>时间轴</b>（第几步），状态是该时刻的<b>处境描述</b>（在哪个结点）。同一阶段可以有多个状态。</li>
+    <li><b>回溯方向记反</b>：逆序法存的是 nxt（后继），从源点正着读；顺序法存的是 pre（前驱），从终点倒着读、最后还要 reverse。两者搞混会输出一条倒过来的路径。</li>
+    <li><b>忽视「边只跨一个阶段」的前提</b>：若图中存在同阶段内部的边或跨多阶段的边，就不能简单按阶段编号推进，需要先做真正的拓扑排序。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>本节小结</h2><span class="sub">Summary</span></div>
+  <div class="summary"><span class="lbl">本节小结</span><ul>
+    <li><b>四步法</b>：划阶段 → 定义状态 → 写转移方程<b>与边界</b> → 定计算顺序。四步缺一不可，尤以边界与顺序最易被忽略。</li>
+    <li>逆序法：<b>f(x) = min{ c(x,y) + f(y) }</b>，边界 <b>f(t) = 0</b>，按阶段递减计算，答案为 f(s)。</li>
+    <li>顺序法：<b>g(x) = min{ g(y) + c(y,x) }</b>，边界 <b>g(s) = 0</b>，按阶段递增计算，答案为 g(t)。两者最优值必然相等。</li>
+    <li><b>最优性原理</b>保证子路径也最优，这是把大问题拆成子问题的合法性依据。</li>
+    <li>本例答案：<b>A → B2 → C2 → D2 → E</b>，长度 <b>9</b>。</li>
+    <li>复杂度 <b>Θ(n + e)</b>（邻接表），把指数级的路径枚举降为线性。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>自测题</h2><span class="sub">点击选项查看解析</span></div>
+  <div class="quiz">
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">1</span>用逆序法求本节多段图时，若<b>漏写</b>边界 f(E) = 0，而全部结点都初始化为 INF，程序会输出什么？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>仍然得到正确答案 9，因为 INF 会在比较中被淘汰</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>所有 f 值都保持 INF，得不到任何有效路径</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>得到 0，因为没有任何边被松弛</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>结果偏大但仍是一条合法路径的长度</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。递推是一条「从边界长出来」的链：f(D1) 依赖 f(E)，f(C1) 依赖 f(D)，……若 f(E) 不置 0，代码里的守卫条件 <span class="kbd">if (f[y] &lt; INF)</span> 会让所有松弛全部跳过，于是 f 全表保持 INF。这说明<b>边界不是「额外补充」，而是整个递推的唯一信息来源</b>。A 把「淘汰 INF」误当成「能产生有效值」，但没有任何有效值可产生；C 混淆了「未初始化为 0」和「INF」两种初值——若真把全部初值设成 0，则会输出 0 这个荒谬答案；D 错在根本没有任何路径被构造出来。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">2</span>关于顺序法与逆序法，下列说法<b>正确</b>的是？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>逆序法一定比顺序法快，因为它可以提前剪枝</span></div>
+        <div class="quiz-opt"><span class="mk">B</span><span>两者求出的最优值可能不同，应取较小者</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>两者最优值必然相等；选择哪种取决于枚举出边还是入边更方便、以及题目问哪一端</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>顺序法不需要边界条件，因为它从源点自然开始</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 C。同一条 A→E 路径的长度是客观确定的，两种方法只是把这条路径的求和「从左往右」或「从右往左」拆开算，最优性原理保证任何子段都最优，故 f(s) = g(t) = 9。A 错：两者都恰好松弛每条边一次，同为 Θ(n+e)，剪枝与方向无关；B 是典型误解，若二者结果不同一定是代码写错了，而不是「取较小者」；D 错得最隐蔽——顺序法同样需要边界 <b>g(s) = 0</b> 且其余为 INF，「从源点开始」正是靠这条边界表达的。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">3</span>在多段图上，「状态」与「阶段」的关系是？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>一个阶段对应一个状态，二者是同一概念的两种叫法</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>阶段是决策的先后次序，一个阶段中可以包含多个状态</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>状态数一定等于阶段数乘以边数</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>只要状态定义正确，就不必划分阶段</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。阶段是「走到第几步」这条时间轴，状态是「此刻处在什么局面」。本图阶段 1 就同时含 B1、B2、B3 三个状态。A 只在每阶段恰有一个状态的退化情形下成立（那种问题往往一维递推即可）；C 是凭空构造的公式，状态数由结点数决定，与边数无关；D 反了因果——阶段划分正是<b>计算顺序</b>的来源，不划阶段就无法保证「依赖先算完」，即使状态定义再正确也可能读到未计算的值。</div>
+    </div>
+  </div>
+</section>
+
+<div class="page-nav"><a href="01-overview.html"><span class="dir">← 上一节</span><span class="name">概述</span></a><a href="03-models.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">模型</span></a></div>
+<div class="footer">算法设计与分析 · <b>第7章 动态规划</b> · 强交互可视化版<br/>Canvas 填表 · 路径回溯 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:32},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.12-Math.random()*.3, a:.12+Math.random()*.3}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(185,100,52,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+// stages: A | B1 B2 B3 | C1 C2 | D1 D2 | E
+const nodes=[
+  {id:'A',x:80,y:170,stage:0},{id:'B1',x:250,y:80,stage:1},{id:'B2',x:250,y:170,stage:1},{id:'B3',x:250,y:260,stage:1},
+  {id:'C1',x:450,y:110,stage:2},{id:'C2',x:450,y:230,stage:2},
+  {id:'D1',x:650,y:110,stage:3},{id:'D2',x:650,y:230,stage:3},{id:'E',x:860,y:170,stage:4}
+];
+const edges=[
+  ['A','B1',4],['A','B2',2],['A','B3',3],
+  ['B1','C1',3],['B1','C2',6],['B2','C1',4],['B2','C2',2],['B3','C1',5],['B3','C2',3],
+  ['C1','D1',2],['C1','D2',5],['C2','D1',4],['C2','D2',1],
+  ['D1','E',3],['D2','E',4]
+];
+const byId=Object.fromEntries(nodes.map(n=>[n.id,n]));
+let f={}, nxt={}, active=null, done=new Set();
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  edges.forEach(([u,v,w])=>{
+    const a=byId[u], b=byId[v];
+    ctx.strokeStyle='rgba(162,156,144,.35)'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+    ctx.fillStyle='#7A746A'; ctx.font='11px ui-monospace'; ctx.fillText(w,(a.x+b.x)/2,(a.y+b.y)/2-6);
+  });
+  nodes.forEach(n=>{
+    const on=active===n.id, ok=done.has(n.id);
+    const g=ctx.createRadialGradient(n.x-5,n.y-5,2,n.x,n.y,22);
+    if(on){g.addColorStop(0,'#DFAE83');g.addColorStop(1,'#B96434');}
+    else if(ok){g.addColorStop(0,'#98CBAF');g.addColorStop(1,'#356F62');}
+    else {g.addColorStop(0,'#EFBBA3');g.addColorStop(1,'#C2603F');}
+    ctx.beginPath(); ctx.arc(n.x,n.y,20,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(n.id,n.x,n.y);
+    if(f[n.id]!=null){ ctx.fillStyle='#E4E0D4'; ctx.font='11px ui-monospace'; ctx.fillText('f='+f[n.id], n.x, n.y+32); }
+  });
+}
+async function runAnim(){
+  f={}; nxt={}; done=new Set(); f['E']=0; done.add('E'); draw(); hud.textContent='f(E)=0'; await sleep(400);
+  // reverse stages 3..0
+  for(let s=3;s>=0;s--){
+    const layer=nodes.filter(n=>n.stage===s);
+    for(const n of layer){
+      active=n.id; draw();
+      let best=1e9, bestTo=null;
+      edges.filter(e=>e[0]===n.id).forEach(([u,v,w])=>{
+        if(f[v]!=null && w+f[v]<best){ best=w+f[v]; bestTo=v; }
+      });
+      f[n.id]=best; nxt[n.id]=bestTo; done.add(n.id);
+      hud.textContent=`f(${n.id})=${best} → ${bestTo}`;
+      await sleep(450); draw();
+    }
+  }
+  active=null; draw();
+  // highlight path A->E
+  let path=['A'], cur='A'; while(cur!=='E' && nxt[cur]){ cur=nxt[cur]; path.push(cur); }
+  hud.textContent='最短路径 '+path.join(' → ')+'  length='+f['A'];
+  // pulse path edges
+  for(let k=0;k<path.length-1;k++){
+    const a=byId[path[k]], b=byId[path[k+1]];
+    ctx.strokeStyle='#D0A344'; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+    await sleep(200);
+  }
+}
+run.onclick=runAnim; reset.onclick=()=>{f={};nxt={};done=new Set();active=null;hud.textContent='—';draw();};
+draw();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

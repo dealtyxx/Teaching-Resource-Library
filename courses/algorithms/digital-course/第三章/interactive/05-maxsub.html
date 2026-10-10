@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>最大子段 · 第3章 穷举法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">03</div>算法可视化 · <span>第3章 穷举法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-enumerate.html">列举</a><a class="pill" href="03-prefix.html">前缀和</a><a class="pill" href="04-uf.html">并查集</a><a class="pill active" href="05-maxsub.html">最大子段</a><a class="pill" href="06-powerset.html">幂集</a><a class="pill" href="07-perm.html">全排列</a><a class="pill" href="08-nqueens.html">n皇后</a><a class="pill" href="09-assign-tsp.html">分配TSP</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 5 · 加深</div><h1>最大连续子段和</h1>
+<p>暴力 O(n²) / 分治 O(n log n) / <strong>Kadane O(n)</strong>。逐步演示 Kadane 的 dp 状态。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>陈述</b>最大连续子段和问题的定义，并说明"空子段是否合法"这一约定如何影响答案。</li>
+  <li>能够<b>写出</b>四种解法的代码：O(n<sup>3</sup>) 朴素三重循环、O(n<sup>2</sup>) 累加优化、O(n log n) 分治、O(n) Kadane。</li>
+  <li>能够<b>推导</b>分治法的三种情况（左半 / 右半 / 跨中点）与递推式 T(n) = 2T(n/2) + O(n)。</li>
+  <li>能够<b>解释</b> Kadane 递推式 dp[i] = max(a[i], dp[i&minus;1] + a[i]) 的含义，并把空间从 O(n) 优化到 O(1)。</li>
+</ol></div>
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="kadane">▶ Kadane</button>
+    <button class="btn" id="brute">暴力对比</button>
+    <button class="btn" id="rand">随机</button>
+  </div>
+  <div class="stage-wrap light"><canvas class="stage" id="cv" width="1000" height="260"></canvas>
+    <div class="stage-hud"><span class="hud-pill light" id="hud">—</span></div></div>
+  <div class="stat-row">
+    <div class="stat"><span>答案</span><b class="p" id="ans">—</b></div>
+    <div class="stat"><span>步数</span><b class="a" id="st">0</b></div>
+  </div>
+  <div class="log" id="log">dp = max(a[i], dp+a[i])</div>
+  <div class="formula">Kadane：best = max(best, dp)</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、问题定义</h2><span class="sub">Maximum Subarray Problem</span></div>
+
+<div class="defn"><span class="lbl">定义</span><p><b>最大连续子段和问题</b>（maximum subarray problem）：给定整数序列 a[0..n&minus;1]（可含负数），求一个<b>连续</b>子段 a[i..j]（0 &le; i &le; j &le; n&minus;1），使 &sum;<sub>t=i</sub><sup>j</sup> a[t] 最大，输出该最大值（有时还需输出 i、j）。</p></div>
+
+<div class="tip info"><strong>两个必须先厘清的约定：</strong>
+<br/>① <b>"连续"</b>：子段必须是原序列中相邻的一段，与"子序列"（可跳着取）截然不同。本问题若允许不连续，答案就退化成"所有正数之和"，毫无难度。
+<br/>② <b>空子段是否合法</b>：若允许取空子段（和为 0），则全负数组的答案是 0；若要求至少取一个元素，则全负数组的答案是<b>最大的那个负数</b>。李春葆教材与多数 OJ 采用后者，本页所有代码也采用后者。这是本题最容易被忽略的边界。</div>
+
+<div class="tip"><strong>贯穿全节的样例：</strong>a = [&minus;2, 1, &minus;3, 4, &minus;1, 2, 1, &minus;5, 4]（即上方演示的默认数据）。答案是子段 a[3..6] = [4, &minus;1, 2, 1]，和为 <b>6</b>。可在演示中点击"▶ Kadane"逐步观察。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、解法一：O(n<sup>3</sup>) 朴素三重循环</h2><span class="sub">Brute Force</span></div>
+
+<p>最直接的穷举：枚举起点 i、终点 j，再用第三重循环把 a[i..j] 累加一遍。这是"三步框架"的原样套用——解空间是全部 C(n,2)+n = n(n+1)/2 个子段。</p>
+
+<div class="code"><span class="cm">// 解法一：O(n³) —— 枚举 i、j 后重新累加</span>
+<span class="kw">int</span> <span class="fn">maxSub1</span>(<span class="kw">int</span> a[], <span class="kw">int</span> n) {
+    <span class="kw">int</span> best = a[<span class="nu">0</span>];
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; i++)
+        <span class="kw">for</span> (<span class="kw">int</span> j = i; j &lt; n; j++) {
+            <span class="kw">int</span> s = <span class="nu">0</span>;
+            <span class="kw">for</span> (<span class="kw">int</span> k = i; k &lt;= j; k++) s += a[k];   <span class="cm">// ← 第三重循环，纯属浪费</span>
+            <span class="kw">if</span> (s &gt; best) best = s;
+        }
+    <span class="kw">return</span> best;
+}</div>
+
+<div class="deriv">
+  <span class="step">第一步 子段个数为 &sum;<sub>i=0</sub><sup>n&minus;1</sup>(n&minus;i) = n(n+1)/2 = &Theta;(n<sup>2</sup>) <span class="why">外两重循环</span></span>
+  <span class="step">第二步 每个子段的累加平均耗时 &Theta;(n) <span class="why">内层第三重循环</span></span>
+  <span class="step">第三步 总时间 T(n) = &Theta;(n<sup>2</sup>) &middot; &Theta;(n) = <b>&Theta;(n<sup>3</sup>)</b> <span class="why">精确为 n(n+1)(n+2)/6</span></span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、解法二：O(n<sup>2</sup>) 边枚举边累加</h2><span class="sub">Incremental Sum</span></div>
+
+<div class="tip"><strong>优化的关键观察：</strong>当 j 从 i 递增到 n&minus;1 时，a[i..j] 的和只需在 a[i..j&minus;1] 的和上<b>再加一个 a[j]</b>，完全不必重算。第三重循环因此被彻底消除。这等价于对每个固定的 i 就地维护一个前缀和（呼应 §03 的思想）。</div>
+
+<div class="code"><span class="cm">// 解法二：O(n²) —— 消去第三重循环</span>
+<span class="kw">int</span> <span class="fn">maxSub2</span>(<span class="kw">int</span> a[], <span class="kw">int</span> n) {
+    <span class="kw">int</span> best = a[<span class="nu">0</span>];
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; i++) {
+        <span class="kw">int</span> s = <span class="nu">0</span>;
+        <span class="kw">for</span> (<span class="kw">int</span> j = i; j &lt; n; j++) {
+            s += a[j];                        <span class="cm">// 增量累加，O(1) 得到 a[i..j] 之和</span>
+            <span class="kw">if</span> (s &gt; best) best = s;
+        }
+    }
+    <span class="kw">return</span> best;                              <span class="cm">// 时间 Θ(n²)，空间 O(1)</span>
+}</div>
+
+<div class="tip info"><strong>另一种等价写法：</strong>先建前缀和数组 S，则 a[i..j] 之和 = S[j+1] &minus; S[i]，同样把内层降到 O(1)，总时间也是 O(n<sup>2</sup>)，但额外用了 O(n) 空间。上方演示中的"暴力对比"按钮采用的正是本节的增量累加写法，其步数计数即 n(n+1)/2。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、解法三：O(n log n) 分治法</h2><span class="sub">Divide and Conquer · 与第 4 章呼应</span></div>
+
+<div class="defn thm"><span class="lbl">定理</span><p>把序列 a[lo..hi] 从中点 mid = (lo+hi)/2 一分为二，则<b>最大子段必属于且仅属于</b>下列三种互斥情况之一：<br/>
+① 完全落在<b>左半</b> a[lo..mid] 之内；<br/>
+② 完全落在<b>右半</b> a[mid+1..hi] 之内；<br/>
+③ <b>跨越中点</b>，即同时包含 a[mid] 与 a[mid+1]。<br/>
+故答案 = max(情况①, 情况②, 情况③)。</p></div>
+
+<div class="tip"><strong>为什么这三种情况恰好穷尽：</strong>任取一个子段 a[i..j]。若 j &le; mid，属①；若 i &ge; mid+1，属②；否则必有 i &le; mid &lt; mid+1 &le; j，即该子段同时越过 mid 与 mid+1，属③。三种情况<b>不重不漏</b>——这正是分治法正确性的全部依据，也是穷举思想在分治框架下的体现。</div>
+
+<div class="tip info"><strong>情况③为何能在 O(n) 内求出：</strong>跨中点的子段必然形如 a[i..mid] + a[mid+1..j]。这两段可以<b>独立</b>取最优：从 mid 向左逐个累加，记录能达到的最大值 leftMax；从 mid+1 向右逐个累加，记录最大值 rightMax；答案即 leftMax + rightMax。两次线性扫描共 O(n)。<b>注意这两段都必须非空</b>（各至少含一个元素），因此初值应设为负无穷而非 0。</div>
+
+<div class="code"><span class="cm">// 解法三：O(n log n) 分治法</span>
+<span class="kw">const</span> <span class="kw">int</span> NEG = <span class="nu">-1000000000</span>;
+
+<span class="cm">// 求跨越中点的最大子段和：必须同时含 a[mid] 与 a[mid+1]</span>
+<span class="kw">int</span> <span class="fn">crossMax</span>(<span class="kw">int</span> a[], <span class="kw">int</span> lo, <span class="kw">int</span> mid, <span class="kw">int</span> hi) {
+    <span class="kw">int</span> s = <span class="nu">0</span>, leftMax = NEG;
+    <span class="kw">for</span> (<span class="kw">int</span> i = mid; i &gt;= lo; i--) {         <span class="cm">// 从中点向左扩张</span>
+        s += a[i];
+        <span class="kw">if</span> (s &gt; leftMax) leftMax = s;
+    }
+    s = <span class="nu">0</span>;
+    <span class="kw">int</span> rightMax = NEG;
+    <span class="kw">for</span> (<span class="kw">int</span> j = mid + <span class="nu">1</span>; j &lt;= hi; j++) {     <span class="cm">// 从中点向右扩张</span>
+        s += a[j];
+        <span class="kw">if</span> (s &gt; rightMax) rightMax = s;
+    }
+    <span class="kw">return</span> leftMax + rightMax;                <span class="cm">// 两段独立取最优，直接相加</span>
+}
+
+<span class="kw">int</span> <span class="fn">maxSub3</span>(<span class="kw">int</span> a[], <span class="kw">int</span> lo, <span class="kw">int</span> hi) {
+    <span class="kw">if</span> (lo == hi) <span class="kw">return</span> a[lo];             <span class="cm">// 递归出口：只剩一个元素</span>
+    <span class="kw">int</span> mid = lo + (hi - lo) / <span class="nu">2</span>;
+    <span class="kw">int</span> L = <span class="fn">maxSub3</span>(a, lo, mid);             <span class="cm">// ① 左半最大子段</span>
+    <span class="kw">int</span> R = <span class="fn">maxSub3</span>(a, mid + <span class="nu">1</span>, hi);         <span class="cm">// ② 右半最大子段</span>
+    <span class="kw">int</span> C = <span class="fn">crossMax</span>(a, lo, mid, hi);        <span class="cm">// ③ 跨中点最大子段</span>
+    <span class="kw">int</span> ans = L &gt; R ? L : R;                  <span class="cm">// 三者取最大</span>
+    <span class="kw">return</span> ans &gt; C ? ans : C;
+}
+<span class="cm">// 调用：maxSub3(a, 0, n-1);</span></div>
+
+<div class="deriv">
+  <span class="step">第一步 分解：把规模 n 的问题拆成两个规模 n/2 的子问题 <span class="why">对应 2T(n/2)</span></span>
+  <span class="step">第二步 合并：crossMax 两次线性扫描 <span class="why">对应 O(n)</span></span>
+  <span class="step">第三步 得递推式 T(n) = 2T(n/2) + &Theta;(n)，T(1) = &Theta;(1) <span class="why">与归并排序完全同型</span></span>
+  <span class="step">第四步 由主定理，a = 2、b = 2、f(n) = &Theta;(n<sup>log<sub>2</sub>2</sup>) 属情形 2 <span class="why">故 T(n) = &Theta;(n log n)</span></span>
+</div>
+
+<div class="tip"><strong>手工演算（跨中点部分）：</strong>对 a = [&minus;2, 1, &minus;3, 4, &minus;1, 2, 1, &minus;5, 4]，取 lo=0、hi=8、mid=4。<br/>
+向左从 a[4]=&minus;1 累加：&minus;1, 3(+4), 0(&minus;3), 1(+1), &minus;1(&minus;2) &rArr; leftMax = <b>3</b>（对应 a[3..4]）。<br/>
+向右从 a[5]=2 累加：2, 3(+1), &minus;2(&minus;5), 2(+4) &rArr; rightMax = <b>3</b>（对应 a[5..6]）。<br/>
+故 crossMax = 3 + 3 = <b>6</b>，恰为全局答案（子段 a[3..6]）。</div>
+
+<div class="tip info"><strong>空间复杂度：</strong>分治法本身只用 O(1) 辅助变量，但递归栈深度为 O(log n)，故空间为 <b>O(log n)</b>——这是它相比 Kadane 的唯一劣势。分治法的价值在于它是通用的<b>思想训练</b>（第 4 章）：当问题不具备最优子结构、无法用 Kadane 时，分治往往仍然可行。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>五、解法四：O(n) Kadane 算法</h2><span class="sub">Kadane's Algorithm · 动态规划思想</span></div>
+
+<div class="defn"><span class="lbl">状态定义</span><p>设 <b>dp[i] = 以 a[i] 为<u>结尾</u>的最大子段和</b>（注意：是"必须以 a[i] 结尾"，不是"前 i 个元素中的最大子段和"）。这一定义是全部推导的起点，定义错了后面全错。</p></div>
+
+<div class="formula lg">dp[i] = max( a[i], &nbsp; dp[i&minus;1] + a[i] )，&nbsp; dp[0] = a[0]</div>
+
+<div class="deriv">
+  <span class="step">第一步 以 a[i] 结尾的子段只有两种可能 <span class="why">要么它自己单独成段，要么它接在以 a[i&minus;1] 结尾的某个子段之后</span></span>
+  <span class="step">第二步 若接在后面，则前面那段应取最优，即 dp[i&minus;1] <span class="why">最优子结构：局部最优可拼成全局最优</span></span>
+  <span class="step">第三步 故 dp[i] = max(a[i], dp[i&minus;1] + a[i])；等价写法 dp[i] = a[i] + max(0, dp[i&minus;1]) <span class="why">即"前面那段若为负就丢掉"</span></span>
+  <span class="step">第四步 最终答案 = max<sub>0&le;i&lt;n</sub> dp[i] <span class="why">最大子段总得以某个元素结尾，遍历全部结尾即可</span></span>
+</div>
+
+<div class="code"><span class="cm">// 解法四：O(n) Kadane —— 完整 dp 数组版（便于理解）</span>
+<span class="kw">int</span> <span class="fn">maxSub4</span>(<span class="kw">int</span> a[], <span class="kw">int</span> n) {
+    <span class="kw">int</span> dp[<span class="nu">100005</span>];
+    dp[<span class="nu">0</span>] = a[<span class="nu">0</span>];
+    <span class="kw">int</span> best = dp[<span class="nu">0</span>];
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">1</span>; i &lt; n; i++) {
+        dp[i] = (dp[i - <span class="nu">1</span>] + a[i] &gt; a[i]) ? dp[i - <span class="nu">1</span>] + a[i] : a[i];
+        <span class="kw">if</span> (dp[i] &gt; best) best = dp[i];
+    }
+    <span class="kw">return</span> best;                   <span class="cm">// 时间 O(n)，空间 O(n)</span>
+}
+
+<span class="cm">// 滚动变量版：dp[i] 只依赖 dp[i-1]，故一个变量足矣 —— 空间降到 O(1)</span>
+<span class="kw">int</span> <span class="fn">kadane</span>(<span class="kw">int</span> a[], <span class="kw">int</span> n) {
+    <span class="kw">int</span> dp = a[<span class="nu">0</span>], best = a[<span class="nu">0</span>];
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">1</span>; i &lt; n; i++) {
+        dp = (dp &gt; <span class="nu">0</span>) ? dp + a[i] : a[i];   <span class="cm">// 前缀为负则丢弃，从 a[i] 重新开始</span>
+        <span class="kw">if</span> (dp &gt; best) best = dp;
+    }
+    <span class="kw">return</span> best;                   <span class="cm">// 时间 O(n)，空间 O(1)</span>
+}
+
+<span class="cm">// 需要同时输出区间端点 [bl, br] 的版本</span>
+<span class="kw">int</span> <span class="fn">kadanePos</span>(<span class="kw">int</span> a[], <span class="kw">int</span> n, <span class="kw">int</span> &amp;bl, <span class="kw">int</span> &amp;br) {
+    <span class="kw">int</span> dp = a[<span class="nu">0</span>], best = a[<span class="nu">0</span>], L = <span class="nu">0</span>;
+    bl = br = <span class="nu">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">1</span>; i &lt; n; i++) {
+        <span class="kw">if</span> (dp &gt; <span class="nu">0</span>) dp += a[i];
+        <span class="kw">else</span>       { dp = a[i]; L = i; }   <span class="cm">// 重新开始时更新左端点</span>
+        <span class="kw">if</span> (dp &gt; best) { best = dp; bl = L; br = i; }
+    }
+    <span class="kw">return</span> best;
+}</div>
+
+<div class="tip"><strong>手工演算（Kadane）：</strong>a = [&minus;2, 1, &minus;3, 4, &minus;1, 2, 1, &minus;5, 4]
+<div class="table-scroll"><table class="data">
+  <tr><th>i</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th></tr>
+  <tr><td>a[i]</td><td>&minus;2</td><td>1</td><td>&minus;3</td><td>4</td><td>&minus;1</td><td>2</td><td>1</td><td>&minus;5</td><td>4</td></tr>
+  <tr><td>dp[i]</td><td>&minus;2</td><td>1</td><td>&minus;2</td><td>4</td><td>3</td><td>5</td><td class="hl">6</td><td>1</td><td>5</td></tr>
+  <tr><td>best</td><td>&minus;2</td><td>1</td><td>1</td><td>4</td><td>4</td><td>5</td><td class="hl">6</td><td>6</td><td>6</td></tr>
+</table></div>
+i=1 时 dp[0]=&minus;2 &lt; 0，丢弃，dp[1] = a[1] = 1；i=3 时 dp[2]=&minus;2 &lt; 0，再次丢弃，dp[3] = 4，最大子段从此处重新起算。最终 best = <b>6</b>，对应 a[3..6]。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>六、四种解法复杂度对照</h2><span class="sub">Comparison</span></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>解法</th><th>核心思想</th><th>时间</th><th>空间</th><th>n=10<sup>5</sup> 可否</th><th>能否输出端点</th></tr>
+  <tr><td>① 朴素三重循环</td><td>穷举全部子段并重新累加</td><td class="hl">&Theta;(n<sup>3</sup>)</td><td>O(1)</td><td>否（约 10<sup>15</sup>）</td><td>可</td></tr>
+  <tr><td>② 增量累加 / 前缀和</td><td>消去内层重复求和</td><td class="hl">&Theta;(n<sup>2</sup>)</td><td>O(1) / O(n)</td><td>否（约 10<sup>10</sup>）</td><td>可</td></tr>
+  <tr><td>③ 分治法</td><td>左半 / 右半 / 跨中点三者取最大</td><td class="hl">&Theta;(n log n)</td><td>O(log n) 栈</td><td>可（约 1.7&times;10<sup>6</sup>）</td><td>可（需额外记录）</td></tr>
+  <tr><td>④ Kadane</td><td>dp[i] = max(a[i], dp[i&minus;1]+a[i])</td><td class="path">&Theta;(n)</td><td class="path">O(1)</td><td>可（10<sup>5</sup>）</td><td>可</td></tr>
+</table></div>
+
+<div class="tip info"><strong>优化脉络（本节的真正主线）：</strong>&Theta;(n<sup>3</sup>) &rarr; &Theta;(n<sup>2</sup>) &rarr; &Theta;(n log n) &rarr; &Theta;(n)。<br/>
+第一步优化靠<b>消除重复计算</b>（增量累加）；第二步靠<b>分治</b>（把 n<sup>2</sup> 对起止点的枚举压成 log n 层合并）；第三步靠<b>动态规划</b>（发现最优子结构，把"枚举起点"这一维彻底消掉）。这条脉络几乎是全书方法论的缩影：<b>同一问题，随着对结构认识的加深，复杂度层层下降</b>。而 &Theta;(n) 已是本问题的下界——任何算法至少要读一遍全部输入。</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>best 初始化为 0</b>：当数组全为负数时会错误地输出 0。若题目要求子段非空，应初始化为 <span class="cm">a[0]</span> 或负无穷，绝不能用 0。这是本题<b>最高频</b>的 WA 原因。</li>
+  <li><b>dp 状态定义成"前 i 个元素中的最大子段和"</b>：这样定义无法写出递推——因为不知道最优子段是否延伸到 i。必须定义成"<b>以 a[i] 结尾</b>"，最后再对所有 dp[i] 取最大。</li>
+  <li><b>忘记最后对 dp[] 取最大值</b>：直接返回 dp[n&minus;1] 是错的，它只是"以最后一个元素结尾"的最大值。样例中 dp[8]=5 &ne; 6。</li>
+  <li><b>分治的 crossMax 把 leftMax/rightMax 初值设为 0</b>：这会允许"左段为空"或"右段为空"，与情况③"必须跨越中点"矛盾，在全负数组上给出错误答案。初值必须是负无穷。</li>
+  <li><b>分治只算左右两半而忘了跨中点</b>：这是分治法的头号错误，会漏掉所有横跨中线的解，样例中恰好就会漏掉正确答案 6。</li>
+  <li><b>mid 写成 (lo+hi)/2 且 lo、hi 很大</b>：可能整型溢出，应写 <span class="cm">lo + (hi - lo) / 2</span>。</li>
+  <li><b>Kadane 写成 <span class="cm">dp = max(dp + a[i], 0)</span></b>：这是"允许空子段"的变体，与"子段非空"的题设不符，全负数组会返回 0。</li>
+  <li><b>把本题与"最大子序列和"混淆</b>：后者不要求连续，答案就是所有正数之和（或最大元素），是完全不同的问题。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>问题：求<b>连续</b>子段的最大和；先确认"是否允许空子段"，这决定了全负数组的答案是 0 还是最大负数。</li>
+  <li><b>O(n<sup>3</sup>)</b>：枚举 i、j 后再累加，第三重循环纯属重复劳动。</li>
+  <li><b>O(n<sup>2</sup>)</b>：固定 i、j 递增时增量累加（或用前缀和），消去第三重循环。</li>
+  <li><b>O(n log n) 分治</b>：最大子段必属"完全在左半 / 完全在右半 / 跨越中点"三者之一，三者取最大；跨中点部分由两次线性扫描 O(n) 求出（两段均须非空）。递推式 T(n) = 2T(n/2) + O(n) &rArr; &Theta;(n log n)。</li>
+  <li><b>O(n) Kadane</b>：定义 dp[i] 为<b>以 a[i] 结尾</b>的最大子段和，递推 <b>dp[i] = max(a[i], dp[i&minus;1] + a[i])</b>，答案取 max dp[i]；用滚动变量可把空间压到 O(1)。</li>
+  <li>优化脉络 &Theta;(n<sup>3</sup>) &rarr; &Theta;(n<sup>2</sup>) &rarr; &Theta;(n log n) &rarr; &Theta;(n) 分别对应"消除重复计算 &rarr; 分治 &rarr; 动态规划"，是全书方法论的缩影。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>用分治法求最大子段和时，若<b>遗漏</b>了"跨越中点"这一情况，对样例 a = [&minus;2, 1, &minus;3, 4, &minus;1, 2, 1, &minus;5, 4]（mid = 4）会得到什么结果？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>仍得 6，因为最优解恰好落在右半</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>得 4，小于正确答案 6</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>得 0，因为左右两半的和都是负数</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>结果不确定，取决于递归的分解方式</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。左半 a[0..4] = [&minus;2,1,&minus;3,4,&minus;1] 的最大子段是 [4]，和为 4；右半 a[5..8] = [2,1,&minus;5,4] 的最大子段是 [2,1]，和为 3；两者取最大得 4。而正确答案 6 对应的子段 a[3..6] 恰好横跨中点 mid=4 与 mid+1=5，正是被漏掉的那一类。A 的错误在于没验算就假定最优解在某一半。C 混淆了"子段和"与"整半之和"——即使某一半的总和为负，其内部仍可能存在正的子段。D 错误：分治的分解点虽可变，但三种情况穷尽是<b>定理</b>，漏掉一种必然可能出错，与分解方式无关。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>Kadane 算法中 dp[i] 的正确含义是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>a[0..i] 这一前缀中的最大子段和</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>所有<b>以 a[i] 结尾</b>的子段中的最大和</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>所有<b>以 a[i] 开头</b>的子段中的最大和</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>a[0..i] 的前缀和，即 a[0]+&hellip;+a[i]</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。正因为强制"以 a[i] 结尾"，才能与 dp[i&minus;1] 建立联系：以 a[i] 结尾的段要么单独是 a[i]，要么是"以 a[i&minus;1] 结尾的最优段"再接上 a[i]。A 是最具迷惑性的错误——它虽然也是一个合法的状态定义，但<b>无法写出递推式</b>：仅知道前缀内的最大值，无从判断能否把 a[i] 接上去。若采用 A，答案确实等于 dp[n&minus;1]（这也是很多人记混的根源），但递推无法成立。C 的定义需要从右往左递推，是 B 的镜像版本，与本节公式不符。D 是 §03 的前缀和，与最大子段无关（样例中 dp[6]=6 而前缀和为 2）。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>数组 a = [&minus;5, &minus;2, &minus;8, &minus;1, &minus;7]（全为负数），要求子段<b>至少含一个元素</b>。若代码把 best 初始化为 0，输出是多少？正确答案又是多少？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>输出 0，正确答案也是 0</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>输出 0，正确答案是 &minus;1</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>输出 &minus;1，正确答案是 &minus;23</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>输出 &minus;23，正确答案是 &minus;1</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。best 初始化为 0 后，由于所有 dp[i] 都是负数，条件 <span class="cm">dp &gt; best</span> 永不成立，best 始终保持 0，程序输出 0——但题目要求子段非空，0 对应的是空子段，是<b>非法解</b>。正确答案应是最大的那个元素 &minus;1（子段 [&minus;1]）。A 是"允许空子段"约定下的答案，与题设不符。C、D 中的 &minus;23 是全部元素之和，只有在"必须取整个数组"时才有意义，不是本题的解。修复方法：把 best 初始化为 a[0] 或 INT_MIN。</div>
+  </div>
+</div>
+
+<div class="terms">
+  <span class="term"><b>最大子段和</b>maximum subarray sum</span>
+  <span class="term"><b>分治法</b>divide and conquer</span>
+  <span class="term"><b>Kadane 算法</b>Kadane's algorithm</span>
+  <span class="term"><b>最优子结构</b>optimal substructure</span>
+  <span class="term"><b>滚动变量</b>rolling variable</span>
+  <span class="term"><b>主定理</b>master theorem</span>
+</div>
+</section>
+
+<div class="page-nav"><a href="04-uf.html"><span class="dir">← 上一节</span><span class="name">并查集</span></a><a href="06-powerset.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">幂集</span></a></div>
+<div class="footer">算法设计与分析 · <b>第3章 穷举法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(53,111,98,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+let a=[-2,1,-3,4,-1,2,1,-5,4];
+function paint(hi={}){
+  const base=Math.min(0,...a), vals=a.map(v=>v-base+1);
+  barDraw(ctx,cv.width,cv.height,vals,hi);
+  const n=a.length,pad=28,gap=6,bw=Math.max(8,(cv.width-pad*2)/n-gap),mx=Math.max(...vals,1);
+  a.forEach((v,i)=>{ const x=pad+i*(bw+gap), h=(cv.height-pad*2)*(vals[i]/mx), y=cv.height-pad-h;
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center'; ctx.fillText(v,x+bw/2,y-6); });
+}
+kadane.onclick=async()=>{
+  let dp=a[0], best=a[0], L=0,bl=0,br=0, steps=0;
+  for(let i=0;i<a.length;i++){
+    steps++; st.textContent=steps;
+    if(i===0){ dp=a[0]; L=0; }
+    else if(dp+a[i]<a[i]){ dp=a[i]; L=i; } else dp+=a[i];
+    if(dp>best){ best=dp; bl=L; br=i; }
+    paint({range:[L,i], sorted:new Set(Array.from({length:br-bl+1},(_,k)=>bl+k))});
+    hud.textContent=`i=${i} dp=${dp} best=${best}`; log.textContent=`dp=${dp} best=[${bl},${br}] sum=${best}`; await sleep(400);
+  }
+  ans.textContent=best; paint({sorted:new Set(Array.from({length:br-bl+1},(_,k)=>bl+k))});
+};
+brute.onclick=()=>{
+  let best=-1e9,steps=0,bl=0,br=0;
+  for(let i=0;i<a.length;i++){ let s=0; for(let j=i;j<a.length;j++){ steps++; s+=a[j]; if(s>best){best=s;bl=i;br=j;} } }
+  ans.textContent=best; st.textContent=steps; paint({sorted:new Set(Array.from({length:br-bl+1},(_,k)=>bl+k))});
+  log.textContent=`暴力 ${steps} 次 · best=${best}`;
+};
+rand.onclick=()=>{ a=Array.from({length:10},()=>Math.floor(Math.random()*14)-6); paint({}); ans.textContent='—'; };
+paint({});
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

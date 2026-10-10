@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>并查集 · 第3章 穷举法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">03</div>算法可视化 · <span>第3章 穷举法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-enumerate.html">列举</a><a class="pill" href="03-prefix.html">前缀和</a><a class="pill active" href="04-uf.html">并查集</a><a class="pill" href="05-maxsub.html">最大子段</a><a class="pill" href="06-powerset.html">幂集</a><a class="pill" href="07-perm.html">全排列</a><a class="pill" href="08-nqueens.html">n皇后</a><a class="pill" href="09-assign-tsp.html">分配TSP</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 4 · 加深</div><h1>并查集 Union-Find</h1>
+<p>维护不相交集合：find 路径压缩，union 按秩合并。点击节点 union，观察树变化。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>写出</b>并查集的三个基本操作：初始化 <span class="cm">p[i]=i</span>、查找 <span class="cm">find</span>（含路径压缩）、合并 <span class="cm">unite</span>（含按秩合并）。</li>
+  <li>能够<b>解释</b>路径压缩与按秩合并各自的作用，并说明为何两者结合后单次操作的均摊代价近似 O(&alpha;(n))。</li>
+  <li>能够<b>判断</b>一个问题是否属于"不相交集合的维护"，并<b>应用</b>并查集求解连通分量计数、无向图判环等问题。</li>
+  <li>能够<b>说明</b>并查集在 Kruskal 最小生成树算法中的角色（与第 9 章呼应）。</li>
+</ol></div>
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="u12">Union 1-2</button>
+    <button class="btn" id="u34">Union 3-4</button>
+    <button class="btn" id="u15">Union 1-5</button>
+    <button class="btn" id="u26">Union 2-6</button>
+    <button class="btn" id="rst">重置</button>
+  </div>
+  <div class="stage-wrap light" style="height:320px"><canvas class="stage" id="cv" width="900" height="320"></canvas></div>
+  <div class="log" id="log">parent 数组将更新</div>
+  <div class="cells" id="par"></div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、定义与数据表示</h2><span class="sub">Disjoint Set Union</span></div>
+
+<div class="defn"><span class="lbl">定义</span><p><b>并查集</b>（union-find set，又称不相交集合 disjoint set union，简称 DSU）是一种维护若干<b>互不相交</b>集合的数据结构，支持两种核心操作：<br/>
+&bull; <b>Find(x)</b>：返回元素 x 所属集合的<b>代表元</b>（representative），亦称根。<br/>
+&bull; <b>Union(x, y)</b>：把 x 所在集合与 y 所在集合<b>合并</b>为一个集合。<br/>
+由此可推出判定"x 与 y 是否同属一个集合"的方法：<b>Find(x) == Find(y)</b>。</p></div>
+
+<div class="defn prop"><span class="lbl">性质</span><p>每个集合用一棵<b>有根树</b>表示，树根即代表元。全部集合构成一片<b>森林</b>，用一维数组 p[] 存储：p[x] 表示 x 的父结点，约定<b>根结点满足 p[x] == x</b>。因此判断"x 是不是根"只需一次比较，无需额外标记数组。</p></div>
+
+<div class="tip info"><strong>初始化：每个元素自成一个单元素集合。</strong><span class="cm">for (int i = 0; i &lt; n; i++) p[i] = i;</span> —— 此时森林中有 n 棵只含根的树，共 n 个集合。这一行常被遗漏，后果是 p[] 全为 0，所有元素被误判为同一集合。</div>
+
+<div class="code"><span class="cm">// ===== 并查集：数组表示 =====</span>
+<span class="kw">const</span> <span class="kw">int</span> N = <span class="nu">100005</span>;
+<span class="kw">int</span> p[N];        <span class="cm">// p[x] = x 的父结点；p[x] == x 表示 x 是根</span>
+<span class="kw">int</span> rnk[N];      <span class="cm">// rnk[x] = 以 x 为根的树的秩（高度上界）</span>
+<span class="kw">int</span> cnt;         <span class="cm">// 当前集合个数（连通分量数）</span>
+
+<span class="kw">void</span> <span class="fn">init</span>(<span class="kw">int</span> n) {
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; i++) {
+        p[i]   = i;      <span class="cm">// ① 每个节点自成集合，自己是自己的根</span>
+        rnk[i] = <span class="nu">0</span>;      <span class="cm">// ② 单点树的秩为 0</span>
+    }
+    cnt = n;             <span class="cm">// ③ 初始有 n 个集合</span>
+}</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、find 与路径压缩</h2><span class="sub">Path Compression</span></div>
+
+<p>朴素的 find 沿父指针一路上溯到根，代价与树高成正比。若合并方式不当，树可能退化成一条长度为 n 的链，单次 find 退化为 O(n)。<b>路径压缩</b>（path compression）在返回途中把路径上的每个结点<b>直接挂到根下</b>，使后续查询几乎都只需一步。</p>
+
+<div class="code"><span class="cm">// ===== find：递归式路径压缩（最常用写法）=====</span>
+<span class="kw">int</span> <span class="fn">find</span>(<span class="kw">int</span> x) {
+    <span class="kw">if</span> (p[x] == x) <span class="kw">return</span> x;        <span class="cm">// 递归出口：x 是根</span>
+    <span class="kw">return</span> p[x] = <span class="fn">find</span>(p[x]);      <span class="cm">// 关键：回溯时把 x 直接挂到根下</span>
+}
+
+<span class="cm">// 一行写法（等价，考试常见）</span>
+<span class="kw">int</span> <span class="fn">find</span>(<span class="kw">int</span> x) {
+    <span class="kw">return</span> p[x] == x ? x : p[x] = <span class="fn">find</span>(p[x]);
+}
+
+<span class="cm">// 迭代式路径压缩（避免深递归爆栈，n 很大时推荐）</span>
+<span class="kw">int</span> <span class="fn">findIter</span>(<span class="kw">int</span> x) {
+    <span class="kw">int</span> r = x;
+    <span class="kw">while</span> (p[r] != r) r = p[r];        <span class="cm">// 第一趟：找到根 r</span>
+    <span class="kw">while</span> (p[x] != r) {                <span class="cm">// 第二趟：全部改挂到 r</span>
+        <span class="kw">int</span> nxt = p[x];
+        p[x] = r;
+        x = nxt;
+    }
+    <span class="kw">return</span> r;
+}</div>
+
+<div class="tip"><strong>为什么 <span class="cm">p[x] = find(p[x])</span> 而不是 <span class="cm">return find(p[x])</span>：</strong>后者只查不改，树形不变，下次查询仍要走同样长的路。前者多出的赋值把"这次查询的成本"变成了"对未来所有查询的投资"——这正是<b>均摊分析</b>（amortized analysis）思想的绝佳范例：单次操作可能较慢，但它使后续操作变快，长期平均代价极低。</div>
+
+<div class="tip info"><strong>压缩后树高的变化：</strong>路径压缩会破坏 rnk 记录的"真实高度"，使 rnk 只是高度的<b>上界</b>而非精确值。这不影响正确性——按秩合并只需要一个"大致的大小指标"来决定谁当根即可，故不必（也无法高效地）在压缩后维护 rnk。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、union 与按秩合并</h2><span class="sub">Union by Rank</span></div>
+
+<p><b>按秩合并</b>（union by rank）：合并两棵树时，总是把<b>秩小的树挂到秩大的树</b>下面。这样树高不会因为一次合并而无谓增加——只有在两棵树秩相等时，新树的秩才 +1。</p>
+
+<div class="code"><span class="cm">// ===== union：按秩合并 =====</span>
+<span class="kw">void</span> <span class="fn">unite</span>(<span class="kw">int</span> x, <span class="kw">int</span> y) {
+    x = <span class="fn">find</span>(x);  y = <span class="fn">find</span>(y);      <span class="cm">// ① 先各自找到根</span>
+    <span class="kw">if</span> (x == y) <span class="kw">return</span>;                <span class="cm">// ② 已在同一集合，无需合并</span>
+    <span class="kw">if</span> (rnk[x] &lt; rnk[y]) {              <span class="cm">// ③ 保证 x 是秩较大的那棵</span>
+        <span class="kw">int</span> t = x; x = y; y = t;
+    }
+    p[y] = x;                           <span class="cm">// ④ 秩小的挂到秩大的下面</span>
+    <span class="kw">if</span> (rnk[x] == rnk[y]) rnk[x]++;     <span class="cm">// ⑤ 仅当秩相等时树高才 +1</span>
+    cnt--;                              <span class="cm">// ⑥ 集合数减一</span>
+}
+
+<span class="cm">// 判断是否同属一个集合</span>
+<span class="kw">bool</span> <span class="fn">same</span>(<span class="kw">int</span> x, <span class="kw">int</span> y) { <span class="kw">return</span> <span class="fn">find</span>(x) == <span class="fn">find</span>(y); }</div>
+
+<div class="tip"><strong>按大小合并（union by size）：</strong>另一种等价策略是维护 <span class="cm">sz[x]</span> 表示以 x 为根的树的<b>结点数</b>，把结点少的挂到结点多的下面（<span class="cm">p[y]=x; sz[x]+=sz[y];</span>）。理论复杂度与按秩合并相同，且 sz 顺带给出了"每个连通分量的大小"，实用中往往更方便。</div>
+
+<div class="defn thm"><span class="lbl">定理</span><p><b>单独</b>使用按秩合并，树高不超过 &lfloor;log<sub>2</sub> n&rfloor;，单次操作 O(log n)。<br/>
+<b>单独</b>使用路径压缩，m 次操作的总代价为 O(m log<sub>1+m/n</sub> n)。<br/>
+<b>两者结合</b>时，m 次操作（n 个元素）的总时间为 O(m &middot; &alpha;(n))，即单次操作均摊 <b>O(&alpha;(n))</b>。这一上界由 Tarjan 于 1975 年证明，且已被证明是<b>紧的</b>。</p></div>
+
+<div class="formula lg">单次操作均摊代价 = O(&alpha;(n))</div>
+
+<div class="defn"><span class="lbl">说明</span><p>&alpha;(n) 是<b>反阿克曼函数</b>（inverse Ackermann function），是阿克曼函数的反函数。它增长得<b>极其</b>缓慢：对一切实际可能出现的 n（哪怕 n 大到 2<sup>65536</sup>，远超宇宙中的原子总数），都有 &alpha;(n) &le; 4。因此工程上完全可以把并查集的单次操作视为<b>常数时间</b>；但在严格的复杂度分析中必须写 O(&alpha;(n))，因为它<b>不是</b>真正的常数。</p></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>优化组合</th><th>最坏树高</th><th>单次 find</th><th>m 次操作总时间</th><th>实现难度</th></tr>
+  <tr><td>朴素（都不用）</td><td class="hl">O(n)（退化成链）</td><td>O(n)</td><td>O(mn)</td><td>最简单</td></tr>
+  <tr><td>仅路径压缩</td><td>O(log n) 均摊</td><td class="hl">O(log n) 均摊</td><td>O(m log<sub>1+m/n</sub> n)</td><td>+1 行</td></tr>
+  <tr><td>仅按秩合并</td><td class="hl">&lfloor;log<sub>2</sub> n&rfloor;</td><td>O(log n)</td><td>O(m log n)</td><td>+3 行</td></tr>
+  <tr><td>路径压缩 + 按秩合并</td><td>近似常数</td><td class="path">O(&alpha;(n)) 均摊</td><td class="path">O(m &middot; &alpha;(n))</td><td>+4 行</td></tr>
+</table></div>
+
+<div class="tip"><strong>空间复杂度：</strong>p[] 与 rnk[] 各 O(n)，合计 <b>O(n)</b>。递归版 find 的栈深度在未压缩时最坏为 O(n)，这也是超大规模数据下推荐迭代版的原因。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、典型应用场景</h2><span class="sub">Applications</span></div>
+
+<div class="list-step"><span class="n">1</span><div class="body"><b>连通分量计数</b>（connected components）：初始 cnt = n，每成功执行一次 unite 就 <span class="cm">cnt--</span>。处理完所有边后，cnt 即无向图的连通分量个数。时间 O(n + m&middot;&alpha;(n))，远优于对每个未访问点跑一次 DFS/BFS 的常数开销。</div></div>
+<div class="list-step"><span class="n">2</span><div class="body"><b>判断无向图是否有环</b>：逐条读入边 (u, v)。若 <span class="cm">find(u) == find(v)</span>，说明 u、v 早已连通，这条边会与已有路径构成<b>环</b>，立即报告"有环"；否则执行 unite。若全部边处理完都未触发，则图是森林（无环）。</div></div>
+<div class="list-step"><span class="n">3</span><div class="body"><b>Kruskal 最小生成树</b>（与<b>第 9 章</b>呼应）：把所有边按权值升序排序，依次考察每条边——若其两端点已连通（<span class="cm">find(u) == find(v)</span>）则丢弃（否则成环），否则加入生成树并 unite。并查集在这里的职责就是<b>O(&alpha;(n)) 地回答"加这条边会不会成环"</b>。Kruskal 总时间 O(m log m)，瓶颈在排序而非并查集。</div></div>
+<div class="list-step"><span class="n">4</span><div class="body"><b>等价关系的维护</b>：亲戚关系、账号合并、图像的连通区域标记（洪水填充的替代方案），以及编译器中的类型统一（type unification）。凡是满足<b>自反、对称、传递</b>三性质的关系，都可用并查集在线维护其等价类。</div></div>
+<div class="list-step"><span class="n">5</span><div class="body"><b>离线动态连通性</b>：删边操作难以直接支持（并查集只能合并不能拆分），常见技巧是把问题<b>时间倒流</b>——倒序处理，把"删边"变成"加边"。这也提示了并查集的固有局限。</div></div>
+
+<div class="code"><span class="cm">// 应用示例：统计连通分量数 + 判断无向图是否有环</span>
+<span class="kw">int</span> <span class="fn">solve</span>(<span class="kw">int</span> n, <span class="kw">int</span> edges[][<span class="nu">2</span>], <span class="kw">int</span> m, <span class="kw">bool</span> &amp;hasCycle) {
+    <span class="fn">init</span>(n);
+    hasCycle = <span class="kw">false</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; m; i++) {
+        <span class="kw">int</span> u = edges[i][<span class="nu">0</span>], v = edges[i][<span class="nu">1</span>];
+        <span class="kw">if</span> (<span class="fn">find</span>(u) == <span class="fn">find</span>(v)) hasCycle = <span class="kw">true</span>;  <span class="cm">// 两端已连通 ⟹ 成环</span>
+        <span class="kw">else</span> <span class="fn">unite</span>(u, v);
+    }
+    <span class="kw">return</span> cnt;                                     <span class="cm">// 连通分量个数</span>
+}</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>忘记初始化</b> <span class="cm">p[i] = i</span>：全局数组默认全 0，会把所有元素误判为同一集合，且 find(0) 会陷入"0 是根"的假象。多组测试数据时尤其要记得每组重新 init。</li>
+  <li><b>union 时直接写 <span class="cm">p[y] = x</span> 而没有先 find</b>：必须合并<b>根</b>与<b>根</b>，写成 <span class="cm">p[find(y)] = find(x)</span>；直接对非根结点赋值会切断整棵子树，破坏森林结构。</li>
+  <li><b>find 写成 <span class="cm">return find(p[x])</span></b>：能返回正确的根，但<b>没有压缩</b>，性能退化。必须写 <span class="cm">return p[x] = find(p[x])</span>。</li>
+  <li><b>把 &alpha;(n) 说成"常数"</b>：它在工程上可视为常数（&le; 4），但在复杂度分析中<b>不是</b>常数，答题时应写 O(&alpha;(n)) 或"近似常数"，不能写 O(1)。</li>
+  <li><b>只用路径压缩就宣称 O(&alpha;(n))</b>：单用路径压缩的界是 O(log<sub>1+m/n</sub> n)，<b>必须两者结合</b>才能达到 &alpha;(n)。不过工程实践中，仅用路径压缩已足够快，很多竞赛代码就只写这一行。</li>
+  <li><b>试图用并查集处理"删边"</b>：并查集只支持合并、不支持拆分。遇到删边需求应考虑时间倒流、可撤销并查集（放弃路径压缩、改用按秩合并 + 栈回滚）或线段树分治。</li>
+  <li><b>rnk 在路径压缩后没有更新就认为它是真实树高</b>：压缩后 rnk 只是上界，这不影响算法正确性，但不要据此推断实际树高。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>并查集用一维数组 p[] 表示森林，<b>根满足 p[x] == x</b>；初始化 <span class="cm">for(i) p[i] = i</span> 使每个节点自成集合。</li>
+  <li><b>find 路径压缩</b>：<span class="cm">return p[x] = find(p[x])</span>，把查询路径上的所有结点直接挂到根下，把单次成本转化为对未来的投资。</li>
+  <li><b>union 按秩合并</b>：先各自 find 到根，把秩小的树挂到秩大的树下；仅当两秩相等时根的秩 +1。</li>
+  <li>两项优化结合后，m 次操作的总时间为 O(m&middot;&alpha;(n))，<b>单次操作均摊 O(&alpha;(n))</b>，&alpha; 为反阿克曼函数，实际取值 &le; 4，可视为近似常数。空间 O(n)。</li>
+  <li>核心用途：判断两元素是否同集合、统计<b>连通分量个数</b>、判断<b>无向图是否有环</b>、支撑 <b>Kruskal 最小生成树</b>（第 9 章）。</li>
+  <li>固有局限：只能合并不能拆分，删边场景需另想办法。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>下列 find 的实现中，真正带有<b>路径压缩</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>int find(int x){ return p[x]==x ? x : find(p[x]); }</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>int find(int x){ return p[x]==x ? x : p[x]=find(p[x]); }</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>int find(int x){ while(p[x]!=x) x=p[x]; return x; }</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>int find(int x){ return p[p[x]]; }</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确，<span class="cm">p[x] = find(p[x])</span> 这个<b>赋值</b>才是压缩的实质。A 与 C 都能返回正确的根，但只读不写，树形毫无改变，下次查询仍走同样长的路——这是最具迷惑性的错误项，因为它们的<b>返回值完全正确</b>，只是性能不达标。D 完全错误：它只跳两层，既不保证到根，也不是任何合法优化（它像是"路径分半"的错误记忆——真正的路径分半是 <span class="cm">while(p[x]!=x){ p[x]=p[p[x]]; x=p[x]; }</span>）。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>对 n 个元素执行 m 次并查集操作，同时采用路径压缩与按秩合并，总时间复杂度是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>O(m log n)</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>O(m)，因为单次操作是严格的 O(1)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>O(m &middot; &alpha;(n))，&alpha; 为反阿克曼函数</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>O(n log n + m)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>C 正确，这是 Tarjan 给出的紧界。A 是<b>只用一项</b>优化时的界（仅按秩合并为 O(m log n)），两项齐用后严格优于它。B 的错误在于把"实际取值 &le; 4"等同于"渐进为 O(1)"——&alpha;(n) 确实增长极慢，但它<b>随 n 单调不减且无上界</b>，不是常数函数，写 O(1) 在理论上是错的。D 把并查集与"排序 + 遍历"类算法的复杂度形式混淆了；并查集的初始化只需 O(n)，不含 log。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>用并查集逐条读入无向图的边来判断图中是否存在环，正确的判定条件是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>某条边 (u,v) 满足 u == v</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>某条边 (u,v) 在合并前已满足 find(u) == find(v)</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>处理完全部边后，连通分量数 cnt &gt; 1</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>某次 unite 执行后 rnk 的最大值增加了</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确：若 u、v 在加入这条边之前就已连通，说明它们之间原本已有一条路径，再加这条边必然形成环。A 只能检测<b>自环</b>这一特例，无法发现由多条边构成的环。C 判断的是<b>连通性</b>而非有无环——cnt &gt; 1 只说明图不连通，一个不连通的图完全可以无环（森林），一个连通图也完全可以有环，二者相互独立。D 与环毫无关系：rnk 增长只反映树在长高，是正常合并的副产品。</div>
+  </div>
+</div>
+
+<div class="terms">
+  <span class="term"><b>并查集</b>union-find / disjoint set union</span>
+  <span class="term"><b>代表元</b>representative</span>
+  <span class="term"><b>路径压缩</b>path compression</span>
+  <span class="term"><b>按秩合并</b>union by rank</span>
+  <span class="term"><b>均摊分析</b>amortized analysis</span>
+  <span class="term"><b>反阿克曼函数</b>inverse Ackermann function</span>
+  <span class="term"><b>连通分量</b>connected component</span>
+  <span class="term"><b>最小生成树</b>minimum spanning tree</span>
+</div>
+</section>
+
+<div class="page-nav"><a href="03-prefix.html"><span class="dir">← 上一节</span><span class="name">前缀和</span></a><a href="05-maxsub.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">最大子段</span></a></div>
+<div class="footer">算法设计与分析 · <b>第3章 穷举法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(53,111,98,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const n=7; let p=[...Array(n).keys()], r=Array(n).fill(0);
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const pos=[[120,200],[250,80],[380,200],[520,80],[650,200],[780,200],[450,280]];
+function find(x){ return p[x]===x?x:(p[x]=find(p[x])); }
+function uni(a,b){
+  a=find(a); b=find(b); if(a===b) return;
+  if(r[a]<r[b]) [a,b]=[b,a]; p[b]=a; if(r[a]===r[b]) r[a]++;
+}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  // edges parent->child reverse: draw to parent
+  for(let i=0;i<n;i++) if(p[i]!==i){
+    ctx.strokeStyle='#356F62'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(pos[i][0],pos[i][1]); ctx.lineTo(pos[p[i]][0],pos[p[i]][1]); ctx.stroke();
+  }
+  for(let i=0;i<n;i++){
+    const root=find(i);
+    ctx.beginPath(); ctx.arc(pos[i][0],pos[i][1],20,0,Math.PI*2);
+    ctx.fillStyle=p[i]===i?'#356F62':'#A8D6CB'; ctx.fill();
+    ctx.strokeStyle='#1D1B16'; ctx.stroke();
+    ctx.fillStyle=p[i]===i?'#fff':'#1D1B16'; ctx.font='bold 14px sans-serif'; ctx.textAlign='center';
+    ctx.fillText(i,pos[i][0],pos[i][1]+5);
+  }
+  par.innerHTML=p.map((v,i)=>`<div class="cell ${v===i?'hit':''}">p[${i}]=${v}</div>`).join('');
+}
+function op(a,b){ uni(a,b); // path compress all
+  for(let i=0;i<n;i++) find(i);
+  draw(); log.textContent=`Union(${a},${b}) · 根集合已更新`; }
+u12.onclick=()=>op(1,2); u34.onclick=()=>op(3,4); u15.onclick=()=>op(1,5); u26.onclick=()=>op(2,6);
+rst.onclick=()=>{ p=[...Array(n).keys()]; r=Array(n).fill(0); draw(); log.textContent='重置'; };
+draw();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

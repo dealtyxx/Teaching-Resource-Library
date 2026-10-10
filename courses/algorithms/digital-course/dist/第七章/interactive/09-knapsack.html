@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>01背包 · 第7章 动态规划</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">07</div>算法可视化 · <span>第7章 动态规划</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-principle.html">原理</a><a class="pill" href="03-models.html">模型</a><a class="pill" href="04-maxsub.html">最大子段和</a><a class="pill" href="05-lis.html">LIS</a><a class="pill" href="06-triangle.html">三角形</a><a class="pill" href="07-lcs.html">LCS</a><a class="pill" href="08-edit.html">编辑距离</a><a class="pill active" href="09-knapsack.html">01背包</a><a class="pill" href="10-multi.html">完全/多重</a><a class="pill" href="11-tsp.html">状压TSP</a><a class="pill" href="12-interval-tree.html">区间/树形</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 9 · 0/1 背包</div>
+  <h1>背包格子大冒险</h1>
+  <p>每个格子在「不拿 / 拿」之间取 max。填完后回溯选出哪些物品。</p>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>学习目标</h2><span class="sub">Learning Objectives</span></div>
+  <div class="objectives"><h3>本节学完后你应当</h3><ol>
+    <li>能写出 <b>dp[i][j] 的状态定义</b>：前 i 件物品、容量 j 时的最大价值，并解释「前 i 件」与「容量 j」这两维的必要性。</li>
+    <li>能<b>分「不拿第 i 件 / 拿第 i 件」两种决策</b>写出转移方程，并说明拿的前提是 j ≥ wᵢ。</li>
+    <li>能写出<b>边界 dp[0][j] = 0</b>，并从 dp 表<b>回溯出被选中的物品集合</b>。</li>
+    <li>能把二维压成<b>一维滚动数组</b>，并解释 0/1 背包为何必须<b>逆序枚举容量</b>。</li>
+    <li>能说清复杂度 <b>Θ(nW)</b> 是<b>伪多项式</b>的，理解它对 W 的规模敏感。</li>
+  </ol></div>
+</section>
+<div class="card">
+  <p class="desc">w=[2,3,4,5] · v=[3,4,5,6] · W=8</p>
+  <div class="toolbar">
+    <button class="btn primary" id="run">▶ 逐步填表</button>
+    <div class="speed" id="spd"><button data-ms="120">慢</button><button data-ms="50" class="on">中</button><button data-ms="15">快</button></div>
+  </div>
+  <div style="overflow:auto"><table class="data" id="tb"></table></div>
+  <div class="stat-row">
+    <div class="stat"><span>最优价值</span><b class="green" id="ans">—</b></div>
+    <div class="stat"><span>选取物品</span><b class="orange" id="pick" style="font-size:1rem">—</b></div>
+  </div>
+  <div class="formula">dp[i][j] = max( dp[i-1][j] , dp[i-1][j-wᵢ]+vᵢ )</div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>① 状态定义</h2><span class="sub">State Definition</span></div>
+  <div class="defn"><span class="lbl">状态定义</span>
+    <p><b>dp[i][j]</b> 表示<b>只考虑前 i 件物品、背包容量为 j 时，能装入的最大总价值</b>（i = 0…n，j = 0…W）。<br/>需要两维的原因：「前 i 件」记录<b>决策进行到哪一件</b>，「容量 j」记录<b>剩余可用空间</b>——只有同时知道这两者，才能无歧义地决定第 i 件拿还是不拿，从而满足<b>无后效性</b>。</p></div>
+  <div class="defn thm"><span class="lbl">最优子结构 · 两种决策</span>
+    <p>面对第 i 件物品（重 wᵢ、值 vᵢ）只有两个选择：<br/><b>· 不拿</b>：容量不变，价值等于只用前 i−1 件、容量 j 的最优解 → <b>dp[i−1][j]</b>。<br/><b>· 拿</b>（仅当 j ≥ wᵢ）：先腾出 wᵢ 的空间装它，得到 vᵢ，再用前 i−1 件填满剩下的 j−wᵢ → <b>dp[i−1][j−wᵢ] + vᵢ</b>。<br/>两者取大即为 dp[i][j]。每个子问题的最优解只由「更少物品数」的子问题拼成，且其值一经确定不受后续物品影响——最优子结构与无后效性都成立。<b>关键：拿与不拿都从 dp[i−1][…] 转移，保证第 i 件至多被用一次</b>，这正是 0/1 的含义。</p></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>② 转移方程 ③ 边界 ④ 计算顺序</h2><span class="sub">Transition</span></div>
+  <div class="formula lg">dp[i][j] = dp[i−1][j]　　　　　　　　　　　　当 j &lt; wᵢ</div>
+  <div class="formula lg">dp[i][j] = max( dp[i−1][j], dp[i−1][j−wᵢ] + vᵢ )　当 j ≥ wᵢ</div>
+  <div class="defn"><span class="lbl">边界条件</span>
+    <p><b>dp[0][j] = 0（对所有 j）</b>：一件物品都不选时价值为 0。<b>dp[i][0] = 0</b>：容量为 0 什么都装不下。实现时把整个第 0 行初始化为 0 即可。</p></div>
+  <div class="defn prop"><span class="lbl">计算顺序 · 答案位置</span>
+    <p>dp[i][j] 依赖<b>上一行</b>的 dp[i−1][j] 与 dp[i−1][j−wᵢ]，故 <b>i 从 1 到 n（外层），j 从 0 到 W（内层）</b>逐行填表。<br/>答案在<b>右下角 dp[n][W]</b>。</p></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>例题演算 · w = [2,3,4,5]，v = [3,4,5,6]，W = 8</h2><span class="sub">Worked Example</span></div>
+  <p class="desc">逐行填表：第 i 行代表「已考虑前 i 件」。绿色为回溯路径（从右下角出发，若 dp[i][j] ≠ dp[i−1][j] 则第 i 件被选，跳到 j−wᵢ）。</p>
+  <div class="table-scroll"><table class="data">
+    <tr><th>i \ j</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th></tr>
+    <tr><th>0（空）</th><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+    <tr><th>1（w2 v3）</th><td>0</td><td>0</td><td>3</td><td>3</td><td>3</td><td>3</td><td>3</td><td>3</td><td>3</td></tr>
+    <tr><th>2（w3 v4）</th><td>0</td><td>0</td><td>3</td><td class="path">4</td><td>4</td><td>7</td><td>7</td><td>7</td><td>7</td></tr>
+    <tr><th>3（w4 v5）</th><td>0</td><td>0</td><td>3</td><td>4</td><td>5</td><td>7</td><td>8</td><td>9</td><td>9</td></tr>
+    <tr><th>4（w5 v6）</th><td>0</td><td>0</td><td>3</td><td>4</td><td>5</td><td>7</td><td>8</td><td>9</td><td class="hl">10</td></tr>
+  </table></div>
+  <div class="tip ok"><strong>答案：</strong>最优价值 = <b>dp[4][8] = 10</b>。回溯：dp[4][8]=10 ≠ dp[3][8]=9 → <b>选第 4 件</b>（w5 v6），跳到 j = 8−5 = 3；dp[3][3]=4 = dp[2][3] → 不选第 3 件；dp[2][3]=4 ≠ dp[1][3]=3 → <b>选第 2 件</b>（w3 v4），跳到 j = 0；结束。<br/>选中 <b>物品 {2, 4}</b>：总重 3+5 = 8（恰好装满），总价值 4+6 = <b>10</b>。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑤ C++ 代码 · 二维填表 + 回溯</h2><span class="sub">Implementation</span></div>
+  <div class="code"><span class="cm">// 二维 dp，dp[i][j] = 前 i 件、容量 j 的最大价值，Θ(nW) 时间 / Θ(nW) 空间</span>
+<span class="kw">int</span> knapsack01(<span class="kw">int</span> W, <span class="kw">const vector</span>&lt;<span class="kw">int</span>&gt;&amp; w, <span class="kw">const vector</span>&lt;<span class="kw">int</span>&gt;&amp; v, <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&amp; pick) {
+    <span class="kw">int</span> n = w.size();
+    <span class="kw">vector</span>&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt; dp(n + 1, <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;(W + 1, 0));  <span class="cm">// 边界：dp[0][*]=0</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = 1; i &lt;= n; ++i)
+        <span class="kw">for</span> (<span class="kw">int</span> j = 0; j &lt;= W; ++j) {
+            dp[i][j] = dp[i-1][j];                             <span class="cm">// 不拿第 i 件</span>
+            <span class="kw">if</span> (j &gt;= w[i-1])
+                dp[i][j] = max(dp[i][j], dp[i-1][j - w[i-1]] + v[i-1]);  <span class="cm">// 拿第 i 件</span>
+        }
+    <span class="cm">// 回溯：dp[i][j] ≠ dp[i-1][j] 说明第 i 件被选</span>
+    <span class="kw">int</span> j = W;
+    <span class="kw">for</span> (<span class="kw">int</span> i = n; i &gt;= 1; --i)
+        <span class="kw">if</span> (dp[i][j] != dp[i-1][j]) { pick.push_back(i); j -= w[i-1]; }
+    reverse(pick.begin(), pick.end());
+    <span class="kw">return</span> dp[n][W];
+}
+<span class="cm">// knapsack01(8,{2,3,4,5},{3,4,5,6},pick) → 返回 10，pick = {2,4}</span></div>
+  <div class="code"><span class="cm">// 一维滚动优化：容量 j 必须【逆序】，保证每件最多用一次，Θ(W) 空间</span>
+<span class="kw">int</span> knapsack01_1d(<span class="kw">int</span> W, <span class="kw">const vector</span>&lt;<span class="kw">int</span>&gt;&amp; w, <span class="kw">const vector</span>&lt;<span class="kw">int</span>&gt;&amp; v) {
+    <span class="kw">int</span> n = w.size();
+    <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt; dp(W + 1, 0);
+    <span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt; n; ++i)
+        <span class="kw">for</span> (<span class="kw">int</span> j = W; j &gt;= w[i]; --j)                     <span class="cm">// 逆序！从大到小</span>
+            dp[j] = max(dp[j], dp[j - w[i]] + v[i]);
+    <span class="kw">return</span> dp[W];
+}</div>
+  <div class="tip info"><strong>为什么一维要逆序？</strong>压成一维后，更新 dp[j] 时需要用到「上一行」的 dp[j−wᵢ]（即还没算进第 i 件的值）。<b>逆序</b>枚举 j 时，dp[j−wᵢ] 尚未被本轮修改，仍是 dp[i−1][j−wᵢ]，正确；若<b>正序</b>，dp[j−wᵢ] 已在本轮被更新成含第 i 件的 dp[i][j−wᵢ]，会导致第 i 件被<b>重复选取</b>——那恰好变成了下一节的「完全背包」。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑥ 复杂度 · 为什么是「伪多项式」</h2><span class="sub">Complexity</span></div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>指标</th><th>二维</th><th>一维滚动</th></tr>
+    <tr><td>时间</td><td>Θ(nW)</td><td>Θ(nW)</td></tr>
+    <tr><td>空间</td><td>Θ(nW)</td><td class="hl">Θ(W)</td></tr>
+    <tr><td>能否回溯方案</td><td class="hl">能，直接查表</td><td>不能（需额外记录）</td></tr>
+  </table></div>
+  <div class="defn prop"><span class="lbl">伪多项式的含义</span>
+    <p>Θ(nW) 看似多项式，但 W 是<b>数值</b>而非输入规模——用二进制表示 W 只需 log W 位，故 W 相对于「输入位数」是<b>指数级</b>的。当 W 高达 10⁹ 时表根本开不下，这就是 0/1 背包属于 NP 难、只有伪多项式算法的原因。<b>W 小才用此法</b>；W 极大而物品少时应换用其它策略。</p></div>
+  <div class="terms">
+    <span class="term"><b>0/1 背包</b>0/1 knapsack</span>
+    <span class="term"><b>滚动数组</b>rolling array</span>
+    <span class="term"><b>伪多项式</b>pseudo-polynomial</span>
+    <span class="term"><b>回溯</b>traceback</span>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑦ 易错点</h2><span class="sub">Pitfalls</span></div>
+  <div class="pitfall"><span class="lbl">易错点</span><ul>
+    <li><b>一维数组容量循环写成正序</b>。0/1 背包一维<b>必须逆序</b> j = W…wᵢ；正序会让同一件物品被重复计入，答案偏大（正序是完全背包的写法）。</li>
+    <li><b>拿的前提 j ≥ wᵢ 漏判</b>。当 j &lt; wᵢ 时 dp[i−1][j−wᵢ] 会下标越界或取到无效值，必须先判断容量够不够。</li>
+    <li><b>下标偏移</b>。dp 用 1-based 的物品编号 i，而数组 w、v 是 0-based，取值必须是 <span class="kbd">w[i-1]</span>、<span class="kbd">v[i-1]</span>。</li>
+    <li><b>把「价值」和「重量」搞反</b>。转移里加的是价值 vᵢ，减的是容量里的重量 wᵢ；两者混用会得出荒谬结果。</li>
+    <li><b>误以为答案一定装满背包</b>。dp[n][W] 是「容量<b>不超过</b> W」的最大价值，最优解未必恰好用满 W；本例恰好装满纯属数据凑巧。</li>
+    <li><b>一维数组想回溯选了哪些物品</b>。滚动数组覆盖了历史，<b>无法直接回溯</b>；需要方案时用二维表，或额外记录每步选择。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>本节小结</h2><span class="sub">Summary</span></div>
+  <div class="summary"><span class="lbl">本节小结</span><ul>
+    <li>状态定义：<b>dp[i][j] = 前 i 件物品、容量 j 的最大价值</b>；答案在 <b>dp[n][W]</b>。</li>
+    <li>转移：<b>dp[i][j] = max(dp[i−1][j], dp[i−1][j−wᵢ] + vᵢ)</b>（j ≥ wᵢ 时），对应「不拿 / 拿」两种决策；边界 <b>dp[0][j] = 0</b>。</li>
+    <li>回溯选中物品：从 dp[n][W] 逆推，<b>dp[i][j] ≠ dp[i−1][j] 即第 i 件被选</b>，随后 j 减去 wᵢ。</li>
+    <li>一维滚动把空间降到 Θ(W)，但 <b>0/1 背包容量必须逆序</b>，否则物品会被重复使用。</li>
+    <li>复杂度 <b>Θ(nW)</b> 是<b>伪多项式</b>，对 W 的数值敏感；W 极大时不适用。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>自测题</h2><span class="sub">点击选项查看解析</span></div>
+  <div class="quiz">
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">1</span>0/1 背包用一维滚动数组时，容量 j 的枚举方向应是？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>逆序 j = W 到 wᵢ（从大到小）</span></div>
+        <div class="quiz-opt"><span class="mk">B</span><span>正序 j = wᵢ 到 W（从小到大）</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>正序逆序都行，结果一样</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>必须从 0 开始正序</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 A。逆序时更新 dp[j] 用到的 dp[j−wᵢ] 还没在本轮被改动，仍代表「不含第 i 件」的 dp[i−1][j−wᵢ]，保证第 i 件<b>至多用一次</b>。B 正序会先更新小下标，dp[j−wᵢ] 已含第 i 件，导致<b>重复选取</b>——那是完全背包。C、D 都错，方向直接决定「0/1 还是完全」，绝不等价。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">2</span>对 w = [2,3,4,5]、v = [3,4,5,6]、W = 8，最优价值与选中物品是？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>9，选物品 {3,4}</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>10，选物品 {2,4}</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>18，选全部四件</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>7，选物品 {1,2}</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。物品 {2,4} 重 3+5 = 8 恰好装满，价值 4+6 = 10，是最优。A 的 {3,4} 重 4+5 = 9 &gt; 8 装不下；C 全选重 2+3+4+5 = 14 远超容量；D 的 {1,2} 重 5、价值 7，还剩 3 的空间没利用，不如 B。可对照例题的 dp 表 dp[4][8] = 10 验证。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">3</span>关于 0/1 背包的复杂度 Θ(nW)，正确的说法是？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>它是严格的多项式时间算法，任意规模都高效</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>它是伪多项式的：W 是数值，相对输入位数呈指数，W 极大时不可用</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>它与物品数 n 无关</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>把二维压成一维后时间复杂度降为 Θ(W)</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。W 用二进制只需 log W 位，故 Θ(nW) 相对于「输入位数」是指数级，称<b>伪多项式</b>；当 W = 10⁹ 时表开不下。A 错，正因如此 0/1 背包才是 NP 难问题；C 错，复杂度显含 n；D 错，一维优化只降<b>空间</b>到 Θ(W)，时间仍是 Θ(nW)。</div>
+    </div>
+  </div>
+</section>
+
+<div class="page-nav"><a href="08-edit.html"><span class="dir">← 上一节</span><span class="name">编辑距离</span></a><a href="10-multi.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">完全/多重</span></a></div>
+<div class="footer">算法设计与分析 · <b>第7章 动态规划</b> · 强交互可视化版<br/>Canvas 填表 · 路径回溯 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:32},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.12-Math.random()*.3, a:.12+Math.random()*.3}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(185,100,52,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const W=8, ws=[2,3,4,5], vs=[3,4,5,6], N=4; let ms=50;
+spd.querySelectorAll('button').forEach(b=>b.onclick=()=>{spd.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');ms=+b.dataset.ms;});
+run.onclick=async()=>{
+  const dp=Array.from({length:N+1},()=>Array(W+1).fill(0));
+  const ren=(hi,hj, picks=null)=>{
+    let h='<tr><th>i\\\\j</th>'+[...Array(W+1)].map((_,j)=>`<th>${j}</th>`).join('')+'</tr>';
+    for(let i=0;i<=N;i++){
+      h+=`<tr><th>${i}</th>`;
+      for(let j=0;j<=W;j++){
+        let cls=i===hi&&j===hj?'hl':'';
+        h+=`<td class="${cls}">${dp[i][j]}</td>`;
+      }
+      h+='</tr>';
+    }
+    tb.innerHTML=h;
+  };
+  for(let i=1;i<=N;i++) for(let j=0;j<=W;j++){
+    dp[i][j]=dp[i-1][j];
+    if(j>=ws[i-1]) dp[i][j]=Math.max(dp[i][j], dp[i-1][j-ws[i-1]]+vs[i-1]);
+    ren(i,j); await sleep(ms);
+  }
+  // reconstruct
+  let i=N,j=W, picked=[];
+  while(i>0){
+    if(dp[i][j]!==dp[i-1][j]){ picked.push(i); j-=ws[i-1]; }
+    i--;
+  }
+  picked.reverse();
+  ans.textContent=dp[N][W];
+  pick.textContent=picked.length?('物品 '+picked.join(',')):'无';
+  ren(-1,-1);
+};
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>最大子段和 · 第7章 动态规划</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">07</div>算法可视化 · <span>第7章 动态规划</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-principle.html">原理</a><a class="pill" href="03-models.html">模型</a><a class="pill active" href="04-maxsub.html">最大子段和</a><a class="pill" href="05-lis.html">LIS</a><a class="pill" href="06-triangle.html">三角形</a><a class="pill" href="07-lcs.html">LCS</a><a class="pill" href="08-edit.html">编辑距离</a><a class="pill" href="09-knapsack.html">01背包</a><a class="pill" href="10-multi.html">完全/多重</a><a class="pill" href="11-tsp.html">状压TSP</a><a class="pill" href="12-interval-tree.html">区间/树形</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 4 · Kadane</div>
+  <h1>最大连续子序列和</h1>
+  <p>dp[i]=以 i 结尾的最大和。扫描光带扫过数组，柱高实时变化。</p>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>学习目标</h2><span class="sub">Learning Objectives</span></div>
+  <div class="objectives"><h3>本节学完后你应当</h3><ol>
+    <li>能<b>准确复述状态定义</b>：dp[i] 表示<b>以 a[i] 结尾</b>的最大子段和，并解释为何不能定义成「前 i 个的最大子段和」。</li>
+    <li>能<b>分情况写出状态转移方程</b>与边界，并说明「另起炉灶」与「接在后面」两种决策。</li>
+    <li>能用 <b>Θ(n)</b> 的 Kadane 算法写出 C++ 代码，并<b>扩展记录最优子段的起止下标</b>。</li>
+    <li>能讨论<b>全为负数</b>的特殊情形，区分「允许空子段」与「不允许空子段」两种题意下的不同答案。</li>
+    <li>能与第 4 章的<b>分治法 O(n log n)</b> 解法作对比，说清 DP 为何更快。</li>
+  </ol></div>
+</section>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="run">▶ 扫描</button>
+    <button class="btn" id="rand">🎲 随机</button>
+    <div class="speed" id="spd"><button data-ms="500">慢</button><button data-ms="280" class="on">中</button><button data-ms="120">快</button></div>
+  </div>
+  <div class="stage-wrap light">
+    <canvas class="stage" id="cv" width="1000" height="280"></canvas>
+    <div class="stage-hud"><span class="hud-pill light">Kadane</span><span class="hud-pill light" id="hud">—</span></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>当前 dp[i]</span><b class="orange" id="cur">—</b></div>
+    <div class="stat"><span>全局最优</span><b class="green" id="best">—</b></div>
+  </div>
+  <div class="formula">dp[i] = max( a[i] , dp[i-1] + a[i] )</div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>① 状态定义</h2><span class="sub">State Definition</span></div>
+  <div class="defn"><span class="lbl">状态定义</span>
+    <p><b>dp[i]</b> 表示<b>在所有以 a[i] 为最后一个元素的连续子段中，元素之和的最大值</b>（i = 0, 1, …, n−1）。<br/>注意三个要点：① 子段必须<b>连续</b>；② 必须<b>以 a[i] 结尾</b>，即 a[i] 一定被选；③ 起点位置不限。</p></div>
+  <div class="defn thm"><span class="lbl">为什么必须「以 a[i] 结尾」而不是「前 i 个的答案」</span>
+    <p>若定义 g[i] = 前 i 个元素中的最大子段和，则 g[i] 与 g[i−1] 之间<b>无法直接转移</b>：要判断 a[i] 能否接到某个子段后面，必须知道「那个子段是否恰好在 i−1 处结束」，而 g[i−1] 里没有这个信息——这就是<b>有后效性</b>。<br/>加上「以 a[i] 结尾」这个约束后，dp[i−1] 恰好携带了「一个在 i−1 处结束的最优子段」，a[i] 就能无歧义地接上去，无后效性得以满足。<br/>代价是<b>答案不在 dp[n−1]，而是 max<sub>0≤i&lt;n</sub> dp[i]</b>。这是「限制结尾位置」这类状态设计的通用套路，LIS 同理。</p></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>② 状态转移方程 ③ 边界 ④ 计算顺序</h2><span class="sub">Transition</span></div>
+  <div class="formula lg">dp[i] = a[i]　　　　　　　当 dp[i−1] ≤ 0</div>
+  <div class="formula lg">dp[i] = dp[i−1] + a[i]　当 dp[i−1] &gt; 0</div>
+  <p class="desc">合并写成一行即为：<b>dp[i] = max( a[i], dp[i−1] + a[i] ) = a[i] + max(0, dp[i−1])</b>。</p>
+  <div class="defn"><span class="lbl">决策的含义</span>
+    <p>处理到 a[i] 时只有两个选择：<br/><b>· 接在后面</b>——把 a[i] 拼到「以 a[i−1] 结尾的最优子段」之后，得 dp[i−1] + a[i]；<br/><b>· 另起炉灶</b>——丢弃前面所有元素，从 a[i] 重新开始，得 a[i]。<br/>关键洞察：<b>只要 dp[i−1] ≤ 0，把它带上就是纯粹的拖累</b>，一定要另起炉灶。这也是 Kadane 算法「前缀和一变负就清零」的直觉来源。</p></div>
+  <div class="defn"><span class="lbl">边界条件</span>
+    <p><b>dp[0] = a[0]</b>（第一个元素前面无物可接）。<br/>等价写法：引入虚拟的 dp[−1] = 0 并使用 dp[i] = a[i] + max(0, dp[i−1])，此时 i 可从 0 统一开始，代码更简洁。</p></div>
+  <div class="defn prop"><span class="lbl">计算顺序 · 答案位置</span>
+    <p>dp[i] 只依赖 dp[i−1]，故 <b>i 从 0 递增到 n−1</b> 单趟扫描即可。<br/>答案 <b>ans = max<sub>0≤i&lt;n</sub> dp[i]</b>，需要在扫描过程中<b>同步维护全局最大值</b>，而不是最后取 dp[n−1]。</p></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>③ 例题演算 · A = [−2, 1, −3, 4, −1, 2, 1, −5, 4]</h2><span class="sub">Worked Example</span></div>
+  <div class="deriv">
+<span class="step">dp[0] = a[0] = −2 <span class="why">边界；ans = −2</span></span>
+<span class="step">dp[1] = max(1, −2+1) = max(1, −1) = 1 <span class="why">dp[0]&lt;0 → 另起炉灶；ans = 1</span></span>
+<span class="step">dp[2] = max(−3, 1−3) = max(−3, −2) = −2 <span class="why">接在后面更优；ans 仍为 1</span></span>
+<span class="step">dp[3] = max(4, −2+4) = max(4, 2) = 4 <span class="why">dp[2]&lt;0 → 另起炉灶，起点重置到 3；ans = 4</span></span>
+<span class="step">dp[4] = max(−1, 4−1) = 3 <span class="why">接在后面；ans 仍为 4</span></span>
+<span class="step">dp[5] = max(2, 3+2) = 5 <span class="why">接在后面；ans = 5</span></span>
+<span class="step">dp[6] = max(1, 5+1) = 6 <span class="why">接在后面；ans = 6 ← 全局最优</span></span>
+<span class="step">dp[7] = max(−5, 6−5) = 1 <span class="why">接在后面；ans 仍为 6</span></span>
+<span class="step">dp[8] = max(4, 1+4) = 5 <span class="why">接在后面；ans 仍为 6</span></span>
+  </div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>i</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td></tr>
+    <tr><th>a[i]</th><td>−2</td><td>1</td><td>−3</td><td>4</td><td>−1</td><td>2</td><td>1</td><td>−5</td><td>4</td></tr>
+    <tr><th>dp[i]</th><td>−2</td><td>1</td><td>−2</td><td>4</td><td>3</td><td>5</td><td class="hl">6</td><td>1</td><td>5</td></tr>
+  </table></div>
+  <div class="tip ok"><strong>答案：</strong>最大子段和 = <b>6</b>，对应子段 <b>a[3..6] = [4, −1, 2, 1]</b>。注意 dp[8] = 5 并不是答案——<b>答案是整张表的最大值，不是最后一格</b>。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>④ C++ 代码</h2><span class="sub">Implementation</span></div>
+  <div class="code"><span class="cm">// 版本一：标准 DP 填表，Θ(n) 时间 / Θ(n) 空间</span>
+<span class="kw">int</span> maxSubSum(<span class="kw">const vector</span>&lt;<span class="kw">int</span>&gt;&amp; a) {
+    <span class="kw">int</span> n = a.size();
+    <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt; dp(n);
+    dp[0] = a[0];                                  <span class="cm">// 边界</span>
+    <span class="kw">int</span> ans = dp[0];
+    <span class="kw">for</span> (<span class="kw">int</span> i = 1; i &lt; n; ++i) {
+        dp[i] = max(a[i], dp[i - 1] + a[i]);       <span class="cm">// 转移</span>
+        ans = max(ans, dp[i]);                     <span class="cm">// 答案是整张表的最大值</span>
+    }
+    <span class="kw">return</span> ans;
+}</div>
+  <div class="code"><span class="cm">// 版本二：Kadane 滚动变量，Θ(n) 时间 / Θ(1) 空间，并记录最优子段起止下标</span>
+<span class="kw">int</span> kadane(<span class="kw">const vector</span>&lt;<span class="kw">int</span>&gt;&amp; a, <span class="kw">int</span>&amp; bestL, <span class="kw">int</span>&amp; bestR) {
+    <span class="kw">int</span> n = a.size();
+    <span class="kw">int</span> cur = a[0], ans = a[0];                    <span class="cm">// cur 即 dp[i]</span>
+    <span class="kw">int</span> curL = 0;                                  <span class="cm">// 当前子段的起点</span>
+    bestL = bestR = 0;
+    <span class="kw">for</span> (<span class="kw">int</span> i = 1; i &lt; n; ++i) {
+        <span class="kw">if</span> (cur &lt;= 0) { cur = a[i]; curL = i; }     <span class="cm">// 另起炉灶：起点重置</span>
+        <span class="kw">else</span>            cur += a[i];                 <span class="cm">// 接在后面：起点不变</span>
+        <span class="kw">if</span> (cur &gt; ans) { ans = cur; bestL = curL; bestR = i; }
+    }
+    <span class="kw">return</span> ans;
+}
+
+<span class="cm">// 调用示例：a = {-2,1,-3,4,-1,2,1,-5,4}</span>
+<span class="cm">// 返回 6，bestL = 3，bestR = 6，即子段 [4,-1,2,1]</span></div>
+  <div class="tip info"><strong>记录下标的要点：</strong>起点 curL <b>只在「另起炉灶」的那一刻更新</b>；而 bestL/bestR <b>只在刷新全局最优时才拷贝</b>。若把 bestL 直接写成 curL 的同步赋值，遇到「当前段变大但还没超过历史最优」的情况就会记错区间。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑤ 复杂度分析</h2><span class="sub">Complexity</span></div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>解法</th><th>思路</th><th>时间</th><th>空间</th></tr>
+    <tr><td>枚举全部子段</td><td>枚举起点 i、终点 j，再累加求和</td><td>O(n<sup>3</sup>)</td><td>O(1)</td></tr>
+    <tr><td>枚举 + 前缀和</td><td>枚举 i、j，用 sum[j]−sum[i−1] 求和</td><td>O(n<sup>2</sup>)</td><td>O(n)</td></tr>
+    <tr><td>分治法（第 4 章）</td><td>左半 / 右半 / 跨中点三者取大</td><td>O(n log n)</td><td>O(log n) 栈</td></tr>
+    <tr><td><b>动态规划（Kadane）</b></td><td>dp[i] = max(a[i], dp[i−1]+a[i])</td><td class="hl">Θ(n)</td><td class="hl">Θ(1)</td></tr>
+  </table></div>
+  <div class="defn thm"><span class="lbl">与分治法的对比（呼应第 4 章 06-maxsub）</span>
+    <p><b>分治法</b>把数组从中点劈开，递归求左半最大子段和、右半最大子段和，再<b>额外花 O(n)</b> 求「必过中点」的最大子段和，三者取最大。递推式 T(n) = 2T(n/2) + Θ(n)，由主定理得 <b>T(n) = Θ(n log n)</b>。<br/><b>动态规划</b>之所以更快，是因为它换了一个划分子问题的角度：分治按<b>位置</b>对半切，跨界情形必须单独花 O(n) 处理；DP 按<b>「子段的结尾在哪」</b>划分，任意子段都恰好属于唯一一类，<b>不存在跨界情形</b>，于是每个状态的转移降为 O(1)。<br/><b>一句话：分治的代价花在「合并」，DP 通过更聪明的状态定义把合并代价消灭了。</b></p></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑥ 特殊情形 · 全为负数怎么办</h2><span class="sub">Edge Case</span></div>
+  <div class="tip warn"><strong>这是本题最经典的陷阱。</strong>设 a = [−3, −1, −5, −2]，答案取决于题目<b>是否允许空子段</b>——两种题意会给出完全不同的答案。</div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>题意</th><th>定义</th><th>a = [−3,−1,−5,−2] 的答案</th><th>实现要点</th></tr>
+    <tr><td><b>不允许空子段</b><br/>（教材默认、多数考题）</td><td>子段至少含 1 个元素</td><td class="hl">−1（即最大的那个元素）</td><td>ans 初始化为 <b>a[0]</b>，绝不能初始化为 0</td></tr>
+    <tr><td><b>允许空子段</b></td><td>允许选空，规定空段和为 0</td><td class="hl">0</td><td>ans 初始化为 <b>0</b>，或在最后 <span class="kbd">return max(ans, 0)</span></td></tr>
+  </table></div>
+  <div class="code"><span class="cm">// 常见错误写法：ans 初始化为 0</span>
+<span class="kw">int</span> ans = 0;                       <span class="cm">// ← 全负数组会错误地返回 0</span>
+<span class="kw">int</span> cur = 0;
+<span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt; n; ++i) {
+    cur = max(a[i], cur + a[i]);
+    ans = max(ans, cur);
+}
+
+<span class="cm">// 正确写法（不允许空子段）：以 a[0] 为基准</span>
+<span class="kw">int</span> ans = a[0], cur = a[0];        <span class="cm">// ← 全负时返回最大的那个负数</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = 1; i &lt; n; ++i) {
+    cur = max(a[i], cur + a[i]);
+    ans = max(ans, cur);
+}</div>
+  <div class="tip info"><strong>做题建议：</strong>拿到题先看样例或数据范围里有没有负数。<b>凡是 a[i] 可能全为负，就必须把 ans 初始化为 a[0]（或 INT_MIN）而不是 0</b>。教材（李春葆）默认「子段非空」，因此标准答案是 −1 而非 0。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑦ 易错点</h2><span class="sub">Pitfalls</span></div>
+  <div class="pitfall"><span class="lbl">易错点</span><ul>
+    <li><b>把答案写成 dp[n−1]</b>。由于状态限定「以 a[i] 结尾」，答案是 <b>max{dp[i]}</b>。本例 dp[8]=5，而正确答案是 6。</li>
+    <li><b>全负数组把 ans 初始化为 0</b>，导致返回 0。见上一节。</li>
+    <li><b>把「子段」当成「子序列」</b>。子段（subarray / 连续子序列）要求元素<b>下标连续</b>；子序列（subsequence）可以跳着取。若允许跳着取，全取正数即可，问题变得平凡。</li>
+    <li><b>记录起止下标时把 bestL 与 curL 同步更新</b>。curL 每次「另起炉灶」都变，但 bestL 只在刷新全局最优时才该更新。</li>
+    <li><b>误以为 dp[i−1] &lt; 0 才另起炉灶、等于 0 时无所谓</b>。dp[i−1] = 0 时两种决策结果相同，取 <span class="kbd">&lt;=</span> 或 <span class="kbd">&lt;</span> 都不影响最优值，但会影响<b>记录到的子段起点</b>（是否包含一段和为 0 的前缀）。若题目要求「长度最短的最优子段」需格外注意。</li>
+    <li><b>用 int 存和导致溢出</b>。n 达 10<sup>5</sup>、元素达 10<sup>9</sup> 时和可达 10<sup>14</sup>，要用 <span class="kbd">long long</span>。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>本节小结</h2><span class="sub">Summary</span></div>
+  <div class="summary"><span class="lbl">本节小结</span><ul>
+    <li>状态定义：<b>dp[i] = 以 a[i] 结尾的最大子段和</b>。加上「以 a[i] 结尾」是为了满足<b>无后效性</b>。</li>
+    <li>转移方程：<b>dp[i] = max( a[i], dp[i−1] + a[i] )</b>，对应「另起炉灶」与「接在后面」两种决策；边界 <b>dp[0] = a[0]</b>。</li>
+    <li>答案为 <b>max{dp[i]}</b> 而非 dp[n−1]，需在扫描中同步维护。</li>
+    <li>复杂度 <b>Θ(n)</b> 时间、滚动后 <b>Θ(1)</b> 空间，优于分治法的 <b>O(n log n)</b>；提速来源是按「结尾位置」划分子问题从而消除了跨界合并。</li>
+    <li>全负数组是最经典陷阱：不允许空子段时答案是<b>最大的那个负数</b>，ans 必须初始化为 a[0]。</li>
+    <li>记录最优子段：curL 在「另起炉灶」时重置，bestL/bestR 只在刷新全局最优时拷贝。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>自测题</h2><span class="sub">点击选项查看解析</span></div>
+  <div class="quiz">
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">1</span>对 a = [−3, −1, −5, −2]（题目规定子段<b>非空</b>），Kadane 算法应返回？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>0，因为不选任何元素最优</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>−1</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>−11，即全部元素之和</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>−2，即最后一个元素</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。子段非空时至少要选一个元素，而任意两个及以上负数相加只会更小，所以最优解就是<b>单个最大的元素</b> −1（下标 1）。逐项：dp = [−3, −1, −5, −2]，max 为 −1。A 正是「ans 初始化为 0」这个经典 bug 的产物——只有题目明确允许空子段时 0 才是合法答案；C 把「最大子段和」误解成「全部求和」；D 只是随手取了末位元素，忽略了要在整张 dp 表上取最大值。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">2</span>为什么状态要定义成「以 a[i] <b>结尾</b>的最大子段和」，而不是「前 i 个元素中的最大子段和」？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>两种定义等价，前者只是写起来短一些</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>后者不满足无后效性：无法判断 a[i] 能否接到前面的最优子段之后</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>后者会使复杂度升到 O(n<sup>2</sup>)</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>后者无法处理负数</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。「前 i 个的最大子段和」这个数字里<b>丢失了「那个最优子段的右端点在哪」</b>这一关键信息，于是无法判定 a[i] 能否与之相连——状态信息不足即有后效性。加上「以 a[i] 结尾」的约束后，dp[i−1] 就精确地代表「一个在 i−1 处结束的最优子段」，转移立刻变得无歧义。A 是错的：两者数值通常不同（本例 dp[8]=5，而「前 9 个的最大子段和」是 6）。C 张冠李戴，问题在于<b>写不出正确的转移</b>而非慢；D 与负数无关，两种定义都能处理负数。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">3</span>关于分治法 O(n log n) 与 DP 的 Θ(n)，下列说法正确的是？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>分治法慢是因为递归调用的常数开销大</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>分治按位置对半切，必须额外花 O(n) 处理「跨中点」的子段；DP 按「结尾位置」划分，任意子段恰属唯一一类，无跨界情形</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>分治法不满足最优子结构，所以效率低</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>分治法必须额外开 O(n) 的辅助数组，所以更慢</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。差距来自<b>子问题的划分方式</b>：分治的三类情形（全在左、全在右、跨中点）中第三类无法由子问题直接给出，只能现场 O(n) 扫描，于是 T(n) = 2T(n/2) + Θ(n) = Θ(n log n)；DP 换用「按子段的右端点归类」，每个子段有且只有一个右端点，因而不存在需要现场合并的第三类，单个状态转移降到 O(1)，总计 Θ(n)。A 混淆了<b>常数因子</b>与<b>渐近阶</b>——即便消除递归开销，log n 因子依然存在；C 说反了，分治法同样依赖最优子结构，它是正确的算法，只是划分方式不够经济；D 的分治实现只需 O(log n) 的递归栈，并不需要 O(n) 辅助数组。</div>
+    </div>
+  </div>
+</section>
+
+<div class="page-nav"><a href="03-models.html"><span class="dir">← 上一节</span><span class="name">模型</span></a><a href="05-lis.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">LIS</span></a></div>
+<div class="footer">算法设计与分析 · <b>第7章 动态规划</b> · 强交互可视化版<br/>Canvas 填表 · 路径回溯 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:32},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.12-Math.random()*.3, a:.12+Math.random()*.3}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(185,100,52,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+let A=[-2,1,-3,4,-1,2,1,-5,4], ms=280;
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+spd.querySelectorAll('button').forEach(b=>b.onclick=()=>{spd.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');ms=+b.dataset.ms;});
+function draw(dp, hi, bestL=0, bestR=-1){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const n=A.length, gap=cv.width/(n+1), mid=cv.height/2;
+  ctx.strokeStyle='rgba(162,156,144,.35)'; ctx.beginPath(); ctx.moveTo(30,mid); ctx.lineTo(cv.width-30,mid); ctx.stroke();
+  const maxA=Math.max(...A.map(Math.abs),1);
+  A.forEach((v,i)=>{
+    const h=(Math.abs(v)/maxA)*90, x=gap*(i+1);
+    const up=v>=0;
+    let col=i===hi?'#B96434':(i>=bestL&&i<=bestR&&bestR>=0?'#356F62':'#C2603F');
+    ctx.fillStyle=col;
+    if(up) ctx.fillRect(x-16, mid-h, 32, h);
+    else ctx.fillRect(x-16, mid, 32, h);
+    ctx.fillStyle='#443F37'; ctx.font='bold 13px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x, up? mid-h-10 : mid+h+16);
+    if(dp && dp[i]!=null){ ctx.fillStyle='#7A746A'; ctx.font='11px ui-monospace'; ctx.fillText('dp '+dp[i], x, cv.height-18); }
+  });
+  // scan line
+  if(hi>=0){ const x=gap*(hi+1); ctx.strokeStyle='rgba(185,100,52,.5)'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+    ctx.beginPath(); ctx.moveTo(x,20); ctx.lineTo(x,cv.height-30); ctx.stroke(); ctx.setLineDash([]); }
+}
+run.onclick=async()=>{
+  const dp=Array(A.length).fill(0); let bestVal=A[0], bL=0, bR=0, start=0;
+  for(let i=0;i<A.length;i++){
+    if(i===0 || dp[i-1]+A[i]<A[i]){ dp[i]=A[i]; start=i; }
+    else dp[i]=dp[i-1]+A[i];
+    if(dp[i]>bestVal){ bestVal=dp[i]; bL=start; bR=i; }
+    cur.textContent=dp[i];
+    document.getElementById('best').textContent=bestVal;
+    hud.textContent=`i=${i} 区间[${bL},${bR}]`;
+    draw(dp,i,bL,bR); await sleep(ms);
+  }
+  draw(dp,-1,bL,bR); hud.textContent=`最优=${bestVal} 子段[${bL},${bR}]`;
+};
+rand.onclick=()=>{A=Array.from({length:10},()=>Math.floor(Math.random()*16)-7); draw(null,-1); cur.textContent='—'; document.getElementById('best').textContent='—';};
+draw(null,-1);
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

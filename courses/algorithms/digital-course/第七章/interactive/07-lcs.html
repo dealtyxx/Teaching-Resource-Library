@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>LCS · 第7章 动态规划</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">07</div>算法可视化 · <span>第7章 动态规划</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-principle.html">原理</a><a class="pill" href="03-models.html">模型</a><a class="pill" href="04-maxsub.html">最大子段和</a><a class="pill" href="05-lis.html">LIS</a><a class="pill" href="06-triangle.html">三角形</a><a class="pill active" href="07-lcs.html">LCS</a><a class="pill" href="08-edit.html">编辑距离</a><a class="pill" href="09-knapsack.html">01背包</a><a class="pill" href="10-multi.html">完全/多重</a><a class="pill" href="11-tsp.html">状压TSP</a><a class="pill" href="12-interval-tree.html">区间/树形</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 7 · 二维表</div>
+  <h1>最长公共子序列 · 热力填表</h1>
+  <p>字符相等走对角线 +1，否则取左/上最大。填完后可回溯一条 LCS。</p>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>学习目标</h2><span class="sub">Learning Objectives</span></div>
+  <div class="objectives"><h3>本节学完后你应当</h3><ol>
+    <li>能准确写出 <b>dp[i][j] 的状态定义</b>：X 的前 i 个字符与 Y 的前 j 个字符的 LCS 长度，并说明为什么要用「前缀长度」这一对二维下标。</li>
+    <li>能<b>分「末字符相等 / 不等」两种情形写出转移方程</b>，并解释相等时为何一定走对角线、不等时为何取左上两格的较大值。</li>
+    <li>能写出<b>边界 dp[i][0] = dp[0][j] = 0</b>，并解释其含义（任一串为空则 LCS 为空）。</li>
+    <li>能用 <b>Θ(nm)</b> 的 C++ 填表实现，并<b>从 dp 表右下角回溯出一条具体的 LCS 字符串</b>。</li>
+    <li>能区分<b>子序列（可跳选）与子串（必须连续）</b>，说明本题与「最长公共子串」的转移差异。</li>
+  </ol></div>
+</section>
+<div class="card">
+  <div class="toolbar">
+    <input id="sx" value="ABCBDAB" style="padding:8px 12px;border-radius:10px;border:1px solid var(--line)"/>
+    <input id="sy" value="BDCABA" style="padding:8px 12px;border-radius:10px;border:1px solid var(--line)"/>
+    <button class="btn primary" id="run">▶ 填表</button>
+    <div class="speed" id="spd"><button data-ms="80">慢</button><button data-ms="35" class="on">中</button><button data-ms="10">快</button></div>
+  </div>
+  <div style="overflow:auto"><table class="data" id="tb"></table></div>
+  <div class="stat-row">
+    <div class="stat"><span>LCS 长度</span><b class="green" id="ans">—</b></div>
+    <div class="stat"><span>一个 LCS</span><b class="orange" id="str" style="font-size:1.1rem">—</b></div>
+  </div>
+  <div class="tip" id="tip">相等：dp[i-1][j-1]+1 · 否则 max(左,上)</div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>① 状态定义</h2><span class="sub">State Definition</span></div>
+  <div class="defn"><span class="lbl">状态定义</span>
+    <p><b>dp[i][j]</b> 表示<b>字符串 X 的前 i 个字符 X[1..i] 与 Y 的前 j 个字符 Y[1..j] 的最长公共子序列（LCS）的长度</b>（i = 0…n，j = 0…m）。<br/>之所以用「两个前缀长度」作下标，是因为 LCS 天然是<b>两个序列同时缩短</b>的问题：每比较一对末字符，就把某一端（或两端）的前缀各缩短一位，子问题恰好落在更小的 dp[i′][j′] 上，形成<b>二维重叠子问题</b>。</p></div>
+  <div class="defn thm"><span class="lbl">最优子结构 · 无后效性</span>
+    <p>考察末字符 X[i] 与 Y[j]：<br/><b>· 若 X[i] = Y[j]</b>，则这对相同字符<b>一定可以放进某条最优 LCS 的末尾</b>（可以证明：存在一条最优解把它们配成一对不会更差），于是 dp[i][j] = dp[i−1][j−1] + 1。<br/><b>· 若 X[i] ≠ Y[j]</b>，则这两个字符<b>不可能同时</b>是 LCS 的末尾，至少要放弃其中一个：放弃 X[i] 得 dp[i−1][j]，放弃 Y[j] 得 dp[i][j−1]，取较大者。<br/>每个子问题只依赖「更短前缀」的解，前缀一旦确定其 LCS 长度就固定，不受后续字符影响——<b>无后效性</b>成立。</p></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>② 转移方程 ③ 边界 ④ 计算顺序</h2><span class="sub">Transition</span></div>
+  <div class="formula lg">dp[i][j] = dp[i−1][j−1] + 1　　　　　　当 X[i] = Y[j]</div>
+  <div class="formula lg">dp[i][j] = max( dp[i−1][j] , dp[i][j−1] )　当 X[i] ≠ Y[j]</div>
+  <div class="defn"><span class="lbl">边界条件</span>
+    <p><b>dp[i][0] = 0</b>（Y 为空串，公共子序列只能是空）；<b>dp[0][j] = 0</b>（X 为空串，同理）。<br/>实现时开 (n+1)×(m+1) 的表，把第 0 行、第 0 列全部置 0，真实字符从下标 1 开始对齐，可避免大量下标越界判断。</p></div>
+  <div class="defn prop"><span class="lbl">计算顺序 · 答案位置</span>
+    <p>dp[i][j] 依赖<b>左上（i−1,j−1）、上（i−1,j）、左（i,j−1）</b>三格，故按 <b>i 从小到大、内层 j 从小到大</b>逐行填表即可保证依赖已就绪。<br/>答案就在<b>右下角 dp[n][m]</b>（因为它对应「整个 X 与整个 Y」）。这与「以 i 结尾」型状态不同——LCS 用的是「前缀」而非「结尾」，故答案是最后一格而非全表最大值。</p></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>例题演算 · X = ABCBDAB，Y = BDCABA</h2><span class="sub">Worked Example</span></div>
+  <p class="desc">按行填表，橙色标出「相等走对角线 +1」的格子；填完后从右下角 dp[7][6] 回溯（相等则取字符并向左上走，否则往 dp 值较大的一侧退）。</p>
+  <div class="table-scroll"><table class="data">
+    <tr><th>dp</th><th>ε</th><th>B</th><th>D</th><th>C</th><th>A</th><th>B</th><th>A</th></tr>
+    <tr><th>ε</th><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+    <tr><th>A</th><td>0</td><td>0</td><td>0</td><td>0</td><td class="path">1</td><td>1</td><td>1</td></tr>
+    <tr><th>B</th><td>0</td><td class="path">1</td><td>1</td><td>1</td><td>1</td><td>2</td><td>2</td></tr>
+    <tr><th>C</th><td>0</td><td>1</td><td>1</td><td class="path">2</td><td>2</td><td>2</td><td>2</td></tr>
+    <tr><th>B</th><td>0</td><td>1</td><td>1</td><td>2</td><td>2</td><td class="path">3</td><td>3</td></tr>
+    <tr><th>D</th><td>0</td><td>1</td><td>2</td><td>2</td><td>2</td><td>3</td><td>3</td></tr>
+    <tr><th>A</th><td>0</td><td>1</td><td>2</td><td>2</td><td>3</td><td>3</td><td class="path">4</td></tr>
+    <tr><th>B</th><td>0</td><td>1</td><td>2</td><td>2</td><td>3</td><td>4</td><td class="hl">4</td></tr>
+  </table></div>
+  <div class="tip ok"><strong>答案：</strong>LCS 长度 = <b>dp[7][6] = 4</b>，回溯得到一条 LCS = <b>BCBA</b>。<br/>注意 <b>LCS 通常不唯一</b>：BDAB、BCAB 也都是长度为 4 的公共子序列；具体回溯出哪一条取决于「不等时向上还是向左」的先后规则（本例约定 dp[i−1][j] ≥ dp[i][j−1] 时向上）。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑤ C++ 代码 · 填表 + 回溯</h2><span class="sub">Implementation</span></div>
+  <div class="code"><span class="cm">// dp[i][j] = X[1..i] 与 Y[1..j] 的 LCS 长度，Θ(nm) 时间 / Θ(nm) 空间</span>
+<span class="kw">int</span> lcs(<span class="kw">const string</span>&amp; X, <span class="kw">const string</span>&amp; Y, <span class="kw">string</span>&amp; out) {
+    <span class="kw">int</span> n = X.size(), m = Y.size();
+    <span class="kw">vector</span>&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt; dp(n + 1, <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;(m + 1, 0));  <span class="cm">// 边界：dp[i][0]=dp[0][j]=0</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = 1; i &lt;= n; ++i)                        <span class="cm">// ④ i 递增</span>
+        <span class="kw">for</span> (<span class="kw">int</span> j = 1; j &lt;= m; ++j)
+            <span class="kw">if</span> (X[i-1] == Y[j-1]) dp[i][j] = dp[i-1][j-1] + 1;   <span class="cm">// 末字符相同，走对角线</span>
+            <span class="kw">else</span> dp[i][j] = max(dp[i-1][j], dp[i][j-1]);          <span class="cm">// 否则丢弃一端</span>
+
+    <span class="cm">// 回溯：从右下角 (n,m) 反向走到边界，逆序收集字符</span>
+    <span class="kw">int</span> i = n, j = m; out.clear();
+    <span class="kw">while</span> (i &gt; 0 &amp;&amp; j &gt; 0) {
+        <span class="kw">if</span> (X[i-1] == Y[j-1]) { out += X[i-1]; --i; --j; }     <span class="cm">// 对角线来的字符入选</span>
+        <span class="kw">else if</span> (dp[i-1][j] &gt;= dp[i][j-1]) --i;                 <span class="cm">// 往 dp 值较大的一侧退</span>
+        <span class="kw">else</span> --j;
+    }
+    reverse(out.begin(), out.end());                          <span class="cm">// 回溯得到的是逆序，需反转</span>
+    <span class="kw">return</span> dp[n][m];
+}
+<span class="cm">// 调用 lcs("ABCBDAB","BDCABA",out) → 返回 4，out = "BCBA"</span></div>
+  <div class="tip info"><strong>回溯要点：</strong>只靠 dp 表本身即可回溯，<b>无需额外的 pre 数组</b>——因为每一格的来源可由「X[i] 是否等于 Y[j]」以及左、上两格数值直接判定。这正是「dp 表自带方向信息」的一类问题。若担心比较字符耗时，也可另开 choice[][] 记录来向。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑥ LCS 与最长公共子串的区别</h2><span class="sub">Subsequence vs Substring</span></div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>对比项</th><th>最长公共子序列 LCS</th><th>最长公共子串</th></tr>
+    <tr><td>是否要求连续</td><td>不要求，可跳着取</td><td class="hl">必须连续</td></tr>
+    <tr><td>相等时转移</td><td>dp[i][j] = dp[i−1][j−1] + 1</td><td>dp[i][j] = dp[i−1][j−1] + 1</td></tr>
+    <tr><td>不等时转移</td><td>max(dp[i−1][j], dp[i][j−1])</td><td class="hl">dp[i][j] = 0（断了就归零）</td></tr>
+    <tr><td>答案位置</td><td>dp[n][m]</td><td class="hl">整张表的最大值 max{dp[i][j]}</td></tr>
+    <tr><td>复杂度</td><td>Θ(nm)</td><td>Θ(nm)</td></tr>
+  </table></div>
+  <div class="terms">
+    <span class="term"><b>最长公共子序列</b>longest common subsequence</span>
+    <span class="term"><b>子序列</b>subsequence</span>
+    <span class="term"><b>子串</b>substring</span>
+    <span class="term"><b>回溯</b>traceback</span>
+    <span class="term"><b>编辑距离</b>edit distance</span>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑦ 易错点</h2><span class="sub">Pitfalls</span></div>
+  <div class="pitfall"><span class="lbl">易错点</span><ul>
+    <li><b>把 LCS 当成最长公共子串</b>。子序列可跳选，不等时取左/上的<b>较大值</b>；子串要求连续，不等时应<b>归零</b>，答案也变成全表最大值而非 dp[n][m]。</li>
+    <li><b>下标偏移写错</b>。dp 用 1-based（dp[i][j] 对应 X 的第 i 个字符），而字符串是 0-based，比较时必须是 <span class="kbd">X[i-1] == Y[j-1]</span>，写成 X[i]==Y[j] 会越界并算错。</li>
+    <li><b>忘记初始化第 0 行 / 第 0 列</b>。dp[i][0] 与 dp[0][j] 必须为 0，否则整表数值被污染。</li>
+    <li><b>相等时误写成 max(dp[i−1][j], dp[i][j−1]) + 1</b>。相等时<b>只能</b>走对角线 dp[i−1][j−1]+1，取左上会重复计入同一个字符导致答案偏大。</li>
+    <li><b>回溯时忘记 reverse</b>。从右下角回溯得到的字符是<b>逆序</b>的，必须反转后才是正确的 LCS。</li>
+    <li><b>误以为回溯路径唯一</b>。不等且左上两格相等时，向上或向左都合法，会得到<b>不同但等长</b>的 LCS，这不是 bug。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>本节小结</h2><span class="sub">Summary</span></div>
+  <div class="summary"><span class="lbl">本节小结</span><ul>
+    <li>状态定义：<b>dp[i][j] = X 前 i 个字符与 Y 前 j 个字符的 LCS 长度</b>，用「两个前缀长度」作二维下标。</li>
+    <li>转移方程：相等 <b>dp[i][j] = dp[i−1][j−1] + 1</b>，不等 <b>dp[i][j] = max(dp[i−1][j], dp[i][j−1])</b>；边界 <b>dp[i][0] = dp[0][j] = 0</b>。</li>
+    <li>按行填表（i、j 均从小到大），答案在<b>右下角 dp[n][m]</b>，复杂度 <b>Θ(nm)</b>。</li>
+    <li>从右下角回溯：相等取字符并走对角线，不等退向数值较大的一侧，最后 <b>reverse</b> 得到一条具体 LCS（通常不唯一）。</li>
+    <li>与最长公共子串的关键差异：<b>不等时归零、答案取全表最大值</b>。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>自测题</h2><span class="sub">点击选项查看解析</span></div>
+  <div class="quiz">
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">1</span>当 X[i] ≠ Y[j] 时，LCS 的转移方程是？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>dp[i][j] = dp[i−1][j−1]</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>dp[i][j] = max( dp[i−1][j], dp[i][j−1] )</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>dp[i][j] = dp[i−1][j−1] + 1</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>dp[i][j] = 0</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。末字符不同则它们不可能同为 LCS 结尾，至少放弃一个：放弃 X[i] 得 dp[i−1][j]，放弃 Y[j] 得 dp[i][j−1]，取较大者。C 是<b>相等</b>时的转移；A 漏了取 max，等价于同时放弃两个字符，会漏解；D 是<b>最长公共子串</b>不等时的做法（断了归零），用在 LCS 上会把答案算小。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">2</span>关于 LCS 的答案位置，正确的说法是？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>答案在右下角 dp[n][m]</span></div>
+        <div class="quiz-opt"><span class="mk">B</span><span>答案是整张表的最大值 max{dp[i][j]}</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>答案在 dp[n][0]</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>答案是 dp 主对角线元素之和</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 A。dp[n][m] 对应「整个 X 与整个 Y」的 LCS，正是所求。B 是<b>最长公共子串</b>的答案位置——那里状态是「以 X[i]、Y[j] 结尾」，故取全表最大值；LCS 用的是「前缀」，答案在最后一格。C 的 dp[n][0] 恒为 0（Y 空）；D 无任何意义。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">3</span>把 LCS 代码中不等时的转移由 max(dp[i−1][j], dp[i][j−1]) 改成常数 0，得到的是什么问题的解？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>仍然是 LCS，只是更慢</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>最长公共子串（连续），但答案要改成取全表最大值</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>编辑距离</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>最短公共超序列</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。不等时归零意味着「一旦断开，公共段长度清零重新计数」，这正是<b>公共子串（要求连续）</b>的定义；此时 dp[i][j] 表示「以 X[i]、Y[j] 结尾的最长公共子串长度」，答案在 <b>max{dp[i][j]}</b> 而非 dp[n][m]。A 错，改了递推就不是 LCS；C 编辑距离用的是 min 三项而非此式；D 最短公共超序列另有转移，与此无关。</div>
+    </div>
+  </div>
+</section>
+
+<div class="page-nav"><a href="06-triangle.html"><span class="dir">← 上一节</span><span class="name">三角形</span></a><a href="08-edit.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">编辑距离</span></a></div>
+<div class="footer">算法设计与分析 · <b>第7章 动态规划</b> · 强交互可视化版<br/>Canvas 填表 · 路径回溯 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:32},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.12-Math.random()*.3, a:.12+Math.random()*.3}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(185,100,52,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+let ms=35;
+spd.querySelectorAll('button').forEach(b=>b.onclick=()=>{spd.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');ms=+b.dataset.ms;});
+run.onclick=async()=>{
+  const X=sx.value, Y=sy.value, n=X.length, m=Y.length;
+  const dp=Array.from({length:n+1},()=>Array(m+1).fill(0));
+  const ren=(hi,hj,path=null)=>{
+    let h='<tr><th></th><th>ε</th>'+[...Y].map(c=>`<th>${c}</th>`).join('')+'</tr>';
+    for(let i=0;i<=n;i++){
+      h+='<tr><th>'+(i?X[i-1]:'ε')+'</th>';
+      for(let j=0;j<=m;j++){
+        let cls='';
+        if(path && path.has(i+','+j)) cls='path';
+        else if(i===hi&&j===hj) cls='hl';
+        h+=`<td class="${cls}">${dp[i][j]}</td>`;
+      }
+      h+='</tr>';
+    }
+    tb.innerHTML=h;
+  };
+  for(let i=1;i<=n;i++) for(let j=1;j<=m;j++){
+    dp[i][j]=X[i-1]===Y[j-1]?dp[i-1][j-1]+1:Math.max(dp[i-1][j],dp[i][j-1]);
+    ren(i,j); tip.textContent=`dp[${i}][${j}]=${dp[i][j]}`; await sleep(ms);
+  }
+  // reconstruct
+  let i=n,j=m, s='', path=new Set();
+  while(i>0&&j>0){
+    path.add(i+','+j);
+    if(X[i-1]===Y[j-1]){ s=X[i-1]+s; i--; j--; }
+    else if(dp[i-1][j]>=dp[i][j-1]) i--; else j--;
+  }
+  path.add('0,0');
+  ans.textContent=dp[n][m]; str.textContent=s||'(空)';
+  ren(-1,-1,path); tip.innerHTML=`完成 · 绿色为回溯路径 · LCS=<strong>${s}</strong>`;
+};
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

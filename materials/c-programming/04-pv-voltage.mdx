@@ -1,0 +1,89 @@
+---
+module: 1
+moduleName: 顺序结构
+order: 4
+title: 光伏电压倍率换算器
+level: 进阶选做
+scene: 信创场景
+knowledge: [浮点运算, 单位换算, 公式推导]
+stars: 2
+minutes: 60
+goal: 新能源电控基础数据处理能力
+sizheng: 双碳目标落在代码里，就是把每一伏电压都算准
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import PvVoltageLab from '../../components/react/PvVoltageLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：MCU 怎么"看见"几十伏的电压？
+
+光伏板输出几十伏电压，但国产 MCU 的 ADC（模数转换器）只能测 0~3.3V。
+硬件工程师用**分压电阻**把电压按固定倍率缩小；软件工程师（你）的任务，是把 ADC 读到的数字**按同样的倍率还原回去**：
+
+1. **还原采样端电压**：`v_adc = adc_raw / 4095.0 × V_REF` —— 12 位 ADC 的 4095 对应满量程；
+2. **乘倍率得真实电压**：`v_real = v_adc × DIV_RATIO`。
+
+两步公式，一条流水线——又是顺序结构。但这一次，算错的代价是**烧毁真实设备**。
+
+## 一步一步看还原过程
+
+<CStepRunner
+  client:visible
+  title="顺序执行模拟：ADC 采样值 → 真实电压"
+  code={`#include <stdio.h>
+
+#define ADC_MAX   4095.0f
+#define V_REF     3.3f
+#define DIV_RATIO 21.0f
+
+int main(void) {
+    int adc_raw = 2867;
+    float v_adc  = adc_raw / ADC_MAX * V_REF;
+    float v_real = v_adc * DIV_RATIO;
+    printf("真实电压 = %.2f V\\n", v_real);
+    return 0;
+}`}
+  steps={[
+    { line: 7, desc: 'ADC 寄存器读到原始值 2867（0~4095 之间的一个整数）。', vars: { adc_raw: '2867' } },
+    { line: 8, desc: '2867/4095.0 = 0.7001…，再乘 3.3 → 2.3104V。注意：除数写成 4095.0f 而非 4095，避免整数除法截断！', vars: { adc_raw: '2867', v_adc: '2.3104' } },
+    { line: 9, desc: '2.3104 × 21 = 48.52V。分压电阻缩小了 21 倍，软件就要放大 21 倍——软硬件必须"对上暗号"。', vars: { adc_raw: '2867', v_adc: '2.3104', v_real: '48.52' } },
+    { line: 10, desc: '输出真实电压，供上层告警逻辑使用。', out: '真实电压 = 48.52 V' },
+    { line: 11, desc: 'return 0。整个换算不到 1 微秒，但它每秒要被执行成千上万次。' },
+  ]}
+/>
+
+> **宏定义的工程意义**：`DIV_RATIO` 由硬件电阻决定。换一块电控板，只改一行宏定义——这就是第 2 章信创加固版强调的"宏定义代替魔数"。
+
+## 动手实验：拖出一次过压告警
+
+<PvVoltageLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：固定 ADC 值与倍率，完成两步换算并输出。
+2. **AI 优化进阶版**：让 AI 支持"电流采样"（0~20mA 对应 0~3.3V）。审查它的公式：斜率和偏移算对了吗？（对照第 3 章 3.6.2 的 4-20mA 传感器换算。）
+3. **信创加固定稿版**：加入 ADC 越界检查（>4095 为非法）、`isfinite` 防 NaN、断线检测（v_real 接近 0 判为断线）。想想哪些检查必须放在换算**之前**——顺序，依然是关键。
+
+## 素养与思政
+
+到 2060 年碳中和，中国要新增数十亿千瓦的光伏装机。每一块光伏板背后，都有一颗国产 MCU 在毫秒级地采样、换算、决策。
+"双碳"不只是宏大叙事——它落在你手里，就是 `4095.0f` 那个不能省略的 `.0f`，就是倍率宏定义旁那行注释。**新能源的安全底座，是一行行算得准的代码。**
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="若把 v_adc 的计算写成 adc_raw / 4095 * 3.3f（除数没有小数点），adc_raw=2867 时结果是？"
+  options={['2.31（不受影响）', '0（整数除法 2867/4095=0，再乘 3.3 还是 0）', '编译报错', '3.3']}
+  answer={1}
+  explain="2867/4095 是整数除法，商 0 余 2867，小数部分被截断——后面再乘 3.3 也无力回天。这是第 3 章 3.3.1 的『除法陷阱』在真实工程中的再现。"
+/>
+
+<QuizItem
+  client:visible
+  question="分压倍率 21 应该定义为宏 DIV_RATIO 而不是直接写 21，最重要的原因是？"
+  options={['宏运行更快', '换硬件时只需改一处，且名字表达了 21 的工程含义', 'C 语言不允许直接写数字', '宏可以节省内存']}
+  answer={1}
+  explain="消除魔数：让数值有名字、可追溯、单点修改——这是信创加固版的基本要求。"
+/>

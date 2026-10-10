@@ -1,0 +1,99 @@
+---
+module: 8
+moduleName: 文件
+order: 45
+title: 北斗轨迹离线归档
+level: 基础必做
+scene: 北斗场景
+knowledge: [二进制文件, 数据序列化, 溯源存储]
+stars: 5
+minutes: 110
+goal: 工程轨迹数据的持久化方案
+sizheng: 渔船的每条轨迹都可回溯——数据完整性关乎生命与主权
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import BeidouArchiveLab from '../../components/react/BeidouArchiveLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：文本太胖，上二进制
+
+远洋渔船的北斗终端每秒记录一个轨迹点，离线归档三个月再回传。用项目 44 的文本格式？一个点约 32 字节；换**二进制**（`fwrite` 直接把结构体的内存字节拍进文件）只要 20 字节——窄带卫星信道上，这就是 37% 的流量费。
+
+```c
+fwrite(pts, sizeof(TrackPt), n, fp);   /* 写:内存快照落盘 */
+fread(pts, sizeof(TrackPt), cap, fp);  /* 读:字节级还原 */
+```
+
+注意模式里的 **b**（`"wb"`/`"rb"`）。二进制的交换条件：**人读不懂了**，且跨平台要小心（字节序、对齐——项目 37 的填充在这里变成兼容性坑）。溯源场景再加一道保险：**校验和**，回放前先验字节完整性。
+
+## 一步一步看 fwrite 落盘
+
+<CStepRunner
+  client:visible
+  title="归档模拟：两个轨迹点的二进制之旅"
+  badge="fwrite/fread 模拟"
+  doneNote="fwrite 不做任何『翻译』——内存里什么字节，文件里就什么字节。写和读共用同一个结构体定义，就是二进制格式的『锁与钥匙』。"
+  code={`#include <stdio.h>
+#include <stdint.h>
+
+typedef struct {     /* 20字节/点 */
+    uint32_t t;
+    double   lat, lon;
+} TrackPt;
+
+int main(void) {
+    TrackPt pts[2] = {
+        {1735689600, 39.9042, 116.4074},
+        {1735689601, 39.9043, 116.4076}
+    };
+    FILE *fp = fopen("track.bin", "wb");
+    if (fp == NULL) return -1;
+    size_t ok = fwrite(pts, sizeof(TrackPt), 2, fp);
+    fclose(fp);
+    printf("写入%zu块,共%zu字节\\n",
+           ok, ok * sizeof(TrackPt));
+    return 0;
+}`}
+  steps={[
+    { line: 9, desc: '两个轨迹点住在 RAM：每个 20 字节（uint32 + 两个 double），共 40 字节连续内存。', vars: { pts: '2点×20B' } },
+    { line: 13, desc: '"wb" 的 b=binary：告诉库"别动我的字节"（文本模式在 Windows 会偷偷把 \\n 换成 \\r\\n——二进制数据里恰好有 0x0A 就全毁了）。', vars: { fp: '有效(wb)' } },
+    { line: 15, desc: 'fwrite(首地址, 单块20B, 2块, fp)：把 40 字节内存原样拷进文件——没有格式化、没有转字符，纯粹的内存快照。', vars: { 写入: '40字节' } },
+    { line: 15, desc: '返回值 ok=2（成功写入的块数）。磁盘满时 ok 会小于 2——二进制写入同样要验收。', vars: { ok: '2' } },
+    { line: 17, desc: '文件里躺着 40 个"人类不可读"的字节。但只要用同一个 TrackPt 定义去 fread，每个字段都会分毫不差地回来。', out: '写入2块,共40字节' },
+    { line: 19, desc: '对比文本版：同样两点约 64 字节且需 fscanf 逐字段解析。二进制=空间省+速度快，代价=可读性与跨平台兼容——工程没有免费午餐。' },
+  ]}
+/>
+
+## 动手实验：给轨迹称重
+
+<BeidouArchiveLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：生成 100 个模拟轨迹点，fwrite 归档再 fread 回放，逐点比对验证无损。用 `ls -l`（或文件属性）核对文件大小 = 100×sizeof(TrackPt)。
+2. **AI 优化进阶版**：让 AI 设计文件头（魔数 "BDTK" + 版本 + 点数 + XOR 校验和）。审查读取端顺序：先验魔数（防止拿错文件）→ 再验校验和（防止内容损坏）→ 最后才信数据。
+3. **信创加固定稿版**：用 `#pragma pack` 或逐字段读写消除对齐差异（x86 归档、龙芯回放的兼容性）；明确注释字节序假设；损坏文件（截断/翻转一个字节）的注入测试——校验和真的拦住了吗？
+
+## 素养与思政
+
+全国 6 万余艘海洋渔船装有北斗示位终端：轨迹归档数据既是遇险搜救的生命线（最后一个点位就是搜索起点），也是维权护渔的证据链（谁在哪片海域作业，字节为证）。
+**溯源数据的三个"不"：不可丢（校验）、不可改（只追加）、不可赖（可回放）。** 你设计的 20 字节小结构体，装的是船员的平安和国家的海权——数据完整性从来不是抽象要求。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="fwrite(pts, sizeof(TrackPt), n, fp) 四个参数的含义是？"
+  options={['文件名、大小、数量、模式', '数据首地址、每块字节数、块数、文件指针——共写 n×sizeof 字节', '指针、偏移、长度、缓冲', '数组、下标、上限、句柄']}
+  answer={1}
+  explain="『从哪拷、一块多大、拷几块、拷到哪』。返回成功块数——与 n 比对就是验收。fread 参数完全对称，一对函数吃遍二进制 IO。"
+/>
+
+<QuizItem
+  client:visible
+  question="二进制归档在 x86 写入、龙芯平台读取时可能出错，主要原因是？"
+  options={['龙芯不支持 fread', '结构体对齐/填充和字节序可能因平台而异，内存快照的字节排布不再一致', '二进制文件不能复制', 'double 在龙芯上不存在']}
+  answer={1}
+  explain="fwrite 存的是『这个平台上的内存布局』。跨平台归档要么固定格式逐字段序列化，要么 pack+统一字节序——项目 37 的对齐知识在此从性能问题升级为正确性问题。"
+/>

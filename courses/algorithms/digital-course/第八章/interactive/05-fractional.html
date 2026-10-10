@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>分数背包 · 第8章 贪心法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">08</div>算法可视化 · <span>第8章 贪心法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-activity.html">活动安排</a><a class="pill" href="03-merge.html">区间合并</a><a class="pill" href="04-rooms.html">会议室</a><a class="pill active" href="05-fractional.html">分数背包</a><a class="pill" href="06-tianji.html">田忌赛马</a><a class="pill" href="07-coin.html">零钱兑换</a><a class="pill" href="08-huffman.html">哈夫曼</a><a class="pill" href="09-matroid.html">拟阵</a><a class="pill" href="10-schedule.html">任务调度</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 5 · 可拆分</div>
+  <h1>分数背包 · 按性价比灌装</h1>
+  <p>物品可拆。按 v/w 降序装，最后一件可装部分。看背包「液面」上涨。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>写出</b>分数背包问题的数学规划形式：目标函数、容量约束与 0 ≤ x<sub>i</sub> ≤ 1。</li>
+  <li>能够用<b>交换论证</b>完整证明「按单位价值 v<sub>i</sub>/w<sub>i</sub> 降序装入」的最优性。</li>
+  <li>能够<b>手工计算</b> w=[10,20,30]、v=[60,100,120]、W=50 的最优值 240 及各 x<sub>i</sub> 取值。</li>
+  <li>能够<b>说清</b>分数背包可贪心、0/1 背包必须 DP 的根本差别在于<b>可分割性</b>。</li>
+  <li>能够<b>实现</b> C++ 代码并规避浮点比较带来的排序隐患。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar"><button class="btn primary" id="run">▶ 装包动画</button></div>
+  <div class="stage-wrap">
+    <canvas class="stage" id="cv" width="1000" height="340"></canvas>
+    <div class="stage-hud"><span class="hud-pill">fractional knapsack</span><span class="hud-pill" id="hud">W=50</span></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>已装重量</span><b class="blue" id="ww">0</b></div>
+    <div class="stat"><span>总价值</span><b class="green" id="vv">0</b></div>
+  </div>
+  <div class="tip warn"><strong>对比：</strong>0/1 不可拆时，同策略可能错，必须用 DP。</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>问题的数学表述</h2><span class="sub">Fractional Knapsack Problem</span></div>
+<div class="defn"><span class="lbl">定义</span><p>给定 n 件物品，第 i 件重 w<sub>i</sub> &gt; 0、价值 v<sub>i</sub> &gt; 0，背包容量为 W。物品<b>可以任意分割</b>：取走比例 x<sub>i</sub> ∈ [0, 1] 时，占用重量 x<sub>i</sub>w<sub>i</sub>、获得价值 x<sub>i</sub>v<sub>i</sub>。求各 x<sub>i</sub> 使总价值最大。</p></div>
+<div class="formula lg">max &#931;<sub>i=1</sub><sup>n</sup> x<sub>i</sub> v<sub>i</sub></div>
+<div class="formula">s.t.　&#931;<sub>i=1</sub><sup>n</sup> x<sub>i</sub> w<sub>i</sub> ≤ W　，　0 ≤ x<sub>i</sub> ≤ 1 (i = 1, 2, …, n)</div>
+<div class="tip info"><strong>与 0/1 背包的唯一差别：</strong>0/1 背包要求 x<sub>i</sub> ∈ {0, 1}（整数约束），分数背包放宽为 x<sub>i</sub> ∈ [0, 1]（连续约束）。就是这一处放宽，让问题从 NP 难变成了 O(n log n) 可解。</div>
+
+<div class="defn prop"><span class="lbl">贪心准则</span><p>定义第 i 件物品的<b>单位价值</b>（性价比）r<sub>i</sub> = v<sub>i</sub> / w<sub>i</sub>。将物品按 r<sub>i</sub> <b>降序</b>排列，依次整件装入；当剩余容量不足以装下当前物品时，<b>按比例装入</b>剩余容量对应的一部分，然后结束。</p></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>实验数据与手工计算</h2><span class="sub">背包容量 W = 50</span></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>物品</th><th>重量 w<sub>i</sub></th><th>价值 v<sub>i</sub></th><th>单位价值 r<sub>i</sub> = v<sub>i</sub>/w<sub>i</sub></th><th>贪心序</th><th>装入比例 x<sub>i</sub></th><th>贡献价值</th></tr>
+  <tr><td>A</td><td>10</td><td>60</td><td class="hl">6.0</td><td>1</td><td>1</td><td>60</td></tr>
+  <tr><td>B</td><td>20</td><td>100</td><td>5.0</td><td>2</td><td>1</td><td>100</td></tr>
+  <tr><td>C</td><td>30</td><td>120</td><td>4.0</td><td>3</td><td class="hl">2/3</td><td class="hl">80</td></tr>
+  <tr><th>合计</th><td>60</td><td>280</td><td>——</td><td>——</td><td>用满 50</td><td class="hl"><b>240</b></td></tr>
+</table></div>
+<div class="deriv">
+<span class="step">按单位价值降序：r<sub>A</sub> = 6.0 &gt; r<sub>B</sub> = 5.0 &gt; r<sub>C</sub> = 4.0</span>
+<span class="step">装 A：w<sub>A</sub> = 10 ≤ 剩余 50 &#8658; 整件装入，x<sub>A</sub> = 1</span>
+<span class="step">&nbsp;&nbsp;剩余容量 50 &#8722; 10 = 40，累计价值 60</span>
+<span class="step">装 B：w<sub>B</sub> = 20 ≤ 剩余 40 &#8658; 整件装入，x<sub>B</sub> = 1</span>
+<span class="step">&nbsp;&nbsp;剩余容量 40 &#8722; 20 = 20，累计价值 60 + 100 = 160</span>
+<span class="step">装 C：w<sub>C</sub> = 30 &gt; 剩余 20 &#8658; <b>按比例装入</b>，x<sub>C</sub> = 20 / 30 = 2/3</span>
+<span class="step">&nbsp;&nbsp;获得价值 120 &#215; 2/3 = 80，剩余容量 0，扫描终止</span>
+<span class="step"><b>最优值 = 60 + 100 + 80 = 240</b>，背包恰好装满 50</span>
+<span class="step">&nbsp;</span>
+<span class="step">对照：同一组数据若<b>不可分割</b>（0/1 背包）</span>
+<span class="step">&nbsp;&nbsp;贪心得 A + B = 160（剩 20 装不下 C，白白浪费）</span>
+<span class="step">&nbsp;&nbsp;最优是 B + C = 220（恰好装满 50）&#8658; 贪心<b>失效</b></span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>正确性论证 · 交换论证</h2><span class="sub">为什么按 v/w 降序一定最优？</span></div>
+<div class="defn thm"><span class="lbl">定理</span><p>若物品已按单位价值降序排列 v<sub>1</sub>/w<sub>1</sub> ≥ v<sub>2</sub>/w<sub>2</sub> ≥ … ≥ v<sub>n</sub>/w<sub>n</sub>，则上述贪心策略得到的解 G 是分数背包问题的最优解。</p></div>
+<div class="deriv">
+<span class="step"><b>证明（交换论证）</b></span>
+<span class="step">设 G = (g<sub>1</sub>, …, g<sub>n</sub>) 为贪心解，O = (o<sub>1</sub>, …, o<sub>n</sub>) 为任一最优解（分量即各 x<sub>i</sub>）</span>
+<span class="step">&nbsp;</span>
+<span class="step"><b>预备</b>：若 &#931;w<sub>i</sub> &gt; W，则任何最优解都<b>恰好装满</b>背包</span>
+<span class="step">&nbsp;&nbsp;否则尚有剩余容量，可再装入任一未装满物品的一小部分，价值严格增加，与最优矛盾</span>
+<span class="step">&nbsp;&nbsp;（若 &#931;w<sub>i</sub> ≤ W 则全装即最优，命题平凡成立）</span>
+<span class="step">&nbsp;</span>
+<span class="step">若 G = O，命题成立；否则设 i 为<b>第一处分歧</b>下标，即 g<sub>k</sub> = o<sub>k</sub> (k &lt; i) 而 g<sub>i</sub> ≠ o<sub>i</sub></span>
+<span class="step">由贪心构造，g<sub>i</sub> 取的是"容量允许下的最大可能值" &#8658; <b>g<sub>i</sub> &gt; o<sub>i</sub></b> <span class="why">关键</span></span>
+<span class="step">令 &#948; = (g<sub>i</sub> &#8722; o<sub>i</sub>) &#183; w<sub>i</sub> &gt; 0，即 O 在物品 i 上"少装"的重量</span>
+<span class="step">&nbsp;</span>
+<span class="step">O 也装满了 W，且前 i&#8722;1 项与 G 相同</span>
+<span class="step">&#8658; O 必在某些下标 j &gt; i 上多装了物品，其重量之和恰为 &#948;，记为 &#948;<sub>j</sub>（&#931;<sub>j&gt;i</sub> &#948;<sub>j</sub> = &#948;）</span>
+<span class="step">&nbsp;</span>
+<span class="step"><b>构造 O&#39;</b>：把这 &#948; 重量的 j 类物品(j &gt; i)撤出，改装 &#948; 重量的物品 i</span>
+<span class="step">&nbsp;</span>
+<span class="step"><b>【验可行性】</b>总重量不变，仍恰为 W &#10004;</span>
+<span class="step">&nbsp;&nbsp;物品 i 的比例变为 o<sub>i</sub> + &#948;/w<sub>i</sub> = g<sub>i</sub> ≤ 1，未超存量；各 &#948;<sub>j</sub> 撤出后比例 ≥ 0 &#10004;</span>
+<span class="step">&nbsp;&nbsp;&#8658; O&#39; 满足全部约束 &#10004; <span class="why">可分割性在此发挥作用</span></span>
+<span class="step">&nbsp;</span>
+<span class="step"><b>【验不劣性】</b>价值变化量</span>
+<span class="step">&nbsp;&nbsp;&#916; = &#948; &#183; (v<sub>i</sub>/w<sub>i</sub>) &#8722; &#931;<sub>j&gt;i</sub> &#948;<sub>j</sub> &#183; (v<sub>j</sub>/w<sub>j</sub>)</span>
+<span class="step">&nbsp;&nbsp;由排序知对每个 j &gt; i 有 v<sub>j</sub>/w<sub>j</sub> ≤ v<sub>i</sub>/w<sub>i</sub></span>
+<span class="step">&nbsp;&nbsp;&#8658; &#931;<sub>j&gt;i</sub> &#948;<sub>j</sub> &#183; (v<sub>j</sub>/w<sub>j</sub>) ≤ (&#931;<sub>j&gt;i</sub> &#948;<sub>j</sub>) &#183; (v<sub>i</sub>/w<sub>i</sub>) = &#948; &#183; (v<sub>i</sub>/w<sub>i</sub>)</span>
+<span class="step">&nbsp;&nbsp;&#8658; &#916; ≥ 0，即 val(O&#39;) ≥ val(O) &#10004; <span class="why">此处用到贪心准则本身</span></span>
+<span class="step">&nbsp;</span>
+<span class="step">又 O 最优 &#8658; val(O&#39;) ≤ val(O) &#8658; val(O&#39;) = val(O)，故 <b>O&#39; 也最优</b></span>
+<span class="step">且 O&#39; 与 G 的公共前缀已延长到第 i 位</span>
+<span class="step">对 i 归纳：至多 n 次替换后得 O<sup>(n)</sup> = G，且始终最优</span>
+<span class="step">&#8756; 贪心解 G 最优 &#8718;</span>
+</div>
+<div class="tip info"><strong>证明的灵魂：</strong>不劣性一步用到的不等式 v<sub>j</sub>/w<sub>j</sub> ≤ v<sub>i</sub>/w<sub>i</sub> <b>正是贪心准则本身</b>。这是交换论证的通用规律——如果你的证明里从头到尾没用上贪心准则，那一定写错了。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>为什么 0/1 背包不能贪？</h2><span class="sub">可分割性是分水岭</span></div>
+<div class="defn"><span class="lbl">根本差别</span><p>上面证明中「撤出 &#948; 重量的 j 类物品、改装 &#948; 重量的物品 i」这一步，<b>依赖物品能被任意切分</b>。在 0/1 背包中物品是整块的：想多装物品 i，只能整件装或整件不装；想腾地方，也只能整件撤出——<b>重量对不上</b>，交换构造直接失效，定理不成立。</p></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>对比</th><th>分数背包</th><th>0/1 背包</th></tr>
+  <tr><td>变量取值</td><td class="hl">x<sub>i</sub> ∈ [0, 1] 连续</td><td>x<sub>i</sub> ∈ {0, 1} 整数</td></tr>
+  <tr><td>能否贪心</td><td class="hl">能，按 v/w 降序</td><td>不能（反例见下）</td></tr>
+  <tr><td>算法</td><td>排序 + 扫描</td><td>动态规划</td></tr>
+  <tr><td>时间复杂度</td><td class="hl">O(n log n)</td><td>O(n·W) 伪多项式</td></tr>
+  <tr><td>容量是否用满</td><td>总能恰好装满（若物品够）</td><td>常有容量浪费</td></tr>
+  <tr><td>W=50 时本页数据</td><td class="hl">240（A + B + 2/3·C）</td><td>220（B + C）；贪心只得 160</td></tr>
+  <tr><td>问题难度</td><td>P（多项式可解）</td><td>NP 难（判定版本 NP 完全）</td></tr>
+</table></div>
+<div class="tip warn"><strong>重要结论：</strong>分数背包的最优值（240）是同一实例 0/1 背包最优值（220）的<b>上界</b>。这一性质被分支限界法用作剪枝的界函数，也是 0/1 背包近似算法的分析基础。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>C++ 实现与复杂度</h2><span class="sub">排序 + 一遍扫描</span></div>
+<div class="code"><span class="cm">// 分数背包 · 按单位价值降序装入</span>
+<span class="cm">// 时间 O(n log n)，空间 O(1)（不计输入）</span>
+<span class="kw">struct</span> Item { <span class="kw">int</span> w, v; };
+
+<span class="kw">double</span> <span class="fn">fractionalKnapsack</span>(vector&lt;Item&gt; a, <span class="kw">int</span> W) {
+    <span class="cm">// ① 按 v/w 降序。用交叉相乘做整数比较，避免浮点精度与整除截断</span>
+    <span class="fn">sort</span>(a.<span class="fn">begin</span>(), a.<span class="fn">end</span>(), [](<span class="kw">const</span> Item &amp;x, <span class="kw">const</span> Item &amp;y) {
+        <span class="kw">return</span> (<span class="kw">long</span> <span class="kw">long</span>)x.v * y.w &gt; (<span class="kw">long</span> <span class="kw">long</span>)y.v * x.w;   <span class="cm">// x.v/x.w &gt; y.v/y.w</span>
+    });
+
+    <span class="kw">double</span> val = 0;
+    <span class="kw">int</span> left = W;                       <span class="cm">// 剩余容量</span>
+
+    <span class="kw">for</span> (<span class="kw">auto</span> &amp;it : a) {                <span class="cm">// ② 一遍扫描 O(n)</span>
+        <span class="kw">if</span> (left == 0) <span class="kw">break</span>;
+        <span class="kw">if</span> (it.w &lt;= left) {             <span class="cm">// 整件装得下</span>
+            left -= it.w;
+            val  += it.v;
+        } <span class="kw">else</span> {                        <span class="cm">// 装不下 &#8594; 切一刀，恰好填满</span>
+            val += 1.0 * it.v * left / it.w;
+            left = 0;
+            <span class="kw">break</span>;                      <span class="cm">// 背包已满，后面的物品不必再看</span>
+        }
+    }
+    <span class="kw">return</span> val;
+}</div>
+<div class="formula">T(n) = O(n log n)<span>（排序）</span> + O(n)<span>（扫描）</span> = <b>O(n log n)</b>　　S(n) = O(1)</div>
+<div class="table-scroll"><table class="data">
+  <tr><th>阶段</th><th>时间</th><th>说明</th></tr>
+  <tr><td>按 v/w 降序排序</td><td class="hl">O(n log n)</td><td>算法瓶颈</td></tr>
+  <tr><td>扫描装包</td><td>O(n)</td><td>最多切一刀后即终止</td></tr>
+  <tr><td><b>合计</b></td><td class="hl">O(n log n)</td><td>空间 O(1)</td></tr>
+  <tr><td>理论最优（选读）</td><td>O(n)</td><td>用线性时间选择反复求单位价值中位数并划分，可去掉排序，达到期望/最坏 O(n)</td></tr>
+</table></div>
+<div class="terms">
+  <span class="term"><b>分数背包</b>fractional knapsack</span>
+  <span class="term"><b>0/1 背包</b>0-1 knapsack</span>
+  <span class="term"><b>单位价值</b>value density / unit value</span>
+  <span class="term"><b>松弛</b>relaxation</span>
+  <span class="term"><b>上界</b>upper bound</span>
+</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>用整数除法比较单位价值。</b>C++ 中 <code>x.v / x.w</code> 两个 int 相除是<b>整除</b>，(v=3,w=2) 与 (v=1,w=1) 都算作 1，排序失去区分度且不报错。应改用交叉相乘的整数比较。</li>
+  <li><b>按价值 v<sub>i</sub> 降序或按重量 w<sub>i</sub> 升序排序。</b>都是错的。反例：w=[10,20]、v=[60,100]、W=20，按 v 降序会先装 B(20,100) 塞满得 100，而按 v/w 降序装 A 全部 + B 的一半得 60+50=110。</li>
+  <li><b>把分数背包的贪心搬到 0/1 背包上。</b>本页数据即反例：贪心 160，最优 220。</li>
+  <li><b>切分时忘记按比例折算价值</b>，写成整件加 v<sub>i</sub>，导致答案虚高。</li>
+  <li><b>切完最后一刀后没有 break</b>，继续循环虽因 left = 0 不再累加，但逻辑不清晰；更糟的是若把条件写成 <code>left &gt;= 0</code> 会产生死循环或错误累加。</li>
+  <li><b>返回类型用 int。</b>分数背包的最优值一般<b>不是整数</b>（本页恰好是 240，但换成 W = 45 就会出现小数），必须用 double。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>分数背包：max &#931;x<sub>i</sub>v<sub>i</sub>，s.t. &#931;x<sub>i</sub>w<sub>i</sub> ≤ W，0 ≤ x<sub>i</sub> ≤ 1。</li>
+  <li>贪心准则：按<b>单位价值 v<sub>i</sub>/w<sub>i</sub> 降序</b>装入，最后一件按比例切分填满。</li>
+  <li><b>交换论证</b>：最优解必装满背包；在第一处分歧处 g<sub>i</sub> &gt; o<sub>i</sub>，把 O 中 &#948; 重量的低性价比物品换成物品 i，可行性由<b>可分割性</b>保证，不劣性由 v<sub>j</sub>/w<sub>j</sub> ≤ v<sub>i</sub>/w<sub>i</sub> 保证。</li>
+  <li>本页数据答案：x<sub>A</sub> = 1、x<sub>B</sub> = 1、x<sub>C</sub> = 2/3，最优值 <b>240</b>。</li>
+  <li>0/1 背包同数据贪心只得 160、最优 220：<b>可分割性</b>是能否贪心的分水岭。分数背包最优值还是 0/1 背包最优值的<b>上界</b>。</li>
+  <li>复杂度 <b>O(n log n)</b>，排序主导；理论上可用线性时间选择降到 O(n)。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>已知 w = [10, 20, 30]、v = [60, 100, 120]、W = 50。<b>分数背包</b>的最优值是多少？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>160</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>220</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>240</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>280</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>单位价值 6.0 &gt; 5.0 &gt; 4.0，整装 A(10, 60) 与 B(20, 100) 后剩余容量 20，取 C 的 2/3 得 120 &#215; 2/3 = 80，合计 <b>240</b>，选 C。<br/>A 的 160 是把同一数据当成 <b>0/1 背包</b>做贪心的（错误）结果——剩下 20 装不下整件 C 只好放弃。<br/>B 的 220 是 <b>0/1 背包的最优值</b>（B + C 恰好装满 50）。这两个干扰项专门用来检验你是否分清了两个模型。<br/>D 的 280 = 60 + 100 + 120 是三件物品的价值<b>总和</b>，但它们总重 60 &gt; W = 50，根本装不下。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>分数背包可以贪心而 0/1 背包不行，<b>根本原因</b>是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>分数背包的物品数量通常更少</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>物品可任意分割，剩余容量总能被单位价值次高者恰好填满，当前选择不改变后续子问题的形态</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>0/1 背包不具有最优子结构</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>分数背包中各物品的 v/w 一定互不相同</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>B 正确。可分割性带来两个后果：其一，装到"卡住"时可以切一刀恰好填满，<b>绝不浪费容量</b>；其二，交换论证中"撤出 &#948; 重量、换进 &#948; 重量"这一构造才成立。0/1 背包里物品是整块的，重量对不上，交换直接失效。<br/>C 是常见误解——0/1 背包<b>恰恰具有</b>最优子结构，这正是它能写出 DP 转移方程的原因；它缺的是<b>贪心选择性质</b>。<br/>A 与问题规模有关、与性质无关。<br/>D 不成立，单位价值相同的物品完全可以存在，且丝毫不影响贪心的正确性。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>若排序比较函数写成 <code>return x.v / x.w &gt; y.v / y.w;</code>（<code>v</code>、<code>w</code> 均为 <code>int</code>），会发生什么？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>结果始终正确，只是写法不够优雅</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>触发整数除法截断，如 3/2 与 1/1 都得 1，单位价值不同的物品被判为相等，排序错乱导致答案次优</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>编译报错，int 不能参与除法比较</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>只影响运行效率，不影响正确性</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>C++ 中两个 <code>int</code> 相除执行<b>整数除法</b>，小数部分被直接丢弃。(v=3, w=2) 的真实单位价值 1.5 与 (v=1, w=1) 的 1.0 都会被算成 1，比较器认为二者"相等"，排序结果不受控，贪心顺序被打乱，最终输出次优解，选 B。<br/>C 错——这段代码<b>能正常编译、能正常运行</b>，只是悄悄给出错误答案，这才是它真正危险的地方。<br/>A、D 都低估了后果：这是正确性 bug 而非风格或性能问题。<br/>改成浮点除法可解决大部分情形，但仍有精度隐患；最稳妥的是交叉相乘 <code>(long long)x.v * y.w &gt; (long long)y.v * x.w</code>。</div>
+</div>
+</div>
+
+<div class="page-nav"><a href="04-rooms.html"><span class="dir">← 上一节</span><span class="name">会议室</span></a><a href="06-tianji.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">田忌赛马</span></a></div>
+<div class="footer">算法设计与分析 · <b>第8章 贪心法</b> · 强交互可视化版<br/>时间轴 · 扫描线 · 树生长 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:30},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.12-Math.random()*.28, a:.12+Math.random()*.3}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(59,122,87,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const items=[{w:10,v:60,name:'A'},{w:20,v:100,name:'B'},{w:30,v:120,name:'C'}], W=50;
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+function draw(filled=0, val=0, highlight=-1, frac=1){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  // bag
+  const bx=120, by=60, bw=120, bh=220;
+  ctx.strokeStyle='#A29C90'; ctx.lineWidth=4;
+  ctx.strokeRect(bx,by,bw,bh);
+  const fh=filled/W*bh;
+  const g=ctx.createLinearGradient(0,by+bh,0,by+bh-fh);
+  g.addColorStop(0,'#3B7A57'); g.addColorStop(1,'#6FB48B');
+  ctx.fillStyle=g; ctx.fillRect(bx+2, by+bh-fh, bw-4, fh);
+  ctx.fillStyle='#E4E0D4'; ctx.font='14px Segoe UI'; ctx.fillText('背包', bx+30, by+bh+28);
+  ctx.fillText(filled.toFixed(1)+'/'+W, bx+25, by+bh+48);
+  // items
+  const sorted=items.map((it,i)=>({...it,r:it.v/it.w,i})).sort((a,b)=>b.r-a.r);
+  sorted.forEach((it,k)=>{
+    const x=350, y=50+k*80;
+    const on=highlight===it.i;
+    ctx.fillStyle=on?'#D0A344':'#443F37';
+    round(ctx,x,y,200,50,10); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 14px Segoe UI';
+    ctx.fillText(`${it.name}  w=${it.w} v=${it.v}  r=${it.r.toFixed(2)}`, x+12, y+30);
+    if(on && frac<1){ ctx.fillStyle='rgba(255,255,255,.25)'; ctx.fillRect(x,y,200*frac,50); }
+  });
+  ctx.fillStyle='#E4E0D4'; ctx.font='18px ui-monospace'; ctx.fillText('价值 '+val.toFixed(1), 650, 160);
+}
+function round(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+run.onclick=async()=>{
+  const a=items.map((x,i)=>({...x,r:x.v/x.w,i})).sort((p,q)=>q.r-p.r);
+  let left=W, val=0, used=0;
+  for(const it of a){
+    if(left<=0) break;
+    if(it.w<=left){
+      for(let t=0;t<=1;t+=.1){ draw(used+it.w*t, val+it.v*t, it.i, t); await sleep(40); }
+      left-=it.w; used+=it.w; val+=it.v;
+    } else {
+      const f=left/it.w;
+      for(let t=0;t<=1;t+=.1){ draw(used+left*t, val+it.r*left*t, it.i, f*t); await sleep(40); }
+      val+=it.r*left; used+=left; left=0;
+    }
+    ww.textContent=used.toFixed(1); vv.textContent=val.toFixed(1); hud.textContent='val≈'+val.toFixed(1);
+    await sleep(200);
+  }
+  draw(used,val,-1,1);
+};
+draw(0,0);
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

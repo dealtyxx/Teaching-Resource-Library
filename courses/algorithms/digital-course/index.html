@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>算法设计与分析 · 交互可视化课程</title>
+<meta name="description" content="李春葆《算法设计与分析》第3版配套交互教学系统，十二章 113 节可视化演示，离线可用。"/>
+<link rel="stylesheet" href="assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script>
+<style>
+/* 门户页专属版式 */
+.portal-hero{padding:44px 0 8px;max-width:760px}
+.portal-hero h1{font-size:clamp(1.9rem,4.4vw,2.9rem);letter-spacing:-.035em;line-height:1.14;margin-bottom:16px}
+.portal-hero .lead{font-size:1.06rem;color:var(--muted);line-height:1.8}
+.portal-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:26px 0 6px}
+.searchbox{position:relative;flex:1;min-width:230px;max-width:380px}
+.searchbox input{width:100%;padding-left:38px;font-size:14px}
+.searchbox .mag{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--faint);font-size:15px;pointer-events:none}
+.searchbox .hint{position:absolute;right:10px;top:50%;transform:translateY(-50%);font:600 10.5px var(--mono);
+  color:var(--faint);background:var(--s2);border:1px solid var(--line);border-radius:5px;padding:3px 6px;pointer-events:none}
+
+.overview{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin:26px 0 8px}
+.ov{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px}
+.ov .k{font-size:11px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.ov .v{font-size:1.85rem;font-weight:700;letter-spacing:-.03em;margin-top:6px;font-variant-numeric:tabular-nums}
+.ov .v small{font-size:.98rem;font-weight:600;color:var(--faint);margin-left:3px}
+.ov .meter{height:6px;border-radius:99px;background:var(--s3);margin-top:12px;overflow:hidden}
+.ov .meter i{display:block;height:100%;background:var(--primary);border-radius:99px;transition:width .6s var(--ease)}
+.ov .note{font-size:11.5px;color:var(--faint);margin-top:9px}
+
+.sec-label{display:flex;align-items:baseline;gap:12px;margin:36px 0 14px}
+.sec-label h2{font-size:1.06rem;font-weight:650;letter-spacing:-.01em}
+.sec-label .n{font:600 11px var(--mono);color:var(--faint);letter-spacing:.06em}
+.sec-label .rule{flex:1;height:1px;background:var(--line)}
+
+.chgrid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(268px,1fr))}
+.chcard{
+  position:relative;display:flex;flex-direction:column;
+  padding:20px 22px 18px;border-radius:var(--r);
+  background:var(--surface);border:1px solid var(--line);box-shadow:var(--sh1);
+  transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease),border-color var(--dur);
+  min-height:172px;overflow:hidden;
+}
+.chcard:hover{transform:translateY(-3px);box-shadow:var(--sh3);border-color:var(--line2)}
+.chcard.hidden{display:none}
+.chcard .top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+.chcard .no{
+  display:grid;place-items:center;width:32px;height:32px;border-radius:9px;
+  background:var(--primaryS);color:var(--primary);font:650 12px var(--mono);flex-shrink:0;
+}
+.chcard.done .no{background:var(--greenS);color:var(--green)}
+.chcard .ico{font-size:22px;opacity:.32;filter:grayscale(.4)}
+.chcard h3{font-size:1.06rem;font-weight:650;margin-bottom:5px;letter-spacing:-.012em}
+.chcard .sub{font-size:.865rem;color:var(--muted);line-height:1.62;flex:1}
+.chcard .foot{display:flex;align-items:center;gap:10px;margin-top:14px}
+.chcard .bar{flex:1;height:4px;border-radius:99px;background:var(--s3);overflow:hidden}
+.chcard .bar i{display:block;height:100%;background:var(--primary);border-radius:99px;transition:width .5s var(--ease)}
+.chcard.done .bar i{background:var(--green)}
+.chcard .cnt{font:600 11px var(--mono);color:var(--faint);white-space:nowrap}
+.chcard .go{
+  position:absolute;right:20px;bottom:16px;font-size:12px;font-weight:650;color:var(--primary);
+  opacity:0;transform:translateX(-4px);transition:opacity var(--dur),transform var(--dur) var(--ease);
+}
+.chcard:hover .go{opacity:1;transform:none}
+.chcard:hover .cnt{opacity:0}
+
+.empty{display:none;padding:44px 20px;text-align:center;color:var(--faint);font-size:14px}
+.empty.on{display:block}
+
+.guide{
+  margin-top:40px;padding:22px 24px;border-radius:var(--r);
+  background:var(--surface);border:1px solid var(--line);
+}
+.guide h3{font-size:.95rem;font-weight:650;margin-bottom:14px}
+.guide-grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.guide-grid dl dt{font-size:12px;font-weight:650;color:var(--primary);margin-bottom:6px;letter-spacing:.03em}
+.guide-grid dl dd{font-size:13px;color:var(--muted);line-height:1.75}
+.guide-grid dl dd .kbd{margin:0 2px}
+.portal-foot{margin-top:40px;padding-top:22px;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  color:var(--faint);font-size:12.5px;line-height:1.8}
+.portal-foot b{color:var(--muted);font-weight:600}
+</style>
+</head>
+<body>
+<div class="fx-bg" aria-hidden="true"></div>
+
+<nav class="nav">
+  <a class="brand" href="index.html"><span class="logo">算</span>算法设计与分析 · <span>交互课程</span></a>
+  <div class="links">
+    <a class="pill" href="#ch-1">基础与设计技术</a>
+    <a class="pill" href="#ch-6">进阶范式</a>
+    <a class="pill" href="#ch-10">专题</a>
+    <a class="pill" href="README.md">使用说明</a>
+  </div>
+</nav>
+
+<div class="wrap fade-in">
+
+  <header class="portal-hero">
+    <div class="eyebrow">李春葆《算法设计与分析》第 3 版 · 配套数字课程</div>
+    <h1>把算法<em>跑给你看</em>，而不只是讲给你听</h1>
+    <p class="lead">十二章、113 节交互演示：每一次比较、每一步剪支、每一格状态转移都可以逐帧回放。纯前端离线运行，适合课堂投影与课后自学。</p>
+  </header>
+
+  <div class="portal-bar">
+    <div class="searchbox">
+      <span class="mag">⌕</span>
+      <input id="q" type="search" placeholder="搜索：快排、n皇后、网络流、凸包…" autocomplete="off" spellcheck="false" aria-label="搜索章节"/>
+      <span class="hint">Ctrl K</span>
+    </div>
+    <button class="btn" type="button" id="btnResume">继续上次学习</button>
+    <button class="btn ghost" type="button" id="btnHelp">课堂快捷键</button>
+  </div>
+
+  <section class="overview" aria-label="学习概况">
+    <div class="ov">
+      <div class="k">学习进度</div>
+      <div class="v" id="ovDone">0<small>/ 113 节</small></div>
+      <div class="meter"><i id="ovBar" style="width:0"></i></div>
+      <div class="note" id="ovNote">开始第一节即自动记录</div>
+    </div>
+    <div class="ov">
+      <div class="k">课程规模</div>
+      <div class="v">12<small>章 · 113 节</small></div>
+      <div class="note">从复杂度分析到 NP 完全性</div>
+    </div>
+    <div class="ov">
+      <div class="k">运行环境</div>
+      <div class="v">离线<small>· 无依赖</small></div>
+      <div class="note">整个文件夹可直接拷贝分发</div>
+    </div>
+  </section>
+
+  <div class="empty" id="empty">没有匹配的章节 —— 试试「背包」「最短路」「复杂度」「凸包」</div>
+
+  <section id="ch-1">
+    <div class="sec-label"><span class="n">01 — 05</span><h2>基础与设计技术</h2><span class="rule"></span></div>
+    <div class="chgrid" id="g1"></div>
+  </section>
+
+  <section id="ch-6">
+    <div class="sec-label"><span class="n">06 — 09</span><h2>进阶范式</h2><span class="rule"></span></div>
+    <div class="chgrid" id="g2"></div>
+  </section>
+
+  <section id="ch-10">
+    <div class="sec-label"><span class="n">10 — 12</span><h2>专题</h2><span class="rule"></span></div>
+    <div class="chgrid" id="g3"></div>
+  </section>
+
+  <section class="guide">
+    <h3>怎么用</h3>
+    <div class="guide-grid">
+      <dl>
+        <dt>课堂投影</dt>
+        <dd>进入任意小节后按 <span class="kbd">F</span> 全屏、<span class="kbd">Z</span> 淡化导航、<span class="kbd">+</span> 放大正文；<span class="kbd">Space</span> 运行主演示，<span class="kbd">1</span> <span class="kbd">2</span> <span class="kbd">4</span> 调速。</dd>
+      </dl>
+      <dl>
+        <dt>快速跳转</dt>
+        <dd>任何页面按 <span class="kbd">Ctrl</span> <span class="kbd">K</span> 搜索全站 113 节；<span class="kbd">←</span> <span class="kbd">→</span> 翻节并自动跨章衔接，<span class="kbd">G</span> 回本章总览。</dd>
+      </dl>
+      <dl>
+        <dt>学习记录</dt>
+        <dd>看过的小节自动打勾，进度存在本机浏览器里。换设备不同步，清缓存会重置。</dd>
+      </dl>
+      <dl>
+        <dt>深色模式</dt>
+        <dd>按 <span class="kbd">T</span> 在浅色、深色、跟随系统之间切换。演示画布保持高对比，投影不失真。</dd>
+      </dl>
+    </div>
+  </section>
+
+  <footer class="portal-foot">
+    <span>算法设计与分析 · <b>交互可视化课程</b><br/>纯前端离线运行，无 CDN 依赖</span>
+    <span><a href="README.md">使用说明</a> · 建议 Chrome / Edge 全屏投影</span>
+  </footer>
+</div>
+
+<script src="assets/sitemap.js"></script>
+<script src="assets/theme.js"></script>
+<script>
+(function () {
+  var SITE = window.CC_SITE || [], P = window.CC;
+
+  function chapterCard(c) {
+    var done = P.prog.chapterDone(c), total = c.secs.length;
+    var pct = total ? Math.round(done / total * 100) : 0;
+    var a = document.createElement('a');
+    a.className = 'chcard' + (done === total && total ? ' done' : '');
+    a.href = P.href(c.dir, 'index.html');
+    a.dataset.kw = (c.name + ' ' + c.sub + ' ' + c.kw + ' 第' + c.n + '章 ' +
+      c.secs.map(function (s) { return s.title + ' ' + s.label; }).join(' ')).toLowerCase();
+    a.innerHTML =
+      '<div class="top"><span class="no">' + String(c.n).padStart(2, '0') + '</span>' +
+      '<span class="ico">' + c.ico + '</span></div>' +
+      '<h3>' + c.name + '</h3>' +
+      '<p class="sub">' + c.sub + '</p>' +
+      '<div class="foot"><span class="bar"><i style="width:' + pct + '%"></i></span>' +
+      '<span class="cnt">' + done + '/' + total + '</span></div>' +
+      '<span class="go">进入 →</span>';
+    return a;
+  }
+
+  [1, 2, 3].forEach(function (g) {
+    var box = document.getElementById('g' + g);
+    SITE.filter(function (c) { return c.g === g; }).forEach(function (c) {
+      box.appendChild(chapterCard(c));
+    });
+  });
+
+  /* 概况 */
+  var total = P.prog.total(), done = P.prog.doneAll();
+  document.getElementById('ovDone').innerHTML = done + '<small>/ ' + total + ' 节</small>';
+  document.getElementById('ovBar').style.width = (total ? done / total * 100 : 0) + '%';
+  document.getElementById('ovNote').textContent =
+    done === 0 ? '开始第一节即自动记录' :
+    done === total ? '全部完成 —— 可以复习了' :
+    '还剩 ' + (total - done) + ' 节';
+
+  /* 搜索 */
+  var q = document.getElementById('q'), empty = document.getElementById('empty');
+  function filter() {
+    var s = (q.value || '').trim().toLowerCase(), vis = 0;
+    document.querySelectorAll('.chcard').forEach(function (el) {
+      var ok = !s || el.dataset.kw.indexOf(s) >= 0;
+      el.classList.toggle('hidden', !ok);
+      if (ok) vis++;
+    });
+    empty.classList.toggle('on', vis === 0);
+    [1, 2, 3].forEach(function (g) {
+      var grid = document.getElementById('g' + g);
+      var any = [].slice.call(grid.children).some(function (c) { return !c.classList.contains('hidden'); });
+      grid.parentElement.style.display = any ? '' : 'none';
+    });
+  }
+  q.addEventListener('input', filter);
+
+  /* 继续上次学习 */
+  var btnResume = document.getElementById('btnResume');
+  var visited = P.prog.all(), last = null, lastT = 0;
+  Object.keys(visited).forEach(function (k) { if (visited[k] > lastT) { lastT = visited[k]; last = k; } });
+  if (last) {
+    var seg = last.split('/');
+    btnResume.onclick = function () { location.href = P.href(seg[0], seg[1]); };
+  } else {
+    btnResume.textContent = '从第一章开始';
+    btnResume.classList.add('primary');
+    btnResume.onclick = function () { location.href = P.href(SITE[0].dir, SITE[0].secs[0].f); };
+  }
+
+  document.getElementById('btnHelp').onclick = function () {
+    var ev = new KeyboardEvent('keydown', { key: '?' });
+    dispatchEvent(ev);
+  };
+})();
+</script>
+<div class="footer"><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span><br/><span class="visit-stat">本站累计访问 <b id="cc-visits">–</b> 次</span></div>
+</body>
+</html>

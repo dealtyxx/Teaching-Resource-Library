@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>穷举概述 · 第3章 穷举法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">03</div>算法可视化 · <span>第3章 穷举法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill active" href="01-overview.html">概述</a><a class="pill" href="02-enumerate.html">列举</a><a class="pill" href="03-prefix.html">前缀和</a><a class="pill" href="04-uf.html">并查集</a><a class="pill" href="05-maxsub.html">最大子段</a><a class="pill" href="06-powerset.html">幂集</a><a class="pill" href="07-perm.html">全排列</a><a class="pill" href="08-nqueens.html">n皇后</a><a class="pill" href="09-assign-tsp.html">分配TSP</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 1</div><h1>穷举法框架</h1>
+<p>列出所有可能 → 检验可行性/最优性。简单正确，但规模大时指数爆炸。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>复述</b>穷举法（brute force）的正式定义，指出它与"试探性搜索"的区别。</li>
+  <li>能够<b>默写</b>穷举法的通用伪代码模板，并说明模板中"解空间""约束检验""最优更新"三处各自的作用。</li>
+  <li>能够<b>套用</b>三步框架求解一个具体问题（如子集和问题），写出解空间的形式化描述。</li>
+  <li>能够<b>估算</b> 2<sup>n</sup> 与 n! 的增长速度，据此判断某个规模下穷举是否可行。</li>
+</ol></div>
+<div class="grid grid-2">
+  <div class="card">
+    <div class="list-step"><div class="n">1</div><div class="body"><b>确定解空间</b> — 所有候选</div></div>
+    <div class="list-step"><div class="n">2</div><div class="body"><b>系统列举</b> — 循环 / 递归 / 位掩码</div></div>
+    <div class="list-step"><div class="n">3</div><div class="body"><b>检验</b> — 约束 / 更新最优</div></div>
+    <div class="formula">适用：解空间可枚举且规模可控</div>
+  </div>
+  <div class="card">
+    <div class="toolbar"><label>n=<b id="nv">8</b></label><input type="range" id="nr" min="1" max="16" value="8" style="width:160px;accent-color:#356F62"/></div>
+    <div class="stat-row">
+      <div class="stat"><span>2ⁿ</span><b class="p" id="s2">256</b></div>
+      <div class="stat"><span>n!</span><b class="a" id="sf">40320</b></div>
+    </div>
+    <div class="stage-wrap light"><canvas class="stage" id="cv" width="480" height="160"></canvas></div>
+    <div class="tip">穷举代价随 n 爆炸 → 需要剪支/分治/DP/贪心。</div>
+  </div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、什么是穷举法</h2><span class="sub">Definition &amp; Framework</span></div>
+
+<div class="defn"><span class="lbl">定义</span><p><b>穷举法</b>（brute force，又称蛮力法、暴力法、枚举法）是一种基于问题陈述与定义直接求解的策略：把问题的<b>解空间</b>（solution space）中的所有候选解<b>不重不漏</b>地一一列举出来，对每个候选解检验它是否满足问题的约束条件；在最优化问题中，再从所有可行解中选出目标函数值最优的一个。</p></div>
+
+<div class="defn prop"><span class="lbl">性质</span><p>穷举法的正确性是<b>天然保证</b>的——只要列举做到了"不重不漏"，最优解必定被考察过一次，因此不可能被漏掉。穷举法的全部困难不在正确性，而在<b>效率</b>：解空间往往随规模 n 呈 2<sup>n</sup> 或 n! 增长。</p></div>
+
+<div class="tip info"><strong>注意：</strong>穷举法 &ne; 无脑循环。它的精髓在于"<b>系统地</b>列举"——必须先想清楚解空间的结构（是子集？是排列？是 k 元组？），再选择与该结构匹配的列举手段。列举方式选错，往往会产生重复解或遗漏解。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、三步框架与通用伪代码模板</h2><span class="sub">General Template</span></div>
+
+<div class="list-step"><span class="n">1</span><div class="body"><b>确定解空间 S</b>：明确"一个候选解长什么样"。例如：n 个物品的取舍 &rarr; 长度为 n 的 0/1 向量；n 个任务的指派 &rarr; 1..n 的一个排列。解空间的形式决定了第 2 步用什么循环。</div></div>
+<div class="list-step"><span class="n">2</span><div class="body"><b>系统列举</b>：用多重循环、递归回溯或位运算掩码，保证 S 中每个元素恰好被访问一次（不重不漏）。</div></div>
+<div class="list-step"><span class="n">3</span><div class="body"><b>逐一检验</b>：对每个候选解 x 判断约束条件；若是最优化问题，同时用目标函数 f(x) 更新当前最优解。</div></div>
+
+<div class="formula lg">最优解 = <em>arg max</em><sub>x &isin; S, 满足约束(x)</sub> f(x)</div>
+
+<div class="code"><span class="cm">// ============ 穷举法通用伪代码模板 ============</span>
+<span class="cm">// S    ：解空间（全体候选解）</span>
+<span class="cm">// 约束 ：可行性判定谓词</span>
+<span class="cm">// f    ：目标函数（求最大值为例）</span>
+
+best = <span class="nu">-INF</span>;  bestX = <span class="kw">null</span>;
+
+<span class="kw">for</span> 每个候选解 x <span class="kw">in</span> 解空间 S:
+    <span class="kw">if</span> 满足约束(x):              <span class="cm">// ① 可行性检验</span>
+        <span class="kw">if</span> f(x) &gt; best:            <span class="cm">// ② 最优性比较</span>
+            best  = f(x);
+            bestX = x;             <span class="cm">// ③ 更新最优解</span>
+
+<span class="kw">return</span> bestX;</div>
+
+<div class="deriv">
+  <span class="step">第一步 写出解空间的"形状" <span class="why">这决定了 for 循环的层数或递归的分支数</span></span>
+  <span class="step">第二步 把"每个候选解 x in S"替换成具体的列举代码 <span class="why">子集用位掩码，排列用交换递归，k 元组用 k 重循环</span></span>
+  <span class="step">第三步 把"满足约束"替换成具体的判定函数 <span class="why">n 皇后中即对角线检查，背包中即容量检查</span></span>
+  <span class="step">第四步 若只需可行解（非最优化），把 ②③ 换成"找到即返回" <span class="why">可提前终止，但最坏情况复杂度不变</span></span>
+</div>
+
+<div class="tip"><strong>只求可行解的变体：</strong>若问题只问"存不存在"，把模板中的最优更新换成 <span class="cm">if 满足约束(x): return x;</span> 即可；若要统计解的个数，换成 <span class="cm">cnt++;</span>。三种变体共用同一套列举骨架，这正是模板的价值。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、例题演算：子集和问题</h2><span class="sub">Subset Sum · 走完三步框架</span></div>
+
+<div class="defn"><span class="lbl">问题</span><p><b>子集和问题</b>（subset sum problem）：给定正整数集合 a = {a<sub>0</sub>, a<sub>1</sub>, &hellip;, a<sub>n&minus;1</sub>} 和目标值 T，问是否存在 a 的一个子集，其元素之和恰为 T？若存在，输出任意一个。</p></div>
+
+<div class="list-step"><span class="n">1</span><div class="body"><b>确定解空间</b>：一个候选解就是"每个元素选或不选"，即长度为 n 的 0/1 向量 x = (x<sub>0</sub>, &hellip;, x<sub>n&minus;1</sub>)，x<sub>i</sub> &isin; {0,1}。故 |S| = 2<sup>n</sup>。</div></div>
+<div class="list-step"><span class="n">2</span><div class="body"><b>系统列举</b>：用整数 mask 从 0 到 2<sup>n</sup>&minus;1，mask 的第 i 个二进制位即 x<sub>i</sub>。每个 mask 对应唯一子集，2<sup>n</sup> 个 mask 恰好对应 2<sup>n</sup> 个子集——不重不漏。</div></div>
+<div class="list-step"><span class="n">3</span><div class="body"><b>逐一检验</b>：累加被选中的元素，判断是否等于 T。</div></div>
+
+<div class="code"><span class="cm">// 子集和问题：穷举法（n &lt;= 20 时可用）</span>
+<span class="kw">bool</span> <span class="fn">subsetSum</span>(<span class="kw">int</span> a[], <span class="kw">int</span> n, <span class="kw">int</span> T, <span class="kw">int</span> ans[], <span class="kw">int</span> &amp;m) {
+    <span class="kw">for</span> (<span class="kw">int</span> mask = <span class="nu">0</span>; mask &lt; (<span class="nu">1</span> &lt;&lt; n); mask++) {   <span class="cm">// ① 列举 2^n 个候选解</span>
+        <span class="kw">int</span> sum = <span class="nu">0</span>;
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; i++)
+            <span class="kw">if</span> ((mask &gt;&gt; i) &amp; <span class="nu">1</span>) sum += a[i];        <span class="cm">// 第 i 位为 1 表示选中 a[i]</span>
+        <span class="kw">if</span> (sum == T) {                              <span class="cm">// ② 约束检验</span>
+            m = <span class="nu">0</span>;
+            <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; i++)
+                <span class="kw">if</span> ((mask &gt;&gt; i) &amp; <span class="nu">1</span>) ans[m++] = a[i];  <span class="cm">// ③ 记录解</span>
+            <span class="kw">return</span> <span class="kw">true</span>;
+        }
+    }
+    <span class="kw">return</span> <span class="kw">false</span>;
+}</div>
+
+<div class="tip"><strong>手工演算：</strong>取 a = {3, 5, 7}，T = 10。mask 从 000 到 111 共 8 个：<br/>
+000&rarr;{}和 0；001&rarr;{3}和 3；010&rarr;{5}和 5；011&rarr;{3,5}和 <b>8</b>；100&rarr;{7}和 7；101&rarr;{3,7}和 <b>10 ✓</b>。<br/>
+在第 6 个候选解处命中，返回 {3,7}。注意 mask 的第 0 位对应 a[0]=3，因此 101<sub>2</sub> 表示选 a[0] 与 a[2]，而不是 a[0] 与 a[1]。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、复杂度与适用范围</h2><span class="sub">Complexity Analysis</span></div>
+
+<p>子集和穷举的时间为外层 2<sup>n</sup> 次乘以内层 O(n) 次累加，即 <b>O(n&middot;2<sup>n</sup>)</b>；空间为 O(n)（只存当前解）。更一般地：</p>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>解空间类型</th><th>候选解个数</th><th>典型问题</th><th>n=20</th><th>n=30</th><th>实用上限</th></tr>
+  <tr><td>0/1 向量（子集）</td><td class="hl">2<sup>n</sup></td><td>子集和、0/1 背包、幂集</td><td>约 10<sup>6</sup></td><td>约 10<sup>9</sup></td><td>n &le; 25 左右</td></tr>
+  <tr><td>k 元组</td><td class="hl">n<sup>k</sup></td><td>三数之和、枚举坐标</td><td>k=3 时 8000</td><td>k=3 时 27000</td><td>k &le; 3&sim;4</td></tr>
+  <tr><td>排列</td><td class="hl">n!</td><td>TSP、任务分配、n 皇后</td><td>约 2.4&times;10<sup>18</sup></td><td>天文数字</td><td>n &le; 11 左右</td></tr>
+  <tr><td>组合 C(n,k)</td><td class="hl">C(n,k)</td><td>选 k 个元素</td><td>C(20,10)=184756</td><td>C(30,15)&asymp;1.55&times;10<sup>8</sup></td><td>视 k 而定</td></tr>
+</table></div>
+
+<div class="tip info"><strong>经验法则：</strong>现代 CPU 每秒约处理 10<sup>8</sup>&sim;10<sup>9</sup> 次基本操作。2<sup>n</sup> 型穷举在 n &gt; 25 后已难以接受；n! 型穷举在 n &gt; 11 后基本不可能（12! &asymp; 4.79&times;10<sup>8</sup> 已到极限）。这正是后续章节引入分治（第 4 章）、回溯剪支（第 5 章）、分支限界（第 6 章）、动态规划（第 7 章）、贪心（第 8 章）的根本动因。</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li>把"穷举"等同于"随便写几层循环"：没有先刻画解空间就动手，最常见的后果是<b>重复计数</b>（同一子集被枚举两次）或<b>遗漏</b>（漏掉空集或全集）。</li>
+  <li>忘记枚举<b>空解</b>：位掩码要从 mask = 0 开始，循环条件是 mask &lt; (1 &lt;&lt; n) 而非 mask &le; (1 &lt;&lt; n) 或 mask &lt; (1 &lt;&lt; n) &minus; 1。</li>
+  <li>在 n &ge; 31 时写 <span class="cm">1 &lt;&lt; n</span>：int 会溢出，须写 <span class="cm">1LL &lt;&lt; n</span>；但此时 2<sup>n</sup> 早已超出可算范围，说明选错了算法。</li>
+  <li>误以为"提前 return 可行解"能改善最坏情况复杂度：平均可能变快，但最坏仍是 O(2<sup>n</sup>)，复杂度分析必须按最坏情况给出。</li>
+  <li>把 2<sup>n</sup> 与 n! 的大小关系记反：当 n &ge; 4 时 n! &gt; 2<sup>n</sup>，且差距迅速拉大（可在右侧演示中拖动 n 观察两条柱的长度）。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>穷举法（brute force）= 不重不漏地列举解空间中的全部候选解 + 逐一检验约束与最优性；正确性天然成立，瓶颈在效率。</li>
+  <li>通用模板只有三行骨架：<b>for 每个候选解 x &isin; S &rarr; if 满足约束(x) &rarr; 更新最优解</b>。求可行解、求最优解、求解的个数三种任务共用这一骨架。</li>
+  <li>三步框架：确定解空间 &rarr; 系统列举 &rarr; 逐一检验。第一步最关键，它决定了第二步用循环、递归还是位掩码。</li>
+  <li>子集型解空间规模 2<sup>n</sup>，排列型规模 n!；实用上限分别约为 n &le; 25 与 n &le; 11。</li>
+  <li>穷举法是算法设计的"基线"：它给出正确答案的下界参照，后续所有优化方法都以"在保证正确的前提下缩小或跳过解空间"为目标。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>用穷举法求解"从 n 个互异整数中选出若干个使其和恰为 T"，若采用位掩码列举，下列循环写法中<b>正确且不重不漏</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>for (int mask = 1; mask &lt;= (1 &lt;&lt; n); mask++)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>for (int mask = 0; mask &lt; (1 &lt;&lt; n); mask++)</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>for (int mask = 0; mask &lt;= (1 &lt;&lt; n); mask++)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>for (int mask = 1; mask &lt; (1 &lt;&lt; n) &minus; 1; mask++)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>n 个元素的子集共 2<sup>n</sup> 个，对应 mask 取值 0, 1, &hellip;, 2<sup>n</sup>&minus;1，故 B 正确。A 从 1 开始漏掉了空集，且上界取到 2<sup>n</sup>（对应第 n+1 位为 1）会多枚举一个非法值。C 同样多枚举了 mask = 2<sup>n</sup>，此时 (mask &gt;&gt; i) &amp; 1 对所有 i &lt; n 都为 0，会把空集<b>重复</b>枚举一次。D 既漏空集又漏全集。注意"漏掉空集"在 T = 0 或允许空子集的题面下就是错解。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>某问题的解空间是 1..n 的全部排列，检验一个候选解需 O(n) 时间。当 n = 12 时，穷举法的总操作数最接近下列哪一项？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>约 4&times;10<sup>3</sup></span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>约 5&times;10<sup>8</sup></span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>约 6&times;10<sup>9</sup></span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>约 4&times;10<sup>3</sup>（因为 2<sup>12</sup> = 4096）</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>总操作数 = 候选解个数 &times; 单次检验代价 = 12! &times; 12。12! = 479001600 &asymp; 4.79&times;10<sup>8</sup>，再乘 12 得约 5.7&times;10<sup>9</sup>，故选 C。选 B 的错误在于<b>忘记乘上检验代价</b> O(n)——这是复杂度分析中最常见的漏项。选 A/D 的错误在于把排列型解空间误认成子集型：n! 与 2<sup>n</sup> 在 n = 12 时相差约 10<sup>5</sup> 倍。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>关于穷举法，下列说法<b>错误</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>只要列举做到不重不漏，穷举法一定能得到最优解</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>穷举法常被用作验证其他复杂算法正确性的对拍基准</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>找到第一个可行解就返回，可把最坏时间复杂度从 O(2<sup>n</sup>) 降到 O(n)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>穷举法的空间复杂度通常远低于时间复杂度，因为无需保存已考察过的候选解</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>C 错误。提前返回只影响<b>平均情况</b>或幸运情况；当不存在可行解、或可行解恰好排在列举顺序的最后时，仍需遍历全部 2<sup>n</sup> 个候选解，最坏复杂度不变。复杂度分析若无特别说明一律按最坏情况。A 正确，这是穷举法的正确性保证。B 正确，小规模对拍是穷举法在工程中的主要用途。D 正确，模板中只需 O(n) 空间保存当前候选解与当前最优解。</div>
+  </div>
+</div>
+
+<div class="terms">
+  <span class="term"><b>穷举法</b>brute force</span>
+  <span class="term"><b>解空间</b>solution space</span>
+  <span class="term"><b>候选解</b>candidate solution</span>
+  <span class="term"><b>可行解</b>feasible solution</span>
+  <span class="term"><b>目标函数</b>objective function</span>
+  <span class="term"><b>子集和问题</b>subset sum problem</span>
+</div>
+</section>
+
+<div class="page-nav"><a href="index.html"><span class="dir">← 上一节</span><span class="name">总览</span></a><a href="02-enumerate.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">列举</span></a></div>
+<div class="footer">算法设计与分析 · <b>第3章 穷举法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(53,111,98,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+function fact(n){let r=1;for(let i=2;i<=Math.min(n,12);i++)r*=i;return n>12?Infinity:r;}
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+function upd(){
+  const n=+nr.value; nv.textContent=n;
+  const a=2**n, b=fact(n);
+  s2.textContent=a; sf.textContent=isFinite(b)?b:'∞';
+  ctx.clearRect(0,0,480,160);
+  const m=Math.max(a, isFinite(b)?b:a);
+  ctx.fillStyle='#356F62'; ctx.fillRect(40,30,Math.min(400,350*a/m),28);
+  ctx.fillStyle='#9C7420'; ctx.fillRect(40,90,Math.min(400,350*(isFinite(b)?b:m)/m),28);
+  ctx.fillStyle='#443F37'; ctx.font='12px sans-serif'; ctx.fillText('2ⁿ',40,22); ctx.fillText('n!',40,82);
+}
+nr.oninput=upd; upd();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

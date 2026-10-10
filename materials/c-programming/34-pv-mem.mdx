@@ -1,0 +1,95 @@
+---
+module: 6
+moduleName: 指针
+order: 34
+title: 野外光伏终端内存优化
+level: 进阶选做
+scene: 信创场景
+knowledge: [指针传参, 栈内存节约, 低功耗]
+stars: 5
+minutes: 120
+goal: 嵌入式内存优化思维训练
+sizheng: 每一字节栈、每一毫安时电——绿色算力从抠内存开始
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import PvMemLab from '../../components/react/PvMemLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：荒漠里的终端，死机没人管
+
+戈壁滩上的光伏监测终端：电池供电、4KB 栈空间的国产 MCU、维护人员驱车三小时才能到场。
+在这里，第 1 章的内存布局表不再是理论——**栈就那么大，溢出即死机**。
+
+最容易压垮栈的，是把大结构体**按值传参**：一条 512 字节的采样记录，每传一层函数就在栈上**整份复印**一次。调用链 4 层深，就是 2KB 拷贝——半个栈没了。
+指针传参一举三得：
+
+- **省栈**：每层只压 4 字节地址，占用与结构体大小脱钩；
+- **省电**：不复制就不搬运内存，CPU 更早回到低功耗休眠；
+- **保安全**：配上 `const` 修饰，只读语义由编译器强制。
+
+## 一步一步看栈被"复印"压垮
+
+<CStepRunner
+  client:visible
+  title="栈占用模拟：512B 结构体传三层，两种传法"
+  badge="栈内存模拟"
+  doneNote="值传递三层就吃掉 2KB（本体+3份拷贝），指针传递全程只多 12 字节。在 4KB 栈的野外终端上，这是『稳定运行』与『随时死机』的差距。"
+  code={`#include <stdint.h>
+
+typedef struct { /* 512字节采样记录 */
+    uint32_t ts;
+    float data[127];
+} PvRecord;
+
+float calc(const PvRecord *r);   /* 指针版 */
+int   check(const PvRecord *r);
+void  logit(const PvRecord *r);
+
+int main(void) {
+    PvRecord rec;        /* 栈上本体:512B */
+    logit(&rec);         /* 只压4字节地址 */
+    return 0;
+}`}
+  steps={[
+    { line: 12, desc: 'main 栈帧：rec 本体 512B。当前栈占用 ≈ 512B。', vars: { 栈占用: '512B' } },
+    { line: 13, desc: '【假如是值传递】logit(rec)：整个 512B 复印进 logit 的栈帧 → 1024B。', vars: { 栈占用: '1024B(值传)' } },
+    { line: 13, desc: '【值传递续】logit 内部调 check(rec)：再复印 512B → 1536B；check 调 calc(rec)：又 512B → 2048B。栈的一半没了，再来一层就危险。', vars: { 栈占用: '2048B(值传)' } },
+    { line: 13, desc: '【切换指针传递】logit(&rec)：压入 4 字节地址 → 516B。', vars: { 栈占用: '516B(指针)' } },
+    { line: 8, desc: '【指针续】check(r)、calc(r) 逐层也只传 4B 地址：三层共 524B。数据永远只有 main 里那一份，谁需要谁顺着地址去读。', vars: { 栈占用: '524B(指针)' } },
+    { line: 8, desc: 'const PvRecord *r 的 const 保证只读——三层函数都『看得到、改不了』。省下的 1.5KB 栈，就是终端在寒夜里多出的安全余量。' },
+  ]}
+/>
+
+## 动手实验：亲手把栈压爆一次
+
+<PvMemLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：定义 512B 采样结构体，分别写值传递/指针传递两版三层调用链，用 `sizeof` 打印各处开销。
+2. **AI 优化进阶版**：让 AI 解释"什么时候仍应值传递"（很小的结构体，如 8 字节的坐标对——拷贝比间接访问还便宜）。审查它给出的临界尺寸有没有依据（经验值：小于等于 2 个机器字可考虑值传）。
+3. **信创加固定稿版**：查阅你所用国产 MCU 的默认栈大小（链接脚本里的 `_Stack_Size`）；给项目 30 的递归深度护栏结合本项目重新计算；输出一页"栈预算表"：每个函数最大栈深、总余量。
+
+## 素养与思政
+
+"双碳"目标下，中国光伏装机容量全球第一，数百万台野外终端在无人处默默工作。它们的电池要撑过阴雨周，它们的固件要十年不重启——**绿色能源的底座，是绿色的代码**。
+少复制一次内存，就少一次功耗尖峰；省下一半栈，就多一分野外无人值守的底气。**节约在这里不是美德修辞，是系统能不能活下去的硬指标。** 把每个字节当资源敬畏，这是嵌入式工程师与"双碳"时代的握手方式。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="512 字节结构体按值传参、调用链 3 层，栈上共有几份该数据？"
+  options={['1 份', '3 份', '4 份（main 本体 + 每层各一份拷贝）', '0 份']}
+  answer={2}
+  explain="每次值传递都在被调函数栈帧里完整复印一份。指针传参则永远只有 main 那 1 份本体+每层 4 字节地址——这就是『占用与数据大小脱钩』。"
+/>
+
+<QuizItem
+  client:visible
+  question="函数签名 void logit(const PvRecord *r) 中，const 的工程含义是？"
+  options={['r 指向的数据是常量区数据', '函数承诺不通过 r 修改记录内容，编译器强制检查——大数据只读共享的标准姿势', '让指针不能移动', '仅是风格装饰']}
+  answer={1}
+  explain="『指针传参省内存 + const 保只读』是嵌入式接口的黄金组合：性能上零拷贝，安全上编译器背书。项目 28 的 const 数组参数，本质就是它。"
+/>

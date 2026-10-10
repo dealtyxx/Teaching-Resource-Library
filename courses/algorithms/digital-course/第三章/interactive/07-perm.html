@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>全排列 · 第3章 穷举法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">03</div>算法可视化 · <span>第3章 穷举法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-enumerate.html">列举</a><a class="pill" href="03-prefix.html">前缀和</a><a class="pill" href="04-uf.html">并查集</a><a class="pill" href="05-maxsub.html">最大子段</a><a class="pill" href="06-powerset.html">幂集</a><a class="pill active" href="07-perm.html">全排列</a><a class="pill" href="08-nqueens.html">n皇后</a><a class="pill" href="09-assign-tsp.html">分配TSP</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 7 · 加深 · 交换法全排列生成</div><h1>全排列生成</h1>
+<p>上方演示为<strong>递归交换法</strong>（swap-based generation）：逐层把每个候选元素换到当前位置。注意它<strong>不按字典序</strong>输出——真正的字典序生成算法见本页第三节。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>写出</b>递归交换法生成全排列的代码，并<b>论证</b>它为何能不重不漏地生成全部 n! 个排列。</li>
+  <li>能够<b>写出</b>字典序生成算法（next_permutation）的三步操作，并手工模拟一次。</li>
+  <li>能够<b>指出</b>两种算法生成顺序的差别，说明交换法为何<b>不</b>产生字典序。</li>
+  <li>能够<b>推导</b>全排列生成的时间复杂度 &Theta;(n!)（输出全部排列时为 &Theta;(n&middot;n!)）。</li>
+</ol></div>
+
+<div class="tip danger"><strong>常见标注错误提醒：</strong>很多资料把上方这种"递归 + 交换"的写法称为"字典序全排列"，这是<b>不准确</b>的。以 n = 3 为例，交换法的实际输出顺序是<br/>
+<b>123, 132, 213, 231, 321, 312</b><br/>
+而真正的字典序应为<br/>
+<b>123, 132, 213, 231, 312, 321</b><br/>
+最后两项<b>恰好颠倒</b>。本页已据此更正命名，并在第三节补充真正的字典序算法。</div>
+<div class="card">
+  <div class="toolbar"><label>n=<b id="nv">3</b></label><input type="range" id="nr" min="2" max="4" value="3" style="width:120px;accent-color:#356F62"/>
+    <button class="btn primary" id="run">▶ 生成</button></div>
+  <div class="cells" id="cur"></div>
+  <div id="list" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
+  <div class="log" id="log">—</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、问题与解空间</h2><span class="sub">Permutation</span></div>
+
+<div class="defn"><span class="lbl">定义</span><p>n 个互异元素 a[0..n&minus;1] 的一个<b>排列</b>（permutation）是把这 n 个元素排成一列的一种有序安排。<b>全排列</b>指全部这样的安排构成的集合，其个数为<br/>
+n! = n &times; (n&minus;1) &times; &hellip; &times; 2 &times; 1。<br/>
+排列型解空间与 §06 的子集型解空间的本质区别在于：子集只关心"取不取"，排列还关心"<b>次序</b>"。</p></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>n</th><th>3</th><th>5</th><th>8</th><th>10</th><th>11</th><th>12</th><th>15</th><th>20</th></tr>
+  <tr><td>n!</td><td>6</td><td>120</td><td>40 320</td><td class="hl">3 628 800</td><td class="hl">3.99&times;10<sup>7</sup></td><td class="hl">4.79&times;10<sup>8</sup></td><td>1.31&times;10<sup>12</sup></td><td>2.43&times;10<sup>18</sup></td></tr>
+  <tr><td>可行性</td><td>瞬间</td><td>瞬间</td><td>瞬间</td><td>约 0.05 s</td><td>约 0.5 s</td><td>约 5 s</td><td>不可行</td><td>完全不可行</td></tr>
+</table></div>
+
+<div class="tip info"><strong>穷举全排列的实用上限约为 n = 11。</strong>12! 已接近 5&times;10<sup>8</sup>，再加上每个排列 O(n) 的处理代价就超过 10<sup>9</sup>。这一条是 §08 n 皇后与 §09 TSP 只能取小规模的根本原因。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、算法一：递归交换法</h2><span class="sub">Swap-based Generation · 上方演示所用</span></div>
+
+<div class="defn"><span class="lbl">思路</span><p>设 <span class="cm">dfs(i)</span> 的职责是"把 a[i..n&minus;1] 这段后缀的全部排列都生成一遍，而 a[0..i&minus;1] 保持不动"。做法是：让 a[i] 依次与 a[i], a[i+1], &hellip;, a[n&minus;1] 交换——即<b>依次尝试让每一个尚未使用的元素坐上第 i 号位置</b>——每次交换后递归处理 i+1，返回时把交换换回来（回溯）。</p></div>
+
+<div class="code"><span class="cm">// ===== 算法一：递归交换法生成全排列 =====</span>
+<span class="kw">int</span> a[<span class="nu">20</span>], n;
+
+<span class="kw">void</span> <span class="fn">dfs</span>(<span class="kw">int</span> i) {
+    <span class="kw">if</span> (i == n) {                     <span class="cm">// 前 n 个位置都定好了</span>
+        <span class="fn">output</span>(a, n);
+        <span class="kw">return</span>;
+    }
+    <span class="kw">for</span> (<span class="kw">int</span> j = i; j &lt; n; j++) {    <span class="cm">// 让 a[j] 来坐第 i 号位置</span>
+        <span class="fn">swap</span>(a[i], a[j]);            <span class="cm">// ① 交换（做出选择）</span>
+        <span class="fn">dfs</span>(i + <span class="nu">1</span>);                  <span class="cm">// ② 递归处理后缀</span>
+        <span class="fn">swap</span>(a[i], a[j]);            <span class="cm">// ③ 换回来（撤销选择，必不可少）</span>
+    }
+}
+<span class="cm">// 调用：for(i) a[i]=i+1;  dfs(0);</span></div>
+
+<div class="defn thm"><span class="lbl">正确性（不重不漏）</span><p>对 n&minus;i 施归纳法。<br/>
+<b>不漏：</b>任取一个目标排列 P。P 在第 i 号位置上的元素必定是 a[i..n&minus;1] 中的某一个，设它当前位于下标 j，则循环的第 j&minus;i+1 次迭代恰好把它换到位置 i；由归纳假设，dfs(i+1) 会生成剩余 n&minus;i&minus;1 个元素的<b>全部</b>排列，其中必含 P 的后缀。故 P 一定被生成。<br/>
+<b>不重：</b>循环的不同迭代把<b>不同的元素</b>放到位置 i（因元素互异），故不同迭代产生的排列在第 i 位就已不同；同一迭代内部由归纳假设互不相同。故无重复。<br/>
+<b>关键前提是第 ③ 步的"换回来"</b>：它保证每次迭代开始时 a[i..n&minus;1] 都恢复成同一个集合，否则"每个元素恰好被放到位置 i 一次"的论证不成立。</p></div>
+
+<div class="deriv">
+  <span class="step">第一步 设 T(m) 为对长度 m 的后缀生成全排列的时间，则 T(m) = m &middot; T(m&minus;1) + O(m) <span class="why">m 次迭代，每次一对交换 O(1)</span></span>
+  <span class="step">第二步 展开得 T(n) = &Theta;(n!) <span class="why">递归树的叶子数恰为 n!，内部结点数为 &sum;<sub>k</sub> n!/k! &lt; e&middot;n!</span></span>
+  <span class="step">第三步 若每个排列还需 O(n) 输出/处理，则总时间 &Theta;(n &middot; n!) <span class="why">与幂集的 n&middot;2<sup>n</sup> 同理</span></span>
+  <span class="step">第四步 空间：递归栈深 n，数组原地交换 <span class="why">故空间 &Theta;(n)</span></span>
+</div>
+
+<div class="formula lg">T(n) = &Theta;(n!)&nbsp;（仅生成）&nbsp;&nbsp;/&nbsp;&nbsp;&Theta;(n &middot; n!)&nbsp;（含输出）&nbsp;&nbsp;空间 &Theta;(n)</div>
+
+<div class="tip"><strong>n = 3 的完整生成过程（可对照上方演示逐步验证）：</strong>初始 a = [1,2,3]
+<div class="table-scroll"><table class="data">
+  <tr><th>序号</th><th>i=0 的交换</th><th>i=1 的交换</th><th>输出</th></tr>
+  <tr><td>1</td><td>swap(0,0) &rarr; [1,2,3]</td><td>swap(1,1)</td><td class="hl">123</td></tr>
+  <tr><td>2</td><td>&nbsp;</td><td>swap(1,2)</td><td class="hl">132</td></tr>
+  <tr><td>3</td><td>swap(0,1) &rarr; [2,1,3]</td><td>swap(1,1)</td><td class="hl">213</td></tr>
+  <tr><td>4</td><td>&nbsp;</td><td>swap(1,2)</td><td class="hl">231</td></tr>
+  <tr><td>5</td><td>swap(0,2) &rarr; [3,2,1]</td><td>swap(1,1)</td><td class="hl">321</td></tr>
+  <tr><td>6</td><td>&nbsp;</td><td>swap(1,2)</td><td class="hl">312</td></tr>
+</table></div>
+<b>请特别注意第 5、6 行</b>：当 j = 2 时执行 swap(a[0], a[2])，数组变成 [<b>3,2,1</b>] 而非 [3,1,2]——因为交换是"对调"而不是"取出后把余下元素左移"，剩余元素 {2,1} 的相对次序被打乱成了降序。于是先输出 321、后输出 312，<b>违反字典序</b>。</div>
+
+<div class="tip danger"><strong>结论：交换法生成的是"全部 n! 个排列"，但顺序不是字典序。</strong>它做到了<b>集合正确</b>（不重不漏），却没有<b>顺序保证</b>。若题目只要求"输出所有排列"，交换法完全够用且效率最高；若题目要求"<b>按字典序</b>输出"或"求下一个排列"，必须改用下一节的算法（或把交换法的结果全部存下来再排序，代价 O(n!&middot;log(n!)&middot;n)，得不偿失）。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、算法二：字典序生成（next_permutation）</h2><span class="sub">Lexicographic Generation</span></div>
+
+<div class="defn"><span class="lbl">定义</span><p>两个等长序列的<b>字典序</b>（lexicographic order）比较：从左往右找到第一个不同的位置，谁在该位上的元素小谁就小。<b>字典序全排列生成</b>要求按此序从最小排列（升序）依次输出到最大排列（降序）。</p></div>
+
+<div class="defn thm"><span class="lbl">算法（三步法）</span><p>给定当前排列 a[0..n&minus;1]，求它的<b>下一个</b>字典序排列：<br/>
+<b>① 找枢轴</b>：从右往左找第一个满足 a[i] &lt; a[i+1] 的下标 i。若不存在（整个序列降序），说明当前已是最后一个排列。<br/>
+<b>② 找后继</b>：从右往左找第一个满足 a[j] &gt; a[i] 的下标 j（j &gt; i）。<br/>
+<b>③ 交换并反转</b>：交换 a[i] 与 a[j]，然后把 a[i+1..n&minus;1] 整段<b>反转</b>。</p></div>
+
+<div class="code"><span class="cm">// ===== 算法二：字典序生成（等价于 STL 的 std::next_permutation）=====</span>
+<span class="kw">void</span> <span class="fn">reverseRange</span>(<span class="kw">int</span> a[], <span class="kw">int</span> l, <span class="kw">int</span> r) {
+    <span class="kw">while</span> (l &lt; r) { <span class="fn">swap</span>(a[l], a[r]); l++; r--; }
+}
+
+<span class="kw">bool</span> <span class="fn">nextPermutation</span>(<span class="kw">int</span> a[], <span class="kw">int</span> n) {
+    <span class="cm">// ① 从右往左找第一个 a[i] &lt; a[i+1]（"上升点"/枢轴）</span>
+    <span class="kw">int</span> i = n - <span class="nu">2</span>;
+    <span class="kw">while</span> (i &gt;= <span class="nu">0</span> &amp;&amp; a[i] &gt;= a[i + <span class="nu">1</span>]) i--;
+    <span class="kw">if</span> (i &lt; <span class="nu">0</span>) {                     <span class="cm">// 整个序列降序 ⟹ 已是最后一个排列</span>
+        <span class="fn">reverseRange</span>(a, <span class="nu">0</span>, n - <span class="nu">1</span>);   <span class="cm">// 回到最小排列（可选）</span>
+        <span class="kw">return</span> <span class="kw">false</span>;
+    }
+    <span class="cm">// ② 从右往左找第一个大于 a[i] 的 a[j]</span>
+    <span class="kw">int</span> j = n - <span class="nu">1</span>;
+    <span class="kw">while</span> (a[j] &lt;= a[i]) j--;
+    <span class="cm">// ③ 交换后，把 i 之后的后缀反转（降序 ⟹ 升序，即取最小）</span>
+    <span class="fn">swap</span>(a[i], a[j]);
+    <span class="fn">reverseRange</span>(a, i + <span class="nu">1</span>, n - <span class="nu">1</span>);
+    <span class="kw">return</span> <span class="kw">true</span>;
+}
+
+<span class="cm">// 按字典序输出全部 n! 个排列</span>
+<span class="kw">void</span> <span class="fn">allPermLex</span>(<span class="kw">int</span> a[], <span class="kw">int</span> n) {
+    <span class="fn">sort</span>(a, a + n);                  <span class="cm">// 必须先升序排序，从最小排列开始</span>
+    <span class="kw">do</span> {
+        <span class="fn">output</span>(a, n);
+    } <span class="kw">while</span> (<span class="fn">nextPermutation</span>(a, n));
+}</div>
+
+<div class="deriv">
+  <span class="step">为什么第 ① 步找"从右往左第一个上升点" <span class="why">a[i+1..n&minus;1] 已是降序，说明该后缀已达到它自己的最大排列，无法在不动 a[i] 的前提下变大，故必须抬高 a[i]</span></span>
+  <span class="step">为什么第 ② 步从右往左找 <span class="why">后缀是降序的，从右往左第一个大于 a[i] 的元素就是"所有大于 a[i] 的候选中最小的那个"，换上去才能保证增量最小</span></span>
+  <span class="step">为什么第 ③ 步交换后后缀仍降序 <span class="why">a[j] 与 a[i] 对调后，后缀各元素的降序性质不被破坏（可验证 a[j&minus;1] &ge; a[i] &ge; a[j+1]）</span></span>
+  <span class="step">为什么要反转后缀 <span class="why">前缀已抬高到"下一个"，后缀应取其<b>最小</b>排列即升序；把降序整段反转即得升序，O(n) 完成</span></span>
+</div>
+
+<div class="tip"><strong>手工模拟：从 1 2 4 3 求下一个排列</strong>
+<div class="table-scroll"><table class="data">
+  <tr><th>步骤</th><th>操作</th><th>结果</th><th>说明</th></tr>
+  <tr><td>起始</td><td>&nbsp;</td><td>1 2 <b>4</b> 3</td><td>后缀"4 3"已降序</td></tr>
+  <tr><td>①</td><td>从右找第一个 a[i]&lt;a[i+1]</td><td class="hl">i = 1（a[1]=2 &lt; a[2]=4）</td><td>枢轴为 2</td></tr>
+  <tr><td>②</td><td>从右找第一个 a[j]&gt;a[1]=2</td><td class="hl">j = 3（a[3]=3）</td><td>3 是大于 2 的最小者</td></tr>
+  <tr><td>③a</td><td>swap(a[1], a[3])</td><td>1 <b>3</b> 4 <b>2</b></td><td>前缀已抬高</td></tr>
+  <tr><td>③b</td><td>reverse(a[2..3])</td><td class="path">1 3 2 4</td><td>后缀"4 2"&rarr;"2 4"，取最小</td></tr>
+</table></div>
+验证：1243 之后按字典序确实是 1324（中间不存在 1 2 x x 型的更大排列，因为 1243 已是 12 开头的最大者）。</div>
+
+<div class="tip"><strong>n = 3 的字典序完整序列：</strong>123 &rarr; 132 &rarr; 213 &rarr; 231 &rarr; <b>312</b> &rarr; <b>321</b>（终止）。<br/>
+与交换法的 123, 132, 213, 231, <b>321</b>, <b>312</b> 相比，<b>前四项完全相同，最后两项恰好互换</b>。n 越大，两者的顺序差异越显著（n = 4 时从第 7 项起就开始不同）。</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>对比项</th><th>递归交换法</th><th>字典序法（next_permutation）</th></tr>
+  <tr><td>生成的排列集合</td><td class="path">全部 n! 个，不重不漏</td><td class="path">全部 n! 个，不重不漏</td></tr>
+  <tr><td>生成顺序</td><td class="hl">非字典序</td><td class="path">严格字典序</td></tr>
+  <tr><td>总时间</td><td>&Theta;(n!)（含输出 &Theta;(n&middot;n!)）</td><td>&Theta;(n&middot;n!)（单次调用均摊 O(1)，最坏 O(n)）</td></tr>
+  <tr><td>空间</td><td>&Theta;(n) 递归栈</td><td class="path">&Theta;(1) 迭代，无递归</td></tr>
+  <tr><td>元素可否重复</td><td>会产生重复排列，需去重</td><td class="path">天然支持重复元素，自动去重</td></tr>
+  <tr><td>能否中途剪支</td><td class="path">可（在 dfs 内判断即可）</td><td>不便（必须完整生成才能判断）</td></tr>
+  <tr><td>能否"求下一个"</td><td>不能（只能整体生成）</td><td class="path">能，这正是它的设计目的</td></tr>
+  <tr><td>典型用途</td><td>n 皇后、TSP、回溯搜索</td><td>按序输出、康托展开、字典序第 k 个排列</td></tr>
+</table></div>
+
+<div class="tip info"><strong>选用建议：</strong>做<b>搜索类</b>问题（n 皇后、TSP、任务分配）用交换法——它天生支持剪支，而剪支往往能带来数量级的加速；做<b>输出/枚举类</b>问题且题面提到"按字典序"或"下一个排列"时用 next_permutation。C++ 中直接调用 <span class="cm">std::next_permutation(a, a+n)</span> 即可，无需手写。</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>把交换法称作"字典序生成"</b>：本节开头已详述——交换法只保证集合正确，不保证顺序。这是教辅资料中流传最广的错误标注之一。</li>
+  <li><b>交换法忘记"换回来"</b>（第 ③ 步 swap）：数组状态被污染，后续迭代的起点不再是同一个集合，会同时产生重复与遗漏。</li>
+  <li><b>交换法处理<u>含重复元素</u>的序列</b>：例如 [1,1,2] 会输出 6 个排列而实际只有 3 个不同排列。去重需在循环内加判断（跳过与之前已尝试过的相同元素），或改用 next_permutation。</li>
+  <li><b>next_permutation 使用前忘记排序</b>：不从最小排列（升序）开始，就只能得到当前排列之后的那部分，而不是全部 n! 个。</li>
+  <li><b>第 ② 步写成"从左往右找第一个大于 a[i] 的元素"</b>：由于后缀降序，从左往右找到的是<b>最大</b>的那个候选，换上去会跳过许多排列，生成顺序错误。必须从右往左。</li>
+  <li><b>第 ③ 步只交换而忘记反转后缀</b>：交换后的后缀仍是降序（即该前缀下的<b>最大</b>排列），会直接跳到"下一组前缀"，漏掉大量排列。反转这一步不可省。</li>
+  <li><b>第 ① 步的判定写成 a[i] &gt; a[i+1] 或用 &gt; 代替 &ge;</b>：在含重复元素时，<span class="cm">a[i] &gt;= a[i+1]</span> 与 <span class="cm">a[i] &lt;= a[i]</span> 这类边界会导致死循环或漏解，须严格按上文代码的比较方向书写。</li>
+  <li><b>把复杂度写成 O(2<sup>n</sup>)</b>：排列型解空间是 n!，n &ge; 4 起就大于 2<sup>n</sup>，n = 12 时相差约 10<sup>5</sup> 倍。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>n 个互异元素的全排列共 <b>n!</b> 个；穷举全排列的实用上限约 n = 11，这是 §08、§09 只能取小规模的根源。</li>
+  <li><b>递归交换法</b>：让 a[i] 依次与 a[i..n&minus;1] 交换 &rarr; 递归 &rarr; 换回来。正确性靠"每个未用元素恰好被放到位置 i 一次"保证<b>不重不漏</b>；"换回来"是该论证成立的前提。</li>
+  <li>交换法<b>不产生字典序</b>：n = 3 时输出 123, 132, 213, 231, <b>321, 312</b>，末两项与字典序（&hellip;, 312, 321）相反。原因是 swap 会打乱剩余元素的相对次序。</li>
+  <li><b>字典序生成（next_permutation）三步</b>：① 从右找第一个 a[i] &lt; a[i+1]；② 从右找第一个 a[j] &gt; a[i]；③ 交换 a[i]、a[j] 后<b>反转</b> a[i+1..n&minus;1]。单次均摊 O(1)、最坏 O(n)，空间 O(1)，且天然支持重复元素。</li>
+  <li>复杂度：生成全排列 <b>&Theta;(n!)</b>，若需输出每个排列则为 &Theta;(n&middot;n!)；交换法空间 &Theta;(n)（递归栈），字典序法空间 &Theta;(1)。</li>
+  <li>选用：搜索剪支用交换法，按序输出/求下一个排列用 next_permutation。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>对 a = [1,2,3] 运行递归交换法（<span class="cm">for(j=i..n-1){swap(a[i],a[j]); dfs(i+1); swap(a[i],a[j]);}</span>），实际输出顺序是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>123, 132, 213, 231, 312, 321</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>123, 132, 213, 231, 321, 312</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>123, 213, 312, 132, 231, 321</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>321, 312, 231, 213, 132, 123</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。前四项与字典序一致，但当 i=0、j=2 时执行 swap(a[0],a[2])，数组由 [1,2,3] 变成 [<b>3,2,1</b>]（不是 [3,1,2]！），此时后两位是 {2,1} 的降序状态，于是先输出 321 再输出 312。A 是<b>字典序</b>的正确答案，也是本题最大的陷阱——很多资料正是误把 A 当成交换法的输出。C 是"固定后缀、轮换首位"等其他生成法的顺序。D 是降序生成，需从 [3,2,1] 出发才可能得到。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>用 next_permutation 三步法求 <b>2 3 5 4 1</b> 的下一个字典序排列，结果是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>2 3 5 1 4</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>2 4 1 3 5</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>2 4 5 3 1</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>2 3 4 5 1</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。①从右找第一个 a[i] &lt; a[i+1]：a[3]=4 &gt; a[4]=1 不满足，a[2]=5 &gt; a[3]=4 不满足，a[1]=3 &lt; a[2]=5 满足，故 <b>i = 1</b>（枢轴 3）。②从右找第一个大于 3 的元素：a[4]=1 否，a[3]=<b>4</b> 是，故 j = 3。③交换得 2 <b>4</b> 5 <b>3</b> 1，再反转 a[2..4]（"5 3 1"&rarr;"1 3 5"），得 <b>2 4 1 3 5</b>。选 C 的错误是<b>只交换、忘了反转后缀</b>——这会跳过 24135、24153 等一大批排列，是本算法最高频的实现错误。选 D 是字典序的<b>前一个</b>方向。选 A 只在末两位上做文章，未意识到必须先抬高枢轴。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>关于两种全排列生成算法，下列说法<b>正确</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>交换法虽不按字典序，但它生成的排列个数少于 n!，所以更快</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>next_permutation 每次调用都是 O(n)，故总时间为 O(n<sup>2</sup>&middot;n!)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>两者生成的排列<b>集合</b>相同（都是全部 n! 个），仅顺序不同；交换法便于剪支，字典序法空间为 O(1) 且天然处理重复元素</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>把交换法的输出结果排序后就得到字典序，且这样做的代价可忽略</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>C 正确，完整概括了两者的异同。A 错得离谱：交换法生成的恰好是全部 n! 个排列（这正是它的正确性所在），一个不多一个不少。B 高估了：next_permutation 单次<b>最坏</b>为 O(n)，但均摊为 O(1)（因为大多数调用只需扫描很短的后缀），生成全部排列的总时间是 &Theta;(n&middot;n!)，其中的 n 来自<b>输出</b>而非算法本身。D 在结论上可行但"代价可忽略"是错的：要存下 n! 个长度为 n 的排列需 O(n&middot;n!) 空间，n = 10 时已是数十 GB，实践中完全不可接受。</div>
+  </div>
+</div>
+
+<div class="terms">
+  <span class="term"><b>排列</b>permutation</span>
+  <span class="term"><b>全排列</b>all permutations</span>
+  <span class="term"><b>字典序</b>lexicographic order</span>
+  <span class="term"><b>交换法</b>swap-based generation</span>
+  <span class="term"><b>下一个排列</b>next permutation</span>
+  <span class="term"><b>回溯</b>backtracking</span>
+</div>
+</section>
+
+<div class="page-nav"><a href="06-powerset.html"><span class="dir">← 上一节</span><span class="name">幂集</span></a><a href="08-nqueens.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">n皇后</span></a></div>
+<div class="footer">算法设计与分析 · <b>第3章 穷举法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(53,111,98,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+let n=3;
+nr.oninput=()=>nv.textContent=nr.value;
+run.onclick=async()=>{
+  n=+nr.value; const a=[...Array(n)].map((_,i)=>i+1), sols=[];
+  async function dfs(i){
+    cur.innerHTML=a.map((v,k)=>`<div class="cell ${k===i?'on':k<i?'hit':''}">${v}</div>`).join('');
+    log.textContent=`深度 ${i}`; await sleep(150);
+    if(i>=n){ sols.push(a.slice()); list.innerHTML=sols.map(s=>`<div class="cell hit" style="min-width:auto;padding:6px 10px;font-size:12px">${s.join('')}</div>`).join(''); return; }
+    for(let j=i;j<n;j++){ [a[i],a[j]]=[a[j],a[i]]; await dfs(i+1); [a[i],a[j]]=[a[j],a[i]]; }
+  }
+  await dfs(0); log.textContent=`共 ${sols.length} = ${n}! 个排列`;
+};
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

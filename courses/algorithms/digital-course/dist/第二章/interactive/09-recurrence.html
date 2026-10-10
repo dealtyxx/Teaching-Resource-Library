@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>递推式 · 第2章 递归算法设计技术</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">02</div>算法可视化 · <span>第2章 递归算法设计技术</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-concept.html">概念</a><a class="pill" href="02-model.html">模型</a><a class="pill" href="03-cases.html">情形</a><a class="pill" href="04-stack.html">系统栈</a><a class="pill" href="05-fib-tree.html">Fib树</a><a class="pill" href="06-hanoi.html">汉诺塔</a><a class="pill" href="07-induction.html">归纳</a><a class="pill" href="08-knapsack.html">背包递归</a><a class="pill active" href="09-recurrence.html">递推式</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 9 · 加深</div><h1>求解递推式</h1>
+<p>展开法 / 迭代法 / 主定理。拖动比较 n log n 与 n² 增长。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+<li>能够<b>区分</b>分治型递推式 T(n)=aT(n/b)+f(n) 与减一型递推式 T(n)=T(n&minus;1)+f(n)，并选择相应的求解方法。</li>
+<li>能够用<b>展开法（迭代法）</b>与<b>递归树</b>求解 T(n)=2T(n/2)+n，得到 &Theta;(n log n)。</li>
+<li>能够<b>套用主定理</b>的三种情形，快速判定 aT(n/b)+&Theta;(n<sup>d</sup>) 的渐近阶。</li>
+<li>能够用<b>特征方程法</b>求解 Fibonacci 型线性递推 T(n)=T(n&minus;1)+T(n&minus;2)。</li>
+<li>能够指出主定理<b>不适用</b>的典型场景（减一型、非多项式 f(n)）。</li>
+</ol></div>
+<div class="card">
+  <div class="grid grid-2">
+    <div>
+      <div class="list-step"><div class="n">1</div><div class="body"><b>展开</b> — 连续代入直到边界</div></div>
+      <div class="list-step"><div class="n">2</div><div class="body"><b>主定理</b> — T=aT(n/b)+n<sup>d</sup></div></div>
+      <div class="formula">a=2,b=2,d=1 → T=Θ(n log n)</div>
+      <div class="toolbar"><label>n=<b id="nv">16</b></label><input type="range" id="nr" min="2" max="64" value="16" style="width:160px;accent-color:#7E62A6"/></div>
+      <div class="stat-row">
+        <div class="stat"><span>n log₂ n</span><b class="p" id="nl">—</b></div>
+        <div class="stat"><span>n²</span><b class="a" id="n2">—</b></div>
+      </div>
+    </div>
+    <div class="stage-wrap light" style="height:260px"><canvas class="stage" id="cv" width="420" height="260"></canvas></div>
+  </div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、什么是递推式</h2><span class="sub">Recurrence · 递归算法的时间方程</span></div>
+<div class="defn"><span class="lbl">定义</span><p><b>递推式（recurrence，又称递归方程）</b>：把规模为 n 的问题的运行时间 T(n)，用<b>更小规模</b>的同一函数值表示出来的等式，并配一个<b>边界条件</b>（如 T(1)=&Theta;(1)）。求解递推式，就是求出 T(n) 的<b>非递归闭式或渐近阶</b>。</p></div>
+<div class="defn prop"><span class="lbl">两大家族</span><p><b>① 分治型：</b>T(n)=a&middot;T(n/b)+f(n)（子问题规模<b>成倍缩小</b>，a&ge;1、b&gt;1）——归并、快排、二分等。<br/><b>② 减一型：</b>T(n)=T(n&minus;1)+f(n) 或 T(n)=T(n&minus;1)+T(n&minus;2)+&hellip;（规模<b>只减常数</b>）——阶乘递归、汉诺塔、Fibonacci。<br/><b>关键：分治型可套主定理，减一型不能</b>，必须用展开法或特征方程。</p></div>
+<div class="tip info"><strong>三种通用解法：</strong>展开法（迭代代入到边界）、递归树（把每层代价加起来）、主定理（分治型的现成公式）。三者对分治型互相印证；减一型只能用展开法或特征方程。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、展开法与递归树</h2><span class="sub">以 T(n)=2T(n/2)+n 为例</span></div>
+<div class="formula">T(n) = 2&thinsp;T(n/2) + n,&nbsp;&nbsp;T(1)=&Theta;(1)</div>
+<h3>2.1 展开法（迭代代入）</h3>
+<div class="deriv">
+  <span class="step">T(n) = 2T(n/2) + n <span class="why">原式</span></span>
+  <span class="step">　　 = 2[2T(n/4) + n/2] + n = 4T(n/4) + 2n</span>
+  <span class="step">　　 = 4[2T(n/8) + n/4] + 2n = 8T(n/8) + 3n</span>
+  <span class="step">　　 = 2<sup>k</sup>T(n/2<sup>k</sup>) + k&middot;n <span class="why">第 k 步通式</span></span>
+  <span class="step">令 n/2<sup>k</sup> = 1 ⇒ k = log<sub>2</sub>n <span class="why">展开到边界 T(1)</span></span>
+  <span class="step">T(n) = n&middot;T(1) + n&middot;log<sub>2</sub>n = &Theta;(n log n)</span>
+</div>
+<h3>2.2 递归树（按层求和）</h3>
+<div class="deriv">
+  <span class="step">第 0 层：1 个规模 n 的结点，本层代价 = n</span>
+  <span class="step">第 1 层：2 个规模 n/2 的结点，本层代价 = 2&middot;(n/2) = n</span>
+  <span class="step">第 i 层：2<sup>i</sup> 个规模 n/2<sup>i</sup> 的结点，本层代价 = 2<sup>i</sup>&middot;(n/2<sup>i</sup>) = n <span class="why">每层代价都恰好是 n</span></span>
+  <span class="step">树高 = log<sub>2</sub>n，叶子有 n 个（代价 &Theta;(n)）</span>
+  <span class="step">总代价 = 每层 n &times; (log<sub>2</sub>n + 1) 层 = &Theta;(n log n) <span class="why">与展开法一致</span></span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、主定理（Master Theorem）</h2><span class="sub">分治型递推的现成公式</span></div>
+<div class="defn"><span class="lbl">定理（多项式简化版）</span><p>设 T(n)=a&middot;T(n/b)+f(n)，其中 a&ge;1、b&gt;1 为常数，且 f(n)=&Theta;(n<sup>d</sup>)（d&ge;0）。令<b>临界指数</b> = log<sub>b</sub>a，比较 d 与 log<sub>b</sub>a：</p></div>
+<div class="formula">情形① d &lt; log<sub>b</sub>a&nbsp;(即 a&gt;b<sup>d</sup>)&nbsp;⇒&nbsp;T(n)=&Theta;(n<sup>log<sub>b</sub>a</sup>)&nbsp;&nbsp;<span style="opacity:.7">叶子主导</span></div>
+<div class="formula">情形② d = log<sub>b</sub>a&nbsp;(即 a=b<sup>d</sup>)&nbsp;⇒&nbsp;T(n)=&Theta;(n<sup>d</sup> log n)&nbsp;&nbsp;<span style="opacity:.7">各层均衡</span></div>
+<div class="formula">情形③ d &gt; log<sub>b</sub>a&nbsp;(即 a&lt;b<sup>d</sup>)&nbsp;⇒&nbsp;T(n)=&Theta;(n<sup>d</sup>)=&Theta;(f(n))&nbsp;&nbsp;<span style="opacity:.7">根部主导</span></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>递推式</th><th>a, b, d</th><th>log<sub>b</sub>a 与 d</th><th>情形</th><th>结果</th></tr>
+  <tr><td>T(n)=T(n/2)+&Theta;(1)（二分查找）</td><td>1, 2, 0</td><td>0 = 0</td><td>②</td><td class="hl">&Theta;(log n)</td></tr>
+  <tr><td>T(n)=2T(n/2)+&Theta;(n)（归并/快排最好）</td><td>2, 2, 1</td><td>1 = 1</td><td>②</td><td class="hl">&Theta;(n log n)</td></tr>
+  <tr><td>T(n)=2T(n/2)+&Theta;(1)（遍历二叉树）</td><td>2, 2, 0</td><td>1 &gt; 0</td><td>①</td><td class="hl">&Theta;(n)</td></tr>
+  <tr><td>T(n)=3T(n/2)+&Theta;(n)</td><td>3, 2, 1</td><td>log<sub>2</sub>3&asymp;1.585 &gt; 1</td><td>①</td><td class="hl">&Theta;(n<sup>log<sub>2</sub>3</sup>)&asymp;&Theta;(n<sup>1.585</sup>)</td></tr>
+  <tr><td>T(n)=7T(n/2)+&Theta;(n<sup>2</sup>)（Strassen）</td><td>7, 2, 2</td><td>log<sub>2</sub>7&asymp;2.807 &gt; 2</td><td>①</td><td class="hl">&Theta;(n<sup>log<sub>2</sub>7</sup>)&asymp;&Theta;(n<sup>2.807</sup>)</td></tr>
+  <tr><td>T(n)=2T(n/2)+&Theta;(n<sup>2</sup>)</td><td>2, 2, 2</td><td>1 &lt; 2</td><td>③</td><td class="hl">&Theta;(n<sup>2</sup>)</td></tr>
+</table></div>
+<div class="tip warn"><strong>主定理的适用边界：</strong>① 必须是 T(n/b) 形式的<b>成倍缩小</b>——减一型 T(n)=T(n&minus;1)+f(n) 不满足；② f(n) 必须是<b>多项式量级</b> &Theta;(n<sup>d</sup>)——若 f(n)=n log n / 2<sup>n</sup> 等，简化版不适用，需用完整版主定理或递归树。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、减一型与特征方程</h2><span class="sub">主定理管不到的情形</span></div>
+<div class="defn prop"><span class="lbl">性质</span><p><b>减一型求和：</b>T(n)=T(n&minus;1)+f(n) 展开即得 T(n)=T(0)+&Sigma;<sub>i=1..n</sub>f(i)。若 f(i)=&Theta;(i)，则 T(n)=&Theta;(&Sigma; i)=&Theta;(n<sup>2</sup>)（对应快排最坏、冒泡）；若 f(i)=&Theta;(1)，则 T(n)=&Theta;(n)（对应阶乘递归）。</p></div>
+<div class="defn"><span class="lbl">特征方程法（线性齐次）</span><p>对 Fibonacci 递推 f(n)=f(n&minus;1)+f(n&minus;2)，设 f(n)=x<sup>n</sup> 代入得<b>特征方程</b> x<sup>2</sup>=x+1，即 x<sup>2</sup>&minus;x&minus;1=0，解得两根：</p></div>
+<div class="formula">x = (1 &plusmn; &radic;5)/2,&nbsp;&nbsp;&phi; = (1+&radic;5)/2 &asymp; 1.618,&nbsp;&nbsp;&psi; = (1&minus;&radic;5)/2 &asymp; &minus;0.618</div>
+<div class="deriv">
+  <span class="step">通解 f(n) = A&middot;&phi;<sup>n</sup> + B&middot;&psi;<sup>n</sup> <span class="why">两个不同实根的线性组合</span></span>
+  <span class="step">因 |&psi;| &lt; 1，&psi;<sup>n</sup> → 0，故 f(n) = &Theta;(&phi;<sup>n</sup>) <span class="why">黄金比 &phi; 决定增长率</span></span>
+  <span class="step">∴ 朴素递归求 Fibonacci 的时间 T(n)=T(n&minus;1)+T(n&minus;2)+&Theta;(1) = &Theta;(&phi;<sup>n</sup>)，<b>指数级</b></span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>五、C++ 代码与递推式对照</h2><span class="sub">从代码结构读出 a、b、f(n)</span></div>
+<div class="code"><span class="cm">// 例1：分治求数组和 —— 递推式 T(n)=2T(n/2)+O(1)，a=2,b=2,d=0，情形① ⇒ &Theta;(n)</span>
+<span class="kw">int</span> <span class="fn">sum</span>(<span class="kw">int</span> a[], <span class="kw">int</span> lo, <span class="kw">int</span> hi) {
+    <span class="kw">if</span> (lo == hi) <span class="kw">return</span> a[lo];          <span class="cm">// 出口：规模为 1</span>
+    <span class="kw">int</span> mid = (lo + hi) / <span class="nu">2</span>;             <span class="cm">// 分解：b=2（对半）</span>
+    <span class="kw">return</span> <span class="fn">sum</span>(a, lo, mid) + <span class="fn">sum</span>(a, mid + <span class="nu">1</span>, hi); <span class="cm">// a=2 次递归，合并 O(1)</span>
+}
+
+<span class="cm">// 例2：朴素递归 Fibonacci —— 减一型 T(n)=T(n-1)+T(n-2)+O(1) ⇒ &Theta;(&phi;ⁿ)，指数爆炸</span>
+<span class="kw">long long</span> <span class="fn">fib</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n &lt; <span class="nu">2</span>) <span class="kw">return</span> n;                 <span class="cm">// f(0)=0, f(1)=1</span>
+    <span class="kw">return</span> <span class="fn">fib</span>(n - <span class="nu">1</span>) + <span class="fn">fib</span>(n - <span class="nu">2</span>);      <span class="cm">// 同一子问题被重复计算 → 指数</span>
+}</div>
+<div class="tip info"><strong>读递推式三看：</strong>看<b>递归调用次数</b> ⇒ a；看<b>子问题规模</b> n/? ⇒ b；看<b>递归之外的工作量</b>（分解+合并）⇒ f(n)。三者到手即可套主定理。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>六、易错点</h2><span class="sub">Common Pitfalls</span></div>
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+<li><b>把减一型硬套主定理</b>：T(n)=T(n&minus;1)+n 不是 T(n/b) 形式，主定理不适用，正确做法是展开求和得 &Theta;(n<sup>2</sup>)。</li>
+<li><b>情形判断反向</b>：a&gt;b<sup>d</sup> 是「叶子多、根小」⇒ 叶子主导 n<sup>log<sub>b</sub>a</sup>；a&lt;b<sup>d</sup> 才是根主导 f(n)。混淆会把结果算反。</li>
+<li><b>忘记 log 是以 b 为底</b>：临界指数是 log<sub>b</sub>a 而非 log<sub>2</sub>a；b=3 时别默认 log<sub>2</sub>。</li>
+<li><b>情形②漏掉 log n 因子</b>：a=b<sup>d</sup> 时结果是 n<sup>d</sup>&middot;<b>log n</b>，不是 n<sup>d</sup>；这是归并/快排为何是 n log n 而非 n 的原因。</li>
+<li><b>f(n) 非多项式仍套简化版</b>：如 T(n)=2T(n/2)+n log n 落在情形②③之间的「间隙」，简化版失效，需用递归树或完整主定理。</li>
+<li><b>递归树只算一层或漏算叶子层</b>：必须「每层代价 &times; 层数」并单独核对叶子层代价，才能得到正确总和。</li>
+</ul></div>
+</section>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+<li>递推式分<b>分治型</b> aT(n/b)+f(n) 与<b>减一型</b> T(n&minus;1)+&hellip;；前者可用主定理，后者用展开求和或特征方程。</li>
+<li>展开法与递归树是通用手段：T(n)=2T(n/2)+n 每层代价均为 n、共 log<sub>2</sub>n 层 ⇒ &Theta;(n log n)。</li>
+<li>主定理比较 d 与 log<sub>b</sub>a：a&gt;b<sup>d</sup> ⇒ n<sup>log<sub>b</sub>a</sup>；a=b<sup>d</sup> ⇒ n<sup>d</sup>log n；a&lt;b<sup>d</sup> ⇒ n<sup>d</sup>。</li>
+<li>Fibonacci 递推特征方程 x<sup>2</sup>=x+1，根 &phi;=(1+&radic;5)/2，朴素递归 &Theta;(&phi;<sup>n</sup>) 指数级。</li>
+<li>从代码「调用次数 / 子问题规模 / 额外工作量」三看，即可写出对应的 a、b、f(n)。</li>
+</ul></div>
+
+<section class="sec"><div class="sec-head"><h2>自测题</h2><span class="sub">点击选项查看解析</span></div>
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>递推式 T(n)=2T(n/2)+&Theta;(n<sup>2</sup>) 的解是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>&Theta;(n log n)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>&Theta;(n<sup>2</sup>)</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>&Theta;(n<sup>2</sup> log n)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>&Theta;(n<sup>log<sub>2</sub>2</sup>)=&Theta;(n)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。a=2, b=2, d=2，临界指数 log<sub>2</sub>2=1&lt;d=2，属<b>情形③（根主导）</b>，故 T(n)=&Theta;(n<sup>d</sup>)=&Theta;(n<sup>2</sup>)。<br/>C 是情形②才有的 log n 因子（要求 d=log<sub>b</sub>a），此处 d&ne;1；D 把情形①的结论错用到情形③上。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>二分查找的递推式 T(n)=T(n/2)+&Theta;(1) 的解是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>&Theta;(n)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>&Theta;(log n)</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>&Theta;(n log n)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>&Theta;(1)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。a=1, b=2, d=0，log<sub>2</sub>1=0=d，属<b>情形②</b>，T(n)=&Theta;(n<sup>0</sup>&middot;log n)=&Theta;(log n)。直观上：每次问题规模减半、只花 O(1)，共需 log<sub>2</sub>n 次即到边界。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>下列递推式中，<b>不能</b>直接用主定理求解的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>T(n)=4T(n/2)+n</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>T(n)=2T(n/2)+n</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>T(n)=T(n&minus;1)+n</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>T(n)=8T(n/2)+n<sup>2</sup></span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。主定理要求子问题规模是<b>成倍缩小</b>的 T(n/b)，而 T(n&minus;1) 是<b>减一型</b>，不满足 n/b 形式。C 应用展开求和：T(n)=&Sigma;<sub>i=1..n</sub> i=&Theta;(n<sup>2</sup>)。<br/>A、B、D 都是标准分治型：A⇒&Theta;(n<sup>2</sup>)（情形①）、B⇒&Theta;(n log n)（情形②）、D⇒&Theta;(n<sup>3</sup>)（情形①，log<sub>2</sub>8=3&gt;2）。</div>
+  </div>
+</div>
+</section>
+
+<div class="page-nav"><a href="08-knapsack.html"><span class="dir">← 上一节</span><span class="name">背包递归</span></a><div></div></div>
+<div class="footer">算法设计与分析 · <b>第2章 递归算法设计技术</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(126,98,166,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+function upd(){
+  const n=+nr.value; nv.textContent=n;
+  const a=n*Math.log2(n), b=n*n;
+  nl.textContent=a.toFixed(1); n2.textContent=b;
+  ctx.clearRect(0,0,420,260);
+  const max=b;
+  ctx.fillStyle='#7E62A6'; ctx.fillRect(60,40, Math.min(300,280*a/max),36);
+  ctx.fillStyle='#9C7420'; ctx.fillRect(60,120, Math.min(300,280*b/max),36);
+  ctx.fillStyle='#1D1B16'; ctx.font='13px sans-serif';
+  ctx.fillText('n log n', 60, 30); ctx.fillText('n²', 60, 110);
+}
+nr.oninput=upd; upd();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

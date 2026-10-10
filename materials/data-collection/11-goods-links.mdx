@@ -1,0 +1,139 @@
+---
+module: 3
+moduleName: BeautifulSoup库
+order: 11
+title: 商品链接属性提取工具
+level: 基础必做
+scene: 电商采集
+knowledge: [Tag对象, 属性提取, 节点遍历]
+stars: 2
+minutes: 25
+goal: 掌握标签属性提取，能按类名筛选目标元素
+sizheng: 只取公开信息，不碰用户数据——电商采集的边界感
+dims: [职业伦理, 法治意识]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import PyStepRunner from '../../components/react/PyStepRunner';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, CaseFileCard } from '../../components/react/ui';
+
+## 场景导入
+
+电商课题组要做一份「园艺用品比价表」，数据来自某商城的商品列表页。你要的其实很简单：每件商品的名称、价格和详情页链接。可这些信息都藏在密密麻麻的 a 标签属性里——href 是链接，data-price 是价格。BeautifulSoup 的 Tag 对象，正好能像查字典一样把它们一个个取出来。
+
+## 动手实验
+
+每件商品都是一个带 class 的 a 标签。下面的代码先按 class 筛出「在售」商品，再用两种方式取属性：中括号 `tag['href']` 直接取，`get()` 则在属性缺失时稳稳返回默认值而不报错。
+
+<PyPlayground
+  client:visible
+  title="商品链接属性提取工具"
+  height={360}
+  packages={['beautifulsoup4']}
+  note="试着把 class_='on-sale' 改成 class_='sold-out'，或删掉某个 a 的 href 属性再运行，体会中括号取值会报错、而 get() 稳稳返回默认值的区别。"
+  code={`from bs4 import BeautifulSoup
+
+# 内联的商品列表 HTML：每件商品是一个带 class 的 a 链接
+html = """
+<ul class="goods">
+  <li><a class="item on-sale" href="/p/1001" data-price="9.9">向日葵种子</a></li>
+  <li><a class="item on-sale" href="/p/1002" data-price="29.0">园艺手册</a></li>
+  <li><a class="item sold-out" href="/p/1003" data-price="59.0">自动浇水壶</a></li>
+  <li><a class="item on-sale" href="/p/1004" data-price="15.5">陶土花盆</a></li>
+</ul>
+"""
+
+soup = BeautifulSoup(html, "html.parser")
+
+# 按 class 精确筛选「在售」商品，sold-out 的会被排除在外
+on_sale = soup.find_all("a", class_="on-sale")
+print(f"在售商品共 {len(on_sale)} 件：")
+
+for a in on_sale:
+    # 中括号取属性：确定存在的属性直接用 a['href']
+    link = a["href"]
+    # get() 更稳：属性缺失时返回默认值而非报错
+    price = a.get("data-price", "面议")
+    name = a.get_text(strip=True)
+    print(f"  {name}｜￥{price}｜{link}")
+
+# 全程只取页面公开的商品信息，不触碰任何登录后才可见的用户数据`}
+/>
+
+## 逐行看懂
+
+属性提取的每一步都值得慢放。点「单步执行」，看 `find` 定位节点、中括号与 `get` 分别取属性的过程——理解了这几步，再复杂的页面也是同样的套路。
+
+<PyStepRunner
+  client:visible
+  title="Tag 对象的属性是怎么取出来的"
+  fileName="goods.py"
+  code={`from bs4 import BeautifulSoup
+
+html = '<a class="item on-sale" href="/p/1001" data-price="9.9">向日葵种子</a>'
+soup = BeautifulSoup(html, "html.parser")
+a = soup.find("a")
+name = a.get_text(strip=True)
+link = a["href"]
+price = a.get("data-price")
+print(f"{name}｜￥{price}｜{link}")`}
+  steps={[
+    { line: 3, desc: 'BeautifulSoup 把这段 HTML 解析成可查询的文档树。', vars: { soup: '文档树已就绪' } },
+    { line: 4, desc: 'find("a") 定位第一个 a 节点，返回一个 Tag 对象——属性和文本都从它身上取。', vars: { a: 'Tag: a.item.on-sale' } },
+    { line: 5, desc: 'get_text() 剥掉标签，只留下文本内容。', vars: { name: '向日葵种子' } },
+    { line: 6, desc: '中括号取属性：像查字典一样直接读出 href。', vars: { link: '/p/1001' } },
+    { line: 7, desc: 'get() 也取属性，但属性缺失时返回 None 而非报错，更适合真实网页。', vars: { price: '9.9' } },
+    { line: 8, desc: '把名称、价格、链接拼成一行商品信息并打印。', out: '向日葵种子｜￥9.9｜/p/1001' },
+  ]}
+/>
+
+## 思政会客厅
+
+<DimCard dim="职业伦理" title="公开信息与用户数据的界线">
+  <ul>
+    <li>商品的名称、价格、公开链接，是平台主动展示给所有访客的信息，采集它们通常没问题。</li>
+    <li>但评价区里的用户昵称、头像、晒单照片属于个人信息——不能顺手一起抓走。</li>
+    <li>「能抓」不等于「该抓」：主动给自己的爬虫画一条红线，是数据从业者的职业自觉。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="法治意识" title="采集也要合法">
+  <ul>
+    <li>《个人信息保护法》第十三条规定，处理个人信息需取得个人同意或符合其他法定情形，随意抓取用户数据可能越界。</li>
+    <li>判断标准之一：这份数据是「面向公众公开的商品信息」，还是「特定用户的个人信息」？</li>
+    <li>合规的采集，从明确「只取什么、不取什么」开始。</li>
+  </ul>
+</DimCard>
+
+<CaseFileCard name="新浪微博诉脉脉不正当竞争案" year={2016} tag="数据抓取边界" verdict="法院认定脉脉非法抓取、使用微博用户信息构成不正当竞争，判赔约 200 万元。">
+脉脉通过合作接口获取了微博用户的教育、职业等信息，并在自己的产品中展示。法院据此确立了广受引用的「三重授权」原则：抓取平台用户数据，需经过『用户授权 + 平台授权 + 用户再授权』。它与商品页面上的公开信息，性质截然不同。
+</CaseFileCard>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p11-d1"
+  question="同样是爬电商页面，抓「商品价格」和抓「买家的收货手机号」，性质有什么不同？采集时你会怎么给自己划线？"
+  hints={['一个是平台面向公众公开的信息，一个是受法律保护的个人信息', '《个人信息保护法》对处理个人信息设定了同意等前提条件', '技术上都能抓到，但「能抓」不代表「该抓」——边界感是职业素养']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="标签 a 上有 href，但 data-price 可能缺失，想在缺失时返回默认值而不报错，应该用？"
+  options={["a['data-price']", "a.get('data-price', '面议')", 'a.find("data-price")', 'a.text']}
+  answer={1}
+  explain="中括号 a['data-price'] 在属性不存在时会抛 KeyError；a.get('键', 默认值) 则安全返回默认值，更适合真实的脏数据。"
+/>
+
+<QuizItem
+  client:visible
+  question="在电商商品页做采集，下面哪种做法最符合职业伦理与法律要求？"
+  options={['连同买家评价里的昵称、手机号一起抓', '只采集商品名称、价格、公开链接等公开信息', '登录他人账号以抓取更全的数据', '把抓到的用户信息转卖变现']}
+  answer={1}
+  explain="商品的公开信息可以采集，但用户个人信息受《个人信息保护法》保护。只取公开、不碰用户数据，是电商采集应有的边界感。"
+/>

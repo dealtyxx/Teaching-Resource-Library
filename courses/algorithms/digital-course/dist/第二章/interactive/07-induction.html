@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>归纳 · 第2章 递归算法设计技术</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">02</div>算法可视化 · <span>第2章 递归算法设计技术</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-concept.html">概念</a><a class="pill" href="02-model.html">模型</a><a class="pill" href="03-cases.html">情形</a><a class="pill" href="04-stack.html">系统栈</a><a class="pill" href="05-fib-tree.html">Fib树</a><a class="pill" href="06-hanoi.html">汉诺塔</a><a class="pill active" href="07-induction.html">归纳</a><a class="pill" href="08-knapsack.html">背包递归</a><a class="pill" href="09-recurrence.html">递推式</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 7</div><h1>递归与数学归纳法</h1>
+<p>设计递归 ≈ 归纳证明：基础 + 归纳步（假设更小规模成立）。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+<li>能够<b>区分</b>"递归<b>求值</b>"（算出一个数）与"归纳<b>证明</b>"（论证对一切 n 成立）这两件不同的事。</li>
+<li>能够<b>规范书写</b>数学归纳法证明的三个部分：基础情形 P(n<sub>0</sub>)、归纳假设 P(k)、归纳步 P(k) ⇒ P(k+1)。</li>
+<li>能够<b>独立完成</b>两个证明：∑<sub>i=1</sub><sup>n</sup> i = n(n+1)/2，以及汉诺塔 T(n) = 2<sup>n</sup> − 1。</li>
+<li>能够<b>说出</b>归纳法与递归设计的逐项对应关系：基础情形 ↔ 递归出口，归纳步 ↔ 递归体，归纳假设 ↔ "假设子问题已解决"。</li>
+</ol></div>
+
+<div class="card">
+  <div class="list-step"><div class="n">1</div><div class="body"><b>基础</b> — n=n₀ 直接给出答案（递归出口）</div></div>
+  <div class="list-step"><div class="n">2</div><div class="body"><b>归纳假设</b> — 假设规模 &lt; n 已可解</div></div>
+  <div class="list-step"><div class="n">3</div><div class="body"><b>归纳步</b> — 用更小规模答案构造 n 的答案（递归体）</div></div>
+  <div class="toolbar" style="margin-top:12px"><button class="btn primary" id="run">演示 sum(1..n)</button></div>
+  <div class="formula" id="out">sum(n)=n+sum(n-1), sum(1)=1</div>
+  <div class="log" id="log">—</div>
+</div>
+
+<div class="tip info"><strong>请注意：上面这个演示做的是"递归<b>求值</b>"，不是"归纳<b>证明</b>"。</strong><br/>点击按钮后，页面把 sum(6)=6+sum(5)、sum(5)=5+sum(4)…一路展开到 sum(1)=1，最后算出 21。这是<b>对某一个具体的 n（这里 n=6）跑一遍递归、得到一个数</b>——属于<b>计算</b>。<br/>而<b>数学归纳法</b>要做的是完全不同的一件事：<b>不针对任何具体的 n</b>，而是用两步（基础情形 + 归纳步）论证"<b>对一切</b> n ≥ 1，某个命题都成立"。演示跑到 n=6 得到 21，<b>丝毫不能说明</b> n=1000 时公式仍然成立——哪怕你验证到 n=10<sup>6</sup> 也不算证明。<br/><b>下面三节才是真正的"证明"。请把演示当作直观热身，把下文当作本节的正题。</b></div>
+
+<section class="sec"><div class="sec-head"><h2>一、数学归纳法的规范格式</h2><span class="sub">Mathematical Induction · 三段式</span></div>
+
+<div class="defn thm"><span class="lbl">第一数学归纳法（弱归纳）</span><p>设 P(n) 是关于自然数 n 的命题。若能证明：<br/>① <b>基础情形</b>（base case）：P(n<sub>0</sub>) 成立；<br/>② <b>归纳步</b>（inductive step）：对任意 k ≥ n<sub>0</sub>，<b>假设</b> P(k) 成立（此假设称为<b>归纳假设</b> inductive hypothesis），<b>推出</b> P(k+1) 也成立；<br/>则 P(n) 对<b>一切</b> n ≥ n<sub>0</sub> 成立。</p></div>
+
+<div class="defn prop"><span class="lbl">第二数学归纳法（强归纳）</span><p>把归纳假设加强为"<b>假设 P(n<sub>0</sub>), P(n<sub>0</sub>+1), …, P(k) 全部成立</b>"，再推出 P(k+1)。当命题依赖<b>多个</b>更小规模（如 Fib 依赖 n−1 与 n−2）或<b>任意</b>更小规模（如快速排序依赖任意划分点）时，必须用强归纳。</p></div>
+
+<div class="tip"><strong>为什么两步就够？——多米诺骨牌模型：</strong>① 保证<b>第一块牌倒下</b>；② 保证<b>任意一块倒下都会撞倒下一块</b>。二者合起来，所有牌必然全部倒下。缺 ① 则可能一块都没倒（命题对任何 n 都不成立却"看起来"能推）；缺 ② 则倒了第一块也传不下去。</div>
+
+<div class="list-step"><span class="n">1</span><div class="body"><b>写明命题 P(n)</b>——把要证的等式/不等式<b>原样写出来</b>，并标注 n 的取值范围。这一步常被跳过，但它决定了后面"P(k)""P(k+1)"具体指什么。</div></div>
+<div class="list-step"><span class="n">2</span><div class="body"><b>基础情形</b>——代入最小的 n<sub>0</sub>，<b>分别算左边、算右边</b>，指出两者相等。不能只写"显然成立"。</div></div>
+<div class="list-step"><span class="n">3</span><div class="body"><b>归纳假设</b>——明写"设 n = k（k ≥ n<sub>0</sub>）时 P(k) 成立，即 <i>把 P(k) 的式子抄一遍</i>"。这行是整个证明的<b>唯一弹药</b>。</div></div>
+<div class="list-step"><span class="n">4</span><div class="body"><b>归纳步</b>——从 P(k+1) 的左边出发，想办法<b>凑出 P(k) 的左边</b>，代入归纳假设，再化简成 P(k+1) 的右边。<b>必须显式标出"此处用了归纳假设"。</b></div></div>
+<div class="list-step"><span class="n">5</span><div class="body"><b>结论</b>——"由 ① ② 及数学归纳法原理，P(n) 对一切 n ≥ n<sub>0</sub> 成立。"</div></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、证明一：∑<sub>i=1</sub><sup>n</sup> i = n(n+1)/2</h2><span class="sub">Proof 1 · 与本页演示对应的公式</span></div>
+
+<div class="tip"><strong>要证的是：</strong>页面演示只算出了 sum(1..6)=21。现在我们要证明<b>对一切 n ≥ 1</b>，sum(1..n) 恒等于 n(n+1)/2（验算：n=6 时 6×7/2 = 21 ✔，与演示一致，但<b>一次验算不是证明</b>）。</div>
+
+<div class="formula lg">命题 P(n)：　1 + 2 + 3 + … + n = n(n+1)/2，　n ≥ 1</div>
+
+<div class="deriv">
+  <span class="step"><b>【① 基础情形】</b>取 n<sub>0</sub> = 1，验证 P(1)：</span>
+  <span class="step">　左边 = 1</span>
+  <span class="step">　右边 = 1×(1+1)/2 = 2/2 = 1</span>
+  <span class="step">　左边 = 右边　⇒　<b>P(1) 成立</b> ✔</span>
+  <span class="step"> </span>
+  <span class="step"><b>【② 归纳假设】</b>设 n = k（k ≥ 1）时 P(k) 成立，即</span>
+  <span class="step">　1 + 2 + … + k = k(k+1)/2　　　　……(∗)</span>
+  <span class="step"> </span>
+  <span class="step"><b>【③ 归纳步】</b>要证 P(k+1)，即证</span>
+  <span class="step">　1 + 2 + … + k + (k+1) = (k+1)(k+2)/2</span>
+  <span class="step">　从左边出发：</span>
+  <span class="step">　左边 = [1 + 2 + … + k] + (k+1)　　<span class="why">拆出前 k 项，凑出 P(k) 的左边</span></span>
+  <span class="step">　　　 = k(k+1)/2 + (k+1)　　　　　<span class="why">★ 此处代入归纳假设 (∗)</span></span>
+  <span class="step">　　　 = (k+1)·[ k/2 + 1 ]　　　　　<span class="why">提取公因式 (k+1)</span></span>
+  <span class="step">　　　 = (k+1)·(k+2)/2</span>
+  <span class="step">　　　 = 右边　⇒　<b>P(k+1) 成立</b> ✔</span>
+  <span class="step"> </span>
+  <span class="step"><b>【④ 结论】</b>由 ①③ 及第一数学归纳法原理，</span>
+  <span class="step">　P(n) 对一切 n ≥ 1 成立。　<b>∎</b></span>
+</div>
+
+<div class="tip info"><strong>归纳步的通用套路：</strong>永远从 <b>P(k+1) 的左边</b>出发，设法<b>把它拆成"P(k) 的左边 + 新增的一项"</b>，然后把 P(k) 的左边整体替换成 P(k) 的右边（这就是用归纳假设），最后代数化简得到 P(k+1) 的右边。<b>不要从"左边=右边"两头往中间凑</b>，那是循环论证。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、证明二：汉诺塔 T(n) = 2<sup>n</sup> − 1</h2><span class="sub">Proof 2 · 与 §06 打通</span></div>
+
+<div class="tip"><strong>与 §06 的分工：</strong>§06 用<b>展开法</b>"<b>猜</b>"出了答案 2<sup>n</sup>−1——反复代入、观察规律、写通式。展开法的第 k 步通式其实是<b>凭观察归纳出来的</b>，严格说属于"合情推理"。而下面的数学归纳法是<b>严格验证</b>这个猜想。<b>"展开法猜结论 + 归纳法证结论"是求解递推式的标准双打组合（§09 会反复用到）。</b></div>
+
+<div class="formula lg">已知递推式：T(0) = 0，　T(n) = 2T(n−1) + 1（n ≥ 1）<br/>命题 P(n)：　T(n) = 2<sup>n</sup> − 1，　n ≥ 0</div>
+
+<div class="deriv">
+  <span class="step"><b>【① 基础情形】</b>取 n<sub>0</sub> = 0，验证 P(0)：</span>
+  <span class="step">　由递推式的边界条件，T(0) = 0</span>
+  <span class="step">　由待证公式，2<sup>0</sup> − 1 = 1 − 1 = 0</span>
+  <span class="step">　两者相等　⇒　<b>P(0) 成立</b> ✔</span>
+  <span class="step">　（也可再验 n=1：T(1)=2T(0)+1=1，而 2<sup>1</sup>−1=1 ✔）</span>
+  <span class="step"> </span>
+  <span class="step"><b>【② 归纳假设】</b>设 n = k（k ≥ 0）时 P(k) 成立，即</span>
+  <span class="step">　T(k) = 2<sup>k</sup> − 1　　　　　　……(∗)</span>
+  <span class="step"> </span>
+  <span class="step"><b>【③ 归纳步】</b>要证 P(k+1)，即证 T(k+1) = 2<sup>k+1</sup> − 1。</span>
+  <span class="step">　由递推式（把 n 换成 k+1）：</span>
+  <span class="step">　T(k+1) = 2·T(k) + 1　　　　　　<span class="why">递推式本身，非假设</span></span>
+  <span class="step">　　　　 = 2·(2<sup>k</sup> − 1) + 1　　　　<span class="why">★ 此处代入归纳假设 (∗)</span></span>
+  <span class="step">　　　　 = 2<sup>k+1</sup> − 2 + 1</span>
+  <span class="step">　　　　 = 2<sup>k+1</sup> − 1</span>
+  <span class="step">　　　　 = P(k+1) 的右边　⇒　<b>P(k+1) 成立</b> ✔</span>
+  <span class="step"> </span>
+  <span class="step"><b>【④ 结论】</b>由 ①③ 及数学归纳法原理，</span>
+  <span class="step">　T(n) = 2<sup>n</sup> − 1 对一切 n ≥ 0 成立。　<b>∎</b></span>
+</div>
+
+<div class="tip"><strong>顺带证明"2<sup>n</sup>−1 是最少步数"（下界）：</strong>命题 Q(n)"移动 n 个盘<b>至少</b>需要 2<sup>n</sup>−1 步"。基础：Q(0)，0 步，成立。归纳步：要把最大盘从 A 移到 C，在此之前<b>必须</b>把上面 n−1 个盘全部移到唯一的另一根柱 B（否则大盘无处可放或会压小盘），由归纳假设这至少需 2<sup>k</sup>−1 步；移动大盘 1 步；之后还必须把那 n−1 个盘从 B 移到 C，又至少 2<sup>k</sup>−1 步。合计 ≥ 2(2<sup>k</sup>−1)+1 = 2<sup>k+1</sup>−1。∎ <b>这解释了 §06 中"汉诺塔的指数复杂度不可优化"——它是问题的下界，不是算法的浪费。</b></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、归纳法与递归设计的对应关系</h2><span class="sub">Induction ↔ Recursion · 并排对照</span></div>
+
+<div class="tip info"><strong>本节最重要的一张表。</strong>递归设计和归纳证明是<b>同一枚硬币的两面</b>：归纳法是"<b>由小推大</b>"地论证，递归是"<b>由大化小</b>"地计算，二者的结构逐项对应。掌握这张表，写递归时就有了固定的思考模板。</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>#</th><th>数学归纳法（证明）</th><th>递归算法设计（计算）</th><th>对应关系说明</th></tr>
+  <tr>
+    <td>1</td>
+    <td>命题 P(n)</td>
+    <td class="hl">函数 f(n) 的<b>语义定义</b></td>
+    <td>都必须先<b>把"要说什么/要算什么"一句话讲清</b>，否则后面全是空转</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td class="hl">基础情形 P(n<sub>0</sub>) 成立</td>
+    <td class="hl">递归出口 f(n<sub>0</sub>) = g(n<sub>0</sub>)</td>
+    <td><b>完全对应</b>。归纳没有基础则推不动；递归没有出口则停不下来（栈溢出）</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td class="hl">归纳假设：设 P(k) 成立</td>
+    <td class="hl">"<b>假设 f(k) 已经算对了</b>"</td>
+    <td>写递归体时<b>不要往下追踪调用细节</b>，直接<b>相信</b> f(n−1) 会返回正确结果——这就是归纳假设的思维</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td class="hl">归纳步：P(k) ⇒ P(k+1)</td>
+    <td class="hl">递归体 f(n) = h(n, f(n−1))</td>
+    <td><b>完全对应</b>。归纳步说明"怎样由小的推出大的"，递归体说明"怎样由小的算出大的"，h 就是那个推理/合并过程</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>规模 k → k+1（<b>由小到大</b>）</td>
+    <td>规模 n → n−1（<b>由大到小</b>）</td>
+    <td>方向相反但内容同一：归纳是<b>自底向上</b>论证，递归是<b>自顶向下</b>展开，最终触底后<b>回溯</b>时又走成了自底向上</td>
+  </tr>
+  <tr>
+    <td>6</td>
+    <td>第二（强）归纳法：假设 P(n<sub>0</sub>)…P(k) 全成立</td>
+    <td>递归体中调用<b>多个</b>更小子问题</td>
+    <td>Fib 用到 f(n−1) 与 f(n−2)，快排用到任意划分点 ⇒ 证其正确性须用<b>强归纳</b></td>
+  </tr>
+  <tr>
+    <td>7</td>
+    <td>归纳失败 ⇒ 命题不成立或需加强假设</td>
+    <td>递归体写不出 ⇒ 模型选错或状态定义不当</td>
+    <td>"归纳步卡住"往往提示<b>f(n) 的语义定义得不好</b>，需重新设计状态（§08 会遇到）</td>
+  </tr>
+</table></div>
+
+<div class="formula lg">基础情形 ⟷ 递归出口　　　归纳假设 ⟷ "假设子问题已解决"　　　归纳步 ⟷ 递归体</div>
+
+<div class="code"><span class="cm">// 把对照表落到代码上：sum(1..n) 的递归实现</span>
+<span class="cm">// 语义：sum(n) 返回 1+2+...+n            ← 对应"命题 P(n)"</span>
+<span class="kw">int</span> <span class="fn">sum</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n == <span class="nu">1</span>) <span class="kw">return</span> <span class="nu">1</span>;        <span class="cm">// ← 基础情形 P(1)：递归出口</span>
+    <span class="kw">return</span> n + <span class="fn">sum</span>(n - <span class="nu">1</span>);      <span class="cm">// ← 归纳步：假设 sum(n-1) 已正确，</span>
+}                                    <span class="cm">//    则加上 n 即得 sum(n)</span>
+
+<span class="cm">// 复杂度：T(n)=T(n-1)+O(1) ⇒ Θ(n) 时间；栈深 n ⇒ Θ(n) 空间</span>
+<span class="cm">// 但既然已证明公式，直接算 n*(n+1)/2 只要 Θ(1)！</span>
+<span class="kw">long</span> <span class="kw">long</span> <span class="fn">sumFast</span>(<span class="kw">int</span> n) { <span class="kw">return</span> (<span class="kw">long</span> <span class="kw">long</span>)n * (n + <span class="nu">1</span>) / <span class="nu">2</span>; }</div>
+
+<div class="tip"><strong>归纳法在算法课中的三大用途：</strong>① <b>证明递归算法的正确性</b>（如上：出口对 + 归纳步对 ⇒ 全部对）；② <b>验证递推式的解</b>（展开法猜出的通式必须用归纳法验证，见 §09）；③ <b>证明循环不变式</b>（loop invariant）——迭代算法的正确性证明本质上也是对循环次数做归纳。</div>
+
+<div class="deriv">
+  <span class="step"><b>【用途①示范】证明 sum(n) 的实现是正确的</b></span>
+  <span class="step">命题 P(n)：调用 sum(n) 返回值等于 1+2+…+n，n ≥ 1。</span>
+  <span class="step">① 基础：n=1 时函数走出口分支返回 1，而 1+…+1 = 1 ✔</span>
+  <span class="step">② 假设：设 sum(k) 返回 1+2+…+k（k ≥ 1）</span>
+  <span class="step">③ 归纳步：n=k+1 时 k+1 &gt; 1，走递归分支，返回值为</span>
+  <span class="step">　 (k+1) + sum(k) = (k+1) + (1+2+…+k)　<span class="why">★ 用归纳假设</span></span>
+  <span class="step">　 = 1+2+…+k+(k+1) ✔　⇒ P(k+1) 成立</span>
+  <span class="step">④ 结论：对一切 n ≥ 1，sum(n) 实现正确。∎</span>
+  <span class="step">（注意：此证明<b>还需附加终止性论证</b>——n 每次严格减 1 且有下界 1，故必然到达出口。）</span>
+</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+<li><b>把"验证若干个 n"当成证明。</b>算出 sum(1..6)=21 与 6×7/2 相符，只是<b>验算</b>。命题"n<sup>2</sup>+n+41 恒为素数"在 n=0…39 全部成立，n=40 却失败——<b>有限次验证永远不构成证明</b>。</li>
+<li><b>漏写基础情形。</b>只做归纳步可以"证明"出荒谬结论。例如设 P(n)："n = n+1"，归纳步 P(k)⇒P(k+1) 竟能成立（两边同加 1），但因 P(1) 不成立，命题当然是假的。<b>基础情形是整个多米诺的第一张牌。</b></li>
+<li><b>基础情形取错起点。</b>若命题只对 n ≥ 3 成立（如 2<sup>n</sup> &gt; n<sup>2</sup>），却从 n=1 验起会失败。<b>先看清 n 的取值范围。</b></li>
+<li><b>归纳步中"偷用"待证结论。</b>直接写"因为 P(k+1) 成立，所以…"是<b>循环论证</b>。正确做法是<b>从 P(k+1) 的左边出发</b>单向推到右边，中途只能引用<b>归纳假设 P(k)</b> 和<b>已知条件</b>（如递推式）。</li>
+<li><b>该用强归纳时用了弱归纳。</b>证明 Fib 相关命题时只假设 P(k) 是不够的，还需要 P(k−1)；证明快速排序正确性时划分点位置任意，必须假设"所有比 n 小的规模都成立"。<b>递归体调用了几个更小子问题，就要假设几个。</b></li>
+<li><b>把递归的"下降"方向与归纳的"上升"方向混为一谈。</b>递归代码写 f(n)=h(n,f(n−1))（由大到小），归纳证明写 P(k)⇒P(k+1)（由小到大）。<b>两者是同一结构的两种叙述</b>，不要在证明里写成"假设 P(k) 成立，证 P(k−1)"。</li>
+<li><b>只证正确性、忘了终止性。</b>归纳法证明"如果递归停下来，答案就是对的"；还必须<b>另行说明规模严格递减且有下界</b>，递归才一定会停（§01 条件①②）。</li>
+</ul></div>
+</section>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+<li><b>本页的演示是"递归求值"（算出 sum(1..6)=21），不是"证明"。</b>证明必须论证命题对<b>一切</b> n 成立，任何有限次验算都不能代替它。</li>
+<li><b>数学归纳法三段式</b>：① 基础情形 P(n<sub>0</sub>) 成立；② 归纳假设 设 P(k) 成立；③ 归纳步 由 P(k) 推出 P(k+1)。缺 ① 会推出荒谬结论，缺 ② 传不下去。</li>
+<li>证明一：∑<sub>i=1</sub><sup>n</sup> i = n(n+1)/2。归纳步把 P(k+1) 左边拆成"P(k) 左边 + (k+1)"，代入假设后提公因式化简。</li>
+<li>证明二：由 T(0)=0、T(n)=2T(n−1)+1 证 T(n)=2<sup>n</sup>−1。归纳步用<b>递推式</b>把 T(k+1) 化为 2T(k)+1，再代入假设。<b>§06 展开法负责"猜"，归纳法负责"证"。</b></li>
+<li><b>核心对应关系</b>：<b>基础情形 ↔ 递归出口</b>，<b>归纳假设 ↔ "假设子问题已解决"</b>，<b>归纳步 ↔ 递归体</b>。写递归时"相信 f(n−1) 是对的"，用的正是归纳假设的思维。</li>
+<li>递归体调用了几个更小子问题（如 Fib 用 n−1、n−2），证明时就要用<b>第二（强）归纳法</b>。</li>
+<li>正确性证明之外还须<b>单独论证终止性</b>：规模严格递减且有下界。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>本页演示把 sum(6)=6+sum(5)…展开到 sum(1)=1 并算出 21。这个过程属于？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>对公式 n(n+1)/2 的一次完整数学归纳法证明</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>递归<b>求值</b>——只对 n=6 这一个具体值算出了结果，不是证明</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>归纳步的演示，只是缺了基础情形</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>反证法的演示</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 <b>B</b>。这是本节要澄清的核心概念混淆。演示做的是<b>计算</b>：给定 n=6，按递归模型一路展开再回溯，得到一个具体的数 21。<br/>证明则要求<b>对一切 n</b> 成立，必须有基础情形与归纳步两个环节，且<b>不涉及任何具体数值的计算</b>。<br/>C 有一定迷惑性：展开 sum(6)=6+sum(5) 形式上像"由 P(5) 得 P(6)"，但归纳步要求处理的是<b>任意的 k</b>（用字母），而不是把 6、5、4… 一个个算一遍。<b>把有限个具体值算一遍，永远不等于对任意 k 的推理。</b><br/>D 完全无关，反证法是"假设结论不成立导出矛盾"。</div>
+</div>
+
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>某同学证明 T(n)=2<sup>n</sup>−1 时写道："设 T(k)=2<sup>k</sup>−1 成立，则 T(k+1)=2<sup>k+1</sup>−1，故对一切 n 成立。"这个证明的<b>主要</b>问题是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>没问题，写得已经很完整了</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>只是漏写了基础情形 T(0)=0，补上就完整了</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>既漏了基础情形，归纳步也<b>直接抛出结论而没有推导</b>——没有用递推式把 T(k+1) 化成 2T(k)+1 再代入假设</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>应该用反证法而不是归纳法</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 <b>C</b>。<br/>归纳步的<b>全部内容</b>就是那条推导链：T(k+1) = 2T(k)+1（<b>用递推式</b>）= 2(2<sup>k</sup>−1)+1（<b>用归纳假设</b>）= 2<sup>k+1</sup>−1。原文把结论直接写出来，等于<b>什么也没证</b>，属于循环论证。<br/>B 只指出了漏基础情形，是<b>次要</b>问题（确实也漏了，但即便补上，归纳步依然是空的）。<br/>A 显然不对。D 错：递推式求解用归纳法是标准方法，反证法在此无从下手。<br/><b>写归纳步时务必标注两处引用：哪一步用了递推式（已知条件），哪一步用了归纳假设。</b></div>
+</div>
+
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>在"归纳法 ↔ 递归设计"的对应关系中，<b>归纳假设</b>对应递归设计中的哪一环？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>递归出口——因为出口也是"已知成立"的部分</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>"<b>假设 f(n−1) 已经算对了</b>"这一思维步骤，即写递归体时不再追踪子调用的内部细节</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>系统栈中保存的栈帧</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>记忆化数组中已缓存的结果</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 <b>B</b>。三条对应关系是：<b>基础情形 ↔ 递归出口</b>、<b>归纳假设 ↔ "假设子问题已解决"</b>、<b>归纳步 ↔ 递归体</b>。<br/>A 把归纳假设与基础情形搞混了：基础情形是<b>被证明</b>的（要真的算一遍），归纳假设是<b>被假定</b>的（不加证明地借用）；对应地，递归出口是<b>真的写出返回值</b>，而"f(n−1) 是对的"是<b>信任而不展开</b>。<br/>C 是递归的<b>实现机制</b>（§04），不是设计方法论上的对应。<br/>D 是<b>优化手段</b>（§05），与归纳假设无关——没有记忆化的朴素递归同样在使用归纳假设的思维。<br/><b>实战意义：写递归体卡住时，就默念"假设 f(n−1) 已经给了我正确答案，我该怎么用它拼出 f(n)？"</b></div>
+</div>
+</div>
+
+<div class="page-nav"><a href="06-hanoi.html"><span class="dir">← 上一节</span><span class="name">汉诺塔</span></a><a href="08-knapsack.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">背包递归</span></a></div>
+<div class="footer">算法设计与分析 · <b>第2章 递归算法设计技术</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(126,98,166,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+run.onclick=async()=>{
+  const n=6; let lines=[];
+  for(let k=1;k<=n;k++){
+    lines.push(k===1?'sum(1)=1':`sum(${k})=${k}+sum(${k-1})`);
+    log.textContent=lines.join('\\n'); await sleep(350);
+  }
+  let s=0; for(let k=1;k<=n;k++) s+=k;
+  out.textContent=`sum(1..${n}) = ${s}`;
+};
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

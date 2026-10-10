@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>任务调度 · 第8章 贪心法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">08</div>算法可视化 · <span>第8章 贪心法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-activity.html">活动安排</a><a class="pill" href="03-merge.html">区间合并</a><a class="pill" href="04-rooms.html">会议室</a><a class="pill" href="05-fractional.html">分数背包</a><a class="pill" href="06-tianji.html">田忌赛马</a><a class="pill" href="07-coin.html">零钱兑换</a><a class="pill" href="08-huffman.html">哈夫曼</a><a class="pill" href="09-matroid.html">拟阵</a><a class="pill active" href="10-schedule.html">任务调度</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 10 · 调度</div>
+  <h1>任务调度 · 策略可视化</h1>
+  <p>单机最小化平均完成时间：最短处理时间优先（SPT）。看甘特图如何排布。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能陈述单机最小化<b>平均完成时间</b>的贪心：<b>最短处理时间优先</b>（SPT，按 p 升序）。</li>
+  <li>能对 p=[3,1,4,2,5] 手工算出 SPT 的<b>总完成时间 35、平均 7.0</b>。</li>
+  <li>能对比 LPT（最长优先）得总 55、平均 11.0，直观看出差距。</li>
+  <li>能用<b>相邻交换论证</b>证明：任何"前长后短"逆序对都可交换以减小总完成时间。</li>
+  <li>能理解总完成时间 = Σ(n−k+1)·p<sub>[k]</sub>，从而"短任务先做"最优。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="runSPT">✅ SPT 最短优先</button>
+    <button class="btn danger" id="runLPT">❌ 最长优先（对比）</button>
+  </div>
+  <div class="stage-wrap light" style="height:260px">
+    <canvas class="stage" id="cv" width="1000" height="260"></canvas>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>平均完成时间</span><b class="green" id="avg">—</b></div>
+    <div class="stat"><span>总完成时间</span><b class="blue" id="sum">—</b></div>
+  </div>
+  <div class="tip">任务处理时间 p=[3,1,4,2,5]。SPT 可证最优（交换论证）。</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>问题与贪心策略</h2><span class="sub">单机调度 · 最小化平均完成时间</span></div>
+<div class="defn"><span class="lbl">定义</span><p>单台机器需依次处理 n 个任务，任务 i 的处理时长为 p<sub>i</sub>，机器一次只能做一个且不可中断。若按某顺序执行，任务<b>做完的时刻</b>称为完成时间 C。目标：安排执行顺序，使<b>总完成时间 ΣC</b>（等价于平均完成时间）最小。</p></div>
+<div class="formula">若执行序为 π，则 C<sub>π(k)</sub> = Σ<sub>j≤k</sub> p<sub>π(j)</sub>，&nbsp; 目标 min Σ<sub>k</sub> C<sub>π(k)</sub></div>
+<div class="defn prop"><span class="lbl">贪心准则（SPT）</span><p><b>最短处理时间优先</b>（Shortest Processing Time first）：把任务按处理时长 p<sub>i</sub> <b>升序</b>排序后依次执行。</p></div>
+<div class="tip info"><strong>为什么短的先做？</strong>排在第 k 位的任务，其时长会被后面 (n−k) 个任务各自的完成时间"重复承担"一次。把总和展开：<b>ΣC = Σ<sub>k</sub> (n−k+1)·p<sub>[k]</sub></b>——系数 (n−k+1) 对越靠前的位置越大，故应把<b>最小的 p 放在系数最大的最前面</b>。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>手工推演（对应上方演示）</h2><span class="sub">p = [3,1,4,2,5]</span></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>SPT 执行序</th><th>时长 p</th><th>完成时刻 C</th></tr>
+  <tr><td>T2</td><td>1</td><td class="hl">1</td></tr>
+  <tr><td>T4</td><td>2</td><td>1+2 = 3</td></tr>
+  <tr><td>T1</td><td>3</td><td>3+3 = 6</td></tr>
+  <tr><td>T3</td><td>4</td><td>6+4 = 10</td></tr>
+  <tr><td>T5</td><td>5</td><td>10+5 = 15</td></tr>
+  <tr><th>ΣC</th><td>——</td><td class="hl">35</td></tr>
+</table></div>
+<div class="deriv">
+<span class="step"><b>SPT（升序 1,2,3,4,5）</b>：ΣC = 1 + 3 + 6 + 10 + 15 = <b>35</b>，平均 = 35 / 5 = <b>7.0</b></span>
+<span class="step"><b>LPT（降序 5,4,3,2,1）对比</b>：C = 5, 9, 12, 14, 15 ⇒ ΣC = 5+9+12+14+15 = <b>55</b>，平均 = <b>11.0</b></span>
+<span class="step">差距 55 − 35 = 20：长任务提前会让它的时长被后面每个任务反复累加，总完成时间显著变大</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>正确性 · 相邻交换论证</h2><span class="sub">exchange argument · 逆序对可消除</span></div>
+<div class="defn thm"><span class="lbl">引理</span><p>若某最优排程中存在<b>相邻</b>两任务，前者时长 p<sub>i</sub> <b>大于</b>后者 p<sub>j</sub>（一个"逆序对"），则交换二者，总完成时间<b>严格减小</b>。</p></div>
+<div class="deriv">
+<span class="step"><b>证明</b>：设这两个相邻任务之前所有任务的时长和为 S（它们的共同起始基准）</span>
+<span class="step">交换<b>只影响这两个任务自身</b>的完成时间，其余任务完成时间不变 <span class="why">局部性</span></span>
+<span class="step">交换前（i 在前、j 在后）：C<sub>i</sub> = S + p<sub>i</sub>，C<sub>j</sub> = S + p<sub>i</sub> + p<sub>j</sub></span>
+<span class="step">&nbsp;&nbsp;两者之和 = 2S + 2p<sub>i</sub> + p<sub>j</sub></span>
+<span class="step">交换后（j 在前、i 在后）：C<sub>j</sub>&#39; = S + p<sub>j</sub>，C<sub>i</sub>&#39; = S + p<sub>j</sub> + p<sub>i</sub></span>
+<span class="step">&nbsp;&nbsp;两者之和 = 2S + 2p<sub>j</sub> + p<sub>i</sub></span>
+<span class="step">差值（后 − 前）= (2p<sub>j</sub> + p<sub>i</sub>) − (2p<sub>i</sub> + p<sub>j</sub>) = p<sub>j</sub> − p<sub>i</sub> &lt; 0 <span class="why">因 p_i &gt; p_j，S 被抵消</span></span>
+<span class="step">⇒ 交换后总完成时间<b>严格减小</b> ∎</span>
+</div>
+<div class="defn thm"><span class="lbl">定理</span><p>SPT 排程最优。</p></div>
+<div class="deriv">
+<span class="step">反证：设最优排程 O <b>不是</b>按 p 升序，则 O 中必存在<b>相邻逆序对</b>（前长后短）</span>
+<span class="step">由引理交换该逆序对得到更优排程，与 O 最优矛盾</span>
+<span class="step">故最优排程必无逆序对，即<b>按 p 升序</b> ⇒ SPT 最优 ∎</span>
+<span class="step">（等价推导：ΣC = Σ (n−k+1)·p<sub>[k]</sub>，由排序不等式，小 p 配大系数使和最小，即升序）</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>C++ 实现与复杂度</h2><span class="sub">升序排序 + 一遍累加</span></div>
+<div class="code"><span class="cm">// 单机最小化总/平均完成时间：SPT（最短处理时间优先）</span>
+<span class="cm">// 按处理时长升序排序，依次执行并累加完成时刻</span>
+<span class="kw">double</span> <span class="fn">sptSchedule</span>(vector&lt;<span class="kw">int</span>&gt; &amp;p) {
+    <span class="fn">sort</span>(p.<span class="fn">begin</span>(), p.<span class="fn">end</span>());       <span class="cm">// 升序：短任务先做 O(n log n)</span>
+    <span class="kw">long</span> <span class="kw">long</span> clock = 0, sumC = 0;
+    <span class="kw">for</span> (<span class="kw">int</span> t : p) {
+        clock += t;                    <span class="cm">// 当前任务的完成时刻</span>
+        sumC  += clock;                <span class="cm">// 累加进总完成时间</span>
+    }
+    <span class="kw">return</span> (<span class="kw">double</span>)sumC / p.<span class="fn">size</span>();  <span class="cm">// 平均完成时间</span>
+}</div>
+<div class="formula">T(n) = O(n log n) <span>（排序主导）</span> + O(n) <span>（累加）</span> = <b>O(n log n)</b>　　S(n) = O(1)</div>
+<div class="tip">带截止期的变体（单位时间任务调度、带惩罚排序）同样用交换论证：按<b>截止期</b>或<b>惩罚/时长比</b>等排序键，逆序对可交换而不使目标变差——排序键随目标而变，论证方法一致。</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>误按长任务优先（LPT）。</b>最小化平均完成时间应<b>短任务优先</b>；p=[3,1,4,2,5] 时 LPT 得 55，远差于 SPT 的 35。</li>
+  <li><b>把"总完成时间"与"最晚完成时间（makespan）"混为一谈。</b>单机上 makespan 恒为 Σp<sub>i</sub>，与顺序无关；SPT 优化的是<b>总/平均完成时间</b>。</li>
+  <li><b>交换论证只算被换的两个任务却漏说"其余不变"。</b>正因相邻交换<b>只影响这两项</b>才能局部比较，这一点必须点明。</li>
+  <li><b>把完成时间当成处理时间。</b>完成时间是<b>前缀和</b>（含前面所有任务），不是单个 p<sub>i</sub>。</li>
+  <li><b>带权时仍照搬纯 SPT。</b>带权最小化 Σw<sub>i</sub>C<sub>i</sub> 应按 <b>p<sub>i</sub>/w<sub>i</sub> 升序</b>，排序键要随目标改变。</li>
+  <li><b>用冒泡式两两交换实现而非直接排序。</b>交换论证是<b>证明工具</b>，实现只需一次排序 O(n log n)。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>单机最小化平均完成时间的贪心是 <b>SPT（最短处理时间优先）</b>：按 p 升序执行。</li>
+  <li>p=[3,1,4,2,5] 时 SPT 得<b>总完成时间 35、平均 7.0</b>；LPT 得 55、11.0，差距明显。</li>
+  <li>正确性由<b>相邻交换论证</b>保证：任一"前长后短"逆序对交换后总完成时间严格减小，故最优排程无逆序对。</li>
+  <li>本质是 ΣC = Σ(n−k+1)·p<sub>[k]</sub>，把最小的 p 配最大的系数（放最前）使和最小。</li>
+  <li>复杂度 <b>O(n log n)</b>；带权目标改按 p<sub>i</sub>/w<sub>i</sub> 排序，带截止期变体同样用交换论证。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>任务时长 p=[3,1,4,2,5]，按 SPT 执行，总完成时间 ΣC 与平均完成时间分别是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>40 和 8.0</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>35 和 7.0</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>55 和 11.0</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>15 和 3.0</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>升序执行 1,2,3,4,5，完成时刻 1、3、6、10、15，ΣC = 35，平均 35/5 = <b>7.0</b>（选 B）。55/11.0 是 LPT（最长优先）的结果；15 是 makespan（Σp），不是总完成时间。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>要最小化单机的平均完成时间，应采用哪种策略？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>最长处理时间优先（LPT）</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>最短处理时间优先（SPT，按 p 升序）</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>按任务编号顺序执行</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>任意顺序都一样，因为总处理时间固定</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>短任务先做能让它的时长被后续任务反复累加得最少，故 SPT 最优（选 B）。D 混淆了两个量：<b>makespan</b>（最晚完成 = Σp）确实与顺序无关，但<b>平均完成时间</b>强烈依赖顺序，LPT 恰恰最差。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>用相邻交换论证证明 SPT 最优时，交换一对"前长后短"相邻任务后，总完成时间的变化量是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>0，交换不影响总完成时间</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>p<sub>j</sub> − p<sub>i</sub>（后者减前者），因 p<sub>i</sub>&gt;p<sub>j</sub> 故为负，总时间减小</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>p<sub>i</sub> + p<sub>j</sub>，总时间必增大</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>与前面已排任务的时长和 S 成正比</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>交换只影响这两个任务：交换前两者完成时间和 = 2S+2p<sub>i</sub>+p<sub>j</sub>，交换后 = 2S+2p<sub>j</sub>+p<sub>i</sub>，差值 = p<sub>j</sub>−p<sub>i</sub> &lt; 0（选 B）。基准 S 在差值中被<b>抵消</b>，故与 S 无关（D 错）；正因严格减小，最优排程不含逆序对，即 SPT。</div>
+</div>
+</div>
+
+<div class="terms">
+  <span class="term"><b>最短处理时间优先</b>SPT</span>
+  <span class="term"><b>完成时间</b>completion time</span>
+  <span class="term"><b>相邻交换论证</b>adjacent exchange</span>
+  <span class="term"><b>逆序对</b>inversion</span>
+</div>
+
+<div class="page-nav"><a href="09-matroid.html"><span class="dir">← 上一节</span><span class="name">拟阵</span></a><a href="index.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">返回总览</span></a></div>
+<div class="footer">算法设计与分析 · <b>第8章 贪心法</b> · 强交互可视化版<br/>时间轴 · 扫描线 · 树生长 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:30},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.12-Math.random()*.28, a:.12+Math.random()*.3}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(59,122,87,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const tasks=[3,1,4,2,5];
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const colors=['#6FB48B','#E39A7C','#A992CE','#D0A344','#D2705F'];
+function draw(order, label){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  let t=0; const seq=order.map(i=>({i,p:tasks[i]}));
+  const total=seq.reduce((s,x)=>s+x.p,0);
+  const x0=40, y=100, W=cv.width-80, scale=W/total;
+  ctx.fillStyle='#443F37'; ctx.font='16px Segoe UI'; ctx.fillText(label, 40, 40);
+  let sumC=0, time=0;
+  seq.forEach((x,k)=>{
+    const w=x.p*scale;
+    ctx.fillStyle=colors[x.i%colors.length];
+    round(ctx,x0+time*scale,y,w,50,8); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 14px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText('T'+(x.i+1)+'('+x.p+')', x0+time*scale+w/2, y+30);
+    time+=x.p; sumC+=time;
+  });
+  // axis
+  ctx.strokeStyle='#A29C90'; ctx.beginPath(); ctx.moveTo(x0,y+70); ctx.lineTo(x0+W,y+70); ctx.stroke();
+  avg.textContent=(sumC/seq.length).toFixed(2);
+  sum.textContent=sumC;
+}
+function round(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+runSPT.onclick=()=>{
+  const order=[...tasks.keys()].sort((a,b)=>tasks[a]-tasks[b]);
+  draw(order, 'SPT 最短处理时间优先（最优）');
+};
+runLPT.onclick=()=>{
+  const order=[...tasks.keys()].sort((a,b)=>tasks[b]-tasks[a]);
+  draw(order, '最长优先（通常更差）');
+};
+draw([...tasks.keys()], '原始顺序');
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

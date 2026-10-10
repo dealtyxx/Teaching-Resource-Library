@@ -1,0 +1,140 @@
+---
+module: 1
+moduleName: 绪论
+order: 2
+title: 校园门禁日志读取统计
+level: 基础必做
+scene: 日志分析
+knowledge: [日志数据源, 文件读取, 基础统计]
+stars: 2
+minutes: 25
+goal: 掌握日志文件读取方法，能完成基础访问量统计
+sizheng: 日志里都是同学的行踪——统计分析先守边界
+dims: [职业伦理, 社会责任]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import PyStepRunner from '../../components/react/PyStepRunner';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+
+## 场景导入
+
+保卫处的老师找上数据中心：「这学期想知道哪个门最挤、几点最忙，好排安保。」他甩来一份门禁流水——几万行，每行都是「时间、学号、进的哪个门」。这是最典型的**日志数据源**：一行一条、字段用分隔符隔开、天生带时间戳。今天的活儿听起来轻松——读进来、数一数——可你很快会意识到，每一行都是一位同学真实的脚印。
+
+## 动手实验
+
+真实日志按行存储，Python 用 `splitlines()` 就能把一整块文本切成一行行记录，再用 `split` 按竖线拆出字段。下面这段代码统计各门人流量、找出高峰时段，并且在打印时对学号做了脱敏——数得清人数，认不出个人：
+
+<PyPlayground
+  client:visible
+  title="门禁日志统计器（含学号脱敏）"
+  note="试着把 mask_id 改成只保留后两位，或往 log 里再加几条深夜的记录，看看高峰时段会不会变。"
+  code={`# 校园门禁日志：每行「时间|学号|门」，用竖线分隔
+log = """07:32|2025101|东门
+07:45|2025102|东门
+08:03|2025103|北门
+08:12|2025101|北门
+08:15|2025104|东门
+08:20|2025105|东门
+12:05|2025102|南门
+18:30|2025103|东门"""
+
+def mask_id(sid):
+    # 学号脱敏：留前 2 位、后 1 位，中间打码（数得清人，认不出人）
+    return sid[:2] + "*" * (len(sid) - 3) + sid[-1]
+
+gate_count = {}   # 各门人流量
+hour_count = {}   # 各时段人流量
+for line in log.splitlines():
+    t, sid, gate = line.split("|")
+    hour = t.split(":")[0]
+    gate_count[gate] = gate_count.get(gate, 0) + 1
+    hour_count[hour] = hour_count.get(hour, 0) + 1
+    print(f"{t}  {mask_id(sid)}  进入 {gate}")
+
+print("\\n各门人流量（按人次排序）：")
+for gate, n in sorted(gate_count.items(), key=lambda x: -x[1]):
+    print(f"  {gate}：{n} 人次")
+
+peak = max(hour_count, key=hour_count.get)
+print(f"\\n高峰时段：{peak}:00 前后（{hour_count[peak]} 人次）")`}
+/>
+
+## 逐行看懂
+
+把统计的核心循环放慢到「一次一行」，看清 `splitlines()` 和字典累加是怎么配合，把一串流水变成一张统计表的：
+
+<PyStepRunner
+  client:visible
+  title="门禁统计：逐行数人流量"
+  fileName="gate_log.py"
+  code={`log = "08:03|2025103|北门\\n08:12|2025101|北门\\n08:15|2025104|东门"
+count = {}
+for line in log.splitlines():
+    t, sid, gate = line.split("|")
+    count[gate] = count.get(gate, 0) + 1
+print(count)`}
+  steps={[
+    { line: 0, desc: '三条门禁记录先拼进一个字符串，每条之间用换行符隔开——这正是日志文件读进内存后的样子。', vars: { log: '3 条记录' } },
+    { line: 1, desc: '建一个空字典 count，用来累计每个门的人次。', vars: { count: '{}' } },
+    { line: 2, desc: 'splitlines() 把整块文本按行切成列表，for 逐行取出。', vars: { count: '{}' } },
+    { line: 3, desc: '第 1 行按竖线 split，拆出时间、学号、门；这里 gate 是「北门」。', vars: { gate: '北门' } },
+    { line: 4, desc: '北门第一次出现：get(gate, 0) 返回 0，加 1 后记为 1。', vars: { count: '北门→1' } },
+    { line: 3, desc: '第 2 行，又是「北门」。', vars: { gate: '北门' } },
+    { line: 4, desc: '北门已存在，在原值上累加到 2。', vars: { count: '北门→2' } },
+    { line: 3, desc: '第 3 行，这次是「东门」。', vars: { gate: '东门' } },
+    { line: 4, desc: '东门第一次出现，记为 1。', vars: { count: '北门→2, 东门→1' } },
+    { line: 5, desc: '遍历结束，打印各门人流量——全程只数「门」，没留下任何可还原到个人的痕迹。', out: "{'北门': 2, '东门': 1}", vars: { count: '北门→2, 东门→1' } },
+  ]}
+/>
+
+## 思政会客厅
+
+<DimCard dim="职业伦理" title="日志分析师的边界感">
+  <ul>
+    <li>拿到日志的第一反应不该是「能挖出谁几点去了哪」，而是「这次分析到底要不要精确到人」——需求是流量，就只算流量。</li>
+    <li>学号、行踪本身就是敏感信息，打印、导出、传阅之前先脱敏，是数据从业者该有的肌肉记忆。</li>
+    <li>「技术上能做」不等于「工作里该做」：去反查某个人的作息轨迹，既非任务所需，也越了职业边界。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="社会责任" title="做聚合，而不是做监视">
+  <ul>
+    <li>统计的价值在群体规律——哪个门挤、几点忙，用来优化安保与通行，服务的是全体同学。</li>
+    <li>同一份数据，输出「东门早高峰 5 人次」是管理，输出「张三今天几点进出」就滑向监视。技术中立，用途有立场。</li>
+    <li>最小必要原则：能用聚合结果解决的问题，就不保留个体明细——数据留得越少，风险也越小。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="⚠️" tone="amber" title="行踪轨迹属于敏感个人信息">
+《个人信息保护法》第28条把行踪轨迹明确列为敏感个人信息，处理需有特定目的与充分必要性。所以门禁统计的正确姿势是：聚合出人流量与高峰时段，而不是拼出某个人的行动地图。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p02-d1"
+  question="保卫处只要「各门人流量」，那采集和统计时，到底需不需要保留每个人的真实学号？"
+  hints={['算总量其实只要「哪个门 +1」，学号可以进门就脱敏、甚至直接丢弃', '但若将来要排查某次异常事件，又可能需要可追溯的标识——需求边界决定保留粒度', '折中做法：学号先哈希化再统计，既能去重，又不直接暴露身份']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="门禁日志每行形如「时间|学号|门」。把这一行文本按竖线 split 之后，得到的是？"
+  options={['一段用空格连接的字符串', '含 3 个元素的列表', '一个字典', '报错——竖线不能做分隔符']}
+  answer={1}
+  explain="split 按竖线切分，返回含 3 个元素的列表：时间、学号、门；再配合多重赋值，就能一次把它们拆进三个变量。"
+/>
+
+<QuizItem
+  client:visible
+  question="保卫处只想知道各门人流量。下面哪种输出最符合「最小必要」原则？"
+  options={['逐条打印每位同学的学号与进出时间', '打印各门人次与高峰时段的聚合结果', '导出完整明文日志发到工作群', '按学号建一张个人行踪表长期存档']}
+  answer={1}
+  explain="需求是群体流量，就只输出聚合结果。保留或传播个体行踪明细既非任务所需，也触碰《个保法》对行踪轨迹这类敏感信息的保护红线。"
+/>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>汉诺塔 · 第2章 递归算法设计技术</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">02</div>算法可视化 · <span>第2章 递归算法设计技术</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-concept.html">概念</a><a class="pill" href="02-model.html">模型</a><a class="pill" href="03-cases.html">情形</a><a class="pill" href="04-stack.html">系统栈</a><a class="pill" href="05-fib-tree.html">Fib树</a><a class="pill active" href="06-hanoi.html">汉诺塔</a><a class="pill" href="07-induction.html">归纳</a><a class="pill" href="08-knapsack.html">背包递归</a><a class="pill" href="09-recurrence.html">递推式</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 6 · 加深</div><h1>汉诺塔 · 圆盘动画</h1>
+<p>hanoi(n,A,B,C): 将 n-1 经 C 到 B，最大盘 A→C，再 n-1 经 A 到 C。步数 2ⁿ−1。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+<li>能够<b>叙述</b>汉诺塔的三步分解策略，并说明它为何属于"<b>问题求解递归</b>"（§03 第③类）。</li>
+<li>能够<b>写出</b> hanoi(n, A, B, C) 的 C++ 代码，并正确安排三根柱子在两次递归调用中的角色轮换。</li>
+<li>能够<b>建立</b>递推式 T(n) = 2T(n−1) + 1、T(0) = 0，并用<b>展开法</b>完整推导出 T(n) = 2<sup>n</sup> − 1。</li>
+<li>能够<b>指出</b>本例与 §09 展开法、§07 数学归纳法之间的对应关系。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <label>n=<b id="nv">3</b></label><input type="range" id="nr" min="1" max="5" value="3" style="width:120px;accent-color:#7E62A6"/>
+    <button class="btn primary" id="run">▶ 移动</button>
+    <button class="btn" id="rst">重置</button>
+  </div>
+  <div class="stage-wrap light"><canvas class="stage" id="cv" width="900" height="320"></canvas>
+    <div class="stage-hud"><span class="hud-pill light" id="hud">—</span></div></div>
+  <div class="stat-row"><div class="stat"><span>步数</span><b class="p" id="st">0</b></div><div class="stat"><span>理论 2ⁿ−1</span><b class="g" id="th">7</b></div></div>
+  <div class="log" id="log">—</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、问题与递归模型</h2><span class="sub">Tower of Hanoi · 三步分解</span></div>
+
+<div class="defn"><span class="lbl">问题描述</span><p>有 A、B、C 三根柱子，A 上自下而上按<b>从大到小</b>叠放着 n 个圆盘。要求把全部圆盘移到 C 柱，且移动过程始终满足：① 每次<b>只能移动一个</b>圆盘；② 圆盘只能在三根柱子之间移动；③ <b>任何时刻都不允许大盘压在小盘之上</b>。求移动步骤与最少移动次数。</p></div>
+
+<div class="tip info"><strong>为什么这是"问题求解递归"（§03 第③类）：</strong>题面里<b>没有任何递推式</b>，只有三条规则；把问题变小的那一步——"<b>先把上面 n−1 个整体搬到中间柱</b>"——完全是<b>算法设计者构思出来的</b>。对比阶乘 n!=n×(n−1)!（定义自带、属第①类），差别一目了然。</div>
+
+<div class="list-step"><span class="n">1</span><div class="body"><b>把 A 上面的 n−1 个盘，借助 C，整体移到 B</b>——这是一个规模为 n−1 的<b>同类子问题</b>，只是起点、终点、中转柱换了角色。</div></div>
+<div class="list-step"><span class="n">2</span><div class="body"><b>把 A 上剩下的那个最大盘直接移到 C</b>——一次移动，O(1)。此时 C 上只有最大盘，任何盘放上去都不违规。</div></div>
+<div class="list-step"><span class="n">3</span><div class="body"><b>把 B 上的 n−1 个盘，借助 A，整体移到 C</b>——又是一个规模为 n−1 的同类子问题。</div></div>
+
+<div class="tip"><strong>关键洞察：</strong>第 ① 步之所以合法，是因为最大盘始终躺在 A 的最底下，对上面 n−1 个盘而言"<b>A 底部有个巨盘</b>"和"<b>A 是空柱</b>"完全等价——任何盘都能压在它上面。所以子问题<b>确实</b>是一个"标准的 n−1 盘汉诺塔"，递归模型成立。</div>
+
+<div class="formula lg">hanoi(n, A, B, C)：<br/>n = 0 时　不做任何事　<em>（递归出口）</em><br/>n &gt; 0 时　hanoi(n−1, A, C, B)　→　move(A → C)　→　hanoi(n−1, B, A, C)</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>步骤</th><th>调用 / 动作</th><th>源柱</th><th>中转柱</th><th>目标柱</th><th>规模</th><th>代价</th></tr>
+  <tr><td>①</td><td>hanoi(n−1, A, C, B)</td><td>A</td><td class="hl">C</td><td class="hl">B</td><td>n−1</td><td>T(n−1)</td></tr>
+  <tr><td>②</td><td>move(A → C)</td><td>A</td><td>—</td><td>C</td><td>1 个盘</td><td>1</td></tr>
+  <tr><td>③</td><td>hanoi(n−1, B, A, C)</td><td class="hl">B</td><td class="hl">A</td><td>C</td><td>n−1</td><td>T(n−1)</td></tr>
+</table></div>
+
+<div class="tip"><strong>三根柱子的角色轮换是本题最易错处：</strong>形参永远是 <code>(n, 源, 中转, 目标)</code>。第 ① 步<b>目标变成 B、中转变成 C</b>；第 ③ 步<b>源变成 B、中转变成 A、目标仍是 C</b>。只要按"源/中转/目标"这三个<b>角色</b>去填而不是死记字母，就不会写反。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、C++ 实现</h2><span class="sub">Implementation</span></div>
+
+<div class="code"><span class="cm">// 汉诺塔：把 n 个盘从 src 移到 dst，tmp 作中转</span>
+<span class="cm">// 形参顺序约定：(盘数, 源柱, 中转柱, 目标柱)</span>
+<span class="kw">void</span> <span class="fn">hanoi</span>(<span class="kw">int</span> n, <span class="kw">char</span> src, <span class="kw">char</span> tmp, <span class="kw">char</span> dst) {
+    <span class="kw">if</span> (n == <span class="nu">0</span>) <span class="kw">return</span>;                  <span class="cm">// ← 递归出口：没有盘可搬</span>
+
+    <span class="fn">hanoi</span>(n - <span class="nu">1</span>, src, dst, tmp);        <span class="cm">// ① n-1 个：src --(借 dst)--&gt; tmp</span>
+
+    cout &lt;&lt; <span class="st">"move disk "</span> &lt;&lt; n
+         &lt;&lt; <span class="st">" : "</span> &lt;&lt; src &lt;&lt; <span class="st">" -&gt; "</span> &lt;&lt; dst &lt;&lt; endl;   <span class="cm">// ② 最大盘直达</span>
+
+    <span class="fn">hanoi</span>(n - <span class="nu">1</span>, tmp, src, dst);        <span class="cm">// ③ n-1 个：tmp --(借 src)--&gt; dst</span>
+}
+
+<span class="cm">// 调用：把 3 个盘从 A 移到 C，B 作中转</span>
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="fn">hanoi</span>(<span class="nu">3</span>, <span class="st">'A'</span>, <span class="st">'B'</span>, <span class="st">'C'</span>);
+    <span class="kw">return</span> <span class="nu">0</span>;
+}
+
+<span class="cm">/* 输出（共 2^3 - 1 = 7 步，与页面动画一致）：
+   move disk 1 : A -&gt; C
+   move disk 2 : A -&gt; B
+   move disk 1 : C -&gt; B
+   move disk 3 : A -&gt; C     &lt;-- 中间这一步就是最大盘
+   move disk 1 : B -&gt; A
+   move disk 2 : B -&gt; C
+   move disk 1 : A -&gt; C
+*/</span></div>
+
+<div class="tip info"><strong>观察输出的对称性：</strong>7 步中，<b>第 4 步（正中间）</b>是最大盘 A→C；它<b>前面 3 步</b>是"3 号盘之上的 2 个盘 A→B"，<b>后面 3 步</b>是"那 2 个盘 B→C"。这个"<b>前一半 + 中间一步 + 后一半</b>"的结构，正是递推式 T(n)=2T(n−1)+1 在输出序列上的直接体现。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、递推式的建立与求解</h2><span class="sub">T(n) = 2T(n−1) + 1</span></div>
+
+<div class="defn thm"><span class="lbl">定理 2.2 · 汉诺塔的最少移动次数</span><p>设 T(n) 表示移动 n 个圆盘所需的<b>最少移动次数</b>，则<br/>T(0) = 0，　T(n) = 2T(n−1) + 1（n ≥ 1），<br/>其解为 <b>T(n) = 2<sup>n</sup> − 1</b>，即时间复杂度 <b>Θ(2<sup>n</sup>)</b>。</p></div>
+
+<div class="formula lg">T(n) = 2T(n−1) + 1，　n ≥ 1<br/>T(0) = 0　<em>（边界条件）</em></div>
+
+<div class="tip"><strong>递推式怎么来的：</strong>直接对照代码的三条语句——① 一次规模 n−1 的递归 ⇒ T(n−1)；② 一次移动 ⇒ 常数 1；③ 又一次规模 n−1 的递归 ⇒ T(n−1)。相加即 T(n) = T(n−1) + 1 + T(n−1) = <b>2T(n−1) + 1</b>。<b>建立递推式的通法就是"逐条语句累加代价"。</b></div>
+
+<div class="deriv">
+  <span class="step"><b>【展开法 substitution / expansion method 完整推导】</b></span>
+  <span class="step">T(n) = 2T(n−1) + 1　　　　　　　　　　　　　<span class="why">原递推式</span></span>
+  <span class="step">　　 = 2[2T(n−2) + 1] + 1 = 4T(n−2) + 2 + 1　　<span class="why">代入 T(n−1)</span></span>
+  <span class="step">　　 = 4[2T(n−3) + 1] + 2 + 1 = 8T(n−3) + 4 + 2 + 1<span class="why">再代入一次</span></span>
+  <span class="step">　　 = 16T(n−4) + 8 + 4 + 2 + 1</span>
+  <span class="step">　　 = …</span>
+  <span class="step">　　 = 2<sup>k</sup>T(n−k) + 2<sup>k−1</sup> + 2<sup>k−2</sup> + … + 2 + 1　<span class="why">归纳出第 k 步的通式</span></span>
+  <span class="step">　　 = 2<sup>k</sup>T(n−k) + ∑<sub>i=0</sub><sup>k−1</sup> 2<sup>i</sup></span>
+  <span class="step">　　 = 2<sup>k</sup>T(n−k) + (2<sup>k</sup> − 1)　　　　　　<span class="why">等比数列求和</span></span>
+  <span class="step"> </span>
+  <span class="step">令 n − k = 0，即取 <b>k = n</b>，触达边界条件：</span>
+  <span class="step">T(n) = 2<sup>n</sup>·T(0) + (2<sup>n</sup> − 1)</span>
+  <span class="step">　　 = 2<sup>n</sup>·0 + 2<sup>n</sup> − 1</span>
+  <span class="step">⇒ <b>T(n) = 2<sup>n</sup> − 1 = Θ(2<sup>n</sup>)</b></span>
+</div>
+
+<div class="tip info"><strong>展开法三步走（§09 会正式总结）：</strong>① <b>反复代入</b>，直到看出规律；② <b>写出第 k 步的通式</b>（这是关键，也是最容易卡住的一步）；③ <b>令 k 取某值使参数触达边界</b>（这里 n−k=0 ⇒ k=n；若是 T(n/2<sup>k</sup>) 型则取 k=log<sub>2</sub>n），代入边界条件化简。<b>本例是 §09"展开法"最标准的教学案例。</b></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>n</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>10</th><th>20</th><th>64</th></tr>
+  <tr><td>T(n)=2<sup>n</sup>−1</td><td>1</td><td>3</td><td class="hl">7</td><td>15</td><td>31</td><td>1 023</td><td>1 048 575</td><td class="hl">≈1.8×10<sup>19</sup></td></tr>
+  <tr><td>按每秒 1 次移动所需时间</td><td colspan="5">瞬间</td><td>17 分钟</td><td>12 天</td><td class="hl">约 5850 亿年</td></tr>
+</table></div>
+
+<div class="tip"><strong>"世界末日"传说：</strong>相传印度神庙有 64 片金盘，僧侣按规则搬完之日即世界终结。T(64)=2<sup>64</sup>−1≈1.8×10<sup>19</sup> 次，即使每秒一次也需约 5850 亿年，远超宇宙年龄（约 138 亿年）。<b>这就是 Θ(2<sup>n</sup>) 的直观含义：n 每增加 1，代价翻一倍。</b></div>
+
+<div class="deriv">
+  <span class="step"><b>【空间复杂度】</b></span>
+  <span class="step">递归树是一棵高度为 n 的（近似满）二叉树，</span>
+  <span class="step">最大递归深度 d(n) = n　　<span class="why">最左链 hanoi(n)→hanoi(n−1)→…→hanoi(0)</span></span>
+  <span class="step">⇒ S(n) = <b>Θ(n)</b>　　　　<span class="why">时间数结点、空间数树高（§04 定理 2.1）</span></span>
+  <span class="step">注意：时间 Θ(2<sup>n</sup>) 而空间仅 Θ(n)，二者相差悬殊，与 §05 的 Fib 同理。</span>
+</div>
+
+<div class="tip info"><strong>本题不能用记忆化优化！</strong>与 §05 的 Fib 不同，汉诺塔的 Θ(2<sup>n</sup>) <b>不是浪费</b>——2<sup>n</sup>−1 是问题的<b>最少</b>移动次数（可用 §07 归纳法证明其下界），必须真的输出这么多步。递归树上没有"参数相同的重复调用"（每次的柱子角色组合与盘序都不同），<b>没有重复子问题就没有记忆化的余地</b>。<b>指数复杂度分两种：算法笨（Fib，可优化）与问题本身难（汉诺塔，不可优化）。</b></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、例题演算：n = 3 的完整展开</h2><span class="sub">Worked Example</span></div>
+
+<div class="deriv">
+  <span class="step">调用 hanoi(3, A, B, C)：</span>
+  <span class="step">├─ ① hanoi(2, A, C, B)　　　<span class="why">2 个盘 A→B，借 C</span></span>
+  <span class="step">│　 ├─ ① hanoi(1, A, B, C)</span>
+  <span class="step">│　 │　 ├─ ① hanoi(0,…) 空</span>
+  <span class="step">│　 │　 ├─ ② <b>move 1 : A → C</b>　　（第 1 步）</span>
+  <span class="step">│　 │　 └─ ③ hanoi(0,…) 空</span>
+  <span class="step">│　 ├─ ② <b>move 2 : A → B</b>　　　　（第 2 步）</span>
+  <span class="step">│　 └─ ③ hanoi(1, C, A, B)</span>
+  <span class="step">│　　　 └─ ② <b>move 1 : C → B</b>　　（第 3 步）</span>
+  <span class="step">├─ ② <b>move 3 : A → C</b>　　　　　　（第 4 步 · 最大盘）</span>
+  <span class="step">└─ ③ hanoi(2, B, A, C)　　　<span class="why">2 个盘 B→C，借 A</span></span>
+  <span class="step">　　 ├─ ① hanoi(1, B, C, A)</span>
+  <span class="step">　　 │　 └─ ② <b>move 1 : B → A</b>　　（第 5 步）</span>
+  <span class="step">　　 ├─ ② <b>move 2 : B → C</b>　　　　（第 6 步）</span>
+  <span class="step">　　 └─ ③ hanoi(1, A, B, C)</span>
+  <span class="step">　　　　 └─ ② <b>move 1 : A → C</b>　　（第 7 步）</span>
+  <span class="step"> </span>
+  <span class="step">验证：T(3) = 2T(2)+1 = 2·3+1 = <b>7</b> = 2<sup>3</sup>−1 ✔</span>
+  <span class="step">其中 T(2) = 2T(1)+1 = 2·1+1 = 3，T(1) = 2T(0)+1 = 1</span>
+  <span class="step">最大递归深度 = 4 层（hanoi(3)→hanoi(2)→hanoi(1)→hanoi(0)）</span>
+</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+<li><b>三根柱子的角色写反。</b>最常见的是把第 ③ 步写成 <code>hanoi(n-1, tmp, dst, src)</code>。牢记形参含义是 <b>(盘数, 源, 中转, 目标)</b>：第 ③ 步的源是 <code>tmp</code>、中转是 <code>src</code>、目标是 <code>dst</code>。按<b>角色</b>而非字母去填。</li>
+<li><b>把 move 语句写在两次递归之前或之后。</b>顺序必须是<b>递归 → 移动 → 递归</b>（对应"中序"）。写成"移动 → 递归 → 递归"会先把最大盘搬走，此时它上面的 n−1 个盘无处安放，规则被破坏。</li>
+<li><b>递推式写成 T(n) = 2T(n−1)</b>（漏掉 +1）。漏掉的正是<b>移动最大盘</b>那一次，解会变成 T(n)=0，显然荒谬。<b>每一条语句的代价都要计入。</b></li>
+<li><b>展开法写不出第 k 步通式就硬凑。</b>展开 2~3 次后必须<b>停下来观察规律</b>：系数依次是 2、4、8 = 2<sup>k</sup>，余项是 2<sup>k−1</sup>+…+1 = 2<sup>k</sup>−1。写不出通式说明展开次数不够，再多展开一层。</li>
+<li><b>忘记令 k = n 代入边界。</b>只写到 T(n)=2<sup>k</sup>T(n−k)+2<sup>k</sup>−1 就收尾是<b>不完整</b>的——式子里还有未知的 T(n−k)。必须选 k 使参数落到边界（本例 n−k=0），再代入 T(0)=0。</li>
+<li><b>误以为可以用记忆化把 Θ(2<sup>n</sup>) 降下来。</b>2<sup>n</sup>−1 是<b>问题的下界</b>，不是算法的浪费；输出这么多步是任务本身的要求。</li>
+<li><b>把空间复杂度也当成 Θ(2<sup>n</sup>)。</b>栈帧弹出即释放，空间只有 Θ(n)。</li>
+</ul></div>
+</section>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+<li>汉诺塔属于<b>问题求解递归</b>（§03 第③类）：题面无递推式，"先把上面 n−1 个搬到中间柱"是<b>设计者构思</b>出来的规模缩小手段。</li>
+<li><b>三步分解</b>：① hanoi(n−1, A, C, B) ② move(A→C) ③ hanoi(n−1, B, A, C)。形参约定 <b>(盘数, 源, 中转, 目标)</b>，两次递归中三柱<b>角色轮换</b>是最易错处。</li>
+<li><b>递推式</b>：T(n) = 2T(n−1) + 1，T(0) = 0，由"逐条语句累加代价"直接得出。</li>
+<li><b>展开法推导</b>：T(n)=2T(n−1)+1=4T(n−2)+2+1=8T(n−3)+4+2+1=…=2<sup>k</sup>T(n−k)+(2<sup>k</sup>−1)，取 k=n 得 <b>T(n)=2<sup>n</sup>−1=Θ(2<sup>n</sup>)</b>。空间 Θ(n)。</li>
+<li>本例是 <b>§09 展开法</b>的标准教学案例（"写通式 → 取 k 触边界"两步在此完整呈现）；其正确性与 2<sup>n</sup>−1 的最优性可用 <b>§07 数学归纳法</b>严格证明。</li>
+<li>Θ(2<sup>n</sup>) 在此<b>不可优化</b>：无重复子问题，2<sup>n</sup>−1 是问题下界——区别于 §05 Fib 那种"算法笨"造成的指数。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>用展开法求解 T(n) = 2T(n−1) + 1、T(0) = 0，展开 k 层后的通式是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>T(n) = 2<sup>k</sup>T(n−k) + k</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>T(n) = 2<sup>k</sup>T(n−k) + 2<sup>k</sup> − 1</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>T(n) = 2<sup>k</sup>T(n−k) + 2k − 1</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>T(n) = 2T(n−k) + 2<sup>k</sup></span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 <b>B</b>。逐层展开：2T(n−1)+1 → 4T(n−2)+2+1 → 8T(n−3)+4+2+1，可见系数为 2<sup>k</sup>，余项为等比和 2<sup>k−1</sup>+…+2+1 = <b>2<sup>k</sup>−1</b>。<br/><b>A 是最常见的错误</b>：把每层新增的常数"1"简单累加成 k，忽略了这个 1 在往外层回代时<b>会被系数 2 反复放大</b>（第 j 层的 1 到最外层变成 2<sup>j</sup>）。<br/>C 把等比和错记成等差和。D 的系数没有随展开层数增长。<br/>取 k=n 代入 T(0)=0，即得 T(n)=2<sup>n</sup>−1。</div>
+</div>
+
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>汉诺塔递归算法的<b>时间</b>与<b>空间</b>复杂度分别是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>时间 Θ(2<sup>n</sup>)，空间 Θ(2<sup>n</sup>)</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>时间 Θ(2<sup>n</sup>)，空间 Θ(n)</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>时间 Θ(n<sup>2</sup>)，空间 Θ(n)</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>时间 Θ(2<sup>n</sup>)，空间 Θ(1)</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 <b>B</b>。时间 = 递归树<b>结点总数</b> = 2<sup>n</sup>−1 次移动 ⇒ Θ(2<sup>n</sup>)；空间 = 递归树<b>高度</b> = n+1 层栈帧 ⇒ Θ(n)。<br/>A 混淆了"总调用次数"与"同时存在的栈帧数"——栈帧<b>弹出即释放</b>，绝不会同时存在 2<sup>n</sup> 个。<br/>D 忽略了栈帧这一<b>隐式</b>空间开销。<br/>C 的时间完全错，2T(n−1) 型递推必然指数级。<br/><b>口诀：时间数结点，空间数树高。</b></div>
+</div>
+
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>有同学说："汉诺塔和 Fib 一样都是 2 个递归分支、都是指数复杂度，所以也应该能用<b>记忆化</b>优化到多项式。"这个说法？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>正确，加个备忘录记录 hanoi(k) 的结果即可降到 Θ(n)</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>正确，但需要以 (n, 源, 中转, 目标) 四元组作为备忘录的键</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>错误。2<sup>n</sup>−1 是<b>必须真实执行</b>的移动步数，是问题下界，无重复子问题可合并</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>错误，因为汉诺塔的递归树不是二叉树</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 <b>C</b>。记忆化的收益来自"<b>把重复算过的答案存下来直接返回</b>"。<br/>Fib 的 Θ(1.618<sup>n</sup>) 是<b>算法的浪费</b>——同一个 fib(k) 被重算无数遍，合并后只剩 n 个不同状态。<br/>汉诺塔的任务是<b>输出全部移动步骤</b>，而最少步数 2<sup>n</sup>−1 是问题本身的<b>下界</b>（可用 §07 归纳法证明）；哪怕你知道 T(20)=1048575，仍必须把这一百多万步<b>逐条打印出来</b>，一步都省不掉。<br/>B 的思路看似聪明，但即使把子答案缓存下来，<b>展开输出</b>时依然要走 2<sup>n</sup>−1 步。<br/>D 的理由不成立：汉诺塔的递归树<b>恰恰是</b>满二叉树。<br/><b>结论：指数复杂度要区分"算法笨"与"问题本身难"。</b></div>
+</div>
+</div>
+
+<div class="page-nav"><a href="05-fib-tree.html"><span class="dir">← 上一节</span><span class="name">Fib树</span></a><a href="07-induction.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">归纳</span></a></div>
+<div class="footer">算法设计与分析 · <b>第2章 递归算法设计技术</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(126,98,166,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+let n=3, pegs, steps=0;
+const names=['A','B','C'];
+function init(){
+  n=+nr.value; nv.textContent=n; th.textContent=(1<<n)-1;
+  pegs=[[],[],[]]; for(let i=n;i>=1;i--) pegs[0].push(i);
+  steps=0; st.textContent=0; draw();
+}
+function draw(){
+  ctx.clearRect(0,0,900,320);
+  // base & poles
+  for(let p=0;p<3;p++){
+    const x=150+p*300;
+    ctx.fillStyle='#A29C90'; ctx.fillRect(x-5,60,10,220);
+    ctx.fillRect(x-90,275,180,12);
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 14px sans-serif'; ctx.textAlign='center'; ctx.fillText(names[p],x,305);
+    pegs[p].forEach((d,i)=>{
+      const w=30+d*18, y=260-i*22;
+      ctx.fillStyle=`hsl(${d*40} 70% 50%)`;
+      ctx.fillRect(x-w/2,y,w,18);
+    });
+  }
+}
+async function move(from,to){
+  const d=pegs[from].pop(); pegs[to].push(d);
+  steps++; st.textContent=steps; draw();
+  hud.textContent=`${names[from]} → ${names[to]} (盘${d})`;
+  log.textContent+=`\\n${names[from]}→${names[to]}`; await sleep(400);
+}
+async function hanoi(k,a,b,c){
+  if(k===0) return;
+  await hanoi(k-1,a,c,b);
+  await move(a,c);
+  await hanoi(k-1,b,a,c);
+}
+nr.oninput=init; run.onclick=async()=>{ init(); log.textContent='开始'; await hanoi(n,0,1,2); hud.textContent='完成'; };
+rst.onclick=init; init();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

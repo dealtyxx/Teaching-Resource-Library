@@ -1,0 +1,146 @@
+---
+module: 6
+moduleName: 信息标记与提取方法
+order: 23
+title: 图书目录XML解析工具
+level: 基础必做
+scene: 文档解析
+knowledge: [XML语法, 属性提取, 节点遍历]
+stars: 2
+minutes: 30
+goal: 掌握XML解析方法，能遍历文档树提取结构化信息
+sizheng: 标准化是互通的前提——文档规范里的工程秩序
+dims: [创新思维]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import PyStepRunner from '../../components/react/PyStepRunner';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+
+## 场景导入
+
+图书馆要把馆藏目录导给一个新系统，对方甩来一个 XML 文件。你打开一看：每本书裹在一对 `<book>` 标签里，书号写成了标签上的「属性」，书名、作者、价格则是里面一个个「子节点」。跟 JSON 的大括号不同，XML 靠成对的尖括号标签自我描述，天生适合表达有层次的文档。今天就用 Python 标准库里的 `xml.etree.ElementTree`，把这棵「文档树」遍历一遍，抽出一张干净的目录，并顺手算个平均定价。
+
+## 动手实验
+
+解析 XML 记住两个动作就够了：取标签上的属性用 `.get()`，取子节点里的文本用 `.find(标签).text`。`findall("book")` 帮我们把每一本书遍历出来。注意价格取出来是字符串，要 `float()` 转成数字才能求和：
+
+<PyPlayground
+  client:visible
+  title="图书目录 XML 解析"
+  note="试着给某本书再加一个 publisher 出版社子节点，并在遍历时一并打印出来。"
+  code={`import xml.etree.ElementTree as ET
+
+# 内联图书目录 XML：每本书是一个 book 标签，isbn 是「属性」，title/author/price 是「子节点」
+catalog = '''
+<catalog>
+  <book isbn="978-7-115-54608-1">
+    <title>Python编程从入门到实践</title>
+    <author>Eric Matthes</author>
+    <price>89.0</price>
+  </book>
+  <book isbn="978-7-115-42802-8">
+    <title>流畅的Python</title>
+    <author>Luciano Ramalho</author>
+    <price>139.0</price>
+  </book>
+  <book isbn="978-7-121-38641-9">
+    <title>数据采集与预处理</title>
+    <author>黑马程序员</author>
+    <price>59.8</price>
+  </book>
+</catalog>
+'''
+
+# 解析字符串，拿到根节点 catalog
+root = ET.fromstring(catalog)
+
+print("书名 | 作者 | 定价 | ISBN")
+print("-" * 42)
+
+total, count = 0.0, 0
+# findall 遍历每一个 book 子节点
+for book in root.findall("book"):
+    isbn = book.get("isbn")                 # 取「属性」用 .get()
+    title = book.find("title").text         # 取「子节点」文本用 .find(...).text
+    author = book.find("author").text
+    price = float(book.find("price").text)  # 文本默认是字符串，价格要转 float
+    total += price
+    count += 1
+    print(f"《{title}》 | {author} | ¥{price} | {isbn}")
+
+print("-" * 42)
+print(f"共 {count} 本书，平均定价 {total / count:.2f} 元")`}
+/>
+
+## 逐行看懂
+
+「文档树」是怎么被一层层拆开的？单步走一遍，看 `.get()` 取属性、`.find().text` 取子节点文本的区别：
+
+<PyStepRunner
+  client:visible
+  title="ElementTree 解析文档树全过程"
+  fileName="books.py"
+  code={`import xml.etree.ElementTree as ET
+
+doc = "<book isbn='978-7-121'><title>流畅的Python</title><price>139</price></book>"
+root = ET.fromstring(doc)
+
+isbn = root.get("isbn")
+title = root.find("title").text
+price = float(root.find("price").text)
+
+print(f"{title}｜ISBN {isbn}｜¥{price}")`}
+  steps={[
+    { line: 0, desc: '引入 XML 解析库，起个短别名 ET——标准库自带、无需安装。' },
+    { line: 2, desc: '一段最简单的图书 XML：book 带 isbn 属性，内含 title、price 两个子节点。', vars: { doc: 'str（一段 XML 文本）' } },
+    { line: 3, desc: 'fromstring 把 XML 文本解析成「文档树」，root 指向根节点 book。', vars: { root: 'Element book' } },
+    { line: 5, desc: '取「属性」用 .get(属性名)——拿到 isbn。', vars: { isbn: '978-7-121' } },
+    { line: 6, desc: '取「子节点文本」用 .find(标签).text——拿到书名。', vars: { title: '流畅的Python' } },
+    { line: 7, desc: 'price 文本是字符串，用 float() 转成数字才能参与计算。', vars: { price: '139.0' } },
+    { line: 9, desc: '把属性与子节点拼成一行目录——结构化信息提取完成！', out: '流畅的Python｜ISBN 978-7-121｜¥139.0' },
+  ]}
+/>
+
+## 思政会客厅
+
+<DimCard dim="创新思维" title="标准是地基，不是枷锁">
+  <ul>
+    <li>正因为有 ISBN（国际标准书号，标准编号 ISO 2108）给每本书一个全球唯一身份，图书才能在不同书店、图书馆、电商系统间自由流转、互不打架。</li>
+    <li>XML 由 W3C 制定、图书馆界的 Dublin Core（都柏林核心）元数据标准约定字段——统一的「接口」让各方专注在其上创新，而不必反复为「怎么描述一本书」吵架。</li>
+    <li>读懂标准、善用标准，把力气省下来投到真正的新点子上，这本身就是工程师的创新姿势：先站稳规范，再自由生长。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="📐" tone="green" title="书同文，车同轨——数字时代版">
+从 ISBN 到 XML，从 Dublin Core 到机读目录 MARC，标准化把「各说各话」变成「彼此互通」。它是秩序，也是效率：没有统一规范，再好的数据也只是一座座信息孤岛。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p23-d1"
+  question="如果每家出版社都用自己发明的图书数据格式，导数据时会发生什么？统一标准带来了什么，又约束了什么？"
+  hints={['没有统一标准，系统间就无法交换，人人重复造轮子、处处需要写转换器', '标准降低了协作成本，但也需要随需求持续演进，不能一成不变', '好标准是「约定」而非「枷锁」，通常预留扩展空间（如自定义属性、命名空间）']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="解析 XML 后，要取某个 book 节点上的 isbn 属性值，应该用哪种方式？"
+  options={['book.text', 'book.find(title)', 'book.get(isbn)', 'book.price']}
+  answer={2}
+  explain="节点「属性」用 .get(属性名) 取；.find() 是去找子节点；.text 取的是节点内的文本；所以拿 isbn 属性要用 book.get(isbn)。"
+/>
+
+<QuizItem
+  client:visible
+  question="关于「标准化」，下面哪种理解更贴切？"
+  options={['标准会扼杀创新，能不用就尽量不用', '标准是互通的前提，是创新的地基', '标准只对大公司有用，小团队不必理会', '有了标准就永远不能再改进了']}
+  answer={1}
+  explain="统一标准（如 ISBN、XML）让不同系统能交换与协作，工程师在稳定的「接口」之上才能专注创新；好标准也会持续演进，并非一成不变。"
+/>

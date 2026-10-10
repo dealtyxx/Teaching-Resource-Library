@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>循环日程 · 第4章 分治法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">04</div>算法可视化 · <span>第4章 分治法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-quicksort.html">快排</a><a class="pill" href="03-mergesort.html">归并</a><a class="pill" href="04-binsearch.html">二分</a><a class="pill" href="05-median.html">中位数</a><a class="pill" href="06-maxsub.html">最大子段</a><a class="pill" href="07-chessboard.html">棋盘覆盖</a><a class="pill active" href="08-schedule.html">日程</a><a class="pill" href="09-tsp.html">TSP</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 8 · 加深</div><h1>循环日程安排</h1>
+<p>n=2ᵏ 支队伍，n−1 天每队恰赛一场。分治：先填左上，右上 = 左上 + n/2，再对称填下半。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+<li>能够<b>陈述</b>循环赛日程表问题：n=2<sup>k</sup> 支队伍在 n&minus;1 天内，每队每天恰赛一场，每两队恰赛一次。</li>
+<li>能够<b>解释</b>分治填表法：递归排好左上 n/2 块后，用「右上=左上+n/2、下半对称」三条规则一次性拼出全表。</li>
+<li>能够<b>写出</b>递归填表的 C++ 代码，并说清三条复制规则对应的象限。</li>
+<li>能够<b>推导</b>复杂度 T(n)=T(n/2)+&Theta;(n<sup>2</sup>)=&Theta;(n<sup>2</sup>)，即与表格单元数同阶。</li>
+<li>能够<b>手工验证</b> n=2、n=4 的日程表满足全部约束。</li>
+</ol></div>
+<div class="card">
+  <div class="toolbar">
+    <label>k → n=2ᵏ = <b id="nv">8</b></label>
+    <input type="range" id="kr" min="1" max="4" value="3" style="width:140px;accent-color:#4A6C8C"/>
+    <button class="btn primary" id="run">▶ 填表动画</button>
+  </div>
+  <div class="stage-wrap light">
+    <canvas class="stage" id="cv" width="720" height="400"></canvas>
+  </div>
+  <div class="tip">表[i][j] = 第 i 队在第 j 天的对手（1-based 队号）。</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、问题定义</h2><span class="sub">Round-Robin Tournament</span></div>
+<div class="defn"><span class="lbl">定义</span><p><b>循环赛日程表问题</b>：设有 n=2<sup>k</sup> 支队伍参加循环赛，要求安排一张比赛日程表，满足三条约束：<b>①</b> 每支队伍与其他 n&minus;1 支队伍<b>各赛一场</b>；<b>②</b> 每支队伍<b>每天恰赛一场</b>；<b>③</b> 整个赛程<b>共 n&minus;1 天</b>。</p></div>
+<div class="defn prop"><span class="lbl">表格约定</span><p>用 n&times;n 表 T 存放：第 0 列 T[i][0]=i+1 记<b>队号</b>；第 j 列（1&le;j&le;n&minus;1）记<b>队 i 在第 j 天的对手编号</b>。因每队 n&minus;1 天各赛一场，恰好把其余 n&minus;1 支队伍填满，故表格右侧 n&minus;1 列正是完整赛程。</p></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、分治填表策略</h2><span class="sub">左上递归 + 三条复制规则</span></div>
+<div class="deriv">
+  <span class="step"><b>分解：</b>把 n&times;n 表按中线分成 4 个 (n/2)&times;(n/2) 象限，令 h=n/2</span>
+  <span class="step"><b>求解：</b>先<b>递归</b>填好<b>左上象限</b>——它本身就是「前 h 支队伍、前 h&minus;1 天」的合法子日程</span>
+  <span class="step"><b>合并（三条规则）：</b></span>
+  <span class="step">　右上 T[i][j+h] = T[i][j] + h <span class="why">前 h 队在后 h 天改打「后 h 队」，对手号整体 +h</span></span>
+  <span class="step">　左下 T[i+h][j] = T[i][j+h] <span class="why">后 h 队前 h 天的对手 = 右上块（对称）</span></span>
+  <span class="step">　右下 T[i+h][j+h] = T[i][j] <span class="why">后 h 队后 h 天互打，复用左上块</span></span>
+  <span class="step"><b>出口：</b>n=1 时无需比赛，直接返回</span>
+</div>
+<div class="tip info"><strong>n=4 的完整结果</strong>（第 0 列为队号，第 1~3 列为第 1~3 天的对手）：<br/>
+队1： <b>1</b> | 2 3 4&nbsp;&nbsp;&nbsp;队2： <b>2</b> | 1 4 3<br/>
+队3： <b>3</b> | 4 1 2&nbsp;&nbsp;&nbsp;队4： <b>4</b> | 3 2 1<br/>
+逐天核对：第1天 (1&harr;2)(3&harr;4)；第2天 (1&harr;3)(2&harr;4)；第3天 (1&harr;4)(2&harr;3)——6 对全部出现且每天每队只赛一场。&#10003;</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、复杂度分析</h2><span class="sub">递推式</span></div>
+<div class="formula">T(n) = T(n/2) + &Theta;(n<sup>2</sup>)</div>
+<div class="deriv">
+  <span class="step">只有<b>左上</b>一个象限递归 ⇒ 系数 a=1（不是 4）</span>
+  <span class="step">三条复制规则各遍历 (n/2)<sup>2</sup> 个单元 ⇒ 合并代价 &Theta;(n<sup>2</sup>)，即 f(n)=&Theta;(n<sup>2</sup>)，d=2</span>
+  <span class="step">主定理：a=1, b=2, d=2，log<sub>2</sub>1=0 &lt; 2 ⇒ <b>情形③</b> ⇒ T(n)=&Theta;(n<sup>2</sup>)</span>
+  <span class="step">校验：全表需填 n(n&minus;1) 个对手单元，每个 O(1) ⇒ &Theta;(n<sup>2</sup>)，与结论一致且最优</span>
+</div>
+<div class="tip warn"><strong>易混：</strong>本题<b>只递归一个子块</b>（a=1），不同于棋盘覆盖的 4 个子块（a=4）。两者合并代价也不同：棋盘是 O(1)、日程是 O(n<sup>2</sup>)，因此一个得 &Theta;(n<sup>2</sup>)（情形①）、一个也得 &Theta;(n<sup>2</sup>)（情形③），殊途同归但推导路径不同。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、C++ 实现</h2><span class="sub">与上方填表动画一致</span></div>
+<div class="code"><span class="cm">// T[i][0] = i+1 为队号；T[i][j] = 队 i 第 j 天的对手</span>
+<span class="kw">const int</span> MAXN = <span class="nu">64</span>;
+<span class="kw">int</span> T[MAXN][MAXN];
+
+<span class="cm">// 填满 n×n 日程表（假设左上 n/2 块尚未填，由递归负责）</span>
+<span class="kw">void</span> <span class="fn">fill</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n == <span class="nu">1</span>) <span class="kw">return</span>;                  <span class="cm">// 出口：单队无需比赛</span>
+    <span class="kw">int</span> h = n / <span class="nu">2</span>;
+    <span class="fn">fill</span>(h);                             <span class="cm">// 先递归排好左上 h×h</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; h; ++i)
+        <span class="kw">for</span> (<span class="kw">int</span> j = <span class="nu">0</span>; j &lt; h; ++j) {
+            T[i][j + h]     = T[i][j] + h;   <span class="cm">// 右上 = 左上 + h</span>
+            T[i + h][j]     = T[i][j + h];   <span class="cm">// 左下 = 右上</span>
+            T[i + h][j + h] = T[i][j];       <span class="cm">// 右下 = 左上</span>
+        }
+}
+
+<span class="kw">void</span> <span class="fn">schedule</span>(<span class="kw">int</span> n) {
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; ++i) T[i][<span class="nu">0</span>] = i + <span class="nu">1</span>; <span class="cm">// 初始化队号列</span>
+    <span class="fn">fill</span>(n);
+}</div>
+<div class="tip"><strong>为什么右上要「+h」：</strong>左上块记录的是「前 h 支队伍之间」的对阵，其对手号都在 1..h。前 h 队在后半程（后 h 天）要改打「后 h 支队伍」，把左上块每个对手号统一加 h，正好映射到 h+1..2h 的队号，既不重复也不遗漏。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>五、易错点</h2><span class="sub">Common Pitfalls</span></div>
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+<li><b>误以为要递归 4 个象限</b>：日程表只需递归<b>左上</b>一块，其余三块由复制规则 O(1) 得到，故 a=1 而非 4。</li>
+<li><b>右上块忘记「+h」</b>：直接抄左上会让前 h 队在后半程又跟前 h 队重赛，违反「每两队只赛一次」。</li>
+<li><b>下半两块规则记反</b>：左下=右上、右下=左上；写反会使某天出现两队互不对应（i 说打 j，j 却没打 i）。</li>
+<li><b>复杂度写成 &Theta;(n)</b> 或漏算合并：合并三块共 &Theta;(n<sup>2</sup>) 单元，主定理情形③得 &Theta;(n<sup>2</sup>)。</li>
+<li><b>把队数取成非 2 的幂</b>：此分治构造要求 n=2<sup>k</sup>；n 为奇数或非 2 幂时需另设「轮空」处理，不能直接对半分。</li>
+<li><b>混淆第 0 列与比赛日</b>：第 0 列是队号标签，真正的赛程是第 1..n&minus;1 列，别把队号当成第 0 天的对手统计。</li>
+</ul></div>
+</section>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+<li>循环赛日程表：n=2<sup>k</sup> 队、n&minus;1 天，每队每天一场、两两各赛一次。</li>
+<li>分治只递归<b>左上</b>象限，再用「右上=左上+h、左下=右上、右下=左上」三条规则拼出全表。</li>
+<li>「+h」的本质是把前半队伍的对手整体映射到后半队伍，保证不重复对阵。</li>
+<li>递推式 T(n)=T(n/2)+&Theta;(n<sup>2</sup>)，主定理情形③ ⇒ &Theta;(n<sup>2</sup>)，与单元总数同阶且最优。</li>
+<li>n=4 结果可逐天核对 6 对全出现，验证构造正确。</li>
+</ul></div>
+
+<section class="sec"><div class="sec-head"><h2>自测题</h2><span class="sub">点击选项查看解析</span></div>
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>n=2<sup>k</sup> 支队伍的循环赛，共需安排多少天，每天进行多少场比赛？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>n 天，每天 n 场</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>n&minus;1 天，每天 n/2 场</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>n&minus;1 天，每天 n 场</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>n(n&minus;1)/2 天，每天 1 场</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。每队要和其余 n&minus;1 队各赛一次、每天只赛一场，故需 n&minus;1 天；n 支队伍两两配对，每天同时进行 n/2 场。总场数 = (n&minus;1)&middot;(n/2)=n(n&minus;1)/2，恰为 C(n,2)，与 D 的总场数一致，但 D 把「总场数」误当成「天数」。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>分治填表法构造日程表的时间复杂度是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>&Theta;(n)</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>&Theta;(n log n)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>&Theta;(n<sup>2</sup>)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>&Theta;(n<sup>3</sup>)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。递推式 T(n)=T(n/2)+&Theta;(n<sup>2</sup>)：a=1,b=2,d=2，log<sub>2</sub>1=0&lt;2 属情形③，T=&Theta;(n<sup>2</sup>)。也可直接看：表中要填 n(n&minus;1) 个对手单元，每个 O(1)，共 &Theta;(n<sup>2</sup>)。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>设 h=n/2，已填好左上象限 T[i][j]（0&le;i,j&lt;h）。右上象限的正确填法是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>T[i][j+h] = T[i][j]（直接复制左上）</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>T[i][j+h] = T[i][j] + h</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>T[i][j+h] = T[i][j] &times; 2</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>T[i][j+h] = h &minus; T[i][j]</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。右上象限表示前 h 支队伍在后半程改打「后 h 支队伍」，把左上块的对手号统一加 h，即映射到队号 h+1..2h，保证既是后半队伍又不重复。A 会让前 h 队与前 h 队重赛；C、D 得到的号可能越界或对不上对手。</div>
+  </div>
+</div>
+</section>
+
+<div class="page-nav"><a href="07-chessboard.html"><span class="dir">← 上一节</span><span class="name">棋盘覆盖</span></a><a href="09-tsp.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">TSP</span></a></div>
+<div class="footer">算法设计与分析 · <b>第4章 分治法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(74,108,140,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+let k=3,n=8,T;
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  if(!T) return;
+  const cell=Math.min(36, 680/(n));
+  const ox=30, oy=30;
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++){
+    const v=T[i][j];
+    ctx.fillStyle=v?`hsl(${(v*40)%360} 50% 85%)`:'#F5F3EC';
+    ctx.fillRect(ox+j*cell, oy+i*cell, cell-1, cell-1);
+    if(v){ ctx.fillStyle='#1D1B16'; ctx.font=`${Math.max(9,cell*0.35)}px sans-serif`; ctx.textAlign='center';
+      ctx.fillText(v, ox+j*cell+cell/2, oy+i*cell+cell*0.62); }
+  }
+  ctx.fillStyle='#7A746A'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('行=队伍  列=天（第0列可视为队号）', ox, oy+n*cell+20);
+}
+async function fill(){
+  n=1<<k; nv.textContent=n;
+  T=Array.from({length:n},()=>Array(n).fill(0));
+  for(let i=0;i<n;i++) T[i][0]=i+1;
+  async function dc(m){
+    if(m===1) return;
+    const h=m/2; await dc(h);
+    // copy blocks
+    for(let i=0;i<h;i++) for(let j=0;j<h;j++){
+      T[i][j+h]=T[i][j]+h;
+      T[i+h][j]=T[i][j+h];
+      T[i+h][j+h]=T[i][j];
+    }
+    draw(); await sleep(400);
+  }
+  await dc(n); draw();
+}
+kr.oninput=()=>{ k=+kr.value; n=1<<k; nv.textContent=n; T=null; draw(); };
+run.onclick=fill;
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

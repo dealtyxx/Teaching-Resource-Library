@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>分治法总览 · 第4章 分治法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">04</div>算法可视化 · <span>第4章 分治法</span></div>
+<div class="links"><a class="pill active" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-quicksort.html">快排</a><a class="pill" href="03-mergesort.html">归并</a><a class="pill" href="04-binsearch.html">二分</a><a class="pill" href="05-median.html">中位数</a><a class="pill" href="06-maxsub.html">最大子段</a><a class="pill" href="07-chessboard.html">棋盘覆盖</a><a class="pill" href="08-schedule.html">日程</a><a class="pill" href="09-tsp.html">TSP</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow"><span class="pulse-dot"></span> Chapter 4 · Divide & Conquer · Deep Demo</div>
+  <h1>第4章 分治法 · 算法演示加深</h1>
+  <p>分解 → 求解 → 合并。快排/归并柱状动画、二分指针、棋盘 L 骨牌、跨中最大子段等全部可逐步播放。</p>
+  <div class="hero-meta"><span class="chip on">9 节加深</span><span class="chip">Canvas 柱状/棋盘</span><span class="chip">速度控制</span></div>
+</section>
+
+<div class="objectives"><h3>本章学习目标</h3><ol>
+  <li>能够<b>陈述</b>分治法「分解 &rarr; 求解 &rarr; 合并」三步框架，并判断一个问题是否适合用分治求解。</li>
+  <li>能够熟练用<b>主定理</b>与<b>递归树</b>求解形如 T(n)=aT(n/b)+f(n) 的分治递推式。</li>
+  <li>能够<b>写出</b>快速排序、归并排序、二分查找、双序列中位数、最大子段和的分治实现并分析其复杂度。</li>
+  <li>能够把分治思想<b>应用</b>到棋盘覆盖、循环日程等构造性问题上。</li>
+  <li>能够<b>指出</b>分治法的适用边界——如 TSP 因子问题不独立而只能用分治做近似。</li>
+</ol></div>
+<div class="grid grid-3"><a class="feature-card" href="01-overview.html" data-ico="✂️" style="--c:#4A6C8C"><div class="num">§ 01</div><h3>分治概述</h3><p>三步曲 · 递归树</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="02-quicksort.html" data-ico="⚡" style="--c:#9C7420"><div class="num">§ 02</div><h3>快速排序</h3><p>分区指针动画</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="03-mergesort.html" data-ico="🔀" style="--c:#C2603F"><div class="num">§ 03</div><h3>归并排序</h3><p>分裂与合并</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="04-binsearch.html" data-ico="🔎" style="--c:#7E62A6"><div class="num">§ 04</div><h3>二分查找</h3><p>lo/mid/hi 收敛</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="05-median.html" data-ico="📐" style="--c:#356F62"><div class="num">§ 05</div><h3>双序列中位数</h3><p>对半丢弃</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="06-maxsub.html" data-ico="📈" style="--c:#A02C55"><div class="num">§ 06</div><h3>最大子段和</h3><p>跨中线合并</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="07-chessboard.html" data-ico="🧩" style="--c:#4A6C8C"><div class="num">§ 07</div><h3>棋盘覆盖</h3><p>L 型骨牌</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="08-schedule.html" data-ico="📅" style="--c:#9C7420"><div class="num">§ 08</div><h3>循环日程</h3><p>分治填表</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="09-tsp.html" data-ico="🗺️" style="--c:#6E5691"><div class="num">§ 09</div><h3>TSP 分治示意</h3><p>划分近似</p><div class="go">进入加深演示 →</div></a></div>
+
+<section class="sec"><div class="sec-head"><h2>知识地图</h2><span class="sub">Knowledge Map · 九节之间的依赖关系</span></div>
+
+<div class="list-step"><span class="n">A</span><div class="body"><b>框架与工具（§01 概述）</b>：先建立「分解 → 求解 → 合并」的通用模板，配合<b>主定理 / 递归树</b>这套求解递推式的工具。这是全章的地基，后续每一节都在往这个模板里填内容。</div></div>
+<div class="list-step"><span class="n">B</span><div class="body"><b>排序与查找类（§02 快排、§03 归并、§04 二分）</b>：最经典的分治样板。快排 T(n)=2T(n/2)+&Theta;(n)「重活在划分」，归并同式但「重活在合并」且稳定，二分 T(n)=T(n/2)+&Theta;(1) 每次丢弃一半。三者共同诠释主定理情形①②。</div></div>
+<div class="list-step"><span class="n">C</span><div class="body"><b>选择与优化类（§05 双序列中位数、§06 最大子段和）</b>：§05 用「对半丢弃」把两个有序数组求中位数降到 &Theta;(log n)；§06 用「跨中线合并」把最大子段和降到 &Theta;(n log n)，展示合并步骤如何承载关键逻辑。</div></div>
+<div class="list-step"><span class="n">D</span><div class="body"><b>构造类（§07 棋盘覆盖、§08 循环日程）</b>：分治不止用于「求值」，也能<b>构造解</b>。§07 用一块 L 骨牌把 4 个象限统一为子问题（a=4）；§08 只递归左上块、其余靠复制规则（a=1）。二者都得 &Theta;(n<sup>2</sup>) 却路径不同。</div></div>
+<div class="list-step"><span class="n">E</span><div class="body"><b>难解边界（§09 TSP）</b>：作为全章落脚点，说明分治并非万能。TSP 最优回路跨越分界线、子问题不独立，分治只能作启发式；精确解须靠动态规划或分支限界（第 6 章）。</div></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>小节</th><th>递推式 / 模型</th><th>复杂度</th><th>分治要点</th></tr>
+  <tr><td>§01 概述</td><td>分解/求解/合并 + 主定理</td><td>—</td><td>全章方法论地基</td></tr>
+  <tr><td>§02 快速排序</td><td>T(n)=2T(n/2)+&Theta;(n)（平均）</td><td class="hl">平均 O(n log n)，最坏 O(n<sup>2</sup>)</td><td>重活在划分，空合并</td></tr>
+  <tr><td>§03 归并排序</td><td>T(n)=2T(n/2)+&Theta;(n)</td><td class="hl">&Theta;(n log n)</td><td>重活在合并，稳定</td></tr>
+  <tr><td>§04 二分查找</td><td>T(n)=T(n/2)+&Theta;(1)</td><td class="hl">&Theta;(log n)</td><td>每次丢弃一半</td></tr>
+  <tr><td>§05 双序列中位数</td><td>T(n)=T(n/2)+&Theta;(1)</td><td class="hl">&Theta;(log n)</td><td>对半丢弃</td></tr>
+  <tr><td>§06 最大子段和</td><td>T(n)=2T(n/2)+&Theta;(n)</td><td class="hl">&Theta;(n log n)</td><td>跨中线合并</td></tr>
+  <tr><td>§07 棋盘覆盖</td><td>T(n)=4T(n/2)+&Theta;(1)</td><td class="hl">&Theta;(n<sup>2</sup>)</td><td>L 骨牌造子问题（a=4）</td></tr>
+  <tr><td>§08 循环日程</td><td>T(n)=T(n/2)+&Theta;(n<sup>2</sup>)</td><td class="hl">&Theta;(n<sup>2</sup>)</td><td>只递归左上块（a=1）</td></tr>
+  <tr><td>§09 TSP</td><td>NP 难，分治仅作启发式</td><td class="hl">精确 O(n<sup>2</sup>2<sup>n</sup>) / 近似</td><td>子问题不独立</td></tr>
+</table></div>
+
+<div class="tip info"><strong>学习路径建议：</strong>先吃透 §01 的三步框架与主定理，再沿「排序查找（§02–§04）→ 选择优化（§05–§06）→ 构造（§07–§08）→ 难解边界（§09）」推进。若时间紧张，务必掌握 §01 的递推式求解与 §02/§03 这两个最典型的分治样板。</div>
+
+<div class="terms">
+  <span class="term"><b>分治法</b>divide and conquer</span>
+  <span class="term"><b>主定理</b>master theorem</span>
+  <span class="term"><b>递归树</b>recursion tree</span>
+  <span class="term"><b>划分</b>partition</span>
+  <span class="term"><b>合并</b>merge</span>
+  <span class="term"><b>稳定性</b>stability</span>
+  <span class="term"><b>旅行商问题</b>travelling salesman problem</span>
+</div>
+</section>
+
+<div class="page-nav"><div></div><a href="01-overview.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">概述</span></a></div>
+<div class="footer">算法设计与分析 · <b>第4章 分治法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(74,108,140,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

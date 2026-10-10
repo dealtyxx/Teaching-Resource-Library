@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>递归总览 · 第2章 递归算法设计技术</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">02</div>算法可视化 · <span>第2章 递归算法设计技术</span></div>
+<div class="links"><a class="pill active" href="index.html">总览</a><a class="pill" href="01-concept.html">概念</a><a class="pill" href="02-model.html">模型</a><a class="pill" href="03-cases.html">情形</a><a class="pill" href="04-stack.html">系统栈</a><a class="pill" href="05-fib-tree.html">Fib树</a><a class="pill" href="06-hanoi.html">汉诺塔</a><a class="pill" href="07-induction.html">归纳</a><a class="pill" href="08-knapsack.html">背包递归</a><a class="pill" href="09-recurrence.html">递推式</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow"><span class="pulse-dot"></span> Chapter 2 · Recursion · Deep Demo</div>
+  <h1>第2章 递归算法 · 演示加深</h1>
+  <p>栈帧、Fib 树、汉诺塔圆盘、记忆化背包、递推式主定理可视化。</p>
+</section>
+
+<div class="objectives"><h3>本章学习目标</h3><ol>
+<li>能够<b>陈述</b>递归成立的三大条件，并判断一个给定问题是否适合用递归求解。</li>
+<li>能够<b>写出</b>问题的递归模型 f(n)=g(n) | h(n,f(n−1))，即"递归出口 + 递归体"，并据此实现 C++ 递归函数。</li>
+<li>能够<b>解释</b>系统栈（system stack）中栈帧的构成，估算递归算法的空间复杂度 O(递归深度)。</li>
+<li>能够<b>画出</b>递归树、识别重复子问题，并用记忆化（memoization）或自底向上迭代加以优化。</li>
+<li>能够<b>建立并求解</b>递归算法的时间复杂度递推式：展开法、递归树法、主定理（Master Theorem）。</li>
+</ol></div>
+
+<div class="grid grid-3"><a class="feature-card" href="01-concept.html" data-ico="🔁" style="--c:#7E62A6"><div class="num">§ 01</div><h3>递归概念</h3><p>三大条件</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="02-model.html" data-ico="📐" style="--c:#C2603F"><div class="num">§ 02</div><h3>递归模型</h3><p>出口与递归体</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="03-cases.html" data-ico="📋" style="--c:#356F62"><div class="num">§ 03</div><h3>使用情形</h3><p>定义/结构/问题递归</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="04-stack.html" data-ico="📚" style="--c:#9C7420"><div class="num">§ 04</div><h3>系统栈</h3><p>栈帧动画</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="05-fib-tree.html" data-ico="🌳" style="--c:#A02C55"><div class="num">§ 05</div><h3>Fib 递归树</h3><p>重复子问题</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="06-hanoi.html" data-ico="🗼" style="--c:#4A6C8C"><div class="num">§ 06</div><h3>汉诺塔</h3><p>圆盘移动</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="07-induction.html" data-ico="✏️" style="--c:#7E62A6"><div class="num">§ 07</div><h3>数学归纳</h3><p>设计步骤</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="08-knapsack.html" data-ico="🎒" style="--c:#C2603F"><div class="num">§ 08</div><h3>背包递归</h3><p>记忆化对比</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="09-recurrence.html" data-ico="Σ" style="--c:#356F62"><div class="num">§ 09</div><h3>递推式</h3><p>展开/主定理</p><div class="go">进入加深演示 →</div></a></div>
+
+<section class="sec"><div class="sec-head"><h2>知识地图</h2><span class="sub">Knowledge Map · 学习依赖链</span></div>
+
+<div class="formula lg"><em>概念</em> §01 ⇒ <em>模型</em> §02 ⇒ <em>情形</em> §03 ⇒ <em>系统栈</em> §04 ⇒ <em>递归树</em> §05 ⇒ <em>递推式求解</em> §09</div>
+
+<div class="tip info"><strong>怎么读这条链：</strong>前四节回答"<b>递归是什么、怎么写、什么时候写、机器怎么执行</b>"；§05–§08 用四个经典问题把递归<b>写出来</b>；§09 回答"<b>写出来的递归到底有多快</b>"。§09 的展开法直接用到 §06 汉诺塔的递推式，§09 的递归树法直接用到 §05 的 Fib 树——所以 §09 必须放在最后学。</div>
+
+<div class="list-step"><span class="n">1</span><div class="body"><b>§01 概念</b>（起点）：三大条件 = 可分解 + 有出口 + 可合并；为 §02"必须有出口"提供依据。</div></div>
+<div class="list-step"><span class="n">2</span><div class="body"><b>§02 模型</b>（核心工具）：把三大条件形式化为 f(n)=g(n)（n=n<sub>0</sub>）与 f(n)=h(n,f(n−1))（n&gt;n<sub>0</sub>）。<b>本章之后所有代码都由这两行推出。</b></div></div>
+<div class="list-step"><span class="n">3</span><div class="body"><b>§03 情形</b>（适用判定）：定义递归 / 数据结构递归 / 问题求解递归三类判定标准，外加"何时<b>不</b>该用递归"。</div></div>
+<div class="list-step"><span class="n">4</span><div class="body"><b>§04 系统栈</b>（执行机制）：递归靠栈帧实现 ⇒ 空间复杂度 = O(最大递归深度) ⇒ 解释栈溢出，也解释 §05 记忆化为何省的是<b>时间</b>不是<b>栈深</b>。</div></div>
+<div class="list-step"><span class="n">5</span><div class="body"><b>§05 递归树</b>（分析工具）：把调用过程画成树。树的<b>结点总数 = 时间</b>，树的<b>高度 = 空间</b>。这是 §09 递归树法的直接前置。</div></div>
+<div class="list-step"><span class="n">6</span><div class="body"><b>§06–§08 三个范例</b>：汉诺塔（纯递归，T(n)=2T(n−1)+1）、归纳法证明（正确性）、0/1 背包（递归 + 记忆化 ⇒ 通向第 7 章动态规划）。</div></div>
+<div class="list-step"><span class="n">7</span><div class="body"><b>§09 递推式求解</b>（终点）：展开法、递归树法、主定理三件套，把前面所有递归代码定量化为 Θ(·)。</div></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>节</th><th>核心产出</th><th>依赖于</th><th>被谁使用</th></tr>
+  <tr><td>§01 概念</td><td>三大条件</td><td>—</td><td>§02 §03</td></tr>
+  <tr><td>§02 模型</td><td class="hl">出口 + 递归体</td><td>§01</td><td>§03–§08 全部代码</td></tr>
+  <tr><td>§03 情形</td><td>三类递归判定</td><td>§01 §02</td><td>§05 §06 §08</td></tr>
+  <tr><td>§04 系统栈</td><td class="hl">空间 = O(深度)</td><td>§02</td><td>§05 §06 §09</td></tr>
+  <tr><td>§05 Fib 树</td><td>重复子问题 / 记忆化</td><td>§02 §04</td><td>§08 §09（递归树法）</td></tr>
+  <tr><td>§06 汉诺塔</td><td>T(n)=2T(n−1)+1</td><td>§02 §03</td><td>§07 §09（展开法）</td></tr>
+  <tr><td>§07 归纳法</td><td>递归正确性证明</td><td>§02 §06</td><td>全章</td></tr>
+  <tr><td>§08 背包</td><td>状态 dfs(i,c) + 记忆化</td><td>§05</td><td>第 7 章 动态规划</td></tr>
+  <tr><td>§09 递推式</td><td class="hl">展开 / 递归树 / 主定理</td><td>§05 §06</td><td>第 3–5 章 分治</td></tr>
+</table></div>
+
+<div class="terms">
+  <span class="term"><b>递归</b>recursion</span>
+  <span class="term"><b>递归出口</b>base case</span>
+  <span class="term"><b>递归体</b>recursive case</span>
+  <span class="term"><b>栈帧</b>stack frame</span>
+  <span class="term"><b>递归树</b>recursion tree</span>
+  <span class="term"><b>重复子问题</b>overlapping subproblems</span>
+  <span class="term"><b>记忆化</b>memoization</span>
+  <span class="term"><b>递推式</b>recurrence relation</span>
+  <span class="term"><b>主定理</b>Master Theorem</span>
+  <span class="term"><b>数学归纳法</b>mathematical induction</span>
+</div>
+</section>
+
+<div class="page-nav"><div></div><a href="01-concept.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">概念</span></a></div>
+<div class="footer">算法设计与分析 · <b>第2章 递归算法设计技术</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(126,98,166,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

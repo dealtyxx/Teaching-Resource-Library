@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>分配TSP · 第5章 回溯法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">05</div>算法可视化 · <span>第5章 回溯法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-trees.html">树类型</a><a class="pill" href="03-powerset.html">幂集</a><a class="pill" href="04-prune.html">剪支</a><a class="pill" href="05-knapsack.html">背包</a><a class="pill" href="06-coloring.html">着色</a><a class="pill" href="07-perm.html">全排列</a><a class="pill" href="08-nqueens.html">n皇后</a><a class="pill active" href="09-opt.html">任务分配</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 9 · 加深</div><h1>任务分配 · 限界 vs 枚举</h1>
+<p>排列树最小化 Σ c[i][x[i]]。bound = 当前 + 后续各行未用列最小值之和。</p></section>
+<div class="card">
+  <div class="toolbar"><button class="btn primary" id="btnBound">限界回溯</button><button class="btn" id="brute">全排列枚举</button></div>
+  <div id="mat"></div>
+  <div class="stat-row">
+    <div class="stat"><span>最优成本</span><b class="p" id="best">—</b></div>
+    <div class="stat"><span>访问结点</span><b class="a" id="nodes">0</b></div>
+  </div>
+  <div class="log" id="log">成本矩阵 4×4</div>
+  <div class="formula">仅扩展 bound(cost,i) &lt; best 的分支</div>
+</div>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够把<b>任务分配（指派）问题</b>建模为排列树上的最优化搜索，写出目标函数 min &Sigma; C[i][x[i]]。</li>
+  <li>能够<b>构造并证明</b>本问题的限界函数（下界）：已用成本 + 后续各行未用列最小值之和，说明它为何<b>不会高估</b>真实完成成本。</li>
+  <li>能够写出<b>最小化问题</b>的剪支判据 bound &ge; best &rArr; 剪支，并解释它与最大化问题取上界的对称性。</li>
+  <li>能够<b>对比</b>限界回溯与纯全排列枚举在访问结点数上的差距，理解"好的 best 值使限界更有效"。</li>
+  <li>能够指出<b>限界方向取反</b>（最小化误用上界）会静默丢失最优解，属最难排查的错误。</li>
+</ol></div>
+
+<section class="sec"><div class="sec-head"><h2>一、问题建模</h2><span class="sub">指派问题 · 排列树 · 目标函数</span></div>
+
+<div class="defn"><span class="lbl">定义 1 · 任务分配问题</span><p>有 n 个人与 n 项任务，把第 i 个人指派给任务 j 的成本为 C[i][j]。要求给每人分配<b>互不相同</b>的一项任务（即一个<b>一一对应</b>），使总成本最小。解向量 x = (x<sub>0</sub>, &hellip;, x<sub>n-1</sub>) 中 x<sub>i</sub> 表示第 i 个人所分到的任务号，且 x 必须是 {0,&hellip;,n&minus;1} 的一个<b>排列</b>。因此解空间是一棵<b>排列树</b>，叶子数 n!。</p></div>
+
+<div class="formula lg">目标：min<sub>x &isin; 排列</sub> &Sigma;<sub>i=0</sub><sup>n&minus;1</sup> C[i][x[i]]</div>
+
+<div class="tip info"><strong>与 §07 的关系：</strong>任务分配就是"带目标函数的全排列问题"。§07 只是枚举全部排列；这里要在排列中挑<b>成本最小</b>的那个。这一步之差，正是<b>约束函数问题</b>升级为<b>限界函数问题</b>的分水岭。</div>
+
+<div class="terms">
+  <span class="term"><b>任务分配</b>assignment problem</span>
+  <span class="term"><b>限界函数</b>bounding function</span>
+  <span class="term"><b>下界</b>lower bound</span>
+  <span class="term"><b>最优性剪支</b>optimality pruning</span>
+  <span class="term"><b>松弛</b>relaxation</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、限界函数（下界）</h2><span class="sub">为什么行最小值之和不会高估</span></div>
+
+<div class="defn"><span class="lbl">定义 2 · 限界函数</span><p>设已给前 i 个人分配完毕、累计成本为 cost，已用任务集合为 used。对<b>还没分配</b>的每一行 r（r = i, &hellip;, n&minus;1），它最终必须落到某个<b>尚未使用</b>的列上，其成本至少是该行在未用列中的<b>最小元</b>。于是定义下界：</p></div>
+
+<div class="formula">bound = cost + &Sigma;<sub>r=i</sub><sup>n&minus;1</sup> min{ C[r][j] : j 未被使用 }</div>
+
+<div class="deriv">
+  <span class="step">真实完成成本 = cost + &Sigma;<sub>r=i</sub><sup>n&minus;1</sup> C[r][x<sub>r</sub>]，其中 x<sub>r</sub> 是某个未用列 <span class="why">每行必占一个不同的未用列</span></span>
+  <span class="step">对每一行 r：C[r][x<sub>r</sub>] &ge; min{未用列的 C[r][j]} <span class="why">最小元不大于任何具体取值</span></span>
+  <span class="step">逐行求和：&Sigma; C[r][x<sub>r</sub>] &ge; &Sigma; 行最小元 <span class="why">不等式可加</span></span>
+  <span class="step">&rArr; bound &le; 真实完成成本，<b>下界永不高估</b> <span class="why">这就是"可采纳/admissible"下界</span></span>
+  <span class="step">该估计<b>放松</b>了"各行占用列互不相同"的约束（允许两行取同一最小列），松弛只会让界更小，仍是合法下界 <span class="why">松弛 = 去掉部分约束求更易算的界</span></span>
+</div>
+
+<div class="code"><span class="cm">// ── 任务分配 · 限界回溯（最小化）────────────────</span>
+<span class="kw">int</span> n, C[N][N], best = INF, x[N], bestx[N];
+<span class="kw">bool</span> used[N];
+
+<span class="kw">int</span> <span class="fn">bound</span>(<span class="kw">int</span> cost, <span class="kw">int</span> i) {     <span class="cm">// 下界 = 已用成本 + 后续各行未用列最小值之和</span>
+    <span class="kw">int</span> lb = cost;
+    <span class="kw">for</span> (<span class="kw">int</span> r = i; r &lt; n; r++) {
+        <span class="kw">int</span> mn = INF;
+        <span class="kw">for</span> (<span class="kw">int</span> j = <span class="nu">0</span>; j &lt; n; j++)
+            <span class="kw">if</span> (!used[j]) mn = min(mn, C[r][j]);
+        lb += mn;
+    }
+    <span class="kw">return</span> lb;
+}
+
+<span class="kw">void</span> <span class="fn">dfs</span>(<span class="kw">int</span> i, <span class="kw">int</span> cost) {     <span class="cm">// i：正在给第 i 个人分配；cost：前 i 人累计成本</span>
+    <span class="kw">if</span> (i &gt;= n) {                    <span class="cm">// 叶子 → 一个完整分配方案</span>
+        <span class="kw">if</span> (cost &lt; best) { best = cost; <span class="fn">copy</span>(x, bestx); }
+        <span class="kw">return</span>;
+    }
+    <span class="kw">for</span> (<span class="kw">int</span> j = <span class="nu">0</span>; j &lt; n; j++) <span class="kw">if</span> (!used[j]) {
+        used[j] = <span class="kw">true</span>; x[i] = j;             <span class="cm">// 做选择</span>
+        <span class="kw">int</span> nc = cost + C[i][j];
+        <span class="kw">if</span> (<span class="fn">bound</span>(nc, i + <span class="nu">1</span>) &lt; best)      <span class="cm">// 限界剪支：下界 ≥ best 则整支砍掉</span>
+            <span class="fn">dfs</span>(i + <span class="nu">1</span>, nc);
+        used[j] = <span class="kw">false</span>;                     <span class="cm">// 撤销（回溯还原 used）</span>
+    }
+}</div>
+
+<div class="formula">最小化：bound &ge; best &rArr; 剪支&emsp;&emsp;（对偶）最大化：bound &le; best &rArr; 剪支</div>
+
+<div class="tip warn"><strong>方向绝不能反：</strong>最小化问题必须用<b>下界</b>，且当 <b>下界 &ge; 当前最优 best</b> 时才可剪。若误用<b>上界</b>或把判据写成 bound &le; best，就可能把<b>含最优解</b>的子树剪掉，程序不报错却给出错误答案——这是最优性剪支最隐蔽的 bug。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、限界 vs 枚举</h2><span class="sub">同样 n!，实际结点差一个数量级</span></div>
+
+<div class="deriv">
+  <span class="step">排列树叶子 n!，纯枚举访问全部叶子 &rArr; &Theta;(n!) 个完整方案 <span class="why">"全排列枚举"按钮的行为</span></span>
+  <span class="step">限界回溯在内部结点用 bound 判死，大量子树未生成即被剪 <span class="why">bound &ge; best 的分支整支跳过</span></span>
+  <span class="step">单结点 bound 计算 O(n<sup>2</sup>)（n 行 × 扫 n 列取最小） <span class="why">这是限界的额外常数开销</span></span>
+  <span class="step">最坏时间仍 O(n!&middot;n<sup>2</sup>)：存在使 bound 始终 &lt; best 的实例，一次也剪不掉 <span class="why">剪支不改指数阶</span></span>
+  <span class="step">越早得到小的 best，bound &ge; best 越易成立、剪支越猛 &rArr; 好的初始解是加速关键 <span class="why">可先用贪心求一个 best 初值</span></span>
+</div>
+
+<div class="tip info"><strong>本页对照实验：</strong>对示例 4&times;4 矩阵，两种方法都给出最优成本 <b>13</b>（分配 x=(1,0,2,3)），但"限界回溯"访问的结点数明显少于"全排列枚举"的 24 个叶子——点两个按钮对比 <b>访问结点</b> 计数即可直观看到限界的收益。</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>限界方向取反。</b>最小化用<b>下界</b>、最大化用<b>上界</b>；方向反了会剪掉含最优解的分支，得到错误答案且不报错，极难排查。</li>
+  <li><b>剪支判据写反。</b>最小化是 <b>bound &ge; best 剪支</b>（即只在 bound &lt; best 时深入）。写成 bound &le; best 会把好分支全剪掉。</li>
+  <li><b>下界取得"太紧以致高估"。</b>限界函数<b>宁松勿紧到越界</b>：只要出现一次 bound &gt; 真实完成成本，就可能误剪最优解。行最小值和之所以安全，正因它是<b>松弛</b>下界，永不高估。</li>
+  <li><b>忘记撤销 used[]。</b>used[j] 是共享状态，回溯时必须 used[j]=false 还原，否则后续兄弟分支会误以为该列已被占。</li>
+  <li><b>把它当成只需约束函数的问题。</b>任务分配有目标函数，是<b>最优化</b>问题，约束函数（列互异）与限界函数（下界）<b>两者都要</b>；只有限界函数才带来数量级加速。</li>
+  <li><b>误以为限界把复杂度降为多项式。</b>最坏仍 O(n!&middot;n<sup>2</sup>)；限界只压低平均/实际结点数。指派问题若要多项式精确解应用<b>匈牙利算法</b> O(n<sup>3</sup>)，那是另一套方法。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li><b>建模</b>：任务分配 = 排列树上最小化 &Sigma; C[i][x[i]]，是"带目标函数的全排列"，属最优化问题。</li>
+  <li><b>限界函数（下界）</b>= 已用成本 + 后续各行未用列最小值之和；它是<b>松弛下界</b>，永不高估真实完成成本，因而可安全用于剪支。</li>
+  <li><b>剪支判据</b>：最小化 bound &ge; best 剪支（只在 bound &lt; best 时深入）；最大化对偶为 bound &le; best 剪支。方向与判据都不可写反。</li>
+  <li><b>约束 + 限界缺一不可</b>：列互异靠约束（used[]），效率靠限界；越早得到小 best 剪支越有效。</li>
+  <li>最坏复杂度仍 <b>O(n!&middot;n<sup>2</sup>)</b>，限界只降实际结点数；示例矩阵最优成本 <b>13</b>。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>任务分配（最小化）中，限界函数取"已用成本 + 后续各行未用列最小值之和"。它为何是一个合法的可用于剪支的界？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>因为它恰好等于真实完成成本，估计毫无误差</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>因为每行真实成本 ≥ 该行未用列最小元，求和后该界 ≤ 真实完成成本，是不高估的下界</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>因为它是真实完成成本的上界，最小化问题用上界剪支</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>因为它总是大于 best，从而能剪掉所有分支</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。最小化问题需要一个<b>不高估</b>的<b>下界</b>：每个未分配行最终占某未用列，其成本不小于该行在未用列上的最小元，逐行求和便得 bound &le; 真实完成成本。因此若连这个乐观下界都已 &ge; best，真实成本更不可能优于 best，可安全剪掉。A 错在它一般<b>严格小于</b>真实成本（允许多行取同一最小列，是松弛）；C 把下界说成上界、方向全反；D 是无稽之谈，界若恒大于 best 则连最优解也被剪。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>某同学把最小化任务分配的剪支条件写成"当 bound &le; best 时剪支"。会发生什么？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>没问题，效果与 bound ≥ best 剪支等价</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>恰好剪掉最有希望（下界更小）的分支，会漏掉最优解甚至找不到任何解</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>只是变慢，答案仍然正确</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>会导致数组越界崩溃</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。正确判据是 <b>bound &ge; best 才剪</b>（下界已不优于当前最优，才没希望）。写成 bound &le; best 恰好相反：下界越小说明越有希望，却被当作"该剪"砍掉，于是最有前途的分支全被误杀，最优解被漏掉。C 错在这不是变慢而是结果错误；D 与判据方向无关，不会越界。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>关于限界回溯与全排列枚举在任务分配上的比较，<b>错误</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>两者的解空间都是排列树，叶子数都是 n!</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>越早得到较小的 best，限界函数越容易触发剪支，搜索越快</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>加入限界函数后，最坏时间复杂度从 O(n!) 降为多项式 O(n<sup>2</sup>)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>限界回溯在每个结点多花 O(n<sup>2</sup>) 计算下界，但通常靠剪支省下的结点数远超这点开销</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C（错误项）。限界<b>不改变</b>最坏复杂度阶：总存在使 bound 始终小于 best、一次也剪不掉的实例，此时仍需访问 &Theta;(n!) 个结点，加上每结点 O(n<sup>2</sup>) 的界计算，最坏为 O(n!&middot;n<sup>2</sup>)，仍是指数级。若要多项式精确求解指派问题，应改用匈牙利算法 O(n<sup>3</sup>)。A、B、D 均正确，其中 B、D 点出了限界的收益与代价的权衡。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="08-nqueens.html"><span class="dir">← 上一节</span><span class="name">n皇后</span></a><div></div></div>
+<div class="footer">算法设计与分析 · <b>第5章 回溯法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(110,86,145,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const C=[[9,2,7,8],[6,4,3,7],[5,8,1,8],[7,6,9,4]];
+function table(hl=null){
+  let h='<table style="border-collapse:collapse;width:100%;font-size:13px"><tr><td></td>';
+  for(let j=0;j<4;j++) h+=`<td style="padding:8px;color:#7A746A">任务${j}</td>`;
+  h+='</tr>';
+  C.forEach((row,i)=>{
+    h+=`<tr><td style="padding:8px;color:#7A746A">人${i}</td>`;
+    row.forEach((v,j)=>{
+      const on=hl&&hl[i]===j;
+      h+=`<td style="padding:10px;text-align:center;border:1px solid ${on?'#6E5691':'#E4E0D4'};background:${on?'#F7F2EA':'#fff'};font-weight:${on?800:400}">${v}</td>`;
+    });
+    h+='</tr>';
+  });
+  mat.innerHTML=h+'</table>';
+}
+function bound(cost,i,used){
+  let b=cost;
+  for(let r=i;r<4;r++){ let mn=1e9; for(let j=0;j<4;j++) if(!used[j]) mn=Math.min(mn,C[r][j]); b+=mn; }
+  return b;
+}
+document.getElementById('btnBound').onclick=()=>{
+  let best=1e9,bx=null,nodes=0;
+  const x=[-1,-1,-1,-1], used=[0,0,0,0];
+  function dfs(i,cost){
+    nodes++;
+    if(i>=4){ if(cost<best){best=cost;bx=x.slice();} return; }
+    for(let j=0;j<4;j++) if(!used[j]){
+      used[j]=1; x[i]=j; const nc=cost+C[i][j];
+      if(bound(nc,i+1,used)<best) dfs(i+1,nc);
+      used[j]=0; x[i]=-1;
+    }
+  }
+  dfs(0,0);
+  document.getElementById('best').textContent=best;
+  document.getElementById('nodes').textContent=nodes;
+  table(bx); log.textContent=`限界：${nodes} 结点 · x=(${bx}) · 成本 ${best}`;
+};
+brute.onclick=()=>{
+  let best=1e9,bx=null,cnt=0; const a=[0,1,2,3];
+  function perm(l){
+    if(l===4){ cnt++; let s=0; for(let i=0;i<4;i++) s+=C[i][a[i]]; if(s<best){best=s;bx=a.slice();} return; }
+    for(let i=l;i<4;i++){ [a[l],a[i]]=[a[i],a[l]]; perm(l+1); [a[l],a[i]]=[a[i],a[l]]; }
+  }
+  perm(0);
+  document.getElementById('best').textContent=best;
+  document.getElementById('nodes').textContent=cnt;
+  table(bx); log.textContent=`枚举 ${cnt} 排列 · 成本 ${best}`;
+};
+table();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

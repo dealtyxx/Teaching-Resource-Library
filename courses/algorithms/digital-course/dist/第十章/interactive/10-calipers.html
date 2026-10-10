@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>旋转卡壳 · 第10章 计算几何</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">10</div>算法可视化 · <span>第10章 计算几何</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-vector.html">向量运算</a><a class="pill" href="02-direction.html">方向判断</a><a class="pill" href="03-point-seg.html">点与线段</a><a class="pill" href="04-intersect.html">线段相交</a><a class="pill" href="05-inpoly.html">点在多边形</a><a class="pill" href="06-area.html">多边形面积</a><a class="pill" href="07-jarvis.html">礼品包裹</a><a class="pill" href="08-graham.html">Graham</a><a class="pill" href="09-closest.html">最近点对</a><a class="pill active" href="10-calipers.html">旋转卡壳</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 10 · 对踵点</div>
+  <h1>旋转卡壳 · 直径示意</h1>
+  <p>先求凸包，再用平行支撑线旋转找最远点对（直径）。动画展示对踵边推进。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>理解<b>凸多边形直径</b>就是点集的<b>最远点对</b>距离，且这对点一定都在<b>凸包顶点</b>上</li>
+  <li>掌握<b>对踵点对</b>（antipodal pair）概念：能被<b>一对平行支撑线</b>同时夹住的两个顶点，最远点对必是对踵点对</li>
+  <li>掌握<b>旋转卡壳</b>思想：两条平行支撑线绕凸包同向旋转，用<b>叉积/面积</b>判断哪条边先转到，双指针推进</li>
+  <li>能分析：求凸包 <b>O(n log n)</b> 之后，卡壳一趟<b>两指针各绕行一圈</b>为 <b>O(h)</b>，故求直径整体 O(n log n)</li>
+  <li>了解卡壳可解的一类问题：直径 / 最远点对、凸多边形<b>宽度</b>、最小外接矩形等</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="run">▶ 求直径</button>
+    <button class="btn" id="rand">🎲 随机</button>
+  </div>
+  <div class="stage-wrap light" style="height:420px">
+    <canvas class="stage" id="cv" width="1000" height="420"></canvas>
+    <div class="stage-hud"><span class="hud-pill light">rotating calipers</span><span class="hud-pill light" id="hud">—</span></div>
+  </div>
+  <div class="stat-row"><div class="stat"><span>直径</span><b class="teal" id="dia">—</b></div></div>
+  <div class="tip">应用：最小宽度、最大距离、凸包支撑相关问题。先凸包 O(n log n)，再卡壳 O(h)。</div>
+</div>
+
+<section class="sec">
+<div class="sec-head"><h2>一、直径与最远点对</h2><span class="sub">diameter = farthest pair</span></div>
+
+<div class="defn"><span class="lbl">定义</span><p>点集的<b>直径</b>（diameter）是<b>最远两点之间的距离</b>，即最远点对。关键事实：<b>最远点对的两个端点一定都是凸包顶点</b>——若某端点在凸包内部，把它沿背离对方的方向移到边界总能得到更远的一对，矛盾。因此只要在凸包顶点里找最远对即可，无需考虑内部点。</p></div>
+
+<div class="tip warn"><strong>别用 O(n²) 硬枚举：</strong>直径不必对全部 n 个点两两求距离。先求凸包留下 h 个顶点，再在这 h 个顶点中用旋转卡壳找最远对，可把「找最远对」这一步降到 <b>O(h)</b>。</div>
+</section>
+
+<section class="sec">
+<div class="sec-head"><h2>二、对踵点对</h2><span class="sub">antipodal pairs · supporting lines</span></div>
+
+<div class="defn"><span class="lbl">定义</span><p>用<b>一对平行直线</b>从两侧夹住凸多边形、两条线都与多边形相切（各至少碰到一个顶点/一条边），这样的支撑线所触及的两个顶点称为一组<b>对踵点对</b>（antipodal pair）。<b>最远点对必定是某组对踵点对</b>：因为最远两点处各作一条垂直于两点连线的支撑线，它们平行且夹住整个凸包。</p></div>
+
+<div class="tip info"><strong>卡壳的画面感：</strong>把两条平行支撑线想成一把<b>游标卡尺</b>（calipers）的两个卡爪，卡住凸包后一起<b>旋转</b>一周。旋转过程中卡爪接触的顶点不断变化，扫过的所有对踵点对里就包含了最远的那一对。</div>
+</section>
+
+<section class="sec">
+<div class="sec-head"><h2>三、旋转卡壳的推进</h2><span class="sub">rotating calipers</span></div>
+
+<div class="list-step"><span class="n">1</span><div class="body"><b>枚举凸包的每条边</b> hull[i]→hull[i+1]，把它看作下卡爪贴合的方向。</div></div>
+<div class="list-step"><span class="n">2</span><div class="body"><b>找该边的对踵顶点</b>：即离这条边所在直线<b>最远</b>的顶点 hull[j]。「离边多远」用<b>三角形面积</b>度量——面积 = ½·底(边长)·高，底固定时面积随高单调，故用叉积 |Cross(hull[i], hull[i+1], hull[j])| 比较即可。</div></div>
+<div class="list-step"><span class="n">3</span><div class="body"><b>双指针推进</b>：边按 i 前进时，最远顶点 j 也<b>只会朝同一方向前移、绝不回退</b>。于是 j 用一个 <code>while</code> 一直往前，直到再前进一格面积不再增大就停下。</div></div>
+<div class="list-step"><span class="n">4</span><div class="body"><b>更新答案</b>：用当前对踵关系下的候选距离（hull[i]、hull[i+1] 分别到 hull[j]）刷新最大值。i 绕一圈、j 也累计绕一圈后，扫过全部对踵点对，得到直径。</div></div>
+
+<div class="formula">用面积作推进判据：|Cross(hull[i], hull[i+1], hull[j+1])| &gt; |Cross(hull[i], hull[i+1], hull[j])| ⟹ j 前进</div>
+</section>
+
+<section class="sec">
+<div class="sec-head"><h2>四、复杂度分析</h2><span class="sub">O(n log n) + O(h)</span></div>
+
+<div class="formula">求凸包 O(n log n) + 卡壳 O(h) = O(n log n)　　（h ≤ n）</div>
+
+<div class="defn prop"><span class="lbl">分析</span><p>卡壳阶段，外层 i 走一圈是 h 步，内层指针 j <b>单调前进、总位移也只有一圈</b> ≈ h 步（<b>摊还</b>），故卡壳本身是 <b>O(h)</b>。加上前置的凸包构造 O(n log n)，后者主导，求直径整体 <b>O(n log n)</b>。若凸包已给定，则纯卡壳是线性的 O(h)。</p></div>
+
+<div class="tip warn"><strong>本页演示的写法：</strong>为了让动画逐对高亮、看得清楚，页面里求直径用的是<b>枚举凸包顶点全部两两对</b>的 O(h<sup>2</sup>) 简化版；<b>真正的旋转卡壳是 O(h)</b>——靠上面第 3 步的<b>双指针单调推进</b>省掉大量比较。两者结果一致，仅效率不同。</div>
+</section>
+
+<section class="sec">
+<div class="sec-head"><h2>五、C++ 实现</h2><span class="sub">旋转卡壳求直径</span></div>
+
+<div class="code"><span class="cm">// 依赖基础模板：Point / Cross(a,b,c) / Length / operator-</span>
+<span class="cm">// hull：逆时针凸包顶点(已去共线)，h≥2</span>
+<span class="kw">double</span> <span class="fn">area2</span>(Point a, Point b, Point c) {   <span class="cm">// 两倍三角形面积 = |叉积|</span>
+    <span class="kw">return</span> <span class="fn">fabs</span>(<span class="fn">Cross</span>(a, b, c));
+}
+<span class="kw">double</span> <span class="fn">Diameter</span>(<span class="kw">const</span> vector&lt;Point&gt;&amp; hull) {
+    <span class="kw">int</span> h = hull.size();
+    <span class="kw">if</span> (h == <span class="nu">1</span>) <span class="kw">return</span> <span class="nu">0</span>;                    <span class="cm">// 退化：单点</span>
+    <span class="kw">if</span> (h == <span class="nu">2</span>) <span class="kw">return</span> <span class="fn">Length</span>(hull[<span class="nu">1</span>] - hull[<span class="nu">0</span>]); <span class="cm">// 退化：两点</span>
+    <span class="kw">double</span> ans = <span class="nu">0</span>;
+    <span class="kw">int</span> j = <span class="nu">1</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; h; i++) {
+        Point a = hull[i], b = hull[(i + <span class="nu">1</span>) % h];
+        <span class="cm">// j 单调前进：下一个顶点离边 a→b 更远就继续走</span>
+        <span class="kw">while</span> (<span class="fn">area2</span>(a, b, hull[(j + <span class="nu">1</span>) % h]) &gt; <span class="fn">area2</span>(a, b, hull[j]))
+            j = (j + <span class="nu">1</span>) % h;
+        <span class="cm">// hull[j] 是边 a→b 的对踵点，更新两个候选距离</span>
+        ans = <span class="fn">max</span>(ans, <span class="fn">max</span>(<span class="fn">Length</span>(hull[j] - a), <span class="fn">Length</span>(hull[j] - b)));
+    }
+    <span class="kw">return</span> ans;                               <span class="cm">// 直径 = 最远点对距离</span>
+}</div>
+
+<div class="tip ok"><strong>推进判据为什么用面积而非距离：</strong>固定底边 a→b，顶点到该<b>直线</b>的距离 = 2·面积 / |ab|，底边长不变时<b>面积与高同增同减</b>。用叉积面积比较，既避开除法与开方、整数坐标下精确，又天然刻画了「谁离这条边更远」的单调性。</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li>以为求直径要对所有点<b>两两枚举</b> O(n<sup>2</sup>)：其实端点必在凸包上，只需 O(h) 卡壳。</li>
+  <li>忘记<b>先求凸包</b>而直接在原始点集上卡壳，内部点破坏支撑线的单调性。</li>
+  <li>推进判据用<b>到顶点的距离</b>而非<b>到边的距离（叉积面积）</b>，单调性不成立，j 会走错。</li>
+  <li>双指针 <b>j 允许回退</b>：j 必须单调前进，写成可回退会破坏 O(h) 且可能死循环。</li>
+  <li>凸包<b>含共线点未去除</b>，面积出现相等（并列最远），推进条件写成 <code>&gt;=</code> 可能空转。</li>
+  <li>只比较 hull[i] 与 hull[j]，<b>漏比 hull[i+1] 与 hull[j]</b>，错过部分对踵候选。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>凸多边形<b>直径 = 最远点对距离</b>，两端点一定都是凸包顶点。</li>
+  <li>最远点对必是<b>对踵点对</b>——能被一对平行支撑线同时夹住的两顶点。</li>
+  <li><b>旋转卡壳</b>：平行支撑线绕凸包旋转，用<b>叉积面积</b>判断对踵顶点，双指针单调推进 <b>O(h)</b>。</li>
+  <li>先求凸包 O(n log n)、再卡壳 O(h)，求直径<b>整体 O(n log n)</b>。</li>
+  <li>卡壳同样可解凸多边形<b>宽度、最小外接矩形</b>等支撑线相关问题。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>关于点集的最远点对（直径），下列说法<b>正确</b>的是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>两个端点<b>一定都是凸包顶点</b>，且构成一组对踵点对</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>端点可能在凸包内部</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>必须枚举所有点对才能求出</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>最远点对一定与最近点对共享一个端点</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 A。若某端点在内部，沿背离对方的方向移到边界会得到更远的对，矛盾，故端点必在凸包上；最远两点各作垂直于连线的支撑线即平行夹住凸包，说明它们是对踵点对。B、C 因此都错；D 没有任何依据。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>真正的旋转卡壳求直径是 <b>O(h)</b> 而非 O(h<sup>2</sup>)，关键原因是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>凸包顶点数 h 很小</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>对踵顶点指针 j <b>只单调前进、总共只绕一圈</b>，摊还后是线性的</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>用叉积代替了开方</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>提前排序了所有顶点</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 B。外层枚举 h 条边，内层指针 j 随边推进<b>从不回退</b>，绕行一圈的总步数也是 O(h)，两者叠加仍 O(h)（摊还分析）。C 只是常数与精度优化，不改变数量级；A 是运气不是原因；D 与卡壳无关。本页演示的 O(h²) 版正是<b>放弃了</b>这个单调双指针、改为两两枚举。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>用旋转卡壳求 n 个点的直径，<b>整体</b>时间复杂度的瓶颈在于？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>卡壳阶段 O(h)</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>前置的<b>求凸包 O(n log n)</b></span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>计算叉积 O(1)</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>输出结果 O(1)</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 B。卡壳本身只要 O(h) ≤ O(n)，而先要把 n 个点求成凸包需 O(n log n)，后者更大，主导整体复杂度。因此求直径整体为 <b>O(n log n)</b>；若凸包已给定，则只剩线性的卡壳 O(h)。</div>
+</div>
+</div>
+
+<div class="page-nav"><a href="09-closest.html"><span class="dir">← 上一节</span><span class="name">最近点对</span></a><a href="index.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">返回总览</span></a></div>
+<div class="footer">算法设计与分析 · <b>第10章 计算几何</b> · 强交互可视化版<br/>拖拽 · 扫描 · 凸包 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(62,133,120,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const cross=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x);
+const dot=(a,b)=>a.x*b.x+a.y*b.y;
+const sub=(a,b)=>({x:a.x-b.x,y:a.y-b.y});
+const add=(a,b)=>({x:a.x+b.x,y:a.y+b.y});
+const mul=(a,k)=>({x:a.x*k,y:a.y*k});
+const len=a=>Math.hypot(a.x,a.y);
+function dragPoints(cv, pts, onChange){
+  let drag=-1;
+  const pos=e=>{const r=cv.getBoundingClientRect(); return {x:(e.clientX-r.left)*cv.width/r.width, y:(e.clientY-r.top)*cv.height/r.height};};
+  cv.addEventListener('mousedown',e=>{
+    const p=pos(e); drag=pts.findIndex(q=>(q.x-p.x)**2+(q.y-p.y)**2<400);
+    cv.style.cursor=drag>=0?'grabbing':'crosshair';
+  });
+  cv.addEventListener('mousemove',e=>{
+    if(drag<0) return;
+    const p=pos(e);
+    pts[drag].x=Math.max(20,Math.min(cv.width-20,p.x));
+    pts[drag].y=Math.max(20,Math.min(cv.height-20,p.y));
+    onChange();
+  });
+  const up=()=>{drag=-1; cv.style.cursor='crosshair';};
+  cv.addEventListener('mouseup',up); cv.addEventListener('mouseleave',up);
+}
+function drawDot(ctx,p,col,label){
+  ctx.beginPath(); ctx.arc(p.x,p.y,11,0,Math.PI*2);
+  ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=12; ctx.fill(); ctx.shadowBlur=0;
+  if(label){ ctx.fillStyle='#1D1B16'; ctx.font='12px ui-monospace'; ctx.fillText(label, p.x+14, p.y-10); }
+}
+function drawArrow(ctx,a,b,col){
+  ctx.strokeStyle=col; ctx.lineWidth=3; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+  const ang=Math.atan2(b.y-a.y,b.x-a.x);
+  ctx.beginPath();
+  ctx.moveTo(b.x,b.y);
+  ctx.lineTo(b.x-12*Math.cos(ang-0.4), b.y-12*Math.sin(ang-0.4));
+  ctx.lineTo(b.x-12*Math.cos(ang+0.4), b.y-12*Math.sin(ang+0.4));
+  ctx.closePath(); ctx.fillStyle=col; ctx.fill();
+}
+
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let pts=[];
+function randomize(){ pts=Array.from({length:18},()=>({x:80+Math.random()*840,y:50+Math.random()*320})); draw(null,null); dia.textContent='—'; }
+function andrew(points){
+  const p=points.slice().sort((a,b)=>a.x-b.x||a.y-b.y);
+  const cr=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x);
+  const lo=[],up=[];
+  for(const pt of p){while(lo.length>=2&&cr(lo.at(-2),lo.at(-1),pt)<=0)lo.pop();lo.push(pt);}
+  for(let i=p.length-1;i>=0;i--){const pt=p[i];while(up.length>=2&&cr(up.at(-2),up.at(-1),pt)<=0)up.pop();up.push(pt);}
+  lo.pop();up.pop(); return lo.concat(up);
+}
+function draw(hull, pair){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  if(hull&&hull.length){
+    ctx.strokeStyle='#3E8578'; ctx.lineWidth=2.5;
+    ctx.beginPath(); hull.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)); ctx.closePath(); ctx.stroke();
+    ctx.fillStyle='rgba(62,133,120,.08)'; ctx.fill();
+  }
+  if(pair){
+    ctx.strokeStyle='#B8862B'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(pair[0].x,pair[0].y); ctx.lineTo(pair[1].x,pair[1].y); ctx.stroke();
+    // caliper lines perpendicular-ish visualization: parallel supports
+    const dx=pair[1].x-pair[0].x, dy=pair[1].y-pair[0].y, L=Math.hypot(dx,dy)||1;
+    const nx=-dy/L*40, ny=dx/L*40;
+    ctx.strokeStyle='rgba(184,134,43,.45)'; ctx.setLineDash([5,4]);
+    [[pair[0],nx,ny],[pair[1],nx,ny]].forEach(([p,ax,ay])=>{
+      ctx.beginPath(); ctx.moveTo(p.x-ay*8,p.y+ax*8); ctx.lineTo(p.x+ay*8,p.y-ax*8); ctx.stroke();
+    });
+    ctx.setLineDash([]);
+  }
+  pts.forEach(p=>{
+    const on=pair&&(p===pair[0]||p===pair[1]);
+    ctx.beginPath(); ctx.arc(p.x,p.y,on?8:5,0,Math.PI*2);
+    ctx.fillStyle=on?'#B8862B':(hull&&hull.includes(p)?'#3E8578':'#E39A7C'); ctx.fill();
+  });
+}
+run.onclick=async()=>{
+  const hull=andrew(pts);
+  draw(hull,null); hud.textContent='凸包 h='+hull.length; await sleep(400);
+  // diameter by rotating calipers simplified: antipodal pairs O(h^2) for demo clarity with animation
+  let best=0, pair=null;
+  for(let i=0;i<hull.length;i++){
+    for(let j=i+1;j<hull.length;j++){
+      const d=Math.hypot(hull[i].x-hull[j].x, hull[i].y-hull[j].y);
+      draw(hull,[hull[i],hull[j]]); await sleep(40);
+      if(d>best){ best=d; pair=[hull[i],hull[j]]; }
+    }
+  }
+  draw(hull,pair); dia.textContent=best.toFixed(1); hud.textContent='diameter≈'+best.toFixed(1);
+};
+document.getElementById('rand').onclick=randomize; randomize();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

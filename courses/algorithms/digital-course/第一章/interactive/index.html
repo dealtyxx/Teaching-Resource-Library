@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>绪论总览 · 第1章 绪论</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">01</div>算法可视化 · <span>第1章 绪论</span></div>
+<div class="links"><a class="pill active" href="index.html">总览</a><a class="pill" href="01-algorithm.html">算法定义</a><a class="pill" href="02-design-steps.html">设计步骤</a><a class="pill" href="03-complexity.html">复杂度</a><a class="pill" href="04-asymptotic.html">渐进界</a><a class="pill" href="05-cases.html">三种情况</a><a class="pill" href="06-stl.html">STL</a><a class="pill" href="07-sequence.html">序列容器</a><a class="pill" href="08-adapters.html">适配器</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow"><span class="pulse-dot"></span> Chapter 1 · Introduction · Deep Demo</div>
+  <h1>第1章 绪论 · 算法演示加深</h1>
+  <p>复杂度曲线、渐进界、插入排序最好/最坏、vector 扩容、栈队列模拟。</p>
+</section>
+
+<div class="objectives"><h3>本章学习目标</h3><ol>
+  <li>能够<b>复述</b>算法的定义，并判断一段描述是否满足有穷性、确定性、可行性、有输入、有输出五大特性。</li>
+  <li>能够<b>写出</b>算法设计的六个基本步骤，并对一个具体问题（如求最大公约数）完整走一遍流程。</li>
+  <li>能够<b>推导</b>给定 C++ 代码段的时间复杂度 T(n)，并用 O、Ω、Θ 三种渐进符号规范表示。</li>
+  <li>能够<b>区分</b>最好、最坏、平均三种情况，并以插入排序为例给出三者的复杂度及其推导。</li>
+  <li>能够<b>选用</b>合适的 STL 容器（vector / list / deque / set / map / unordered_map）并说明其操作复杂度依据。</li>
+</ol></div>
+
+<section class="sec">
+  <div class="sec-head"><h2>知识地图</h2><span class="sub">Knowledge Map · 各节依赖关系</span></div>
+  <p class="desc">本章分两条主线：<b>§01–§05 是理论主线</b>（什么是算法 → 怎么设计 → 怎么度量 → 怎么表示 → 怎么分情况讨论）；<b>§06–§08 是工具主线</b>（用 STL 把算法写出来）。理论主线中每一节都是下一节的前置，建议顺序学习；工具主线可在理论主线之后集中学习。</p>
+  <div class="list-step"><span class="n">1</span><div class="body"><b>§01 算法定义</b>：给出"算法"的概念边界。<b>产出</b>——判定"是不是算法"的五条标准。<b>后继</b>→ §02（有了定义才能谈设计）。</div></div>
+  <div class="list-step"><span class="n">2</span><div class="body"><b>§02 设计步骤</b>：从问题到可运行程序的六步流程。<b>依赖</b>← §01。<b>后继</b>→ §03（第六步"复杂度与测试"正是 §03 的内容）。</div></div>
+  <div class="list-step"><span class="n">3</span><div class="body"><b>§03 时间与空间复杂度</b>：把"快不快"量化为函数 T(n) 与 S(n)。<b>依赖</b>← §02。<b>后继</b>→ §04（T(n) 太精细，需要渐进符号抽象）。</div></div>
+  <div class="list-step"><span class="n">4</span><div class="body"><b>§04 渐进符号 O/Ω/Θ</b>：给出 T(n) 的上界、下界与紧确界的严格定义。<b>依赖</b>← §03。<b>后继</b>→ §05（不同输入下 T(n) 不同，需分情况）。</div></div>
+  <div class="list-step"><span class="n">5</span><div class="body"><b>§05 最好/最坏/平均</b>：同一算法在不同输入上的复杂度差异。<b>依赖</b>← §03、§04（要用 O 与 Θ 表述结论）。<b>本章理论主线终点</b>。</div></div>
+  <div class="list-step"><span class="n">6</span><div class="body"><b>§06 STL 体系</b>：容器 / 迭代器 / 算法 / 适配器 / 函数对象五大部件总览。<b>依赖</b>← §03（选容器的依据就是复杂度）。<b>后继</b>→ §07、§08。</div></div>
+  <div class="list-step"><span class="n">7</span><div class="body"><b>§07 序列容器</b>：vector / list / deque 的底层结构与摊还分析。<b>依赖</b>← §06、§03。</div></div>
+  <div class="list-step"><span class="n">8</span><div class="body"><b>§08 容器适配器与关联容器</b>：stack / queue / priority_queue 与 set / map。<b>依赖</b>← §07（适配器要以序列容器为底层）。</div></div>
+  <div class="tip info"><strong>依赖链一览：</strong>§01 ⇒ §02 ⇒ §03 ⇒ §04 ⇒ §05；§03 ⇒ §06 ⇒ §07 ⇒ §08。其中 <b>§03 与 §04 是全书基础</b>，后续第 2～10 章的所有算法分析都建立在它们之上。</div>
+  <div class="terms">
+    <span class="term"><b>算法</b>Algorithm</span>
+    <span class="term"><b>时间复杂度</b>Time Complexity</span>
+    <span class="term"><b>空间复杂度</b>Space Complexity</span>
+    <span class="term"><b>渐进记号</b>Asymptotic Notation</span>
+    <span class="term"><b>摊还分析</b>Amortized Analysis</span>
+    <span class="term"><b>标准模板库</b>STL, Standard Template Library</span>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>各节演示入口</h2><span class="sub">点击进入交互演示</span></div>
+</section>
+<div class="grid grid-3"><a class="feature-card" href="01-algorithm.html" data-ico="📘" style="--c:#C2603F"><div class="num">§ 01</div><h3>算法定义</h3><p>五大特性</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="02-design-steps.html" data-ico="🧭" style="--c:#7E62A6"><div class="num">§ 02</div><h3>设计步骤</h3><p>问题→算法→分析</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="03-complexity.html" data-ico="📈" style="--c:#356F62"><div class="num">§ 03</div><h3>时间复杂度</h3><p>增长曲线对比</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="04-asymptotic.html" data-ico="∞" style="--c:#9C7420"><div class="num">§ 04</div><h3>渐进符号</h3><p>O/Ω/Θ 交互</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="05-cases.html" data-ico="⚖️" style="--c:#A02C55"><div class="num">§ 05</div><h3>最好最坏平均</h3><p>插入排序动画</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="06-stl.html" data-ico="🧰" style="--c:#4A6C8C"><div class="num">§ 06</div><h3>STL 体系</h3><p>容器分类图</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="07-sequence.html" data-ico="📦" style="--c:#C2603F"><div class="num">§ 07</div><h3>序列容器</h3><p>vector 扩容</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="08-adapters.html" data-ico="🔗" style="--c:#7E62A6"><div class="num">§ 08</div><h3>适配器/关联</h3><p>栈队列模拟</p><div class="go">进入加深演示 →</div></a></div>
+
+<div class="page-nav"><div></div><a href="01-algorithm.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">算法定义</span></a></div>
+<div class="footer">算法设计与分析 · <b>第1章 绪论</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(194,96,63,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

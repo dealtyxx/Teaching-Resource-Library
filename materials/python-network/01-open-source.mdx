@@ -1,0 +1,243 @@
+---
+chapter: 1
+chapterName: Python语言极速入门
+order: 1
+title: Python开源精神与"仁慈独裁者"哲学
+subtitle: 从Guido的1989圣诞项目到TIOBE榜首——开源如何改变世界，中国如何回馈开源
+position: 1.1 Python开发环境搭建与使用
+knowledge: [Python安装, pip与虚拟环境, PEP 8规范, 开源社区资源]
+mainDims: [创新思维, 科学精神]
+subDims: [社会责任]
+minutes: 12
+quote: 开源精神与中国"兼济天下"理念共鸣——站在巨人肩上，也要回馈社区
+icon: "🐍"
+color: "#306998"
+segments:
+  - { name: 导入, minutes: 2 }
+  - { name: 技术讲解, minutes: 5 }
+  - { name: 思政融入, minutes: 4 }
+  - { name: 互动, minutes: 1 }
+---
+
+import PyStepRunner from '../../components/react/PyStepRunner';
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, CaseFileCard, Callout } from '../../components/react/ui';
+import TiobeTrendLab from '../../components/react/labs/TiobeTrendLab';
+import MirrorSpeedLab from '../../components/react/labs/MirrorSpeedLab';
+
+## 章节定位
+
+本案例对应「1.1 Python 开发环境搭建与使用」。你要学会的技术动作很朴素：装好 Python、用 `venv` 建虚拟环境、用 `pip` 装库、按 PEP 8 写规范代码。但这套工具链背后站着一个更大的东西——**开源**。一行 `pip install requests`，你就免费站上了全球数百万开发者的肩膀。我们把「怎么装环境」和「为什么整个生态愿意免费共享」放在一起讲：前者是技能，后者是精神与责任。
+
+## 背景导入：从 1989 圣诞节到 TIOBE 榜首
+
+1989 年圣诞节，荷兰程序员 Guido van Rossum 在假期里动手写了一门新语言，目标只有六个字——**简洁、优雅、易读**。名字取自他喜欢的英国喜剧团体 Monty Python，和蟒蛇并无关系。谁也没想到，这个圣诞节的个人项目，三十多年后会成为 AI 时代最受欢迎的编程语言。
+
+在很长一段时间里，Guido 被社区称为 **BDFL（Benevolent Dictator For Life，仁慈的终身独裁者）**：技术方向上他一锤定音，避免社区无休止内耗；但代码贡献对全世界开放，谁都能提交改进。集中决策保证方向不跑偏，开放贡献汇聚众人智慧——这种"集中 + 开放"的治理智慧，与中国"集中力量办大事、广纳贤才"的理念遥相呼应。
+
+<CaseFileCard name="Guido 卸任 BDFL：一次制度化的权力交接" year={2018} tag="社区治理" verdict="Python 改由五人「指导委员会」选举治理，项目平稳过渡，未因创始人退出而分裂">
+2018 年，围绕一项语法提案的激烈争论后，Guido 主动宣布卸任 BDFL，不再担任最终仲裁者。他没有指定接班人，而是推动社区投票，把个人权威转化为<strong>制度化的委员会治理</strong>。一个健康的开源项目，不应依赖某一个人永远在场——主动交权，本身就是对项目负责。
+</CaseFileCard>
+
+Python 的崛起，靠的从来不是某个公司，而是**开源生态**：Python 包索引 PyPI 上已有超过 40 万个开源库，NumPy、Pandas、Django、Flask、Scrapy 等明星项目让"造轮子"变成"取轮子"。中国是 Python 使用量第二大的国家，也早已从"使用者"变成"贡献者"——这正是下面两个实验要让你亲眼看到的。
+
+## 可视化实验
+
+先看二十年的大势。下面的柱状图切换 2004 / 2014 / 2024 三个年代：Python 柱用主题蓝高亮并标注名次，其余语言一律灰色。请留意 Python 这根柱子是怎么从最右角落一路挪到最左第一位的。
+
+<TiobeTrendLab client:visible />
+
+数据会说话：2004 年 Python 份额小到几乎看不见，2024 年却登顶。生态的力量，正是无数人免费共享的库一点点堆起来的。而对中国开发者来说，能否快速用上这些库，还差一个"最后一公里"——下载速度。
+
+<MirrorSpeedLab client:visible />
+
+同一个 `numpy`，走境外官方源可能要等上几分钟，走清华镜像几秒搞定。这不是魔法，是清华大学学生社团 TUNA 常年维护的镜像基础设施。开源不只是"我用你的代码"，也可以是"我为大家架好一条更快的路"。
+
+<Callout icon="🌐" tone="blue" title="一条命令，接入全球生态">
+<code>pip install -i https://pypi.tuna.tsinghua.edu.cn/simple requests</code>——把默认源换成国内镜像，你既享受了全球开源成果，也用上了中国人搭建的公共设施。技术平权，就藏在这一行命令里。
+</Callout>
+
+## 技术讲解
+
+先看一段规范的 Python 代码。它不做真实网络请求，只用来演示 PEP 8 的职业素养：类名用大驼峰、函数与变量用小写加下划线（snake_case）、常量全大写、每个公开函数都写文档字符串与类型注解。
+
+```python
+from typing import Optional
+
+MAX_RETRIES = 3               # 常量：大写 + 下划线
+
+
+class NetworkClient:          # 类名：大驼峰 CapWords
+    """一个最小可读的网络客户端示例。"""
+
+    def send_request(self, url: str, timeout: int = 10) -> Optional[dict]:
+        """发送请求并返回解析后的数据。
+
+        Args:
+            url (str): 目标资源地址。
+            timeout (int): 超时时间（秒），默认 10。
+
+        Returns:
+            Optional[dict]: 成功返回字典，失败返回 None。
+        """
+        ...
+```
+
+规范不是形式主义：`snake_case` 让人一眼看出这是变量还是类，文档字符串让队友不必读实现就能调用你的函数。**好的注释和命名，是对他人时间的尊重。**
+
+接着走一遍真实的环境搭建流程。点击「单步执行」，看虚拟环境如何隔离依赖、镜像源如何加速、`requirements.txt` 如何让别人一键复现你的环境：
+
+<PyStepRunner
+  client:visible
+  title="环境搭建工作流：venv + pip + 镜像源"
+  fileName="setup.sh"
+  badge="命令序列逐行模拟"
+  code={`# 1) 创建独立的虚拟环境（隔离依赖，便于复现）
+python -m venv myproject_env
+
+# 2) 激活环境（Windows）
+myproject_env\\Scripts\\activate
+
+# 3) 用清华镜像极速安装开源库
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple requests
+
+# 4) 冻结依赖，方便他人一键复现同款环境
+pip freeze > requirements.txt`}
+  steps={[
+    { line: 1, desc: '创建一个只属于本项目的 Python 环境，避免不同项目的依赖互相污染。', out: 'created virtual environment in ./myproject_env' },
+    { line: 4, desc: '激活后命令行前缀出现 (myproject_env)，此后 pip 装的库只落在本项目里。', out: '(myproject_env) PS>' },
+    { line: 7, desc: '走清华镜像，速度从约 200 KB/s 提升到约 8 MB/s，几秒装好 requests。', out: 'Successfully installed requests-2.32.3  (源: tuna.tsinghua.edu.cn)' },
+    { line: 10, desc: '把当前依赖清单写入 requirements.txt，队友用 pip install -r 即可复现同款环境。', out: 'requests==2.32.3' },
+  ]}
+  doneNote="隔离、加速、可复现——这三步就是专业 Python 工程师的基本功。"
+/>
+
+最后，在下面的在线环境里真正跑一段 Python：先用一行 `import this` 请出《Python 之禅》，再动手写一个 PEP 8 命名检查器，用正则判断若干变量名是否符合 snake_case。改改 `names` 列表里的名字，看输出的 ✅ / ❌ 怎么变。
+
+<PyPlayground
+  client:visible
+  title="《Python 之禅》与 PEP 8 命名检查器"
+  note="import this 会打印 Python 的设计哲学；下方用 re 逐条检查命名是否符合 snake_case 规范。"
+  height={300}
+  code={`import this          # 请出《Python 之禅》(The Zen of Python)
+import re
+
+print("\\n—— PEP 8 命名检查器 (snake_case) ——")
+# snake_case：小写字母/数字/下划线，且不以数字开头
+pattern = re.compile(r"^[a-z_][a-z0-9_]*$")
+names = ["send_request", "maxRetries", "user_id",
+         "APIKey", "http_client", "2fa_token", "data"]
+
+for name in names:
+    ok = bool(pattern.match(name))
+    mark = "✅" if ok else "❌"
+    tip = "" if ok else "  → 建议改为 snake_case"
+    print(f"{mark} {name}{tip}")`}
+/>
+
+## 思政引导
+
+<DimCard dim="创新思维" title="从个人项目到全球生态的治理智慧">
+<ul>
+<li>Guido 的起点只是一个圣诞假期的个人项目——<strong>伟大的创新常常始于一件"想把事情做得更优雅"的小事</strong>。</li>
+<li>BDFL 模式是一种治理创新：集中决策避免内耗、保证技术方向，开放贡献汇聚全球智慧。</li>
+<li>2018 年主动卸任、转为委员会治理，是更高级的创新——<strong>把个人权威制度化，让项目不依赖任何一个人</strong>。</li>
+</ul>
+</DimCard>
+
+<DimCard dim="科学精神" title="透明、可审查、可复现">
+<ul>
+<li>开源意味着代码公开、接受全世界审查，漏洞与劣质实现无处藏身——<strong>透明是质量与安全的前提</strong>。</li>
+<li>PEP 8 规范、文档字符串、类型注解，本质是让代码严谨、可读、可维护，这是工程上的科学态度。</li>
+<li><code>requirements.txt</code> 冻结依赖，让实验环境可复现——<strong>可复现性是科学，也是工程的底线</strong>。</li>
+</ul>
+</DimCard>
+
+<DimCard dim="社会责任" title="技术普惠与中国的回馈">
+<ul>
+<li>Python 极大降低了编程门槛，配合中国大学 MOOC、Coursera 等免费资源，让更多人有机会学会编程——<strong>技术普惠、教育公平</strong>。</li>
+<li>中国已从使用者变为贡献者：百度 PaddlePaddle（首个国产开源深度学习平台）、旷视 MegEngine（自主可控框架）、清华 TUNA 镜像站服务全球开发者。</li>
+<li>作为学习者，"用开源也要回馈开源"：提交一个 issue、修一个文档错别字、给项目点一个 Star，都是回馈。</li>
+</ul>
+</DimCard>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="c1-d1"
+  question="BDFL（仁慈独裁者）模式有哪些优点与风险？它与我们熟悉的'集中力量办大事'有何相通、又有何不同？"
+  hints={[
+    '优点：决策高效、方向统一，避免开源社区常见的无休止争论与分裂。',
+    '风险：过度依赖个人，一旦创始人离开或判断失误，项目可能动荡——所以 Guido 选择主动交权、制度化治理。',
+    '相通在"集中决策提升效率"；不同在开源同时强调"人人可贡献、可审查"的开放与透明。',
+  ]}
+/>
+
+<DiscussCard
+  client:visible
+  storageKey="c1-d2"
+  question="从清华镜像、PaddlePaddle、MegEngine 说起，中国如何在全球开源社区发挥更大作用？"
+  hints={[
+    '基础设施：镜像站、公共算力，降低全球开发者的使用门槛。',
+    '核心项目：主导或深度参与有国际影响力的开源框架，掌握生态话语权与自主可控能力。',
+    '人才与文化：培养愿意长期维护开源、遵守社区规范的贡献者，把"用"变成"建"。',
+  ]}
+/>
+
+<DiscussCard
+  client:visible
+  storageKey="c1-d3"
+  question="如何平衡'使用开源'与'回馈开源'？作为一名学生，你现在就能做的回馈有哪些？"
+  hints={[
+    '意识：享受了免费的库，就该记得它们由无数人无偿维护。',
+    '低门槛回馈：报告 Bug、补充文档、翻译、给项目 Star、在社区答疑。',
+    '进阶：读懂源码后提交 Pull Request，把自己的改进合并回上游。',
+  ]}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="要为某个项目隔离依赖、避免污染系统 Python，推荐的做法是？"
+  options={[
+    '直接用 pip 往全局环境装所有库',
+    '用 python -m venv 创建虚拟环境，在其中安装依赖',
+    '把所有项目的库都装进同一个文件夹',
+    '每次用完手动删掉不需要的库',
+  ]}
+  answer={1}
+  explain="虚拟环境（venv）为每个项目提供独立、隔离的依赖空间，配合 requirements.txt 可让环境一键复现，是专业开发的标准做法。"
+/>
+
+<QuizItem
+  client:visible
+  question="按 PEP 8 规范，函数名与普通变量名推荐使用哪种写法？"
+  options={['大驼峰 CamelCase', '小写加下划线 snake_case', '全部大写 UPPER_CASE', '匈牙利命名法 strName']}
+  answer={1}
+  explain="PEP 8 约定：类名用大驼峰（CapWords），函数名与变量名用 snake_case，常量用全大写加下划线。统一命名让代码一眼可读，是对协作者的尊重。"
+/>
+
+<QuizItem
+  client:visible
+  question="关于开源精神与中国的贡献，下列说法最恰当的是？"
+  options={[
+    '开源就是免费拿来用，不必考虑回馈',
+    '清华镜像、PaddlePaddle 等是中国对全球开源生态的回馈，"用开源也要贡献开源"',
+    '中国只使用开源、不参与开源建设',
+    '开源代码不公开、无法被外部审查',
+  ]}
+  answer={1}
+  explain="开源的四要素是共享、协作、透明、感恩。清华镜像站、PaddlePaddle、MegEngine 等正是中国从「使用者」走向「贡献者」的体现——站在巨人肩上，也要回馈社区。"
+/>
+
+## 配套资源
+
+- **说课视频（10 分钟）**：Python 开源精神与环境搭建
+- **教学课件（PPT，25 页）**：Python 发展史与 Guido 生平、开源生态与 PyPI、环境搭建步骤、PEP 8 规范详解
+- **视频素材**：Guido van Rossum 访谈（5 分钟）、Python 开源社区纪录片（3 分钟）
+- **代码示例**：虚拟环境搭建脚本、`requirements.txt` 示例、PEP 8 规范示例代码
+- **扩展阅读**：《Python 之禅》（在解释器中输入 `import this`）、PEP 8 官方文档中文版、清华镜像站使用指南

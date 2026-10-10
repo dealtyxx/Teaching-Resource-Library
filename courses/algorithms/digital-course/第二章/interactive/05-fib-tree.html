@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Fib树 · 第2章 递归算法设计技术</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">02</div>算法可视化 · <span>第2章 递归算法设计技术</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-concept.html">概念</a><a class="pill" href="02-model.html">模型</a><a class="pill" href="03-cases.html">情形</a><a class="pill" href="04-stack.html">系统栈</a><a class="pill active" href="05-fib-tree.html">Fib树</a><a class="pill" href="06-hanoi.html">汉诺塔</a><a class="pill" href="07-induction.html">归纳</a><a class="pill" href="08-knapsack.html">背包递归</a><a class="pill" href="09-recurrence.html">递推式</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 5 · 加深</div><h1>Fib(n) 递归树</h1>
+<p>朴素递归指数级调用；大量重复子问题。对比记忆化调用次数。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+<li>能够<b>画出</b> Fib(n) 的递归树，并从树上<b>指认</b>重复子问题（overlapping subproblems）。</li>
+<li>能够<b>推导</b>朴素递归的递推式 T(n)=T(n−1)+T(n−2)+O(1)，并说明其解为 Θ(φ<sup>n</sup>) ≈ Θ(1.618<sup>n</sup>)。</li>
+<li>能够<b>写出</b>朴素递归、记忆化递归、自底向上迭代<b>三种</b> C++ 实现，并对比其时间与空间复杂度。</li>
+<li>能够<b>解释</b>记忆化为何把指数降为线性，以及它<b>为什么不能</b>降低递归深度。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <label>n=<b id="nv">6</b></label><input type="range" id="nr" min="2" max="8" value="6" style="width:140px;accent-color:#7E62A6"/>
+    <button class="btn primary" id="naive">朴素递归</button>
+    <button class="btn" id="memo">记忆化</button>
+  </div>
+  <div class="stage-wrap light"><canvas class="stage" id="cv" width="900" height="340"></canvas></div>
+  <div class="stat-row">
+    <div class="stat"><span>结果</span><b class="p" id="res">—</b></div>
+    <div class="stat"><span>调用次数</span><b class="a" id="calls">0</b></div>
+  </div>
+  <div class="tip">记忆化后每个 k 只算一次 → O(n)。</div>
+</div>
+
+<div class="tip info"><strong>怎样读这两个按钮：</strong>点"<b>朴素递归</b>"，画布上会长出一棵<b>枝繁叶茂的递归树</b>——树上每一个圆点就是一次函数调用，你会看到 <code>fib(4)</code>、<code>fib(3)</code> 等相同数字在<b>不同分支上反复出现</b>，这就是<b>重复子问题</b>。<br/>点"<b>记忆化</b>"，画布只剩一行文字，这<b>不是演示做得潦草，而恰恰是结果本身</b>：那棵大树被"压扁"了。凡是<b>第二次及以后</b>遇到的 fib(k)，都在 <code>dp[k]</code> 里直接查表返回，对应的<b>整棵子树被一次剪掉</b>，永远不会展开。于是原本 O(1.618<sup>n</sup>) 个结点坍缩成一条 O(n) 长的链——<b>"没有画面"正是"重复子问题已被全部合并"的可视化结果</b>。请对比上方"调用次数"统计：n=8 时朴素约 67 次，记忆化仅约 15 次。</div>
+
+<section class="sec"><div class="sec-head"><h2>一、斐波那契数列与它的递归树</h2><span class="sub">Fibonacci · Recursion Tree</span></div>
+
+<div class="defn"><span class="lbl">定义 · 斐波那契数列</span><p>F(0) = 0，F(1) = 1，F(n) = F(n−1) + F(n−2)（n ≥ 2）。这是<b>定义递归</b>（§03 第①类）的典型：递推式是数列定义<b>自带</b>的，照抄即可成为代码。</p></div>
+
+<div class="formula">F(n) = 0（n=0）；　F(n) = 1（n=1）；　F(n) = F(n−1) + F(n−2)（n ≥ 2）</div>
+
+<div class="defn prop"><span class="lbl">性质 · 重复子问题</span><p>若一个递归算法的递归树中，<b>同一个子问题在不同分支上被反复求解</b>，则称该问题具有<b>重复子问题</b>（overlapping subproblems）性质。这正是"递归树结点数远多于不同子问题个数"的原因，也是记忆化与动态规划能够生效的<b>前提条件</b>。</p></div>
+
+<div class="deriv">
+  <span class="step">fib(5) 的递归树（对照页面动画）：</span>
+  <span class="step"> </span>
+  <span class="step">　　　　　　　　　　　fib(5)</span>
+  <span class="step">　　　　　　　／　　　　　　　＼</span>
+  <span class="step">　　　　fib(4)　　　　　　　　　fib(3)　★</span>
+  <span class="step">　　　／　　＼　　　　　　　　／　　＼</span>
+  <span class="step">　fib(3)★　 fib(2)△　　　fib(2)△　fib(1)</span>
+  <span class="step">　／　＼　　　／　＼　　　　／　＼</span>
+  <span class="step">fib(2)△ fib(1) fib(1) fib(0)  fib(1) fib(0)</span>
+  <span class="step">／　＼</span>
+  <span class="step">fib(1) fib(0)</span>
+  <span class="step"> </span>
+  <span class="step">★ fib(3) 被完整计算了 <b>2</b> 次　　△ fib(2) 被完整计算了 <b>3</b> 次</span>
+  <span class="step">不同子问题只有 6 个（fib(0)…fib(5)），树上却有 <b>15</b> 个结点。</span>
+  <span class="step">n 越大差距越离谱：n=40 时不同子问题 41 个，结点约 <b>3.3 亿</b> 个。</span>
+</div>
+
+<div class="tip"><strong>为什么叫"重复"而不是"多次调用"：</strong>关键在于这些调用的<b>参数完全相同、结果必然相同</b>，却被<b>从头到尾重算一遍</b>——包括它下面整棵子树。相比之下，归并排序的递归树上每个结点处理的是<b>不同</b>的子数组，虽然结点也很多，但<b>没有一次是白算的</b>，因此归并排序无法用记忆化加速。<b>能否记忆化，取决于是否存在"参数相同的重复调用"。</b></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、方法一：朴素递归及其复杂度</h2><span class="sub">Naive Recursion · Θ(φ<sup>n</sup>)</span></div>
+
+<div class="code"><span class="cm">// 方法一：朴素递归 —— 直接照抄定义</span>
+<span class="kw">long</span> <span class="kw">long</span> <span class="fn">fib1</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n &lt;= <span class="nu">1</span>) <span class="kw">return</span> n;                   <span class="cm">// 出口：F(0)=0, F(1)=1</span>
+    <span class="kw">return</span> <span class="fn">fib1</span>(n - <span class="nu">1</span>) + <span class="fn">fib1</span>(n - <span class="nu">2</span>);     <span class="cm">// 递归体：两个子问题</span>
+}</div>
+
+<div class="deriv">
+  <span class="step">【建立递推式】每层做 O(1) 的加法，产生两个子问题：</span>
+  <span class="step">T(n) = T(n−1) + T(n−2) + c，　T(0) = T(1) = c</span>
+  <span class="step"> </span>
+  <span class="step">【解法一：直接数调用次数】设 C(n) 为总调用次数，则</span>
+  <span class="step">C(0) = C(1) = 1，C(n) = C(n−1) + C(n−2) + 1</span>
+  <span class="step">令 D(n) = C(n) + 1，得 D(n) = D(n−1) + D(n−2)　<span class="why">化成纯 Fib 递推</span></span>
+  <span class="step">⇒ C(n) = 2·F(n+1) − 1</span>
+  <span class="step">验证：C(8) = 2·F(9) − 1 = 2·34 − 1 = <b>67</b>　<span class="why">与页面统计一致</span></span>
+  <span class="step"> </span>
+  <span class="step">【解法二：特征方程】齐次递推 T(n) = T(n−1) + T(n−2) 的特征方程为</span>
+  <span class="step">x<sup>2</sup> = x + 1　⇒　x = (1 ± √5)/2</span>
+  <span class="step">正根 φ = (1+√5)/2 ≈ 1.6180（黄金比 golden ratio），负根 ψ ≈ −0.618</span>
+  <span class="step">通解 T(n) = A·φ<sup>n</sup> + B·ψ<sup>n</sup>，其中 |ψ| &lt; 1 ⇒ ψ<sup>n</sup> → 0</span>
+  <span class="step">⇒ <b>T(n) = Θ(φ<sup>n</sup>) ≈ Θ(1.618<sup>n</sup>)</b>　　<span class="why">指数级！</span></span>
+  <span class="step"> </span>
+  <span class="step">【空间】递归树高度 = n（最左那条链 n→n−1→…→0）</span>
+  <span class="step">⇒ S(n) = Θ(n)　　<span class="why">时间数结点、空间数树高（§04 定理 2.1）</span></span>
+</div>
+
+<div class="tip info"><strong>常见的粗略上界 O(2<sup>n</sup>) 对不对？</strong>对，但<b>不紧</b>。因为递归树不是满二叉树（右子树 fib(n−2) 比左子树矮一层），结点数少于 2<sup>n</sup>。紧确界是 Θ(φ<sup>n</sup>)。考试若问"渐进时间复杂度"，答 O(2<sup>n</sup>) 一般算对，但答 <b>Θ(1.618<sup>n</sup>)</b> 更准确；若问"调用次数的精确表达式"，答 <b>2F(n+1)−1</b>。</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>n</th><th>不同子问题个数</th><th>朴素递归调用次数 2F(n+1)−1</th><th>浪费倍数</th></tr>
+  <tr><td>5</td><td>6</td><td>15</td><td>2.5×</td></tr>
+  <tr><td>8</td><td>9</td><td>67</td><td>7.4×</td></tr>
+  <tr><td>20</td><td>21</td><td>21 891</td><td>1 042×</td></tr>
+  <tr><td>30</td><td>31</td><td>2 692 537</td><td>86 856×</td></tr>
+  <tr><td>40</td><td>41</td><td class="hl">331 160 281</td><td>约 8×10<sup>6</sup> ×</td></tr>
+  <tr><td>50</td><td>51</td><td class="hl">40 730 022 147</td><td>约 8×10<sup>8</sup> ×</td></tr>
+</table></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、方法二：记忆化递归</h2><span class="sub">Memoization · 自顶向下 Θ(n)</span></div>
+
+<div class="defn"><span class="lbl">定义 · 记忆化</span><p><b>记忆化</b>（memoization）是在递归的基础上增设一张<b>备忘录</b>（memo table）：每算完一个子问题就把结果存入表中；再次遇到<b>相同参数</b>的调用时直接查表返回，<b>不再展开其子树</b>。它保留了递归"自顶向下、按需计算"的写法，同时消除了重复计算。</p></div>
+
+<div class="code"><span class="cm">// 方法二：记忆化递归（自顶向下 top-down）</span>
+<span class="kw">long</span> <span class="kw">long</span> memo[<span class="nu">100</span>];
+<span class="kw">bool</span> vis[<span class="nu">100</span>];                 <span class="cm">// 用 vis 而非 memo[k]!=0，因 F(0)=0 是合法值</span>
+
+<span class="kw">long</span> <span class="kw">long</span> <span class="fn">fib2</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n &lt;= <span class="nu">1</span>) <span class="kw">return</span> n;                <span class="cm">// 出口</span>
+    <span class="kw">if</span> (vis[n]) <span class="kw">return</span> memo[n];         <span class="cm">// ★查表命中 ⇒ 整棵子树被剪掉</span>
+    vis[n] = <span class="kw">true</span>;
+    <span class="kw">return</span> memo[n] = <span class="fn">fib2</span>(n - <span class="nu">1</span>) + <span class="fn">fib2</span>(n - <span class="nu">2</span>);
+}</div>
+
+<div class="deriv">
+  <span class="step">【为什么变成线性】</span>
+  <span class="step">带 ★ 标记的那一行，把"<b>重复子问题</b>"全部拦截在展开之前。</span>
+  <span class="step">状态总数 = n+1 个（对应 fib(0) … fib(n)），</span>
+  <span class="step">每个状态<b>只被真正计算一次</b>，每次计算做 O(1) 工作，</span>
+  <span class="step">⇒ 时间 T(n) = (n+1) × O(1) = <b>Θ(n)</b></span>
+  <span class="step"> </span>
+  <span class="step">【空间】备忘录数组 Θ(n) ＋ 递归栈深度 Θ(n)</span>
+  <span class="step">⇒ S(n) = <b>Θ(n)</b>　　<span class="why">注意：递归深度<b>没有</b>因记忆化而变小！</span></span>
+  <span class="step"> </span>
+  <span class="step">【调用次数验算 n=8】</span>
+  <span class="step">真正展开的结点：fib(8), fib(7), …, fib(2)　共 7 个</span>
+  <span class="step">每个展开结点发出 2 次调用 ⇒ 14 次，再加最外层 1 次</span>
+  <span class="step">⇒ 共 <b>15</b> 次调用（页面统计值），相比朴素的 67 次减少 78%</span>
+</div>
+
+<div class="tip"><strong>把"剪枝"看清楚：</strong>在朴素递归树中，fib(3) 出现 2 次、fib(2) 出现 3 次，每一次出现都要展开<b>整棵子树</b>。记忆化后，只有<b>第一次</b>出现时才展开，之后的每一次都在圆点处<b>直接截断</b>。于是这棵原本 Θ(1.618<sup>n</sup>) 个结点的"灌木丛"，被压成了一条 n 长的<b>细链</b>加若干个查表叶子。这就是页面上"记忆化"按钮画面变空的真正含义。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、方法三：自底向上迭代递推</h2><span class="sub">Bottom-Up Iteration · Θ(n) 时间 / Θ(1) 空间</span></div>
+
+<div class="tip info"><strong>思路转换：</strong>既然每个 fib(k) 最终都要算，而且 fib(k) 只依赖 fib(k−1) 与 fib(k−2)，那就干脆<b>不要递归</b>——从最小的 F(0)、F(1) 出发，<b>顺着编号从小往大推</b>，一路推到 F(n)。这叫<b>自底向上</b>（bottom-up），是动态规划的标准形态（第 7 章）。而且推的时候只需记住<b>最近两个值</b>，连数组都可以省掉。</div>
+
+<div class="code"><span class="cm">// 方法三之一：自底向上 + 数组（便于回查任意 F(k)）</span>
+<span class="kw">long</span> <span class="kw">long</span> <span class="fn">fib3</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n &lt;= <span class="nu">1</span>) <span class="kw">return</span> n;
+    vector&lt;<span class="kw">long</span> <span class="kw">long</span>&gt; f(n + <span class="nu">1</span>);
+    f[<span class="nu">0</span>] = <span class="nu">0</span>; f[<span class="nu">1</span>] = <span class="nu">1</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> k = <span class="nu">2</span>; k &lt;= n; ++k)
+        f[k] = f[k - <span class="nu">1</span>] + f[k - <span class="nu">2</span>];      <span class="cm">// 时间 O(n)，空间 O(n)</span>
+    <span class="kw">return</span> f[n];
+}
+
+<span class="cm">// 方法三之二：滚动变量优化 —— 空间降到 O(1)（推荐）</span>
+<span class="kw">long</span> <span class="kw">long</span> <span class="fn">fib4</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n &lt;= <span class="nu">1</span>) <span class="kw">return</span> n;
+    <span class="kw">long</span> <span class="kw">long</span> a = <span class="nu">0</span>, b = <span class="nu">1</span>;            <span class="cm">// a=F(k-2), b=F(k-1)</span>
+    <span class="kw">for</span> (<span class="kw">int</span> k = <span class="nu">2</span>; k &lt;= n; ++k) {
+        <span class="kw">long</span> <span class="kw">long</span> t = a + b;           <span class="cm">// t = F(k)</span>
+        a = b; b = t;                     <span class="cm">// 向前滚动一格</span>
+    }
+    <span class="kw">return</span> b;                             <span class="cm">// 时间 O(n)，空间 O(1)，无递归栈</span>
+}</div>
+
+<div class="deriv">
+  <span class="step">fib4(8) 的滚动过程：</span>
+  <span class="step">初始　　 a=F(0)=0，b=F(1)=1</span>
+  <span class="step">k=2　t=0+1=1　 ⇒ a=1, b=1　　(F(2)=1)</span>
+  <span class="step">k=3　t=1+1=2　 ⇒ a=1, b=2　　(F(3)=2)</span>
+  <span class="step">k=4　t=1+2=3　 ⇒ a=2, b=3　　(F(4)=3)</span>
+  <span class="step">k=5　t=2+3=5　 ⇒ a=3, b=5　　(F(5)=5)</span>
+  <span class="step">k=6　t=3+5=8　 ⇒ a=5, b=8　　(F(6)=8)</span>
+  <span class="step">k=7　t=5+8=13　⇒ a=8, b=13　 (F(7)=13)</span>
+  <span class="step">k=8　t=8+13=21 ⇒ a=13, b=21　(F(8)=<b>21</b>)</span>
+  <span class="step">共 7 次加法，无任何函数调用、无栈帧。</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>五、三种方法对照</h2><span class="sub">Comparison</span></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>方法</th><th>方向</th><th>递推式</th><th>时间</th><th>额外空间</th><th>递归深度</th><th>n=50 可行否</th><th>适用场合</th></tr>
+  <tr>
+    <td>① 朴素递归 fib1</td><td>自顶向下</td><td>T(n)=T(n−1)+T(n−2)+O(1)</td>
+    <td class="hl">Θ(φ<sup>n</sup>)≈Θ(1.618<sup>n</sup>)</td><td>Θ(n) 栈</td><td>n</td>
+    <td><b>否</b>（约 4×10<sup>10</sup> 次调用）</td><td>只用于讲解 / 极小 n</td>
+  </tr>
+  <tr>
+    <td>② 记忆化递归 fib2</td><td>自顶向下</td><td>状态数 × 每状态代价</td>
+    <td class="hl">Θ(n)</td><td>Θ(n) 表 + Θ(n) 栈</td><td class="hl">n（未减小）</td>
+    <td>是</td><td>状态多但<b>只有部分会被用到</b>时最划算</td>
+  </tr>
+  <tr>
+    <td>③ 自底向上 fib3</td><td>自底向上</td><td>循环 n 次</td>
+    <td class="hl">Θ(n)</td><td>Θ(n) 数组</td><td class="hl">0（无递归）</td>
+    <td>是</td><td>需要保留全部中间值时</td>
+  </tr>
+  <tr>
+    <td>④ 滚动变量 fib4</td><td>自底向上</td><td>循环 n 次</td>
+    <td class="hl">Θ(n)</td><td class="hl">Θ(1)</td><td class="hl">0（无递归）</td>
+    <td>是</td><td><b>最优</b>；只要最终答案时首选</td>
+  </tr>
+</table></div>
+
+<div class="tip"><strong>还有更快的：</strong>利用矩阵快速幂 [[1,1],[1,0]]<sup>n</sup> 可做到 <b>Θ(log n)</b>；通项公式（Binet 公式）F(n) = (φ<sup>n</sup> − ψ<sup>n</sup>)/√5 理论上 Θ(1)，但浮点误差使其在 n 较大时不可靠。课程范围内掌握 ①→④ 的优化路径即可。</div>
+
+<div class="tip info"><strong>这条优化路径是全书的主线：</strong>「<b>朴素递归（指数）→ 发现重复子问题 → 记忆化（多项式）→ 改写为自底向上递推 → 滚动数组压缩空间</b>」。§08 的 0/1 背包会把完全相同的四步再走一遍，第 7 章动态规划则把它上升为通用方法论。</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+<li><b>用 <code>memo[k] != 0</code> 判断是否已算过。</b>F(0)=0 本身就是合法结果，会被误判成"没算过"而反复重算。应另设 <code>vis[]</code> 标记数组，或把备忘录初始化为 −1 这类<b>不可能出现的值</b>。</li>
+<li><b>以为记忆化能防止栈溢出。</b>记忆化把<b>时间</b>从 Θ(1.618<sup>n</sup>) 降到 Θ(n)，但最左那条调用链 n→n−1→…→0 <b>照样要走一遍</b>，递归深度仍是 n。n=10<sup>6</sup> 时记忆化版依然栈溢出，必须改自底向上。</li>
+<li><b>把空间复杂度算成 Θ(1.618<sup>n</sup>)。</b>栈帧用完即弹，空间只取决于<b>树高</b>（Θ(n)），不是结点总数。见 §04 定理 2.1。</li>
+<li><b>认为所有递归都能靠记忆化加速。</b>前提是存在<b>参数相同的重复调用</b>。归并排序、快速排序的每个递归调用处理的子数组互不相同，记忆化毫无用处，只会白白浪费空间。</li>
+<li><b>把 Θ(2<sup>n</sup>) 当成紧确界。</b>2<sup>n</sup> 只是上界，紧确界是 Θ(φ<sup>n</sup>)，因为右子树比左子树矮一层，树并不满。</li>
+<li><b>滚动变量更新顺序写反。</b>写成 <code>a = b; b = a + b;</code> 会让 b 变成 2b（a 已被覆盖）。必须<b>先用临时变量 t 存好和</b>，再依次赋值。</li>
+<li><b>忘记 <code>long long</code> 溢出。</b>F(47) 已超过 <code>int</code> 上限（约 2.1×10<sup>9</sup>），F(93) 超过 <code>long long</code>。复杂度对了不代表结果对。</li>
+</ul></div>
+</section>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+<li>Fib 的递归树上，<b>同一个 fib(k) 在不同分支被反复完整求解</b>——这就是<b>重复子问题</b>；fib(5) 有 15 个结点却只有 6 个不同子问题，n=40 时结点数达 3.3 亿。</li>
+<li><b>朴素递归</b>：T(n)=T(n−1)+T(n−2)+O(1)，特征方程 x<sup>2</sup>=x+1 的正根 φ=(1+√5)/2≈1.618 ⇒ <b>时间 Θ(φ<sup>n</sup>)</b>，精确调用次数 2F(n+1)−1；<b>空间 Θ(n)</b>（树高）。</li>
+<li><b>记忆化递归</b>：查表命中即剪掉整棵子树，状态数 n+1 × 每状态 O(1) ⇒ <b>时间 Θ(n)、空间 Θ(n)</b>；但<b>递归深度仍是 n</b>，防不了栈溢出。</li>
+<li><b>自底向上迭代</b>：从 F(0)、F(1) 顺推到 F(n)，<b>时间 Θ(n)</b>；用滚动变量只保留最近两项，<b>空间降到 Θ(1)、无递归栈</b>，是本节的最优解。</li>
+<li>优化主线：<b>朴素递归 → 发现重复子问题 → 记忆化 → 自底向上递推 → 滚动数组</b>。§08 背包与第 7 章动态规划将重走这四步。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>朴素递归 <code>fib(n)</code> 的紧确时间复杂度是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>Θ(n<sup>2</sup>)，因为有两个递归分支</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>Θ(2<sup>n</sup>)，因为是二叉递归树</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>Θ(φ<sup>n</sup>)，φ = (1+√5)/2 ≈ 1.618</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>Θ(n!)</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 <b>C</b>。齐次递推 T(n)=T(n−1)+T(n−2) 的特征方程为 x<sup>2</sup>=x+1，正根即黄金比 φ≈1.618，通解中 φ<sup>n</sup> 项占主导（另一根 |ψ|≈0.618&lt;1，其幂趋于 0），故 T(n)=Θ(φ<sup>n</sup>)。<br/><b>B 是最需要辨析的选项：</b>Θ(2<sup>n</sup>) 只是<b>上界</b>而非<b>紧确界</b>。若递归树是满二叉树才有 2<sup>n</sup>，但右子树 fib(n−2) 比左子树 fib(n−1) <b>矮一层</b>，树是"歪"的，结点数明显少于 2<sup>n</sup>。精确调用次数为 2F(n+1)−1。<br/>A 错：两个分支不代表平方，指数级的根源是"每层结点数翻倍式增长"。D 错得更远，n! 增长远快于 φ<sup>n</sup>。</div>
+</div>
+
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>要计算 F(10<sup>6</sup>) mod p，下列哪种方法最合适？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>朴素递归，代码最简洁</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>记忆化递归，时间已经是 Θ(n) 了，足够快</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>自底向上滚动变量迭代</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>三种都不行，必须用通项公式 (φ<sup>n</sup>−ψ<sup>n</sup>)/√5</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 <b>C</b>。<br/>A 显然不行：Θ(1.618<sup>1000000</sup>) 是天文数字。<br/><b>B 是本题的核心陷阱</b>：记忆化的<b>时间</b>确实是 Θ(n)=10<sup>6</sup>，看似可行；但它的<b>递归深度也是 10<sup>6</sup></b>，按 §04 的估算（1~8 MB 栈）<b>必然栈溢出</b>，程序根本跑不到出结果。<b>记忆化优化的是时间，不是栈深。</b><br/>D 错：Binet 公式在 n 很大时浮点精度完全失效，且题目要求取模，浮点法无法取模。<br/>C 的滚动迭代时间 Θ(n)、空间 Θ(1)、<b>零递归栈</b>，是唯一稳妥的选择。（若追求更快可用矩阵快速幂 Θ(log n)。）</div>
+</div>
+
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>下列哪一个算法<b>不能</b>通过"记忆化"获得渐进复杂度上的改善？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>朴素递归求斐波那契数</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>朴素递归求组合数 C(n,k) = C(n−1,k−1) + C(n−1,k)</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>归并排序 mergeSort(a, l, r)</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>0/1 背包的朴素递归 dfs(i, c)</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 <b>C</b>。记忆化生效的<b>唯一前提</b>是存在<b>重复子问题</b>——即出现<b>参数完全相同</b>的重复调用。<br/>A：fib(k) 被反复调用，有重复。B：杨辉三角中 C(n−1,k) 会被上方两个格子共同引用，有重复。D：dfs(i,c) 中同一个 (i,c) 会被多条选择路径到达，有重复（详见 §08）。<br/>C 中 mergeSort(a,l,r) 的每次调用处理的是<b>互不相交</b>的子区间，<b>没有任何两次调用的 (l,r) 相同</b>。加了备忘录只会白占 O(n) 空间、多做一次哈希查找，复杂度依旧 Θ(n log n)。<br/><b>结论：递归树上结点多 ≠ 有重复子问题。要看是否"同参数重算"。</b></div>
+</div>
+</div>
+
+<div class="page-nav"><a href="04-stack.html"><span class="dir">← 上一节</span><span class="name">系统栈</span></a><a href="06-hanoi.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">汉诺塔</span></a></div>
+<div class="footer">算法设计与分析 · <b>第2章 递归算法设计技术</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(126,98,166,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+nr.oninput=()=>nv.textContent=nr.value;
+function drawTree(n){
+  // simple layered counts
+  ctx.clearRect(0,0,900,340);
+  const rows=[];
+  function build(k,d){
+    if(!rows[d]) rows[d]=[];
+    rows[d].push(k);
+    if(k<=1) return;
+    build(k-1,d+1); build(k-2,d+1);
+  }
+  build(n,0);
+  rows.forEach((row,d)=>{
+    const gap=900/(row.length+1);
+    row.forEach((k,i)=>{
+      const x=gap*(i+1), y=30+d*36;
+      ctx.beginPath(); ctx.arc(x,y,14,0,Math.PI*2);
+      ctx.fillStyle=k<=1?'#3B7A57':'#7E62A6'; ctx.fill();
+      ctx.fillStyle='#fff'; ctx.font='11px sans-serif'; ctx.textAlign='center'; ctx.fillText(k,x,y+4);
+    });
+  });
+}
+naive.onclick=()=>{
+  const n=+nr.value; let c=0;
+  function fib(k){ c++; if(k<=1) return k; return fib(k-1)+fib(k-2); }
+  res.textContent=fib(n); calls.textContent=c; drawTree(n);
+};
+memo.onclick=()=>{
+  const n=+nr.value; let c=0; const dp=Array(n+1).fill(null);
+  function fib(k){ c++; if(k<=1) return k; if(dp[k]!=null) return dp[k]; return dp[k]=fib(k-1)+fib(k-2); }
+  res.textContent=fib(n); calls.textContent=c;
+  ctx.clearRect(0,0,900,340);
+  ctx.fillStyle='#1D1B16'; ctx.font='16px sans-serif';
+  ctx.fillText('记忆化：每个子问题算一次，调用约 ' + c + ' 次', 40, 160);
+};
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

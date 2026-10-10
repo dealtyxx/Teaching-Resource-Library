@@ -1,0 +1,104 @@
+---
+module: 8
+moduleName: 文件
+order: 46
+title: 充电桩充电日志系统
+level: 进阶选做
+scene: 信创场景
+knowledge: [日志设计, 追加写入, 条目检索]
+stars: 5
+minutes: 120
+goal: 工业设备日志系统思维
+sizheng: 千万台充电桩的黑匣子——新基建的可靠性写在日志里
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import ChargerLogLab from '../../components/react/ChargerLogLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：三年后排障，全靠今天这行日志
+
+高速服务区的充电桩深夜报故障，运维远程只有一样东西可查：**日志**。工业日志系统的四条军规：
+
+1. **只追加**（`"a"` 模式）：历史是写完的，不是改出来的；
+2. **结构化条目**：`[时间戳][级别] 内容`——级别（INFO/WARN/ERROR）让百万行日志可分层检索；
+3. **及时落盘**：每条写完即 `fclose`（或 `fflush`）——设备随时可能掉电，最多丢一条；
+4. **轮转归档**：文件到上限就转存 `xxx.log.1` 重开新文件——Flash 空间有限，日志不能无限生长。
+
+检索则是老朋友的组合拳：`fgets` 逐行读 + `strstr` 匹配（项目 23）——这就是 grep 的最小实现。
+
+## 一步一步看追加与检索
+
+<CStepRunner
+  client:visible
+  title="日志模拟：写一条 WARN，再把它搜出来"
+  badge="日志读写模拟"
+  doneNote="写端只追加、读端流式检索——一个日志文件、两种打开方式（a 与 r）各司其职。fgets+strstr 就是你亲手写的 grep。"
+  code={`#include <stdio.h>
+#include <string.h>
+
+int main(void) {
+    /* ── 写:追加一条告警 ── */
+    FILE *fp = fopen("charge.log", "a");
+    if (fp == NULL) return -1;
+    fprintf(fp, "[14:32:07][WARN] 枪温78C\\n");
+    fclose(fp);          /* 立即落盘 */
+
+    /* ── 读:检索含"WARN"的行 ── */
+    fp = fopen("charge.log", "r");
+    if (fp == NULL) return -1;
+    char line[128];
+    int hits = 0;
+    while (fgets(line, 128, fp) != NULL) {
+        if (strstr(line, "WARN") != NULL) {
+            printf("%s", line);
+            hits++;
+        }
+    }
+    fclose(fp);
+    printf("命中%d条\\n", hits);
+    return 0;
+}`}
+  steps={[
+    { line: 5, desc: '写端以 "a" 打开：无论文件已有多少历史，写入位置永远在末尾——旧日志物理上不可能被覆盖。', vars: { 模式: '"a"' } },
+    { line: 7, desc: '写入结构化条目：时间戳+级别+内容。三个字段是三年后深夜排障的救命稻草。', vars: { 新条目: '[14:32:07][WARN]...' } },
+    { line: 8, desc: '立即 fclose：缓冲区冲刷落盘。工业设备的哲学——宁可频繁开关文件，不赌下一秒不掉电。', vars: { 磁盘: '已落盘✓' } },
+    { line: 11, desc: '换 "r" 模式重新打开——同一文件，读写两种身份。', vars: { 模式: '"r"' } },
+    { line: 15, desc: 'fgets 逐行读入（最多127字符+\\0，限宽防溢出）。文件尾返回 NULL，天然的循环终止条件。', vars: { line: '"[14:32:07][WARN]..."' } },
+    { line: 16, desc: 'strstr 找 "WARN"——项目 23 的字节匹配在运维场景再就业。命中则打印。', out: '[14:32:07][WARN] 枪温78C', vars: { hits: '1' } },
+    { line: 22, desc: '统计输出。fgets+strstr 二十行代码 = grep 的雏形——工具的本质从不神秘。', out: '命中1条' },
+  ]}
+/>
+
+## 动手实验：值一班充电桩运维
+
+<ChargerLogLab client:only="react" />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：实现 `log_write(级别, 内容)` 与 `log_grep(关键字)`，模拟一次完整充电（插枪→充电→完成）写 3 条日志再检索。
+2. **AI 优化进阶版**：让 AI 加日志轮转：文件超过 N 字节时改名为 `.1` 并新建（提示 `ftell` 取大小、`rename` 改名）。审查轮转瞬间正在写入的竞争问题它考虑了吗。
+3. **信创加固定稿版**：ERROR 级别双写（本地+屏幕）；日志行长上限与内容转义（内容里含换行会伪造两条记录——日志注入的雏形！）；估算 4MB Flash 分区按当前写入速率能撑几天，设计对应的轮转策略。
+
+## 素养与思政
+
+全国充电基础设施已超过 1200 万台，国家平台要求运营数据"全量接入、实时上报"。每台桩的每次充电、每次告警，都要有据可查——**新基建的"新"，一半新在物理设备，一半新在数据可信**。
+日志是设备的黑匣子，也是运维工程师的眼睛。写日志的人多打一个字段，查日志的人少熬一个通宵——**善待未来的排障者，从设计今天的日志格式开始**。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="工业日志为什么每条写完就 fclose（或 fflush），而不是攒一批再关？"
+  options={['fclose 让写入更快', '设备随时可能掉电，缓冲区里未落盘的数据会丢失——即时冲刷保证最多丢一条', 'a 模式必须频繁关闭', '为了省内存']}
+  answer={1}
+  explain="fprintf 先写进用户态缓冲区，掉电即失。fflush/fclose 强制落盘。代价是 IO 变频繁——可靠性与性能的权衡，工业场景几乎总是选可靠性。"
+/>
+
+<QuizItem
+  client:visible
+  question={'fgets(line, 128, fp) 相比 fscanf(fp, "%s", line) 读日志行的优势是？'}
+  options={['fgets 更快', 'fgets 整行读取（含空格）且带长度上限防溢出；%s 遇空格截断且无界——日志内容天然含空格，必须用 fgets', '两者相同', 'fscanf 不能读文件']}
+  answer={1}
+  explain="『按行的数据用 fgets 读行，再按需解析』是文本处理的标准分工。第 2 章的缓冲区红线 + 第 3 章的 %s 截断坑，在这一个选择里同时规避。"
+/>

@@ -1,0 +1,99 @@
+---
+module: 1
+moduleName: 顺序结构
+order: 5
+title: 视频存储容量估算器
+level: 综合挑战
+scene: 生活场景
+knowledge: [多步运算, 单位换算, 综合计算]
+stars: 3
+minutes: 90
+goal: 综合运用顺序结构解决实际问题
+sizheng: 平安中国的每一帧影像，都要先在工程师的算式里站稳
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import VideoStorageLab from '../../components/react/VideoStorageLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：保卫处老师的求助
+
+学校要新装 8 路 1080P 监控，录像保存 30 天。保卫处老师问你：**"要买多大的硬盘？"**
+这是模块一的综合挑战——没有新语法，但要把变量、算术运算、单位换算**串成一条更长的流水线**：
+
+1. 每天录像秒数 = 小时 × 3600；
+2. 每路每天比特数 = 码率(Mbps) × 10⁶ × 秒数；
+3. **单位换算**：bit ÷ 8 → Byte，÷ 10⁹ → GB；
+4. 总容量 = 每路每天 GB × 天数 × 路数。
+
+四步环环相扣：第③步没除以 8，答案就大 8 倍；第①步忘了 ×3600，答案就小三千多倍。**顺序结构的挑战不在单步，而在链条**。
+
+## 一步一步看链式计算
+
+<CStepRunner
+  client:visible
+  title="顺序执行模拟：从码率到硬盘容量"
+  code={`#include <stdio.h>
+
+int main(void) {
+    float mbps  = 4.0f;
+    int   hours = 24, days = 30, cams = 8;
+    long  sec = hours * 3600L;
+    float gb_day = mbps * 1e6f * sec / 8.0f / 1e9f;
+    float total  = gb_day * days * cams;
+    printf("总容量约 %.0f GB\\n", total);
+    return 0;
+}`}
+  steps={[
+    { line: 3, desc: '1080P 校园监控典型码率 4Mbps。', vars: { mbps: '4.0' } },
+    { line: 4, desc: '一次定义三个 int：全天录像、存 30 天、8 路摄像头。', vars: { mbps: '4.0', hours: '24', days: '30', cams: '8' } },
+    { line: 5, desc: '24×3600 = 86400 秒。3600L 的 L 后缀保证用 long 运算，为后面的大数做准备。', vars: { mbps: '4.0', hours: '24', days: '30', cams: '8', sec: '86400' } },
+    { line: 6, desc: '4×10⁶×86400 = 3456 亿 bit → ÷8 ÷10⁹ = 43.2 GB。注意 3456 亿早已爆掉 int（上限 21.47 亿）——所以用 float 承接！', vars: { sec: '86400', gb_day: '43.2' } },
+    { line: 7, desc: '43.2 × 30 天 × 8 路 = 10368 GB ≈ 10.4 TB。', vars: { gb_day: '43.2', total: '10368' } },
+    { line: 8, desc: '输出结论：需要约 10.4TB，即 3 块 4TB 监控盘。', out: '总容量约 10368 GB' },
+    { line: 9, desc: 'return 0。你刚刚用 9 行代码回答了一个真实的采购问题。' },
+  ]}
+/>
+
+> **溢出警钟**：第 6 行如果先用 `int` 存"总比特数"，3456 亿 ≫ 21.47 亿，会发生第 3 章「坑一」讲的**静默溢出**——不报错，只给你一个错得离谱的答案。综合挑战考验的正是这种链条中段的类型嗅觉。
+
+## 动手实验：给你的家乡算一套监控方案
+
+<VideoStorageLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：用 `scanf` 读入码率、时长、天数、路数，输出总 GB 数。先在纸上写好四步公式再敲代码。
+2. **AI 优化进阶版**：让 AI 增加"输出改为自动选择 GB/TB 单位"与"计算所需 4TB 硬盘块数"（提示：向上取整怎么做？）。审查它是否犯了整数除法截断的错误。
+3. **信创加固定稿版**：所有输入加范围校验（码率 1~100Mbps、路数 1~1024）；中间量改用 `double` 或 `uint64_t` 彻底消除溢出；单位换算系数全部宏定义。完成后，你就拥有了一个能交付给保卫处的小工具。
+
+## 素养与思政
+
+"雪亮工程"让平安中国有了千万双眼睛，而每一双眼睛背后都是一笔精确的存储账：算少了，关键时刻录像已被覆盖；算多了，浪费的是公共资金。
+工程师的社会责任，常常就藏在这样一道乘法题里——**把账算准，是最朴素的职业操守**。完成这个项目，你已经走完模块一从"会输出"到"会解决问题"的全部台阶。模块二「分支结构」，程序将学会"做选择"。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="4Mbps 码率下，1 秒视频占多少存储空间？"
+  options={['4 MB', '0.5 MB（4Mbit ÷ 8）', '32 MB', '4 GB']}
+  answer={1}
+  explain="Mbps 的 b 是 bit！4 Mbit ÷ 8 = 0.5 MByte。混淆 bit 与 Byte 是存储估算最高频的错误，差整整 8 倍。"
+/>
+
+<QuizItem
+  client:visible
+  question="用 int（上限约 21.47 亿）存放『4Mbps × 86400 秒』的总比特数，会发生什么？"
+  options={['编译报错提醒你', '运行时崩溃', '静默溢出，得到一个错误但看似正常的数', '自动转成 long']}
+  answer={2}
+  explain="C 语言不检查整型溢出——程序照常运行，只是结果错了。这正是第 3 章『坑一：整型溢出』：不报错的 bug 才最危险。"
+/>
+
+<QuizItem
+  client:visible
+  question="本项目四步计算的顺序能否交换？例如先乘天数、最后再换算单位？"
+  options={['不能，编译器会报错', '数学上可以，但每一步的中间量类型必须重新审视是否会溢出', '可以，且完全没有影响', '不能，printf 必须紧跟第一步']}
+  answer={1}
+  explain="乘法交换律在数学上成立，但在有限位宽的计算机里，运算顺序决定中间结果的大小，进而决定会不会溢出——顺序结构的『顺序』，既是语法问题，更是工程问题。"
+/>

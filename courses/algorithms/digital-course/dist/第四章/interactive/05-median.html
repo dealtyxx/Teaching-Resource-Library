@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>中位数 · 第4章 分治法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">04</div>算法可视化 · <span>第4章 分治法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-quicksort.html">快排</a><a class="pill" href="03-mergesort.html">归并</a><a class="pill" href="04-binsearch.html">二分</a><a class="pill active" href="05-median.html">中位数</a><a class="pill" href="06-maxsub.html">最大子段</a><a class="pill" href="07-chessboard.html">棋盘覆盖</a><a class="pill" href="08-schedule.html">日程</a><a class="pill" href="09-tsp.html">TSP</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 5 · 加深</div><h1>两个有序序列的中位数</h1>
+<p>等长有序序列 A,B：比较中位数，丢弃不可能半段，O(log n)。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+<li>能够<b>严格定义</b>序列的<b>下中位数</b>与<b>上中位数</b>，并说明二者在元素个数为偶数时的区别。</li>
+<li>能够<b>解释</b>"丢弃等量元素"这一<b>不变量</b>为什么保证中位数的位置不变，从而说明<b>最后一步为什么取 min</b>。</li>
+<li>能够<b>推导</b> T(n)=T(n/2)+O(1) ⇒ &Theta;(log n)，并与归并法 O(n)、排序法 O(n log n) 比较。</li>
+<li>能够<b>写出</b>等长情形与<b>不等长一般情形</b>的 C++ 代码（统一转化为「求第 k 小」）。</li>
+<li>能够<b>处理</b>某一序列被丢空、k=1、长度奇偶不同等<b>边界情形</b>。</li>
+</ol></div>
+<div class="card">
+  <div class="toolbar"><button class="btn primary" id="run">▶ 对半丢弃</button><button class="btn" id="rst">重置</button></div>
+  <div class="grid grid-2">
+    <div>
+      <h3>A</h3><div class="cells" id="A"></div>
+      <h3 style="margin-top:10px">B</h3><div class="cells" id="B"></div>
+    </div>
+    <div>
+      <div class="stat-row"><div class="stat"><span>中位数</span><b class="p" id="med">—</b></div><div class="stat"><span>步数</span><b class="g" id="st">0</b></div></div>
+      <div class="log" id="log">点击运行。</div>
+      <div class="formula">若 midA ≤ midB：丢弃 A 左半与 B 右半</div>
+    </div>
+  </div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、中位数的严格定义</h2><span class="sub">下中位数 / 上中位数</span></div>
+<div class="defn"><span class="lbl">定义</span><p>设有序序列 C[1..N]（按升序、下标从 1 计），则<br/>
+&nbsp;&nbsp;<b>下中位数（lower median）</b> = C[⌈N/2⌉] = C[⌊(N+1)/2⌋]；<br/>
+&nbsp;&nbsp;<b>上中位数（upper median）</b> = C[⌊N/2⌋ + 1]。<br/>
+当 N 为<b>奇数</b>时，二者是同一个元素（正中间那个）；当 N 为<b>偶数</b>时，下中位数是第 N/2 个、上中位数是第 N/2+1 个，二者<b>相邻但不同</b>。教材与考试若无特别声明，"中位数"一律指<b>下中位数</b>。</p></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>序列</th><th>N</th><th>下中位数（第 ⌈N/2⌉ 个）</th><th>上中位数（第 ⌊N/2⌋+1 个）</th></tr>
+  <tr><td>(1, 3, 5, 7, 9)</td><td>5 奇</td><td class="hl">5（第 3 个）</td><td>5（第 3 个）</td></tr>
+  <tr><td>(1, 2, 3, 4)</td><td>4 偶</td><td class="hl">2（第 2 个）</td><td>3（第 3 个）</td></tr>
+  <tr><td>(1,2,3,4,5,6,7,8,9,10,11,12)</td><td>12 偶</td><td class="hl">6（第 6 个）</td><td>7（第 7 个）</td></tr>
+</table></div>
+<div class="tip info"><strong>本节问题：</strong>给定两个各含 n 个元素的<b>升序</b>序列 A 与 B，求 A 与 B 归并后这 <b>2n</b> 个元素的<b>下中位数</b>，即第 <b>n</b> 个元素（2n 为偶数，⌈2n/2⌉ = n）。<br/>
+上方动画中 A=(1,3,5,7,9,11)、B=(2,4,6,8,10,12)，合并后是 1~12 共 12 个数，下中位数是<b>第 6 个 = 6</b>（上中位数则是 7）。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、分治思路与"等量丢弃"不变量</h2><span class="sub">为什么可以对半丢弃</span></div>
+<div class="defn prop"><span class="lbl">性质（核心不变量）</span><p>若从合并序列中<b>同时删去 t 个"一定小于等于中位数"的元素</b>和 <b>t 个"一定大于等于中位数"的元素</b>，则剩余序列的下中位数<b>仍是原序列的下中位数</b>。<br/>
+理由：原下中位数在 2n 个元素中的<b>排名为 n</b>；删掉 t 个比它小的后排名变成 n&minus;t，同时删掉 t 个比它大的不影响它的排名；而剩余元素共 2n&minus;2t = 2(n&minus;t) 个，其下中位数的排名恰为 n&minus;t。<b>两者相符 ⇒ 位置不变。</b></p></div>
+<div class="card">
+  <div class="list-step"><span class="n">1</span><div class="body"><b>比较</b> — 取 A 段与 B 段各自的中位数 A[ma] 与 B[mb] 进行比较。</div></div>
+  <div class="list-step"><span class="n">2</span><div class="body"><b>相等</b> — 若 A[ma] == B[mb]，则它左边恰有相同数量的元素，它就是答案，直接返回。</div></div>
+  <div class="list-step"><span class="n">3</span><div class="body"><b>A 的较小</b> — 若 A[ma] &lt; B[mb]，则答案落在「A 的后半段」与「B 的前半段」之中：<b>丢掉 A 的前 t 个（都不大于中位数）与 B 的后 t 个（都不小于中位数）</b>，两侧丢弃数量<b>必须相等</b>。</div></div>
+  <div class="list-step"><span class="n">4</span><div class="body"><b>B 的较小</b> — 对称地丢掉 B 的前 t 个与 A 的后 t 个。</div></div>
+  <div class="list-step"><span class="n">5</span><div class="body"><b>出口</b> — 当 A、B 各只剩 1 个元素时，剩余合并序列只有 2 个元素 {A[0], B[0]}。</div></div>
+</div>
+<div class="tip info"><strong>为什么最后一步取 min（本节最容易被略过的一点）？</strong><br/>
+出口时剩余序列只有 <b>2</b> 个元素，其<b>下中位数</b> = 第 ⌈2/2⌉ = <b>第 1 个</b> = <b>min(A[0], B[0])</b>。<br/>
+由不变量可知，每一轮丢弃都保持"下中位数不变"，所以这个 min 就是原问题的答案。<br/>
+<b>推论：若题目要求的是<u>上中位数</u>，出口处应改取 max(A[0], B[0])（第 2 个）。</b>动画中最终显示 min(7, 6) = 6，正是 1~12 的下中位数。<b>并不是"因为小的更靠中间"，而是"因为剩下 2 个元素时下中位数就是第 1 个"。</b></div>
+<div class="tip warn"><strong>实现提醒：</strong>"各丢一半"在<b>长度为偶数与奇数时丢弃个数不同</b>，下标与丢弃量必须随奇偶仔细处理，否则会把中位数本身丢掉而得到错误结果。为回避这类边界陷阱，工程与竞赛中<b>统一转化为「求第 k 小」模板</b>（见第四节），该模板同时覆盖等长与不等长两种情形。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、复杂度分析</h2><span class="sub">递推式求解</span></div>
+<div class="formula lg">T(n) = T(n/2) + O(1)&nbsp;&nbsp;⇒&nbsp;&nbsp;T(n) = &Theta;(log n)</div>
+<div class="deriv">
+  <span class="step">T(1) = 1；T(n) = T(n/2) + c <span class="why">一次比较 O(1)，两段各减半后规模仍相等</span></span>
+  <span class="step">T(n) = T(n/2) + c</span>
+  <span class="step">　　 = [T(n/4) + c] + c = T(n/4) + 2c</span>
+  <span class="step">　　 = T(n/8) + 3c</span>
+  <span class="step">　　 &hellip;</span>
+  <span class="step">　　 = T(n/2<sup>k</sup>) + k&middot;c <span class="why">第 k 步通式</span></span>
+  <span class="step">令 n/2<sup>k</sup> = 1 ⇒ k = log<sub>2</sub>n</span>
+  <span class="step">T(n) = T(1) + c&middot;log<sub>2</sub>n ⇒ <b>T(n) = &Theta;(log n)</b></span>
+  <span class="step">主定理校验：a=1（只递归一对子段）、b=2、d=0；log<sub>2</sub>1 = 0 = d ⇒ 情形② ⇒ &Theta;(n<sup>0</sup>log n)=&Theta;(log n)</span>
+</div>
+<div class="table-scroll"><table class="data">
+  <tr><th>方法</th><th>做法</th><th>时间复杂度</th><th>辅助空间</th><th>评价</th></tr>
+  <tr><td>排序法</td><td>把 2n 个数合到一起排序后取第 n 个</td><td>O(n log n)</td><td>O(n)</td><td>最朴素，浪费了"已有序"这一条件</td></tr>
+  <tr><td>归并法</td><td>双指针归并，数到第 n 个即停</td><td>O(n)</td><td>O(1)</td><td>利用了有序，但仍是线性</td></tr>
+  <tr><td class="hl">分治法</td><td>比较两段中位数，每轮丢弃一半</td><td class="hl">&Theta;(log n)</td><td>O(1) 迭代 / O(log n) 递归</td><td>最优；n=10<sup>6</sup> 时约 20 次比较</td></tr>
+</table></div>
+<div class="tip"><strong>提示：</strong>本问题<b>不可能</b>做到比 &Theta;(log n) 更快——任何算法都必须至少读入若干元素来定位中位数，&Omega;(log n) 是该问题在比较模型下的下界。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、C++ 实现</h2><span class="sub">等长特例 + 不等长一般情形</span></div>
+<div class="code"><span class="cm">// ============ 通用模板：求两个升序序列归并后的第 k 小（k 从 1 计）============</span>
+<span class="cm">// 同时适用于等长与不等长，A 有 m 个元素、B 有 n 个元素</span>
+<span class="kw">int</span> <span class="fn">kth</span>(<span class="kw">const</span> <span class="kw">int</span> A[], <span class="kw">int</span> m, <span class="kw">const</span> <span class="kw">int</span> B[], <span class="kw">int</span> n, <span class="kw">int</span> k) {
+    <span class="kw">int</span> i = <span class="nu">0</span>, j = <span class="nu">0</span>;                    <span class="cm">// 两序列当前有效起点</span>
+    <span class="kw">while</span> (<span class="kw">true</span>) {
+        <span class="kw">if</span> (i == m) <span class="kw">return</span> B[j + k - <span class="nu">1</span>];  <span class="cm">// 边界：A 已丢空，答案在 B 中</span>
+        <span class="kw">if</span> (j == n) <span class="kw">return</span> A[i + k - <span class="nu">1</span>];  <span class="cm">// 边界：B 已丢空，答案在 A 中</span>
+        <span class="kw">if</span> (k == <span class="nu">1</span>) <span class="kw">return</span> <span class="fn">min</span>(A[i], B[j]);<span class="cm">// 出口：第 1 小 = 两首元素的较小者</span>
+
+        <span class="kw">int</span> t  = k / <span class="nu">2</span>;                  <span class="cm">// 每轮试探丢弃 t 个（下取整，保证 2t &lt;= k）</span>
+        <span class="kw">int</span> ta = <span class="fn">min</span>(t, m - i);            <span class="cm">// 防越界：A 剩余不足 t 个时取剩余量</span>
+        <span class="kw">int</span> tb = <span class="fn">min</span>(t, n - j);
+        <span class="kw">if</span> (A[i + ta - <span class="nu">1</span>] &lt;= B[j + tb - <span class="nu">1</span>]) {
+            k -= ta; i += ta;              <span class="cm">// A 的前 ta 个排名均 &lt; k，安全丢弃</span>
+        } <span class="kw">else</span> {
+            k -= tb; j += tb;              <span class="cm">// 对称：丢弃 B 的前 tb 个</span>
+        }
+    }
+}
+
+<span class="cm">// ---------- 下中位数：共 m+n 个元素，取第 floor((m+n+1)/2) 小 ----------</span>
+<span class="kw">int</span> <span class="fn">lowerMedian</span>(<span class="kw">const</span> <span class="kw">int</span> A[], <span class="kw">int</span> m, <span class="kw">const</span> <span class="kw">int</span> B[], <span class="kw">int</span> n) {
+    <span class="kw">return</span> <span class="fn">kth</span>(A, m, B, n, (m + n + <span class="nu">1</span>) / <span class="nu">2</span>);
+}
+<span class="cm">// ---------- 上中位数：取第 floor((m+n)/2)+1 小 ----------</span>
+<span class="kw">int</span> <span class="fn">upperMedian</span>(<span class="kw">const</span> <span class="kw">int</span> A[], <span class="kw">int</span> m, <span class="kw">const</span> <span class="kw">int</span> B[], <span class="kw">int</span> n) {
+    <span class="kw">return</span> <span class="fn">kth</span>(A, m, B, n, (m + n) / <span class="nu">2</span> + <span class="nu">1</span>);
+}
+
+<span class="cm">// ---------- 等长特例：A、B 各 n 个，求 2n 个元素的下中位数 = 第 n 小 ----------</span>
+<span class="kw">int</span> <span class="fn">median2</span>(<span class="kw">const</span> <span class="kw">int</span> A[], <span class="kw">const</span> <span class="kw">int</span> B[], <span class="kw">int</span> n) {
+    <span class="kw">return</span> <span class="fn">kth</span>(A, n, B, n, n);       <span class="cm">// (n+n+1)/2 == n</span>
+}</div>
+<div class="tip info"><strong>为什么"丢弃 A 的前 ta 个"是安全的？</strong>设 A[i+ta&minus;1] &le; B[j+tb&minus;1]。<br/>
+&nbsp;&nbsp;• 在 A 中，不大于 A[i+ta&minus;1] 的元素恰有 ta 个；<br/>
+&nbsp;&nbsp;• 在 B 中，<b>严格小于</b> A[i+ta&minus;1] 的元素至多 tb&minus;1 个（因为 B[j+tb&minus;1] 已经 &ge; 它）；<br/>
+&nbsp;&nbsp;• 故 A[i+ta&minus;1] 在合并序列中的排名 &le; ta + tb &minus; 1 &le; 2t &minus; 1 &le; <b>k &minus; 1 &lt; k</b>。<br/>
+既然连它们中最大的一个排名都小于 k，这 ta 个元素<b>都不可能是第 k 小</b>，可以放心删除，同时把 k 减去 ta。<b>每轮 k 至少减半 ⇒ O(log k) 轮。</b></div>
+
+<div class="deriv">
+  <span class="step">复杂度：T(k) = T(k/2) + O(1) ⇒ T(k) = &Theta;(log k)</span>
+  <span class="step">代入 k = ⌊(m+n+1)/2⌋ ⇒ <b>T = O(log(m+n))</b></span>
+  <span class="step">等长时 m=n ⇒ O(log 2n) = <b>&Theta;(log n)</b>，与第三节结论一致</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>五、不等长序列的一般情形</h2><span class="sub">m &ne; n 时"各丢一半"为何失效</span></div>
+<div class="tip danger"><strong>直接照搬等长做法会出错。</strong>设 A 有 m 个、B 有 n 个且 m &ne; n。若仍然"各取自己的中位数比较、各丢自己的一半"，则一轮丢掉的是 ⌊m/2⌋ 个小元素和 ⌊n/2⌋ 个大元素，<b>两侧数量不相等</b>，"等量丢弃"不变量被破坏，中位数的相对位置发生<b>漂移</b>，结果必然错误。<br/>
+例：A=(1, 2, 3, 4, 5, 6, 7)（m=7），B=(100)（n=1）。合并后 8 个元素，下中位数为第 4 个 = 4。若"各丢一半"，一轮就会丢掉 A 的前 3 个而 B 只有 1 个无从丢起，答案立刻跑偏。</div>
+<div class="table-scroll"><table class="data">
+  <tr><th>解法</th><th>思路</th><th>时间</th><th>适用</th><th>关键边界</th></tr>
+  <tr><td class="hl">求第 k 小（推荐）</td><td>每轮各试探 t=⌊k/2⌋ 个，比较两个"第 t 个"，丢较小的一侧</td><td>O(log(m+n))</td><td>任意 m、n，含 m=0 或 n=0</td><td>t 要用 min(t, 剩余长度) 截断；某序列丢空后直接索引另一序列</td></tr>
+  <tr><td>划分法（切割法）</td><td>在<b>较短</b>序列上二分切点 i，令 j=⌈(m+n)/2⌉&minus;i，检验 A[i&minus;1]&le;B[j] 且 B[j&minus;1]&le;A[i]</td><td>O(log min(m,n))</td><td>任意 m、n</td><td>切点取 0 或 m 时用 &minus;&infin;/+&infin; 哨兵</td></tr>
+  <tr><td>归并法</td><td>双指针数到第 ⌈(m+n)/2⌉ 个停</td><td>O(m+n)</td><td>任意</td><td>简单但不是最优</td></tr>
+</table></div>
+<div class="tip info"><strong>划分法要点（了解即可）：</strong>把 A 切成 A<sub>左</sub>|A<sub>右</sub>、B 切成 B<sub>左</sub>|B<sub>右</sub>，使 |A<sub>左</sub>|+|B<sub>左</sub>| = ⌈(m+n)/2⌉。当且仅当 <b>max(A<sub>左</sub>末, B<sub>左</sub>末) &le; min(A<sub>右</sub>首, B<sub>右</sub>首)</b> 时，切割合法，此时<b>下中位数 = max(A<sub>左</sub>末, B<sub>左</sub>末)</b>，上中位数 = min(A<sub>右</sub>首, B<sub>右</sub>首)。只在较短的序列上二分即可，故为 O(log min(m,n))，是本问题的<b>最优</b>解法。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>六、例题</h2><span class="sub">Worked Example</span></div>
+<div class="tip info"><strong>题目：</strong>A = (1, 3, 5, 7, 9, 11)，B = (2, 4, 6, 8, 10, 12)，各 6 个元素。求这 12 个元素的<b>下中位数</b>与<b>上中位数</b>，并写出用 kth 模板的每一步。</div>
+<div class="deriv">
+  <span class="step">【下中位数】k = (6+6+1)/2 = 6，i=0, j=0</span>
+  <span class="step">第 1 轮：k=6 ⇒ t=3；A[0+3&minus;1]=A[2]=5，B[0+3&minus;1]=B[2]=6；5 &le; 6 ⇒ 丢 A 前 3 个 {1,3,5}，i=3, k=3</span>
+  <span class="step">第 2 轮：k=3 ⇒ t=1；A[3]=7，B[0]=2；7 &le; 2 不成立 ⇒ 丢 B 前 1 个 {2}，j=1, k=2</span>
+  <span class="step">第 3 轮：k=2 ⇒ t=1；A[3]=7，B[1]=4；7 &le; 4 不成立 ⇒ 丢 B 前 1 个 {4}，j=2, k=1</span>
+  <span class="step">出口：k=1 ⇒ 返回 min(A[3], B[2]) = min(7, 6) = <b>6</b> ✔（合并序列 1..12 的第 6 个）</span>
+  <span class="step">　</span>
+  <span class="step">【上中位数】k = (6+6)/2 + 1 = 7，i=0, j=0</span>
+  <span class="step">第 1 轮：t=3；A[2]=5 &le; B[2]=6 ⇒ 丢 A 前 3 个，i=3, k=4</span>
+  <span class="step">第 2 轮：t=2；A[3+2&minus;1]=A[4]=9，B[0+2&minus;1]=B[1]=4；9 &le; 4 不成立 ⇒ 丢 B 前 2 个 {2,4}，j=2, k=2</span>
+  <span class="step">第 3 轮：t=1；A[3]=7，B[2]=6；7 &le; 6 不成立 ⇒ 丢 B 前 1 个 {6}，j=3, k=1</span>
+  <span class="step">出口：返回 min(A[3], B[3]) = min(7, 8) = <b>7</b> ✔（合并序列 1..12 的第 7 个）</span>
+  <span class="step">　</span>
+  <span class="step">比较次数：3 次，而 log<sub>2</sub>6 &asymp; 2.6 ⇒ 与 &Theta;(log n) 相符（归并法需要数 6 步，排序法需要 12 log 12 &asymp; 43 次比较）</span>
+</div>
+<div class="terms">
+  <span class="term"><b>中位数</b>Median</span>
+  <span class="term"><b>下中位数</b>Lower Median</span>
+  <span class="term"><b>上中位数</b>Upper Median</span>
+  <span class="term"><b>第 k 小元素</b>k-th Smallest / Selection</span>
+  <span class="term"><b>排名</b>Rank</span>
+  <span class="term"><b>不变量</b>Invariant</span>
+  <span class="term"><b>哨兵</b>Sentinel</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>七、易错点</h2><span class="sub">Common Pitfalls</span></div>
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+<li><b>混淆下中位数与上中位数</b>。2n 个元素的下中位数是<b>第 n 个</b>，上中位数是第 n+1 个；出口处下中位数取 <b>min</b>、上中位数取 <b>max</b>，取反就错。</li>
+<li><b>两侧丢弃数量不相等</b>。必须"丢 t 个小的 + 丢 t 个大的"，不变量才成立。长度为奇数时若一侧丢 ⌊len/2⌋、另一侧丢 ⌈len/2⌉，中位数位置会漂移。</li>
+<li><b>把中位数本身丢掉</b>。与二分查找的 <span style="font-family:var(--mono)">hi=mid</span> / <span style="font-family:var(--mono)">hi=mid&minus;1</span> 同理：中位数所在的那一侧必须<b>保留边界元素</b>。</li>
+<li><b>不等长时照搬"各丢一半"</b>。m &ne; n 时该做法直接失效，必须转成"求第 k 小"或用划分法。</li>
+<li><b>忘记 min(t, 剩余长度) 截断</b>，导致 <span style="font-family:var(--mono)">A[i+t&minus;1]</span> 越界。</li>
+<li><b>漏掉"某序列被丢空"的边界</b>：i==m 时答案就是 B[j+k&minus;1]，必须在循环开头先判。</li>
+<li><b>用 t = ⌈k/2⌉ 而非 ⌊k/2⌋</b>。安全性证明依赖 2t &le; k；若 t 取上取整，当 k 为奇数时 2t = k+1 &gt; k，可能把第 k 小本身丢掉。</li>
+<li>误以为分治法是 O(n)。它是 <b>&Theta;(log n)</b>——数元素的归并法才是 O(n)。</li>
+</ul></div>
+</section>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+<li>N 个元素的<b>下中位数 = 第 ⌈N/2⌉ 个</b>，<b>上中位数 = 第 ⌊N/2⌋+1 个</b>；奇数时相同，偶数时相邻。</li>
+<li>核心不变量：<b>同时丢掉 t 个较小元素与 t 个较大元素，下中位数不变</b>（排名 n → n&minus;t，元素数 2n → 2(n&minus;t)，恰好匹配）。</li>
+<li>出口处只剩 2 个元素，<b>下中位数 = 第 1 个 = min</b>；若求上中位数则取 max。这就是"为什么取 min"的完整解释。</li>
+<li>递推式 <b>T(n)=T(n/2)+O(1) ⇒ &Theta;(log n)</b>；主定理 a=1, b=2, d=0，log<sub>2</sub>1=0=d ⇒ 情形②。</li>
+<li>与朴素方法对比：排序 O(n log n) &gt; 归并 O(n) &gt; <b>分治 &Theta;(log n)</b>。</li>
+<li><b>不等长（m &ne; n）</b>时"各丢一半"失效，应统一转化为「<b>求第 k 小</b>」模板（O(log(m+n))）或划分法（O(log min(m,n))）。</li>
+</ul></div>
+
+<section class="sec"><div class="sec-head"><h2>自测题</h2><span class="sub">点击选项查看解析</span></div>
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>算法递归到 A、B 各只剩一个元素时返回 <span style="font-family:var(--mono)">min(A[0], B[0])</span>，其根本原因是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>较小的元素更接近序列中间，所以取 min</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>剩余序列只有 2 个元素，其下中位数按定义就是第 1 个，即较小者；且每轮等量丢弃保证了下中位数不变</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>因为 A、B 都升序，A[0] 与 B[0] 分别是两段最小值，取 min 得全局最小值</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>取 min 或 max 都可以，只是习惯上取 min</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。两个关键点缺一不可：<b>①</b> 每轮丢弃的"小元素个数 = 大元素个数"，使下中位数在剩余序列中<b>仍然是下中位数</b>；<b>②</b> 剩 2 个元素时，下中位数 = 第 ⌈2/2⌉ = 第 1 个 = min。<br/>A 是没有依据的直觉描述；<b>C 是最迷惑的干扰项</b>——min(A[0],B[0]) 确实是<b>剩余</b>两元素中的最小者，但它绝不是<b>原始</b> 2n 个元素的全局最小值（原始最小值早在第一轮就被丢掉了），把"局部 min"说成"全局最小值"是概念错误；D 错在若求<b>上中位数</b>才取 max，两者不能互换。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>两个各含 n 个元素的升序序列求中位数，下列复杂度说法正确的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>必须归并到第 n 个元素，所以下界是 &Theta;(n)</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>T(n)=2T(n/2)+O(1)，解得 &Theta;(n)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>T(n)=T(n/2)+O(1)，解得 &Theta;(log n)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>T(n)=T(n/2)+O(n)，解得 &Theta;(n)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。每轮只做一次比较（O(1)），并把两段规模同时减半，且<b>只需继续处理留下的那一对子段</b>，故 a=1、b=2、d=0 ⇒ &Theta;(log n)。<br/>A 是没有利用"两段已各自有序"这一条件的朴素思路，&Theta;(n) 是归并法的复杂度而非问题下界；<b>B 的 a=2 是典型错误</b>——比较后<b>只保留一对</b>子段继续递归，不是两对都递归，若真是 a=2 会得到 &Theta;(n<sup>log<sub>2</sub>2</sup>)=&Theta;(n)；D 把每轮的比较代价误记为 O(n)（实际上"丢弃"只是移动下标，不需要真的搬数据）。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>A = (1, 2, 3, 4, 5, 6, 7)（7 个），B = (100)（1 个）。这 8 个元素的下中位数是？若直接套用"各取自己的中位数比较、各丢自己的一半"会怎样？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>下中位数是 4；等长做法同样适用，结果正确</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>下中位数是 4；等长做法因两侧丢弃数量不等而失效，必须改用"求第 k 小"或划分法</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>下中位数是 (4+5)/2 = 4.5；等长做法适用</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>下中位数是 5；因为 100 很大，会把中位数往右推</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。合并序列 (1,2,3,4,5,6,7,100) 共 8 个，下中位数 = 第 ⌈8/2⌉ = 第 4 个 = <b>4</b>。<br/>等长算法的正确性完全建立在"每轮从一侧丢 t 个小的、从另一侧丢 t 个大的"之上；m=7、n=1 时 B 根本不足以配平，不变量崩溃。<br/>A 错在忽略了不变量的前提；<b>C 混淆了统计学的"中位数取两数平均"与算法教材的"下中位数取第 ⌈N/2⌉ 个元素"</b>——本章按后者定义，答案必须是序列中<b>真实存在</b>的某个元素；D 错在中位数只看<b>排名</b>不看数值大小，100 无论多大都只占一个位置。</div>
+  </div>
+</div>
+</section>
+
+<div class="page-nav"><a href="04-binsearch.html"><span class="dir">← 上一节</span><span class="name">二分</span></a><a href="06-maxsub.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">最大子段</span></a></div>
+<div class="footer">算法设计与分析 · <b>第4章 分治法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(74,108,140,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+let A=[1,3,5,7,9,11], B=[2,4,6,8,10,12];
+function show(a,b,hiA=new Set(),hiB=new Set()){
+  document.getElementById('A').innerHTML=a.map((v,i)=>`<div class="cell ${hiA.has(i)?'on':''}">${v}</div>`).join('');
+  document.getElementById('B').innerHTML=b.map((v,i)=>`<div class="cell ${hiB.has(i)?'piv':''}">${v}</div>`).join('');
+}
+async function median(a,b){
+  let steps=0;
+  while(a.length>1){
+    steps++; st.textContent=steps;
+    const ma=a.length>>1, mb=b.length>>1;
+    show(a,b,new Set([ma]), new Set([mb]));
+    log.textContent=`midA=${a[ma]} midB=${b[mb]}`;
+    await sleep(700);
+    if(a[ma]<=b[mb]){ a=a.slice(ma); b=b.slice(0,b.length-ma); log.textContent+=` → 丢 A 左 / B 右`; }
+    else { b=b.slice(mb); a=a.slice(0,a.length-mb); log.textContent+=` → 丢 B 左 / A 右`; }
+    await sleep(400);
+  }
+  const m=Math.min(a[0],b[0]);
+  med.textContent=m; show(a,b,new Set([0]),new Set([0]));
+  log.textContent+=`\\n中位数 = min(${a[0]},${b[0]}) = ${m}`;
+}
+run.onclick=()=>{ A=[1,3,5,7,9,11]; B=[2,4,6,8,10,12]; median(A.slice(),B.slice()); };
+rst.onclick=()=>{ show(A,B); med.textContent='—'; st.textContent=0; log.textContent='重置'; };
+show(A,B);
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

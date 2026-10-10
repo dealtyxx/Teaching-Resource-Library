@@ -1,0 +1,127 @@
+---
+module: 6
+moduleName: 信息标记与提取方法
+order: 24
+title: 三格式标记语言互转平台
+level: 进阶选做
+scene: 格式互通
+knowledge: [XML/JSON/YAML对比, 格式转换, 编码统一]
+stars: 3
+minutes: 40
+goal: 掌握三种标记格式互转
+sizheng: 理解信息标记的选型依据
+dims: [科研诚信, 创新思维]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+import FormatTrioLab from '../../components/react/labs/FormatTrioLab';
+
+## 场景导入
+
+同一条数据，接口那头用 JSON、配置文件里写成 YAML、老系统又只认 XML——现实工程里，这样的「同义不同装」随处可见。它们本质上都在做同一件事：给数据打标记、标结构。既然本质相通，就应该能自由互转。这一节我们做个「格式翻译机」：把一份 Python 数据分别输出成三种格式，再顺手比一比谁更省字符、谁更好读，从而理解「什么场景该选哪一种」。
+
+## 玩一玩
+
+先直观感受同一条《论语》元数据在三种格式下的样子——点按钮切换 JSON、XML、YAML，看看它们的写法差异和体积对比：
+
+<FormatTrioLab client:visible />
+
+## 动手实验
+
+轮到代码上场。同一个字典 `record`，用 `json.dumps` 转 JSON、`yaml.safe_dump` 转 YAML，再手写一个极简 `to_xml` 转 XML。三者都记得处理中文（`ensure_ascii=False` 与 `allow_unicode=True`），最后用 `len()` 比一比字符数：
+
+<PyPlayground
+  client:visible
+  title="JSON / YAML / XML 三格式互转"
+  note="试着往 record 里再加一个 author 字段，或把 keywords 换成你熟悉的关键词，看三种格式各自怎么变。"
+  packages={['pyyaml']}
+  code={`import json
+import yaml   # PyYAML：pip 包名是 pyyaml，import 名却是 yaml
+
+# 一份「源数据」（Python 字典），下面把它翻译成三种标记格式
+record = {
+    "title": "论语",
+    "dynasty": "先秦",
+    "category": "儒家经典",
+    "keywords": ["仁", "礼", "君子"],
+}
+
+# 1) JSON：接口传输的事实标准。ensure_ascii=False 保留中文
+as_json = json.dumps(record, ensure_ascii=False, indent=2)
+
+# 2) YAML：人读友好、缩进即层级。allow_unicode=True 保留中文
+as_yaml = yaml.safe_dump(record, allow_unicode=True, sort_keys=False)
+
+# 3) XML：手写一个极简 to_xml，体会「标签即结构」
+def to_xml(d, root="record"):
+    lines = [f"<{root}>"]
+    for k, v in d.items():
+        if isinstance(v, list):
+            lines.append(f"  <{k}>")
+            for item in v:
+                lines.append(f"    <item>{item}</item>")
+            lines.append(f"  </{k}>")
+        else:
+            lines.append(f"  <{k}>{v}</{k}>")
+    lines.append(f"</{root}>")
+    return "\\n".join(lines)
+
+as_xml = to_xml(record)
+
+# 同一份数据，三种「衣服」——顺带比一比谁更省字符
+for name, text in [("JSON", as_json), ("YAML", as_yaml), ("XML", as_xml)]:
+    print(f"===== {name}（{len(text)} 字符）=====")
+    print(text)
+    print()`}
+/>
+
+## 思政会客厅
+
+<DimCard dim="科研诚信" title="选对格式，数据才可复现">
+  <ul>
+    <li>科研数据存成开放、自描述的标准格式（JSON/XML/YAML），别人才能读懂、验证、复用；若锁进私有二进制文件，复现就无从谈起。</li>
+    <li>这正是 FAIR 数据原则（可发现 Findable、可访问 Accessible、可互操作 Interoperable、可复用 Reusable）的要求，也是科研诚信在数据层面的技术底座。</li>
+    <li>格式统一、编码统一（全程 UTF-8、显式保留中文），是让数据「经得起他人检验」的第一步。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="创新思维" title="没有最好，只有最合适">
+  <ul>
+    <li>接口传输选 JSON（轻量），文档校验选 XML（可带属性与 Schema），人读配置选 YAML（缩进即层级）——按场景选型，是工程师的判断力。</li>
+    <li>看清每种格式在「体积、可读性、校验能力」上的取舍，才能在约束里找到最优解，而不是盲目追新或一把梭。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="🔬" tone="blue" title="FAIR：让数据可被信任">
+FAIR 原则于 2016 年在《Scientific Data》正式提出，如今被全球科研数据管理广泛采纳。它的核心朴素得很：数据要能被找到、拿到、读懂、再用——而这一切，都从「选一个开放标准格式」开始。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p24-d1"
+  question="同一份数据，用 JSON 只要一百来个字符，用 XML 却要更多。是不是越省字符的格式就一定越好？举例说说什么时候你宁可选更「啰嗦」的 XML。"
+  hints={['体积不是唯一标准，可读性、可校验性同样重要', 'XML 支持属性、命名空间与 Schema 校验，适合严格的文档级交换（如金融、政务报文）', 'YAML 可读性最好、适合配置，JSON 轻量适合接口——选型永远看场景需求']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="关于 JSON、XML、YAML 三种格式，下面说法正确的是？"
+  options={['三者只是长得不同，能力完全一样', 'JSON 常用于接口传输，YAML 常用于配置文件，XML 擅长带校验的文档交换', 'YAML 比 JSON 更适合做接口高频传输', 'XML 无法表达嵌套结构']}
+  answer={1}
+  explain="三种格式各有侧重：JSON 轻量适合接口、YAML 可读适合配置、XML 支持属性与 Schema 校验适合严格文档；没有绝对最优，按场景选型。"
+/>
+
+<QuizItem
+  client:visible
+  question="科研数据优先选择开放、自描述的标准格式（而非私有二进制），主要是因为？"
+  options={['文件体积一定更小', '纯粹为了排版好看', '便于他人读懂、验证与复用，符合 FAIR 原则', '标准格式运行速度更快']}
+  answer={2}
+  explain="开放标准格式让数据「可被读懂、可被复现」，这是 FAIR 数据原则（可发现/可访问/可互操作/可复用）的要求，也是科研诚信的技术保障。"
+/>

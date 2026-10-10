@@ -1,0 +1,137 @@
+---
+module: 4
+moduleName: 正则表达式
+order: 15
+title: 邮箱地址批量提取工具
+level: 基础必做
+scene: 文本抽取
+knowledge: ["findall()", 分组, 或运算, 去重统计]
+stars: 2
+minutes: 35
+goal: 掌握findall批量提取，能编写常用信息匹配模式
+sizheng: 能批量提取邮箱，更要懂得不滥发垃圾邮件
+dims: [职业伦理, 社会责任]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import PyStepRunner from '../../components/react/PyStepRunner';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+
+## 场景导入
+
+校庆前夕，社团要给往届学长学姐群发一封电子请柬。可名单散落在十几个文档、网页和聊天记录里，邮箱混在大段文字中。一个个手动复制？太慢。这一课，我们用 `findall` 让正则一趟把所有邮箱都「捞」出来——顺便认真想想：能一键提取上千个邮箱，是不是就能一键群发？
+
+## 动手实验
+
+上一课的 `re.match` 只判断「整串合不合格」；这一课的主角 `re.findall` 不一样——它扫描整段文本，把**所有**命中的邮箱一次性装进列表。配合 `set` 去重、按域名分组，一个小巧的信息抽取工具就成型了。改改 `contacts` 里的文字，看它能捞出多少：
+
+<PyPlayground
+  client:visible
+  title="邮箱批量提取与统计"
+  note="把 mentor@example.com 再多复制几行进 contacts，观察去重后数量为何不变——这就是 set 的作用。"
+  code={`import re
+from collections import defaultdict
+
+# 一段内联「通讯录」文本（真实场景里可能来自网页或文档）
+contacts = """
+社团联络：sunflower@campus.edu.cn，data.lab@campus.edu.cn
+企业导师：mentor@example.com；备用 mentor@example.com
+往届学长：li.hua@alumni.org、wang@alumni.org
+无效示例：@campus.edu.cn 与 price@9 都不是邮箱
+"""
+
+# 邮箱模式：用户名 + @ + 域名 + 顶级域（至少2位字母）
+pattern = r'[\\w.]+@[a-zA-Z0-9.]+\\.[a-zA-Z]{2,}'
+emails = re.findall(pattern, contacts)
+print(f"共匹配到 {len(emails)} 个（含重复）")
+
+# set 去重
+unique = sorted(set(emails))
+print(f"去重后 {len(unique)} 个：")
+for e in unique:
+    print("  •", e)
+
+# 按域名分组统计
+by_domain = defaultdict(list)
+for e in unique:
+    by_domain[e.split("@")[1]].append(e)
+
+print("按域名分组统计：")
+for domain, users in sorted(by_domain.items()):
+    print(f"  {domain}: {len(users)} 个 -> {', '.join(users)}")`}
+/>
+
+## 逐行看懂
+
+把最核心的四步单独拎出来，一步步走一遍——看正则如何一趟扫全文，再看 `set` 如何把重复的邮箱收敛成不重不漏的一份：
+
+<PyStepRunner
+  client:visible
+  title="findall 提取 + set 去重"
+  fileName="email_extract.py"
+  code={`import re
+text = "报名 sunflower@campus.edu.cn 或 mentor@example.com"
+pattern = r'[\\w.]+@[\\w.]+\\.[a-z]{2,}'
+emails = re.findall(pattern, text)
+unique = set(emails)
+print(unique)`}
+  steps={[
+    { line: 0, desc: '导入标准库 re——Python 的正则引擎入口。' },
+    { line: 1, desc: '准备一段含两个邮箱的原始文本。', vars: { text: '含 2 个邮箱的字符串' } },
+    { line: 2, desc: '写下邮箱模式：用户名，一个 @，域名，一个点，再加至少两位字母的顶级域。', vars: { pattern: '邮箱正则' } },
+    { line: 3, desc: 'findall 一趟扫描全文，把所有命中收进一个列表。', out: "['sunflower@campus.edu.cn', 'mentor@example.com']", vars: { emails: '长度 2 的列表' } },
+    { line: 4, desc: 'set() 去重：即使原文出现多次，也只保留一个。', vars: { unique: '2 个不重复邮箱' } },
+    { line: 5, desc: '打印去重后的结果集合。', out: "{'sunflower@campus.edu.cn', 'mentor@example.com'}" },
+  ]}
+/>
+
+## 思政会客厅
+
+<DimCard dim="职业伦理" title="能力与克制">
+  <ul>
+    <li>一个 findall 就能从公开网页抓下成百上千个邮箱，这是效率；把它们导入群发软件，可能就越了界。技术中立，用途却有善恶。</li>
+    <li>「能做」不等于「该做」。判断一件事该不该做，看的是它对别人的影响，而不是你的代码有多顺手。</li>
+    <li>真正的专业，是懂得给自己的能力装上「刹车」。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="社会责任" title="别当垃圾邮件的源头">
+  <ul>
+    <li>每个邮箱背后都是一个真实的人。未经同意的营销邮件，消耗的是整个行业的信任。</li>
+    <li>合规的做法叫「选择加入」：先征得同意再发送，并随时允许退订。</li>
+    <li>你今天写的提取脚本，明天可能被用来做问卷、发通知，也可能被用来发广告——方向盘握在你手里。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="✉️" tone="blue" title="《互联网电子邮件服务管理办法》第十三条">
+早在 2006 年，我国就以《互联网电子邮件服务管理办法》立下规矩：未经收件人明确同意，任何组织或个人不得向其发送含有商业广告内容的电子邮件。批量提取的能力越强，越要记得这条底线。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p15-d1"
+  question="你写了个脚本，把学院官网上公开的全部导师邮箱都提取了下来，准备群发一份「考研咨询」问卷。这样做有没有问题？问题在哪？"
+  hints={['邮箱「公开可见」不等于「同意接收群发」', '公开是为了特定联系目的，群发问卷可能超出这个目的', '合规路径：说明来意、控制频率、提供退订，甚至先取得同意']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="re.findall(pattern, text) 的返回值是什么？"
+  options={['第一个匹配的字符串', '所有匹配组成的列表', '是否匹配成功的布尔值', '匹配的起止位置']}
+  answer={1}
+  explain="findall 会扫描整个字符串，把所有不重叠的匹配收集成一个列表返回；一个都没匹配到时，返回的是空列表。"
+/>
+
+<QuizItem
+  client:visible
+  question="提取到一批公开邮箱后，最符合职业伦理与法规的做法是？"
+  options={['立即群发广告，反正是公开的', '先取得对方同意，再按需、限量地联系', '把名单打包卖给需要的人', '越多越好，能发就发']}
+  answer={1}
+  explain="《互联网电子邮件服务管理办法》要求未经同意不得发送商业广告邮件；「公开可见」不等于「同意接收」，先授权、后使用，是不可退让的底线。"
+/>

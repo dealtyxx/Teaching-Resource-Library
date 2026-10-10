@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第6章 分支限界 · 算法互动课堂</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/common.css">
+</head>
+<body data-chapter="ch06">
+<button class="menu-toggle" onclick="toggleSidebar()" aria-label="菜单">☰</button>
+
+<div class="app-shell">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <a href="../index.html">
+      <div class="logo"><span>AD</span>算法互动课堂</div>
+      <div class="sub">玩中学 · 看见算法</div>
+    </a>
+  </div>
+  <div class="nav-section">本页导航</div>
+  <a class="nav-link toc" href="#s1">开场</a>
+<a class="nav-link toc" href="#s2">核心概念</a>
+<a class="nav-link toc" href="#s3">迷宫BFS</a>
+<a class="nav-link toc" href="#s4">限界函数</a>
+<a class="nav-link toc" href="#s5">对比</a>
+<a class="nav-link toc" href="#s6">双测</a>
+  <div class="nav-section">全部章节</div>
+  <a class="nav-link" href="ch01-intro.html"><span class="dot"></span>🚀 01 绪论</a>
+<a class="nav-link" href="ch02-recursion.html"><span class="dot"></span>🪞 02 递归</a>
+<a class="nav-link" href="ch03-brute.html"><span class="dot"></span>🔍 03 穷举法</a>
+<a class="nav-link" href="ch04-divide.html"><span class="dot"></span>⚔️ 04 分治法</a>
+<a class="nav-link" href="ch05-backtrack.html"><span class="dot"></span>♟️ 05 回溯法</a>
+<a class="nav-link active" href="ch06-branch.html"><span class="dot"></span>🗺️ 06 分支限界</a>
+<a class="nav-link" href="ch07-dp.html"><span class="dot"></span>💎 07 动态规划</a>
+<a class="nav-link" href="ch08-greedy.html"><span class="dot"></span>🎯 08 贪心法</a>
+<a class="nav-link" href="ch09-graph.html"><span class="dot"></span>🕸️ 09 图算法</a>
+<a class="nav-link" href="ch10-geometry.html"><span class="dot"></span>📐 10 计算几何</a>
+<a class="nav-link" href="ch11-complexity.html"><span class="dot"></span>🌌 11 计算复杂性</a>
+<a class="nav-link" href="ch12-prob-approx.html"><span class="dot"></span>🎲 12 概率与近似</a>
+  <div class="nav-section">返回</div>
+  <a class="nav-link" href="../index.html">🏠 课程大厅</a>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a href="../index.html">课程大厅</a> <span>/</span>
+      <span>第6章 分支限界</span>
+    </div>
+    <span class="badge badge-fun">🎮 互动课堂</span>
+  </div>
+  <div class="progress-track" title="阅读进度"><div class="fill"></div></div>
+  
+  <div class="card card-hero fade-in" data-section="s1" id="s1">
+    <span class="hero-emoji">🗺️</span>
+    <span class="badge badge-primary" style="margin-left:.5rem">第6章 · 分支限界</span>
+    <h1 style="margin-top:.6rem">广搜 + 限界 = 最优解猎人</h1>
+    <p style="color:var(--text-dim);margin-top:.7rem;font-size:1.02rem">
+      要<strong>所有路径</strong>→回溯；要<strong>一条最短/最优</strong>→分支限界。
+      本质：<strong>BFS（或优先队列）扩展活结点 + 限界剪支</strong>。
+    </p>
+    <div class="card-grid" style="margin-top:1.2rem">
+      <div class="metric"><div class="num">BFS</div><div class="label">搜索骨架</div></div>
+      <div class="metric"><div class="num">ub/lb</div><div class="label">限界函数</div></div>
+      <div class="metric"><div class="num">最优</div><div class="label">典型目标</div></div>
+    </div>
+  </div>
+  <div class="fun-tip fade-in fade-in-d1">
+    <div class="avatar">🧭</div>
+    <div class="bubble"><strong>助教：</strong>单位权迷宫里，BFS 第一次碰到终点 = 最少步数。先闯迷宫，再理解「限界」为什么能剪掉整片子树。</div>
+  </div>
+
+  <section data-section="s2" id="s2">
+    <h2>四个关键点 · 翻转记忆</h2>
+    <div class="flip-grid">
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">①</div>分支</div>
+        <div class="flip-back">从扩展结点生成所有孩子活结点</div>
+      </div></div>
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">②</div>限界</div>
+        <div class="flip-back">估计「往下最好能到多好」，不行就剪</div>
+      </div></div>
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">③</div>队列式</div>
+        <div class="flip-back">FIFO ≈ 普通 BFS，公平扩张</div>
+      </div></div>
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">④</div>优先队列式</div>
+        <div class="flip-back">限界最优的活结点先扩展（Best-first）</div>
+      </div></div>
+    </div>
+  </section>
+
+  <section data-section="s3" id="s3">
+    <h2>迷宫闯关 · BFS 最短路 🏁</h2>
+    <div class="demo-panel">
+      <div class="demo-header">
+        <h3><span class="pulse"></span> 搜救行动</h3>
+        <div class="demo-controls" style="margin:0">
+          <div class="speed-chips" id="mazeSpeed">
+            <button data-speed="80">慢</button>
+            <button data-speed="30" class="on">中</button>
+            <button data-speed="8">快</button>
+          </div>
+          <button class="btn btn-primary" id="mazeRun">🎬 开始搜救</button>
+          <button class="btn" id="mazeStep">单步</button>
+          <button class="btn" id="mazeReset">🎲 新迷宫</button>
+        </div>
+      </div>
+      <div class="demo-body">
+        <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start">
+          <canvas id="mazeCv" width="420" height="420" style="width:min(100%,420px);height:auto;display:block;border-radius:14px;border:1px solid var(--border);box-shadow:0 0 40px rgba(77,232,255,.1)"></canvas>
+          <div style="flex:1;min-width:160px">
+            <div class="metric" style="margin-bottom:.6rem"><div class="num" id="mazeSteps">—</div><div class="label">最短步数</div></div>
+            <div class="metric" style="margin-bottom:.6rem"><div class="num" id="mazeVisit">0</div><div class="label">访问格子</div></div>
+            <div class="metric"><div class="num" id="mazeQ">0</div><div class="label">队列峰值</div></div>
+          </div>
+        </div>
+        <div class="viz-legend" style="margin-top:.8rem">
+          <span><i style="background:#ffc14d"></i>起点 S</span>
+          <span><i style="background:#3ee8a8"></i>终点 E</span>
+          <span><i style="background:#3b6dff"></i>波前</span>
+          <span><i style="background:#1e293b"></i>墙</span>
+          <span><i style="background:#a78bfa"></i>最短路</span>
+        </div>
+        <div class="status-bar" id="mazeStatus">生成迷宫后点「开始搜救」。单位权 ⇒ 首次到达即最优。</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-section="s4" id="s4">
+    <h2>限界函数直觉 · 最大化问题</h2>
+    <p style="color:var(--text-dim);margin-bottom:.8rem">假设求最大价值。当前结点限界 ub =「已选价值 + 剩余最乐观估计」。若 ub ≤ 已知最优 maxV，整棵子树可剪。</p>
+    <div class="demo-panel">
+      <div class="demo-header">
+        <h3>✂️ 限界剪支模拟器</h3>
+        <button class="btn btn-primary" id="boundRun">演示一轮</button>
+      </div>
+      <div class="demo-body">
+        <div class="demo-controls">
+          <div class="slider-group"><label>已选价值</label><input type="range" id="bGot" min="0" max="20" value="8"><span class="val" id="bGotV">8</span></div>
+          <div class="slider-group"><label>乐观剩余</label><input type="range" id="bHope" min="0" max="20" value="5"><span class="val" id="bHopeV">5</span></div>
+          <div class="slider-group"><label>已知最优</label><input type="range" id="bBest" min="0" max="30" value="15"><span class="val" id="bBestV">15</span></div>
+        </div>
+        <div id="boundViz" style="height:120px;display:flex;align-items:flex-end;gap:8px;padding:1rem;background:#060a14;border-radius:12px;border:1px solid var(--border)"></div>
+        <div class="status-bar" id="boundStatus">ub = 已选 + 乐观剩余。拖动滑块观察是否剪支。</div>
+      </div>
+    </div>
+    <div class="callout callout-info">
+      <div class="callout-title">最小化问题对称</div>
+      用下界 lb：沿路径 lb 不减；若 lb ≥ 当前最优，剪掉。
+    </div>
+  </section>
+
+  <section data-section="s5" id="s5">
+    <h2>回溯 vs 分支限界</h2>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>维度</th><th>回溯法</th><th>分支限界</th></tr></thead>
+        <tbody>
+          <tr><td>搜索策略</td><td>DFS 一条路走到黑</td><td>BFS / Best-first 横向铺开</td></tr>
+          <tr><td>典型目标</td><td>全部解 / 任一可行解</td><td>最优解</td></tr>
+          <tr><td>空间</td><td>O(深度) 省</td><td>O(宽度) 往往更吃内存</td></tr>
+          <tr><td>剪支核心</td><td>可行性 + 最优性</td><td>限界函数 ub/lb</td></tr>
+          <tr><td>迷宫例子</td><td>找所有出路</td><td>找最短出路</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section data-section="s6" id="s6">
+    <h2>挑战测验 · 双题通关 ⭐</h2>
+    <div class="challenge-bar">
+      <div class="title">🏆 第6章挑战</div>
+      <div style="font-size:.85rem;color:var(--text-dim)">答对 2 题点亮双星</div>
+    </div>
+    <div class="quiz-card" data-quiz id="q6a" data-xp="35">
+      <span class="q-badge">Q1 · +35XP</span>
+      <p style="font-weight:700;margin:.6rem 0 .7rem">单位权图上 BFS 首次到达终点时？</p>
+      <button class="quiz-option" data-correct="1">一定是边数最少的最短路</button>
+      <button class="quiz-option" data-correct="0">可能是最长路</button>
+      <button class="quiz-option" data-correct="0">完全随机</button>
+      <button class="quiz-option" data-correct="0">仅无环时成立</button>
+      <div class="quiz-feedback callout callout-success" style="display:none;margin-top:.8rem">层序扩展：第 k 层 = 恰 k 条边，第一次碰到终点即最优。</div>
+    </div>
+    <div class="quiz-card" data-quiz id="q6b" data-xp="40">
+      <span class="q-badge">Q2 · +40XP</span>
+      <p style="font-weight:700;margin:.6rem 0 .7rem">最大化问题中，何时可对某活结点剪支？</p>
+      <button class="quiz-option" data-correct="0">ub 大于已知最优</button>
+      <button class="quiz-option" data-correct="1">ub ≤ 已知最优 maxV</button>
+      <button class="quiz-option" data-correct="0">lb 小于 0</button>
+      <button class="quiz-option" data-correct="0">队列为空</button>
+      <div class="quiz-feedback callout callout-success" style="display:none;margin-top:.8rem">再怎么往下搜也不可能超过当前最优 → 整棵子树剪掉。</div>
+    </div>
+  </section>
+
+  <div class="chapter-nav"><a href="ch05-backtrack.html"><span class="dir">← 上一章</span><span class="name">♟️ 第5章 回溯法</span></a><a href="ch07-dp.html" style="text-align:right"><span class="dir">下一章 →</span><span class="name">💎 第7章 动态规划</span></a></div>
+
+</main>
+</div>
+<script src="../assets/common.js"></script>
+<script>
+
+const mazeSp = makeSpeed(30); mazeSp.bind(document.getElementById('mazeSpeed'));
+const H=13,W=13; let maze=[], S=[1,1], E=[11,11];
+let bfsState=null;
+
+function genMaze(){
+  maze=Array.from({length:H},()=>Array(W).fill(0));
+  for(let i=0;i<H;i++) for(let j=0;j<W;j++) if(!i||!j||i===H-1||j===W-1) maze[i][j]=1;
+  for(let k=0;k<38;k++){
+    const r=1+Math.floor(Math.random()*(H-2)), c=1+Math.floor(Math.random()*(W-2));
+    maze[r][c]=1;
+  }
+  S=[1,1]; E=[H-2,W-2]; maze[S[0]][S[1]]=0; maze[E[0]][E[1]]=0;
+  // carve a path guarantee sometimes fails — ensure S/E open and some neighbors
+  [[0,1],[1,0]].forEach(([dx,dy])=>{ if(S[0]+dx<H&&S[1]+dy<W) maze[S[0]+dx][S[1]+dy]=0; });
+  [[0,-1],[-1,0]].forEach(([dx,dy])=>{ if(E[0]+dx>=0&&E[1]+dy>=0) maze[E[0]+dx][E[1]+dy]=0; });
+  bfsState=null;
+  document.getElementById('mazeSteps').textContent='—';
+  document.getElementById('mazeVisit').textContent='0';
+  document.getElementById('mazeQ').textContent='0';
+  drawMaze();
+  setStatus('#mazeStatus','新迷宫就绪 · 点「开始搜救」或「单步」');
+}
+
+function drawMaze(vis={}, path=[], cur=null){
+  const cv=document.getElementById('mazeCv'), ctx=cv.getContext('2d'), cs=cv.width/W;
+  for(let i=0;i<H;i++) for(let j=0;j<W;j++){
+    let col='#0a1020';
+    if(maze[i][j]) col='#1a2338';
+    if(vis[i+','+j]) col='#1e3a8a';
+    if(path.some(p=>p[0]===i&&p[1]===j)) col='#6d28d9';
+    if(cur && cur[0]===i&&cur[1]===j) col='#38bdf8';
+    if(i===S[0]&&j===S[1]) col='#f59e0b';
+    if(i===E[0]&&j===E[1]) col='#10b981';
+    ctx.fillStyle=col;
+    ctx.fillRect(j*cs+1,i*cs+1,cs-2,cs-2);
+  }
+}
+
+function initBfs(){
+  const q=[[...S]], prev={}, vis={}; vis[S.join(',')]=1; prev[S.join(',')]=null;
+  return {q, prev, vis, head:0, done:false, path:[], peak:1, D:[[0,1],[1,0],[0,-1],[-1,0]]};
+}
+
+function bfsStepOnce(st){
+  if(st.done) return false;
+  if(st.head>=st.q.length){ st.done=true; setStatus('#mazeStatus','😢 无解 · 换一张迷宫'); return false; }
+  const [x,y]=st.q[st.head++];
+  document.getElementById('mazeVisit').textContent=Object.keys(st.vis).length;
+  document.getElementById('mazeQ').textContent=Math.max(st.peak, st.q.length-st.head);
+  st.peak=Math.max(st.peak, st.q.length-st.head);
+  drawMaze(st.vis, st.path, [x,y]);
+  setStatus('#mazeStatus',`扩展 (${x},${y}) · 队列剩余 ${st.q.length-st.head}`);
+  if(x===E[0]&&y===E[1]){
+    let path=[], cur=E;
+    while(cur){ path.push(cur); cur=st.prev[cur.join(',')]; }
+    path.reverse(); st.path=path; st.done=true;
+    drawMaze(st.vis, path);
+    document.getElementById('mazeSteps').textContent=path.length-1;
+    setStatus('#mazeStatus',`<strong>通关！</strong> 最短 ${path.length-1} 步 🎉`);
+    confetti(45); addXP(20,'迷宫通关');
+    return false;
+  }
+  for(const [dx,dy] of st.D){
+    const nx=x+dx, ny=y+dy, k=nx+','+ny;
+    if(nx<0||ny<0||nx>=H||ny>=W||maze[nx][ny]||st.vis[k]) continue;
+    st.vis[k]=1; st.prev[k]=[x,y]; st.q.push([nx,ny]);
+  }
+  return true;
+}
+
+document.getElementById('mazeReset').onclick=genMaze;
+document.getElementById('mazeStep').onclick=()=>{
+  if(!bfsState||bfsState.done) bfsState=initBfs();
+  bfsStepOnce(bfsState);
+};
+document.getElementById('mazeRun').onclick=async()=>{
+  bfsState=initBfs();
+  while(bfsStepOnce(bfsState)) await sleep(mazeSp.ms);
+};
+
+// bound visualizer
+function updateBound(){
+  const got=+document.getElementById('bGot').value;
+  const hope=+document.getElementById('bHope').value;
+  const best=+document.getElementById('bBest').value;
+  document.getElementById('bGotV').textContent=got;
+  document.getElementById('bHopeV').textContent=hope;
+  document.getElementById('bBestV').textContent=best;
+  const ub=got+hope;
+  const cut=ub<=best;
+  const maxV=Math.max(ub,best,1);
+  const el=document.getElementById('boundViz');
+  el.innerHTML=`
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="width:70%;background:linear-gradient(180deg,#7aa2ff,#3b6dff);border-radius:8px 8px 0 0;height:${(got/maxV)*90}px;min-height:4px"></div>
+      <span style="font-size:.7rem;color:var(--text-muted)">已选 ${got}</span>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="width:70%;background:linear-gradient(180deg,#c4a1ff,#7c3aed);border-radius:8px 8px 0 0;height:${(hope/maxV)*90}px;min-height:4px;opacity:.7"></div>
+      <span style="font-size:.7rem;color:var(--text-muted)">乐观 ${hope}</span>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="width:70%;background:linear-gradient(180deg,#${cut?'ff7a90':'3ee8a8'},#${cut?'e11d48':'10b981'});border-radius:8px 8px 0 0;height:${(ub/maxV)*90}px;min-height:4px;box-shadow:0 0 16px ${cut?'#ff7a90':'#3ee8a8'}"></div>
+      <span style="font-size:.7rem;color:var(--text-muted)">ub=${ub}</span>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="width:70%;background:linear-gradient(180deg,#ffc14d,#f59e0b);border-radius:8px 8px 0 0;height:${(best/maxV)*90}px;min-height:4px"></div>
+      <span style="font-size:.7rem;color:var(--text-muted)">最优 ${best}</span>
+    </div>`;
+  setStatus('#boundStatus', cut
+    ? `<strong style="color:var(--danger)">✂️ 剪支！</strong> ub=${ub} ≤ 最优=${best}，往下不可能更好`
+    : `<strong style="color:var(--accent)">继续搜</strong> ub=${ub} > 最优=${best}，仍有希望`);
+}
+['bGot','bHope','bBest'].forEach(id=>document.getElementById(id).oninput=updateBound);
+document.getElementById('boundRun').onclick=()=>{ updateBound(); addXP(8,'限界演示'); if(+bGot.value+ +bHope.value <= +bBest.value) toast('触发剪支！','✂️'); };
+updateBound();
+genMaze();
+
+</script>
+</body>
+</html>

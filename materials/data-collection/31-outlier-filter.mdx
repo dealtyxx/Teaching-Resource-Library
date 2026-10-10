@@ -1,0 +1,119 @@
+---
+module: 8
+moduleName: 数据预处理
+order: 31
+title: 销售数据异常值过滤器
+level: 基础必做
+scene: 质量检测
+knowledge: [3σ原则, 异常标记, 隔离处理, 准确性校验]
+stars: 2
+minutes: 35
+goal: 掌握异常值检测方法
+sizheng: 能区分合理清洗与数据造假的边界
+dims: [科研诚信, 法治意识]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+import CleaningLab from '../../components/react/labs/CleaningLab';
+
+## 场景导入
+
+运营同学甩给你一份 20 天的日销量表：大部分都在 100 件上下，唯独有一天写着 160、还有一天只有 40。是真的爆单和停摆，还是录入手抖多打了个零？在把这份数据交给老板做决策前，你得先把这些「扎眼的点」找出来——但找出来之后，是删，还是留？这一步的选择，藏着一个数据工程师的底色。
+
+## 玩一玩
+
+打开「显示 3σ 边界」看紫色虚线，再点「隔离异常值」，观察红点被移走后标准差如何断崖式下降。注意：它用的词是「隔离」，不是「删除」——原始数据始终躺在档案里：
+
+<CleaningLab client:visible />
+
+## 动手实验
+
+这个过滤器先用 `statistics` 算出均值和标准差，画出「均值加减 3 倍标准差」的正常区间，再把落在区间外的可疑点搬进 `quarantine` 隔离列表——而不是从原始数据里删掉。最后打印清洗前后的统计对照与隔离清单：
+
+<PyPlayground
+  client:visible
+  title="3σ 异常值过滤器：标记、隔离、不删除"
+  height={340}
+  note="把第 16 天的 40 改成 95，观察它如何从『隔离清单』里消失——是否异常，取决于一个点离群有多远，而不是我们喜不喜欢它。"
+  code={`import statistics
+
+# 20 天日销量（件）——第 10 天与第 16 天混入了可疑值
+sales = [100, 102, 99, 101, 98, 103, 100, 97, 101, 160,
+         99, 102, 100, 98, 101, 40, 100, 99, 102, 98]
+
+def three_sigma(data):
+    """用 3σ 原则算出正常区间边界"""
+    mu = statistics.mean(data)
+    sd = statistics.pstdev(data)          # 总体标准差
+    return mu, sd, mu - 3 * sd, mu + 3 * sd
+
+mu0, sd0, lo, hi = three_sigma(sales)
+print(f"清洗前：均值={mu0:.1f}  标准差={sd0:.1f}")
+print(f"3σ 正常区间：[{lo:.1f}, {hi:.1f}]")
+
+kept, quarantine = [], []                 # 正常值 / 隔离区
+for i, v in enumerate(sales):
+    if v < lo or v > hi:
+        quarantine.append((i + 1, v))     # 记下位置与原值，留待人工复核
+    else:
+        kept.append(v)
+
+print("\\n隔离清单（第几天 → 原值，仅隔离不删除）：")
+for day, v in quarantine:
+    print(f"   第{day}天：{v} 件（超出 3σ，已隔离）")
+
+mu1, sd1 = statistics.mean(kept), statistics.pstdev(kept)
+print(f"\\n清洗后（仅统计正常值）：均值={mu1:.1f}  标准差={sd1:.1f}")
+print(f"原始 {len(sales)} 条 = 正常 {len(kept)} 条 + 隔离 {len(quarantine)} 条，一条都没丢")`}
+/>
+
+## 思政会客厅
+
+<DimCard dim="科研诚信" title="清洗是标记与隔离，不是删除与篡改">
+  <ul>
+    <li>异常值可能是错误，也可能是罕见的真相（比如一次真实的爆单）。一删了之，等于替数据「做了判决」——而你可能判错。</li>
+    <li>正确姿势：把可疑值移进隔离区 quarantine，记录位置与原值，留待人工复核；原始 20 条一条不少。</li>
+    <li>「删数据凑结论」和「标记隔离可复核」，代码上只差一个 append，诚信上却是南辕北辙的两条路。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="法治意识" title="数据造假，规则零容忍">
+  <ul>
+    <li>《科研诚信案件调查处理规则》(2023) 对伪造、篡改数据等科研失信行为明确零容忍，一经查实即追责。</li>
+    <li>合理清洗（有依据、可复核、原件保留）与数据造假（选择性删改、粉饰结论）的边界，就在于「过程是否透明、可追溯」。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="📉" tone="amber" title="撤稿背后的普遍教训">
+国内外都有论文因数据经不起复核而被撤稿。教训惊人地一致：出问题的往往不是「算错了」，而是「为了一个好看的结论，把不听话的数据悄悄删掉了」。标记与隔离让每一步都可回溯，正是抵御这种诱惑的技术护栏。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p31-d1"
+  question="双十一那天，某店销量是平时的 30 倍，被 3σ 判成异常。这个「异常值」该删吗？"
+  hints={['3σ 只是统计信号，不等于「错误」——它可能是真实的大促爆单', '该做的是隔离并标注上下文（当天有大促），交人工判断，而不是自动删除', '清洗规则要结合业务常识，纯靠阈值会误伤真实数据']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="3σ 原则把「异常」定义为？"
+  options={['比平均值大的所有数', '落在「均值加减 3 倍标准差」区间之外的数', '最大和最小的那两个数', '出现次数最少的数']}
+  answer={1}
+  explain="3σ 原则假设数据近似正态，约 99.7% 落在均值加减 3 倍标准差之内；区间之外的点被视为可疑异常，需要标记复核，而非直接判死。"
+/>
+
+<QuizItem
+  client:visible
+  question="发现几个碍眼的异常值，最符合职业操守与科研诚信的处理是？"
+  options={['直接删掉，结论立刻漂亮', '移入隔离区并记录，原始数据保留待复核', '把它们改成平均值，神不知鬼不觉', '假装没看见，全部当正常值用']}
+  answer={1}
+  explain="标记隔离而非删除，保留原件、留下审计线索，既让分析可继续，又让任何结论都能被复核——这正是合理清洗与数据造假的分水岭。"
+/>

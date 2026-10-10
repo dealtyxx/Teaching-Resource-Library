@@ -1,0 +1,17 @@
+import{j as e}from"./jsx-runtime.D_zvdyIk.js";import{r}from"./index.DBy5LfQW.js";import{L as i,C as o,T as d}from"./ui.BRGL6oFt.js";const m=`#include <stdio.h>
+
+int main(void) {
+    float score = 88.5f;
+    if (score < 0 || score > 100) {          /* 外层:先验有效性 */
+        printf("输入无效:分数超出0~100\\n");
+    } else {                                  /* 内层:再定等级 */
+        if      (score >= 97) printf("一级甲等\\n");
+        else if (score >= 92) printf("一级乙等\\n");
+        else if (score >= 87) printf("二级甲等\\n");
+        else if (score >= 80) printf("二级乙等\\n");
+        else if (score >= 70) printf("三级甲等\\n");
+        else if (score >= 60) printf("三级乙等\\n");
+        else                  printf("未达三级乙等\\n");
+    }
+    return 0;
+}`,l=[{min:97,name:"一级甲等",line:7,note:"播音员水平"},{min:92,name:"一级乙等",line:8,note:"教师资格(语文)要求"},{min:87,name:"二级甲等",line:9,note:"教师资格要求"},{min:80,name:"二级乙等",line:10,note:"普通岗位达标线"},{min:70,name:"三级甲等",line:11,note:""},{min:60,name:"三级乙等",line:12,note:""}];function p(){const[t,a]=r.useState(88.5),n=r.useMemo(()=>{if(t<0||t>100)return{valid:!1,name:"输入无效:分数超出0~100",line:5,note:"外层防护分支接住了非法输入"};for(const s of l)if(t>=s.min)return{valid:!0,name:s.name,line:s.line,note:s.note};return{valid:!0,name:"未达三级乙等",line:13,note:"继续加油"}},[t]);return e.jsx(i,{title:"互动实验：一个分数的两层旅程",badge:"嵌套判断 · 边界防护",children:e.jsxs("div",{className:"grid gap-4 lg:grid-cols-2",children:[e.jsxs("div",{className:"space-y-4",children:[e.jsxs("label",{className:"block text-sm",children:[e.jsx("span",{className:"font-medium text-slate-700",children:"测试成绩（试试 96.9、97、-1、101 这些边界值）"}),e.jsx("input",{type:"number",step:.1,value:t,onChange:s=>a(Number(s.target.value)),className:"mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-lg focus:border-[#1e5aa8] focus:outline-none"})]}),e.jsx("div",{className:"flex flex-wrap gap-2",children:[98,96.9,92,87,80.5,59,-1,101].map(s=>e.jsxs("button",{type:"button",onClick:()=>a(s),className:"rounded-lg bg-slate-100 px-3 py-1 font-mono text-xs hover:bg-slate-200",children:[s,"分"]},s))}),e.jsxs("div",{className:`rounded-xl border-2 p-3 ${n.valid?"border-emerald-300":"border-rose-400 bg-rose-50"}`,children:[e.jsxs("p",{className:"text-xs font-medium text-slate-500",children:["外层 if：分数在 0~100 之间吗？",e.jsx("span",{className:`ml-2 font-mono font-bold ${n.valid?"text-emerald-600":"text-rose-600"}`,children:n.valid?"有效 ✓ → 进入内层":"无效 ✗ → 直接拒绝"})]}),e.jsxs("div",{className:`mt-2 rounded-lg border border-dashed p-2 ${n.valid?"border-slate-300":"border-slate-200 opacity-40"}`,children:[e.jsx("p",{className:"mb-1.5 text-xs text-slate-400",children:"内层 else-if 链（仅当外层通过才会执行）"}),e.jsx("div",{className:"flex flex-wrap gap-1.5",children:l.map(s=>e.jsxs("span",{className:`rounded px-2 py-0.5 text-xs ${n.valid&&n.name===s.name?"bg-[#1e5aa8] font-bold text-white":"bg-slate-100 text-slate-500"}`,children:["≥",s.min," ",s.name]},s.name))})]})]}),e.jsxs("p",{className:`rounded-xl p-3 text-center text-sm font-bold text-white ${n.valid?"bg-[#1a7f5a]":"bg-rose-500"}`,children:[n.name,n.valid&&n.note?`（${n.note}）`:""]})]}),e.jsxs("div",{className:"space-y-3",children:[e.jsx(o,{code:m.replace("score = 88.5f",`score = ${t}f`),highlight:n.line}),e.jsx(d,{lines:[n.name],title:"运行结果"}),e.jsxs("p",{className:"rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800",children:["💡 输入 96.9 和 97 只差 0.1 分，却隔着一个等级——",e.jsx("strong",{children:"边界值"}),"是分支程序测试的重点。 再输入 -1：外层防护先把非法数据拦住，内层根本不会执行。「先验合法性，再做业务」， 这个嵌套结构就是所有输入处理程序的骨架。"]})]})]})})}export{p as default};

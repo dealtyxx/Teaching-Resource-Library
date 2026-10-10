@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第7章 动态规划 · 算法互动课堂</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/common.css">
+</head>
+<body data-chapter="ch07">
+<button class="menu-toggle" onclick="toggleSidebar()" aria-label="菜单">☰</button>
+
+<div class="app-shell">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <a href="../index.html">
+      <div class="logo"><span>AD</span>算法互动课堂</div>
+      <div class="sub">玩中学 · 看见算法</div>
+    </a>
+  </div>
+  <div class="nav-section">本页导航</div>
+  <a class="nav-link toc" href="#s1">开场</a>
+<a class="nav-link toc" href="#s2">心法</a>
+<a class="nav-link toc" href="#s3">Fib</a>
+<a class="nav-link toc" href="#s4">背包</a>
+<a class="nav-link toc" href="#s5">路径</a>
+<a class="nav-link toc" href="#s6">双测</a>
+  <div class="nav-section">全部章节</div>
+  <a class="nav-link" href="ch01-intro.html"><span class="dot"></span>🚀 01 绪论</a>
+<a class="nav-link" href="ch02-recursion.html"><span class="dot"></span>🪞 02 递归</a>
+<a class="nav-link" href="ch03-brute.html"><span class="dot"></span>🔍 03 穷举法</a>
+<a class="nav-link" href="ch04-divide.html"><span class="dot"></span>⚔️ 04 分治法</a>
+<a class="nav-link" href="ch05-backtrack.html"><span class="dot"></span>♟️ 05 回溯法</a>
+<a class="nav-link" href="ch06-branch.html"><span class="dot"></span>🗺️ 06 分支限界</a>
+<a class="nav-link active" href="ch07-dp.html"><span class="dot"></span>💎 07 动态规划</a>
+<a class="nav-link" href="ch08-greedy.html"><span class="dot"></span>🎯 08 贪心法</a>
+<a class="nav-link" href="ch09-graph.html"><span class="dot"></span>🕸️ 09 图算法</a>
+<a class="nav-link" href="ch10-geometry.html"><span class="dot"></span>📐 10 计算几何</a>
+<a class="nav-link" href="ch11-complexity.html"><span class="dot"></span>🌌 11 计算复杂性</a>
+<a class="nav-link" href="ch12-prob-approx.html"><span class="dot"></span>🎲 12 概率与近似</a>
+  <div class="nav-section">返回</div>
+  <a class="nav-link" href="../index.html">🏠 课程大厅</a>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a href="../index.html">课程大厅</a> <span>/</span>
+      <span>第7章 动态规划</span>
+    </div>
+    <span class="badge badge-fun">🎮 互动课堂</span>
+  </div>
+  <div class="progress-track" title="阅读进度"><div class="fill"></div></div>
+  
+  <div class="card card-hero fade-in" data-section="s1" id="s1">
+    <span class="hero-emoji">💎</span>
+    <span class="badge badge-warn" style="margin-left:.5rem">第7章 · 动态规划</span>
+    <h1 style="margin-top:.6rem">记住答案，拒绝重复劳动</h1>
+    <p style="color:var(--text-dim);margin-top:.7rem;font-size:1.02rem">
+      DP = <strong>最优子结构 + 重叠子问题 + 填表复用</strong>。
+      自底向上填表，或自顶向下备忘录——殊途同归。
+    </p>
+    <div class="card-grid" style="margin-top:1.2rem">
+      <div class="metric"><div class="num">状态</div><div class="label">dp[i] 是什么</div></div>
+      <div class="metric"><div class="num">转移</div><div class="label">怎么从子问题来</div></div>
+      <div class="metric"><div class="num">顺序</div><div class="label">依赖已算完</div></div>
+    </div>
+  </div>
+  <div class="fun-tip">
+    <div class="avatar">🧠</div>
+    <div class="bubble"><strong>心法：</strong>分治不管子问题重不重复；DP 专门把算过的结果「存小本本」。先会写「人话状态」，再写方程。</div>
+  </div>
+
+  <section data-section="s2" id="s2">
+    <h2>四步走 · 翻转卡片</h2>
+    <div class="flip-grid">
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">1</div>划阶段</div>
+        <div class="flip-back">问题按什么维度推进？i、容量 j…</div>
+      </div></div>
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">2</div>定义状态</div>
+        <div class="flip-back">dp[i][j] 用一句话解释清楚</div>
+      </div></div>
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">3</div>转移方程</div>
+        <div class="flip-back">+ 边界条件，能手推小例子</div>
+      </div></div>
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">4</div>计算顺序</div>
+        <div class="flip-back">保证依赖的子问题已经填好</div>
+      </div></div>
+    </div>
+  </section>
+
+  <section data-section="s3" id="s3">
+    <h2>Fibonacci · 朴素递归 vs DP 🥊</h2>
+    <div class="demo-panel">
+      <div class="demo-header">
+        <h3><span class="pulse"></span> 对比实验室</h3>
+        <div class="demo-controls" style="margin:0">
+          <div class="slider-group"><label>n</label><input type="range" id="fibN" min="5" max="16" value="10"><span class="val" id="fibNVal">10</span></div>
+          <button class="btn btn-primary" id="fibRun">填表动画</button>
+          <button class="btn btn-warn" id="fibCount">统计朴素调用次数</button>
+        </div>
+      </div>
+      <div class="demo-body">
+        <div class="array-row" id="fibDp"></div>
+        <div id="fibRace" style="margin-top:1rem"></div>
+        <div class="status-bar" id="fibStatus">DP 只要 O(n) 次加法；朴素递归 ≈ φⁿ 次调用。</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-section="s4" id="s4">
+    <h2>0/1 背包 · 格子大冒险 🎒</h2>
+    <div class="demo-panel">
+      <div class="demo-header">
+        <h3>w=[2,3,4,5] · v=[3,4,5,6] · W=8</h3>
+        <div class="demo-controls" style="margin:0">
+          <div class="speed-chips" id="kpSpeed">
+            <button data-speed="200">慢</button>
+            <button data-speed="70" class="on">中</button>
+            <button data-speed="20">快</button>
+          </div>
+          <button class="btn btn-primary" id="kpRun">逐步填表</button>
+          <button class="btn" id="kpReset">重置</button>
+        </div>
+      </div>
+      <div class="demo-body">
+        <div class="pre-wrap" style="margin-top:0">dp[i][j] = max( dp[i-1][j] ,  <span class="cm">// 不拿第 i 件</span>
+               dp[i-1][j-wᵢ] + vᵢ )  <span class="cm">// 拿</span></div>
+        <div class="table-wrap"><table class="data" id="kpTable"></table></div>
+        <div class="status-bar" id="kpStatus">高亮 = 当前状态。填完整张表后可回溯选了哪些物品。</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-section="s5" id="s5">
+    <h2>从终点回溯 · 选了谁？</h2>
+    <div class="callout callout-fun">
+      <div class="callout-title">💡 教学技巧</div>
+      填完 dp 只得到最优值。从 dp[n][W] 往回看：若 dp[i][j]≠dp[i-1][j]，说明第 i 件被选，j -= wᵢ。课堂可让学生手推。
+    </div>
+    <div class="status-bar" id="kpPath">填完背包表后这里显示选取方案</div>
+  </section>
+
+  <section data-section="s6" id="s6">
+    <h2>挑战测验</h2>
+    <div class="challenge-bar"><div class="title">🏆 第7章挑战</div></div>
+    <div class="quiz-card" data-quiz id="q7a" data-xp="40">
+      <span class="q-badge">Q1 · +40XP</span>
+      <p style="font-weight:700;margin:.6rem 0 .7rem">DP 与分治的主要区别？</p>
+      <button class="quiz-option" data-correct="0">分治一定更快</button>
+      <button class="quiz-option" data-correct="1">DP 的子问题重叠并复用结果</button>
+      <button class="quiz-option" data-correct="0">DP 不能用递归</button>
+      <button class="quiz-option" data-correct="0">分治必须最优子结构</button>
+      <div class="quiz-feedback callout callout-success" style="display:none;margin-top:.8rem">重叠 + 复用 = DP 超能力；分治子问题通常相互独立。</div>
+    </div>
+    <div class="quiz-card" data-quiz id="q7b" data-xp="40">
+      <span class="q-badge">Q2 · +40XP</span>
+      <p style="font-weight:700;margin:.6rem 0 .7rem">0/1 背包 dp[i][j] 表示？</p>
+      <button class="quiz-option" data-correct="1">前 i 件物品、容量 j 时的最大价值</button>
+      <button class="quiz-option" data-correct="0">第 i 件物品单独的价值</button>
+      <button class="quiz-option" data-correct="0">必须选满 j 件</button>
+      <button class="quiz-option" data-correct="0">最小生成树权值</button>
+      <div class="quiz-feedback callout callout-success" style="display:none;margin-top:.8rem">状态定义必须能「说人话」——这是写对转移的前提。</div>
+    </div>
+  </section>
+
+  <div class="chapter-nav"><a href="ch06-branch.html"><span class="dir">← 上一章</span><span class="name">🗺️ 第6章 分支限界</span></a><a href="ch08-greedy.html" style="text-align:right"><span class="dir">下一章 →</span><span class="name">🎯 第8章 贪心法</span></a></div>
+
+</main>
+</div>
+<script src="../assets/common.js"></script>
+<script>
+
+const kpSp=makeSpeed(70); kpSp.bind(document.getElementById('kpSpeed'));
+document.getElementById('fibN').oninput=function(){document.getElementById('fibNVal').textContent=this.value};
+
+function naiveFibCalls(n){
+  let c=0;
+  function f(x){ c++; if(x<=2) return 1; return f(x-1)+f(x-2); }
+  f(n); return c;
+}
+
+document.getElementById('fibCount').onclick=()=>{
+  const n=+document.getElementById('fibN').value;
+  const calls=naiveFibCalls(n);
+  const dpOps=Math.max(0,n-2);
+  document.getElementById('fibRace').innerHTML=`
+    <div class="race-row"><div class="label">朴素</div><div class="race-track"><div class="bar" style="width:100%;background:#ff7a90"></div></div><div class="time">${calls} 次</div></div>
+    <div class="race-row"><div class="label">DP</div><div class="race-track"><div class="bar" style="width:${Math.max(4,dpOps/calls*100)}%;background:#3ee8a8"></div></div><div class="time">${dpOps} 次</div></div>`;
+  setStatus('#fibStatus',`n=${n}：朴素约 <strong>${calls}</strong> 次调用，DP 仅 <strong>${dpOps}</strong> 次加法（约 ${Math.round(calls/Math.max(1,dpOps))}×）`);
+  addXP(10,'对比递归爆炸');
+};
+
+document.getElementById('fibRun').onclick=async()=>{
+  const n=+document.getElementById('fibN').value;
+  const dp=Array(n+1).fill(0); dp[1]=1; if(n>=2) dp[2]=1;
+  renderArray('#fibDp', dp);
+  for(let i=3;i<=n;i++){
+    dp[i]=dp[i-1]+dp[i-2];
+    renderArray('#fibDp', dp, {[i]:'active',[i-1]:'visit',[i-2]:'visit'});
+    setStatus('#fibStatus',`dp[${i}]=${dp[i-1]}+${dp[i-2]}=<strong>${dp[i]}</strong>`);
+    await sleep(260);
+  }
+  const st={}; st[n]='done'; renderArray('#fibDp',dp,st);
+  setStatus('#fibStatus',`Fib(${n})=<strong>${dp[n]}</strong> ✨`);
+  confetti(28); addXP(12,'Fib填表');
+};
+
+const WW=8, ws=[2,3,4,5], vs=[3,4,5,6], NN=4;
+let kp;
+function kpInit(){
+  kp=Array.from({length:NN+1},()=>Array(WW+1).fill(0));
+  kpDraw(-1,-1);
+  document.getElementById('kpPath').textContent='填完背包表后这里显示选取方案';
+}
+function kpDraw(hi,hj){
+  let h='<thead><tr><th>i\\\\W</th>';
+  for(let j=0;j<=WW;j++) h+=`<th class="num">${j}</th>`;
+  h+='</tr></thead><tbody>';
+  for(let i=0;i<=NN;i++){
+    h+=`<tr><th>${i}</th>`;
+    for(let j=0;j<=WW;j++){
+      const on=i===hi&&j===hj;
+      h+=`<td class="num"${on?' style="background:linear-gradient(135deg,#5b8cff,#a78bfa);color:#fff;font-weight:700"':''}>${kp[i][j]}</td>`;
+    }
+    h+='</tr>';
+  }
+  document.getElementById('kpTable').innerHTML=h+'</tbody>';
+}
+function reconstruct(){
+  let i=NN, j=WW, picked=[];
+  while(i>0 && j>=0){
+    if(kp[i][j]!==kp[i-1][j]){ picked.push(i); j-=ws[i-1]; }
+    i--;
+  }
+  picked.reverse();
+  document.getElementById('kpPath').innerHTML =
+    picked.length
+      ? `<strong>选取物品编号：</strong> ${picked.join(', ')} · 总价值 <strong>${kp[NN][WW]}</strong>`
+      : '未选取物品';
+}
+document.getElementById('kpReset').onclick=kpInit;
+document.getElementById('kpRun').onclick=async()=>{
+  kpInit();
+  for(let i=1;i<=NN;i++){
+    for(let j=0;j<=WW;j++){
+      kp[i][j]=kp[i-1][j];
+      if(j>=ws[i-1]) kp[i][j]=Math.max(kp[i][j], kp[i-1][j-ws[i-1]]+vs[i-1]);
+      kpDraw(i,j);
+      setStatus('#kpStatus',`dp[${i}][${j}]=<strong>${kp[i][j]}</strong> · 物${i} w=${ws[i-1]} v=${vs[i-1]}`);
+      await sleep(kpSp.ms);
+    }
+  }
+  reconstruct();
+  setStatus('#kpStatus',`<strong>最优价值 ${kp[NN][WW]}</strong> 🎒`);
+  confetti(40); addXP(22,'背包通关');
+};
+kpInit();
+
+</script>
+</body>
+</html>

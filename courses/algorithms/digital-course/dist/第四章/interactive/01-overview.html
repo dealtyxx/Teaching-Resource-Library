@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>分治概述 · 第4章 分治法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">04</div>算法可视化 · <span>第4章 分治法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill active" href="01-overview.html">概述</a><a class="pill" href="02-quicksort.html">快排</a><a class="pill" href="03-mergesort.html">归并</a><a class="pill" href="04-binsearch.html">二分</a><a class="pill" href="05-median.html">中位数</a><a class="pill" href="06-maxsub.html">最大子段</a><a class="pill" href="07-chessboard.html">棋盘覆盖</a><a class="pill" href="08-schedule.html">日程</a><a class="pill" href="09-tsp.html">TSP</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 1</div><h1>分治法三步曲</h1>
+<p>把规模 n 的问题拆成若干子问题，递归求解后合并。主定理估计 T(n)=aT(n/b)+f(n)。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+<li>能够<b>复述</b>分治法「分解—求解—合并」三步曲，并说明其适用的<b>四个前提条件</b>。</li>
+<li>能够<b>建立</b>分治算法的递推方程 T(n)=a&middot;T(n/b)+&Theta;(n<sup>d</sup>)，正确识别其中的 a、b、d。</li>
+<li>能够<b>运用</b>主定理（Master Theorem）判别三种情形，直接写出 T(n) 的渐进阶。</li>
+<li>能够<b>使用</b>递归树法与迭代展开／数学归纳（代入法）<b>完整求解</b>递推式，而不只是套结论。</li>
+<li>能够<b>辨析</b>分治法、减治法与动态规划的区别，以「子问题是否重叠」作为关键判据。</li>
+</ol></div>
+<div class="grid grid-2">
+  <div class="card">
+    <div class="list-step"><div class="n">1</div><div class="body"><b>分解 Divide</b> — 划成规模更小的同类子问题</div></div>
+    <div class="list-step"><div class="n">2</div><div class="body"><b>解决 Conquer</b> — 递归求解；足够小则直接解</div></div>
+    <div class="list-step"><div class="n">3</div><div class="body"><b>合并 Combine</b> — 将子问题解合成原问题解</div></div>
+    <div class="formula">T(n)=a T(n/b)+Θ(n<sup>d</sup>)</div>
+  </div>
+  <div class="card">
+    <div class="toolbar"><button class="btn primary" id="run">▶ 递归树生长</button><button class="btn" id="rst">重置</button></div>
+    <div class="stage-wrap light" style="height:320px"><canvas class="stage" id="cv" width="520" height="320"></canvas>
+      <div class="stage-hud"><span class="hud-pill light">recursion tree a=2,b=2</span></div></div>
+    <div class="tip">层数 ≈ log<sub>b</sub> n，每层工作量与 a,f 有关。</div>
+  </div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、分治法的定义与四个适用前提</h2><span class="sub">Divide and Conquer · Applicability</span></div>
+<div class="defn"><span class="lbl">定义</span><p><b>分治法（Divide and Conquer）</b>：将一个规模为 n 的问题分解为 a 个规模约为 n/b 的<b>同类</b>子问题，递归地求解这些子问题，再把子问题的解<b>合并</b>成原问题的解；当规模缩小到某个阈值 n<sub>0</sub> 时改用直接方法求解，递归随之终止。</p></div>
+<div class="card">
+  <div class="list-step"><span class="n">1</span><div class="body"><b>可分解性</b> — 原问题能够分解为若干个规模更小的<b>同类型</b>子问题。子问题与原问题结构相同（self-similar），才谈得上"递归"。若分解出的是异类问题，就只是普通的模块划分而不是分治。</div></div>
+  <div class="list-step"><span class="n">2</span><div class="body"><b>子问题相互独立</b> — 各子问题<b>互不重叠</b>（non-overlapping），不共享公共的子子问题。若子问题重叠，朴素递归会把同一个子问题重算指数次，此时应改用<b>动态规划</b>（用表格记忆已算结果）。<b>这是分治与动态规划的分水岭。</b></div></div>
+  <div class="list-step"><span class="n">3</span><div class="body"><b>子问题的解可以合并</b> — 存在代价可接受的合并过程，能由子问题的解构造出原问题的解。合并代价 f(n) 直接决定了总复杂度：若 f(n) 过大（例如 &Theta;(n<sup>2</sup>)），分治未必优于蛮力。</div></div>
+  <div class="list-step"><span class="n">4</span><div class="body"><b>存在平凡出口</b> — 规模小到一定程度（n &le; n<sub>0</sub>，常取 n<sub>0</sub>=1 或 2）时能够<b>直接求解</b>，保证递归有终止条件、不会无限下降。</div></div>
+</div>
+<div class="tip info"><strong>注意：</strong>第 2 条最容易被忽略，也是考试最常设陷阱之处。Fibonacci 的二分递归 F(n)=F(n&minus;1)+F(n&minus;2) 形式上"分解为两个同类子问题"，但两棵子树严重重叠，朴素递归退化为指数时间 &Theta;(&phi;<sup>n</sup>)（&phi;&asymp;1.618），因此它是<b>动态规划</b>的经典例子而不是分治的例子。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、分治法的通用算法框架</h2><span class="sub">C++ 模板</span></div>
+<div class="code"><span class="cm">// 分治法通用框架：divide → conquer → combine</span>
+<span class="cm">// a = 子问题个数，b = 规模缩小倍数，n0 = 直接求解阈值</span>
+<span class="kw">template</span> &lt;<span class="kw">class</span> T&gt;
+T <span class="fn">divideAndConquer</span>(Problem p) {
+    <span class="kw">if</span> (<span class="fn">size</span>(p) &lt;= n0)                <span class="cm">// ④ 平凡出口：规模足够小</span>
+        <span class="kw">return</span> <span class="fn">solveDirectly</span>(p);       <span class="cm">//    直接求解，O(1)</span>
+
+    Problem sub[a];
+    <span class="fn">divide</span>(p, sub);                    <span class="cm">// ① 分解：a 个规模 n/b 的同类子问题</span>
+
+    T r[a];
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; a; ++i)
+        r[i] = <span class="fn">divideAndConquer</span>&lt;T&gt;(sub[i]);  <span class="cm">// ② 递归求解（子问题独立）</span>
+
+    <span class="kw">return</span> <span class="fn">combine</span>(r, a);              <span class="cm">// ③ 合并：代价记为 f(n)=&Theta;(n^d)</span>
+}</div>
+<div class="formula lg">T(n) = a&middot;T(n/b) + &Theta;(n<sup>d</sup>)&nbsp;&nbsp;(n &gt; n<sub>0</sub>)&nbsp;;&nbsp;&nbsp;&nbsp; T(n) = &Theta;(1)&nbsp;&nbsp;(n &le; n<sub>0</sub>)</div>
+<div class="tip"><strong>读式子的方法：</strong>a 数"递归调用了几次"，b 数"每次规模缩到几分之一"，d 数"除去递归调用之外那部分（分解+合并）的时间是 n 的几次方"。三者一读出来，主定理就能直接套。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、主定理：三种情形的判别</h2><span class="sub">Master Theorem</span></div>
+<div class="defn thm"><span class="lbl">定理</span><p><b>主定理（Master Theorem）</b>：设常数 a &ge; 1、b &gt; 1、d &ge; 0，递推式为 T(n) = a&middot;T(n/b) + &Theta;(n<sup>d</sup>)，T(1)=&Theta;(1)。令<b>临界指数</b> e = log<sub>b</sub>a，则<br/>
+&nbsp;&nbsp;① 若 d &gt; log<sub>b</sub>a，则 T(n) = &Theta;(n<sup>d</sup>)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;（合并代价占主导）<br/>
+&nbsp;&nbsp;② 若 d = log<sub>b</sub>a，则 T(n) = &Theta;(n<sup>d</sup> log n)&nbsp;&nbsp;（各层代价均衡）<br/>
+&nbsp;&nbsp;③ 若 d &lt; log<sub>b</sub>a，则 T(n) = &Theta;(n<sup>log<sub>b</sub>a</sup>)&nbsp;&nbsp;（叶结点代价占主导）</p></div>
+
+<div class="tip info"><strong>直观理解（务必记住这一句）：</strong>递归树共有 log<sub>b</sub>n 层；第 k 层有 a<sup>k</sup> 个结点、每个结点工作量 &Theta;((n/b<sup>k</sup>)<sup>d</sup>)，故第 k 层总工作量为 n<sup>d</sup>&middot;(a/b<sup>d</sup>)<sup>k</sup>；而最底层（叶子）共 a<sup>log<sub>b</sub>n</sup> = n<sup>log<sub>b</sub>a</sup> 个。于是就是<b>比较"根部的 n<sup>d</sup>"与"叶部的 n<sup>log<sub>b</sub>a</sup>"谁大</b>：根大取根（情形①，等比递减），叶大取叶（情形③，等比递增），一样大就每层相等、乘以层数 log n（情形②）。</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>情形</th><th>判别条件</th><th>结论 T(n)</th><th>典型算法</th><th>a, b, d</th><th>代入结果</th></tr>
+  <tr><td>①</td><td>d &gt; log<sub>b</sub>a</td><td class="hl">&Theta;(n<sup>d</sup>)</td><td>合并代价大的分治<br/>T(n)=2T(n/2)+&Theta;(n<sup>2</sup>)</td><td>a=2, b=2, d=2<br/>log<sub>2</sub>2=1 &lt; 2</td><td>&Theta;(n<sup>2</sup>)</td></tr>
+  <tr><td>②</td><td>d = log<sub>b</sub>a</td><td class="hl">&Theta;(n<sup>d</sup> log n)</td><td>归并排序 / 快排（平均）<br/>T(n)=2T(n/2)+&Theta;(n)</td><td>a=2, b=2, d=1<br/>log<sub>2</sub>2=1 = 1</td><td>&Theta;(n log n)</td></tr>
+  <tr><td>②</td><td>d = log<sub>b</sub>a</td><td>&Theta;(n<sup>0</sup> log n)=&Theta;(log n)</td><td>二分查找<br/>T(n)=T(n/2)+&Theta;(1)</td><td>a=1, b=2, d=0<br/>log<sub>2</sub>1=0 = 0</td><td>&Theta;(log n)</td></tr>
+  <tr><td>③</td><td>d &lt; log<sub>b</sub>a</td><td class="hl">&Theta;(n<sup>log<sub>b</sub>a</sup>)</td><td>棋盘覆盖<br/>T(n)=4T(n/2)+&Theta;(1)</td><td>a=4, b=2, d=0<br/>log<sub>2</sub>4=2 &gt; 0</td><td>&Theta;(n<sup>2</sup>)</td></tr>
+  <tr><td>③</td><td>d &lt; log<sub>b</sub>a</td><td>&Theta;(n<sup>log<sub>b</sub>a</sup>)</td><td>Strassen 矩阵乘法<br/>T(n)=7T(n/2)+&Theta;(n<sup>2</sup>)</td><td>a=7, b=2, d=2<br/>log<sub>2</sub>7&asymp;2.807 &gt; 2</td><td>&Theta;(n<sup>2.807</sup>)</td></tr>
+</table></div>
+
+<div class="tip warn"><strong>使用条件：</strong>主定理只适用于 <b>a、b 为常数且各子问题规模相同</b>的"齐次"递推。像 T(n)=T(n/3)+T(2n/3)+&Theta;(n)（子问题规模不等）、T(n)=T(n&minus;1)+&Theta;(n)（b 不是常数倍缩小）都<b>不能</b>直接套主定理，需改用递归树法或迭代展开。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、递推式求解的两种手算方法</h2><span class="sub">递归树法 / 迭代展开 + 数学归纳</span></div>
+
+<h3>4.1 迭代展开法（代入法）：以 T(n)=2T(n/2)+n 为例</h3>
+<div class="deriv">
+  <span class="step">T(n) = 2T(n/2) + n <span class="why">原递推式，设 n=2<sup>m</sup></span></span>
+  <span class="step">　　 = 2[2T(n/4) + n/2] + n <span class="why">把 T(n/2) 再展开一层</span></span>
+  <span class="step">　　 = 4T(n/4) + n + n = 4T(n/4) + 2n <span class="why">整理</span></span>
+  <span class="step">　　 = 4[2T(n/8) + n/4] + 2n = 8T(n/8) + 3n <span class="why">再展开一层</span></span>
+  <span class="step">　　 &hellip;</span>
+  <span class="step">　　 = 2<sup>k</sup>T(n/2<sup>k</sup>) + k&middot;n <span class="why">归纳出第 k 步的通式</span></span>
+  <span class="step">令 n/2<sup>k</sup> = 1，即 k = log<sub>2</sub>n <span class="why">递归到平凡出口</span></span>
+  <span class="step">T(n) = n&middot;T(1) + n&middot;log<sub>2</sub>n = n + n log<sub>2</sub>n <span class="why">代回，T(1)=1</span></span>
+  <span class="step">∴ T(n) = &Theta;(n log n) <span class="why">取最高阶项</span></span>
+</div>
+
+<h3>4.2 数学归纳验证：证明 T(n) &le; c&middot;n log<sub>2</sub>n</h3>
+<div class="deriv">
+  <span class="step">猜想：存在常数 c &ge; 1，使 T(n) &le; c&middot;n log<sub>2</sub>n 对一切 n &ge; 2 成立。</span>
+  <span class="step">基础：n=2 时 T(2)=2T(1)+2=4 &le; c&middot;2&middot;log<sub>2</sub>2 = 2c，取 c &ge; 2 即成立。</span>
+  <span class="step">归纳：设对 n/2 成立，即 T(n/2) &le; c&middot;(n/2)&middot;log<sub>2</sub>(n/2)。</span>
+  <span class="step">T(n) = 2T(n/2) + n</span>
+  <span class="step">　　 &le; 2&middot;c&middot;(n/2)&middot;log<sub>2</sub>(n/2) + n <span class="why">用归纳假设</span></span>
+  <span class="step">　　 = c&middot;n&middot;(log<sub>2</sub>n &minus; 1) + n <span class="why">log<sub>2</sub>(n/2)=log<sub>2</sub>n&minus;1</span></span>
+  <span class="step">　　 = c&middot;n&middot;log<sub>2</sub>n &minus; c&middot;n + n</span>
+  <span class="step">　　 &le; c&middot;n&middot;log<sub>2</sub>n <span class="why">只需 c &ge; 1，则 &minus;cn+n &le; 0</span></span>
+  <span class="step">∴ 取 c=2 即可，T(n) = O(n log n)；同理可证下界 &Omega;(n log n)，故 T(n)=&Theta;(n log n)。</span>
+</div>
+
+<h3>4.3 递归树法：以 T(n)=3T(n/4)+n<sup>2</sup> 为例（配合上方动画理解）</h3>
+<div class="deriv">
+  <span class="step">第 0 层：1 个结点，工作量 n<sup>2</sup></span>
+  <span class="step">第 1 层：3 个结点，每个 (n/4)<sup>2</sup>，共 3&middot;n<sup>2</sup>/16 = (3/16)n<sup>2</sup></span>
+  <span class="step">第 2 层：9 个结点，每个 (n/16)<sup>2</sup>，共 (3/16)<sup>2</sup>n<sup>2</sup></span>
+  <span class="step">第 k 层：3<sup>k</sup> 个结点，共 (3/16)<sup>k</sup>&middot;n<sup>2</sup> <span class="why">公比 3/16 &lt; 1 的等比数列</span></span>
+  <span class="step">总和 T(n) = n<sup>2</sup>&middot;[1 + 3/16 + (3/16)<sup>2</sup> + &hellip;] &lt; n<sup>2</sup>&middot;1/(1&minus;3/16) = (16/13)n<sup>2</sup></span>
+  <span class="step">∴ T(n) = &Theta;(n<sup>2</sup>) <span class="why">与主定理情形①一致：d=2 &gt; log<sub>4</sub>3&asymp;0.79</span></span>
+</div>
+<div class="tip"><strong>规律：</strong>递归树各层构成公比 q = a/b<sup>d</sup> 的等比数列。q &lt; 1 → 收敛于首项（情形①）；q = 1 → 每层相等，乘层数（情形②）；q &gt; 1 → 由末项即叶子数主导（情形③）。三种情形本质上就是这一个等比数列的三种走势。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>五、分治 vs 减治 vs 动态规划</h2><span class="sub">关键判据：子问题是否重叠</span></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>比较项</th><th>分治法 Divide &amp; Conquer</th><th>减治法 Decrease &amp; Conquer</th><th>动态规划 Dynamic Programming</th></tr>
+  <tr><td>递归的子问题个数</td><td class="hl">a &ge; 2（要解多个）</td><td class="hl">恰好 1 个（只解一个）</td><td>多个，且被反复用到</td></tr>
+  <tr><td>子问题是否重叠</td><td class="hl">否（独立）</td><td>否</td><td class="hl">是（这是关键判据）</td></tr>
+  <tr><td>是否需要"合并"</td><td>需要，合并是核心步骤</td><td>基本不需要（丢掉一半即可）</td><td>需要，用状态转移方程</td></tr>
+  <tr><td>是否需要存储表</td><td>否</td><td>否</td><td class="hl">是（记忆化 / 填表）</td></tr>
+  <tr><td>递推式形态</td><td>T(n)=aT(n/b)+f(n), a&ge;2</td><td>T(n)=T(n/b)+f(n) 或 T(n&minus;1)+f(n)</td><td>由状态数 &times; 转移代价决定</td></tr>
+  <tr><td>典型代表</td><td>归并排序、快速排序、最大子段和、棋盘覆盖、Strassen</td><td>二分查找、折半插入、求两序列中位数、欧几里得算法</td><td>Fibonacci、0-1 背包、最长公共子序列、矩阵连乘</td></tr>
+</table></div>
+<div class="tip info"><strong>一句话判据：</strong>画出递归树，看看<b>有没有两个结点代表同一个子问题</b>。没有 → 分治（或减治）；有，而且大量重复 → 动态规划。教材上把二分查找也归入分治章节讲，是因为它符合"分解—求解—合并（合并为空操作）"的形式，但严格说它属于<b>减治</b>（每次只递归一侧）。</div>
+<div class="terms">
+  <span class="term"><b>分治法</b>Divide and Conquer</span>
+  <span class="term"><b>减治法</b>Decrease and Conquer</span>
+  <span class="term"><b>主定理</b>Master Theorem</span>
+  <span class="term"><b>递归树</b>Recursion Tree</span>
+  <span class="term"><b>代入法</b>Substitution Method</span>
+  <span class="term"><b>迭代展开</b>Iteration / Unrolling</span>
+  <span class="term"><b>子问题重叠</b>Overlapping Subproblems</span>
+  <span class="term"><b>递推方程</b>Recurrence Relation</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>六、易错点</h2><span class="sub">Common Pitfalls</span></div>
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+<li>把 d 读成"递归函数总时间的指数"。d 只统计<b>本层</b>分解与合并的代价，<b>不含</b>递归调用本身的时间。例如归并排序 merge 是 &Theta;(n)，所以 d=1，而不是 d=log n。</li>
+<li>把 a 当成"分成几份"。a 是<b>递归调用的次数</b>，b 才是"分成几份"。二分查找分成 2 份但只递归 1 份，故 a=1、b=2，不是 a=2。</li>
+<li>情形②误写成 &Theta;(n<sup>d</sup>&middot;log<sub>b</sub>n)。底数 b 在渐进意义下与 2 只差常数因子（换底公式），写 &Theta;(n<sup>d</sup> log n) 即可，加底数不算错但没必要。</li>
+<li>对子问题规模不等的递推（如 T(n)=T(n/3)+T(2n/3)+n）硬套主定理。这类必须画递归树，答案是 &Theta;(n log n) 而非主定理任何一支。</li>
+<li>误认为"能分解成子问题"就能用分治。若子问题重叠（Fibonacci、LCS、背包），分治会指数爆炸，必须转动态规划。</li>
+<li>忘记写递归出口条件，或出口条件写在递归调用之后，导致无限递归 / 栈溢出。</li>
+</ul></div>
+</section>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+<li>分治三步曲：<b>分解 Divide → 求解 Conquer → 合并 Combine</b>；分解与合并的总代价记为 f(n)=&Theta;(n<sup>d</sup>)。</li>
+<li>适用四前提：可分解为同类子问题、<b>子问题独立不重叠</b>、解可合并、有平凡出口。第二条是与动态规划的分水岭。</li>
+<li>通用递推式 T(n)=a&middot;T(n/b)+&Theta;(n<sup>d</sup>)；a=递归调用次数，b=规模缩小倍数，d=非递归部分的时间指数。</li>
+<li>主定理比较 d 与 log<sub>b</sub>a：d 大取 &Theta;(n<sup>d</sup>)；相等取 &Theta;(n<sup>d</sup> log n)；d 小取 &Theta;(n<sup>log<sub>b</sub>a</sup>)。</li>
+<li>手算方法：迭代展开求出第 k 步通式再令 n/b<sup>k</sup>=1；递归树法把各层求和成等比数列；数学归纳法用于验证猜想。</li>
+<li>分治（a&ge;2，需合并）／减治（a=1，丢一半）／动态规划（子问题重叠，需存表）三者的界限要能说清。</li>
+</ul></div>
+
+<section class="sec"><div class="sec-head"><h2>自测题</h2><span class="sub">点击选项查看解析</span></div>
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>递推式 T(n) = 4T(n/2) + &Theta;(n) 的渐进解是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>&Theta;(n log n)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>&Theta;(n<sup>2</sup>)</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>&Theta;(n<sup>2</sup> log n)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>&Theta;(n<sup>2.807</sup>)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>a=4，b=2，d=1，log<sub>2</sub>4 = 2 &gt; d=1，属于<b>情形③</b>，故 T(n)=&Theta;(n<sup>log<sub>2</sub>4</sup>)=&Theta;(n<sup>2</sup>)，选 B。<br/>A 错在把它当成了 a=b=2 的情形②；<b>C 是最迷惑的干扰项</b>——只有当 d 恰好等于 log<sub>b</sub>a=2（即合并代价是 &Theta;(n<sup>2</sup>)）时才会多出一个 log n 因子，本题 d=1 &lt; 2，各层代价是<b>递增</b>的等比数列，由叶子数主导，不会产生 log 因子；D 是 Strassen 矩阵乘法 T(n)=7T(n/2)+&Theta;(n<sup>2</sup>) 的答案，a 记错成 7 才会选它。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>下列哪一条是判断"该用动态规划而不是分治法"的<b>关键</b>依据？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>问题规模 n 很大，递归深度会超过栈容量</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>子问题的解需要合并才能得到原问题的解</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>不同分支递归出的子问题相互重叠，会被重复求解</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>问题被分解成的子问题个数 a 大于 2</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。分治要求<b>子问题独立不重叠</b>；一旦重叠，朴素递归会把同一子问题算指数多次，必须用表格记忆结果，这正是动态规划的由来。<br/>A 错：递归深度大可以改写成非递归或尾递归优化，与是否用 DP 无关（归并排序 n 再大也是分治）；B 错：分治本身就要合并，"需要合并"是分治的<b>共性</b>而非 DP 的特征；D 错：a 的大小只影响复杂度的阶（主定理里的 log<sub>b</sub>a），棋盘覆盖 a=4 仍是标准分治。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>用迭代展开法求 T(n)=2T(n/2)+n（T(1)=1，n=2<sup>m</sup>），展开到第 k 步时的通式是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>T(n) = 2<sup>k</sup>T(n/2<sup>k</sup>) + n</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>T(n) = 2<sup>k</sup>T(n/2<sup>k</sup>) + k&middot;n</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>T(n) = 2<sup>k</sup>T(n/2<sup>k</sup>) + n/2<sup>k</sup></span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>T(n) = 2<sup>k</sup>T(n/2<sup>k</sup>) + 2<sup>k</sup>&middot;n</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。每展开一层，都会新增一项 2<sup>j</sup>&middot;(n/2<sup>j</sup>) = n，展开 k 层就累加了 k 个 n。令 n/2<sup>k</sup>=1 得 k=log<sub>2</sub>n，代入得 T(n)=n&middot;T(1)+n log<sub>2</sub>n=&Theta;(n log n)。<br/>A 漏掉了"每层都产生一个 n"的累加，只算了第一层；C 把"每个结点的工作量 n/2<sup>k</sup>"误当成"整层的工作量"，忘了乘结点数 2<sup>k</sup>；D 把结点数乘了两遍。<b>本题的核心训练点就是：整层工作量 = 结点数 &times; 单结点工作量 = 2<sup>k</sup> &times; n/2<sup>k</sup> = n，与 k 无关，所以各层相等（主定理情形②）。</b></div>
+  </div>
+</div>
+</section>
+
+<div class="page-nav"><a href="index.html"><span class="dir">← 上一节</span><span class="name">总览</span></a><a href="02-quicksort.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">快排</span></a></div>
+<div class="footer">算法设计与分析 · <b>第4章 分治法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(74,108,140,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+let nodes=[];
+function layout(depth=4){
+  nodes=[];
+  function rec(d,x,y,gap,id){
+    const me={d,x,y,id}; nodes.push(me);
+    if(d<depth){ rec(d+1,x-gap,y+70,gap*0.5,id*2); rec(d+1,x+gap,y+70,gap*0.5,id*2+1); }
+  }
+  rec(0,260,30,120,1);
+}
+function draw(k){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  nodes.forEach(n=>{
+    if(n.d>=k) return;
+    const kids=nodes.filter(c=>c.d===n.d+1 && Math.abs(c.x-n.x)<200/(n.d+1)+80);
+    kids.forEach(c=>{ if(c.d<k){ ctx.strokeStyle='#A29C90'; ctx.beginPath(); ctx.moveTo(n.x,n.y+12); ctx.lineTo(c.x,c.y-12); ctx.stroke(); }});
+  });
+  nodes.forEach(n=>{
+    if(n.d>=k) return;
+    ctx.beginPath(); ctx.arc(n.x,n.y,14,0,Math.PI*2);
+    ctx.fillStyle=n.d===0?'#4A6C8C':(n.d===k-1?'#9C7420':'#C2603F'); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='10px sans-serif'; ctx.textAlign='center'; ctx.fillText('n/'+(1<<n.d),n.x,n.y+3);
+  });
+}
+let lvl=0;
+run.onclick=async()=>{ layout(); for(lvl=1;lvl<=5;lvl++){ draw(lvl); await sleep(400);} };
+rst.onclick=()=>{ctx.clearRect(0,0,cv.width,cv.height);};
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

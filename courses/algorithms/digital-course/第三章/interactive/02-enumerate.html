@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>列举 · 第3章 穷举法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">03</div>算法可视化 · <span>第3章 穷举法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill active" href="02-enumerate.html">列举</a><a class="pill" href="03-prefix.html">前缀和</a><a class="pill" href="04-uf.html">并查集</a><a class="pill" href="05-maxsub.html">最大子段</a><a class="pill" href="06-powerset.html">幂集</a><a class="pill" href="07-perm.html">全排列</a><a class="pill" href="08-nqueens.html">n皇后</a><a class="pill" href="09-assign-tsp.html">分配TSP</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 2 · 加深</div><h1>三种列举方式</h1>
+<p>多重循环、递归回溯、位运算枚举子集 — 同一幂集三种实现对比。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>写出</b>三种列举方式的代码骨架：多重循环（k 重 for）、递归回溯（选/不选）、位运算掩码。</li>
+  <li>能够<b>判断</b>给定问题的解空间形态，据此<b>选择</b>最合适的列举方式。</li>
+  <li>能够<b>解释</b>为什么位运算法在 n &gt; 20 时开销已不可接受、在 n &gt; 31 时还会发生整型溢出。</li>
+  <li>能够<b>说明</b>递归回溯与位运算枚举子集时生成顺序的差异，并验证两者都做到不重不漏。</li>
+</ol></div>
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="bit">位运算子集</button>
+    <button class="btn" id="rec">递归选/不选</button>
+  </div>
+  <div class="cells" id="base"></div>
+  <div id="out" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px"></div>
+  <div class="log" id="log">a=[1,2,3]</div>
+  <div class="code">// 位运算：for mask in 0..(1&lt;&lt;n)-1
+//   若 mask 第 i 位为 1 则包含 a[i]</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、方式一：多重循环</h2><span class="sub">Nested Loops · 最直观的列举</span></div>
+
+<div class="defn"><span class="lbl">定义</span><p><b>多重循环列举</b>（nested-loop enumeration）：当解空间可以写成"k 个下标各自独立取值"的形式时，用 k 重 <span class="cm">for</span> 循环逐层遍历。循环层数 k 在<b>编译期固定</b>，因此只适用于 k 是常数（通常 k &le; 3&sim;4）的场合。</p></div>
+
+<p>典型场景：从数组 a[0..n&minus;1] 中枚举一个<b>三元组</b>（i, j, k），要求 i &lt; j &lt; k。约定 i &lt; j &lt; k 是为了保证同一组元素只被枚举一次——这就是"不重不漏"在多重循环中的具体落实方式。</p>
+
+<div class="code"><span class="cm">// 多重循环：枚举全部无序三元组 (a[i], a[j], a[k])，i &lt; j &lt; k</span>
+<span class="cm">// 例：三数之和 —— 找出和恰为 T 的一组</span>
+<span class="kw">bool</span> <span class="fn">threeSum</span>(<span class="kw">int</span> a[], <span class="kw">int</span> n, <span class="kw">int</span> T, <span class="kw">int</span> r[<span class="nu">3</span>]) {
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>;     i &lt; n; i++)          <span class="cm">// 第 1 层</span>
+    <span class="kw">for</span> (<span class="kw">int</span> j = i + <span class="nu">1</span>; j &lt; n; j++)          <span class="cm">// 第 2 层，从 i+1 起，避免重复</span>
+    <span class="kw">for</span> (<span class="kw">int</span> k = j + <span class="nu">1</span>; k &lt; n; k++) {        <span class="cm">// 第 3 层</span>
+        <span class="kw">if</span> (a[i] + a[j] + a[k] == T) {          <span class="cm">// 约束检验</span>
+            r[<span class="nu">0</span>] = a[i]; r[<span class="nu">1</span>] = a[j]; r[<span class="nu">2</span>] = a[k];
+            <span class="kw">return</span> <span class="kw">true</span>;
+        }
+    }
+    <span class="kw">return</span> <span class="kw">false</span>;
+}
+<span class="cm">// 枚举次数 C(n,3) = n(n-1)(n-2)/6 = Θ(n³)</span></div>
+
+<div class="tip info"><strong>为什么多重循环枚举不了幂集：</strong>子集的"元素个数"本身是变化的（从 0 到 n），而 for 循环的层数在写代码时就固定了。要用多重循环枚举 n 元素的全部子集，就得写 n 重循环——但 n 是运行期变量，语法上无法做到。<b>这正是递归回溯与位运算存在的理由</b>：它们用"递归深度"或"二进制位数"来代替"循环层数"，从而把层数变成运行期可变的量。</div>
+
+<div class="tip"><strong>特例：</strong>若 n 本身是小常数（如固定 3 个骰子、固定 4 位密码），多重循环最直观也最快，无函数调用开销。教材中"百钱买百鸡""水仙花数"这类题目都属此类。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、方式二：递归回溯（选 / 不选）</h2><span class="sub">Recursive Backtracking</span></div>
+
+<div class="defn"><span class="lbl">原理</span><p>把"为 n 个元素各作一次二选一决策"建模成一棵<b>二叉判定树</b>：第 i 层的两条分支分别代表"选 a[i]"与"不选 a[i]"。从根走到第 n 层叶子的每一条路径，恰好对应一个子集；树共有 2<sup>n</sup> 个叶子，故不重不漏。</p></div>
+
+<div class="code"><span class="cm">// 递归回溯枚举幂集：path 保存当前已作出的选择</span>
+<span class="kw">int</span> a[] = {<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>}, n = <span class="nu">3</span>;
+<span class="kw">int</span> path[<span class="nu">32</span>], top = <span class="nu">0</span>;
+
+<span class="kw">void</span> <span class="fn">dfs</span>(<span class="kw">int</span> i) {
+    <span class="kw">if</span> (i == n) {                 <span class="cm">// 递归出口：n 个决策全部作完</span>
+        <span class="fn">output</span>(path, top);        <span class="cm">// 得到一个子集</span>
+        <span class="kw">return</span>;
+    }
+    path[top++] = a[i];           <span class="cm">// ① 选 a[i]</span>
+    <span class="fn">dfs</span>(i + <span class="nu">1</span>);
+    top--;                        <span class="cm">// 回溯：撤销选择（关键！）</span>
+
+    <span class="fn">dfs</span>(i + <span class="nu">1</span>);                 <span class="cm">// ② 不选 a[i]</span>
+}
+<span class="cm">// 调用：dfs(0);  共产生 2^n 个子集</span></div>
+
+<div class="deriv">
+  <span class="step">递归树共 2<sup>n+1</sup>&minus;1 个结点 <span class="why">满二叉树，深度 n</span></span>
+  <span class="step">每个叶子输出一个子集，输出耗时 O(n) <span class="why">最坏要打印 n 个元素</span></span>
+  <span class="step">总时间 T(n) = O(n&middot;2<sup>n</sup>)，递归栈深度 O(n) <span class="why">故空间为 O(n)</span></span>
+</div>
+
+<div class="tip"><strong>递归法的独有优势：</strong>可以在<b>中途剪支</b>。例如求"和不超过 W 的子集"，一旦当前累加和已超过 W，就可以直接 <span class="cm">return</span>，不再展开这棵子树。位运算法必须把 mask 完整生成后才能判断，无法剪支——这是第 5 章回溯法的伏笔。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、方式三：位运算掩码</h2><span class="sub">Bitmask Enumeration</span></div>
+
+<div class="defn prop"><span class="lbl">性质</span><p>长度为 n 的 0/1 向量与区间 [0, 2<sup>n</sup>) 内的整数<b>一一对应</b>（双射）。因此让整数 mask 遍历 0 &sim; 2<sup>n</sup>&minus;1，就等价于遍历了全部 2<sup>n</sup> 个子集。这是位运算枚举法正确性的全部依据。</p></div>
+
+<div class="code"><span class="cm">// 位运算枚举幂集：mask 的第 i 位为 1 ⟺ 选中 a[i]</span>
+<span class="kw">void</span> <span class="fn">powerSet</span>(<span class="kw">int</span> a[], <span class="kw">int</span> n) {
+    <span class="kw">for</span> (<span class="kw">int</span> mask = <span class="nu">0</span>; mask &lt; (<span class="nu">1</span> &lt;&lt; n); mask++) {
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; i++)
+            <span class="kw">if</span> ((mask &gt;&gt; i) &amp; <span class="nu">1</span>)          <span class="cm">// 取出第 i 位</span>
+                <span class="fn">printf</span>(<span class="st">"%d "</span>, a[i]);
+        <span class="fn">printf</span>(<span class="st">"\n"</span>);
+    }
+}
+<span class="cm">// 常用位技巧：</span>
+<span class="cm">//   mask &amp; (1 &lt;&lt; i)   判断第 i 位是否为 1</span>
+<span class="cm">//   mask | (1 &lt;&lt; i)   置第 i 位为 1</span>
+<span class="cm">//   mask &amp; ~(1 &lt;&lt; i)  置第 i 位为 0</span>
+<span class="cm">//   mask &amp; (mask - 1) 抹掉最低位的 1（可用来数 1 的个数）</span></div>
+
+<div class="formula">|{ mask : 0 &le; mask &lt; 2<sup>n</sup> }| = 2<sup>n</sup> = |2<sup>S</sup>|</div>
+
+<div class="tip info"><strong>规模上限（务必记住）：</strong>位运算法用一个 int 的二进制位表示整个子集，因此 <b>n &le; 31</b> 才能用 <span class="cm">int</span>（<span class="cm">1 &lt;&lt; 31</span> 已使 int 溢出为负），<b>n &le; 63</b> 才能用 <span class="cm">long long</span>（须写 <span class="cm">1LL &lt;&lt; n</span>）。但这只是"能不能表示"的上限；从"跑不跑得完"看，n &gt; 20 时 2<sup>n</sup> &gt; 10<sup>6</sup>、n &gt; 25 时已过 3&times;10<sup>7</sup>，实际可用范围是 <b>n &le; 20&sim;25</b>。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、三种方式对比与选用</h2><span class="sub">Comparison &amp; Selection</span></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>方式</th><th>解空间形态</th><th>循环层数</th><th>时间</th><th>额外空间</th><th>能否剪支</th><th>规模上限</th></tr>
+  <tr><td>多重循环</td><td>k 元组、k 为常数</td><td class="hl">编译期固定 k</td><td>O(n<sup>k</sup>)</td><td>O(1)</td><td>只能用 continue 粗剪</td><td>k &le; 3&sim;4</td></tr>
+  <tr><td>递归回溯</td><td>子集 / 排列 / 组合</td><td class="hl">运行期可变（递归深度）</td><td>O(n&middot;2<sup>n</sup>) 或 O(n&middot;n!)</td><td>O(n) 栈</td><td class="path">可，中途即可剪</td><td>配合剪支可到 n&asymp;30+</td></tr>
+  <tr><td>位运算掩码</td><td>仅子集（0/1 向量）</td><td class="hl">运行期可变（位数）</td><td>O(n&middot;2<sup>n</sup>)</td><td>O(1)</td><td>否，须先生成完整 mask</td><td>n &le; 20&sim;25（int 限 31）</td></tr>
+</table></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>选用建议</th><th>推荐方式</th><th>理由</th></tr>
+  <tr><td>枚举固定个数的元素（三数之和、两两配对）</td><td class="hl">多重循环</td><td>层数固定，代码最短、常数最小、无递归开销</td></tr>
+  <tr><td>枚举全部子集，n &le; 20，且无剪支需求</td><td class="hl">位运算</td><td>无递归、无栈开销，mask 本身可直接作数组下标（状压 DP 的基础）</td></tr>
+  <tr><td>枚举全部子集，n &gt; 20 或需要剪支</td><td class="hl">递归回溯</td><td>可在中途判断并放弃整棵子树，实际枚举量远小于 2<sup>n</sup></td></tr>
+  <tr><td>枚举排列（TSP、n 皇后、任务分配）</td><td class="hl">递归回溯</td><td>位掩码只能表示"选或不选"，无法直接表达元素的<b>顺序</b></td></tr>
+  <tr><td>需要按特定顺序（如字典序）输出</td><td class="hl">专用生成算法</td><td>见 §07 的 next_permutation 三步法</td></tr>
+</table></div>
+
+<div class="tip"><strong>生成顺序不同但集合相同：</strong>对 a = [1,2,3]，位运算法按 mask 递增输出 &empty;, {1}, {2}, {1,2}, {3}, {1,3}, {2,3}, {1,2,3}；上面的递归法（先选后不选）则输出 {1,2,3}, {1,2}, {1,3}, {1}, {2,3}, {2}, {3}, &empty;。<b>顺序不同，但都恰好是这 8 个子集</b>——可在上方演示中分别点击两个按钮对比。若题目对输出顺序有要求，必须显式排序或改用指定的生成算法。</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li>多重循环内层从 0 而非 i+1 开始：会把 (a[0],a[1]) 与 (a[1],a[0]) 当成两个不同解，造成<b>重复枚举</b>；若题目要求无序组合，必须写 <span class="cm">j = i + 1</span>。</li>
+  <li>递归回溯<b>忘记回溯</b>（漏掉 <span class="cm">top--</span>）：path 会不断累积，后续所有子集都被污染。"选 &rarr; 递归 &rarr; 撤销"必须三步齐全。</li>
+  <li>误把 <span class="cm">mask &amp; (1 &lt;&lt; i)</span> 的结果直接当作 0/1 使用：它的值是 0 或 2<sup>i</sup>，不是 0 或 1；作布尔判断没问题，但若要参与算术必须写 <span class="cm">(mask &gt;&gt; i) &amp; 1</span>。</li>
+  <li>运算符优先级：<span class="cm">&amp;</span> 的优先级<b>低于</b> <span class="cm">==</span>，因此 <span class="cm">if (mask &amp; 1 &lt;&lt; i == 0)</span> 会被解析成 <span class="cm">mask &amp; (1 &lt;&lt; (i == 0))</span>，必须加括号写成 <span class="cm">if ((mask &amp; (1 &lt;&lt; i)) == 0)</span>。</li>
+  <li>n &ge; 31 时写 <span class="cm">1 &lt;&lt; n</span>：int 左移 31 位以上是未定义行为，须改用 <span class="cm">1LL &lt;&lt; n</span>；不过此时更应反省是否选错了算法。</li>
+  <li>循环上界写成 <span class="cm">mask &lt;= (1 &lt;&lt; n)</span>：会多枚举一次，且该次结果与空集重复。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li><b>多重循环</b>：层数编译期固定，适合 k 元组（k &le; 3&sim;4）；内层从 i+1 起可避免重复。无法枚举幂集，因为层数不能随 n 变化。</li>
+  <li><b>递归回溯</b>：用递归深度代替循环层数，对每个元素作"选 / 不选"二选一；必须"选 &rarr; 递归 &rarr; 撤销"三步齐全。唯一支持中途剪支的方式，也是排列型解空间的唯一选择。</li>
+  <li><b>位运算掩码</b>：利用 0/1 向量与 [0, 2<sup>n</sup>) 整数的双射；写法最简、常数最小，但只能枚举子集、不能剪支，且受 int 位宽限制（n &le; 31，实用 n &le; 20&sim;25）。</li>
+  <li>三种方式的时间同为 O(n&middot;2<sup>n</sup>) 量级（多重循环为 O(n<sup>k</sup>)），差别在<b>可表达性</b>与<b>可剪支性</b>，而不在渐进复杂度。</li>
+  <li>生成顺序因方式而异，但生成的<b>集合</b>相同；对输出顺序有要求时须额外处理。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>要枚举 n 个元素的<b>全部子集</b>，且 n 在运行时才确定，下列方式中<b>无法直接实现</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>多重循环（n 重 for）</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>递归回溯（选 / 不选）</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>位运算掩码（mask 从 0 到 2<sup>n</sup>&minus;1）</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>B 与 C 都无法实现</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>A 无法实现。for 循环的<b>层数</b>必须在写代码时确定，而 n 是运行期变量，语法上写不出"n 重循环"。B 用递归深度、C 用二进制位数来充当"层数"，两者的层数都随 n 自动变化，故都可行。选 D 的常见误区是认为位运算受 n 限制而"不可用"——n &le; 31 时它完全可用，且是最简洁的写法；受限不等于无法实现。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>下列 C++ 判断语句中，能正确判定"mask 的第 i 位为 1"的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>if (mask &amp; 1 &lt;&lt; i == 1)</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>if (mask &amp; (1 &lt;&lt; i) == 1)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>if ((mask &gt;&gt; i) &amp; 1)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>if (mask / (1 &lt;&lt; i) == 1)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>C 正确：先右移 i 位把目标位挪到最低位，再与 1 相与，结果恰为 0 或 1。A 和 B 都栽在<b>优先级</b>上——<span class="cm">==</span> 优先级高于 <span class="cm">&amp;</span>，A 实际计算 <span class="cm">mask &amp; (1 &lt;&lt; (i == 1))</span>，B 实际计算 <span class="cm">mask &amp; ((1 &lt;&lt; i) == 1)</span>，都不是本意。此外即使加对括号，<span class="cm">(mask &amp; (1 &lt;&lt; i)) == 1</span> 也只在 i = 0 时才可能成立，因为该式的值是 0 或 2<sup>i</sup>。D 错误：mask 中高于第 i 位的 1 也会被算进商里，例如 mask = 0b110、i = 1 时商为 3 而非 1。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>某问题需枚举 n = 28 个物品的全部子集，但存在一个强剪支条件：一旦已选物品的重量和超过 W 即可放弃。应优先选择哪种列举方式？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>位运算掩码，因为它常数最小、没有函数调用开销</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>递归回溯，因为它能在中途放弃整棵子树</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>多重循环，因为 28 是常数，可以写 28 重 for</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>三者等价，因为渐进复杂度都是 O(n&middot;2<sup>n</sup>)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。位运算法必须把 mask 完整生成后才能计算重量，2<sup>28</sup> &asymp; 2.7&times;10<sup>8</sup> 个 mask 一个都省不掉；递归回溯在第 k 层就能发现超重并直接 return，一次剪支省掉的是 2<sup>n&minus;k</sup> 个候选解，实际枚举量往往低一两个数量级。A 的"常数小"在这里被"无法剪支"完全抵消。C 虽然理论上可写但工程上荒谬，且一旦 n 改变代码就得重写。D 混淆了<b>最坏渐进复杂度</b>与<b>实际运行量</b>——剪支不改变最坏复杂度，却能极大改善实际表现，这正是第 5 章回溯法的核心思想。</div>
+  </div>
+</div>
+
+<div class="terms">
+  <span class="term"><b>多重循环</b>nested loops</span>
+  <span class="term"><b>递归回溯</b>recursive backtracking</span>
+  <span class="term"><b>位掩码</b>bitmask</span>
+  <span class="term"><b>判定树</b>decision tree</span>
+  <span class="term"><b>剪支</b>pruning</span>
+</div>
+</section>
+
+<div class="page-nav"><a href="01-overview.html"><span class="dir">← 上一节</span><span class="name">概述</span></a><a href="03-prefix.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">前缀和</span></a></div>
+<div class="footer">算法设计与分析 · <b>第3章 穷举法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(53,111,98,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const a=[1,2,3];
+base.innerHTML=a.map(v=>`<div class="cell">${v}</div>`).join('');
+function show(sols){
+  out.innerHTML=sols.map(s=>`<div class="cell hit" style="min-width:auto;padding:8px 12px;font-size:12px">{${s.join(',')||'∅'}</div>`).join('');
+}
+bit.onclick=async()=>{
+  const sols=[];
+  for(let m=0;m<(1<<a.length);m++){
+    const s=[]; for(let i=0;i<a.length;i++) if(m>>i&1) s.push(a[i]);
+    sols.push(s); show(sols); log.textContent=`mask=${m.toString(2).padStart(3,'0')}`; await sleep(250);
+  }
+};
+rec.onclick=async()=>{
+  const sols=[], path=[];
+  async function dfs(i){
+    if(i>=a.length){ sols.push(path.slice()); show(sols); await sleep(200); return; }
+    path.push(a[i]); await dfs(i+1); path.pop();
+    await dfs(i+1);
+  }
+  await dfs(0); log.textContent='递归完成';
+};
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

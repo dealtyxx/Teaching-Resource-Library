@@ -1,0 +1,112 @@
+---
+module: 1
+moduleName: 绪论
+order: 1
+title: 多源数据类型识别分类器
+level: 基础必做
+scene: 数据认知
+knowledge: [结构化数据, 半结构化数据, 非结构化数据]
+stars: 1
+minutes: 20
+goal: 掌握三类数据特征，能准确识别实际场景数据类型
+sizheng: 分析先于采集——建立对数据形态的科学认知
+dims: [创新思维]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+import DataTypeSorterLab from '../../components/react/labs/DataTypeSorterLab';
+
+## 场景导入
+
+开学第一周，你加入了校园数据中心的助理团队。师兄丢来一句话：「把学校的数据摸个底。」你打开共享盘——成绩 Excel、门禁 JSON 日志、监控视频、贴吧帖子、传感器 CSV……在写第一行采集代码之前，得先回答一个更基本的问题：**这些数据分别是什么「形态」？** 因为形态决定了工具：结构化用 SQL，半结构化用解析器，非结构化要靠算法。
+
+## 玩一玩
+
+九张数据卡牌，三个分类筐。先凭直觉玩一局，错了不要紧——每张卡的讲解会告诉你判断依据：
+
+<DataTypeSorterLab client:visible />
+
+## 动手实验
+
+游戏里靠眼睛，工程里靠代码。下面这个迷你分类器用「能否解析出固定结构」来自动判断数据形态——改改 `samples` 里的数据，看看它判得准不准：
+
+<PyPlayground
+  client:visible
+  title="迷你数据形态分类器"
+  note="试着把一段你自己的微信聊天记录（当作自由文本）或一行 CSV 加进 samples，看分类器的判断和你的直觉是否一致。"
+  code={`import json, csv, io
+
+def classify(text):
+    """按「能否解析出固定结构」判断数据形态"""
+    t = text.strip()
+    # 1. 尝试 JSON —— 成功即半结构化（自描述键值）
+    try:
+        json.loads(t)
+        return "半结构化", "JSON 解析成功：键值自描述、模式灵活"
+    except ValueError:
+        pass
+    # 2. 尝试 XML/HTML 标签特征
+    if t.startswith("<") and t.endswith(">"):
+        return "半结构化", "含标签层次（XML/HTML 家族）"
+    # 3. 尝试 CSV —— 各行列数一致即结构化
+    rows = list(csv.reader(io.StringIO(t)))
+    if len(rows) >= 2 and len(set(len(r) for r in rows)) == 1 and len(rows[0]) >= 2:
+        return "结构化", f"行列对齐（{len(rows)} 行 x {len(rows[0])} 列）"
+    # 4. 都不是 —— 非结构化
+    return "非结构化", "无固定模式，需 NLP/CV 等算法处理"
+
+samples = [
+    ("门禁日志", '{"uid": "2025101", "gate": "东门", "ts": "07:32"}'),
+    ("气象记录", "time,temp,humi\\n08:00,26.1,63\\n09:00,27.4,58"),
+    ("传感上报", "<sensor id='T1'><temp>26.5</temp></sensor>"),
+    ("食堂点评", "今天食堂的糖醋排骨绝了，就是排队有点久！"),
+]
+
+for name, data in samples:
+    kind, why = classify(data)
+    print(f"[{kind}] {name}：{why}")`}
+/>
+
+## 思政会客厅
+
+<DimCard dim="创新思维" title="分析先于采集">
+  <ul>
+    <li>拿到数据先问形态，再选工具——「结构化用 SQL、半结构化用解析器、非结构化靠算法」，这条判断链是数据工程师的第一反应。</li>
+    <li>企业数据约八成是非结构化的：价值密度低、总量巨大。能从「乱」中建「序」，正是数据采集课要练的真本事。</li>
+    <li>不迷信单一工具：Excel 解决不了监控视频，大模型也不必用来读 CSV——按对象选方法，是工程理性的开端。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="🌻" tone="gold" title="向日葵法则">
+向日葵朝着太阳生长，数据工程师朝着「问题的真实形态」写代码——不被工具绑架，只为问题服务。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p01-d1"
+  question="微信聊天记录导出的 TXT 文件，究竟算哪一类数据？说说你的判断依据。"
+  hints={['整体看是自由文本（非结构化），但每行的「时间 昵称：内容」又有稳定的行内模式', '很多真实数据处在灰色地带：可以用正则把它「半结构化」，再逐步表格化', '分类的意义不在贴标签，而在决定下一步用什么工具处理']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="校园门禁系统上报的 JSON 日志属于哪类数据？"
+  options={['结构化数据', '半结构化数据', '非结构化数据', '无法判断']}
+  answer={1}
+  explain="JSON 有键值标签、层次可嵌套，但模式灵活可增减字段——典型的半结构化数据；导入固定列的数据库表后才成为结构化数据。"
+/>
+
+<QuizItem
+  client:visible
+  question="面对「先采回来再说，反正硬盘够大」的建议，更专业的回应是？"
+  options={['同意，数据越多越好', '先分析数据形态与采集目的，按需采集', '只采结构化数据，其他不管', '全部转成图片保存']}
+  answer={1}
+  explain="分析先于采集：明确目的与形态才能选对工具、控制质量，也避免过度采集带来的存储浪费与合规风险。"
+/>

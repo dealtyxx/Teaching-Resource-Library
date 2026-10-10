@@ -1,0 +1,141 @@
+---
+module: 2
+moduleName: 网络爬虫基础
+order: 8
+title: 礼貌爬虫访问工具
+level: 进阶选做
+scene: 网页采集
+knowledge: [请求头定制, Session会话, 超时控制]
+stars: 3
+minutes: 35
+goal: 掌握requests高级用法
+sizheng: 养成礼貌爬取的职业伦理
+dims: [职业伦理, 社会责任]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+import CrawlerPressureLab from '../../components/react/labs/CrawlerPressureLab';
+
+## 场景导入
+
+辅导员托你把教务网 300 条历年通知的标题抓下来做词频分析。你写好循环，顺手把间隔设成 0，再开 50 个线程——反正快嘛。凌晨两点爬虫火力全开，早上八点全校发现教务系统打不开了。速度是工程能力，节制才是职业素养。这一课我们给 requests 穿上三件「礼貌装备」：亮明身份的请求头、复用连接的 Session 会话、不死等也不纠缠的超时控制。
+
+## 玩一玩
+
+先感受一下「不礼貌」的代价。两个旋钮对应并发线程数与请求间隔，试着把压力条一路推进红区，盯住右侧滚动日志里状态码的变化：
+
+<CrawlerPressureLab client:visible />
+
+## 动手实验
+
+真实环境里，礼貌三件套的标准写法如下（本机运行）：
+
+```python
+# 真实环境的礼貌三件套（先 pip install requests）
+import time
+import requests
+
+urls = ["https://jwc.example.edu/notice/2026-001.html"]   # 待抓清单
+
+session = requests.Session()                  # Session 复用 TCP 连接，本身就在给对方减负
+session.headers.update({
+    "User-Agent": "campus-bot/1.0 (contact: you@campus.edu)",   # 亮明身份，可被联系
+})
+
+for url in urls:
+    resp = session.get(url, timeout=(3.05, 10))   # (连接超时, 读取超时)：不死等
+    print(resp.status_code, url)
+    time.sleep(3)                                 # 固定间隔——深夜也不例外
+```
+
+下面的 Playground 更进一步：把礼貌做成**类的默认值**。`PoliteCrawler` 不真发请求，而是输出一份「访问计划」——带什么头、间隔多久、总共多慢，一目了然：
+
+<PyPlayground
+  client:visible
+  title="礼貌爬虫访问计划器"
+  note="试着把 interval 改成 0.5 再运行——总耗时确实短了，但回想模拟器里红区的日志，你还敢用 0.5 吗？再试试给 PoliteCrawler 加一个 max_pages 属性限制单日抓取量。"
+  code={`# 把「礼貌」写成类的默认值，而不是靠临场自觉
+class PoliteCrawler:
+    def __init__(self, name, contact, interval=3.0, timeout=5.0):
+        # 请求头亮明身份：我是谁、有事怎么联系我
+        self.headers = {
+            "User-Agent": f"{name}/1.0 (contact: {contact})",
+            "Accept": "text/html",
+        }
+        self.interval = interval    # 相邻两次请求的最小间隔（秒）
+        self.timeout = timeout      # 单次请求最长等待（秒）
+
+    def plan(self, urls):
+        """输出访问计划（真实版把打印换成 requests.Session 的 get）"""
+        print("== 职业装备检查 ==")
+        print(f"身份头  {self.headers['User-Agent']}")
+        print(f"超时    {self.timeout}s（拿不到响应就体面退出）")
+        print(f"间隔    {self.interval}s（给服务器留出喘息）")
+        print("-" * 46)
+        clock = 0.0
+        for i, url in enumerate(urls, 1):
+            if i > 1:
+                clock += self.interval      # 到点才发下一发
+            print(f"t={clock:4.1f}s  第{i}次访问 -> {url}")
+        print("-" * 46)
+        print(f"共 {len(urls)} 页，全程约 {clock:.1f} 秒：慢一点，路更长。")
+
+bot = PoliteCrawler("campus-bot", "you@campus.edu", interval=3.0, timeout=5.0)
+bot.plan([
+    "https://jwc.example.edu/notice/2026-001.html",
+    "https://jwc.example.edu/notice/2026-002.html",
+    "https://jwc.example.edu/notice/2026-003.html",
+])`}
+/>
+
+## 思政会客厅
+
+<DimCard dim="职业伦理" title="三件装备，三种教养">
+  <ul>
+    <li>User-Agent 亮明身份是「敢署名」：匿名与伪装的心态本身就是风险信号；写上联系方式，站长有疑问能直接找到你。</li>
+    <li>请求间隔是「不插队」：服务器算力是共享资源，你多占一分，正常用户就慢一分；robots 里的 Crawl-delay 优先于你自己的默认值。</li>
+    <li>超时控制是「不纠缠」：拿不到响应就体面退出并记录，而不是挂着连接耗双方的资源，更不是立刻疯狂重发。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="社会责任" title="你的对面是无数普通人">
+  <ul>
+    <li>教务网背后是全校的选课与成绩查询，公交接口背后是站台上等车的乘客——压垮服务器，伤害的从来不只是「网站」。</li>
+    <li>单个爬虫全速跑似乎无伤大雅，规模化之后效果与拒绝服务攻击无异。工程师必须为代码的外部性负责。</li>
+    <li>真正的高手先找官方渠道：开放 API、数据集下载、管理员授权——很多采集问题的最优解，根本不是「爬」。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="⚖️" tone="red" title="《网络安全法》第二十七条">
+任何个人和组织不得从事非法侵入他人网络、干扰他人网络正常功能、窃取网络数据等危害网络安全的活动。高频轰炸把对方服务拖慢甚至拖垮，就可能落入「干扰他人网络正常功能」的范畴——限速不只是礼貌，更是法律底线。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p08-d1"
+  question="你的爬虫安排在凌晨三点运行，网站几乎没有真人访问——这时候还需要限速吗？"
+  hints={['深夜往往是备份、对账、批处理任务的高峰期，服务器未必空闲', 'robots 的 Crawl-delay 没有「夜间豁免条款」，礼貌是默认值，不是看人下菜', '判断标准不是「有没有人看见」，而是「会不会造成负担」']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="requests 中 timeout=(3.05, 10) 这两个数字的含义是？"
+  options={['最少等 3.05 秒、最多等 10 秒', '重试 3 次，每次等 10 秒', '每 3.05 秒自动重发一次，10 秒后放弃', '连接阶段最多等 3.05 秒，读取响应最多等 10 秒']}
+  answer={3}
+  explain="元组形式分别设置连接超时与读取超时。不设超时的爬虫在网络异常时会永远挂起——既浪费自己的资源，也占着服务器的连接不放，两头都不体面。"
+/>
+
+<QuizItem
+  client:visible
+  question="同学建议：「把间隔删了，开 50 个线程，十分钟就能抓完教务网。」最专业的回应是？"
+  options={['同意，效率优先，抓完就不影响别人了', '先查 robots 的 Crawl-delay 与对方承载能力，保持限速错峰，必要时联系管理员或申请数据接口', '改到凌晨跑，没人用就不算干扰', '只要不登录账号，怎么抓都合法']}
+  answer={1}
+  explain="高并发零间隔可能拖垮服务器，影响的是全校师生；《网络安全法》第二十七条明确禁止干扰他人网络正常功能。礼貌爬取不分时段，正规渠道永远优先。"
+/>

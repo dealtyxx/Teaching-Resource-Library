@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>归并排序 · 第4章 分治法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">04</div>算法可视化 · <span>第4章 分治法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-quicksort.html">快排</a><a class="pill active" href="03-mergesort.html">归并</a><a class="pill" href="04-binsearch.html">二分</a><a class="pill" href="05-median.html">中位数</a><a class="pill" href="06-maxsub.html">最大子段</a><a class="pill" href="07-chessboard.html">棋盘覆盖</a><a class="pill" href="08-schedule.html">日程</a><a class="pill" href="09-tsp.html">TSP</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 3 · 加深</div><h1>二路归并 · 分裂与合并</h1>
+<p>先递归对半分，再线性合并两个有序段。稳定、最坏 Θ(n log n)，额外 O(n) 空间。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+<li>能够<b>写出</b> merge 与 mergeSort 的 C++ 代码，说清三个指针 i、j、k 的含义与收尾处理。</li>
+<li>能够<b>推导</b> T(n)=2T(n/2)+&Theta;(n) 的完整求解过程，并说明为什么归并排序<b>与输入无关</b>。</li>
+<li>能够<b>解释</b>归并排序稳定性的<b>来源</b>：合并时取 <span style="font-family:var(--mono)">a[i] &le; a[j]</span> 而非 <span style="font-family:var(--mono)">&lt;</span>，优先取左段。</li>
+<li>能够<b>说明</b> O(n) 辅助数组的必要性，以及辅助空间与递归栈空间的区别。</li>
+<li>能够<b>对比</b>归并排序与快速排序在时间、空间、稳定性、适用场景上的差异。</li>
+</ol></div>
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="play">▶ 演示归并</button>
+    <button class="btn" id="rand">随机</button>
+    <div class="speed" id="spd"><button data-s="1" class="on">1×</button><button data-s="2">2×</button><button data-s="3">3×</button></div>
+  </div>
+  <div class="stage-wrap light" style="height:300px">
+    <canvas class="stage" id="cv" width="1000" height="300"></canvas>
+    <div class="stage-hud"><span class="hud-pill light">Mergesort</span><span class="hud-pill light" id="hud">—</span></div>
+  </div>
+  <div class="stat-row"><div class="stat"><span>阶段</span><b class="p" id="ph">—</b></div><div class="stat"><span>合并次数</span><b class="g" id="mc">0</b></div></div>
+  <div class="log" id="log">分裂到底后自底向上合并。</div>
+  <div class="formula">T(n)=2T(n/2)+Θ(n) = Θ(n log n)</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、算法思想</h2><span class="sub">Merge Sort · 二路归并</span></div>
+<div class="defn"><span class="lbl">定义</span><p><b>二路归并排序（2-way Merge Sort）</b>：把待排序区间 a[l..r] 从中点 m 一分为二，<b>递归</b>地分别排好 a[l..m] 与 a[m+1..r]，再把这两个<b>已有序</b>的子段线性地<b>合并</b>成一个有序段。当区间长度为 1 时天然有序，递归终止。</p></div>
+<div class="defn prop"><span class="lbl">性质</span><p>归并排序的"重活"在<b>合并</b>：分解只是算一次中点（&Theta;(1)），合并要扫描全区间（&Theta;(n)）。这与快速排序"重活在分解（划分）、合并为空操作"恰好互补。也正因为分解与数据内容无关，归并排序的比较次数<b>只取决于 n，与输入的初始排列无关</b>，最好=平均=最坏=&Theta;(n log n)。</p></div>
+<div class="card">
+  <div class="list-step"><span class="n">1</span><div class="body"><b>分解 Divide</b> — 取 m = l + (r&minus;l)/2，把 a[l..r] 分成 a[l..m] 与 a[m+1..r]，代价 &Theta;(1)。</div></div>
+  <div class="list-step"><span class="n">2</span><div class="body"><b>求解 Conquer</b> — 递归调用 mergeSort 排好左右两段；长度为 1 时直接返回。</div></div>
+  <div class="list-step"><span class="n">3</span><div class="body"><b>合并 Combine</b> — 用双指针扫描两个有序段，每次取较小者放入辅助数组，代价 &Theta;(n)。</div></div>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、C++ 实现</h2><span class="sub">merge + mergeSort</span></div>
+<div class="code"><span class="cm">// ---------- 合并 a[l..m] 与 a[m+1..r] 两个有序段 ----------</span>
+<span class="kw">void</span> <span class="fn">merge</span>(<span class="kw">int</span> a[], <span class="kw">int</span> tmp[], <span class="kw">int</span> l, <span class="kw">int</span> m, <span class="kw">int</span> r) {
+    <span class="kw">int</span> i = l;        <span class="cm">// 左段游标</span>
+    <span class="kw">int</span> j = m + <span class="nu">1</span>;    <span class="cm">// 右段游标</span>
+    <span class="kw">int</span> k = l;        <span class="cm">// 辅助数组写入位置</span>
+
+    <span class="kw">while</span> (i &lt;= m &amp;&amp; j &lt;= r) {
+        <span class="cm">// 关键：相等时取【左段】，这一个 '=' 决定了归并排序的稳定性</span>
+        <span class="kw">if</span> (a[i] &lt;= a[j]) tmp[k++] = a[i++];
+        <span class="kw">else</span>              tmp[k++] = a[j++];
+    }
+    <span class="kw">while</span> (i &lt;= m) tmp[k++] = a[i++];   <span class="cm">// 左段还有剩余，直接搬</span>
+    <span class="kw">while</span> (j &lt;= r) tmp[k++] = a[j++];   <span class="cm">// 右段还有剩余，直接搬</span>
+
+    <span class="kw">for</span> (<span class="kw">int</span> t = l; t &lt;= r; ++t) a[t] = tmp[t];  <span class="cm">// 写回原数组</span>
+}
+
+<span class="cm">// ---------- 归并排序主过程 ----------</span>
+<span class="kw">void</span> <span class="fn">mergeSort</span>(<span class="kw">int</span> a[], <span class="kw">int</span> tmp[], <span class="kw">int</span> l, <span class="kw">int</span> r) {
+    <span class="kw">if</span> (l &gt;= r) <span class="kw">return</span>;                <span class="cm">// 出口：长度 &lt;= 1，天然有序</span>
+    <span class="kw">int</span> m = l + (r - l) / <span class="nu">2</span>;           <span class="cm">// 分解：防溢出写法</span>
+    <span class="fn">mergeSort</span>(a, tmp, l, m);            <span class="cm">// 求解左半</span>
+    <span class="fn">mergeSort</span>(a, tmp, m + <span class="nu">1</span>, r);        <span class="cm">// 求解右半</span>
+    <span class="fn">merge</span>(a, tmp, l, m, r);             <span class="cm">// 合并：&Theta;(n)</span>
+}
+
+<span class="cm">// ---------- 调用入口：辅助数组只分配一次 ----------</span>
+<span class="kw">void</span> <span class="fn">mergeSort</span>(<span class="kw">int</span> a[], <span class="kw">int</span> n) {
+    <span class="kw">int</span>* tmp = <span class="kw">new</span> <span class="kw">int</span>[n];           <span class="cm">// O(n) 辅助空间，全程复用</span>
+    <span class="fn">mergeSort</span>(a, tmp, <span class="nu">0</span>, n - <span class="nu">1</span>);
+    <span class="kw">delete</span>[] tmp;
+}</div>
+<div class="tip info"><strong>工程细节：</strong>辅助数组 tmp 应在<b>入口一次性分配并全程复用</b>。若写在 merge 内部每次 <span style="font-family:var(--mono)">new</span>/<span style="font-family:var(--mono)">delete</span>，虽然峰值空间仍是 O(n)，但会产生 O(n) 次内存申请，常数因子急剧变大。</div>
+
+<div class="code"><span class="cm">// ---------- 非递归（自底向上）二路归并：省掉递归栈 ----------</span>
+<span class="kw">void</span> <span class="fn">mergeSortBU</span>(<span class="kw">int</span> a[], <span class="kw">int</span> n) {
+    <span class="kw">int</span>* tmp = <span class="kw">new</span> <span class="kw">int</span>[n];
+    <span class="kw">for</span> (<span class="kw">int</span> len = <span class="nu">1</span>; len &lt; n; len *= <span class="nu">2</span>)      <span class="cm">// 段长 1,2,4,8,… 共 ceil(log2 n) 趟</span>
+        <span class="kw">for</span> (<span class="kw">int</span> l = <span class="nu">0</span>; l + len &lt; n; l += <span class="nu">2</span> * len) {
+            <span class="kw">int</span> m = l + len - <span class="nu">1</span>;
+            <span class="kw">int</span> r = <span class="fn">min</span>(l + <span class="nu">2</span> * len - <span class="nu">1</span>, n - <span class="nu">1</span>);  <span class="cm">// 末段可能不足，取 min</span>
+            <span class="fn">merge</span>(a, tmp, l, m, r);
+        }
+    <span class="kw">delete</span>[] tmp;
+}</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、复杂度分析（含完整推导）</h2><span class="sub">时间 / 空间</span></div>
+<div class="formula lg">T(n) = 2T(n/2) + &Theta;(n)&nbsp;&nbsp;⇒&nbsp;&nbsp;T(n) = &Theta;(n log n)</div>
+<div class="deriv">
+  <span class="step">T(1) = 1；T(n) = 2T(n/2) + cn <span class="why">合并一趟扫描全区间，代价 cn</span></span>
+  <span class="step">T(n) = 2[2T(n/4) + cn/2] + cn = 4T(n/4) + 2cn</span>
+  <span class="step">　　 = 4[2T(n/8) + cn/4] + 2cn = 8T(n/8) + 3cn</span>
+  <span class="step">　　 &hellip;</span>
+  <span class="step">　　 = 2<sup>k</sup>T(n/2<sup>k</sup>) + k&middot;cn <span class="why">第 k 步通式：每层新增 cn</span></span>
+  <span class="step">令 n/2<sup>k</sup> = 1 ⇒ k = log<sub>2</sub>n</span>
+  <span class="step">T(n) = n&middot;T(1) + cn&middot;log<sub>2</sub>n = n + cn log<sub>2</sub>n</span>
+  <span class="step">∴ T(n) = &Theta;(n log n)</span>
+  <span class="step">主定理校验：a=2, b=2, d=1；log<sub>2</sub>2 = 1 = d ⇒ 情形② ⇒ &Theta;(n<sup>1</sup> log n)</span>
+</div>
+<div class="tip"><strong>换个角度看（递归树）：</strong>递归树共 log<sub>2</sub>n+1 层，第 k 层有 2<sup>k</sup> 个结点、每个结点合并 n/2<sup>k</sup> 个元素，<b>整层工作量恒为 2<sup>k</sup> &times; c&middot;n/2<sup>k</sup> = cn</b>，与 k 无关。所以总量 = 每层 cn &times; log<sub>2</sub>n 层 = &Theta;(n log n)。这正是主定理情形②"各层均衡"的图像。</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>情形</th><th>递推式</th><th>时间</th><th>说明</th></tr>
+  <tr><td>最好（已有序）</td><td>T(n)=2T(n/2)+&Theta;(n)</td><td>&Theta;(n log n)</td><td>分解层数固定，合并仍要扫全段</td></tr>
+  <tr><td>平均</td><td>T(n)=2T(n/2)+&Theta;(n)</td><td class="hl">&Theta;(n log n)</td><td>与输入无关</td></tr>
+  <tr><td>最坏（逆序）</td><td>T(n)=2T(n/2)+&Theta;(n)</td><td>&Theta;(n log n)</td><td class="hl">没有退化情形，这是相对快排的最大优势</td></tr>
+</table></div>
+
+<h3>3.1 空间复杂度：为什么必须要 O(n) 辅助数组</h3>
+<div class="defn prop"><span class="lbl">性质</span><p>合并两个有序段时，若<b>就地</b>把右段的小元素插到左段中间，就必须把左段剩余元素整体后移，单次合并代价从 &Theta;(n) 恶化为 &Theta;(n<sup>2</sup>)。为保持合并的<b>线性</b>代价，必须借助一块与区间等长的辅助空间，把结果先"抄"出来再写回。因此归并排序的辅助空间为 <b>O(n)</b>，它<b>不是原地（in-place）排序</b>。</p></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>空间组成</th><th>大小</th><th>说明</th></tr>
+  <tr><td class="hl">辅助数组 tmp</td><td>O(n)</td><td>合并结果的暂存区，全程复用一块即可</td></tr>
+  <tr><td>递归栈</td><td>O(log n)</td><td>递归深度恰为 log<sub>2</sub>n（每次严格对半，不会退化）</td></tr>
+  <tr><td><b>合计</b></td><td class="hl">O(n)</td><td>O(n) 吸收 O(log n)</td></tr>
+</table></div>
+<div class="tip warn"><strong>辨析：</strong>「辅助空间 O(n)」指的是<b>额外</b>开销，不包含存放输入本身的那 n 个单元。另外，存在<b>原地归并</b>算法（如 block merge / 旋转法），可把辅助空间降到 O(1) 或 O(&radic;n)，但常数因子很大，教材与考试中一律按 <b>O(n)</b> 作答。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、稳定性：那一个 "=" 号的作用</h2><span class="sub">本节重点</span></div>
+<div class="defn"><span class="lbl">定义</span><p><b>稳定性（Stability）</b>：排序前后，<b>关键字相等</b>的记录相对先后次序保持不变，则算法稳定。</p></div>
+<div class="defn thm"><span class="lbl">定理</span><p>使用 <span style="font-family:var(--mono)">if (a[i] &lt;= a[j]) tmp[k++]=a[i++];</span> 的二路归并排序是<b>稳定</b>的。</p></div>
+<div class="deriv">
+  <span class="step">证明思路（对区间长度作归纳）：</span>
+  <span class="step">① 长度为 1 的区间平凡稳定。</span>
+  <span class="step">② 设左段 a[l..m]、右段 a[m+1..r] 经递归后各自内部已稳定。</span>
+  <span class="step">③ 注意左段中<b>任一元素的原始下标恒小于</b>右段中任一元素的原始下标。</span>
+  <span class="step">④ 合并时若 a[i] == a[j]（左右各有一个相等元素），条件 a[i] &lt;= a[j] 成立 ⇒ <b>先取左段的 a[i]</b>；</span>
+  <span class="step">　 于是原始下标小的那个仍然被先写入，相对次序不变。</span>
+  <span class="step">⑤ 若相等元素都在同一段内，由归纳假设该段内部次序已保持。</span>
+  <span class="step">∴ 合并后整个区间保持稳定，归纳完成。 &#8718;</span>
+</div>
+<div class="tip danger"><strong>把 "&le;" 写成 "&lt;" 会怎样？</strong>此时 a[i]==a[j] 不满足 <span style="font-family:var(--mono)">a[i] &lt; a[j]</span>，会走 else 分支<b>先取右段</b>的元素，原本在后面的记录被排到了前面 ⇒ <b>算法立即变为不稳定</b>。<br/>
+反例：a = [<b>2</b><sub>a</sub>, <b>2</b><sub>b</sub>]，l=0, m=0, r=1，左段 {2<sub>a</sub>}、右段 {2<sub>b</sub>}。用 &le; 得 (2<sub>a</sub>, 2<sub>b</sub>) 保序；用 &lt; 得 (2<sub>b</sub>, 2<sub>a</sub>) 逆序。<br/>
+<b>排序结果的"字面值"完全相同，肉眼看不出差别</b>——这正是这个错误极难被测出、却在多关键字排序（如先按成绩排、再按姓名排）中造成严重后果的原因。</div>
+<div class="tip info"><strong>推论：</strong>归并排序的稳定性来自"<b>相等时优先取左（下标更小的）段</b>"这一条规则，与递归结构无关。同理，任何合并型算法只要遵守这条规则都能保持稳定；而快速排序因存在<b>跨距离交换</b>，无论怎样调整比较符号都无法变稳定。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>五、例题</h2><span class="sub">Worked Example</span></div>
+<div class="tip info"><strong>题目：</strong>用二路归并排序对 (8, 3, 5, 1, 9, 2, 7, 4) 排序，写出每一趟（自底向上）的结果，并统计归并趟数。</div>
+<div class="deriv">
+  <span class="step">初始：[8] [3] [5] [1] [9] [2] [7] [4]&nbsp;&nbsp;共 8 个长度为 1 的有序段</span>
+  <span class="step">第 1 趟（len=1）：[3 8] [1 5] [2 9] [4 7]</span>
+  <span class="step">第 2 趟（len=2）：[1 3 5 8] [2 4 7 9]</span>
+  <span class="step">第 3 趟（len=4）：[1 2 3 4 5 7 8 9]&nbsp;&nbsp;完成</span>
+  <span class="step">趟数 = ⌈log<sub>2</sub>8⌉ = 3；每趟比较与移动均为 &Theta;(n)，总代价 3&times;8 = 24 次移动量级 ⇒ &Theta;(n log n)</span>
+</div>
+<div class="tip"><strong>细看第 2 趟的一次合并：</strong>合并 [3 8] 与 [1 5]。i 指 3、j 指 1：3&le;1 不成立 ⇒ 取 1；i 指 3、j 指 5：3&le;5 ⇒ 取 3；i 指 8、j 指 5：8&le;5 不成立 ⇒ 取 5；右段耗尽，收尾循环把 8 直接搬入 ⇒ 得 [1 3 5 8]。<b>收尾的两个 while 不可省</b>，否则剩余元素会丢失。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>六、归并排序 vs 快速排序</h2><span class="sub">对比小结</span></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>比较项</th><th>归并排序 Merge Sort</th><th>快速排序 Quick Sort</th></tr>
+  <tr><td>分治的"重活"在哪</td><td class="hl">合并（&Theta;(n)），分解 &Theta;(1)</td><td class="hl">分解/划分（&Theta;(n)），合并 &Theta;(1)</td></tr>
+  <tr><td>最好时间</td><td>&Theta;(n log n)</td><td>&Theta;(n log n)</td></tr>
+  <tr><td>平均时间</td><td>&Theta;(n log n)</td><td>&Theta;(n log n)（常数更小）</td></tr>
+  <tr><td>最坏时间</td><td class="hl">&Theta;(n log n)（无退化）</td><td>&Theta;(n<sup>2</sup>)（有序输入+端点基准）</td></tr>
+  <tr><td>辅助空间</td><td>O(n)</td><td class="hl">O(log n)（原地交换）</td></tr>
+  <tr><td>稳定性</td><td class="hl">稳定</td><td>不稳定</td></tr>
+  <tr><td>是否依赖输入分布</td><td>否，划分严格对半</td><td>是，划分由数据决定</td></tr>
+  <tr><td>缓存友好性</td><td>较差（需读写辅助数组）</td><td>较好（原地、局部性强）</td></tr>
+  <tr><td>典型适用场景</td><td>需要<b>稳定</b>、需要<b>最坏保证</b>、<b>链表</b>排序、<b>外部排序</b>（多路归并）</td><td>内存中通用排序、对平均性能与常数因子敏感的场合</td></tr>
+</table></div>
+<div class="tip info"><strong>为什么链表排序首选归并？</strong>链表无法 O(1) 随机访问，快排的双指针对撞失效；而归并只需顺序遍历，且链表合并可以<b>改指针不搬数据</b>，辅助空间降到 O(1)，递归栈 O(log n)。这是"归并 O(n) 空间"这一劣势唯一被抹平的场景。</div>
+<div class="terms">
+  <span class="term"><b>归并排序</b>Merge Sort</span>
+  <span class="term"><b>二路归并</b>2-way Merge</span>
+  <span class="term"><b>稳定排序</b>Stable Sort</span>
+  <span class="term"><b>辅助空间</b>Auxiliary Space</span>
+  <span class="term"><b>原地算法</b>In-place Algorithm</span>
+  <span class="term"><b>自底向上</b>Bottom-up</span>
+  <span class="term"><b>外部排序</b>External Sorting</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>七、易错点</h2><span class="sub">Common Pitfalls</span></div>
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+<li>把 <span style="font-family:var(--mono)">a[i] &lt;= a[j]</span> 写成 <span style="font-family:var(--mono)">a[i] &lt; a[j]</span>：排序结果的<b>数值序列完全正确</b>，但<b>稳定性丢失</b>，测试很难发现，多关键字排序时才暴露。</li>
+<li>省略合并末尾的两个收尾 while：其中一段先耗尽后，另一段的剩余元素没有被搬入，结果丢数据。</li>
+<li>中点写成 <span style="font-family:var(--mono)">m = (l + r) / 2</span>：l、r 都很大时 l+r 可能<b>整型溢出</b>为负，应写 <span style="font-family:var(--mono)">m = l + (r - l) / 2</span>。</li>
+<li>递归写成 <span style="font-family:var(--mono)">mergeSort(a,tmp,l,m)</span> 与 <span style="font-family:var(--mono)">mergeSort(a,tmp,m,r)</span>（右半从 m 而非 m+1 开始）：区间不缩小 ⇒ <b>无限递归</b>。</li>
+<li>忘记 merge 结束后把 tmp 写回 a，导致下一层合并读到的是旧数据。</li>
+<li>把辅助数组放在 merge 内部反复 new/delete：复杂度的阶不变，但常数因子暴涨。</li>
+<li>误答"归并排序空间复杂度 O(log n)"——那只是递归栈，<b>辅助数组的 O(n) 才是主导项</b>。</li>
+<li>误答"归并排序最好情形是 O(n)"。已有序时仍要做完整的 log n 趟合并，<b>没有</b>提前退出机制（除非人为加"若 a[m] &le; a[m+1] 则跳过合并"的优化，那才能让有序输入降到 &Theta;(n)）。</li>
+</ul></div>
+</section>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+<li>归并排序 = <b>对半分解（&Theta;(1)）+ 递归 + 线性合并（&Theta;(n)）</b>，与快排的结构恰好互补。</li>
+<li>递推式 T(n)=2T(n/2)+&Theta;(n)，展开得 T(n)=2<sup>k</sup>T(n/2<sup>k</sup>)+k&middot;cn，令 k=log<sub>2</sub>n ⇒ <b>&Theta;(n log n)</b>；主定理情形②。</li>
+<li>最好 = 平均 = 最坏 = &Theta;(n log n)，<b>与输入排列无关</b>，无退化风险。</li>
+<li><b>稳定</b>的根源是合并时用 <span style="font-family:var(--mono)">a[i] &le; a[j]</span> 优先取左段；改成 <span style="font-family:var(--mono)">&lt;</span> 立即变不稳定。</li>
+<li>辅助空间 <b>O(n)</b>（辅助数组，用于保证合并是线性的）+ O(log n) 递归栈，合计 O(n)，不是原地排序。</li>
+<li>适用于要求稳定、要求最坏保证、链表排序与外部排序（多路归并）的场合。</li>
+</ul></div>
+
+<section class="sec"><div class="sec-head"><h2>自测题</h2><span class="sub">点击选项查看解析</span></div>
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>若把 merge 中的判断 <span style="font-family:var(--mono)">if (a[i] &lt;= a[j])</span> 改成 <span style="font-family:var(--mono)">if (a[i] &lt; a[j])</span>，会产生什么后果？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>排序结果出错，会出现逆序对</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>时间复杂度退化为 O(n<sup>2</sup>)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>排序结果的数值序列仍然正确，但算法由稳定变为不稳定</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>相等元素会被丢失一个，数组长度变短</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。当 a[i]==a[j] 时，<span style="font-family:var(--mono)">&lt;</span> 不成立 ⇒ 走 else 先取<b>右段</b>元素，原本靠前的左段相等元素被排到后面，<b>相对次序颠倒 ⇒ 不稳定</b>；但由于两者关键字相等，输出的数值序列看起来完全一样。<br/>A 错在有序性不受影响（取的仍是当前两段中较小者）；B 错在合并仍是一趟线性扫描，与比较符号无关；D 错在两个分支都只是"取一个、指针前进一步"，元素总数守恒。<b>本题的价值在于：结果"看起来对"不等于算法性质没变。</b></div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>对 n 个元素做二路归并排序（数组实现），其<b>空间复杂度</b>是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>O(1)，因为可以就地合并</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>O(log n)，即递归栈的深度</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>O(n)，由辅助数组主导</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>O(n log n)，每层递归各需一个长度 n 的辅助数组</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。合并必须借助长度为 O(n) 的辅助数组才能保持线性代价；递归栈虽为 O(log n)，但被 O(n) 吸收，合计 O(n)。<br/>A 错：朴素就地合并会把单次合并推到 &Theta;(n<sup>2</sup>)，标准算法不这么做；<b>B 是最常见的错答</b>——只记住了递归栈而漏掉主导项；<b>D 是另一个迷惑项</b>：辅助数组<b>全程只需一块并反复复用</b>（同一时刻只有一次合并在写它），不会每层各占一块，所以不是 O(n log n)。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>下列关于归并排序与快速排序的说法，正确的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>两者的最坏时间复杂度都是 O(n log n)</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>归并排序在输入已有序时只需 O(n) 时间</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>归并排序的比较次数与输入的初始排列无关，快速排序则强烈依赖于输入</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>两者都是原地排序，辅助空间均为 O(log n)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。归并每次严格从中点对半分，递归树形状<b>只由 n 决定</b>；快排的划分位置由数据决定，最好 &Theta;(n log n)、最坏 &Theta;(n<sup>2</sup>)。<br/>A 错在快排最坏是 O(n<sup>2</sup>)；<b>B 是典型混淆</b>——"有序时更快"是<b>插入排序/冒泡排序</b>的性质，标准归并排序没有提前退出机制，有序输入仍要做满 log n 趟合并（若额外加上"a[m] &le; a[m+1] 就跳过合并"的判断才能达到 &Theta;(n)）；D 错在归并需要 O(n) 辅助数组，不是原地排序。</div>
+  </div>
+</div>
+</section>
+
+<div class="page-nav"><a href="02-quicksort.html"><span class="dir">← 上一节</span><span class="name">快排</span></a><a href="04-binsearch.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">二分</span></a></div>
+<div class="footer">算法设计与分析 · <b>第4章 分治法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(74,108,140,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+let arr=[8,3,5,1,9,2,7,4], speed=1, merges=0;
+function paint(hi={}){ barDraw(ctx,cv.width,cv.height,arr,hi); }
+async function merge(lo,mid,hi){
+  const L=arr.slice(lo,mid+1), R=arr.slice(mid+1,hi+1);
+  let i=0,j=0,k=lo;
+  ph.textContent=`merge[${lo},${hi}]`;
+  while(i<L.length&&j<R.length){
+    if(L[i]<=R[j]) arr[k++]=L[i++]; else arr[k++]=R[j++];
+    paint({range:[lo,hi], active:new Set([k-1])}); await sleep(200/speed);
+  }
+  while(i<L.length){ arr[k++]=L[i++]; paint({range:[lo,hi]}); await sleep(120/speed); }
+  while(j<R.length){ arr[k++]=R[j++]; paint({range:[lo,hi]}); await sleep(120/speed); }
+  merges++; mc.textContent=merges;
+  log.textContent+=`\\n合并 [${lo},${mid}] + [${mid+1},${hi}]`;
+}
+async function ms(lo,hi){
+  if(lo>=hi) return;
+  const mid=(lo+hi)>>1;
+  hud.textContent=`split [${lo},${hi}] → mid=${mid}`;
+  paint({range:[lo,hi], mid}); await sleep(280/speed);
+  await ms(lo,mid); await ms(mid+1,hi);
+  await merge(lo,mid,hi);
+}
+play.onclick=async()=>{ merges=0; mc.textContent=0; log.textContent='分裂…'; await ms(0,arr.length-1);
+  paint({sorted:new Set(arr.map((_,i)=>i))}); hud.textContent='完成'; ph.textContent='done'; };
+rand.onclick=()=>{ arr=Array.from({length:8},()=>1+Math.floor(Math.random()*20)); paint({}); };
+spd.querySelectorAll('button').forEach(b=>b.onclick=()=>{ spd.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); speed=+b.dataset.s; });
+paint({});
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

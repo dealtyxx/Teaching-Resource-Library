@@ -1,0 +1,107 @@
+---
+module: 3
+moduleName: BeautifulSoup库
+order: 10
+title: 新闻标题批量提取器
+level: 基础必做
+scene: 资讯采集
+knowledge: ["find()", "find_all()", 文本提取, BS对象创建]
+stars: 2
+minutes: 20
+goal: 掌握BS基础查找方法，能批量提取网页标题文本
+sizheng: 批量提取更要辨真伪——做信息洪流中的清醒者
+dims: [社会责任]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+import SoupPickerLab from '../../components/react/labs/SoupPickerLab';
+
+## 场景导入
+
+每天早上你都习惯刷一遍校园资讯站，可上百条标题里，真正值得点开的没几条。作为数据中心的助理，师兄给你派了个活：把首页所有新闻标题一次性抓下来，做成一份可检索的清单。手动复制粘贴到明年也做不完——这正是 BeautifulSoup 大显身手的地方：把一整页 HTML「浓汤」熬成一份干净的标题列表。
+
+## 玩一玩
+
+先别急着写代码。下面这个「标签寻宝」小游戏，让你像 `find_all()` 一样，在 HTML 文档树上亲手点出目标节点——点错了也没关系，感受一下「按标签名加条件筛选」的手感。
+
+<SoupPickerLab client:visible />
+
+## 动手实验
+
+游戏里靠手点，工程里靠代码点。下面这段代码先用 `find()` 取回头条，再用 `find_all()` 一次性抓下所有 h2 标题，打印成编号清单——这就是「批量提取」的核心三步：建对象、定标签、取文本。
+
+<PyPlayground
+  client:visible
+  title="新闻标题批量提取器"
+  height={340}
+  packages={['beautifulsoup4']}
+  note="试着把 find_all('h2') 改成 find_all('h2', class_='title') 做精确匹配，或往 html 里再加一条标题后重新运行，看看编号清单怎么变。"
+  code={`from bs4 import BeautifulSoup
+
+# 内联的新闻列表 HTML —— 真实工程里，它来自 requests 抓回的网页源码
+html = """
+<div class="news-list">
+  <h2 class="title">校运会开幕：三千学子同赛场</h2>
+  <h2 class="title">图书馆本周起延长开放至午夜</h2>
+  <h2 class="title">我校团队获全国数据竞赛金奖</h2>
+  <h2 class="title">食堂上新：周六举办秋季美食节</h2>
+</div>
+"""
+
+# 第一步：把 HTML 文本「煮」成一锅可查询的汤（BeautifulSoup 对象）
+soup = BeautifulSoup(html, "html.parser")
+
+# 第二步：find() 只取第一个匹配，先瞧瞧头条
+first = soup.find("h2")
+print("头条：", first.get_text(strip=True))
+
+# 第三步：find_all() 一次取回所有 h2，批量提取标题
+titles = soup.find_all("h2")
+print(f"共抓到 {len(titles)} 条标题：")
+for i, h2 in enumerate(titles, start=1):
+    print(f"  {i}. {h2.get_text(strip=True)}")`}
+/>
+
+## 思政会客厅
+
+<DimCard dim="社会责任" title="批量之后，先辨真伪">
+  <ul>
+    <li>一次抓下几百条标题很爽，但「量」不等于「真」。转发前多问一句：来源可靠吗？是标题党吗？</li>
+    <li>采集工具越高效，放大错误信息的速度也越快。技术是中立的，用技术的人不是——这就是社会责任。</li>
+    <li>做信息洪流里的「清醒者」：先核实再传播，先理解再判断。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="🌊" tone="blue" title="技术中立，责任不中立">
+我国《网络安全法》第十二条明确，任何个人和组织不得利用网络编造、传播虚假信息扰乱经济社会秩序。批量采集的能力越强，越要守住「不造谣、不传谣、先求证」的底线。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p10-d1"
+  question="如果你的爬虫一天能抓 10 万条新闻标题，其中混着大量「标题党」和不实信息，把它们推送给同学之前，你应该先做些什么？"
+  hints={['批量采集只是第一步，价值在于筛选与核实，而不是「越多越好」', '可以给数据加一道「来源可信度」标签，或交叉比对多个信源', '技术能力越强，越要对信息的社会影响负责——这就是清醒者的自觉']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="用 BeautifulSoup 一次性取回页面中所有 h2 标题，应该用哪个方法？"
+  options={['find("h2")', 'find_all("h2")', 'select_one("h2")', 'get("h2")']}
+  answer={1}
+  explain="find() 只返回第一个匹配节点，find_all() 才返回全部匹配组成的列表；select_one 同样只取一个，get 是取属性的方法。"
+/>
+
+<QuizItem
+  client:visible
+  question="面对「爬虫一天能抓十万条，先全推给大家再说」的想法，更负责任的做法是？"
+  options={['数据越多越好，全部推送', '先核实来源与真伪，再有选择地传播', '只抓不推，存着就行', '把标题党挑出来当卖点']}
+  answer={1}
+  explain="采集能力放大的既可能是有效信息，也可能是谣言。做信息洪流中的清醒者：先求证、再传播，对信息的社会影响负责。"
+/>

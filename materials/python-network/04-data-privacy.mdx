@@ -1,0 +1,331 @@
+---
+chapter: 4
+chapterName: 网络爬虫
+order: 4
+title: 网络爬虫的数据伦理与隐私保护
+subtitle: 数据是新时代的石油，但谁有权开采——三问原则与最小化采集
+position: 4.3 使用requests和bs4编写网络爬虫程序
+knowledge: [requests, BeautifulSoup, 数据脱敏, 合规存储, 个人信息保护法]
+mainDims: [法治意识, 职业伦理]
+subDims: [社会责任, 人文素养]
+minutes: 15
+quote: 不因技术可行就采集一切，不因数据公开就随意使用，不因缺乏监管就心存侥幸
+icon: "🔐"
+color: "#7c3aed"
+segments:
+  - { name: 导入, minutes: 2 }
+  - { name: 技术讲解, minutes: 6 }
+  - { name: 思政融入, minutes: 5 }
+  - { name: 互动, minutes: 2 }
+---
+
+import PyStepRunner from '../../components/react/PyStepRunner';
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, CaseFileCard, Callout } from '../../components/react/ui';
+import DataMaskLab from '../../components/react/labs/DataMaskLab';
+import ThreeQuestionsLab from '../../components/react/labs/ThreeQuestionsLab';
+
+## 章节定位
+
+本案例位于第 4 章「网络爬虫」4.3 节：在掌握 requests 发送请求、BeautifulSoup 解析页面的同时，把《个人信息保护法》的合规要求直接写进爬虫代码。技术上学会的是请求头设置、HTML 解析、数据脱敏与合规存储；思政上要回答的是另一个问题——「能爬」与「该爬」之间，隔着法律与伦理的双重边界。
+
+## 背景导入：数据是新时代的石油，但谁有权开采
+
+课堂从 Cambridge Analytica 丑闻纪录片片段开始。有人说数据是新时代的石油，可是石油埋在无主的地下，数据却连着一个个具体的人：他的电话、他的行踪、他的病历。过去十年，四起真实案件把「谁有权开采」这个问题反复推到公众面前。
+
+<CaseFileCard name="脉脉非法获取LinkedIn用户数据案" year={2016} tag="侵犯隐私权" verdict="被判侵犯用户隐私权，赔偿并道歉">
+职场社交应用脉脉爬取 LinkedIn 中国用户数据，未经用户授权为其建立职场社交关系。法院认定其行为侵犯用户隐私权。本案确立了一个重要导向：数据在网页上「看得见」，不等于「可以拿来用」。
+</CaseFileCard>
+
+<CaseFileCard name="某房产中介爬取业主信息案" year={2019} tag="刑事案件" verdict="涉案人员被刑事拘留">
+中介人员爬取链家、贝壳等平台的业主电话，用于推销骚扰并造成隐私泄露。依据《刑法》第253条之一「侵犯公民个人信息罪」，情节严重的可处 3 年以下有期徒刑——爬虫写得再好，也救不了越过刑法红线的人。
+</CaseFileCard>
+
+<CaseFileCard name="某高考志愿填报App泄露学生信息案" year={2021} tag="侵犯公民个人信息罪" verdict="构成侵犯公民个人信息罪">
+该 App 爬取考试院网站的学生数据并出售给培训机构。受害者是刚刚走出考场的学生，泄露的是最敏感的教育与联系信息。
+</CaseFileCard>
+
+<CaseFileCard name="Facebook—Cambridge Analytica 数据丑闻" year={2018} tag="数据滥用" verdict="Facebook 被罚款 50 亿美元">
+Cambridge Analytica 获取 8700 万 Facebook 用户数据，用于政治广告精准投放，影响 2016 年美国总统大选。天价罚单说明：数据合规不是道德倡议，而是真金白银的法律责任。
+</CaseFileCard>
+
+<Callout icon="⚖️" tone="red" title="法律红线">
+《个人信息保护法》（2021）：第13条，收集个人信息需明示同意；第26条，医疗、金融等敏感信息需单独同意；第66条，违法最高罚款 5000 万元或上一年度营业额 5%。《数据安全法》（2021）：数据采集须合法、正当、必要，重要数据出境需安全评估。《刑法》第253条之一：非法获取公民个人信息，情节严重处 3 年以下有期徒刑。
+</Callout>
+
+<Callout icon="🪪" tone="blue" title="什么是「个人信息」">
+姓名、身份证号、电话、住址；指纹、人脸等生物识别信息；行踪轨迹、网络浏览记录；健康信息、财产信息——凡是能单独或与其他信息结合识别出特定自然人的，都受法律保护。
+</Callout>
+
+## 可视化实验
+
+判例读完，用两个实验把抽象的法条变成可以上手的工程判断：第一，同一条数据脱敏前后差别有多大；第二，一次采集决策要过几道关。
+
+先看脱敏。在下面的工作台里修改手机号、邮箱、姓名，右侧实时给出脱敏结果与 SHA-256 哈希指纹；再对照下方两张 JSON 卡，体会「过度收集」与「最小化收集」在字段选择上的天壤之别。
+
+<DataMaskLab client:visible />
+
+再看决策。素材中的「数据采集三问」不是问卷，而是一票否决的决策树——任何一问回答「否」，采集就应当立即停止。试着走一遍全部分支，看看每个「否」背后站着哪条法律、哪个判例。
+
+<ThreeQuestionsLab client:visible />
+
+## 技术讲解
+
+合规爬虫与普通爬虫的差别，从第一行请求头就开始了：表明身份、留下联系方式，而不是伪装成浏览器潜入。下面是本案例的核心代码——一个把隐私保护内建到每个方法里的爬虫类。
+
+```python
+import requests
+from bs4 import BeautifulSoup
+import hashlib
+
+class PrivacyAwareCrawler:
+    """隐私保护爬虫：只取公开数据，敏感字段一律脱敏"""
+
+    def __init__(self):
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'EthicalCrawler/1.0 (Educational; Contact: xxx@edu.cn)'
+        })
+
+    def anonymize_phone(self, phone):
+        """电话号码脱敏：138****5678"""
+        if len(phone) == 11:
+            return phone[:3] + '****' + phone[7:]
+        return '***'
+
+    def anonymize_email(self, email):
+        """邮箱脱敏：z******n@example.com"""
+        parts = email.split('@')
+        if len(parts) == 2 and len(parts[0]) > 2:
+            u = parts[0]
+            return u[0] + '*' * (len(u) - 2) + u[-1] + '@' + parts[1]
+        return '***'
+
+    def hash_identifier(self, identifier):
+        """不可逆哈希：用于统计去重，不存储原文"""
+        return hashlib.sha256(identifier.encode()).hexdigest()
+
+    def fetch_public_data(self, url):
+        """仅抓取公开展示的内容"""
+        response = self.session.get(url, timeout=10)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        articles = []
+        for item in soup.find_all('article'):
+            articles.append({
+                'title': item.find('h2').get_text(),
+                'publish_date': item.find('time').get_text(),
+                # 不抓作者联系方式，不抓评论者 IP
+            })
+        return articles
+
+    def respect_privacy_settings(self, user_data):
+        """尊重用户隐私设置：非公开信息不碰"""
+        if not user_data.get('is_public', False):
+            return None
+        return {
+            'username': user_data.get('username'),
+            'bio': user_data.get('bio'),
+            # 不包含 email、phone 等私密字段
+        }
+```
+
+采集只是前半场，数据落盘同样有讲究。合规存储要求数据必须与元信息绑在一起：从哪来、做什么用、留多久、采取了哪些隐私措施。用逐行模拟观察 `ComplianceDataStorage` 的完整流程。
+
+<PyStepRunner
+  client:visible
+  title="逐行模拟：合规存储——数据与责任一起落盘"
+  fileName="compliance_storage.py"
+  code={`import json
+from datetime import datetime
+
+class ComplianceDataStorage:
+    """合规数据存储：数据落盘必须携带元信息"""
+    def __init__(self, data_file='crawled_data.json'):
+        self.data_file = data_file
+        self.metadata = {}
+
+    def add_metadata(self, source, purpose, retention_days=90):
+        self.metadata = {
+            'data_source': source,
+            'collection_date': datetime.now().isoformat(),
+            'purpose': purpose,
+            'retention_period': f'{retention_days} days',
+            'privacy_measures': ['数据脱敏', '访问控制', '加密存储'],
+        }
+
+    def save_data(self, data):
+        output = {'metadata': self.metadata, 'data': data}
+        with open(self.data_file, 'w', encoding='utf-8') as f:
+            json.dump(output, f, ensure_ascii=False, indent=2)
+        print(f'✅ 数据已保存：{self.data_file}')
+        print(f'📋 用途：{self.metadata["purpose"]}')
+        print(f'⏰ 保留期限：{self.metadata["retention_period"]}')
+
+storage = ComplianceDataStorage('news_titles.json')
+storage.add_metadata(
+    source='https://news.example.com',
+    purpose='新闻趋势分析（学术研究）',
+    retention_days=90,
+)
+storage.save_data([{'title': '……', 'date': '2026-07-21'}])`}
+  steps={[
+    { line: 26, desc: '创建合规存储对象，指定落盘文件 news_titles.json。', vars: { data_file: 'news_titles.json' } },
+    { line: 27, desc: '保存数据之前，必须先声明这批数据从哪来、做什么用、留多久——合规不是事后补救，而是采集前的设计。' },
+    { line: 10, desc: '组装元信息字典：数据来源、采集时间、用途、保留期限、隐私措施，一项都不能少。' },
+    { line: 14, desc: '保留期限写成 90 days——数据不是永久资产，到期就应删除或匿名化。', vars: { retention_period: '90 days', purpose: '新闻趋势分析（学术研究）' } },
+    { line: 32, desc: '调用 save_data 保存抓取到的公开数据。示例数据只含标题与日期，不含任何个人信息。' },
+    { line: 19, desc: '输出对象由 metadata 与 data 两部分构成——数据与责任被绑定在同一个文件里。' },
+    { line: 21, desc: '以 UTF-8 编码写入 JSON 文件，ensure_ascii=False 保证中文可读。' },
+    { line: 22, desc: '打印确认信息：数据已保存。', out: '✅ 数据已保存：news_titles.json' },
+    { line: 23, desc: '打印数据用途——用途一旦声明，使用就不得越界。', out: '📋 用途：新闻趋势分析（学术研究）' },
+    { line: 24, desc: '打印保留期限。谁来监督这份承诺？首先是写下这行代码的你。', out: '⏰ 保留期限：90 days' },
+  ]}
+/>
+
+最后亲手跑一遍脱敏三件套：`anonymize_phone`、`anonymize_email`、`hash_identifier`。这段代码在浏览器里真实执行，hashlib 计算的是货真价实的 SHA-256。
+
+<PyPlayground
+  client:visible
+  title="动手实验：脱敏三件套真实运行"
+  note="试着修改 records 里的号码或邮箱，或把 hash_identifier 的输入换成你的学号——同一输入永远得到同一指纹，但没有人能从指纹反推出原文。"
+  code={`import hashlib
+
+def anonymize_phone(phone):
+    """手机号脱敏：138****5678"""
+    if len(phone) == 11 and phone.isdigit():
+        return phone[:3] + '****' + phone[7:]
+    return '***'
+
+def anonymize_email(email):
+    """邮箱脱敏：z******n@example.com"""
+    name, _, domain = email.partition('@')
+    if domain and len(name) > 2:
+        return name[0] + '*' * (len(name) - 2) + name[-1] + '@' + domain
+    return '***'
+
+def hash_identifier(text):
+    """不可逆哈希：只留指纹，不留原文"""
+    return hashlib.sha256(text.encode('utf-8')).hexdigest()[:16] + '...'
+
+records = [
+    ('手机号', '13812345678', anonymize_phone('13812345678')),
+    ('邮箱', 'zhangsan@example.com', anonymize_email('zhangsan@example.com')),
+]
+
+print('=' * 52)
+print('字段      原始值                  脱敏后')
+print('-' * 52)
+for label, raw, masked in records:
+    print(f'{label:<7}{raw:<24}{masked}')
+print('=' * 52)
+print('SHA-256 指纹（可统计去重，无法还原原文）：')
+print('  13812345678 ->', hash_identifier('13812345678'))
+print()
+print('原则：能脱敏不留原文，能哈希不留明文。')`}
+/>
+
+## 思政引导
+
+<DimCard dim="法治意识" title="合规不是选择题">
+  <ul>
+    <li>《个人信息保护法》确立四项原则：知情同意、最小必要、公开透明、数据安全——每一项都能落成代码里的一个函数。</li>
+    <li>法律责任是阶梯式的：脉脉案是民事赔偿，房产中介案是刑事拘留，Facebook 案是 50 亿美元罚款——违法成本只会越来越高。</li>
+    <li>敏感信息（医疗、金融）依据第26条须单独同意；违法处理个人信息依据第66条最高可罚 5000 万元或上一年度营业额 5%。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="职业伦理" title="数据采集三问">
+  <ul>
+    <li>每次按下运行键之前先问三句：我有权采集这些数据吗（合法性）？用户知情并同意了吗（知情权）？我只采集必要的数据吗（最小化）？</li>
+    <li>技术伦理三不原则：不因技术可行就采集一切，不因数据公开就随意使用，不因缺乏监管就心存侥幸。</li>
+    <li>工程师的职业尊严，体现在爬虫 User-Agent 里那行敢于署名的联系方式上。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="社会责任" title="泄露的数据会伤人">
+  <ul>
+    <li>数据泄露的下游是具体的伤害：电信诈骗精准掌握受害人信息、身份盗用冒名贷款、行踪泄露危及人身安全。</li>
+    <li>弱势群体需要额外保护：14 岁以下儿童信息须监护人同意，老年人信息易被诈骗利用，患者的医疗隐私特别敏感。</li>
+    <li>你写的每一行采集代码，都在决定这些风险是扩大还是收敛。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="人文素养" title="换位思考与技术向善">
+  <ul>
+    <li>换位想一想：如果你的电话被泄露，每天接到 10 个骚扰电话；如果健康信息被公开，求职时遭遇歧视；如果行踪被跟踪，人身安全受到威胁——数据背后是人。</li>
+    <li>技术向善有真实的路径：爬虫可以服务疫情数据汇总、环境监测等公益事业，但前提永远是不侵犯隐私。</li>
+    <li>合法使用公开数据是正当的——学会合规，不是放弃技术，而是让技术走得更远。</li>
+  </ul>
+</DimCard>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="c4-d1"
+  question="数据在网页上公开展示，是否意味着可以随意爬取、随意使用？"
+  hints={[
+    '「公开可见」与「授权使用」是两回事：脉脉案中 LinkedIn 数据同样是可见的，法院仍判定侵权。',
+    '已公开的个人信息也须在合理范围内处理，超出合理范围仍需取得同意。',
+    '判断时可参考 robots 协议、平台用户协议与数据用途是否超出原始公开目的。',
+  ]}
+/>
+
+<DiscussCard
+  client:visible
+  storageKey="c4-d2"
+  question="学术研究能否豁免？如果你为毕业论文爬取社交平台的用户数据，需要注意什么？"
+  hints={[
+    '「合法、正当、必要」原则对学术研究同样适用，研究目的不是免罪牌。',
+    '优先采集聚合统计结果而非个体明细，个体数据先脱敏、后分析。',
+    '声明数据用途与保留期限，论文完成后按期删除或匿名化原始数据。',
+  ]}
+/>
+
+<DiscussCard
+  client:visible
+  storageKey="c4-d3"
+  question="数据应该保留多久？为什么合规存储要求写明保留期限？"
+  hints={[
+    '保留期限对应「目的限制」：目的达成，数据就失去了继续存在的理由。',
+    '存量数据就是泄露风险的敞口——留得越久、越多，事故时伤害越大。',
+    '到期的两条出路：彻底删除，或不可逆匿名化后仅留统计价值。',
+  ]}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="PrivacyAwareCrawler 中 hash_identifier 用 SHA-256 处理用户标识，主要目的是什么？"
+  options={['压缩数据，节省存储空间', '加密数据，需要时可解密还原', '不可逆哈希：可做统计去重，但无法还原原文', '加快爬取速度']}
+  answer={2}
+  explain="SHA-256 是单向哈希：同一输入恒得同一指纹，适合去重与计数，但无法反推原文——这正是「用统计价值替代原文存储」的脱敏思路，与可解密的加密有本质区别。"
+/>
+
+<QuizItem
+  client:visible
+  question="依据《个人信息保护法》第66条，情节严重的违法处理个人信息行为，最高可受到什么处罚？"
+  options={['警告并责令限期整改', '罚款 50 万元', '罚款 5000 万元以下或上一年度营业额 5% 以下', '仅承担民事赔偿责任']}
+  answer={2}
+  explain="第66条规定情节严重的最高可处 5000 万元以下或上一年度营业额 5% 以下罚款。对照 Facebook 在美国被罚 50 亿美元——数据合规是真金白银的法律红线。"
+/>
+
+<QuizItem
+  client:visible
+  question="下列哪种做法符合数据最小化原则？"
+  options={['为将来可能有用，把身份证号和浏览记录一并采集', '只采集业务必需字段，用年龄段代替精确年龄、城市代替详细地址', '先全部采集，之后再删掉用不上的部分', '数据是公开的，采集多少都不受限制']}
+  answer={1}
+  explain="最小化原则要求在采集时就只取业务必需的最小字段集，并尽量降低精度（年龄段、城市）。「先采后删」意味着敏感数据已经落盘，风险已经产生；「公开即可随意采」正是脉脉案被否定的逻辑。"
+/>
+
+## 配套资源
+
+- **说课视频**（12 分钟）：网络爬虫的数据伦理
+- **教学课件**（PPT，35 页）：requests 与 BeautifulSoup 使用、数据脱敏技术、个人信息保护法解读、数据伦理案例集
+- **视频素材**：Cambridge Analytica 丑闻纪录片（10 分钟精选）、脉脉案新闻报道（3 分钟）
+- **代码示例**：合规爬虫完整代码、数据脱敏工具库、元数据管理模板
+- **法律文件**：《个人信息保护法》全文、脉脉案判决书、数据合规指南
+- **讨论问题**（10 个）：requests 如何设置请求头、BeautifulSoup 如何解析 HTML、什么是个人信息、数据脱敏有哪些方法、如何判断数据是否公开、爬虫需要用户授权吗、数据应保留多久、学术研究可豁免吗、如何设计合规爬虫、数据泄露如何追责

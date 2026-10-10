@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>前缀和 · 第3章 穷举法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">03</div>算法可视化 · <span>第3章 穷举法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-enumerate.html">列举</a><a class="pill active" href="03-prefix.html">前缀和</a><a class="pill" href="04-uf.html">并查集</a><a class="pill" href="05-maxsub.html">最大子段</a><a class="pill" href="06-powerset.html">幂集</a><a class="pill" href="07-perm.html">全排列</a><a class="pill" href="08-nqueens.html">n皇后</a><a class="pill" href="09-assign-tsp.html">分配TSP</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 3 · 加深</div><h1>前缀和数组</h1>
+<p>S[i]=a[0]+…+a[i-1]，区间 [L,R) 和 = S[R]-S[L]。预处理 O(n)，查询 O(1)。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>写出</b>前缀和数组的构建代码 <span class="cm">S[0]=0; S[i]=S[i&minus;1]+a[i&minus;1]</span>，并说清 S 为何比 a 多一个元素。</li>
+  <li>能够<b>推导</b>区间和公式：闭区间 [L,R] 的和 = S[R] &minus; S[L&minus;1]；半开区间 [L,R) 的和 = S[R] &minus; S[L]。</li>
+  <li>能够<b>对比</b>朴素做法与前缀和做法的复杂度，说明 q 次查询下 O(qn) 与 O(n+q) 的差距。</li>
+  <li>能够<b>迁移</b>该思想到二维前缀和，写出容斥形式的矩形区域和公式。</li>
+</ol></div>
+<div class="card">
+  <div class="toolbar">
+    <label>L=<b id="lv">1</b></label><input type="range" id="Lr" min="0" max="7" value="1" style="width:120px;accent-color:#356F62"/>
+    <label>R=<b id="rv">5</b></label><input type="range" id="Rr" min="1" max="8" value="5" style="width:120px;accent-color:#356F62"/>
+  </div>
+  <div class="stage-wrap light"><canvas class="stage" id="cv" width="900" height="220"></canvas></div>
+  <div class="stat-row">
+    <div class="stat"><span>区间和</span><b class="p" id="sum">—</b></div>
+    <div class="stat"><span>S[R]-S[L]</span><b class="g" id="form">—</b></div>
+  </div>
+  <div class="cells" id="S"></div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、定义与下标偏移约定</h2><span class="sub">Prefix Sum · 本节最大易错点</span></div>
+
+<div class="defn"><span class="lbl">定义</span><p>设原数组为 a[0..n&minus;1]。其<b>前缀和数组</b>（prefix sum array）S 定义为长度 n+1 的数组：<br/>
+S[0] = 0，且对 1 &le; i &le; n 有 S[i] = a[0] + a[1] + &hellip; + a[i&minus;1] = &sum;<sub>0&le;t&lt;i</sub> a[t]。<br/>
+即 <b>S[i] 表示 a 的前 i 个元素之和</b>（注意是"前 i 个"，不是"到下标 i 为止"）。</p></div>
+
+<div class="tip info"><strong>三条必须记牢的约定（本节最大易错点）：</strong>
+<br/>① <b>S 比 a 多一个元素</b>：a 长度 n，S 长度 <b>n+1</b>，下标范围 0..n。多出来的那一个就是 S[0]。
+<br/>② <b>S[0] = 0</b> 是哨兵（sentinel），代表"空前缀之和"。设置它的唯一目的，是让 L = 0 这一边界情形无需特判——否则 S[L&minus;1] 会越界。
+<br/>③ <b>下标错开一位</b>：S[i] 用到的是 a[i&minus;1]，而不是 a[i]。所有由此产生的 &plusmn;1 都源于这一条。</div>
+
+<div class="deriv">
+  <span class="step">第一步 S[i] = a[0]+&hellip;+a[i&minus;1]，S[L] = a[0]+&hellip;+a[L&minus;1] <span class="why">按定义展开</span></span>
+  <span class="step">第二步 S[R+1] &minus; S[L] = (a[0]+&hellip;+a[R]) &minus; (a[0]+&hellip;+a[L&minus;1]) <span class="why">两式相减，公共前缀抵消</span></span>
+  <span class="step">第三步 = a[L] + a[L+1] + &hellip; + a[R] <span class="why">恰为闭区间 [L,R] 的和</span></span>
+</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>下标基准</th><th>区间写法</th><th>求和公式</th><th>使用场合</th></tr>
+  <tr><td>a 从 0 开始（C/C++ 习惯）</td><td>闭区间 [L, R]</td><td class="hl">S[R+1] &minus; S[L]</td><td>本页演示与下方代码</td></tr>
+  <tr><td>a 从 0 开始</td><td>半开区间 [L, R)</td><td class="hl">S[R] &minus; S[L]</td><td>与迭代器/切片风格一致，最少 &plusmn;1</td></tr>
+  <tr><td>a 从 1 开始（教材常用）</td><td>闭区间 [L, R]</td><td class="hl">S[R] &minus; S[L&minus;1]</td><td>教材公式，考试写这一个</td></tr>
+</table></div>
+
+<div class="formula lg">教材记法（a 下标从 1 计）：&nbsp; &sum;<sub>i=L</sub><sup>R</sup> a[i] = S[R] &minus; S[L&minus;1]</div>
+
+<div class="tip"><strong>三个公式其实是同一个：</strong>核心永远是"<b>大前缀减小前缀</b>"。区别只在于"要减去的那个小前缀"该写 S[L] 还是 S[L&minus;1]，这取决于 a 的下标从 0 还是从 1 开始。<b>做题时先花五秒钟确定基准，再套公式</b>，比事后 debug 省时得多。本页上方演示采用第 2 行的半开区间约定，故显示为 S[R] &minus; S[L]。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、构建与查询代码</h2><span class="sub">C++ Implementation</span></div>
+
+<div class="code"><span class="cm">// ===== 一维前缀和：a 下标 0..n-1，S 下标 0..n =====</span>
+<span class="kw">const</span> <span class="kw">int</span> N = <span class="nu">100005</span>;
+<span class="kw">int</span> a[N], S[N];       <span class="cm">// 注意 S 需要 n+1 个位置</span>
+
+<span class="kw">void</span> <span class="fn">build</span>(<span class="kw">int</span> n) {
+    S[<span class="nu">0</span>] = <span class="nu">0</span>;                              <span class="cm">// ① 哨兵：空前缀和为 0</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">1</span>; i &lt;= n; i++)             <span class="cm">// ② 注意 i 从 1 到 n（含 n）</span>
+        S[i] = S[i - <span class="nu">1</span>] + a[i - <span class="nu">1</span>];          <span class="cm">// ③ S[i] 用 a[i-1]，错开一位</span>
+}                                             <span class="cm">// 预处理 O(n)</span>
+
+<span class="cm">// 查询闭区间 [L, R] 的和（0 &lt;= L &lt;= R &lt;= n-1）</span>
+<span class="kw">int</span> <span class="fn">query</span>(<span class="kw">int</span> L, <span class="kw">int</span> R) {
+    <span class="kw">return</span> S[R + <span class="nu">1</span>] - S[L];                 <span class="cm">// O(1)，无需任何循环</span>
+}
+
+<span class="cm">// 若 a 的下标从 1 开始（教材风格），则改写为：</span>
+<span class="cm">//   for (int i = 1; i &lt;= n; i++) S[i] = S[i-1] + a[i];</span>
+<span class="cm">//   query(L, R) { return S[R] - S[L-1]; }</span></div>
+
+<div class="code"><span class="cm">// 对照：朴素做法（不预处理），每次查询都重新累加</span>
+<span class="kw">int</span> <span class="fn">naiveQuery</span>(<span class="kw">int</span> a[], <span class="kw">int</span> L, <span class="kw">int</span> R) {
+    <span class="kw">int</span> s = <span class="nu">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> i = L; i &lt;= R; i++) s += a[i];   <span class="cm">// 单次查询 O(R-L+1) = O(n)</span>
+    <span class="kw">return</span> s;
+}</div>
+
+<div class="tip"><strong>手工演算：</strong>a = [3, 1, 4, 1, 5, 9, 2, 6]（即上方演示的数据），逐步构建得<br/>
+S = [<b>0</b>, 3, 4, 8, 9, 14, 23, 25, 31]，共 9 个元素 = 8 + 1。<br/>
+查询闭区间 [2, 5]（即 a[2..5] = 4+1+5+9 = 19）：S[5+1] &minus; S[2] = S[6] &minus; S[2] = 23 &minus; 4 = <b>19</b> ✓。<br/>
+查询 [0, 3]（=3+1+4+1=9）：S[4] &minus; S[0] = 9 &minus; 0 = <b>9</b> ✓ —— 这里正是 S[0]=0 发挥哨兵作用的地方。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、复杂度分析</h2><span class="sub">Why It Pays Off</span></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>方案</th><th>预处理时间</th><th>单次查询</th><th>q 次查询总时间</th><th>额外空间</th></tr>
+  <tr><td>朴素：每次重新累加</td><td>O(1)（无）</td><td class="hl">O(n)</td><td class="hl">O(q&middot;n)</td><td>O(1)</td></tr>
+  <tr><td>前缀和</td><td class="hl">O(n)</td><td class="path">O(1)</td><td class="path">O(n + q)</td><td>O(n)</td></tr>
+</table></div>
+
+<div class="defn thm"><span class="lbl">定理</span><p>当查询次数 q 满足 q &gt; 1 时，前缀和方案的总时间 O(n+q) 不劣于朴素方案的 O(qn)；当 q 与 n 同阶（如 q = n = 10<sup>5</sup>）时，前者约 2&times;10<sup>5</sup> 次操作，后者约 10<sup>10</sup> 次操作，<b>相差约 5 万倍</b>。这正是"以 O(n) 空间换取每次查询 O(1) 时间"的典型空间换时间（space&ndash;time tradeoff）。</p></div>
+
+<div class="tip info"><strong>适用前提：</strong>前缀和要求数组在查询期间<b>不被修改</b>（静态数组）。一旦某个 a[i] 发生改变，S[i..n] 全部失效，重建需 O(n)。若既要单点修改又要区间查询，应改用<b>树状数组</b>（Binary Indexed Tree）或<b>线段树</b>，两者的单次修改与查询均为 O(log n)。</div>
+
+<div class="tip"><strong>穷举法中的作用：</strong>本节之所以放在穷举法一章，是因为它常被嵌在穷举的内层循环里。例如枚举全部子段 [i, j] 求和：朴素三重循环是 O(n<sup>3</sup>)，把内层求和换成前缀和后立即降为 O(n<sup>2</sup>)——<b>穷举量没变，单次检验代价从 O(n) 降到了 O(1)</b>。这一招在 §05 最大子段和中会再次出现。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、展望：二维前缀和</h2><span class="sub">2-D Prefix Sum</span></div>
+
+<p>把思想推广到矩阵 a[0..m&minus;1][0..n&minus;1]：令 S[i][j] 表示以 (0,0) 为左上角、(i&minus;1, j&minus;1) 为右下角的<b>子矩阵元素之和</b>，S 的规模为 (m+1)&times;(n+1)，第 0 行与第 0 列全为 0（同样是哨兵）。</p>
+
+<div class="formula">S[i][j] = S[i&minus;1][j] + S[i][j&minus;1] &minus; S[i&minus;1][j&minus;1] + a[i&minus;1][j&minus;1]</div>
+
+<div class="formula lg">矩形 [r1,r2]&times;[c1,c2] 之和 = S[r2+1][c2+1] &minus; S[r1][c2+1] &minus; S[r2+1][c1] + S[r1][c1]</div>
+
+<div class="tip"><strong>为什么末尾要"+ S[r1][c1]"：</strong>这是<b>容斥原理</b>（inclusion&ndash;exclusion）。减去"上方多余部分"和"左方多余部分"时，左上角那块被<b>减了两次</b>，故须加回一次。一维公式其实是同一原理的退化情形（只有一个方向要减）。二维前缀和的预处理为 O(mn)，此后任意矩形区域求和仍为 O(1)。</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>S 数组只开 n 个位置</b>：S 需要 n+1 个位置，少开一个会在访问 S[n] 时越界。这是本节出现频率最高的运行时错误。</li>
+  <li><b>忘记初始化 S[0] = 0</b>：若 S 是局部数组，其值未定义，全部结果都会偏移一个随机量。全局数组虽默认为 0，但仍应显式写出以表明意图。</li>
+  <li><b>公式记成 S[R] &minus; S[L]（a 下标从 1 时）</b>：这会漏算 a[L] 本身。判断口诀——"要减的是<b>不含 L 的那段前缀</b>"，a 从 1 计时它是 S[L&minus;1]。</li>
+  <li><b>构建循环写成 <span class="cm">for (i = 0; i &lt; n; i++) S[i] = S[i-1] + a[i]</span></b>：i = 0 时访问 S[&minus;1]，越界。正确写法必须从 i = 1 起。</li>
+  <li><b>L = 0 时特判</b>：只要设了哨兵 S[0] = 0 就<b>不需要</b>任何特判；反过来说，若代码里出现了"if (L == 0)"，多半说明哨兵没设对。</li>
+  <li><b>忽视溢出</b>：n = 10<sup>5</sup>、元素达 10<sup>9</sup> 时前缀和最大约 10<sup>14</sup>，超出 int 范围，S 必须声明为 <span class="cm">long long</span>。</li>
+  <li><b>在带修改的场景硬用前缀和</b>：每次修改都要 O(n) 重建，q 次修改退化为 O(qn)，还不如朴素做法。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>前缀和数组 S 的长度是 <b>n+1</b>，S[0] = 0 作哨兵，S[i] = S[i&minus;1] + a[i&minus;1]，构建 O(n)。</li>
+  <li>区间和公式的本质是"<b>大前缀减小前缀</b>"：a 从 1 计时为 <b>S[R] &minus; S[L&minus;1]</b>，a 从 0 计闭区间时为 S[R+1] &minus; S[L]，半开区间时为 S[R] &minus; S[L]。做题前先确定下标基准。</li>
+  <li>复杂度：预处理 O(n) + 每次查询 O(1)，q 次查询共 O(n+q)；朴素做法为 O(qn)。以 O(n) 空间换时间。</li>
+  <li>适用于<b>静态</b>数组的区间求和；需要单点修改时改用树状数组或线段树（O(log n)）。</li>
+  <li>在穷举法中，前缀和的作用是把"单次检验"从 O(n) 压到 O(1)，从而把 O(n<sup>3</sup>) 降为 O(n<sup>2</sup>)。</li>
+  <li>二维前缀和用容斥原理：构建时"上 + 左 &minus; 左上 + 本身"，查询时"总 &minus; 上 &minus; 左 + 左上"。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>设 a[1..n]（下标从 1 开始），S[0] = 0，S[i] = S[i&minus;1] + a[i]。要求闭区间 [3, 7] 内元素之和，正确表达式是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>S[7] &minus; S[3]</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>S[7] &minus; S[2]</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>S[8] &minus; S[3]</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>S[7] &minus; S[3] + a[3]</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确，即 S[R] &minus; S[L&minus;1] = S[7] &minus; S[2]。A 是最典型的错误：S[3] 已经包含了 a[3]，减掉它就把区间的第一个元素弄丢了，结果实际是 a[4..7]。C 混用了从 0 计的公式，此处 S[8] 会越界或多算 a[8]。D 的数值虽然与 B 相等（因为 S[3] &minus; a[3] = S[2]），但它把简单问题复杂化，且暴露出并未真正理解公式——考试中应直接写 S[L&minus;1]。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>数组长 n = 10<sup>5</sup>，需回答 q = 10<sup>5</sup> 次区间和查询。关于两种方案，下列说法正确的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>朴素 O(qn) &asymp; 10<sup>10</sup>，前缀和 O(nq) &asymp; 10<sup>10</sup>，两者相当</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>朴素 O(qn) &asymp; 10<sup>10</sup>，前缀和 O(n+q) &asymp; 2&times;10<sup>5</sup>，前缀和快约 5 万倍</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>前缀和需 O(n) 额外空间，n = 10<sup>5</sup> 时空间不可接受，应选朴素</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>前缀和每次查询仍需 O(log n)，总计 O(n + q log n)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。前缀和的预处理与查询是<b>相加</b>而非相乘：一次 O(n) 预处理服务于全部 q 次 O(1) 查询，故总计 O(n+q)。A 错在把 O(n)+O(q) 写成了 O(nq)，这是复杂度分析中"加法/乘法"混淆的经典错误。C 错在数量级判断：10<sup>5</sup> 个 long long 仅约 0.8 MB，完全在限制内。D 把前缀和与树状数组搞混了——树状数组才是 O(log n) 查询，前缀和的查询就是一次减法，是严格 O(1)。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>关于前缀和的适用条件，下列判断<b>错误</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>若查询期间会频繁修改单个元素，前缀和会退化，应改用树状数组</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>设置 S[0] = 0 的目的是免去 L = 0 或 L = 1 的边界特判</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>前缀和只能用于求和，无法推广到区间最大值查询，也无法推广到二维</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>元素较大时 S 应声明为 long long，否则可能溢出</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>C 错误，且错了两处。其一，前缀和确实可推广到二维乃至更高维（用容斥原理），这正是本节末尾的内容。其二，"无法推广到区间最大值"这半句在结论上对但理由需辨析：最大值不存在逆运算（无法"相减"抵消），故不能用前缀和，但这类查询有专门的 ST 表（O(n log n) 预处理、O(1) 查询）。前缀和真正的适用条件是运算满足<b>结合律且可逆</b>——加法、异或（逆为自身）可以，max、min、gcd 不可以。A、B、D 均正确。</div>
+  </div>
+</div>
+
+<div class="terms">
+  <span class="term"><b>前缀和</b>prefix sum</span>
+  <span class="term"><b>哨兵</b>sentinel</span>
+  <span class="term"><b>空间换时间</b>space&ndash;time tradeoff</span>
+  <span class="term"><b>容斥原理</b>inclusion&ndash;exclusion principle</span>
+  <span class="term"><b>树状数组</b>binary indexed tree</span>
+</div>
+</section>
+
+<div class="page-nav"><a href="02-enumerate.html"><span class="dir">← 上一节</span><span class="name">列举</span></a><a href="04-uf.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">并查集</span></a></div>
+<div class="footer">算法设计与分析 · <b>第3章 穷举法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(53,111,98,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const a=[3,1,4,1,5,9,2,6];
+const S=[0]; for(const x of a) S.push(S[S.length-1]+x);
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+function paint(){
+  let L=+Lr.value, R=+Rr.value; if(L>R) [L,R]=[R,L];
+  lv.textContent=L; rv.textContent=R;
+  barDraw(ctx,cv.width,cv.height,a,{range:[L,R-1], sorted:new Set(Array.from({length:Math.max(0,R-L)},(_,i)=>L+i))});
+  const ans=S[R]-S[L]; sum.textContent=ans; form.textContent=`${S[R]}-${S[L]}=${ans}`;
+  document.getElementById('S').innerHTML=S.map((v,i)=>`<div class="cell ${i===L||i===R?'on':''}">S${i}=${v}</div>`).join('');
+}
+Lr.oninput=Rr.oninput=paint; paint();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

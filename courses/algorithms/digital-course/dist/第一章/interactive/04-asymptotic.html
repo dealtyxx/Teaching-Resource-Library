@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>渐进界 · 第1章 绪论</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">01</div>算法可视化 · <span>第1章 绪论</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-algorithm.html">算法定义</a><a class="pill" href="02-design-steps.html">设计步骤</a><a class="pill" href="03-complexity.html">复杂度</a><a class="pill active" href="04-asymptotic.html">渐进界</a><a class="pill" href="05-cases.html">三种情况</a><a class="pill" href="06-stl.html">STL</a><a class="pill" href="07-sequence.html">序列容器</a><a class="pill" href="08-adapters.html">适配器</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 4 · 加深</div><h1>O / Ω / Θ</h1>
+<p>上界、下界、紧确界。调节 c 观察 c·g(n) 与 f(n) 的关系。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>默写</b> O、Ω、Θ 三种渐进记号的标准不等式定义，并说明其中 c 与 n<sub>0</sub> 的作用。</li>
+  <li>能够<b>完整证明</b>形如 3n<sup>2</sup>+5n = O(n<sup>2</sup>) 的命题，给出具体的 c 与 n<sub>0</sub> 并写出不等式推导。</li>
+  <li>能够<b>区分</b> O 与小 o、Ω 与小 ω 的差别，说明"严格"与"非严格"的含义。</li>
+  <li>能够<b>判断</b>一句复杂度陈述是否恰当（如"插入排序最坏情况是 O(n<sup>3</sup>)"是否正确）。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <label>c=<b id="cv">2</b></label><input type="range" id="cr" min="1" max="8" value="2" style="width:160px;accent-color:#C2603F"/>
+    <label>函数</label>
+    <select id="fn"><option value="n2">f=n², g=n</option><option value="nlog">f=n log n, g=n</option><option value="2n">f=2ⁿ, g=n²</option></select>
+  </div>
+  <div class="stage-wrap light" style="height:300px"><canvas class="stage" id="cv2" width="900" height="300"></canvas></div>
+  <div class="formula" id="msg">—</div>
+  <div class="tip">f=O(g) 表示 f 增长不超过 g（可差常数倍）。</div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>一、三种渐进记号的标准定义</h2><span class="sub">O · Ω · Θ</span></div>
+  <p class="desc">渐进记号刻画的是函数在 n → ∞ 时的<b>增长趋势</b>。三个定义的结构完全一致：都是"存在正常数，使得从某个 n<sub>0</sub> 之后，不等式恒成立"。区别只在不等号的方向。</p>
+
+  <div class="defn"><span class="lbl">定义 · 大 O</span><p><b>上界（Upper Bound）</b>：f(n) = O(g(n)) 当且仅当<br/>∃ c &gt; 0, ∃ n<sub>0</sub> &gt; 0, 使得 ∀ n ≥ n<sub>0</sub>，都有 <b>0 ≤ f(n) ≤ c·g(n)</b>。<br/>直观含义："f 的增长<b>不快于</b> g（至多相差一个常数倍）"。</p></div>
+  <div class="formula lg">f(n) = O(g(n)) ⇔ ∃c&gt;0, n<sub>0</sub>&gt;0, ∀n ≥ n<sub>0</sub>: 0 ≤ f(n) ≤ c·g(n)</div>
+
+  <div class="defn"><span class="lbl">定义 · 大 Ω</span><p><b>下界（Lower Bound）</b>：f(n) = Ω(g(n)) 当且仅当<br/>∃ c &gt; 0, ∃ n<sub>0</sub> &gt; 0, 使得 ∀ n ≥ n<sub>0</sub>，都有 <b>0 ≤ c·g(n) ≤ f(n)</b>。<br/>直观含义："f 的增长<b>不慢于</b> g"。</p></div>
+  <div class="formula lg">f(n) = Ω(g(n)) ⇔ ∃c&gt;0, n<sub>0</sub>&gt;0, ∀n ≥ n<sub>0</sub>: 0 ≤ c·g(n) ≤ f(n)</div>
+
+  <div class="defn"><span class="lbl">定义 · 大 Θ</span><p><b>紧确界（Tight Bound）</b>：f(n) = Θ(g(n)) 当且仅当<br/>∃ c<sub>1</sub> &gt; 0, ∃ c<sub>2</sub> &gt; 0, ∃ n<sub>0</sub> &gt; 0, 使得 ∀ n ≥ n<sub>0</sub>，都有 <b>0 ≤ c<sub>1</sub>·g(n) ≤ f(n) ≤ c<sub>2</sub>·g(n)</b>。<br/>直观含义："f 与 g <b>增长同阶</b>，被上下两条常数倍的曲线夹住"。</p></div>
+  <div class="formula lg">f(n) = Θ(g(n)) ⇔ ∃c<sub>1</sub>,c<sub>2</sub>&gt;0, n<sub>0</sub>&gt;0, ∀n ≥ n<sub>0</sub>: c<sub>1</sub>g(n) ≤ f(n) ≤ c<sub>2</sub>g(n)</div>
+
+  <div class="defn thm"><span class="lbl">定理</span><p><b>夹逼定理</b>：f(n) = Θ(g(n)) 当且仅当 f(n) = O(g(n)) <b>且</b> f(n) = Ω(g(n))。<br/>即：<b>Θ = O ∩ Ω</b>。这是三者最重要的关系，也是判断题的常考点。</p></div>
+
+  <div class="table-scroll"><table class="data">
+    <tr><th>记号</th><th>不等式</th><th>含义</th><th>类比（实数关系）</th><th>回答的问题</th></tr>
+    <tr><td class="hl">O(g)</td><td>f(n) ≤ c·g(n)</td><td>渐进上界</td><td>≤</td><td>最坏也不会超过多少</td></tr>
+    <tr><td class="hl">Ω(g)</td><td>f(n) ≥ c·g(n)</td><td>渐进下界</td><td>≥</td><td>至少要花多少</td></tr>
+    <tr><td class="hl">Θ(g)</td><td>c<sub>1</sub>g(n) ≤ f(n) ≤ c<sub>2</sub>g(n)</td><td>渐进紧确界</td><td>=</td><td>究竟是什么量级</td></tr>
+    <tr><td>o(g)</td><td>∀c&gt;0 有 f(n) &lt; c·g(n)</td><td>非紧的上界（严格小）</td><td>&lt;</td><td>是否被 g 严格压制</td></tr>
+    <tr><td>ω(g)</td><td>∀c&gt;0 有 f(n) &gt; c·g(n)</td><td>非紧的下界（严格大）</td><td>&gt;</td><td>是否严格超越 g</td></tr>
+  </table></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>二、例题：证明 3n<sup>2</sup> + 5n = O(n<sup>2</sup>)</h2><span class="sub">按定义写出完整推导</span></div>
+  <p class="desc">证明 O 命题的标准套路只有三步：<b>①猜一个 c ②解不等式求出配套的 n<sub>0</sub> ③验证 ∀n ≥ n<sub>0</sub> 不等式恒成立</b>。注意 c 与 n<sub>0</sub> 只要<b>存在</b>即可，不要求最优。</p>
+  <div class="deriv">
+    <span class="step">目标：找 c &gt; 0 与 n<sub>0</sub> &gt; 0，使 ∀n ≥ n<sub>0</sub>，0 ≤ 3n<sup>2</sup> + 5n ≤ c·n<sup>2</sup></span>
+    <span class="step">当 n ≥ 1 时，n ≤ n<sup>2</sup> <span class="why">关键放缩：把低阶项抬成高阶项</span></span>
+    <span class="step">⇒ 3n<sup>2</sup> + 5n ≤ 3n<sup>2</sup> + 5n<sup>2</sup> = 8n<sup>2</sup> <span class="why">故取 c = 8, n<sub>0</sub> = 1 即可</span></span>
+    <span class="step">若想取更小的 c，例如 c = 4：</span>
+    <span class="step">需 3n<sup>2</sup> + 5n ≤ 4n<sup>2</sup> ⇔ 5n ≤ n<sup>2</sup> ⇔ n ≥ 5 <span class="why">两边同除以 n &gt; 0</span></span>
+    <span class="step">⇒ 取 c = 4, n<sub>0</sub> = 5 <span class="why">验证 n=5：3·25+25 = 100 ≤ 4·25 = 100 ✓</span></span>
+    <span class="step">又 n ≥ 1 时 3n<sup>2</sup> + 5n ≥ 3n<sup>2</sup> <span class="why">取 c = 3, n<sub>0</sub> = 1</span></span>
+    <span class="step">⇒ 3n<sup>2</sup> + 5n = Ω(n<sup>2</sup>)</span>
+    <span class="step">由夹逼定理 ⇒ 3n<sup>2</sup> + 5n = Θ(n<sup>2</sup>) <span class="why">上下界同阶，故为紧确界</span></span>
+  </div>
+  <div class="tip ok"><strong>结论写法：</strong>取 c<sub>1</sub> = 3、c<sub>2</sub> = 4、n<sub>0</sub> = 5，则 ∀n ≥ 5 有 3n<sup>2</sup> ≤ 3n<sup>2</sup>+5n ≤ 4n<sup>2</sup>，故 3n<sup>2</sup>+5n = Θ(n<sup>2</sup>)。<b>答卷上必须给出具体的 c 和 n<sub>0</sub>，只写"显然成立"不得分。</b></div>
+
+  <p class="desc"><b>反向例题：证明 n<sup>2</sup> ≠ O(n)</b>（用反证法）。</p>
+  <div class="deriv">
+    <span class="step">假设 n<sup>2</sup> = O(n)，则 ∃c &gt; 0, n<sub>0</sub>, ∀n ≥ n<sub>0</sub>: n<sup>2</sup> ≤ c·n</span>
+    <span class="step">两边同除以 n &gt; 0 ⇒ n ≤ c <span class="why">对所有 n ≥ n<sub>0</sub> 成立</span></span>
+    <span class="step">但 c 是<b>固定常数</b>，取 n = max(n<sub>0</sub>, ⌈c⌉+1) 即得 n &gt; c，矛盾</span>
+    <span class="step">⇒ 假设不成立，n<sup>2</sup> ≠ O(n) <span class="why">n 可以任意大，常数不能</span></span>
+  </div>
+  <p class="desc">把上方演示的函数选为 "f=n², g=n"，无论把 c 从 1 拖到 8，f 的曲线最终总会穿过 c·g 并把它甩在下方——这正是 n<sup>2</sup> ≠ O(n) 的图形解释。而选 "f=n log n, g=n" 时同样会穿过，说明 n log n 也不是 O(n)。</p>
+
+  <p class="desc"><b>用代码验证 c 与 n<sub>0</sub></b>（注意：这只是<b>辅助验证</b>，不能代替数学证明——程序只能检查有限个 n）：</p>
+  <div class="code"><span class="cm">// 验证 3n^2 + 5n &lt;= c*n^2 从哪个 n0 开始恒成立</span>
+<span class="kw">#include</span> <span class="st">&lt;iostream&gt;</span>
+<span class="kw">using</span> <span class="kw">namespace</span> std;
+
+<span class="kw">double</span> <span class="fn">f</span>(<span class="kw">double</span> n) { <span class="kw">return</span> <span class="nu">3</span>*n*n + <span class="nu">5</span>*n; }
+<span class="kw">double</span> <span class="fn">g</span>(<span class="kw">double</span> n) { <span class="kw">return</span> n*n; }
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="kw">double</span> c = <span class="nu">4</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> n = <span class="nu">1</span>; n &lt;= <span class="nu">8</span>; n++)
+        cout &lt;&lt; <span class="st">"n="</span> &lt;&lt; n
+             &lt;&lt; <span class="st">"  f="</span> &lt;&lt; <span class="fn">f</span>(n)
+             &lt;&lt; <span class="st">"  c*g="</span> &lt;&lt; c*<span class="fn">g</span>(n)
+             &lt;&lt; (<span class="fn">f</span>(n) &lt;= c*<span class="fn">g</span>(n) ? <span class="st">"  成立"</span> : <span class="st">"  不成立"</span>) &lt;&lt; endl;
+    <span class="kw">return</span> <span class="nu">0</span>;
+}
+<span class="cm">// 输出：n=1..4 不成立；n=5 时 100 &lt;= 100 成立；n&gt;=5 之后恒成立</span>
+<span class="cm">// ⇒ 与推导一致：取 c = 4, n0 = 5</span></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>三、小 o 与小 ω</h2><span class="sub">严格界 · 与大 O / 大 Ω 的区别</span></div>
+  <div class="defn"><span class="lbl">定义 · 小 o</span><p>f(n) = o(g(n)) 当且仅当 <b>∀ c &gt; 0</b>，∃ n<sub>0</sub> &gt; 0，使得 ∀ n ≥ n<sub>0</sub> 有 0 ≤ f(n) &lt; c·g(n)。<br/>等价条件（g(n) &gt; 0 时）：lim<sub>n→∞</sub> f(n)/g(n) = 0。</p></div>
+  <div class="defn"><span class="lbl">定义 · 小 ω</span><p>f(n) = ω(g(n)) 当且仅当 <b>∀ c &gt; 0</b>，∃ n<sub>0</sub> &gt; 0，使得 ∀ n ≥ n<sub>0</sub> 有 0 ≤ c·g(n) &lt; f(n)。<br/>等价条件：lim<sub>n→∞</sub> f(n)/g(n) = ∞。</p></div>
+
+  <div class="tip info"><strong>唯一的差别在量词：</strong>大 O 是"<b>存在</b>某个 c"使不等式成立（∃c），小 o 是"<b>对任意</b> c"都成立（∀c）。∀ 比 ∃ 强得多，因此 <b>o 是比 O 更强的断言</b>：f = o(g) ⇒ f = O(g)，反之不成立。</div>
+
+  <div class="table-scroll"><table class="data">
+    <tr><th>命题</th><th>成立？</th><th>理由</th></tr>
+    <tr><td>2n<sup>2</sup> = O(n<sup>2</sup>)</td><td class="path">成立</td><td>取 c = 2、n<sub>0</sub> = 1</td></tr>
+    <tr><td>2n<sup>2</sup> = o(n<sup>2</sup>)</td><td class="hl">不成立</td><td>lim 2n<sup>2</sup>/n<sup>2</sup> = 2 ≠ 0；取 c = 1 时不等式失败</td></tr>
+    <tr><td>2n = o(n<sup>2</sup>)</td><td class="path">成立</td><td>lim 2n/n<sup>2</sup> = 0</td></tr>
+    <tr><td>n<sup>2</sup> = Ω(n)</td><td class="path">成立</td><td>取 c = 1、n<sub>0</sub> = 1</td></tr>
+    <tr><td>n<sup>2</sup> = ω(n)</td><td class="path">成立</td><td>lim n<sup>2</sup>/n = ∞</td></tr>
+    <tr><td>n<sup>2</sup> = ω(n<sup>2</sup>)</td><td class="hl">不成立</td><td>lim = 1，不是 ∞</td></tr>
+  </table></div>
+  <div class="formula">o(g) ⊂ O(g)　　ω(g) ⊂ Ω(g)　　Θ(g) = O(g) ∩ Ω(g)　　o(g) ∩ Θ(g) = ∅</div>
+
+  <div class="terms">
+    <span class="term"><b>渐进上界</b>Asymptotic Upper Bound</span>
+    <span class="term"><b>渐进下界</b>Asymptotic Lower Bound</span>
+    <span class="term"><b>紧确界</b>Tight Bound</span>
+    <span class="term"><b>非紧上界</b>Non-tight Upper Bound</span>
+    <span class="term"><b>渐进记号</b>Asymptotic Notation</span>
+  </div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>把 O 当成紧确界。</b>O 只给<b>上界</b>。插入排序最坏情况写成 O(n<sup>3</sup>) 在数学上是<b>正确</b>的（因为 n<sup>2</sup> ≤ c·n<sup>3</sup>），只是<b>不紧</b>、没有信息量。要表达"恰好是平方阶"必须用 <b>Θ(n<sup>2</sup>)</b>。</li>
+  <li><b>忘记写 n<sub>0</sub>。</b>渐进关系是"<b>从某点之后</b>"的关系，不要求对所有 n 成立。例如 3n<sup>2</sup>+5n ≤ 4n<sup>2</sup> 在 n = 1 时不成立（8 &gt; 4），但 n ≥ 5 后恒成立——这完全合法。</li>
+  <li><b>误写成 O(n) = f(n)。</b>记号 f(n) = O(g(n)) 中的等号是<b>单向的</b>，实际含义是 f(n) ∈ O(g(n))（属于集合）。不能反着写，也不能由 f = O(n)、h = O(n) 推出 f = h。</li>
+  <li><b>说"最坏情况的下界"就是 Ω。</b>O/Ω/Θ 描述的是<b>函数之间的关系</b>，最好/最坏/平均描述的是<b>输入的选取</b>。二者正交：可以说"最坏情况时间为 Θ(n<sup>2</sup>)"，也可以说"最好情况时间为 Ω(n)"。<b>不要把 Ω 与"最好情况"划等号。</b></li>
+  <li><b>混淆 O 与 o 的量词。</b>O 是 ∃c，o 是 ∀c。2n<sup>2</sup> = O(n<sup>2</sup>) 成立但 2n<sup>2</sup> = o(n<sup>2</sup>) 不成立。</li>
+  <li><b>用 Θ 描述本身不确定的量。</b>若某算法在不同输入下分别是 n 与 n<sup>2</sup>，则其运行时间既非 Θ(n) 也非 Θ(n<sup>2</sup>)，此时只能说"时间为 O(n<sup>2</sup>) 且 Ω(n)"，或者分情况讨论。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li><b>O</b>：∃c&gt;0, n<sub>0</sub>&gt;0, ∀n≥n<sub>0</sub>, 0 ≤ f(n) ≤ c·g(n)——渐进<b>上界</b>。</li>
+  <li><b>Ω</b>：∃c&gt;0, n<sub>0</sub>&gt;0, ∀n≥n<sub>0</sub>, 0 ≤ c·g(n) ≤ f(n)——渐进<b>下界</b>。</li>
+  <li><b>Θ</b>：∃c<sub>1</sub>,c<sub>2</sub>&gt;0, n<sub>0</sub>&gt;0, ∀n≥n<sub>0</sub>, c<sub>1</sub>g(n) ≤ f(n) ≤ c<sub>2</sub>g(n)——<b>紧确界</b>，且 Θ = O ∩ Ω。</li>
+  <li>证明 O 命题的三步法：<b>猜 c → 解不等式求 n<sub>0</sub> → 验证</b>；答案中必须写出具体的 c 与 n<sub>0</sub>。</li>
+  <li><b>小 o / 小 ω</b> 把"∃c"换成"∀c"，是严格的非紧界，等价于极限为 0 / ∞。</li>
+  <li>常用放缩技巧：n ≥ 1 时 n ≤ n<sup>2</sup>、log n ≤ n、1 ≤ n，用来把低阶项抬成高阶项。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>已知插入排序在最坏情况下的比较次数为 n(n&minus;1)/2。下列陈述中<b>数学上错误</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>最坏情况比较次数是 O(n<sup>2</sup>)</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>最坏情况比较次数是 O(n<sup>3</sup>)</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>最坏情况比较次数是 Θ(n<sup>2</sup>)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">D</span><span>最坏情况比较次数是 Θ(n<sup>3</sup>)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>错误的是 D，故选 D。<br/>A 正确且紧。<b>B 也是正确的</b>——这是最容易选错的地方：O 只要求 f(n) ≤ c·g(n)，而 n(n&minus;1)/2 ≤ n<sup>3</sup>（n ≥ 1），所以 O(n<sup>3</sup>) 在数学上成立，只是"松"、没有信息量。<br/>C 正确：3 ≤ c<sub>1</sub>、c<sub>2</sub> 存在使其被 n<sup>2</sup> 上下夹住。<br/>D 错误：Θ(n<sup>3</sup>) 要求同时满足 Ω(n<sup>3</sup>)，即存在 c 使 n(n&minus;1)/2 ≥ c·n<sup>3</sup> 恒成立，两边除以 n<sup>2</sup> 得 (n&minus;1)/2 ≥ c·n，即 1/2 &gt; c·(近似)，当 n → ∞ 时左边趋于常数 1/2 而右边趋于 ∞，不可能成立。<br/><b>核心：O 可以放宽，Θ 不可以。</b></div>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>证明 2n<sup>2</sup> + 3n + 1 = O(n<sup>2</sup>) 时，下列哪组 (c, n<sub>0</sub>) 是<b>有效</b>的？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>c = 2, n<sub>0</sub> = 1</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>c = 6, n<sub>0</sub> = 1</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>c = 2, n<sub>0</sub> = 100</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>任何 c 都无效，因为该式含有三项</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>正确答案 B。当 n ≥ 1 时 n ≤ n<sup>2</sup> 且 1 ≤ n<sup>2</sup>，故 2n<sup>2</sup>+3n+1 ≤ 2n<sup>2</sup>+3n<sup>2</sup>+n<sup>2</sup> = 6n<sup>2</sup>，取 c = 6、n<sub>0</sub> = 1 成立。<br/>A、C 都取 c = 2，但 2n<sup>2</sup>+3n+1 &gt; 2n<sup>2</sup> 对<b>所有</b> n 恒成立（因 3n+1 &gt; 0），无论 n<sub>0</sub> 取多大都不可能满足 ≤ 2n<sup>2</sup>。C 的迷惑性在于"把 n<sub>0</sub> 取大就行"——但 n<sub>0</sub> 只能排除有限个小的 n，<b>无法改变 n → ∞ 时的趋势</b>。<br/>D 错在项数与是否成立无关。</div>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>关于 O 与小 o 的关系，下列说法<b>正确</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>f(n) = O(g(n)) 必然推出 f(n) = o(g(n))</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>f(n) = o(g(n)) 必然推出 f(n) = O(g(n))，反之不然</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>O 与 o 完全等价，只是书写习惯不同</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>若 f(n) = Θ(g(n))，则 f(n) = o(g(n))</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>正确答案 B。O 的定义是"<b>存在</b>某个 c"，o 的定义是"<b>对任意</b> c"。∀ 强于 ∃，所以 o(g) ⊂ O(g)：满足 o 的必满足 O，反之不然。<br/>A 方向反了：2n<sup>2</sup> = O(n<sup>2</sup>) 但 2n<sup>2</sup> ≠ o(n<sup>2</sup>)（比值极限为 2 而非 0）。<br/>C 错，见上。<br/>D 错得更彻底：Θ 意味着比值极限为非零常数，而 o 要求比值极限为 0，二者<b>互斥</b>，即 Θ(g) ∩ o(g) = ∅。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="03-complexity.html"><span class="dir">← 上一节</span><span class="name">复杂度</span></a><a href="05-cases.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">三种情况</span></a></div>
+<div class="footer">算法设计与分析 · <b>第1章 绪论</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(194,96,63,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const cv=document.getElementById('cv2'),ctx=cv.getContext('2d');
+function upd(){
+  const c=+cr.value; document.getElementById('cv').textContent=c;
+  const mode=fn.value, N=30;
+  let f,g,title;
+  if(mode==='n2'){ f=x=>x*x; g=x=>x; title='n² vs c·n'; }
+  else if(mode==='nlog'){ f=x=>x*Math.log2(x+1); g=x=>x; title='n log n vs c·n'; }
+  else { f=x=>Math.pow(2,Math.min(x,12)); g=x=>x*x; title='2ⁿ vs c·n²'; }
+  ctx.clearRect(0,0,900,300);
+  const pad=40,W=900,H=300; let ymax=1;
+  for(let i=1;i<=N;i++) ymax=Math.max(ymax,f(i),c*g(i));
+  function X(i){return pad+(i-1)/(N-1)*(W-2*pad);}
+  function Y(v){return H-pad-v/ymax*(H-2*pad);}
+  ctx.strokeStyle='#C2603F'; ctx.lineWidth=2.5; ctx.beginPath();
+  for(let i=1;i<=N;i++){ const x=X(i),y=Y(f(i)); i===1?ctx.moveTo(x,y):ctx.lineTo(x,y);} ctx.stroke();
+  ctx.strokeStyle='#A02C55'; ctx.beginPath();
+  for(let i=1;i<=N;i++){ const x=X(i),y=Y(c*g(i)); i===1?ctx.moveTo(x,y):ctx.lineTo(x,y);} ctx.stroke();
+  msg.textContent=title+'（珊瑚线 f，洋红线 c·g）';
+}
+cr.oninput=fn.onchange=upd; upd();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

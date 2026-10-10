@@ -1,0 +1,111 @@
+---
+module: 5
+moduleName: 函数
+order: 30
+title: 红色病毒传播模拟（函数版）
+level: 综合挑战
+scene: 思政+算法
+knowledge: [递归函数, 多函数协作, 模块化架构]
+stars: 5
+minutes: 180
+goal: 综合运用函数构建完整程序架构
+sizheng: 星星之火可以燎原——传播的数学，也是信念的数学
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import VirusSimLab from '../../components/react/VirusSimLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：函数调用自己
+
+模块五的收官挑战：模拟一条"红色信息"在人群网络中的传播——一个人告诉邻居，邻居再告诉邻居的邻居……
+这种"同样的动作在下一层重复"的结构，最自然的表达是**递归**——函数调用自己：
+
+```c
+void spread(int r, int c, int gen) {
+    if (越界 || 已传播) return;   /* 递归出口 */
+    map[r][c] = 1;               /* 处理当前节点 */
+    spread(r-1, c, gen+1);       /* 向四邻递归 */
+    spread(r+1, c, gen+1);
+    ...
+}
+```
+
+递归的两条铁律：**必有出口**（否则无限调用、栈溢出），**规模递减**（每层向出口靠近一步）。
+整个程序采用三函数架构：`init_map` 造世界、`spread` 递归传播、`print_stats` 出报告——main 又只当总调度（项目 26 的思想升级重演）。
+
+## 一步一步看递归展开与回归
+
+<CStepRunner
+  client:visible
+  title="递归模拟：一条 1×4 小巷里的火种接力"
+  badge="递归调用模拟"
+  doneNote="每层调用都有自己的栈帧（第 1 章的栈区在此兑现）：spread(0)→spread(1)→spread(2)→spread(3)层层压栈，触到出口后按相反顺序层层返回。递归=压栈的去程+弹栈的回程。"
+  code={`#include <stdio.h>
+#define N 4
+char lane[N];   /* 一条4人小巷,全为0 */
+
+void spread(int i) {
+    if (i < 0 || i >= N) return;  /* 出口:越界 */
+    if (lane[i] == 1)   return;   /* 出口:已传播 */
+    lane[i] = 1;
+    printf("点亮%d\\n", i);
+    spread(i + 1);   /* 向右递归 */
+}
+
+int main(void) {
+    spread(0);
+    return 0;
+}`}
+  steps={[
+    { line: 13, desc: 'main 调用 spread(0)——第 1 层栈帧建立。', vars: { 深度: '1', i: '0' } },
+    { line: 7, desc: 'lane[0] 点亮。然后自己调用自己：spread(1)——注意 spread(0) 还没结束，它在第 10 行等着！', out: '点亮0', vars: { 深度: '1', lane: '{1,0,0,0}' } },
+    { line: 7, desc: '第 2 层：lane[1] 点亮，再调 spread(2)。栈上现在叠着两个未完成的 spread。', out: '点亮1', vars: { 深度: '2', lane: '{1,1,0,0}' } },
+    { line: 7, desc: '第 3 层：lane[2] 点亮，调 spread(3)。', out: '点亮2', vars: { 深度: '3', lane: '{1,1,1,0}' } },
+    { line: 7, desc: '第 4 层：lane[3] 点亮，调 spread(4)。', out: '点亮3', vars: { 深度: '4', lane: '{1,1,1,1}' } },
+    { line: 5, desc: '第 5 层：i=4 越界，命中出口 return——递归停止生长，开始【回程】。', vars: { 深度: '5', i: '4' } },
+    { line: 10, desc: 'spread(3) 从第 10 行醒来，无事可做也 return；spread(2)、spread(1)、spread(0) 依次醒来返回——栈帧按后进先出逐层拆除。', vars: { 深度: '4→1' } },
+    { line: 14, desc: '控制流回到 main。若删掉两个出口中的任何一个，递归将无限深入直到栈溢出（Stack Overflow）——那个著名网站的名字就是这么来的。' },
+  ]}
+/>
+
+## 动手实验：投下火种，观察燎原
+
+<VirusSimLab client:only="react" />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：在 8×8 的 char 数组上实现三函数架构（init/spread/stats），从中心点开始 100% 概率传播。先画递归树的前三层。
+2. **AI 优化进阶版**：让 AI 把递归版改写为"队列+循环"的迭代版（广度优先），并解释两者遍历顺序的差异（深度优先 vs 逐代扩散）。审查它的队列用数组实现时，容量估算对不对（最坏 W×H）。
+3. **信创加固定稿版**：给递归加**深度护栏**（depth 超过 W×H 直接返回并报错——防御栈溢出）；把传播概率、网格尺寸全部参数化；思考 100×100 的网格递归最深可达一万层，MCU 的几 KB 栈够吗？（结论：嵌入式慎用深递归，迭代版才是生产选择。）
+
+## 素养与思政
+
+1930 年，毛泽东在《星星之火，可以燎原》中写道：革命力量虽小，"却是站在历史前进方向上的"，终将燎原。你的模拟给出了同样的数学：**只要网络连通、传播概率为正，一颗火种终将覆盖整个连通域**；而断连率一高，火种就困在角落——组织起来的联结本身就是力量。
+同一套模型反过来也是公共卫生的科学：降低接触概率、增加"断连"（隔离），指数曲线就会被摁平。**一个模型，两种读法**——这就是数学模型的普适力量，也是"把论文写在祖国大地上"的另一种方式。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="递归函数缺少出口（基准情形）会导致？"
+  options={['编译报错', '返回随机值', '无限自我调用，栈帧不断堆积，最终栈溢出崩溃', '自动停止']}
+  answer={2}
+  explain="每次调用都压一个新栈帧（第 1 章栈区），没有出口就压到栈空间耗尽。递归写作三查：出口在哪？规模递减吗？最深多少层？"
+/>
+
+<QuizItem
+  client:visible
+  question="spread(0) 调用 spread(1) 时，spread(0) 处于什么状态？"
+  options={['已经结束销毁', '暂停在调用点，栈帧仍在，等 spread(1) 返回后从调用点继续', '与 spread(1) 并行运行', '重新从头执行']}
+  answer={1}
+  explain="递归调用与普通调用机制完全相同：调用者挂起等待。N 层递归=N 个同时存活的栈帧，每层的局部变量各自独立——这就是递归『自动记住来时路』的原因。"
+/>
+
+<QuizItem
+  client:visible
+  question="嵌入式设备上应慎用深递归的原因是？"
+  options={['MCU 不支持函数调用', 'MCU 栈空间通常只有几 KB，深递归的大量栈帧极易溢出，且溢出后无操作系统兜底', '递归语法不是标准 C', '递归一定比循环慢']}
+  answer={1}
+  explain="第 1 章讲过：裸机 MCU 没有安全网。PC 上栈溢出是程序崩溃，MCU 上可能是整个设备失控。生产级嵌入式代码常明文禁止无界递归（如 MISRA C 规范）。"
+/>

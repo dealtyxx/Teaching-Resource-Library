@@ -1,0 +1,145 @@
+---
+module: 7
+moduleName: 数据持久化
+order: 28
+title: SQLite学生成绩存储系统
+level: 进阶选做
+scene: 数据库
+knowledge: [关系数据库, 建表, 增删改查, 游标操作]
+stars: 3
+minutes: 50
+goal: 掌握SQLite基础操作
+sizheng: 理解数据库持久化的工程价值
+dims: [创新思维, 职业伦理]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import PyStepRunner from '../../components/react/PyStepRunner';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+
+## 场景导入
+
+教务系统里，一次补考改分背后是什么？绝不只是把 58 改成 60 这么简单——谁改的、什么时候改的、原来多少分，都得留下记录。这一课我们用零配置的 SQLite 亲手搭一个成绩库，走通「建表→增删改查」的完整链路，并给每一次改分都装上「行车记录仪」：**改动可以，但必须留痕**。
+
+## 动手实验
+
+sqlite3 是 Python 自带的数据库，`connect(':memory:')` 直接在内存里开一个库，跑完即焚、最适合练手。下面这段代码建成绩表、录入分数、给一次补考改分，并把「谁在何时把谁的分从多少改到多少」同步写进 audit 留痕表：
+
+<PyPlayground
+  client:visible
+  title="SQLite 成绩库：改分必留痕"
+  note="试着把写 audit 的那行 INSERT 删掉再运行——成绩改了，却查不到是谁改的。体会一下「没有留痕的权限」有多可怕。"
+  code={`import sqlite3
+
+# 在内存中开一个数据库（跑完即焚，绝不碰真实磁盘）
+conn = sqlite3.connect(":memory:")
+cur = conn.cursor()
+
+# 建表：成绩表 + 操作留痕表 audit
+cur.execute("CREATE TABLE scores (id INTEGER PRIMARY KEY, name TEXT, course TEXT, score INTEGER)")
+cur.execute("CREATE TABLE audit (who TEXT, action TEXT, detail TEXT)")
+
+# INSERT：录入原始成绩（? 占位符防注入）
+data = [(1, "张三", "数据采集", 52), (2, "李四", "数据采集", 88)]
+cur.executemany("INSERT INTO scores VALUES (?, ?, ?, ?)", data)
+
+# UPDATE：张三补考通过，改分并同步写 audit 留痕
+old = cur.execute("SELECT score FROM scores WHERE name='张三'").fetchone()[0]
+new = 62
+cur.execute("UPDATE scores SET score=? WHERE name='张三'", (new,))
+cur.execute("INSERT INTO audit VALUES (?, ?, ?)",
+            ("王老师", "补考改分", f"张三 数据采集 {old}->{new}"))
+
+# SELECT：打印最终成绩单
+print("=== 成绩单 ===")
+for row in cur.execute("SELECT name, course, score FROM scores"):
+    print(f"  {row[0]} | {row[1]} | {row[2]} 分")
+
+# 打印留痕：每一次改动都可追溯
+print("\\n=== 操作留痕 audit ===")
+for w, act, detail in cur.execute("SELECT * FROM audit"):
+    print(f"  [{act}] {w}：{detail}")
+
+conn.close()`}
+/>
+
+## 逐行看懂
+
+一条改分记录，牵动 scores 与 audit 两张表。点开单步执行，看「改分」与「留痕」如何成对发生：
+
+<PyStepRunner
+  client:visible
+  title="建表·改分·留痕"
+  fileName="sqlite_scores.py"
+  code={`import sqlite3
+conn = sqlite3.connect(":memory:")
+cur = conn.cursor()
+cur.execute("CREATE TABLE scores (name TEXT, score INT)")
+cur.execute("CREATE TABLE audit (who TEXT, detail TEXT)")
+cur.execute("INSERT INTO scores VALUES ('张三', 52)")
+cur.execute("UPDATE scores SET score=62 WHERE name='张三'")
+cur.execute("INSERT INTO audit VALUES ('王老师', '张三 52->62')")
+print(cur.execute("SELECT * FROM scores").fetchone())`}
+  steps={[
+    { line: 0, desc: '导入 sqlite3——Python 自带的轻量数据库，无需安装服务器。' },
+    { line: 1, desc: 'connect(":memory:") 在内存里开一个数据库，跑完即焚。', vars: { conn: '内存数据库连接' } },
+    { line: 2, desc: '拿到游标 cursor，之后所有 SQL 都通过它执行。', vars: { cur: '游标对象' } },
+    { line: 3, desc: '建成绩表 scores：两列——姓名与分数。' },
+    { line: 4, desc: '再建一张 audit 留痕表：谁改的、改了什么。' },
+    { line: 5, desc: 'INSERT 录入原始成绩：张三 52 分。', vars: { scores: '张三=52' } },
+    { line: 6, desc: 'UPDATE 把张三改成 62 分——这是关键的「改动」。', vars: { scores: '张三=62' } },
+    { line: 7, desc: '改分的同时往 audit 写一条留痕：王老师 张三 52->62。', vars: { audit: '王老师: 张三 52->62' } },
+    { line: 8, desc: 'SELECT 查出最终成绩，确认改分生效且有据可查。', out: "('张三', 62)" },
+  ]}
+/>
+
+## 思政会客厅
+
+<DimCard dim="创新思维" title="为什么不用 Excel，而用数据库">
+  <ul>
+    <li>几十条成绩，Excel 够用；几十万条、多人同时读写、还要保证「要么全改成功要么全部回滚」，就非数据库不可。工具随规模升级，是工程思维的体现。</li>
+    <li>SQL 用一句话就能表达查、增、改、删，把复杂的数据操作标准化——这正是关系数据库半个世纪不倒的创新内核。</li>
+    <li>connect(':memory:') 这种即开即用、跑完即焚的巧思，让你在浏览器里也能练数据库。创新往往就藏在这类降低门槛的设计里。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="职业伦理" title="改分必须留痕，权限就是责任">
+  <ul>
+    <li>数据库给了你 UPDATE 的权限，也给了你如实记录的义务。一条 audit 留痕，区分了「按规程补录」与「暗箱操作」。</li>
+    <li>能改数据的人，往往是最需要被约束的人。留痕不是不信任你，而是保护你——出了争议，记录能自证清白。</li>
+    <li>教务、财务、病历系统的底线都一样：谁在何时改了什么，必须可查、不可篡改。这是从业者的职业伦理，也是系统的设计红线。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="🔐" tone="amber" title="权限即责任">
+真实的教务、银行、医院系统里，每一次数据改动都会落进不可删除的审计日志。技术上「能改」，制度上「必留痕」——这道护栏保护数据，也保护握着权限的你。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p28-d1"
+  question="如果成绩库只有 scores 表、没有 audit 留痕表，会埋下什么隐患？给数据库管理员分配权限时，你会遵循什么原则？"
+  hints={['没有留痕，恶意改分或误操作都无法追溯，责任说不清', '最小权限原则：普通老师只能改自己课程，管理员操作也要记录', '关键系统常把审计日志设为只能追加、不能删改']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="在 Pyodide/浏览器里练习 SQLite，又不想写真实文件，连接字符串应写成？"
+  options={["sqlite3.connect('scores.db')", "sqlite3.connect(':memory:')", "sqlite3.connect('/tmp/a.db')", "sqlite3.connect('http://db')"]}
+  answer={1}
+  explain="':memory:' 让 SQLite 把整个数据库建在内存中，程序结束即释放，既能完整练习建表与增删改查，又不落任何磁盘文件。"
+/>
+
+<QuizItem
+  client:visible
+  question="教师给一名学生的补考成绩改分，系统最应该做的是？"
+  options={['直接改分，越快越好', '改分并自动记录改动人、时间与前后分值', '偷偷改分，不留任何痕迹', '让学生自己登录去改']}
+  answer={1}
+  explain="改分必须留痕：记录谁改、何时改、从多少改到多少，既能追溯责任，也能在争议中自证清白。数据库权限意味着责任，留痕是职业伦理的底线。"
+/>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>概述对比 · 第6章 分支限界法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">06</div>算法可视化 · <span>第6章 分支限界法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill active" href="01-overview.html">概述对比</a><a class="pill" href="02-bound.html">限界函数</a><a class="pill" href="03-framework.html">两种框架</a><a class="pill" href="04-bfs.html">广度优先</a><a class="pill" href="05-sssp.html">3D迷宫</a><a class="pill" href="06-knapsack.html">背包树</a><a class="pill" href="07-assign-tsp.html">TSP巡游</a><a class="pill" href="08-astar.html">A* 可视</a><a class="pill" href="09-8puzzle.html">八数码3D</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 1 · 概念对比</div>
+  <h1>回溯 vs 分支限界 · 3D 翻转记忆</h1>
+  <p>点击卡片翻转背面要点。同一张解空间树，策略不同，擅长的题完全不同。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>复述</b>分支限界法三要素——扩展结点、活结点表、限界函数——的正式定义。</li>
+  <li>能够<b>区分</b>队列式分支限界法（FIFO 分支限界）与优先队列式分支限界法（LC 分支限界），并说出各自的活结点表数据结构。</li>
+  <li>能够从<b>搜索方式、活结点组织、求解目标、剪支依据</b>四个维度对比回溯法与分支限界法。</li>
+  <li>能够<b>判断</b>一个给定问题应当选用回溯法还是分支限界法。</li>
+</ol></div>
+
+<div class="grid grid-2 stagger flip3d">
+  <div class="flip-card3d" id="f1">
+    <div class="flip-face" style="--accent:#C2603F">
+      <div class="badge">Backtracking</div>
+      <h3 style="font-size:1.35rem;margin:8px 0">回溯法</h3>
+      <p class="desc">深度优先 · 隐式栈 · 适合全部解 / 任一可行解</p>
+      <div class="formula">DFS ＋ 剪支</div>
+      <div class="flip-hint">点击翻转 ↻</div>
+    </div>
+    <div class="flip-face back">
+      <h3>何时用？</h3>
+      <div class="list-step"><div class="n">1</div><div class="body">要枚举<strong>所有</strong>方案</div></div>
+      <div class="list-step"><div class="n">2</div><div class="body">空间敏感，深度远小于宽度</div></div>
+      <div class="list-step"><div class="n">3</div><div class="body">例：全部路径、全排列、N 皇后所有解</div></div>
+      <div class="flip-hint">再点翻回</div>
+    </div>
+  </div>
+  <div class="flip-card3d" id="f2">
+    <div class="flip-face" style="--accent:#A02C55">
+      <div class="badge red">Branch & Bound</div>
+      <h3 style="font-size:1.35rem;margin:8px 0">分支限界</h3>
+      <p class="desc">广度 / 最优优先 · 队列 · 适合最优解</p>
+      <div class="formula">BFS ＋ 限界剪支</div>
+      <div class="flip-hint">点击翻转 ↻</div>
+    </div>
+    <div class="flip-face back">
+      <h3>何时用？</h3>
+      <div class="list-step"><div class="n">1</div><div class="body">要<strong>最优</strong>（最短 / 最大价值）</div></div>
+      <div class="list-step"><div class="n">2</div><div class="body">可用 ub/lb 估计剪掉整支</div></div>
+      <div class="list-step"><div class="n">3</div><div class="body">例：最短迷宫、0/1 背包最优、TSP</div></div>
+      <div class="flip-hint">再点翻回</div>
+    </div>
+  </div>
+</div>
+<div class="card" style="margin-top:16px">
+  <h3>对照表</h3>
+  <table class="data">
+    <thead><tr><th>维度</th><th>回溯</th><th>分支限界</th></tr></thead>
+    <tbody>
+      <tr><td>搜索</td><td>DFS</td><td class="hl">BFS / Best-first</td></tr>
+      <tr><td>活结点表</td><td>系统栈</td><td class="hl">队列 / 优先队列</td></tr>
+      <tr><td>目标</td><td>全解 / 可行解</td><td class="hl">最优解</td></tr>
+      <tr><td>迷宫</td><td>所有出路</td><td class="hl">最短出路</td></tr>
+    </tbody>
+  </table>
+  <div class="tip"><strong>金句：</strong>不含限界剪支的 BFS，只是遍历；有了 ub/lb 才是完整的分支限界。</div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>一、分支限界法的三要素</h2><span class="sub">E-node · live-node list · bounding function</span></div>
+  <p class="desc">分支限界法在解空间树上搜索，但与回溯法「一条路走到黑再退回」不同：它<strong>一次性生成一个结点的全部子结点</strong>（这就是「分支」branch），再用估计值把没希望的子树整个丢掉（这就是「限界」bound）。要把这句话讲精确，需要三个术语。</p>
+
+  <div class="defn"><span class="lbl">定义 1 · 扩展结点</span>
+    <p><b>扩展结点</b>（E-结点，E-node，expanding node）指当前正在生成子结点的那个结点。分支限界法的每一轮循环恰好有一个扩展结点；一旦它的<strong>全部</strong>子结点都被生成完毕，它就变成<b>死结点</b>（dead node），不再参与搜索。</p>
+  </div>
+  <div class="defn"><span class="lbl">定义 2 · 活结点表</span>
+    <p><b>活结点表</b>（live-node list）指所有已经生成、但尚未被扩展的结点构成的集合。<b>活结点</b>（live node）即「自身已生成、子结点还没生成完」的结点。活结点表用<strong>队列</strong>或<strong>优先队列</strong>组织，其组织方式直接决定了搜索顺序，因而衍生出两种分支限界法。</p>
+  </div>
+  <div class="defn"><span class="lbl">定义 3 · 限界函数</span>
+    <p><b>限界函数</b>（bounding function）是对「以某结点为根的子树内所能取得的最优目标值」的一个估计。求<strong>最大值</strong>问题用<b>上界</b> ub（upper bound），要求 ub(x) ≥ 该子树内任何可行解的值；求<strong>最小值</strong>问题用<b>下界</b> lb（lower bound），要求 lb(x) ≤ 该子树内任何可行解的代价。</p>
+  </div>
+  <div class="defn prop"><span class="lbl">性质 · 三要素的联动</span>
+    <p>算法主循环可概括为一句话：<em>从活结点表中取出一个结点作为扩展结点 → 生成其全部子结点 → 用限界函数与可行性条件筛选 → 存活者加入活结点表</em>。因此，<strong>活结点表的组织方式决定「先搜哪里」，限界函数决定「哪里不必搜」</strong>，二者共同决定算法效率。</p>
+  </div>
+
+  <div class="formula">活结点表 ＝ {已生成 ∧ 未扩展完} · 扩展结点 ∈ 活结点表 · 死结点 ＝ 已扩展完 ∨ 被剪支</div>
+
+  <div class="terms">
+    <span class="term"><b>分支</b>branch：生成全部子结点</span>
+    <span class="term"><b>限界</b>bound：用估计值剪掉子树</span>
+    <span class="term"><b>扩展结点</b>E-node</span>
+    <span class="term"><b>活结点</b>live node</span>
+    <span class="term"><b>死结点</b>dead node</span>
+    <span class="term"><b>解空间树</b>solution space tree</span>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>二、两类分支限界法</h2><span class="sub">FIFO 分支限界 vs LC 分支限界</span></div>
+  <p class="desc">活结点表用什么数据结构组织，就得到什么样的分支限界法。教材中这两个名称必须准确记住，考试常直接考中英文对应。</p>
+
+  <div class="defn"><span class="lbl">定义 4 · 队列式分支限界法</span>
+    <p><b>队列式分支限界法</b>（FIFO 分支限界法，FIFO branch and bound）用<strong>普通队列</strong>（先进先出）组织活结点表。每次取<strong>队首</strong>结点作为扩展结点，其子结点从<strong>队尾</strong>入队。它按结点<strong>生成的先后次序</strong>扩展，因而是解空间树上的广度优先搜索。</p>
+  </div>
+  <div class="defn"><span class="lbl">定义 5 · 优先队列式分支限界法</span>
+    <p><b>优先队列式分支限界法</b>（LC 分支限界法，LC branch and bound；LC ＝ Least Cost，最小耗费优先）用<strong>优先队列</strong>组织活结点表。每次取限界值<strong>最有希望</strong>的结点作为扩展结点——最大化问题取 ub 最大者，最小化问题取 lb 最小者。它按结点的<strong>优先级</strong>而非生成次序扩展，因而是最佳优先搜索（best-first search）。</p>
+  </div>
+
+  <div class="table-scroll"><table class="data">
+    <tr><th>对比项</th><th>队列式（FIFO）</th><th>优先队列式（LC）</th></tr>
+    <tr><td>活结点表结构</td><td>队列 queue</td><td class="hl">优先队列 priority_queue（堆）</td></tr>
+    <tr><td>取出规则</td><td>队首（最早生成者）</td><td class="hl">限界值最优者</td></tr>
+    <tr><td>本质搜索序</td><td>广度优先 BFS</td><td class="hl">最佳优先 best-first</td></tr>
+    <tr><td>单次出队代价</td><td>Θ(1)</td><td>Θ(log n)，n 为表长</td></tr>
+    <tr><td>典型应用</td><td>单位权最短路、迷宫、八皇后可行解</td><td class="hl">0/1 背包最优解、TSP、任务分配、A<sup>*</sup></td></tr>
+    <tr><td>找到最优解的时机</td><td>常需搜完整个表</td><td class="hl">首次取出叶结点即最优（代价单调时）</td></tr>
+  </table></div>
+
+  <div class="tip info"><strong>关键直觉：</strong>FIFO 是「按辈分排队」，LC 是「按潜力插队」。LC 每次都赌在最有希望的分支上，因此往往更早得到一个好的 best 值，从而让限界函数剪掉更多子树——<strong>好的 best 值本身就是最强的剪支武器</strong>。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>三、回溯法 vs 分支限界法 · 完整对照</h2><span class="sub">四个维度逐一辨析</span></div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>维度</th><th>回溯法 backtracking</th><th>分支限界法 branch and bound</th></tr>
+    <tr><td><b>搜索方式</b></td><td>深度优先（DFS），一次只沿一条路径向下</td><td class="hl">广度优先或最佳优先，一次生成全部子结点</td></tr>
+    <tr><td><b>活结点组织</b></td><td>系统递归栈（隐式），栈顶即扩展结点</td><td class="hl">显式队列 / 优先队列</td></tr>
+    <tr><td><b>扩展结点的命运</b></td><td>成为扩展结点后可<strong>反复</strong>被返回（回溯），沿另一子分支继续</td><td class="hl">成为扩展结点后<strong>一次性</strong>生成全部子结点，随即变死结点，不再返回</td></tr>
+    <tr><td><b>求解目标</b></td><td>找出<strong>全部</strong>解，或任一可行解</td><td class="hl">找出<strong>最优</strong>解（某种意义下的极值）</td></tr>
+    <tr><td><b>剪支依据</b></td><td>约束函数（可行性）＋ 限界函数（最优性）</td><td class="hl">同样两类，但限界函数是主力，且与全局 best 联动</td></tr>
+    <tr><td><b>空间复杂度</b></td><td>Θ(树高)，通常 Θ(n)</td><td>Θ(活结点数)，最坏可达 Θ(2<sup>n</sup>)</td></tr>
+    <tr><td><b>典型题</b></td><td>N 皇后所有解、全排列、图的全部路径、子集和</td><td>最短路径、0/1 背包最优值、TSP、任务分配、八数码</td></tr>
+  </table></div>
+
+  <div class="tip warn"><strong>常见误解澄清：</strong>「分支限界一定比回溯快」是错的。若问题要求<strong>枚举全部解</strong>，分支限界毫无优势且空间开销更大；若解空间极深而宽度很小，回溯法的 Θ(n) 空间也远优于分支限界的指数级活结点表。<strong>两者是互补而非替代关系。</strong></div>
+
+  <div class="code"><span class="cm">// 分支限界法的通用骨架（以最大化问题为例）</span>
+<span class="cm">// 三要素在代码中的落点已用注释标出</span>
+<span class="kw">double</span> <span class="fn">branchAndBound</span>() {
+    Container live;                  <span class="cm">// ← 要素二：活结点表（queue 或 priority_queue）</span>
+    live.<span class="fn">push</span>(root);
+    <span class="kw">double</span> best = -INF;              <span class="cm">// 当前已知最优可行解</span>
+
+    <span class="kw">while</span> (!live.<span class="fn">empty</span>()) {
+        Node u = live.<span class="fn">take</span>();       <span class="cm">// ← 要素一：取出扩展结点 E-node</span>
+        <span class="kw">if</span> (u.<span class="fn">isLeaf</span>()) { best = max(best, u.value); <span class="kw">continue</span>; }
+
+        <span class="kw">for</span> (Node v : u.<span class="fn">children</span>()) {      <span class="cm">// 分支：一次生成全部子结点</span>
+            <span class="kw">if</span> (!<span class="fn">feasible</span>(v)) <span class="kw">continue</span>;         <span class="cm">// 约束函数：不可行则丢弃</span>
+            <span class="kw">if</span> (<span class="fn">ub</span>(v) &lt;= best) <span class="kw">continue</span>;       <span class="cm">// ← 要素三：限界剪支</span>
+            live.<span class="fn">push</span>(v);                    <span class="cm">// 存活者成为新的活结点</span>
+        }
+        <span class="cm">// u 的子结点已全部生成 ⇒ u 成为死结点，自然被丢弃</span>
+    }
+    <span class="kw">return</span> best;
+}</div>
+  <p class="desc">把 <code>Container</code> 换成 <code>queue&lt;Node&gt;</code> 就是队列式分支限界；换成 <code>priority_queue&lt;Node&gt;</code>（按 ub 降序）就是优先队列式分支限界。<strong>两种框架的差异仅此一行。</strong></p>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>四、复杂度概览</h2><span class="sub">为什么分支限界仍是指数级</span></div>
+  <div class="deriv">
+    <span class="step">设解空间树共 N 个结点，单个结点的限界计算耗时 B <span class="why">分支限界的两项主要开销</span></span>
+    <span class="step">最坏情况：无任何剪支 ⇒ 时间 Θ(N · (B + log N))，log N 来自优先队列的插入/删除</span>
+    <span class="step">子集树 N = Θ(2<sup>n</sup>)，排列树 N = Θ(n!) <span class="why">这是问题本身的规模，剪支只能降常数与实际分支数</span></span>
+    <span class="step">空间：活结点表最坏同时容纳 Θ(N) 个结点 ⇒ 空间 Θ(2<sup>n</sup>) 或 Θ(n!)</span>
+    <span class="step">结论：分支限界<strong>不改变</strong>最坏复杂度阶，只在<strong>平均意义</strong>上大幅缩小实际搜索的结点数</span>
+  </div>
+  <div class="tip"><strong>与回溯法的空间对比：</strong>回溯法的空间是 Θ(树高)＝Θ(n)，因为栈中只存一条根到当前结点的路径；分支限界必须显式保存所有活结点，空间是其致命短板。这正是 IDA<sup>*</sup>、迭代加深等混合技术出现的原因。</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li>把「活结点表」等同于「已访问结点集合」——活结点表只装<strong>已生成但未扩展完</strong>的结点，扩展完的死结点必须移出。</li>
+  <li>认为扩展结点在分支限界中也会被「回溯」回来——不会。一个结点一旦成为扩展结点并生成完全部子结点，立刻变成死结点，<strong>不再有第二次机会</strong>。这是与回溯法最本质的区别。</li>
+  <li>混淆「队列式 ＝ BFS」与「优先队列式 ＝ DFS」——优先队列式是<strong>最佳优先</strong>，不是深度优先；它的搜索路径可能在树中来回跳跃，既不像 BFS 也不像 DFS。</li>
+  <li>把 LC 的 LC 误读成 "Lowest Child"——LC ＝ <strong>Least Cost</strong>（最小耗费）。</li>
+  <li>误以为分支限界法只能求最优解不能求可行解——它当然能求可行解，只是「杀鸡用牛刀」，此时限界函数退化为纯约束函数，优势荡然无存。</li>
+  <li>忘记分支限界同样需要<strong>约束函数</strong>做可行性剪支。限界函数管「最优性」，约束函数管「合法性」，两者缺一不可。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li><b>三要素</b>：扩展结点（正在生成子结点的结点）、活结点表（已生成未扩展完的结点集合）、限界函数（对子树内最优值的估计）。</li>
+  <li><b>一句话流程</b>：从活结点表取扩展结点 → 生成全部子结点 → 可行性 + 限界双重筛选 → 存活者入表 → 扩展结点变死结点。</li>
+  <li><b>两种形态</b>：队列式（FIFO，普通队列，广度优先）与优先队列式（LC，优先队列，最佳优先）。二者仅活结点表的数据结构不同。</li>
+  <li><b>与回溯法的分水岭</b>：回溯法 DFS＋隐式栈＋求全部解＋Θ(n) 空间；分支限界 BFS/最佳优先＋显式队列＋求最优解＋指数级空间。</li>
+  <li><b>复杂度真相</b>：分支限界不降低最坏复杂度阶，其价值在于用限界函数把平均搜索规模压下来。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>关于分支限界法中的「扩展结点」，下列说法<b>正确</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>扩展结点是活结点表中限界值最优的结点</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>扩展结点一旦生成完全部子结点即成为死结点，不会再被扩展</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>算法运行过程中可以同时存在多个扩展结点</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>扩展结点在生成一个子结点后会立即被换成该子结点</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确，这是分支限界与回溯法的本质分野。A 只在<strong>优先队列式</strong>中成立，队列式取的是队首而非最优者，故 A 以偏概全。C 错：每一轮循环有且仅有一个扩展结点。D 描述的恰恰是<strong>回溯法</strong>的行为——回溯法生成一个子结点就立刻下沉过去；分支限界则要<strong>一次生成全部</strong>子结点后才换人，这正是「分支」二字的含义。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>某问题要求「输出图中从 s 到 t 的<b>所有</b>简单路径」。选用哪种方法更合适？为什么？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>回溯法。目标是枚举全部解，分支限界无优势且空间开销大</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>队列式分支限界法。BFS 能保证不重不漏地枚举</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>优先队列式分支限界法。按路径长度排序输出更规整</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>两者等价，任选其一即可</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>A 正确。分支限界的全部威力来自「用限界函数剪掉不可能含最优解的子树」，而<strong>要求全部解时根本无解可剪</strong>——每一条路径都是要输出的答案，限界函数无用武之地。此时分支限界退化为一个空间开销 Θ(2<sup>n</sup>) 的低效 BFS，而回溯法只需 Θ(n) 栈空间。B 的「不重不漏」回溯法同样做得到，且更省空间。C 是典型迷惑项：排序输出是<strong>后处理</strong>需求，不构成选择搜索策略的理由，且 LC 的优先级是限界值不是最终路径长。D 忽略了空间复杂度的巨大差异。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>下列关于队列式与优先队列式分支限界法的比较，<b>错误</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>队列式按结点生成的先后次序扩展，本质是解空间树上的 BFS</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>优先队列式的单次取出代价为 Θ(log n)，高于队列式的 Θ(1)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>优先队列式是深度优先搜索，因为它总是往最深的分支钻</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>优先队列式常能更早得到较好的 best 值，从而增强后续剪支</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>C 错误，是本题答案。优先队列式是<strong>最佳优先搜索</strong>（best-first），它依据限界值挑选结点，搜索点可能在树的不同深度、不同分支间来回跳跃——既非 DFS 也非 BFS。「往最深处钻」只是它在限界函数很紧时<strong>看起来</strong>的表象，一旦某深层结点的限界值变差，它会立刻转去扩展浅层的兄弟结点。A、B、D 均正确；D 揭示了 LC 的核心优势：早得好 best ⇒ 剪支门槛更高 ⇒ 搜索规模更小。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="index.html"><span class="dir">← 上一节</span><span class="name">总览</span></a><a href="02-bound.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">限界函数</span></a></div>
+<div class="footer">算法设计与分析 · <b>第6章 分支限界法</b> · 强交互可视化版<br/>Canvas / CSS 3D · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+// ambient particles
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let w,h,parts=[],raf;
+  function resize(){ w=cv.width=innerWidth*devicePixelRatio; h=cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px'; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:36},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2.2, vx:(Math.random()-.5)*.25, vy:-.15-Math.random()*.35, a:.15+Math.random()*.35}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(194,96,63,${p.a})`; ctx.fill();
+    });
+    raf=requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+[f1,f2].forEach(el=>el.onclick=()=>el.classList.toggle('flipped'));
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

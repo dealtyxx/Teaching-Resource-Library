@@ -1,0 +1,101 @@
+---
+module: 3
+moduleName: 循环结构
+order: 14
+title: 北斗卫星遍历统计
+level: 基础必做
+scene: 北斗场景
+knowledge: [for循环, 计数器, 累加器]
+stars: 3
+minutes: 80
+goal: 学会循环遍历与统计方法
+sizheng: 55颗组网卫星的接力——每一颗都被逐一点名、逐一守护
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import BeidouSatLab from '../../components/react/BeidouSatLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：接收机每秒都在"点名"
+
+北斗接收机同时跟踪十几颗卫星，每颗都有信噪比（SNR）。每一秒，固件都要回答三个问题：
+**几颗可用？平均信号多强？最强的是哪颗？**
+
+这三问对应循环统计的三大件：
+
+- **计数器**（counter）：`count++` —— 数个数；
+- **累加器**（accumulator）：`sum += snr[i]` —— 攒总和，最后除以个数得平均；
+- **擂台法**（max/min）：`if (snr[i] > max) max = snr[i]` —— 逐个打擂，留下最强者。
+
+它们都必须在循环**外**初始化（`count=0, sum=0`），在循环**内**逐步演化——初始化位置放错，是循环统计的第一大 bug。
+
+## 一步一步看统计量长大
+
+<CStepRunner
+  client:visible
+  title="循环模拟：4 颗卫星的遍历统计"
+  badge="计数器/累加器模拟"
+  doneNote="count、sum、max 在循环外出生（清零），在循环内一步步长大——这三个『循环不变式』的演化，就是遍历统计的全部秘密。"
+  code={`#include <stdio.h>
+
+int main(void) {
+    int snr[4] = {42, 18, 35, 47};
+    int th = 30, count = 0, sum = 0, max = 0;
+    for (int i = 0; i < 4; i++) {
+        if (snr[i] >= th) {
+            count++;
+            sum += snr[i];
+        }
+        if (snr[i] > max) max = snr[i];
+    }
+    printf("可用%d颗 均值%.1f 最强%d\\n",
+           count, (float)sum/count, max);
+    return 0;
+}`}
+  steps={[
+    { line: 4, desc: '三大件在循环外初始化：count=0，sum=0，max=0。这一步放进循环里就全毁了！', vars: { count: '0', sum: '0', max: '0' } },
+    { line: 6, desc: 'i=0：snr[0]=42 ≥ 30？真——计数、累加。', vars: { i: '0', count: '1', sum: '42', max: '0' } },
+    { line: 10, desc: '42 > 0？真——max 更新为 42。', vars: { i: '0', count: '1', sum: '42', max: '42' } },
+    { line: 6, desc: 'i=1：snr[1]=18 ≥ 30？假——跳过计数和累加（分支在循环里工作）。', vars: { i: '1', count: '1', sum: '42', max: '42' } },
+    { line: 10, desc: '18 > 42？假——max 保持 42。擂台没被打下来。', vars: { i: '1', count: '1', sum: '42', max: '42' } },
+    { line: 6, desc: 'i=2：35 ≥ 30？真——count=2，sum=77。', vars: { i: '2', count: '2', sum: '77', max: '42' } },
+    { line: 6, desc: 'i=3：47 ≥ 30？真——count=3，sum=124。', vars: { i: '3', count: '3', sum: '124', max: '42' } },
+    { line: 10, desc: '47 > 42？真——新擂主 47！', vars: { i: '3', count: '3', sum: '124', max: '47' } },
+    { line: 12, desc: '循环结束（i=4 不满足 <4）。输出：均值 = 124/3 ≈ 41.3。注意 (float) 强转避免整数除法！', out: '可用3颗 均值41.3 最强47' },
+  ]}
+/>
+
+> 第 13 行的 `(float)sum/count` 是第 3 章"除法陷阱"的回归：不强转的话 124/3=41（整除截断）。旧知识会在新场景反复"查岗"。
+
+## 动手实验：逐颗遍历 12 颗卫星
+
+<BeidouSatLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：给定 12 颗卫星 SNR 数组，统计可用数、平均值、最大值。先默写三大件的初始化位置。
+2. **AI 优化进阶版**：让 AI 增加"最弱可用卫星"（min 擂台）与"可用率百分比"。审查 min 的初始值——AI 若写 `min=0` 就永远打不了擂（所有 SNR 都>0），正确姿势是初始化为一个足够大的数或第一个元素。
+3. **信创加固定稿版**：count=0 时除法防护（`sum/count` 除零！）；SNR 合法范围校验（0~60）；思考观测 1 小时=3600 帧×12 颗，`int sum` 会不会溢出？
+
+## 素养与思政
+
+从 2000 年北斗一号双星起步，到 2020 年 55 颗组网收官，北斗人用 20 年把"点名册"从 2 写到 55。每颗卫星发射前，测试团队要遍历数千项指标——**一项不过，整星不放行**。
+你的 for 循环每秒点名 12 颗卫星，北斗地面运控系统每天点名全星座数万次。**遍历，是工程世界最朴素的责任制：一个都不能漏。**
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="把 int count = 0; 写进 for 循环体内，会发生什么？"
+  options={['没有影响', '每圈都被重置为 0，最终 count 只反映最后一圈', '编译报错', 'count 变成负数']}
+  answer={1}
+  explain="循环体内的初始化每圈执行一次——计数器刚 +1 就被清零。『三大件循环外初始化』是遍历统计的铁律。"
+/>
+
+<QuizItem
+  client:visible
+  question="求最小值时，min 的初始值应该设为？"
+  options={['0', '一个比所有可能数据都大的值（或数组第一个元素）', '-1', '随便设']}
+  answer={1}
+  explain="若 min=0 而所有 SNR 都是正数，打擂条件 snr[i]<min 永远为假，min 将错误地停在 0。max 初始化为极小值、min 初始化为极大值——方向别搞反。"
+/>

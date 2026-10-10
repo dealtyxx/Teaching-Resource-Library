@@ -1,0 +1,92 @@
+---
+module: 8
+moduleName: 文件
+order: 43
+title: 我的第一份日志文件
+level: 基础必做
+scene: 入门基础
+knowledge: [fopen/fclose, 文本写入, 基本IO]
+stars: 4
+minutes: 70
+goal: 建立文件持久化概念
+sizheng: 好记性不如烂笔头——文明因记录而延续，系统因日志而可信
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import FirstFileLab from '../../components/react/FirstFileLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：程序死了，数据怎么活下来
+
+第 1 章的内存布局表写着残酷事实：**RAM 断电即失**。你算出的每个结果、录入的每条记录，程序一退出全部灰飞烟灭。
+**文件**是数据的"诺亚方舟"——存进磁盘/Flash，程序重启、设备断电都不怕。C 的文件操作是雷打不动的三部曲：
+
+```c
+FILE *fp = fopen("log.txt", "a");   /* ① 开:拿句柄 */
+if (fp == NULL) return -1;          /*    必查失败! */
+fprintf(fp, "系统启动\n");           /* ② 写:像printf多个fp */
+fclose(fp);                          /* ③ 关:缓冲落盘 */
+```
+
+模式字符串是第一考点：`"r"` 读、`"w"` 写（**清空重写！**）、`"a"` 追加。日志永远用 `"a"`——用 `"w"` 写日志，是把史官的竹简烧了重刻。
+
+## 一步一步看三部曲
+
+<CStepRunner
+  client:visible
+  title="文件模拟：一条日志的落盘之旅"
+  badge="fopen 三部曲模拟"
+  doneNote="开-写-关，一个都不能省：不开无句柄，不关缓冲区可能没落盘（掉电丢数据）。fp 是程序与文件之间唯一的桥。"
+  code={`#include <stdio.h>
+
+int main(void) {
+    FILE *fp = fopen("log.txt", "a");
+    if (fp == NULL) {
+        printf("打开失败\\n");
+        return -1;
+    }
+    fprintf(fp, "[10:23] 自检通过\\n");
+    fclose(fp);
+    return 0;
+}`}
+  steps={[
+    { line: 3, desc: 'fopen 向操作系统申请打开文件："a" 追加模式——文件不存在则创建，存在则把写入位置定到末尾。', vars: { fp: '?' } },
+    { line: 4, desc: '第一防线：fopen 可能失败（磁盘满/无权限/路径错），失败返回 NULL。不查就往下写=对空指针解引用（第 2 章 AI 三大错之首）。', vars: { fp: '0x6100(有效)' } },
+    { line: 8, desc: 'fprintf(fp, ...)：与 printf 唯一的区别是第一个参数——写给文件而不是屏幕。数据先进入缓冲区。', vars: { fp: '0x6100', 缓冲区: '"[10:23] 自检通过"' } },
+    { line: 9, desc: 'fclose：把缓冲区剩余数据冲刷（flush）到磁盘、归还句柄。此刻数据才真正安全。', vars: { 磁盘: '已落盘✓' } },
+    { line: 10, desc: '程序结束，所有变量销毁——但 log.txt 躺在磁盘上，等待下一次开机被读起。这就是持久化。', out: '(屏幕无输出,内容在文件里)' },
+  ]}
+/>
+
+## 动手实验：RAM 与磁盘的生死对照
+
+<FirstFileLab client:only="react" />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：写一个程序每次运行追加一行"第N次启动"，运行三次后用记事本打开 log.txt 验收。体会"程序会退出，文件在生长"。
+2. **AI 优化进阶版**：让 AI 加上时间戳（`time.h` 的 time/localtime/strftime）。审查它 fopen 失败分支写了没——AI 常跳过这步。
+3. **信创加固定稿版**：检查 fprintf 返回值（磁盘满时写入也会失败）；关键日志写完即 `fflush`；思考嵌入式 Flash 的写入寿命（约 10 万次擦写）——"每秒写一条"的日志一年写多少次？该攒批再写吗？
+
+## 素养与思政
+
+司马迁著《史记》"究天人之际，通古今之变"，靠的是史官世家数百年不断的记录。敦煌藏经洞的一卷卷文书，让千年前的日常今日可考。**文明的连续性建立在记录的连续性上。**
+系统亦然：飞行有黑匣子，手术有病历，服务器有日志——出了问题，记录就是唯一的时光机。你今天写下的第一行 fprintf，是工程师版的"史官第一笔"：**如实、及时、不可篡改**。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question='fopen("log.txt", "w") 与 fopen("log.txt", "a") 的关键区别是？'
+  options={['没有区别', 'w 清空文件从头写；a 保留内容在末尾追加——写日志必须用 a', 'a 模式不能创建新文件', 'w 模式速度更快']}
+  answer={1}
+  explain="w = write（覆盖），a = append（追加）。一字之差可以毁掉全部历史数据——生产事故名录上这一条常年在榜。"
+/>
+
+<QuizItem
+  client:visible
+  question="为什么 fopen 之后必须检查返回值是否为 NULL？"
+  options={['语法要求', '打开可能失败（无权限/磁盘满/路径错误），失败返回 NULL；不检查就使用 fp 等于解引用空指针', 'NULL 表示文件为空', '只有读模式需要检查']}
+  answer={1}
+  explain="文件操作是程序与外部世界打交道——外部世界永远可能出错。『每个 fopen 后面跟一个 NULL 检查』应当成为肌肉记忆，与第 2 章审查 AI 代码的第一条完全一致。"
+/>

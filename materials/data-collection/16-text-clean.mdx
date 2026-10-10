@@ -1,0 +1,145 @@
+---
+module: 4
+moduleName: 正则表达式
+order: 16
+title: 文本脏数据清洗替换器
+level: 进阶选做
+scene: 数据清洗
+knowledge: ["sub()替换", compile预编译, 反向引用]
+stars: 3
+minutes: 40
+goal: 掌握正则替换与优化
+sizheng: 清洗不改语义——效率与真实并重
+dims: [科研诚信, 创新思维]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import PyStepRunner from '../../components/react/PyStepRunner';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+
+## 场景导入
+
+你接手一批从网页复制来的商品评论，打开一看：全角数字混着半角、HTML 标签没删干净、句尾一连串「！！！」、还夹着大片多余空格。模型可读不了这样的「脏数据」。这一课，我们用 `re.sub` 给文本「洗个澡」——但记住一条铁律：只做规范化，绝不改动原意。
+
+## 动手实验
+
+`re.sub(pattern, repl, s)` 把匹配到的片段替换成新内容；`repl` 既可以是字符串，也可以是一个函数。清洗规则往往要反复施用，这时 `re.compile` 预编译就派上用场——同一个模式只解析一次，又快又清晰：
+
+```python
+# 写法一：每次都重新解析同一个模式，能跑，但重复
+re.sub(r'\s+', ' ', a)
+re.sub(r'\s+', ' ', b)
+
+# 写法二：预编译一次，反复复用——更快，也让「这是一条固定规则」一目了然
+WS = re.compile(r'\s+')
+WS.sub(' ', a)
+WS.sub(' ', b)
+```
+
+下面这个清洗器把「去标签、全角转半角、去重复标点、规整空白」串成一条流水线，而且每一步都往**审计清单**里记一笔「改了什么」。运行看看清洗前后的对照：
+
+<PyPlayground
+  client:visible
+  title="文本清洗替换器（带审计清单）"
+  note="在 raw 里再塞几个全角符号或多余空格，看审计清单会不会如实记下每一处改动——可追溯，是科研级清洗的底线。"
+  code={`import re
+
+raw = "  <p>订单 ＮＯ．１２３４</p>  已  发货了，，，电话 ０１０-６６６６。。 <br/> 请查收"
+
+log = []  # 审计清单：只记录「改了什么」，不改变原意
+
+tag = re.compile(r'<[^>]+>')          # 预编译：多处复用更快、更可读
+n_tag = len(tag.findall(raw))
+text = tag.sub('', raw)
+log.append(f"去标签：删除 {n_tag} 处 HTML 残留标签")
+
+def to_half(m):                        # 全角 -> 半角：码位平移 0xFEE0
+    return chr(ord(m.group()) - 0xFEE0)
+text = re.sub(r'[０-９Ａ-Ｚａ-ｚ]', to_half, text)
+log.append("全角转半角：数字与字母统一为半角")
+
+text = re.sub(r'([，。！？])\\1+', r'\\1', text)   # 反向引用：重复标点只留一个
+log.append("去重复标点：连续叠字标点合并为一个")
+
+text = re.sub(r'\\s+', ' ', text).strip()
+log.append("空白规整：连续空白合并为单个空格")
+
+print("清洗前：", repr(raw))
+print("清洗后：", repr(text))
+print("--- 改了什么（审计清单）---")
+for i, item in enumerate(log, 1):
+    print(f"  {i}. {item}")`}
+/>
+
+## 逐行看懂
+
+单独看两个最容易搞混的操作：用替换函数把全角数字改成半角，再用「反向引用」把重复的标点收成一个——注意每一步都没有改变文字的原意：
+
+<PyStepRunner
+  client:visible
+  title="替换函数 + 反向引用"
+  fileName="clean.py"
+  code={`import re
+raw = "价格 １００ 元。。。"
+half = re.sub(r'[０-９]', lambda m: chr(ord(m.group()) - 0xFEE0), raw)
+clean = re.sub(r'([。，])\\1+', r'\\1', half)
+print(clean)`}
+  steps={[
+    { line: 0, desc: '导入 re。' },
+    { line: 1, desc: '一段脏文本：全角数字「１００」加上重复的句号。', vars: { raw: '"价格 １００ 元。。。"' } },
+    { line: 2, desc: '第一次 sub：对每个全角数字调用函数，减去固定码位偏移，换成半角数字。', vars: { half: '"价格 100 元。。。"' } },
+    { line: 3, desc: '第二次 sub 用了反向引用：让替换式复用括号里捕获的那个标点，于是「。。。」折叠成一个「。」。', vars: { clean: '"价格 100 元。"' } },
+    { line: 4, desc: '打印清洗结果——格式变干净，意思一字未改。', out: '价格 100 元。' },
+  ]}
+/>
+
+## 思政会客厅
+
+<DimCard dim="科研诚信" title="清洗不改语义">
+  <ul>
+    <li>清洗是为了让真相更清楚，不是把数据改成你想要的样子。删空格、转半角属于「规范化」；改数值、悄悄删掉「碍事」的样本，就滑向了「造假」。</li>
+    <li>每一步都记进审计清单，别人才能复现你的结果。可复现，是诚信最硬的技术证据。</li>
+    <li>遇到可疑数据，先标注、再讨论，而不是直接抹掉——异常里可能正藏着真问题。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="创新思维" title="从「能跑」到「工程」">
+  <ul>
+    <li>re.compile 把模式变成可复用的对象，既快，又让「这是一条固定规则」显性化。</li>
+    <li>把零散的替换整理成有序流水线，每一步单一职责、可插拔——这就是工程化思维。</li>
+    <li>好的清洗器像流水线：换一种脏数据，只需增删一节，而不必推倒重来。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="🔬" tone="green" title="审计意识：留一份「改动清单」">
+清洗后的数据固然干净，可若没人知道你到底动了哪里，这份数据就失去了可信度。养成习惯：每一步替换都记一笔「改了什么、改了多少」。可追溯的清洗，才敢拿去做科研。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p16-d1"
+  question="清洗时你发现有 3 条数据「看起来不太对」，顺手就删了。这样做可能带来什么风险？换成你，会怎么处理？"
+  hints={['「看起来不对」是主观判断，究竟是真异常还是真信号？先分清', '删除若不留记录，结果便无法复现，还可能引入偏差', '更稳妥：标注 + 记录理由 + 保留原始副本，让每次删除都可回溯']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="关于 re.compile，下面说法正确的是？"
+  options={['它能自动修正正则里的语法错误', '把同一个模式预编译成对象，多次复用时更高效也更清晰', '编译后正则就能匹配任意语言的文本', '只有 compile 过的正则才支持中文']}
+  answer={1}
+  explain="re.compile 把模式字符串预编译为 Pattern 对象；当同一模式要反复使用时，省去了每次重新解析的开销，既更快，也让「固定规则」在代码里更醒目。"
+/>
+
+<QuizItem
+  client:visible
+  question="数据清洗中，下面哪种做法违背科研诚信？"
+  options={['把全角数字统一成半角', '合并多余的空格', '直接删掉「不符合预期」的真实数据且不作任何记录', '为每一步替换保留审计清单']}
+  answer={2}
+  explain="规范化格式不改变数据含义，是正当清洗；而删掉真实却「碍眼」的数据又不留痕迹，会扭曲结论、无法复现，属于典型的学术不端。"
+/>

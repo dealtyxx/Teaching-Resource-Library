@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>强交互总览 · 第6章 分支限界法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">06</div>算法可视化 · <span>第6章 分支限界法</span></div>
+<div class="links"><a class="pill active" href="index.html">总览</a><a class="pill" href="01-overview.html">概述对比</a><a class="pill" href="02-bound.html">限界函数</a><a class="pill" href="03-framework.html">两种框架</a><a class="pill" href="04-bfs.html">广度优先</a><a class="pill" href="05-sssp.html">3D迷宫</a><a class="pill" href="06-knapsack.html">背包树</a><a class="pill" href="07-assign-tsp.html">TSP巡游</a><a class="pill" href="08-astar.html">A* 可视</a><a class="pill" href="09-8puzzle.html">八数码3D</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow"><span class="pulse-dot"></span> Immersive Lab · Chapter 6</div>
+  <h1>分支限界法 · 沉浸式交互实验室</h1>
+  <p>不只是说明文字——用<strong>粒子波前、等距 3D 迷宫、生长决策树、立体滑块</strong>把「BFS + 限界剪支」变成看得见的过程。</p>
+  <div class="hero-meta">
+    <span class="chip blue">🎨 Canvas 动效</span>
+    <span class="chip green">🧊 CSS / 等距 3D</span>
+    <span class="chip red">🎮 可点可拖可调速</span>
+  </div>
+</section>
+<section class="sec">
+  <div class="sec-head"><h2>本章学习目标</h2><span class="sub">Chapter Objectives · 分支限界法</span></div>
+  <div class="objectives"><h3>学习目标</h3><ol>
+    <li>能够<b>说出</b>分支限界法（branch and bound）的三要素——<b>扩展结点</b>、<b>活结点表</b>、<b>限界函数</b>，并解释三者如何共同决定搜索过程。</li>
+    <li>能够<b>区分</b>队列式分支限界法（FIFO 分支限界）与优先队列式分支限界法（LC 分支限界），并为具体问题选择合适的活结点表组织方式。</li>
+    <li>能够<b>构造</b> 0/1 背包、任务分配、TSP 等问题的限界函数，并<b>论证</b>其合法性——限界值不劣于该结点子树内的任何可行解，因此剪支不会误删最优解。</li>
+    <li>能够<b>实现</b>分支限界法求解最短路径、0/1 背包、八数码等经典问题的 C++ 程序。</li>
+    <li>能够<b>分析</b>分支限界算法的时间与空间复杂度，解释「限界越紧 ⇒ 剪支越强 ⇒ 单点计算代价越高」的权衡关系。</li>
+    <li>能够<b>比较</b>回溯法与分支限界法的适用场景，并说明 A<sup>*</sup> 算法本质上是以 f = g + h 为优先级的优先队列式分支限界。</li>
+  </ol></div>
+</section>
+
+<div class="card" style="--accent:linear-gradient(90deg,#C2603F,#7E62A6,#A02C55);margin-bottom:18px">
+  <div class="formula lg">分支限界 ＝ 广度（或优先）搜索 ＋ 限界剪支</div>
+  <div class="stage-wrap" style="margin-top:14px;height:160px">
+    <canvas class="stage" id="heroCv" width="1100" height="160"></canvas>
+    <div class="stage-hud"><span class="hud-pill">LIVE · 解空间搜索示意</span><span class="hud-pill">自动循环</span></div>
+  </div>
+</div>
+<div class="grid grid-2 stagger">
+<a class="feature-card" href="01-overview.html" style="--c:#C2603F" data-ico="⚖️">
+  <div class="num">图 01</div><h3>概述与对比</h3><p>3D 翻转卡片 · 回溯 vs 分支限界</p><div class="go">进入沉浸演示 →</div>
+</a>
+<a class="feature-card" href="02-bound.html" style="--c:#A02C55" data-ico="✂️">
+  <div class="num">图 02</div><h3>限界函数实验室</h3><p>立体仪表盘 · 剪支瞬间高亮</p><div class="go">进入沉浸演示 →</div>
+</a>
+<a class="feature-card" href="03-framework.html" style="--c:#A34E31" data-ico="📋">
+  <div class="num">图 03</div><h3>两种框架</h3><p>队列流水线动画可视化</p><div class="go">进入沉浸演示 →</div>
+</a>
+<a class="feature-card" href="04-bfs.html" style="--c:#96382F" data-ico="🌊">
+  <div class="num">图 04</div><h3>广度优先</h3><p>粒子波前 · 图上扩散</p><div class="go">进入沉浸演示 →</div>
+</a>
+<a class="feature-card" href="05-sssp.html" style="--c:#D97757" data-ico="🗺️">
+  <div class="num">图 05</div><h3>3D 等距迷宫</h3><p>立体墙体 · 波前爬升</p><div class="go">进入沉浸演示 →</div>
+</a>
+<a class="feature-card" href="06-knapsack.html" style="--c:#C4564A" data-ico="🌳">
+  <div class="num">图 06</div><h3>背包搜索树</h3><p>动态生长的决策树</p><div class="go">进入沉浸演示 →</div>
+</a>
+<a class="feature-card" href="07-assign-tsp.html" style="--c:#8C4028" data-ico="🧳">
+  <div class="num">图 07</div><h3>TSP 城市巡游</h3><p>路径动画 · 限界示意</p><div class="go">进入沉浸演示 →</div>
+</a>
+<a class="feature-card" href="08-astar.html" style="--c:#A02C55" data-ico="⭐">
+  <div class="num">图 08</div><h3>A* 可视化</h3><p>f=g+h 三角权衡 · 网格热力</p><div class="go">进入沉浸演示 →</div>
+</a>
+<a class="feature-card" href="09-8puzzle.html" style="--c:#7E62A6" data-ico="🧩">
+  <div class="num">图 09</div><h3>八数码 3D</h3><p>立体滑块 · A* 回放</p><div class="go">进入沉浸演示 →</div>
+</a></div>
+
+<section class="sec">
+  <div class="sec-head"><h2>知识地图</h2><span class="sub">Knowledge Map · 九节之间怎样衔接</span></div>
+  <p class="desc">全章沿「<strong>是什么 → 靠什么剪 → 怎么组织 → 用在哪 → 走到哪</strong>」一条主线展开。前三节建立框架，中间四节把框架套到具体问题上，最后两节把 A<sup>*</sup> 接回分支限界的谱系。</p>
+  <div class="table-scroll"><table class="data">
+    <tr><th>节次</th><th>主题</th><th>核心概念</th><th>关键产出</th></tr>
+    <tr><td>01</td><td>概述与对比</td><td class="hl">扩展结点 / 活结点表 / 限界函数</td><td>回溯 vs 分支限界的四维对照</td></tr>
+    <tr><td>02</td><td>限界函数</td><td class="hl">上界 ub / 下界 lb</td><td>限界合法性定理与剪支判据</td></tr>
+    <tr><td>03</td><td>两种框架</td><td class="hl">FIFO 队列 / 优先队列</td><td>两套可直接套用的 C++ 框架</td></tr>
+    <tr><td>04</td><td>广度优先</td><td>队列式分支限界的最简形态</td><td>BFS ＝ 活结点表为普通队列</td></tr>
+    <tr><td>05</td><td>迷宫最短路</td><td>网格图上的单源最短路</td><td>状态 / 扩展 / 剪支的具体化</td></tr>
+    <tr><td>06</td><td>0/1 背包</td><td class="hl">分数背包松弛上界</td><td>合法上界的前提：密度降序</td></tr>
+    <tr><td>07</td><td>任务分配 / TSP</td><td>排列树 + 行列最小元下界</td><td>两类下界函数的构造法</td></tr>
+    <tr><td>08</td><td>A<sup>*</sup> 算法</td><td class="hl">f(n) = g(n) + h(n)</td><td>可采纳性 ⇒ 最优性</td></tr>
+    <tr><td>09</td><td>八数码</td><td>状态空间搜索 + 可解性判定</td><td>逆序数奇偶性不变量</td></tr>
+  </table></div>
+  <div class="formula lg">分支限界 ＝ 广度（或优先）搜索 ＋ 限界剪支 ＋ 活结点表</div>
+  <div class="terms">
+    <span class="term"><b>分支限界法</b>branch and bound</span>
+    <span class="term"><b>扩展结点</b>E-node / expanding node</span>
+    <span class="term"><b>活结点表</b>live-node list</span>
+    <span class="term"><b>死结点</b>dead node</span>
+    <span class="term"><b>限界函数</b>bounding function</span>
+    <span class="term"><b>上界</b>upper bound, ub</span>
+    <span class="term"><b>下界</b>lower bound, lb</span>
+    <span class="term"><b>队列式分支限界</b>FIFO branch and bound</span>
+    <span class="term"><b>优先队列式分支限界</b>LC / least-cost branch and bound</span>
+    <span class="term"><b>可采纳性</b>admissibility</span>
+    <span class="term"><b>松弛</b>relaxation</span>
+    <span class="term"><b>排列树</b>permutation tree</span>
+  </div>
+  <div class="tip info"><strong>使用建议：</strong>课堂投影时按 01 → 09 顺序推进；每节先看动画建立直觉，再读定义与代码。带 ✂️ 标记的剪支特效是本章的「戏眼」，务必现场演示一次。</div>
+</section>
+
+<div class="page-nav"><div></div><a href="01-overview.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">概述对比</span></a></div>
+<div class="footer">算法设计与分析 · <b>第6章 分支限界法</b> · 强交互可视化版<br/>Canvas / CSS 3D · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+// ambient particles
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let w,h,parts=[],raf;
+  function resize(){ w=cv.width=innerWidth*devicePixelRatio; h=cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px'; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:36},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2.2, vx:(Math.random()-.5)*.25, vy:-.15-Math.random()*.35, a:.15+Math.random()*.35}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(194,96,63,${p.a})`; ctx.fill();
+    });
+    raf=requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+// hero animated tree search
+const cv=heroCv, ctx=cv.getContext('2d');
+const nodes=[];
+function layout(d=0,x=550,y=24,gap=160,id=0,parent=null){
+  const me={id,x,y,d,parent,L:null,R:null,state:0}; nodes.push(me);
+  if(d<3){ me.L=layout(d+1,x-gap,y+42,gap*.55,nodes.length,id); me.R=layout(d+1,x+gap,y+42,gap*.55,nodes.length,id); }
+  return me.id;
+}
+layout();
+let t=0, order=[], oi=0;
+(function dfs(i){ order.push(i); const n=nodes[i]; if(n.L!=null)dfs(n.L); if(n.R!=null)dfs(n.R); })(0);
+function draw(){
+  const W=cv.width,H=cv.height; ctx.clearRect(0,0,W,H);
+  // links
+  ctx.lineWidth=2;
+  nodes.forEach(n=>{
+    [n.L,n.R].forEach(c=>{
+      if(c==null) return; const ch=nodes[c];
+      ctx.strokeStyle='rgba(162,156,144,.35)';
+      ctx.beginPath(); ctx.moveTo(n.x,n.y+10); ctx.lineTo(ch.x,ch.y-10); ctx.stroke();
+    });
+  });
+  nodes.forEach(n=>{
+    const active=n.id===order[oi%order.length];
+    const g=ctx.createRadialGradient(n.x-4,n.y-4,2,n.x,n.y,14);
+    if(active){ g.addColorStop(0,'#E3A294'); g.addColorStop(1,'#A02C55'); }
+    else if(n.d===0){ g.addColorStop(0,'#EFBBA3'); g.addColorStop(1,'#C2603F'); }
+    else if(n.L==null){ g.addColorStop(0,'#98CBAF'); g.addColorStop(1,'#356F62'); }
+    else { g.addColorStop(0,'#F5D6C6'); g.addColorStop(1,'#D97757'); }
+    ctx.beginPath(); ctx.arc(n.x,n.y, active?13:11,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    if(active){ ctx.strokeStyle='rgba(179,69,59,.35)'; ctx.lineWidth=8; ctx.stroke(); }
+  });
+}
+setInterval(()=>{ oi++; draw(); }, 420); draw();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

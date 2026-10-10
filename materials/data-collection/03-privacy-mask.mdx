@@ -1,0 +1,120 @@
+---
+module: 1
+moduleName: 绪论
+order: 3
+title: 个人信息脱敏小工具
+level: 基础必做
+scene: 隐私合规
+knowledge: [数据隐私, 手机号脱敏, 身份证脱敏]
+stars: 2
+minutes: 40
+goal: 掌握隐私脱敏方法
+sizheng: 树立《个人信息保护法》合规意识
+dims: [法治意识, 职业伦理]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, CaseFileCard, Callout } from '../../components/react/ui';
+import MaskingMachineLab from '../../components/react/labs/MaskingMachineLab';
+
+## 场景导入
+
+社团纳新，你写了个小程序收集报名表：姓名、手机号、身份证号……表是攒起来了，可这份 Excel 一旦转发出去、随手丢在群里，就是一次实打实的信息泄露。与其事后补救，不如在**写入的那一刻**就把它脱敏：手机号只留号段和尾号，身份证藏掉中间的出生信息。这一节，我们用几行切片代码，给个人信息上一道最便宜的保险。
+
+## 玩一玩
+
+先别急着写代码。下面这台「脱敏机」里躺着一条刚采集到的个人信息，拉下拉杆，看右边的「泄露风险仪表」怎么从红区滑回绿区：
+
+<MaskingMachineLab client:visible />
+
+## 动手实验
+
+仪表是演示，真正干活的是函数。`mask_phone` 和 `mask_id` 的核心就一招——字符串切片加拼接：留下两头有用的部分，中间统统换成星号。运行看看前后对照：
+
+<PyPlayground
+  client:visible
+  title="手机号 / 身份证脱敏函数"
+  note="把 mask_phone 改成只保留后 3 位，或自己加一个 mask_email 试试——一边改一边想：留多少，才算既够用又够安全。"
+  code={`# 两个最常用的脱敏函数：切片 + 拼接，只在两头各留一小段
+def mask_phone(phone):
+    # 手机号 11 位：留前 3（号段）与后 4（尾号），中间 4 位打码
+    return phone[:3] + "****" + phone[7:]
+
+def mask_id(idcard):
+    # 身份证 18 位：留前 6（地区）与后 4（含校验位），中间 8 位打码
+    return idcard[:6] + "*" * 8 + idcard[-4:]
+
+records = [
+    ("手机号", "13812345678", mask_phone),
+    ("手机号", "13998887766", mask_phone),
+    ("身份证", "110101200601011234", mask_id),
+    ("身份证", "310110199905053210", mask_id),
+]
+
+print("原文  →  脱敏后")
+print("-" * 30)
+for label, raw, fn in records:
+    print(f"{label}  {raw}  →  {fn(raw)}")`}
+/>
+
+## 思政会客厅
+
+<DimCard dim="法治意识" title="《个保法》给采集划的红线">
+  <ul>
+    <li>《个人信息保护法》第51条：处理个人信息应采取去标识化、加密等安全技术措施——脱敏不是「加分项」，是法定义务。</li>
+    <li>第66条：违法处理个人信息，最高可处五千万元、或上一年度营业额百分之五的罚款。合规的成本，远低于违规的代价。</li>
+    <li>手机号、身份证号是能识别到个人的信息，采集要有明确目的，存储要有安全措施，两者缺一不可。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="职业伦理" title="顺手脱敏，是一种专业默认">
+  <ul>
+    <li>成熟的数据工程师写入库代码时，脱敏是「默认打开」的——不是等出事才补，而是从第一行就防。</li>
+    <li>「反正校内用」「反正没人看」是最常见的侥幸，也是最常见的事故起点。</li>
+    <li>把 mask 函数封装好、全项目复用，让「安全」变成一件不必每次重新决定的习惯。</li>
+  </ul>
+</DimCard>
+
+<CaseFileCard name="某高考志愿填报 App 泄露考生信息案" year={2021} tag="侵犯公民个人信息罪" verdict="相关人员被依法以侵犯公民个人信息罪追究刑事责任。">
+2021 年前后，有不法分子借高考志愿填报类 App 及相关渠道，非法获取、买卖大量考生个人信息——姓名、准考证号、分数、联系方式被明码标价。这些数据若在采集与存储环节做过去标识化，泄露的杀伤力会小得多。技术上省下的每一步脱敏，最后都可能变成法律责任。
+</CaseFileCard>
+
+<Callout icon="⚖️" tone="red" title="脱敏是义务，不是情怀">
+《个保法》第51条要求采取去标识化、加密等措施；第66条给违规定了「最高五千万或营业额百分之五」的罚则。换句话说：`mask_phone` 这几行代码，是你能写出的性价比最高的合规动作。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p03-d1"
+  question="留前 3 后 4 的手机号 138****5678，真的「安全」了吗？会不会结合其他信息被反推出来？"
+  hints={['单看一条也许难还原，但和「某学院、某宿舍楼」拼在一起，候选范围可能骤降', '脱敏强度要匹配场景：对外公开与内部分析，需要的力度并不相同', '去标识化不等于匿名化——只要还能被重新关联，法律上仍算个人信息']}
+/>
+
+<DiscussCard
+  client:visible
+  storageKey="p03-d2"
+  question="老师说「反正是校内用，学号、手机号明文存着方便」，作为数据助理你怎么回应？"
+  hints={['方便与合规常常冲突，但《个保法》的义务不因「内部使用」而豁免', '可以提折中方案：存哈希值或脱敏值，确需还原时再走受控流程', '用一次泄露的代价（第66条罚则）算笔账，往往比讲道理更有说服力']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="mask_phone 保留前 3 位与后 4 位、中间打码。对 13812345678 的输出是？"
+  options={['138****5678', '13812345678', '138****678', '***5678']}
+  answer={0}
+  explain="phone[:3] 取前 3 位 138，phone[7:] 取后 4 位 5678，中间补四颗星，结果是 138****5678——留出号段和尾号方便识别，又藏住了中间指向身份的部分。"
+/>
+
+<QuizItem
+  client:visible
+  question="《个人信息保护法》要求处理个人信息时优先采取的安全措施是？"
+  options={['尽量多采集，方便以后备用', '去标识化、加密等技术措施', '把数据都上传到公网备份', '只要不卖出去就不用处理']}
+  answer={1}
+  explain="《个保法》第51条要求采取去标识化、加密等措施，让数据即使泄露也难以关联到具体个人；这正是 mask_phone、mask_id 这类小函数存在的意义。"
+/>

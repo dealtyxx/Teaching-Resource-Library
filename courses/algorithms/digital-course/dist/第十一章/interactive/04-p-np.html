@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>P与NP · 第11章 计算复杂性</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">11</div>算法可视化 · <span>第11章 计算复杂性</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-easy-hard.html">易解难解</a><a class="pill" href="02-decision.html">判定优化</a><a class="pill" href="03-turing.html">图灵机</a><a class="pill active" href="04-p-np.html">P与NP</a><a class="pill" href="05-classes.html">类关系</a><a class="pill" href="06-reduce.html">归约</a><a class="pill" href="07-npc.html">NPC证明</a><a class="pill" href="08-sat.html">SAT</a><a class="pill" href="09-clique.html">团问题</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 4 · 核心类</div>
+  <h1>P 类与 NP 类</h1>
+  <p><strong>P</strong>：确定性多项式时间可解。 <strong>NP</strong>：yes 实例有多项式长证书，可多项式验证。N ≠ Non-polynomial！</p>
+</section>
+
+<div class="objectives">
+  <h3>学习目标</h3>
+  <ol>
+    <li>能够写出 <b>P</b> 的语言类定义：存在 DTM 在多项式时间内<b>判定</b>的语言全体。</li>
+    <li>能够写出 <b>NP</b> 的<b>证书 / 验证器</b>定义，说明「证书多项式长」与「验证多项式时间」两条缺一不可。</li>
+    <li>能够说明 NP 的<b>两种等价定义</b>（NTM 版与验证器版）为何一致（承接第 3 节定理 3.1）。</li>
+    <li>能够证明 <b>P ⊆ NP</b>：判定器本身就可充当一个忽略证书的验证器。</li>
+    <li>能够准确陈述 <b>P vs NP 问题</b>，说明它一旦被解决会带来什么后果。</li>
+    <li>能够辨析经典误解：<b>NP 中的 N 是 Nondeterministic，不是 Non-polynomial</b>。</li>
+  </ol>
+</div>
+
+<div class="grid grid-2">
+  <div class="card" style="--accent:linear-gradient(90deg,#3B7A57,#4A6C8C)">
+    <span class="badge green">P</span>
+    <h3>Polynomial Time</h3>
+    <p>存在 DTM 在 poly(n) 步内判定。</p>
+    <div class="tip ok">排序 · 最短路 · 最大流 · 线性规划…</div>
+  </div>
+  <div class="card" style="--accent:linear-gradient(90deg,#A02C55,#7E62A6)">
+    <span class="badge">NP</span>
+    <h3>Nondeterministic P</h3>
+    <p>存在短证书 + 多项式验证器。</p>
+    <div class="tip warn">SAT · 团 · 哈密顿 · TSP 判定…</div>
+  </div>
+</div>
+<div class="card" style="margin-top:16px">
+  <h3>交互：求解 vs 验证</h3>
+  <p class="desc" style="margin-bottom:10px">给定子集和实例：是否存在子集和为 <b>t=15</b>？「求解」穷举；「验证」检查给定证书。</p>
+  <div class="cells" id="nums"></div>
+  <div class="toolbar">
+    <button class="btn" id="solve">🔍 暴力求解</button>
+    <button class="btn primary" id="verify">✓ 验证证书 {2,5,8}</button>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>求解步骤</span><b class="rose" id="steps">0</b></div>
+    <div class="stat"><span>验证步骤</span><b class="green" id="vsteps">0</b></div>
+    <div class="stat"><span>结果</span><b class="violet" id="res">—</b></div>
+  </div>
+  <div class="log" id="log">点击按钮对比「找答案」与「验证书」的代价。</div>
+  <div class="formula lg" style="margin-top:14px">公认 P ⊆ NP · P =? NP 未决</div>
+</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul><li><b>P 的含义</b>：存在多项式时间算法能<strong>求解</strong>的判定问题类。</li><li><b>NP 的含义</b>：给定一个“证书”，能在多项式时间内<strong>验证</strong>其正确性的判定问题类（N = 非确定，非“Non-Polynomial”）。</li><li><b>常见误读</b>：NP <strong>不是</strong>“非多项式时间”；许多 NP 问题（如排序判定）本身就在 P 中。</li><li><b>包含关系</b>：<code>P &sube; NP</code>（能求解自然能验证，证书可为空）。</li><li><b>核心未解</b>：<code>P =? NP</code> 至今未证，是理论计算机科学第一难题。</li><li><b>验证≠求解</b>：NP 强调“有了答案能快速查”，不代表“能快速找到答案”。</li></ul></div>
+<div class="summary"><span class="lbl">本节小结</span><ul><li>P：多项式时间可<strong>求解</strong>的判定问题。</li><li>NP：多项式时间可<strong>验证</strong>（给证书）的判定问题，N 意为非确定型。</li><li><code>P &sube; NP</code>；<code>P =? NP</code> 是公开难题。</li><li>NP 并非“非多项式”，切勿望文生义。</li><li>NPC（NP 完全）是 NP 中“最难”的一类，凡 NP 问题都可多项式归约到它。</li></ul></div>
+<div class="quiz"><div class="quiz-item"><div class="quiz-q"><span class="qn">1</span>NP 类的准确含义是？</div><div class="quiz-opts"><div class="quiz-opt"><span class="mk">A</span><span>非多项式时间才能解决的问题</span></div><div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>存在证书、可在多项式时间内验证的判定问题</span></div><div class="quiz-opt"><span class="mk">C</span><span>一定不能在多项式时间求解的问题</span></div></div><div class="quiz-exp">NP = 多项式时间可验证；N 指非确定型，绝非“非多项式”。</div></div><div class="quiz-item"><div class="quiz-q"><span class="qn">2</span>P 与 NP 的关系目前已知的是？</div><div class="quiz-opts"><div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>P &sube; NP</span></div><div class="quiz-opt"><span class="mk">B</span><span>NP &sube; P</span></div><div class="quiz-opt"><span class="mk">C</span><span>P 与 NP 无关</span></div></div><div class="quiz-exp">能多项式求解必能多项式验证，故 <code>P &sube; NP</code>；是否相等未知。</div></div><div class="quiz-item"><div class="quiz-q"><span class="qn">3</span>“P = NP 是否成立”这一问题的现状是？</div><div class="quiz-opts"><div class="quiz-opt"><span class="mk">A</span><span>已证明相等</span></div><div class="quiz-opt"><span class="mk">B</span><span>已证明不相等</span></div><div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>至今未解决</span></div></div><div class="quiz-exp">这是悬而未决的著名公开问题。</div></div></div>
+<div class="page-nav"><a href="03-turing.html"><span class="dir">← 上一节</span><span class="name">图灵机</span></a><a href="05-classes.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">类关系</span></a></div>
+<div class="footer">算法设计与分析 · <b>第11章 计算复杂性</b> · 强交互可视化版<br/>增长 · 归约 · SAT · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(179,69,59,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const a=[3,5,2,8,1,7], t=15;
+const cells=nums;
+function render(hi=new Set(), mode=''){
+  cells.innerHTML=a.map((v,i)=>`<div class="cell ${hi.has(i)?(mode||'on'):''}">${v}</div>`).join('');
+}
+render();
+function* subsets(){
+  const n=a.length;
+  for(let m=0;m<(1<<n);m++){
+    const idx=[]; let s=0;
+    for(let i=0;i<n;i++) if(m>>i&1){ idx.push(i); s+=a[i]; }
+    yield {idx,s,m};
+  }
+}
+solve.onclick=async()=>{
+  let count=0; res.textContent='搜索中…';
+  for(const {idx,s} of subsets()){
+    count++; steps.textContent=count;
+    render(new Set(idx),'live');
+    log.textContent=`尝试子集和=${s} · 已检查 ${count} 个子集`;
+    if(count%3===0) await sleep(40);
+    if(s===t){ render(new Set(idx),'hit'); res.textContent='YES'; log.textContent=`找到！和=${t} · 共检查 ${count} 个子集（最坏 2^n）`; return; }
+  }
+  res.textContent='NO';
+};
+verify.onclick=async()=>{
+  const cert=[1,2,3]; // indices of 5,2,8
+  let s=0, c=0;
+  for(const i of cert){
+    c++; vsteps.textContent=c; s+=a[i];
+    render(new Set(cert.slice(0,c)),'on');
+    log.textContent=`证书加入 a[${i}]=${a[i]} · 当前和=${s}`;
+    await sleep(350);
+  }
+  const ok=s===t;
+  render(new Set(cert), ok?'hit':'dead');
+  res.textContent=ok?'YES（证书有效）':'NO';
+  log.textContent=`验证完成：Σ=${s} ${ok?'=':'≠'} t · 仅 O(|证书|) 步`;
+};
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

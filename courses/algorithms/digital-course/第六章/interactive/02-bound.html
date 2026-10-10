@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>限界函数 · 第6章 分支限界法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">06</div>算法可视化 · <span>第6章 分支限界法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述对比</a><a class="pill active" href="02-bound.html">限界函数</a><a class="pill" href="03-framework.html">两种框架</a><a class="pill" href="04-bfs.html">广度优先</a><a class="pill" href="05-sssp.html">3D迷宫</a><a class="pill" href="06-knapsack.html">背包树</a><a class="pill" href="07-assign-tsp.html">TSP巡游</a><a class="pill" href="08-astar.html">A* 可视</a><a class="pill" href="09-8puzzle.html">八数码3D</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 2 · 限界实验室</div>
+  <h1>看见剪支发生的瞬间</h1>
+  <p>下方是<strong>立体仪表盘</strong>：ub 指针扫过「已知最优」红线时触发剪支特效。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>陈述并证明</b>限界函数的合法性条件，说明为什么按限界剪支不会误删最优解。</li>
+  <li>能够<b>对称地</b>写出最大化问题（上界 ub）与最小化问题（下界 lb）的剪支判据。</li>
+  <li>能够<b>解释</b>「限界越紧 ⇒ 剪支越强 ⇒ 单点计算代价越高」这一权衡，并据此评价一个限界函数的优劣。</li>
+  <li>能够把限界判据<b>落实</b>到 C++ 代码中的具体位置。</li>
+</ol></div>
+
+<div class="grid grid-2">
+  <div class="card" style="--accent:#C2603F"><div class="badge">最大化</div><h3>上界 ub 不增</h3>
+    <p class="desc">若 ub ≤ maxV → 剪。本实验采用：ub = 已选 + 乐观剩余。</p></div>
+  <div class="card" style="--accent:#A02C55"><div class="badge red">最小化</div><h3>下界 lb 不减</h3>
+    <p class="desc">若 lb ≥ minV → 剪。与最大化对称。</p></div>
+</div>
+<div class="card" style="margin-top:16px;--accent:linear-gradient(90deg,#C2603F,#A02C55)">
+  <div class="toolbar">
+    <label>已选</label><input type="range" id="got" min="0" max="20" value="8"/><span class="kbd" id="gotV">8</span>
+    <label>乐观</label><input type="range" id="hope" min="0" max="20" value="5"/><span class="kbd" id="hopeV">5</span>
+    <label>最优</label><input type="range" id="best" min="0" max="30" value="15"/><span class="kbd" id="bestV">15</span>
+  </div>
+  <div class="stage-wrap light" style="margin-top:8px">
+    <canvas class="stage" id="gauge" width="1000" height="280"></canvas>
+    <div class="stage-hud"><span class="hud-pill light" id="hud">ub 仪表</span><span class="hud-pill light" id="hud2">—</span></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>ub</span><b class="blue" id="ubV">13</b></div>
+    <div class="stat"><span>判定</span><b id="cutV">继续</b></div>
+  </div>
+  <div class="tip" id="tip">拖动滑块，观察指针与剪支火花。</div>
+  <p class="desc">上方仪表盘演示的是<strong>最大化</strong>情形：ub ＝ 已选价值 ＋ 乐观剩余估计，当 ub ≤ 已知最优 best 时触发剪支。最小化情形完全对称，见下文第三小节。</p>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>一、限界函数的定义与合法性</h2><span class="sub">为什么剪支不会剪掉最优解</span></div>
+  <p class="desc">限界函数是整个分支限界法的理论基石。它必须满足一个严格的条件，否则算法虽然跑得飞快，却会给出<strong>错误答案</strong>——这正是本章第 6 节要重点纠正的经典陷阱。</p>
+
+  <div class="defn"><span class="lbl">定义 · 限界函数</span>
+    <p>设结点 x 位于解空间树上，记 S(x) 为「以 x 为根的子树中所有<strong>可行解</strong>」构成的集合，记 val(y) 为可行解 y 的目标值。<br/>
+    对<b>最大化</b>问题，函数 ub(·) 称为合法的<b>上界函数</b>，当且仅当对任意结点 x 与任意 y ∈ S(x)，都有 <strong>ub(x) ≥ val(y)</strong>。<br/>
+    对<b>最小化</b>问题，函数 lb(·) 称为合法的<b>下界函数</b>，当且仅当对任意结点 x 与任意 y ∈ S(x)，都有 <strong>lb(x) ≤ val(y)</strong>。</p>
+  </div>
+
+  <div class="formula lg">最大化：ub(x) ≥ max<sub>y∈S(x)</sub> val(y) &nbsp;&nbsp;·&nbsp;&nbsp; 最小化：lb(x) ≤ min<sub>y∈S(x)</sub> val(y)</div>
+
+  <div class="defn thm"><span class="lbl">定理 · 剪支的正确性</span>
+    <p>设 best 是算法当前已找到的<strong>某个真实可行解</strong>的目标值。若 ub(·) 是合法上界函数，则当 ub(x) ≤ best 时丢弃结点 x 的整棵子树，<strong>不会使算法丢失最优解</strong>。</p>
+  </div>
+
+  <div class="deriv">
+    <span class="step">设 y<sup>*</sup> 是子树 S(x) 中的任意可行解 <span class="why">要证明丢弃它们都不亏</span></span>
+    <span class="step">由上界合法性：val(y<sup>*</sup>) ≤ ub(x) <span class="why">定义直接给出</span></span>
+    <span class="step">由剪支条件：ub(x) ≤ best <span class="why">这是触发剪支的前提</span></span>
+    <span class="step">传递可得：val(y<sup>*</sup>) ≤ best <span class="why">不等式串联</span></span>
+    <span class="step">而 best 对应的解是<strong>已经握在手里</strong>的真实可行解 <span class="why">关键：best 不是估计值</span></span>
+    <span class="step">⇒ 子树 S(x) 内不存在<strong>严格优于</strong>已知解的可行解 ⇒ 整棵子树可安全丢弃 ∎</span>
+  </div>
+
+  <div class="tip info"><strong>证明中最容易被忽略的一环：</strong>best 必须来自一个<strong>真实构造出来的可行解</strong>，而不能是另一个估计值。若用估计值当 best，上面的推理链在最后一步断裂——你只能得出「子树内没有比某个估计更好的解」，这毫无意义。因此代码中 best 只在<strong>到达叶结点并验证可行</strong>时才更新。</div>
+
+  <div class="defn prop"><span class="lbl">推论 · 剪支条件用 ≤ 还是 &lt;</span>
+    <p>若只需求出<strong>一个</strong>最优解，用 ub(x) ≤ best 剪支（丢弃「不严格更优」的子树）即可，剪支力度更大。若需求出<strong>全部</strong>最优解，必须放宽为 ub(x) &lt; best，否则会漏掉与当前 best 目标值相同的其他最优解。<strong>浮点比较时还需加 ε：</strong>ub(x) ≤ best + 1e-9。</p>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>二、紧与松：限界函数的质量</h2><span class="sub">tightness · 剪支力度与计算代价的权衡</span></div>
+  <p class="desc">合法性只是「及格线」。同一个问题可以有无穷多个合法上界，它们的效率天差地别。</p>
+
+  <div class="defn prop"><span class="lbl">性质 · 限界越紧，剪支越强</span>
+    <p>若 ub<sub>1</sub> 与 ub<sub>2</sub> 都合法且对任意结点 x 有 ub<sub>1</sub>(x) ≤ ub<sub>2</sub>(x)，则称 ub<sub>1</sub> <b>更紧</b>（tighter）。此时凡 ub<sub>2</sub> 能剪掉的结点 ub<sub>1</sub> 必能剪掉，故 ub<sub>1</sub> 搜索的结点数不多于 ub<sub>2</sub>。<strong>最紧的合法上界就是子树内的真实最优值本身</strong>——但那需要先解出子问题，等于没说。</p>
+  </div>
+
+  <div class="table-scroll"><table class="data">
+    <tr><th>0/1 背包的三种上界</th><th>表达式</th><th>紧度</th><th>单点代价</th><th>评价</th></tr>
+    <tr><td>平凡上界</td><td>ub ＝ 全部物品价值之和</td><td>极松</td><td>Θ(1)</td><td>合法但几乎剪不掉任何结点</td></tr>
+    <tr><td>密度上界</td><td>ub ＝ cv ＋ 剩余容量 × 最大密度</td><td>较紧</td><td>Θ(1)</td><td>实用，预处理出最大密度即可</td></tr>
+    <tr><td>分数背包松弛</td><td class="hl">ub ＝ cv ＋ 分数背包最优值</td><td class="hl">很紧</td><td>Θ(n)</td><td class="hl">本章第 6 节采用；<strong>前提是按密度降序</strong></td></tr>
+  </table></div>
+
+  <div class="tip warn"><strong>权衡：</strong>限界越紧，每个结点省下的<strong>子树</strong>越多，但每个结点<strong>自身</strong>的计算越贵。总耗时 ≈ 实际搜索结点数 × 单点限界代价。若一个「超紧」上界要花 Θ(n<sup>2</sup>) 计算，却只比 Θ(1) 的粗上界多剪 5% 的结点，那是得不偿失。<strong>工程上通常先用廉价上界快筛，只在通过快筛的结点上再算昂贵上界。</strong></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>三、对称情形：最小化问题的下界剪支</h2><span class="sub">上方演示只做了 ub，这里补齐 lb</span></div>
+  <p class="desc">页面顶部的仪表盘演示的是最大化问题（ub 剪支）。教材中大量问题——TSP、任务分配、最短路——都是<strong>最小化</strong>问题，此时一切符号对称翻转。</p>
+
+  <div class="table-scroll"><table class="data">
+    <tr><th>项目</th><th>最大化问题（如 0/1 背包）</th><th>最小化问题（如 TSP / 任务分配）</th></tr>
+    <tr><td>限界函数</td><td>上界 ub（乐观估计，往高了估）</td><td class="hl">下界 lb（乐观估计，往低了估）</td></tr>
+    <tr><td>合法性要求</td><td>ub(x) ≥ 子树内任何解的值</td><td class="hl">lb(x) ≤ 子树内任何解的代价</td></tr>
+    <tr><td>best 的含义</td><td>已知<strong>最大</strong>可行值，单调不减</td><td class="hl">已知<strong>最小</strong>可行代价，单调不增</td></tr>
+    <tr><td>剪支判据</td><td>ub(x) ≤ best ⇒ 剪</td><td class="hl">lb(x) ≥ best ⇒ 剪</td></tr>
+    <tr><td>优先队列排序</td><td>ub 大者优先出队</td><td class="hl">lb 小者优先出队</td></tr>
+    <tr><td>best 初值</td><td>−∞（或 0）</td><td class="hl">+∞（或某贪心解的代价）</td></tr>
+  </table></div>
+
+  <div class="formula">最小化剪支：lb(x) ≥ best ⇒ 丢弃 S(x) &nbsp;&nbsp;（因 ∀y∈S(x)，val(y) ≥ lb(x) ≥ best）</div>
+
+  <div class="defn"><span class="lbl">示例 · 任务分配问题的下界</span>
+    <p>n 项任务分配给 n 个人，c[i][j] 为第 i 人做第 j 项任务的代价，求总代价最小的分配方案。设结点 x 已为前 k 个人指派完任务，累计代价为 cost。则一个合法下界为：</p>
+  </div>
+  <div class="formula lg">lb(x) = cost + Σ<sub>i=k..n−1</sub> min<sub>j 未分配</sub> c[i][j]</div>
+  <p class="desc">解释：剩下每个人<strong>至少</strong>要付出其所在行中未分配列的最小代价。这是把「每列只能用一次」这条约束<strong>松弛</strong>掉后的最优值——允许多人抢同一项任务，代价当然只会更低，故必为真实代价的下界。<strong>松弛问题的最优值一定是原问题最优值的下界，这是构造下界函数的万能套路。</strong></p>
+
+  <div class="defn"><span class="lbl">示例 · TSP 的下界</span>
+    <p>设结点 x 对应一条已走的部分路径 v<sub>0</sub>→…→v<sub>k</sub>，已走代价为 cost，未访问城市集合为 U。则：</p>
+  </div>
+  <div class="formula lg">lb(x) = cost + minEdge(v<sub>k</sub>) + Σ<sub>u∈U</sub> minEdge(u)</div>
+  <p class="desc">其中 minEdge(u) 表示从 u 出发的最短一条边。解释：完整回路中，当前端点 v<sub>k</sub> 还要再出去一条边，每个未访问城市也各要出去一条边，这些边的长度都不会小于各自的最短出边。<strong>同样是松弛：把「这些出边必须首尾相接构成一条回路」的约束丢掉了。</strong></p>
+
+  <div class="tip info"><strong>统一记忆法：</strong>无论 ub 还是 lb，限界函数都是在解一个<strong>放宽了约束的简化问题</strong>。约束越少 ⇒ 解越「乐观」⇒ 一定不劣于原问题 ⇒ 自动满足合法性。构造限界函数时，先问自己：<strong>「我可以扔掉哪条约束，使剩下的问题能在多项式时间内解出来？」</strong></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>四、限界判据的代码落点</h2><span class="sub">C++ 实现</span></div>
+  <div class="code"><span class="cm">// ============ 最大化：0/1 背包的上界与剪支 ============</span>
+<span class="cm">// 前提：items 已按价值密度 v/w 降序排列（合法性的必要条件！）</span>
+<span class="kw">struct</span> Item { <span class="kw">int</span> w, v; };
+Item it[MAXN]; <span class="kw">int</span> n, W;
+<span class="kw">int</span> best = 0;                 <span class="cm">// 已知最优可行解，最大化 ⇒ 初值取 0</span>
+
+<span class="cm">// 分数背包松弛上界：从第 i 件起，用剩余容量贪心装填</span>
+<span class="kw">double</span> <span class="fn">ub</span>(<span class="kw">int</span> i, <span class="kw">int</span> cw, <span class="kw">int</span> cv) {
+    <span class="kw">int</span> left = W - cw;
+    <span class="kw">double</span> b = cv;
+    <span class="kw">for</span> (<span class="kw">int</span> k = i; k &lt; n && left &gt; 0; ++k) {
+        <span class="kw">if</span> (it[k].w &lt;= left) { left -= it[k].w; b += it[k].v; }   <span class="cm">// 整件装入</span>
+        <span class="kw">else</span> { b += (<span class="kw">double</span>)it[k].v * left / it[k].w; <span class="kw">break</span>; }   <span class="cm">// 切一刀装满</span>
+    }
+    <span class="kw">return</span> b;
+}
+
+<span class="kw">void</span> <span class="fn">expand</span>(Node u) {
+    <span class="kw">for</span> (Node v : u.<span class="fn">children</span>()) {
+        <span class="kw">if</span> (v.cw &gt; W) <span class="kw">continue</span>;                  <span class="cm">// ① 约束函数：超重不可行</span>
+        <span class="kw">if</span> (<span class="fn">ub</span>(v.i, v.cw, v.cv) &lt;= best + <span class="fn">EPS</span>) <span class="kw">continue</span>;  <span class="cm">// ② 限界剪支</span>
+        pq.<span class="fn">push</span>(v);                              <span class="cm">// ③ 存活 ⇒ 进活结点表</span>
+    }
+}
+
+<span class="cm">// ============ 最小化：任务分配的下界与剪支 ============</span>
+<span class="kw">int</span> c[MAXN][MAXN];
+<span class="kw">int</span> bestCost = INT_MAX;      <span class="cm">// 最小化 ⇒ 初值取 +∞</span>
+
+<span class="cm">// 行最小元松弛下界：已分配代价 + 每个未分配行的最小可用代价</span>
+<span class="kw">int</span> <span class="fn">lb</span>(<span class="kw">int</span> k, <span class="kw">int</span> cost, <span class="kw">bool</span> used[]) {
+    <span class="kw">int</span> b = cost;
+    <span class="kw">for</span> (<span class="kw">int</span> i = k; i &lt; n; ++i) {
+        <span class="kw">int</span> mn = INT_MAX;
+        <span class="kw">for</span> (<span class="kw">int</span> j = 0; j &lt; n; ++j)
+            <span class="kw">if</span> (!used[j]) mn = min(mn, c[i][j]);
+        b += mn;                                  <span class="cm">// 松弛：允许多行抢同一列</span>
+    }
+    <span class="kw">return</span> b;
+}
+
+<span class="kw">void</span> <span class="fn">expandMin</span>(Node u) {
+    <span class="kw">for</span> (Node v : u.<span class="fn">children</span>())
+        <span class="kw">if</span> (<span class="fn">lb</span>(v.k, v.cost, v.used) &lt; bestCost)   <span class="cm">// 注意方向：lb ≥ best 才剪</span>
+            pq.<span class="fn">push</span>(v);
+}</div>
+  <div class="tip"><strong>代码要点：</strong>①②③ 三行的<strong>顺序不可颠倒</strong>——必须先判可行性再算限界。原因有二：一是不可行结点上限界函数的语义未定义（如背包中 left ＝ W − cw 会变成负数）；二是可行性判断通常是 Θ(1)，先做能省下昂贵的限界计算。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>五、复杂度分析</h2><span class="sub">限界函数带来的开销与收益</span></div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>限界函数</th><th>单次计算</th><th>预处理</th><th>对总时间的影响</th></tr>
+    <tr><td>平凡上界（总价值）</td><td>Θ(1)</td><td>Θ(n)</td><td>结点数近似 2<sup>n</sup>，形同暴力</td></tr>
+    <tr><td>最大密度上界</td><td>Θ(1)</td><td>Θ(n)</td><td>结点数明显下降</td></tr>
+    <tr><td class="hl">分数背包松弛</td><td class="hl">Θ(n)</td><td class="hl">Θ(n log n) 排序</td><td class="hl">结点数大幅下降，实测通常最优</td></tr>
+    <tr><td>行最小元下界（分配问题）</td><td>Θ(n<sup>2</sup>)</td><td>—</td><td>可预处理行最小值降到 Θ(n)</td></tr>
+  </table></div>
+  <div class="deriv">
+    <span class="step">总时间 T ≈ M × (B + log M) <span class="why">M＝实际扩展的结点数，B＝单点限界代价</span></span>
+    <span class="step">最坏情况 M ＝ Θ(2<sup>n</sup>)（子集树）或 Θ(n!)（排列树），限界函数完全失效</span>
+    <span class="step">空间 S ＝ Θ(活结点表峰值长度) ＝ 最坏 Θ(M)</span>
+    <span class="step">改进限界函数只降 M，不降复杂度的<strong>阶</strong> <span class="why">这是 NP 难问题的宿命</span></span>
+  </div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>最致命</b>：使用了<strong>不合法</strong>的限界函数——上界比子树内真实最优值还小（或下界比真实最小代价还大）。此时算法照跑不误，只是答案错了，且小数据往往「碰巧」正确，极难发现。本章第 6 节有一个真实案例。</li>
+  <li>把 best 设成估计值而非真实可行解的值，导致剪支定理的证明链条断裂。</li>
+  <li>最小化问题误用 lb ≤ best 剪支——方向反了，会把所有有希望的结点全剪掉，只剩最差解。</li>
+  <li>浮点上界与整数 best 直接比较，因精度误差把恰好等于最优值的结点误剪。应写 <code>ub &lt;= best + 1e-9</code> 或把上界向下取整为整数。</li>
+  <li>求全部最优解时仍用 ≤ 剪支，导致只输出第一个最优解。</li>
+  <li>在不可行结点上调用限界函数，产生负容量、越界等未定义行为。</li>
+  <li>盲目追求「更紧」的限界，把单点代价推到 Θ(n<sup>2</sup>) 甚至 Θ(n<sup>3</sup>)，总时间反而变长。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li><b>合法性</b>是限界函数的生命线：最大化要求 ub(x) ≥ 子树内任何可行解的值；最小化要求 lb(x) ≤ 子树内任何可行解的代价。</li>
+  <li><b>剪支正确性定理</b>：ub(x) ≤ best ⇒ 子树内无严格更优解 ⇒ 可安全丢弃。证明依赖 best 是<strong>真实可行解</strong>的值。</li>
+  <li><b>两种情形对称</b>：最大化用 ub、ub ≤ best 剪、best 初值 −∞、ub 大者优先；最小化用 lb、lb ≥ best 剪、best 初值 +∞、lb 小者优先。</li>
+  <li><b>构造套路</b>：限界函数 ＝ 松弛问题的最优值。扔掉一条难约束（0/1 整性、排列唯一性、回路连通性），把剩下的问题多项式时间解掉。</li>
+  <li><b>紧度权衡</b>：限界越紧剪支越强，但单点代价越高。总耗时 ≈ 结点数 × 单点代价，需综合权衡。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>对某最大化问题，已知一个上界函数满足：存在结点 x 与可行解 y ∈ S(x)，使得 ub(x) &lt; val(y)。使用该函数按 ub ≤ best 剪支，后果是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>算法变慢，但答案仍然正确</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>算法一定会死循环</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>算法可能输出比真实最优值小的答案，且不会报错</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>算法一定输出错误答案</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>C 正确。上界被低估意味着某些含最优解的子树可能满足 ub ≤ best 而被误剪，最优解就此丢失，算法只能返回一个次优值——而且它<strong>不会有任何异常提示</strong>，这才是最危险的地方。A 完全说反了：不合法的上界只会剪得更狠、跑得更快，代价是正确性。B 无关：剪支不影响终止性，解空间树有限，必然终止。D 说得太绝对：是否真的丢失最优解，还取决于 DFS/BFS 恰好在什么时刻找到了多好的 best——如果最优解<strong>碰巧</strong>在被误剪之前就被找到，答案仍然正确。这种「时对时错」正是本章第 6 节原代码的真实处境。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>TSP 中，某同学把下界写成 lb(x) ＝ 已走代价 cost（不加任何未来估计）。这个下界函数是否合法？剪支效果如何？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>不合法，因为它没有考虑未访问的城市</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>合法（边权非负时），但极松，剪支力度很弱</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>合法且很紧，因为已走代价是确定值而非估计</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>合法性取决于城市数量的奇偶性</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。边权非负时，完整回路的代价 ＝ 已走代价 ＋ 剩余各边代价 ≥ 已走代价，故 lb ＝ cost 确实是合法下界。但它把「未来还要走很多边」这一信息完全丢弃，估计极其乐观、极其松，几乎剪不掉任何结点——退化成了纯暴力枚举。A 混淆了「合法」与「紧」：不考虑未来<strong>不违反</strong>合法性，只损失紧度。C 错在把「确定」当成「紧」——紧度衡量的是估计值与子树真实最优值的接近程度，cost 离完整回路代价差得很远。D 是无中生有的干扰项。<strong>顺带一提：若边权可为负，lb ＝ cost 就不再合法了。</strong></div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>关于剪支判据中 best 的更新时机，下列做法<b>正确</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>每扩展一个结点就用该结点的 ub 更新 best，让 best 尽快变大</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>只在到达叶结点（构造出完整可行解）时用其真实目标值更新 best</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>先用贪心算法算出一个 ub 作为 best 初值，可加速剪支</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>用当前活结点表中最大的 ub 作为 best</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。剪支定理的证明中，「best 是真实可行解的值」是不可动摇的前提；只有叶结点（或已构造出完整方案的结点）才提供真实值。A、D 都是用<strong>估计值</strong>冒充 best，会把「ub ≤ best」变成两个估计值的比较，推理链断裂，可能剪掉真正的最优解。C 是最具迷惑性的一项：<strong>用贪心解预热 best 确实是标准加速技巧，但必须用贪心解的真实目标值，而不是它的 ub</strong>。贪心构造出的是一个货真价实的可行解，其值是最优值的下界，用作 best 初值完全合法且非常有效；而贪心的 ub 是上界，用它当 best 会剪掉一切。选项 C 恰恰把「贪心解的值」偷换成了「贪心算出的 ub」。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="01-overview.html"><span class="dir">← 上一节</span><span class="name">概述对比</span></a><a href="03-framework.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">两种框架</span></a></div>
+<div class="footer">算法设计与分析 · <b>第6章 分支限界法</b> · 强交互可视化版<br/>Canvas / CSS 3D · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+// ambient particles
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let w,h,parts=[],raf;
+  function resize(){ w=cv.width=innerWidth*devicePixelRatio; h=cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px'; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:36},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2.2, vx:(Math.random()-.5)*.25, vy:-.15-Math.random()*.35, a:.15+Math.random()*.35}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(194,96,63,${p.a})`; ctx.fill();
+    });
+    raf=requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const cv=gauge, ctx=cv.getContext('2d');
+let sparks=[];
+function upd(){
+  const g=+got.value,h=+hope.value,b=+best.value;
+  gotV.textContent=g; hopeV.textContent=h; bestV.textContent=b;
+  const ub=g+h; ubV.textContent=ub;
+  const cut=ub<=b;
+  cutV.textContent=cut?'✂️ 剪支':'✅ 继续'; cutV.className=cut?'red':'green';
+  hud2.textContent=cut?'PRUNE':'EXPAND';
+  tip.className='tip '+(cut?'danger':'ok');
+  tip.innerHTML=cut?`<strong>剪支：</strong>ub=${ub} ≤ 最优 ${b}`:`<strong>保留：</strong>ub=${ub} > 最优 ${b}`;
+  if(cut) for(let i=0;i<12;i++) sparks.push({x:500,y:150,vx:(Math.random()-.5)*8,vy:(Math.random()-.5)*8,life:1,col:Math.random()>.5?'#A02C55':'#D0A344'});
+  draw(g,h,ub,b,cut);
+}
+function draw(g,h,ub,b,cut){
+  const W=cv.width,H=cv.height; ctx.clearRect(0,0,W,H);
+  // panel
+  const maxV=Math.max(ub,b,1)*1.15;
+  // 3 bars isometric-ish
+  function pillar(x,val,label,col){
+    const bh=Math.max(8,(val/maxV)*160), bw=70, baseY=220;
+    // side
+    ctx.fillStyle=col+'99';
+    ctx.beginPath(); ctx.moveTo(x+bw,baseY); ctx.lineTo(x+bw+18,baseY-12); ctx.lineTo(x+bw+18,baseY-12-bh); ctx.lineTo(x+bw,baseY-bh); ctx.fill();
+    // top
+    ctx.fillStyle=col;
+    ctx.beginPath(); ctx.moveTo(x,baseY-bh); ctx.lineTo(x+bw,baseY-bh); ctx.lineTo(x+bw+18,baseY-bh-12); ctx.lineTo(x+18,baseY-bh-12); ctx.fill();
+    // front
+    const grd=ctx.createLinearGradient(x,0,x+bw,0); grd.addColorStop(0,col); grd.addColorStop(1,col+'cc');
+    ctx.fillStyle=grd; ctx.fillRect(x,baseY-bh,bw,bh);
+    ctx.fillStyle='#443F37'; ctx.font='700 13px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText(label, x+bw/2+6, baseY+22);
+    ctx.fillText(String(val), x+bw/2+6, baseY-bh-22);
+  }
+  pillar(120,g,'已选','#C2603F');
+  pillar(280,h,'乐观','#7E62A6');
+  pillar(440,ub,'ub', cut?'#A02C55':'#356F62');
+  pillar(640,b,'最优','#9C7420');
+  // threshold line
+  const ly=220-(b/maxV)*160;
+  ctx.setLineDash([8,6]); ctx.strokeStyle='#A02C55'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(80,ly); ctx.lineTo(780,ly); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle='#A02C55'; ctx.font='700 12px ui-monospace'; ctx.fillText('best 线', 790, ly+4);
+  // sparks
+  sparks=sparks.filter(s=>s.life>0);
+  sparks.forEach(s=>{
+    s.x+=s.vx; s.y+=s.vy; s.life-=.04;
+    ctx.globalAlpha=Math.max(0,s.life); ctx.fillStyle=s.col;
+    ctx.fillRect(s.x,s.y,3,3); ctx.globalAlpha=1;
+  });
+  // gauge arc
+  ctx.save(); ctx.translate(900,150);
+  ctx.beginPath(); ctx.arc(0,0,70,Math.PI*.75,Math.PI*2.25); ctx.strokeStyle='#E4E0D4'; ctx.lineWidth=12; ctx.stroke();
+  const ang=Math.PI*.75 + Math.min(1,ub/30)*(Math.PI*1.5);
+  ctx.beginPath(); ctx.arc(0,0,70,Math.PI*.75,ang); ctx.strokeStyle=cut?'#A02C55':'#C2603F'; ctx.lineWidth=12; ctx.lineCap='round'; ctx.stroke();
+  ctx.rotate(ang); ctx.fillStyle='#1D1B16'; ctx.fillRect(0,-3,58,6); ctx.restore();
+}
+[got,hope,best].forEach(el=>el.oninput=upd);
+// 独立动画循环：持续重绘以让剪支火花动起来（upd 只在拖动滑块时触发）
+function anim(){ const g=+got.value,h=+hope.value,b=+best.value; draw(g,h,g+h,b,g+h<=b); requestAnimationFrame(anim); }
+upd(); anim();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

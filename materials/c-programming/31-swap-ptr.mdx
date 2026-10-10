@@ -1,0 +1,95 @@
+---
+module: 6
+moduleName: 指针
+order: 31
+title: 两个数交换（指针版）
+level: 基础必做
+scene: 基础概念
+knowledge: [指针定义, 解引用, 地址传递]
+stars: 4
+minutes: 70
+goal: 建立指针与地址的核心概念
+sizheng: 直达内存的能力与责任同在——权力越大，越要懂得敬畏
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import SwapPtrLab from '../../components/react/SwapPtrLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：项目 27 埋的雷，今天拆
+
+模块五说过：值传递给函数的是副本，函数改不了外面的变量。那 `swap(a, b)` 怎么办？
+答案是 C 语言的灵魂——**指针**：不传值，传**地址**。
+
+三个新符号，一句话各记一条：
+
+- `int *p;` —— 定义指针变量：p 里存的不是数，是**一个地址**（第 1 章"内存是编号的抽屉"，p 存的就是抽屉编号）；
+- `&a` —— 取地址：a 住在哪个抽屉；
+- `*p` —— 解引用：顺着 p 里的编号找到那个抽屉，读它或写它。
+
+`swap(&a, &b)` 把两个抽屉编号交给函数——函数虽然在自己的栈帧里，却能顺着编号**隔空改写 main 的内存**。
+
+## 一步一步看隔空交换
+
+<CStepRunner
+  client:visible
+  title="指针模拟：swap(&a, &b) 的完整往返"
+  badge="地址传递模拟"
+  doneNote="swap 自始至终没碰过名字 a 和 b——它只认识两个地址 0x7FF0/0x7FF4，顺着地址读写就完成了交换。指针的本质：以地址为通行证，跨栈帧操作内存。"
+  code={`#include <stdio.h>
+
+void swap(int *pa, int *pb) {
+    int tmp = *pa;
+    *pa = *pb;
+    *pb = tmp;
+}
+
+int main(void) {
+    int a = 30, b = 116;
+    swap(&a, &b);
+    printf("a=%d b=%d\\n", a, b);
+    return 0;
+}`}
+  steps={[
+    { line: 9, desc: 'a 住 0x7FF0 号抽屉（值 30），b 住 0x7FF4（值 116）。', vars: { a: '30 @0x7FF0', b: '116 @0x7FF4' } },
+    { line: 10, desc: '调用 swap(&a, &b)：传过去的不是 30 和 116，而是两个抽屉编号！', vars: { pa: '0x7FF0', pb: '0x7FF4' } },
+    { line: 3, desc: 'swap 开工。tmp = *pa：顺着 0x7FF0 找到抽屉，取出 30 存好。', vars: { pa: '0x7FF0', tmp: '30' } },
+    { line: 4, desc: '*pa = *pb：顺着 0x7FF4 取出 116，写进 0x7FF0——main 的 a 此刻已变成 116！', vars: { a: '116 @0x7FF0', tmp: '30' } },
+    { line: 5, desc: '*pb = tmp：把备份的 30 写进 0x7FF4——main 的 b 变成 30。三步交换（项目 19）的指针重演。', vars: { a: '116', b: '30' } },
+    { line: 10, desc: '返回 main。没有返回值，但 a、b 已经互换——指针参数是函数的『第二输出通道』（项目 28 数组传参的谜底也在此）。', vars: { a: '116', b: '30' } },
+    { line: 11, desc: '打印验证。', out: 'a=116 b=30' },
+  ]}
+/>
+
+## 动手实验：失败版与成功版并排看
+
+<SwapPtrLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：先写值传递版亲眼看它失败，再写指针版。打印 `&a` 和函数里的 `pa`，确认是同一个地址。
+2. **AI 优化进阶版**：让 AI 写"三变量轮换"`rotate(int *pa, int *pb, int *pc)`（a→b→c→a）。审查它的临时变量够不够、顺序对不对——画抽屉图验证。
+3. **信创加固定稿版**：给 swap 加 NULL 检查（第 2 章 AI 三大错之首：空指针解引用）；思考 `swap(&a, &a)` 会发生什么（自己换自己，安全吗？）。
+
+## 素养与思政
+
+指针给了你直达物理内存的权力——也把"写错一个地址就毁掉系统"的风险交到你手上。第 1 章说过：嵌入式裸机没有安全网，野指针一次乱写，北斗终端就可能变砖。
+**能力与责任从来成对出现。** C 语言不设护栏，是因为它信任工程师的专业；配得上这份信任的方式，就是每次解引用前先问一句：这个地址，真的有效吗？
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="int a = 5; int *p = &a; 之后，*p 的值是？"
+  options={['a 的地址', '5——*p 顺着 p 存的地址找到 a，取出它的值', 'p 的地址', '不确定']}
+  answer={1}
+  explain="p 存着 a 的地址，*p 是『顺藤摸瓜』取到 a 本身。此后 *p = 10 也会真的改掉 a——读写皆可达。"
+/>
+
+<QuizItem
+  client:visible
+  question="为什么 swap 必须接收 int* 而不是 int？"
+  options={['int* 类型运算更快', '传 int 只是副本，函数改不到调用者的变量；传地址才能顺着它写回真身', 'C 语言规定 swap 必须用指针', '为了少占内存']}
+  answer={1}
+  explain="这正是模块五值传递『改不了外面』的解法：把变量的地址交出去，函数就获得了跨栈帧写入的能力。函数需要『修改调用者的变量』时，指针参数是 C 的标准答案。"
+/>

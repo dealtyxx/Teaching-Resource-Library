@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FF · 第9章 图算法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">09</div>算法可视化 · <span>第9章 图算法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-prim.html">Prim</a><a class="pill" href="02-kruskal.html">Kruskal</a><a class="pill" href="03-dijkstra.html">Dijkstra</a><a class="pill" href="04-bf-spfa.html">BF/SPFA</a><a class="pill" href="05-floyd.html">Floyd</a><a class="pill" href="06-flow.html">网络流</a><a class="pill active" href="07-ff.html">FF</a><a class="pill" href="08-ek.html">EK</a><a class="pill" href="09-dinic.html">Dinic</a><a class="pill" href="10-match.html">匹配</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 7 · 方法</div>
+  <h1>Ford-Fulkerson 方法</h1>
+  <p>在残留网络找 s→t 增广路，沿路增加瓶颈流量，直到无路可增。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够复述 Ford-Fulkerson <b>增广路方法</b>：残量网络找增广路 &rarr; 沿路推瓶颈流 &rarr; 更新残量 &rarr; 重复至无增广路。</li>
+  <li>能够用一个具体例子说明<b>反向边</b>如何纠正贪心走错的流。</li>
+  <li>能够证明<b>整数容量</b>下算法必然终止，并推出复杂度 <b>O(E&middot;|f*|)</b>。</li>
+  <li>理解 FF 是一个"<b>方法</b>"而非具体算法——找路方式任意，用 BFS 找最短增广路即 Edmonds-Karp。</li>
+  <li>知道<b>无理数容量</b>下 FF 可能不终止、甚至不收敛到最大流。</li>
+</ol></div>
+
+<div class="card">
+  <div class="code">flow = 0
+<span class="kw">while</span> exists path p from s to t in residual:
+  Δ = min residual capacity on p
+  augment f along p by Δ
+  flow += Δ
+<span class="kw">return</span> flow</div>
+  <div class="list-step" style="margin-top:14px"><div class="n">1</div><div class="body">建残留网络（正向 c−f，反向 f）</div></div>
+  <div class="list-step"><div class="n">2</div><div class="body">找任意 s-t 路径（DFS/BFS…）</div></div>
+  <div class="list-step"><div class="n">3</div><div class="body">取瓶颈 Δ，更新流量与残留</div></div>
+  <div class="list-step"><div class="n">4</div><div class="body">重复直到无增广路 · 此时流=最大流</div></div>
+  <div class="tip">找路方式任意；容量有理数可终止。用 <strong>BFS</strong> 找路 → Edmonds-Karp（下一节动画）。</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、增广路方法</h2><span class="sub">Ford-Fulkerson Method</span></div>
+
+<div class="defn"><span class="lbl">增广路方法</span><p>Ford-Fulkerson 是一个通用<b>方法</b>：初始流全 0，不断在<b>残量网络 G<sub>f</sub></b> 中寻找一条 s&rarr;t 的<b>增广路</b> P，令 &Delta; = P 上的<b>最小残量</b>（瓶颈），沿 P 把流增加 &Delta;（每条边正向残量减 &Delta;、反向残量加 &Delta;），如此重复，直到 G<sub>f</sub> 中<b>再无增广路</b>为止。此时的流即最大流（由最大流最小割定理保证）。</p></div>
+
+<div class="deriv">
+  <span class="step">初始 f &equiv; 0，flow = 0 <span class="why">残量网络 = 原图</span></span>
+  <span class="step">找路 在 G<sub>f</sub> 中找任意一条 s&rarr;t 路径 P（DFS 或 BFS 皆可） <span class="why">找不到就结束</span></span>
+  <span class="step">瓶颈 &Delta; = min{ c<sub>f</sub>(u,v) : (u,v) &isin; P } <span class="why">路径上最窄的一段</span></span>
+  <span class="step">增广 沿 P：正向边残量 &minus;&Delta;，反向边残量 +&Delta;；flow += &Delta; <span class="why">反向 +&Delta; 保留反悔余地</span></span>
+  <span class="step">重复 回到"找路"，直至无增广路 <span class="why">无增广路 &hArr; 最大流</span></span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、反向边为什么不可或缺</h2><span class="sub">一个会走错、再靠反向边纠正的例子</span></div>
+
+<div class="tip danger"><strong>核心：</strong>增广路方法是"贪心"地一条条找路，难免<b>把流推到事后看来不该走的边上</b>。反向边提供的残量正是"撤销"这一步的通道——沿反向边推流 = 抵消之前正向的流。没有反向边，一次贪心失误就无法回滚，算法会停在<b>比最大流更小</b>的流上。</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>边</th><th>s&rarr;a</th><th>s&rarr;b</th><th>a&rarr;b</th><th>a&rarr;t</th><th>b&rarr;t</th></tr>
+  <tr><td>容量 c</td><td>1</td><td>1</td><td class="hl">1</td><td>1</td><td>1</td></tr>
+</table></div>
+
+<div class="deriv">
+  <span class="step">真实最大流 = 2 最小割 {s} 只有 s→a、s→b 两条边，容量 1+1 = 2 <span class="why">两条不相交路径 s-a-t、s-b-t</span></span>
+  <span class="step">第 1 次增广 贪心选了 P₁ = s&rarr;a&rarr;b&rarr;t，&Delta;=1；flow = 1 <span class="why">把 1 单位错误地推上了 a→b</span></span>
+  <span class="step">此后残量 s→a、b→t 已满（残量 0）；正向 G<sub>f</sub> 里 s 看似走不到 t <span class="why">若无反向边，就此停在 flow=1 &lt; 2</span></span>
+  <span class="step">第 2 次增广 借反向边 b&rarr;a（残量 = a→b 上的流 1）：P₂ = s&rarr;b&rarr;a&rarr;t，&Delta;=1；flow = 2 <span class="why">&#9733; b→a 抽回 a→b 的流，重新分配</span></span>
+  <span class="step">结果 a→b 净流回到 0，形成 s-a-t 与 s-b-t 两条路，flow = 2 = 最大流 <span class="why">反向边完成纠错</span></span>
+</div>
+
+<div class="tip info"><strong>读法：</strong>第 2 条"增广路" s&rarr;b&rarr;a&rarr;t 中间的 b&rarr;a 并不是原图的边，而是第 1 次推流在 a&rarr;b 上留下的<b>反向残量</b>。走它一次，等于把先前 a&rarr;b 的 1 单位流"退货"，转而让 a 的流走 a&rarr;t、b 的流走 b&rarr;t。最终两条边 a→b 的净流为 0，恰好得到两条独立路径。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、C++ 实现与终止性、复杂度</h2><span class="sub">DFS 找增广路</span></div>
+
+<div class="code"><span class="cm">// Ford-Fulkerson（DFS 找增广路）· 成对存边，e[i^1] 为 e[i] 的反向边</span>
+<span class="kw">const</span> <span class="kw">int</span> N = <span class="nu">1005</span>, INF = <span class="nu">0x3f3f3f3f</span>;
+<span class="kw">struct</span> Edge { <span class="kw">int</span> to, cap; };
+vector&lt;Edge&gt; e; vector&lt;<span class="kw">int</span>&gt; g[N];
+<span class="kw">bool</span> vis[N];
+<span class="kw">int</span> S, T, n;
+
+<span class="kw">void</span> <span class="fn">addEdge</span>(<span class="kw">int</span> u, <span class="kw">int</span> v, <span class="kw">int</span> c) {
+    g[u].<span class="fn">push_back</span>(e.<span class="fn">size</span>()); e.<span class="fn">push_back</span>({v, c});   <span class="cm">// 正向残量 c</span>
+    g[v].<span class="fn">push_back</span>(e.<span class="fn">size</span>()); e.<span class="fn">push_back</span>({u, <span class="nu">0</span>});   <span class="cm">// 反向残量 0</span>
+}
+
+<span class="kw">int</span> <span class="fn">dfs</span>(<span class="kw">int</span> u, <span class="kw">int</span> flow) {           <span class="cm">// 沿残量找增广路，返回推入量</span>
+    <span class="kw">if</span> (u == T) <span class="kw">return</span> flow;
+    vis[u] = <span class="kw">true</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> id : g[u]) {
+        Edge &amp;ed = e[id];
+        <span class="kw">if</span> (!vis[ed.to] &amp;&amp; ed.cap &gt; <span class="nu">0</span>) {
+            <span class="kw">int</span> d = <span class="fn">dfs</span>(ed.to, min(flow, ed.cap));
+            <span class="kw">if</span> (d &gt; <span class="nu">0</span>) { ed.cap -= d; e[id ^ <span class="nu">1</span>].cap += d; <span class="kw">return</span> d; }  <span class="cm">// 正减反加</span>
+        }
+    }
+    <span class="kw">return</span> <span class="nu">0</span>;
+}
+
+<span class="kw">int</span> <span class="fn">maxflow</span>() {
+    <span class="kw">int</span> flow = <span class="nu">0</span>, d;
+    <span class="kw">while</span> (<span class="fn">fill</span>(vis, vis + n, <span class="kw">false</span>), (d = <span class="fn">dfs</span>(S, INF)) &gt; <span class="nu">0</span>)
+        flow += d;                        <span class="cm">// 每轮找一条增广路，直到 d==0</span>
+    <span class="kw">return</span> flow;
+}</div>
+
+<div class="deriv">
+  <span class="step">终止性（整数容量） 每次增广 &Delta; &ge; 1（正整数瓶颈），flow 严格增大 <span class="why">整数下不会无限逼近</span></span>
+  <span class="step">上界 flow &le; C（如 s 的出边容量之和），故至多 |f*| 次增广 <span class="why">|f*| 为最大流值</span></span>
+  <span class="step">单次代价 一次 DFS/BFS 找路 O(E)（残量图边数 O(E)） <span class="why">更新沿路 O(V)</span></span>
+  <span class="step">总复杂度 O(E &middot; |f*|) <span class="why">依赖流值，属"伪多项式"</span></span>
+  <span class="step">隐患 若容量为<b>无理数</b>，&Delta; 可任意小，可能永不终止、甚至不收敛到最大流 <span class="why">EK 用 BFS 消除对流值的依赖</span></span>
+</div>
+
+<div class="tip warn"><strong>"伪多项式"的含义：</strong>O(E&middot;|f*|) 里的 |f*| 是<b>数值</b>而非输入规模。若某条边容量高达 10<sup>9</sup>，最坏情况下每次只增广 1 单位，就要 10<sup>9</sup> 轮。下一节 Edmonds-Karp 用 <b>BFS 找最短增广路</b>，把复杂度改进为与容量数值无关的 O(V&middot;E<sup>2</sup>)。</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>不建反向边</b>：这是最致命的错误。缺了反向残量，贪心一旦走错就无法回滚，算法会停在小于最大流的错误值上。</li>
+  <li>残量更新<b>方向写反</b>：增广时应"正向边 &minus;&Delta;、反向边 +&Delta;"，即 <span class="cm">e[id].cap-=d; e[id^1].cap+=d;</span> 写反会破坏守恒。</li>
+  <li>DFS 版<b>忘记每轮清空 vis</b>：vis 只在单条增广路内防重复访问，每次新找增广路前必须重置。</li>
+  <li>误把 FF 当成固定算法：它是<b>方法</b>，找路策略未定；用 BFS 才是 EK，用 DFS 是朴素版且可能很慢。</li>
+  <li>在<b>大容量</b>图上用朴素 FF：O(E&middot;|f*|) 可能因单次只增广 1 单位而退化到与容量成正比的轮数。</li>
+  <li>把瓶颈 &Delta; 取成路径上<b>某一条</b>边的残量而非<b>最小</b>残量：会推出超过容量的非法流。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>Ford-Fulkerson 是<b>增广路方法</b>：残量网络找 s&rarr;t 增广路 &rarr; 沿路推瓶颈 &Delta; &rarr; 更新残量 &rarr; 重复至无增广路。</li>
+  <li><b>反向边</b>（反向残量 = 已推流量）赋予算法"反悔"能力，用一个 5 边小例即可见：无反向边只到 flow=1，有反向边可达最大流 2。</li>
+  <li>残量更新："<b>正向 &minus;&Delta;，反向 +&Delta;</b>"，成对存边配合 <span class="cm">i^1</span> 取反向边最简洁。</li>
+  <li>整数容量下必然终止，复杂度 <b>O(E&middot;|f*|)</b>，属伪多项式；无理数容量可能不终止。</li>
+  <li>FF 是"方法"，找路方式任意：<b>BFS 找最短增广路即 Edmonds-Karp</b>，把复杂度改进为 O(V&middot;E<sup>2</sup>)。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>沿一条增广路 P 增广时，对边的残量应如何更新？（&Delta; 为瓶颈）</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>路径上每条边：正向残量 &minus;&Delta;，其反向边残量 +&Delta;</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>正向残量 +&Delta;，反向边残量 &minus;&Delta;</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>只减正向残量，反向边不动</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>正向、反向都 &minus;&Delta;</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>A 正确。推入 &Delta; 单位后，正向边"还能推的量"减少 &Delta;（残量 &minus;&Delta;），而"可撤回的量"增加 &Delta;，体现在反向边残量 +&Delta;。B 方向全反。C 漏掉反向边，等于放弃反悔能力，可能求不出最大流。D 会破坏残量的守恒关系。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>为什么 Ford-Fulkerson 的残量网络必须包含反向边？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>为了让图变成无向图，方便 DFS</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>反向边让算法能撤销之前推错的流，否则可能停在小于最大流的值上</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>反向边用来加快找增广路的速度</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>反向边只是实现细节，去掉也不影响正确性</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。以 5 边例（各容量 1）为证：若先贪心走 s&rarr;a&rarr;b&rarr;t，把 1 单位推到 a&rarr;b 上，正向残量图里 s 就到不了 t，没有反向边只能停在 flow=1。借反向边 b&rarr;a 走 s&rarr;b&rarr;a&rarr;t，抽回那 1 单位重新分配，才能达到最大流 2。D 恰好说反了——去掉反向边会破坏正确性。A、C 都不是反向边的作用。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>关于朴素 Ford-Fulkerson 的复杂度，正确的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>O(V&middot;E<sup>2</sup>)，与容量数值无关</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>O(V<sup>2</sup>&middot;E)，与容量数值无关</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>O(E&middot;|f*|)，是"伪多项式"，最坏情况随容量数值增长</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>O(E log V)，与 Dijkstra 同阶</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>C 正确。整数容量下每次增广至少 +1，至多 |f*| 次，每次找路 O(E)，故 O(E&middot;|f*|)。这里 |f*| 是<b>流值</b>（数值），不是输入规模，因此称"伪多项式"——容量高达 10<sup>9</sup> 且每轮只增广 1 单位时会退化。A 是 Edmonds-Karp（BFS 版）的复杂度，B 是 Dinic 的复杂度，它们才与容量数值无关；D 与网络流无关。</div>
+  </div>
+</div>
+
+<div class="terms">
+  <span class="term"><b>增广路方法</b>augmenting-path method</span>
+  <span class="term"><b>瓶颈残量</b>bottleneck</span>
+  <span class="term"><b>反向边</b>reverse (residual) edge</span>
+  <span class="term"><b>伪多项式</b>pseudo-polynomial</span>
+  <span class="term"><b>成对存边</b>paired edge storage</span>
+</div>
+
+<div class="page-nav"><a href="06-flow.html"><span class="dir">← 上一节</span><span class="name">网络流</span></a><a href="08-ek.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">EK</span></a></div>
+<div class="footer">算法设计与分析 · <b>第9章 图算法</b> · 强交互可视化版<br/>MST · 最短路 · 网络流 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:28},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.1-Math.random()*.25, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(110,86,145,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+// shared graph geometry
+const GPOS=[[120,200],[300,80],[520,80],[700,200],[520,320],[300,320]];
+const GEDGES=[[0,1,6],[0,5,5],[1,2,5],[1,5,3],[2,3,4],[2,4,3],[2,5,4],[3,4,5],[4,5,2]];
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

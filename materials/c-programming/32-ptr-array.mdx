@@ -1,0 +1,94 @@
+---
+module: 6
+moduleName: 指针
+order: 32
+title: 数组遍历（指针法）
+level: 基础必做
+scene: 数组进阶
+knowledge: [指针与数组, 指针偏移]
+stars: 4
+minutes: 80
+goal: 理解指针与数组的内在联系
+sizheng: arr[i] 与 *(arr+i) 本是同根——透过语法糖看见本质
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import PtrArrayLab from '../../components/react/PtrArrayLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：下标访问的"真面目"
+
+模块四说"下标本质是偏移量"（项目 18），现在揭开全部真相：
+
+> `arr[i]` 只是 `*(arr + i)` 的语法糖。
+
+编译器看到 `arr[i]`，翻译出来的就是"首地址 + i 个元素的偏移，再解引用"。所以：
+
+- **数组名≈首地址**：`int *p = arr;` 合法（项目 28"数组传参传首地址"的根源）；
+- **指针加减走元素**：`p + 1` 前进的是 `sizeof(元素)` 个字节，不是 1 个字节；
+- **两种遍历等价**：`arr[i]` 下标法与 `*p++` 指针法生成的机器码几乎相同，指针法在老编译器上曾更快，如今更多是嵌入式代码的惯用风格。
+
+## 一步一步看指针散步
+
+<CStepRunner
+  client:visible
+  title="指针遍历模拟：p 沿 int 数组走 4 步"
+  badge="指针偏移模拟"
+  doneNote="p 每次 +1，地址却 +4——指针算术以『元素』为单位，编译器按类型自动换算字节。这就是指针必须有类型的原因。"
+  code={`#include <stdio.h>
+
+int main(void) {
+    int arr[4] = {305, 116, 399, 254};
+    int *p = arr;         /* p = 0x1000 */
+    int sum = 0;
+    for (int i = 0; i < 4; i++) {
+        sum += *p;        /* 读当前元素 */
+        p++;              /* 地址+4字节 */
+    }
+    printf("sum=%d\\n", sum);
+    return 0;
+}`}
+  steps={[
+    { line: 4, desc: 'p 指向数组开头：p = 0x1000（即 &arr[0]）。', vars: { p: '0x1000', sum: '0' } },
+    { line: 7, desc: 'i=0：*p 取出 0x1000 处的 305。', vars: { p: '0x1000', '*p': '305', sum: '305' } },
+    { line: 8, desc: 'p++：int 占 4 字节，地址 0x1000 + 4 = 0x1004。走的是"一个元素"！', vars: { p: '0x1004', sum: '305' } },
+    { line: 7, desc: 'i=1：*p = 116（0x1004 处）。', vars: { p: '0x1004', '*p': '116', sum: '421' } },
+    { line: 8, desc: 'p++ → 0x1008。', vars: { p: '0x1008', sum: '421' } },
+    { line: 7, desc: 'i=2：*p = 399；i=3 时 *p = 254。指针一路向东，sum 一路累加。', vars: { p: '0x100C', sum: '1074' } },
+    { line: 8, desc: '最后一次 p++ 后 p = 0x1010——已指向数组『末尾之后』。C 标准允许指到这里，但绝不允许解引用它！', vars: { p: '0x1010(界外)' } },
+    { line: 10, desc: '循环结束，打印总和。', out: 'sum=1074' },
+  ]}
+/>
+
+## 动手实验：换个类型，再走一遍
+
+<PtrArrayLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：分别用下标法和指针法对同一数组求和，打印每一步的 `p` 值（用 `%p`），亲眼确认步长。
+2. **AI 优化进阶版**：让 AI 写"指针版字符串求长度"（`while (*p) p++; return p - s;`）。审查指针相减的含义——差值是**元素个数**还是字节数？
+3. **信创加固定稿版**：写"安全遍历"版本：以 `const int *end = arr + n` 为哨兵，循环条件 `p != end`（项目 36 预告的越界哨兵模式）；思考 `p` 越过 end 之后继续解引用，在 MCU 上会读到什么。
+
+## 素养与思政
+
+`arr[i]` 和 `*(arr+i)` 看似两种事物，实为一体两面——**学问的进阶，常常是发现"原来它们是同一个东西"**。
+数学史上，笛卡尔把几何与代数打通（解析几何），麦克斯韦把电与磁打通。你今天打通的是"下标"与"地址算术"——尺度虽小，路径相同：**不满足于会用语法，追问语法背后的机器真相**。这份追问，正是第 1 章"从会打字到懂机器"的兑现。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="double arr[5]; double *p = arr; 执行 p += 2 后，p 前进了多少字节？"
+  options={['2 字节', '8 字节', '16 字节（2 个 double 元素 × 8 字节）', '10 字节']}
+  answer={2}
+  explain="指针算术以元素为单位：p += 2 = 前进 2 个 double = 2×8 = 16 字节。同样的 +2，int 指针走 8 字节，char 指针走 2 字节——类型决定步长。"
+/>
+
+<QuizItem
+  client:visible
+  question="arr[3] 与下列哪个表达式完全等价？"
+  options={['*(arr + 3)', '*arr + 3', '&arr[3]', 'arr + 3']}
+  answer={0}
+  explain="arr[i] ≡ *(arr+i) 是 C 的定义级等价。*arr + 3 是『首元素的值加 3』；arr+3 和 &arr[3] 是地址（两者倒是相等）——差一个星号，差之千里。"
+/>

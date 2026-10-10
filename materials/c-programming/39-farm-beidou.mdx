@@ -1,0 +1,106 @@
+---
+module: 7
+moduleName: 结构体
+order: 39
+title: 农机北斗点位封装
+level: 基础必做
+scene: 北斗场景
+knowledge: [结构体封装, 异构数据建模, 业务对象]
+stars: 5
+minutes: 100
+goal: 工程业务对象的结构化封装
+sizheng: 无人农场里的北斗农机——把丰收建成一个业务对象
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import FarmBeidouLab from '../../components/react/FarmBeidouLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：现实怎么说，结构体就怎么长
+
+山东寿光的无人农场：每台农机装着北斗终端，上报"我是谁、在哪、多快、什么状态、剩多少油"。
+把这句话直译成 C 类型，就是**业务对象建模**：
+
+```c
+typedef struct { double lat, lon; } GeoPoint;   /* 可复用零件 */
+typedef enum { IDLE, WORKING, FAULT } MachineStatus;
+typedef struct {
+    char          id[8];      /* 我是谁 */
+    GeoPoint      pos;        /* 在哪(嵌套!) */
+    float         speed_kmh;  /* 多快 */
+    MachineStatus status;     /* 什么状态(enum) */
+    uint8_t       fuel_pct;   /* 剩多少油 */
+} FarmMachine;
+```
+
+三个建模要点：**嵌套复用**（GeoPoint 农机能用、基站能用、项目 11 的围栏顶点也能用）；**enum 管状态**（比魔法数字 0/1/2 可读百倍）；**链式访问**（`m.pos.lat`——一层一个点号）。
+
+## 一步一步看链式访问
+
+<CStepRunner
+  client:visible
+  title="嵌套模拟：读出一台农机的纬度"
+  badge="链式访问模拟"
+  doneNote="m.pos.lat 的求值是两次偏移定位：先在 m 里找到 pos（偏移8），再在 pos 里找到 lat（偏移0）。嵌套结构体=偏移表的套娃，点号链就是寻路指引。"
+  code={`#include <stdio.h>
+
+typedef struct { double lat, lon; } GeoPoint;
+
+typedef struct {
+    char     id[8];      /* 偏移0 */
+    GeoPoint pos;        /* 偏移8 */
+    float    speed_kmh;  /* 偏移24 */
+} FarmMachine;
+
+int main(void) {
+    FarmMachine m = {
+        .id = "NJ-001",
+        .pos = { 36.8412, 118.0523 },
+        .speed_kmh = 5.2f
+    };
+    printf("%s 纬度%.4f\\n", m.id, m.pos.lat);
+    m.pos.lat += 0.0001;   /* 农机北移约11米 */
+    printf("新纬度%.4f\\n", m.pos.lat);
+    return 0;
+}`}
+  steps={[
+    { line: 11, desc: '指定初始化器逐成员填充：.pos = {36.8412, 118.0523} 一次填好嵌套的两个 double。', vars: { 'm.id': '"NJ-001"', 'm.pos': '{36.8412,118.0523}' } },
+    { line: 16, desc: '读 m.pos.lat：第一跳——在 m 里定位 pos（首地址+8）；第二跳——在 pos 里定位 lat（+0）。两次偏移，一个值。', vars: { 'm.pos.lat': '36.8412' } },
+    { line: 16, desc: '打印。链式点号从左向右结合：(m.pos).lat。', out: 'NJ-001 纬度36.8412' },
+    { line: 17, desc: '写 m.pos.lat += 0.0001：同样的两跳定位后原地修改——纬度 +0.0001 度 ≈ 北移 11 米（第 3 章的度-米换算回归）。', vars: { 'm.pos.lat': '36.8413' } },
+    { line: 18, desc: '农机的新位置。北斗终端每秒都在做这件事：解析报文→写入 pos 成员→触发业务判断。', out: '新纬度36.8413' },
+  ]}
+/>
+
+## 动手实验：点开每台农机的电子档案
+
+<FarmBeidouLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：定义 GeoPoint/FarmMachine，创建 2 台农机并打印档案。体会 enum 版 status 与 int 版 0/1/2 的可读性差距。
+2. **AI 优化进阶版**：让 AI 写 `double distance_m(GeoPoint a, GeoPoint b)`（简化平面近似即可）计算两台农机间距。审查它对"纬度 1 度≈111km"的换算，及返回单位是否与函数名的 `_m` 一致（项目 3 的量纲教训）。
+3. **信创加固定稿版**：状态切换加合法性检查（FAULT 不能直接跳 WORKING，须先回 IDLE 检修——状态机雏形）；低油量（小于 20%）自动拒绝进入 WORKING；把这些规则封装成 `int set_status(FarmMachine *m, MachineStatus s)`（指针传参——模块六学以致用）。
+
+## 素养与思政
+
+北斗农机自动驾驶系统已在全国推广超过 20 万台套：直线播种误差不超过 2.5 厘米，一台无人收割机一天作业 80 亩。新疆的棉田、黑龙江的稻田里，"面朝黄土背朝天"正在被"一部手机管农场"替代。
+你建模的 FarmMachine，正是这场变革的数字镜像——**把农机变成可计算的对象，把经验变成可执行的规则**，这是"藏粮于技"最代码化的注解。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="访问嵌套成员 m.pos.lat 的求值顺序是？"
+  options={['先算 pos.lat 再找 m', '从左到右：先在 m 中定位 pos，再在 pos 中定位 lat——两次偏移叠加', '编译器随机决定', '需要写成 m->pos->lat']}
+  answer={1}
+  explain="点号左结合：(m.pos).lat。每层嵌套贡献一个偏移量，最终地址 = m首地址 + pos偏移 + lat偏移，编译期就能算死——嵌套访问零运行时开销。"
+/>
+
+<QuizItem
+  client:visible
+  question="用 enum { IDLE, WORKING, FAULT } 而不是 int 0/1/2 表示状态，主要价值是？"
+  options={['enum 占内存更小', '代码自解释（WORKING 比 1 可读）+ 编译器辅助检查 + switch 漏分支可被警告', 'enum 运行更快', '没有区别']}
+  answer={1}
+  explain="魔法数字是维护灾难：半年后没人记得 2 是什么。enum 让状态有名字，还能让编译器在 switch 缺 case 时发警告——可读性与安全性双收。"
+/>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>二分查找 · 第4章 分治法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">04</div>算法可视化 · <span>第4章 分治法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-quicksort.html">快排</a><a class="pill" href="03-mergesort.html">归并</a><a class="pill active" href="04-binsearch.html">二分</a><a class="pill" href="05-median.html">中位数</a><a class="pill" href="06-maxsub.html">最大子段</a><a class="pill" href="07-chessboard.html">棋盘覆盖</a><a class="pill" href="08-schedule.html">日程</a><a class="pill" href="09-tsp.html">TSP</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 4 · 加深</div><h1>二分查找 · lo / mid / hi</h1>
+<p>有序数组上每次比较 mid，丢弃一半。T(n)=T(n/2)+O(1)=Θ(log n)。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+<li>能够<b>陈述</b>二分查找的两个前提：序列<b>有序</b>且支持 O(1) <b>随机存取</b>。</li>
+<li>能够<b>推导</b> T(n)=T(n/2)+O(1) 的求解过程，得到 &Theta;(log n)，并用主定理情形②校验（a=1, b=2, d=0）。</li>
+<li>能够<b>写出</b>递归与迭代两个版本的 C++ 代码，并说明为什么 mid 要写成 <span style="font-family:var(--mono)">lo+(hi&minus;lo)/2</span>。</li>
+<li>能够<b>辨析</b> <span style="font-family:var(--mono)">hi=mid&minus;1</span> 与 <span style="font-family:var(--mono)">hi=mid</span>、<span style="font-family:var(--mono)">lo&le;hi</span> 与 <span style="font-family:var(--mono)">lo&lt;hi</span> 的配套关系，指出错误组合导致<b>死循环或漏检</b>的原因。</li>
+<li>能够<b>实现</b>两个二分变体：查找第一个 &ge; key（lower_bound）与最后一个 &le; key（upper_bound&minus;1）。</li>
+</ol></div>
+<div class="card">
+  <div class="toolbar">
+    <label>目标 key = <b id="kv">17</b></label>
+    <input type="range" id="kr" min="1" max="30" value="17" style="width:180px;accent-color:#4A6C8C"/>
+    <button class="btn primary" id="run">▶ 查找</button>
+    <button class="btn" id="rand">新数组</button>
+  </div>
+  <div class="stage-wrap light" style="height:260px">
+    <canvas class="stage" id="cv" width="1000" height="260"></canvas>
+    <div class="stage-hud"><span class="hud-pill light">Binary Search</span><span class="hud-pill light" id="hud">—</span></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>lo</span><b class="p" id="slo">0</b></div>
+    <div class="stat"><span>mid</span><b class="a" id="smid">—</b></div>
+    <div class="stat"><span>hi</span><b class="p" id="shi">—</b></div>
+    <div class="stat"><span>比较次数</span><b class="g" id="sc">0</b></div>
+  </div>
+  <div class="log" id="log">拖动 key 后运行。</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、定义与前提条件</h2><span class="sub">Binary Search</span></div>
+<div class="defn"><span class="lbl">定义</span><p><b>二分查找（Binary Search，折半查找）</b>：在<b>已按关键字有序</b>的序列 a[lo..hi] 中查找 key。取中间位置 mid，把 a[mid] 与 key 比较：相等则查找成功；key 较小则答案只可能在<b>左半区</b> a[lo..mid&minus;1]；key 较大则只可能在<b>右半区</b> a[mid+1..hi]。每次比较后<b>丢弃一半</b>，区间长度按 1/2 收缩，直到区间为空（查找失败）。</p></div>
+<div class="defn prop"><span class="lbl">性质（适用前提）</span><p>① 序列必须<b>有序</b>（这是"丢弃另一半"的正确性依据）；② 必须支持 <b>O(1) 随机存取</b>，因此适用于<b>顺序存储（数组）</b>，<b>不适用于链表</b>（链表定位 mid 需 O(n)，总代价退化为 O(n)）；③ 适用于<b>静态查找表</b>——若频繁插入删除，维护有序的代价 O(n) 会淹没查找的 O(log n) 收益。</p></div>
+<div class="tip info"><strong>它是分治还是减治？</strong>二分查找分成两半，但<b>只递归其中一半</b>，即 a=1；而且"合并"是空操作。按严格分类它属于<b>减治法（Decrease and Conquer）</b>中的"减半"策略。教材放在分治章节讲，是因为它是理解 T(n)=aT(n/b)+f(n) 这一模型的最简入口。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、C++ 实现</h2><span class="sub">递归版 / 迭代版</span></div>
+<div class="code"><span class="cm">// ---------- 递归版：闭区间 [lo, hi]，返回下标，找不到返回 -1 ----------</span>
+<span class="kw">int</span> <span class="fn">binSearch</span>(<span class="kw">int</span> a[], <span class="kw">int</span> lo, <span class="kw">int</span> hi, <span class="kw">int</span> key) {
+    <span class="kw">if</span> (lo &gt; hi) <span class="kw">return</span> -<span class="nu">1</span>;                 <span class="cm">// 出口：区间为空 → 查找失败</span>
+    <span class="kw">int</span> mid = lo + (hi - lo) / <span class="nu">2</span>;          <span class="cm">// 防溢出！不要写 (lo+hi)/2</span>
+    <span class="kw">if</span> (a[mid] == key) <span class="kw">return</span> mid;          <span class="cm">// 命中</span>
+    <span class="kw">if</span> (a[mid] &lt;  key)
+        <span class="kw">return</span> <span class="fn">binSearch</span>(a, mid + <span class="nu">1</span>, hi, key);  <span class="cm">// 去右半，排除 mid</span>
+    <span class="kw">else</span>
+        <span class="kw">return</span> <span class="fn">binSearch</span>(a, lo, mid - <span class="nu">1</span>, key);  <span class="cm">// 去左半，排除 mid</span>
+}
+
+<span class="cm">// ---------- 迭代版：无递归栈开销，空间 O(1) ----------</span>
+<span class="kw">int</span> <span class="fn">binSearchIter</span>(<span class="kw">int</span> a[], <span class="kw">int</span> n, <span class="kw">int</span> key) {
+    <span class="kw">int</span> lo = <span class="nu">0</span>, hi = n - <span class="nu">1</span>;                 <span class="cm">// 闭区间 [lo, hi]</span>
+    <span class="kw">while</span> (lo &lt;= hi) {                     <span class="cm">// 闭区间 ⇒ 条件必须带 '='</span>
+        <span class="kw">int</span> mid = lo + (hi - lo) / <span class="nu">2</span>;
+        <span class="kw">if</span> (a[mid] == key) <span class="kw">return</span> mid;
+        <span class="kw">else</span> <span class="kw">if</span> (a[mid] &lt; key) lo = mid + <span class="nu">1</span>;  <span class="cm">// 与 hi=mid-1 配套</span>
+        <span class="kw">else</span>                  hi = mid - <span class="nu">1</span>;
+    }
+    <span class="kw">return</span> -<span class="nu">1</span>;
+}</div>
+<div class="tip warn"><strong>三处必须"配套"的写法：</strong>区间约定（闭 / 左闭右开）→ 循环条件（<span style="font-family:var(--mono)">&le;</span> / <span style="font-family:var(--mono)">&lt;</span>）→ 收缩方式（<span style="font-family:var(--mono)">mid&minus;1</span> / <span style="font-family:var(--mono)">mid</span>）。三者<b>必须同时成立</b>，任意混用都会出错。详见下面第四节。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、复杂度分析（含完整推导）</h2><span class="sub">递推式求解</span></div>
+<div class="formula lg">T(n) = T(n/2) + O(1)&nbsp;&nbsp;⇒&nbsp;&nbsp;T(n) = &Theta;(log n)</div>
+<div class="deriv">
+  <span class="step">T(1) = 1；T(n) = T(n/2) + c <span class="why">一次比较 O(1)，只递归一半</span></span>
+  <span class="step">T(n) = T(n/2) + c</span>
+  <span class="step">　　 = [T(n/4) + c] + c = T(n/4) + 2c</span>
+  <span class="step">　　 = [T(n/8) + c] + 2c = T(n/8) + 3c</span>
+  <span class="step">　　 &hellip;</span>
+  <span class="step">　　 = T(n/2<sup>k</sup>) + k&middot;c <span class="why">第 k 步通式：每层只加一个常数 c</span></span>
+  <span class="step">令 n/2<sup>k</sup> = 1 ⇒ 2<sup>k</sup> = n ⇒ k = log<sub>2</sub>n</span>
+  <span class="step">T(n) = T(1) + c&middot;log<sub>2</sub>n = 1 + c log<sub>2</sub>n</span>
+  <span class="step">∴ T(n) = &Theta;(log n)</span>
+</div>
+<div class="tip info"><strong>主定理校验（情形②）：</strong>对照 T(n)=a&middot;T(n/b)+&Theta;(n<sup>d</sup>)，此处 <b>a=1</b>（只递归一侧）、<b>b=2</b>（规模减半）、<b>d=0</b>（比较代价 &Theta;(1)=&Theta;(n<sup>0</sup>)）。<br/>
+临界指数 log<sub>b</sub>a = log<sub>2</sub>1 = <b>0</b>，而 d = <b>0</b>，两者<b>相等</b> ⇒ 命中<b>情形②</b> ⇒ T(n)=&Theta;(n<sup>d</sup> log n)=&Theta;(n<sup>0</sup> log n)=<b>&Theta;(log n)</b>。与展开结果一致。</div>
+
+<h3>3.1 判定树视角：为什么最坏是 ⌊log<sub>2</sub>n⌋+1 次比较</h3>
+<div class="defn prop"><span class="lbl">性质</span><p>把二分查找的比较过程画成<b>判定树（决策树 / Decision Tree）</b>：每个内部结点是一次与 a[mid] 的比较，左右子树对应两个半区。n 个元素对应一棵有 n 个内部结点的<b>近似完全二叉树</b>，其高度 h = ⌊log<sub>2</sub>n⌋ + 1。<b>查找成功的最大比较次数 = 树高 h；查找失败的比较次数为 h 或 h&minus;1。</b></p></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>n</th><th>判定树高度 ⌊log<sub>2</sub>n⌋+1</th><th>最坏比较次数</th><th>顺序查找最坏</th><th>加速倍数</th></tr>
+  <tr><td>15</td><td>4</td><td class="hl">4</td><td>15</td><td>&asymp; 3.8&times;</td></tr>
+  <tr><td>1 000</td><td>10</td><td class="hl">10</td><td>1 000</td><td>100&times;</td></tr>
+  <tr><td>1 000 000</td><td>20</td><td class="hl">20</td><td>10<sup>6</sup></td><td>50 000&times;</td></tr>
+  <tr><td>10<sup>9</sup></td><td>30</td><td class="hl">30</td><td>10<sup>9</sup></td><td>3.3&times;10<sup>7</sup>&times;</td></tr>
+</table></div>
+<div class="tip"><strong>成功查找的平均查找长度：</strong>当 n = 2<sup>h</sup>&minus;1（判定树为满二叉树）时，ASL = ((n+1)/n)&middot;log<sub>2</sub>(n+1) &minus; 1 &asymp; log<sub>2</sub>(n+1) &minus; 1。空间复杂度：迭代版 <b>O(1)</b>，递归版为递归栈 <b>O(log n)</b>。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、三大经典易错点（本节重点）</h2><span class="sub">溢出 / 死循环 / 漏检</span></div>
+
+<h3>4.1 中点计算的整型溢出</h3>
+<div class="tip danger"><strong>错误写法：</strong><span style="font-family:var(--mono)">int mid = (lo + hi) / 2;</span><br/>
+当 lo 与 hi 都接近 <span style="font-family:var(--mono)">INT_MAX</span>（约 2.1&times;10<sup>9</sup>）时，<b>lo + hi 先溢出</b>成为负数，再除以 2 仍为负 ⇒ 数组下标为负 ⇒ 越界访问、程序崩溃或读到垃圾值。<br/>
+例：lo = 1 500 000 000，hi = 2 000 000 000，lo+hi = 3.5&times;10<sup>9</sup> &gt; INT_MAX ⇒ 回绕为负数。<br/>
+<strong>正确写法：</strong><span style="font-family:var(--mono)">int mid = lo + (hi - lo) / 2;</span><br/>
+因为 lo &le; hi 且二者非负，<span style="font-family:var(--mono)">hi &minus; lo</span> 必然不溢出，加回 lo 后结果也不超过 hi。<b>该 bug 曾长期潜伏于 JDK 的 Arrays.binarySearch 中（2006 年才被修复），是最著名的工业级 bug 之一。</b></div>
+
+<h3>4.2 <span style="font-family:var(--mono)">hi = mid&minus;1</span> 与 <span style="font-family:var(--mono)">hi = mid</span> 的区别</h3>
+<div class="table-scroll"><table class="data">
+  <tr><th>区间约定</th><th>初值</th><th>循环条件</th><th>左收缩</th><th>右收缩</th><th>mid 是否可能是答案</th><th>返回</th></tr>
+  <tr><td class="hl">闭区间 [lo, hi]</td><td>lo=0, hi=n&minus;1</td><td class="hl">lo &le; hi</td><td>lo = mid+1</td><td class="hl">hi = mid&minus;1</td><td>已在循环内单独判等并返回，可安全排除</td><td>mid 或 &minus;1</td></tr>
+  <tr><td class="hl">左闭右开 [lo, hi)</td><td>lo=0, hi=n</td><td class="hl">lo &lt; hi</td><td>lo = mid+1</td><td class="hl">hi = mid</td><td>是！mid 可能就是答案，<b>不能排除</b></td><td>lo</td></tr>
+</table></div>
+<div class="tip danger"><strong>错误组合一：闭区间 + <span style="font-family:var(--mono)">hi = mid</span> ⇒ 死循环。</strong><br/>
+设 lo=0, hi=1，则 mid = 0 + (1&minus;0)/2 = <b>0</b>。若走 <span style="font-family:var(--mono)">hi = mid</span> 分支 ⇒ hi 变为 0。<br/>
+下一轮：lo=0, hi=0，条件 <span style="font-family:var(--mono)">lo &le; hi</span> 仍成立，mid 又 = 0，又执行 <span style="font-family:var(--mono)">hi = mid = 0</span>&hellip;<b>区间永远不缩小，无限循环。</b><br/>
+根因：整数除法<b>向下取整</b>，mid 恒偏向左端。当区间只剩 2 个元素时 mid == lo，此时用 <span style="font-family:var(--mono)">hi=mid</span> 无法让区间变小。</div>
+<div class="tip danger"><strong>错误组合二：左闭右开 + <span style="font-family:var(--mono)">hi = mid&minus;1</span> ⇒ 漏检。</strong><br/>
+在"求第一个 &ge; key"的下界二分中，当 a[mid] &ge; key 时，<b>mid 本身就是一个合法候选答案</b>，必须保留在搜索区间里，因此只能写 <span style="font-family:var(--mono)">hi = mid</span>。<br/>
+若写成 <span style="font-family:var(--mono)">hi = mid&minus;1</span>，就把唯一正确答案排除出去，最终返回一个偏左的错误位置。<br/>
+例：a = [1, 3, 5]，key = 3。lo=0, hi=3 ⇒ mid=1，a[1]=3 &ge; 3。正确应 hi=1，最终 lo=1（答案）；若 hi=mid&minus;1=0，则 lo=hi=0 退出，错误地返回 0。</div>
+<div class="tip info"><strong>记忆口诀：</strong>「<b>区间闭，条件带等号，收缩要跨过 mid；区间半开，条件不带等号，收缩到 mid 为止</b>」。判断标准只有一条：<b>每一轮循环区间长度必须严格减少，且不能把可能的答案排除掉</b>。</div>
+
+<h3>4.3 循环条件 <span style="font-family:var(--mono)">lo &le; hi</span> 与 <span style="font-family:var(--mono)">lo &lt; hi</span></h3>
+<div class="tip warn"><strong>为什么闭区间必须用 <span style="font-family:var(--mono)">lo &le; hi</span>？</strong>闭区间 [lo, hi] 在 lo == hi 时<b>还剩一个元素</b>没检查。若写成 <span style="font-family:var(--mono)">lo &lt; hi</span>，这最后一个元素永远不会与 key 比较 ⇒ <b>漏检</b>。<br/>
+例：a=[5]，key=5。lo=hi=0，用 <span style="font-family:var(--mono)">lo&lt;hi</span> 直接跳过循环返回 &minus;1，明明存在却报"未找到"。<br/>
+反过来，左闭右开 [lo, hi) 在 lo == hi 时区间<b>已为空</b>，此时必须停，所以用 <span style="font-family:var(--mono)">lo &lt; hi</span>；若写 <span style="font-family:var(--mono)">lo &le; hi</span>，会在 lo==hi==n 时访问 a[n] ⇒ <b>越界</b>。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>五、二分查找的两个重要变体</h2><span class="sub">lower_bound / upper_bound</span></div>
+<div class="defn"><span class="lbl">定义</span><p><b>下界 lower_bound(key)</b>：返回第一个满足 a[i] &ge; key 的下标 i；若全部元素都 &lt; key，返回 n。<br/><b>上界 upper_bound(key)</b>：返回第一个满足 a[i] &gt; key 的下标 i。<br/>由此可得：<b>最后一个 &le; key 的位置 = upper_bound(key) &minus; 1</b>；<b>key 出现的次数 = upper_bound(key) &minus; lower_bound(key)</b>。</p></div>
+<div class="code"><span class="cm">// ---------- 变体 1：第一个 &gt;= key（下界 lower_bound）----------</span>
+<span class="cm">// 区间约定：左闭右开 [lo, hi) ⇒ 条件用 &lt; ，右收缩用 hi = mid</span>
+<span class="kw">int</span> <span class="fn">lowerBound</span>(<span class="kw">int</span> a[], <span class="kw">int</span> n, <span class="kw">int</span> key) {
+    <span class="kw">int</span> lo = <span class="nu">0</span>, hi = n;                    <span class="cm">// 注意 hi = n，不是 n-1</span>
+    <span class="kw">while</span> (lo &lt; hi) {
+        <span class="kw">int</span> mid = lo + (hi - lo) / <span class="nu">2</span>;
+        <span class="kw">if</span> (a[mid] &lt; key) lo = mid + <span class="nu">1</span>;   <span class="cm">// mid 太小，一定不是答案，排除</span>
+        <span class="kw">else</span>              hi = mid;         <span class="cm">// a[mid]&gt;=key，mid 可能就是答案，保留！</span>
+    }
+    <span class="kw">return</span> lo;                             <span class="cm">// 返回值 &isin; [0, n]，等于 n 表示不存在</span>
+}
+
+<span class="cm">// ---------- 变体 2：第一个 &gt; key（上界 upper_bound）----------</span>
+<span class="cm">// 与 lowerBound 只差一个等号：&lt; 变成 &lt;=</span>
+<span class="kw">int</span> <span class="fn">upperBound</span>(<span class="kw">int</span> a[], <span class="kw">int</span> n, <span class="kw">int</span> key) {
+    <span class="kw">int</span> lo = <span class="nu">0</span>, hi = n;
+    <span class="kw">while</span> (lo &lt; hi) {
+        <span class="kw">int</span> mid = lo + (hi - lo) / <span class="nu">2</span>;
+        <span class="kw">if</span> (a[mid] &lt;= key) lo = mid + <span class="nu">1</span>;  <span class="cm">// 等于 key 也要往右推进</span>
+        <span class="kw">else</span>               hi = mid;
+    }
+    <span class="kw">return</span> lo;
+}
+
+<span class="cm">// ---------- 应用 ----------</span>
+<span class="kw">int</span> last  = <span class="fn">upperBound</span>(a, n, key) - <span class="nu">1</span>;              <span class="cm">// 最后一个 &lt;= key（可能为 -1）</span>
+<span class="kw">int</span> cnt   = <span class="fn">upperBound</span>(a, n, key) - <span class="fn">lowerBound</span>(a, n, key);  <span class="cm">// key 的出现次数</span>
+<span class="kw">bool</span> found = (cnt &gt; <span class="nu">0</span>);                             <span class="cm">// 存在性判断</span></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>需求</th><th>比较条件</th><th>返回值</th><th>a=[1,3,3,3,7]，key=3 的结果</th></tr>
+  <tr><td>第一个 &ge; key</td><td class="hl">a[mid] &lt; key → lo=mid+1</td><td>lo</td><td>lowerBound = 1</td></tr>
+  <tr><td>第一个 &gt; key</td><td class="hl">a[mid] &le; key → lo=mid+1</td><td>lo</td><td>upperBound = 4</td></tr>
+  <tr><td>最后一个 &le; key</td><td>—</td><td>upperBound&minus;1</td><td>3</td></tr>
+  <tr><td>最后一个 &lt; key</td><td>—</td><td>lowerBound&minus;1</td><td>0</td></tr>
+  <tr><td>key 出现次数</td><td>—</td><td>upper&minus;lower</td><td>4 &minus; 1 = 3</td></tr>
+</table></div>
+<div class="tip info"><strong>要点：</strong>两个变体的代码<b>只差一个等号</b>，其余完全相同。而普通的"找任意一个等于 key 的位置"在有重复元素时返回值不确定，所以工程上通常<b>只写 lowerBound/upperBound 这一套模板</b>，其他需求全部由它们组合出来。C++ STL 的 <span style="font-family:var(--mono)">std::lower_bound / std::upper_bound</span> 正是这两个函数。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>六、例题</h2><span class="sub">Worked Example</span></div>
+<div class="tip info"><strong>题目：</strong>在 a = (2, 4, 6, 9, 11, 14, 17, 19, 22, 25, 28, 30)（n=12，下标 0~11）中分别查找 key=17（存在）与 key=20（不存在），写出每一步的 lo / mid / hi 及比较次数。</div>
+<div class="deriv">
+  <span class="step">【查找 key = 17】</span>
+  <span class="step">第 1 次：lo=0, hi=11 ⇒ mid=0+(11&minus;0)/2=5，a[5]=14 &lt; 17 ⇒ 去右半，lo=6</span>
+  <span class="step">第 2 次：lo=6, hi=11 ⇒ mid=6+(11&minus;6)/2=8，a[8]=22 &gt; 17 ⇒ 去左半，hi=7</span>
+  <span class="step">第 3 次：lo=6, hi=7 ⇒ mid=6+(7&minus;6)/2=6，a[6]=17 == 17 ⇒ <b>命中，返回 6，共比较 3 次</b></span>
+  <span class="step">　</span>
+  <span class="step">【查找 key = 20】</span>
+  <span class="step">第 1 次：lo=0, hi=11 ⇒ mid=5，a[5]=14 &lt; 20 ⇒ lo=6</span>
+  <span class="step">第 2 次：lo=6, hi=11 ⇒ mid=8，a[8]=22 &gt; 20 ⇒ hi=7</span>
+  <span class="step">第 3 次：lo=6, hi=7 ⇒ mid=6，a[6]=17 &lt; 20 ⇒ lo=7</span>
+  <span class="step">第 4 次：lo=7, hi=7 ⇒ mid=7，a[7]=19 &lt; 20 ⇒ lo=8</span>
+  <span class="step">此时 lo=8 &gt; hi=7，区间为空 ⇒ <b>查找失败，返回 &minus;1，共比较 4 次</b></span>
+  <span class="step">校验：⌊log<sub>2</sub>12⌋+1 = 3+1 = 4，与最坏比较次数一致。</span>
+  <span class="step">　</span>
+  <span class="step">【若改问"第一个 &ge; 20 的位置"】lowerBound 返回 lo = 8，即 a[8]=22，正是插入 20 后仍保持有序的位置。</span>
+</div>
+<div class="terms">
+  <span class="term"><b>二分查找</b>Binary Search</span>
+  <span class="term"><b>折半查找</b>Halving Search</span>
+  <span class="term"><b>判定树</b>Decision Tree</span>
+  <span class="term"><b>平均查找长度</b>ASL, Average Search Length</span>
+  <span class="term"><b>下界</b>lower_bound</span>
+  <span class="term"><b>上界</b>upper_bound</span>
+  <span class="term"><b>循环不变量</b>Loop Invariant</span>
+  <span class="term"><b>整型溢出</b>Integer Overflow</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>七、易错点</h2><span class="sub">Common Pitfalls</span></div>
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+<li><b>溢出</b>：<span style="font-family:var(--mono)">mid=(lo+hi)/2</span> 在 lo、hi 很大时 lo+hi 溢出为负 ⇒ 下标越界。必须写 <span style="font-family:var(--mono)">mid=lo+(hi&minus;lo)/2</span>。</li>
+<li><b>死循环</b>：闭区间 [lo,hi] 配 <span style="font-family:var(--mono)">hi=mid</span>。因整除向下取整，区间剩 2 个元素时 mid==lo，hi=mid 后区间不缩小 ⇒ 无限循环。</li>
+<li><b>漏检（一）</b>：闭区间却把循环条件写成 <span style="font-family:var(--mono)">lo&lt;hi</span>，lo==hi 时剩的那一个元素永远不被比较。</li>
+<li><b>漏检（二）</b>：下界二分中把 <span style="font-family:var(--mono)">hi=mid</span> 写成 <span style="font-family:var(--mono)">hi=mid&minus;1</span>，把唯一的候选答案 mid 排除掉。</li>
+<li><b>越界</b>：左闭右开 [lo,hi) 却用 <span style="font-family:var(--mono)">lo&le;hi</span>，在 lo==hi==n 时访问 a[n]。</li>
+<li>在<b>无序</b>序列上直接用二分查找。二分的正确性完全依赖有序性，无序时必须先排序（若只查一次，排序 O(n log n) 反而不如顺序查找 O(n)）。</li>
+<li>对<b>链表</b>使用二分查找。定位 mid 需 O(n)，递推变为 T(n)=T(n/2)+O(n) ⇒ &Theta;(n)，毫无优势。</li>
+<li>有重复元素时用普通二分求"第一次出现的位置"。普通二分命中任意一个即返回，位置不确定，必须改用 lowerBound。</li>
+<li>把复杂度记成 O(n log n) 或 O(log<sub>2</sub>n) 的"log 底数"纠结。二分查找是 <b>&Theta;(log n)</b>，底数在渐进意义下无关紧要。</li>
+</ul></div>
+</section>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+<li>二分查找前提：序列<b>有序</b> + 支持 <b>O(1) 随机存取</b>（数组，非链表）；适合静态查找表。</li>
+<li>递推式 <b>T(n)=T(n/2)+O(1)</b>，展开得 T(n)=T(n/2<sup>k</sup>)+kc，令 k=log<sub>2</sub>n ⇒ <b>&Theta;(log n)</b>。</li>
+<li>主定理校验：a=1、b=2、d=0，log<sub>2</sub>1=0=d ⇒ <b>情形②</b> ⇒ &Theta;(n<sup>0</sup>log n)=&Theta;(log n)。</li>
+<li>判定树高度 ⌊log<sub>2</sub>n⌋+1 即最坏比较次数；迭代版空间 O(1)，递归版 O(log n)。</li>
+<li>三处必须配套：<b>闭区间 ↔ lo&le;hi ↔ hi=mid&minus;1</b>；<b>左闭右开 ↔ lo&lt;hi ↔ hi=mid</b>。混用导致死循环或漏检。</li>
+<li>中点一律写 <span style="font-family:var(--mono)">lo+(hi&minus;lo)/2</span> 以防整型溢出。</li>
+<li>两个变体只差一个等号：lowerBound 用 <span style="font-family:var(--mono)">a[mid]&lt;key</span>，upperBound 用 <span style="font-family:var(--mono)">a[mid]&le;key</span>；由它们可推出"最后一个 &le; key"与"出现次数"。</li>
+</ul></div>
+
+<section class="sec"><div class="sec-head"><h2>自测题</h2><span class="sub">点击选项查看解析</span></div>
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>在闭区间写法 <span style="font-family:var(--mono)">while (lo &lt;= hi) { mid = lo+(hi-lo)/2; &hellip; }</span> 中，若把右分支误写成 <span style="font-family:var(--mono)">hi = mid;</span>（而非 <span style="font-family:var(--mono)">mid-1</span>），最可能出现的后果是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>返回值偏大 1，需要在外面减一修正</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>当区间收缩到只剩 2 个元素时 mid==lo，区间不再缩小，陷入死循环</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>数组下标越界，访问到 a[n]</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>复杂度由 O(log n) 退化为 O(n)，但结果仍正确</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。整数除法向下取整使 mid 偏左：当 hi==lo+1 时 mid = lo+(1)/2 = lo。执行 <span style="font-family:var(--mono)">hi=mid</span> 后变成 lo==hi，条件 <span style="font-family:var(--mono)">lo&le;hi</span> 仍成立，mid 再次等于 lo，<b>区间长度永不减少 ⇒ 死循环</b>。<br/>A 错在这不是"差一"问题而是根本不终止；C 是<b>另一种</b>错误组合（左闭右开配 <span style="font-family:var(--mono)">lo&le;hi</span>）的后果，不是本题；<b>D 最具迷惑性</b>——很多人以为"收缩慢一点只是变慢"，但这里是<b>完全不收缩</b>，程序会挂起而不是变慢。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>在 a = (1, 3, 3, 3, 7, 9) 中求 key=3 <b>第一次出现</b>的下标，应当使用哪种写法？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>普通二分，命中 a[mid]==key 时立即返回 mid</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>下界二分：<span style="font-family:var(--mono)">if (a[mid] &lt; key) lo=mid+1; else hi=mid;</span> 循环结束返回 lo</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>上界二分：<span style="font-family:var(--mono)">if (a[mid] &lt;= key) lo=mid+1; else hi=mid;</span> 循环结束返回 lo</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>先普通二分找到任意一个 3，再向左线性扫描到头</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。lowerBound 返回第一个 &ge; key 的位置，本例为下标 1，正是 3 的首次出现处。<br/>A 错在有重复元素时普通二分命中的是<b>不确定</b>的某一个（本例 mid 首次取 2，会返回 2 而不是 1）；<b>C 是最迷惑的干扰项</b>——upperBound 只差一个等号，但它返回第一个<b>大于</b> key 的位置即下标 4，那是<b>末次出现的下一个</b>，若要末次出现应再减 1；D 虽然能得到正确答案，但当 key 有 k 个重复时线性扫描是 O(k)，最坏 O(n)，<b>破坏了二分的 O(log n) 保证</b>。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>用主定理分析二分查找的递推式 T(n)=T(n/2)+O(1)，其 a、b、d 的取值与所属情形是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>a=2, b=2, d=0，情形③，T(n)=&Theta;(n)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>a=1, b=2, d=0，情形②，T(n)=&Theta;(log n)</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>a=1, b=2, d=1，情形①，T(n)=&Theta;(n)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>a=2, b=2, d=1，情形②，T(n)=&Theta;(n log n)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。a 是<b>递归调用的次数</b>：二分虽把区间分成两半，却<b>只递归其中一半</b>，故 a=1；b=2 是规模缩小倍数；每层只做一次比较，代价 &Theta;(1)=&Theta;(n<sup>0</sup>)，故 d=0。log<sub>2</sub>1=0=d ⇒ 情形② ⇒ &Theta;(n<sup>0</sup>log n)=&Theta;(log n)。<br/><b>A 是最典型的错误</b>：把"分成 2 份"误当成 a=2，结果算出 &Theta;(n<sup>log<sub>2</sub>2</sup>)=&Theta;(n)，那其实是"两半都要递归"（如求最大值的分治）的答案；C 错在 d：一次比较是常数而非线性；D 是归并排序的参数，与本题无关。</div>
+  </div>
+</div>
+</section>
+
+<div class="page-nav"><a href="03-mergesort.html"><span class="dir">← 上一节</span><span class="name">归并</span></a><a href="05-median.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">中位数</span></a></div>
+<div class="footer">算法设计与分析 · <b>第4章 分治法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(74,108,140,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+let a=[2,4,6,9,11,14,17,19,22,25,28,30];
+function paint(hi={}){ barDraw(ctx,cv.width,cv.height,a,hi); }
+kr.oninput=()=>kv.textContent=kr.value;
+run.onclick=async()=>{
+  const key=+kr.value; let lo=0,hi=a.length-1,c=0;
+  while(lo<=hi){
+    const mid=(lo+hi)>>1; c++; sc.textContent=c; slo.textContent=lo; smid.textContent=mid; shi.textContent=hi;
+    paint({lo,hi:hi,mid, range:[lo,hi]});
+    hud.textContent=`mid=a[${mid}]=${a[mid]} ? ${key}`;
+    log.textContent=`比较 a[${mid}]=${a[mid]} 与 ${key}`;
+    await sleep(500);
+    if(a[mid]===key){ paint({mid, sorted:new Set([mid])}); hud.textContent='找到 @'+mid; log.textContent+=`\\n✓ 命中下标 ${mid}`; return; }
+    if(a[mid]<key) lo=mid+1; else hi=mid-1;
+  }
+  hud.textContent='未找到'; log.textContent+='\\n✗ 不在数组中'; paint({});
+};
+rand.onclick=()=>{
+  const s=new Set(); while(s.size<12) s.add(1+Math.floor(Math.random()*40));
+  a=[...s].sort((x,y)=>x-y); paint({});
+};
+paint({}); shi.textContent=a.length-1;
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>递归概念 · 第2章 递归算法设计技术</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">02</div>算法可视化 · <span>第2章 递归算法设计技术</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill active" href="01-concept.html">概念</a><a class="pill" href="02-model.html">模型</a><a class="pill" href="03-cases.html">情形</a><a class="pill" href="04-stack.html">系统栈</a><a class="pill" href="05-fib-tree.html">Fib树</a><a class="pill" href="06-hanoi.html">汉诺塔</a><a class="pill" href="07-induction.html">归纳</a><a class="pill" href="08-knapsack.html">背包递归</a><a class="pill" href="09-recurrence.html">递推式</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 1</div><h1>递归三大条件</h1>
+<p>问题可缩小为同类子问题；存在直接求解边界；子问题解可合并。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+<li>能够<b>陈述</b>递归成立的三大条件，并说明每个条件<b>为什么必要</b>、<b>违反后会发生什么</b>。</li>
+<li>能够<b>写出</b>阶乘的 C++ 递归函数，并指出其中哪一行是递归出口、哪一行是递归体。</li>
+<li>能够<b>区分</b>直接递归（direct recursion）与间接递归 / 互递归（indirect / mutual recursion）。</li>
+<li>能够<b>解释</b>缺少递归出口为何导致栈溢出（stack overflow），而不是死循环卡住。</li>
+</ol></div>
+
+<section class="sec"><div class="sec-head"><h2>一、递归的定义</h2><span class="sub">Definition of Recursion</span></div>
+
+<div class="defn"><span class="lbl">定义 2.1 · 递归</span><p>若一个函数、过程或数据结构在其<b>定义内部</b>又直接或间接地<b>引用了自身</b>，则称之为<b>递归</b>（recursion）。用递归形式描述的算法称为<b>递归算法</b>。</p></div>
+
+<div class="defn prop"><span class="lbl">性质 · 递归成立的三大条件</span><p>一个问题 P(n) 能用递归求解，当且仅当同时满足：① <b>可分解性</b>——P(n) 能转化为一个或多个<b>同类型</b>、<b>规模更小</b>的子问题 P(n′)，n′ &lt; n；② <b>有边界</b>——存在最小规模 n<sub>0</sub>，使 P(n<sub>0</sub>) 可<b>不经递归</b>直接求出；③ <b>可合并性</b>——由子问题的解能在<b>有限步</b>内构造出原问题的解。</p></div>
+
+<div class="grid grid-3">
+  <div class="card"><span class="badge">1</span><h3>可分解</h3><p>原问题 → 更小同类问题</p></div>
+  <div class="card"><span class="badge">2</span><h3>有出口</h3><p>规模足够小直接返回</p></div>
+  <div class="card"><span class="badge">3</span><h3>可合并</h3><p>子问题答案合成总答案</p></div>
+</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>条件</th><th>为什么必要</th><th>违反后会怎样</th><th>反例</th></tr>
+  <tr>
+    <td class="hl">① 可分解<br/>（规模严格递减）</td>
+    <td>递归靠"规模不断变小"逼近边界。若子问题不比原问题小，调用序列 n → n → n… 永远走不到出口。<b>严格递减 + 下界存在</b>是递归终止的数学保证（良基归纳）。</td>
+    <td>无限递归 ⇒ 栈帧无限增长 ⇒ <b>栈溢出</b>（Segmentation fault / StackOverflowError）</td>
+    <td><code>int f(int n){return f(n);}</code>——规模没变</td>
+  </tr>
+  <tr>
+    <td class="hl">② 有出口<br/>（base case）</td>
+    <td>递归是"用更小的答案拼出大的答案"，但总得有<b>第一个不靠别人的答案</b>。出口就是这个起点，相当于数学归纳法的"基础情形 P(1) 成立"。</td>
+    <td>即使规模在递减，也会越过边界继续往负数递归 ⇒ 同样<b>栈溢出</b></td>
+    <td><code>int f(int n){return n*f(n-1);}</code>——n 会跑到 −1、−2…</td>
+  </tr>
+  <tr>
+    <td class="hl">③ 可合并<br/>（组合步）</td>
+    <td>拆开容易、拼回难。必须存在一个<b>有限时间</b>的合并运算（相乘、相加、取 max、归并两个有序表…），否则"分"了也没用。</td>
+    <td>算法虽能终止，但<b>求不出正确答案</b>，或合并本身指数级 ⇒ 递归毫无收益</td>
+    <td>把 n 个数分成两半分别排序，却不会归并 ⇒ 得不到整体有序</td>
+  </tr>
+</table></div>
+
+<div class="tip info"><strong>三者缺一不可：</strong>①②共同保证<b>能停</b>（终止性 termination），③保证<b>停下来的结果是对的</b>（正确性 correctness）。判断一个问题能否递归，就按这三条逐一验证。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、最小范例：阶乘</h2><span class="sub">Factorial · C++ 实现</span></div>
+
+<div class="formula">n! = n × (n−1) × … × 2 × 1，规定 0! = 1</div>
+
+<div class="deriv">
+  <span class="step">验证① 可分解：n! = n × (n−1)!  <span class="why">子问题 (n−1)! 同类型且规模−1</span></span>
+  <span class="step">验证② 有出口：0! = 1        <span class="why">n<sub>0</sub>=0，直接给出，不再递归</span></span>
+  <span class="step">验证③ 可合并：由 (n−1)! 乘以 n <span class="why">合并 = 一次乘法，O(1)</span></span>
+</div>
+
+<div class="code"><span class="cm">// 阶乘的递归实现  fact(n) = n!</span>
+<span class="kw">int</span> <span class="fn">fact</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n == <span class="nu">0</span>) <span class="kw">return</span> <span class="nu">1</span>;      <span class="cm">// ← 递归出口 base case（条件②）</span>
+    <span class="kw">return</span> n * <span class="fn">fact</span>(n - <span class="nu">1</span>);   <span class="cm">// ← 递归体 recursive case（条件①③）</span>
+}
+
+<span class="cm">// 对照：同一个式子的迭代写法</span>
+<span class="kw">int</span> <span class="fn">factIter</span>(<span class="kw">int</span> n) {
+    <span class="kw">int</span> s = <span class="nu">1</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">2</span>; i &lt;= n; ++i) s *= i;
+    <span class="kw">return</span> s;
+}</div>
+
+<div class="tip"><strong>复杂度：</strong>fact(n) 共产生 n+1 次调用，每次做 O(1) 的乘法，故时间 T(n) = T(n−1) + O(1) = <b>O(n)</b>；栈中最多同时存在 n+1 个栈帧，故空间 <b>O(n)</b>。迭代版空间仅 O(1)——这是递归为"可读性"付出的代价。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、直接递归 vs 间接递归</h2><span class="sub">Direct vs Indirect (Mutual) Recursion</span></div>
+
+<div class="defn"><span class="lbl">定义 2.2</span><p><b>直接递归</b>（direct recursion）：函数 f 的函数体中直接出现对 f 自身的调用。<b>间接递归</b>（indirect recursion）：f 调用 g、g 又调用 f，形成调用环 f → g → … → f；两个函数互相调用的特例称为<b>互递归</b>（mutual recursion）。</p></div>
+
+<div class="code"><span class="cm">// (1) 直接递归：fact 直接调用 fact</span>
+<span class="kw">int</span> <span class="fn">fact</span>(<span class="kw">int</span> n) { <span class="kw">return</span> n == <span class="nu">0</span> ? <span class="nu">1</span> : n * <span class="fn">fact</span>(n - <span class="nu">1</span>); }
+
+<span class="cm">// (2) 间接（互）递归：判断奇偶，isEven 与 isOdd 相互调用</span>
+<span class="kw">bool</span> <span class="fn">isOdd</span>(<span class="kw">int</span> n);          <span class="cm">// 必须先声明，否则编译期看不到</span>
+
+<span class="kw">bool</span> <span class="fn">isEven</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n == <span class="nu">0</span>) <span class="kw">return</span> <span class="kw">true</span>;   <span class="cm">// 出口 1</span>
+    <span class="kw">return</span> <span class="fn">isOdd</span>(n - <span class="nu">1</span>);        <span class="cm">// 调用对方</span>
+}
+<span class="kw">bool</span> <span class="fn">isOdd</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n == <span class="nu">0</span>) <span class="kw">return</span> <span class="kw">false</span>;  <span class="cm">// 出口 2</span>
+    <span class="kw">return</span> <span class="fn">isEven</span>(n - <span class="nu">1</span>);       <span class="cm">// 调用对方</span>
+}</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>对比项</th><th>直接递归</th><th>间接递归 / 互递归</th></tr>
+  <tr><td>调用环长度</td><td>1（f→f）</td><td>≥ 2（f→g→f）</td></tr>
+  <tr><td>出口位置</td><td>集中在一个函数内</td><td class="hl"><b>环上每个函数都要有出口</b></td></tr>
+  <tr><td>C++ 写法要点</td><td>直接写</td><td>需<b>前向声明</b>（forward declaration）</td></tr>
+  <tr><td>典型应用</td><td>阶乘、Fib、树遍历</td><td>递归下降语法分析器（expr↔term↔factor）、状态机</td></tr>
+  <tr><td>调试难度</td><td>低</td><td>高，环上任一处漏出口都会溢出</td></tr>
+</table></div>
+
+<div class="tip"><strong>判定技巧：</strong>画出<b>函数调用图</b>（call graph），结点是函数、有向边是"调用"。图中<b>只要存在有向环</b>就是递归；自环 = 直接递归，长度 ≥ 2 的环 = 间接递归。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、没有递归出口会怎样</h2><span class="sub">Stack Overflow · 后果分析</span></div>
+
+<div class="code"><span class="cm">// 危险代码：删掉了出口</span>
+<span class="kw">int</span> <span class="fn">bad</span>(<span class="kw">int</span> n) {
+    <span class="kw">return</span> n * <span class="fn">bad</span>(n - <span class="nu">1</span>);   <span class="cm">// n: 5,4,3,2,1,0,-1,-2,... 永不停止</span>
+}</div>
+
+<div class="deriv">
+  <span class="step">调用序列：bad(5) → bad(4) → bad(3) → … → bad(0) → bad(−1) → bad(−2) → …</span>
+  <span class="step">每进入一层，系统栈压入一个<b>栈帧</b>（参数 n、返回地址、局部变量）</span>
+  <span class="step">栈帧从不弹出（因为没有一层能 return 一个具体值）</span>
+  <span class="step">栈空间被耗尽 ⇒ <b>栈溢出 Stack Overflow</b></span>
+</div>
+
+<div class="tip info"><strong>为什么是"崩溃"而不是"卡死"：</strong>普通 <code>while(1)</code> 死循环<b>不消耗额外内存</b>，程序会一直转下去；而无出口递归<b>每一层都要吃掉一块栈空间</b>。典型线程栈只有 1 MB，一个栈帧几十字节的话，约几万到几十万层就会耗尽 ⇒ 操作系统立即终止进程（Linux 报 <code>Segmentation fault</code>，Windows 报 <code>0xC00000FD</code>）。所以现象是<b>秒级崩溃</b>，不是永久挂起。详见 §04 系统栈。</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+<li><b>只写了出口条件，却没让规模真的变小。</b>如 <code>return n * f(n)</code>、<code>f(n/1)</code>，参数原地踏步，出口永远够不着。规模必须<b>严格递减</b>。</li>
+<li><b>出口条件写成 <code>n == 0</code> 但入参可能为负。</b>调用 fact(−1) 时 n 从 −1 一路减下去，永远等不到 0。稳妥写法是 <code>if (n &lt;= 0) return 1;</code>，用 <b>≤</b> 而不是 <b>==</b> 兜底。</li>
+<li><b>把"递归深度大"误当成"死循环"。</b>fact(100000) 不是逻辑错误，是<b>栈空间不足</b>；改成迭代或尾递归即可，改出口条件没用。</li>
+<li><b>间接递归只在其中一个函数里写出口。</b>isEven 有出口、isOdd 没有，则从奇数入口进入仍会溢出——环上<b>每个</b>函数都必须能自己停下。</li>
+<li><b>混淆"可分解"与"可合并"。</b>能拆不等于能拼。例如把排序问题一分为二很容易，但若不会归并，③不成立，递归依然失败。</li>
+<li><b>递归出口放在递归调用之后。</b>先调用再判断（<code>int r = f(n-1); if(n==0) return 1;</code>）等于没有出口，因为判断语句永远执行不到。出口必须在<b>递归调用之前</b>拦截。</li>
+</ul></div>
+</section>
+<div class="card" style="margin-top:14px">
+  <div class="toolbar"><button class="btn primary" id="run">▶ 阶乘递归展开</button></div>
+  <div class="stage-wrap light" style="height:240px"><canvas class="stage" id="cv" width="900" height="240"></canvas></div>
+  <div class="log" id="log">fact(n)=n*fact(n-1), fact(0)=1</div>
+</div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+<li><b>递归</b>是"函数在自身定义中引用自身"，直接引用为<b>直接递归</b>，经他人绕回为<b>间接（互）递归</b>；判定方法是看调用图中是否存在有向环。</li>
+<li><b>三大条件</b>缺一不可：① 可分解（规模<b>严格递减</b>）② 有出口（存在 n<sub>0</sub> 直接可解）③ 可合并（有限步由子解构造原解）。①② 保证<b>终止</b>，③ 保证<b>正确</b>。</li>
+<li>阶乘是最小范例：出口 <code>n==0 → 1</code>，递归体 <code>n * fact(n-1)</code>；时间 O(n)，空间 O(n)（栈帧数 = 递归深度）。</li>
+<li>缺出口（或规模不减）的后果是<b>栈溢出</b>而非死循环——因为每层调用都要吃掉一个栈帧，1 MB 线程栈很快耗尽，程序秒级崩溃。</li>
+<li>间接递归中，调用环上<b>每一个</b>函数都必须有自己的出口；C++ 中还需要<b>前向声明</b>。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>下列函数中，哪一个<b>一定</b>会导致栈溢出？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span><code>int f(int n){ if(n&lt;=1) return 1; return n*f(n-1); }</code></span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span><code>int f(int n){ if(n==1) return 1; return n*f(n-2); }</code>，调用 f(6)</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span><code>int f(int n){ if(n&lt;=0) return 0; return f(n-1)+1; }</code>，调用 f(100)</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span><code>int f(int n){ if(n==0) return 1; return f(n/2)+1; }</code>，调用 f(64)</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 <b>B</b>。这是典型的"<b>出口够不着</b>"陷阱：规模确实在递减（n−2），出口也确实存在（n==1），但从<b>偶数</b> 6 出发，序列是 6→4→2→0→−2→−4…<b>永远跳过 1</b>，于是无限递归。<br/>A 正确：出口用 <code>&lt;=</code> 兜底，任何 n 都能停。<br/>C 正确：n 递减 1 且出口用 <code>&lt;=0</code>，深度仅 101 层。<br/>D 正确：n/2 整除很快到 0，深度只有 O(log n)≈7 层。<br/><b>结论：出口条件必须能被参数变化序列"命中"，用 <code>&lt;=</code> 比 <code>==</code> 安全得多。</b></div>
+</div>
+
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>关于递归成立的三大条件，下列说法<b>正确</b>的是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>只要问题能分解成同类子问题，就一定可以用递归求解</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>只要写了 <code>if</code> 判断语句作为出口，递归就一定会终止</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>"可分解"与"有出口"保证算法能终止，"可合并"保证算法结果正确</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>三个条件中，"可合并"是可以省略的，因为子问题解出来自然就是答案</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 <b>C</b>。<br/>A 错：分解只是①，还需要②边界和③合并。把排序一分为二很容易，但不会归并就得不到有序结果。<br/>B 错：出口必须<b>可达</b>——见第 1 题的 f(n−2) 反例；而且出口必须写在递归调用<b>之前</b>，否则永远执行不到。<br/>D 错：合并步是递归"由小拼大"的关键。汉诺塔的合并是"中间那一次移动最大盘"，归并排序的合并是 merge 过程，去掉它算法就不成立。<br/><b>记忆口诀：能拆、能停、能拼。</b></div>
+</div>
+
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>下面这段代码属于哪种递归？它能正确终止吗？<br/><code>bool isEven(int n){ if(n==0) return true; return isOdd(n-1); }</code><br/><code>bool isOdd(int n){ return isEven(n-1); }</code></div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>直接递归；能正确终止</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>间接（互）递归；能正确终止，因为 isEven 已经有出口了</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>间接（互）递归；<b>不能</b>正确终止，isOdd 缺少自己的出口</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>不是递归，因为两个函数都没有调用自己</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 <b>C</b>。<br/>D 错：递归的判据是调用图中<b>存在有向环</b>，isEven→isOdd→isEven 构成长度为 2 的环，属于间接（互）递归，A 也因此不对。<br/>B 是最迷惑的选项：isEven 确实有出口，但调用 <code>isOdd(0)</code> 时会直接执行 <code>isEven(-1)</code>，接着 isOdd(−2)、isEven(−3)…—— n==0 的判断在负数序列上<b>永远为假</b>，于是无限递归、栈溢出。<br/>正确写法必须给 isOdd 补上 <code>if(n==0) return false;</code>：<b>调用环上每个函数都要能自己停下来。</b></div>
+</div>
+</div>
+
+<div class="page-nav"><a href="index.html"><span class="dir">← 上一节</span><span class="name">总览</span></a><a href="02-model.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">模型</span></a></div>
+<div class="footer">算法设计与分析 · <b>第2章 递归算法设计技术</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(126,98,166,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+run.onclick=async()=>{
+  const n=5; const frames=[];
+  (function go(k,phase){ frames.push({k,phase}); if(k>0&&phase==='down') go(k-1,'down'); if(phase==='down') frames.push({k,phase:'up',val:k===0?1:null}); })(n,'down');
+  // simpler animation: descending then ascending
+  ctx.clearRect(0,0,900,240);
+  for(let k=n;k>=0;k--){
+    ctx.clearRect(0,0,900,240);
+    for(let i=n;i>=k;i--){
+      const y=30+(n-i)*32;
+      ctx.fillStyle=i===k?'#7E62A6':'#C3B2DD';
+      ctx.fillRect(80,y,200,28); ctx.fillStyle='#fff'; ctx.font='14px monospace'; ctx.fillText('fact('+i+') 调用',90,y+19);
+    }
+    log.textContent='递推调用 fact('+k+')'; await sleep(350);
+  }
+  let v=1;
+  for(let k=0;k<=n;k++){
+    if(k>0) v*=k;
+    ctx.clearRect(0,0,900,240);
+    ctx.fillStyle='#3B7A57'; ctx.fillRect(80,100,240,36);
+    ctx.fillStyle='#fff'; ctx.font='16px monospace'; ctx.fillText('fact('+k+') = '+v, 100, 124);
+    log.textContent='回溯返回 fact('+k+')='+v; await sleep(400);
+  }
+};
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

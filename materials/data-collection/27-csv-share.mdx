@@ -1,0 +1,136 @@
+---
+module: 7
+moduleName: 数据持久化
+order: 27
+title: 开源数据集CSV存取实践
+level: 基础必做
+scene: 数据共享
+knowledge: [CSV格式, csv模块, 表头管理, 数据来源标注]
+stars: 2
+minutes: 40
+goal: 掌握CSV读写
+sizheng: 树立开源数据引用与知识共享意识
+dims: [开源共享]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import PyStepRunner from '../../components/react/PyStepRunner';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+
+## 场景导入
+
+实验室师姐把她整理的《校园食堂菜价数据集》发给你，开头一行写着：「来源: 2024 秋实地采集 ｜ 许可: CC-BY-4.0 ｜ 引用请注明」。这行不起眼的注释，正是开源数据的通行证。这一课你将用 csv 模块读写数据集，并养成一个共享时代的好习惯：**接收数据先看清许可，发布数据要写明出处**。
+
+## 动手实验
+
+下面用 io.StringIO 在内存里「造」一个带许可声明的 CSV 数据集，再用 csv.reader 原样读回。注意首行的 `#` 注释——它让每一份被转发的数据都能追溯到源头：
+
+<PyPlayground
+  client:visible
+  title="带许可声明的 CSV 存取"
+  note="把首行许可换成 CC-BY-NC（禁止商用）或 CC0（放弃权利），想想不同许可分别允许别人怎么使用你的数据。"
+  code={`import csv, io
+
+# 用内存缓冲区模拟一个 .csv 文件（Pyodide 不写真实磁盘）
+buf = io.StringIO()
+writer = csv.writer(buf)
+
+# 首行：数据集「身份证」——来源与开源许可，随数据一起流转
+writer.writerow(["# 来源: 2024秋校园食堂实地采集 | 许可: CC-BY-4.0 | 引用请注明"])
+# 表头：清晰的列名是数据可用的前提
+writer.writerow(["档口", "菜名", "价格", "份量克"])
+# 数据行
+rows = [
+    ["一楼川湘", "糖醋排骨", "12.0", "260"],
+    ["二楼面档", "牛肉拉面", "10.0", "400"],
+    ["三楼粤式", "白切鸡", "15.0", "220"],
+]
+writer.writerows(rows)
+
+# 拿到完整的 CSV 文本
+text = buf.getvalue()
+print("=== CSV 文件内容 ===")
+print(text)
+
+# 回读：把文本当文件解析
+reader = csv.reader(io.StringIO(text))
+license_line, header, *data = list(reader)
+
+print("许可声明：", license_line[0])
+print("表头字段：", header)
+print(f"共读到 {len(data)} 条菜价记录：")
+for r in data:
+    print(f"  {r[0]} - {r[1]}：{r[2]} 元 / {r[3]}g")
+print("\\n引用示例：数据来自《校园食堂菜价数据集》(CC-BY-4.0)，转载请署名。")`}
+/>
+
+## 逐行看懂
+
+写入靠 csv.writer，回读靠 csv.reader，中间用 io.StringIO 当「文件」。点开单步，看许可、表头、数据如何依次落位又被读回：
+
+<PyStepRunner
+  client:visible
+  title="CSV 写入与回读"
+  fileName="csv_share.py"
+  code={`import csv, io
+buf = io.StringIO()
+w = csv.writer(buf)
+w.writerow(["# 许可: CC-BY-4.0"])
+w.writerow(["菜名", "价格"])
+w.writerow(["糖醋排骨", "12.0"])
+rows = list(csv.reader(io.StringIO(buf.getvalue())))
+print("读回", len(rows), "行，含许可与表头")`}
+  steps={[
+    { line: 0, desc: '导入 csv 与 io：csv 负责格式，io.StringIO 在内存里当「文件」。' },
+    { line: 1, desc: '开一个内存缓冲区 buf，充当待写入的 CSV 文件。', vars: { buf: '空缓冲区' } },
+    { line: 2, desc: '把 buf 交给 csv.writer，之后写入自动加逗号分隔与换行。' },
+    { line: 3, desc: '写第一行——许可声明，让数据走到哪儿都带着出处。', vars: { '第1行': '# 许可: CC-BY-4.0' } },
+    { line: 4, desc: '写表头，给每一列起个清楚的名字。', vars: { '第2行': '菜名,价格' } },
+    { line: 5, desc: '写一条数据行，csv 模块自动处理分隔与转义。', vars: { '第3行': '糖醋排骨,12.0' } },
+    { line: 6, desc: '用 csv.reader 把整段文本重新解析成行列表——完成回读。', vars: { rows: '3 行(许可/表头/数据)' } },
+    { line: 7, desc: '打印读回的行数，确认许可、表头、数据都在。', out: '读回 3 行，含许可与表头' },
+  ]}
+/>
+
+## 思政会客厅
+
+<DimCard dim="开源共享" title="用数据要引用，分享要标许可">
+  <ul>
+    <li>开源数据集不是「免费白拿」：CC-BY 要求署名，CC-BY-NC 禁止商用，CC0 才是真正放弃权利。用之前先读懂许可，是对贡献者的基本尊重。</li>
+    <li>你发布数据时也一样——在首行写清来源、采集时间与许可，别人才敢放心引用、放心复现。一句注释，把「数据孤岛」连成「知识网络」。</li>
+    <li>Linux、维基百科、无数公开数据集都建立在「我贡献、你署名、共同生长」的契约上。共享不是慷慨，而是让知识高效流动的制度。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="📜" tone="blue" title="CC 许可速记">
+CC-BY：署名即可用 ｜ CC-BY-SA：署名且以相同许可分享 ｜ CC-BY-NC：署名且禁止商用 ｜ CC0：放弃权利、随便用。看懂这几个后缀，你就拿到了开源世界的通行证。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p27-d1"
+  question="你在网上找到一个标着 CC-BY-4.0 的数据集，直接拿来写进课程论文，还需要做什么？如果这份数据没有任何许可说明，你敢用吗？"
+  hints={['CC-BY 的核心义务是署名——在论文里注明数据来源与作者', '没有许可声明不等于可以随便用，默认版权归作者，反而更要谨慎', '养成习惯：下载数据先找 LICENSE 或 README 里的授权条款']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="用 csv 模块把内存里的数据当「文件」读写，最直接的搭档是哪个？"
+  options={['io.StringIO', 'os.path', 'json.loads', 'time.sleep']}
+  answer={0}
+  explain="io.StringIO 提供一个内存中的文本缓冲区，可以像文件一样被 csv.writer 写、被 csv.reader 读，特别适合演示与测试，也避开了真实写盘。"
+/>
+
+<QuizItem
+  client:visible
+  question="发布自己整理的数据集给同学复用，最负责任的做法是？"
+  options={['什么都不写，能下载就行', '在数据里标注来源、采集时间与开源许可', '只发给关系好的同学，其他人不给', '故意打乱字段名防止被抄']}
+  answer={1}
+  explain="标注来源与许可，别人才能合规引用、准确复现，这正是开源共享精神的落地。共享的价值在于让数据被正确地再利用，而不是设障碍或私藏。"
+/>

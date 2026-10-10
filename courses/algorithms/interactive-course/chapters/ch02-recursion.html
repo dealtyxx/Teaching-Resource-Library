@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第2章 递归 · 算法互动课堂</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/common.css">
+</head>
+<body data-chapter="ch02">
+<button class="menu-toggle" onclick="toggleSidebar()" aria-label="菜单">☰</button>
+
+<div class="app-shell">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <a href="../index.html">
+      <div class="logo"><span>AD</span>算法互动课堂</div>
+      <div class="sub">玩中学 · 看见算法</div>
+    </a>
+  </div>
+  <div class="nav-section">本页导航</div>
+  <a class="nav-link toc" href="#s1">开场</a>
+<a class="nav-link toc" href="#s2">阶乘栈</a>
+<a class="nav-link toc" href="#s3">汉诺塔</a>
+<a class="nav-link toc" href="#s4">三条件</a>
+<a class="nav-link toc" href="#s5">测验</a>
+  <div class="nav-section">全部章节</div>
+  <a class="nav-link" href="ch01-intro.html"><span class="dot"></span>🚀 01 绪论</a>
+<a class="nav-link active" href="ch02-recursion.html"><span class="dot"></span>🪞 02 递归</a>
+<a class="nav-link" href="ch03-brute.html"><span class="dot"></span>🔍 03 穷举法</a>
+<a class="nav-link" href="ch04-divide.html"><span class="dot"></span>⚔️ 04 分治法</a>
+<a class="nav-link" href="ch05-backtrack.html"><span class="dot"></span>♟️ 05 回溯法</a>
+<a class="nav-link" href="ch06-branch.html"><span class="dot"></span>🗺️ 06 分支限界</a>
+<a class="nav-link" href="ch07-dp.html"><span class="dot"></span>💎 07 动态规划</a>
+<a class="nav-link" href="ch08-greedy.html"><span class="dot"></span>🎯 08 贪心法</a>
+<a class="nav-link" href="ch09-graph.html"><span class="dot"></span>🕸️ 09 图算法</a>
+<a class="nav-link" href="ch10-geometry.html"><span class="dot"></span>📐 10 计算几何</a>
+<a class="nav-link" href="ch11-complexity.html"><span class="dot"></span>🌌 11 计算复杂性</a>
+<a class="nav-link" href="ch12-prob-approx.html"><span class="dot"></span>🎲 12 概率与近似</a>
+  <div class="nav-section">返回</div>
+  <a class="nav-link" href="../index.html">🏠 课程大厅</a>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a href="../index.html">课程大厅</a> <span>/</span>
+      <span>第2章 递归</span>
+    </div>
+    <span class="badge badge-fun">🎮 互动课堂</span>
+  </div>
+  <div class="progress-track" title="阅读进度"><div class="fill"></div></div>
+  
+  <div class="card card-hero fade-in" data-section="s1" id="s1">
+    <span class="hero-emoji">🪞</span>
+    <span class="badge badge-purple" style="margin-left:.5rem">第2章 · 递归</span>
+    <h1 style="margin-top:.6rem">自己调用自己的艺术</h1>
+    <p style="color:var(--text-dim);margin-top:.7rem">「从前有座山…」——递归不是玄学，是<strong>边界 + 缩小规模 + 组合答案</strong>。下面让调用栈「长」出来给你看。</p>
+  </div>
+  <div class="fun-tip"><div class="avatar">🧙</div><div class="bubble"><strong>心法：</strong>先写结束条件，再写「假设子问题已解决」——递归就通了大半。</div></div>
+
+  <section data-section="s2" id="s2">
+    <h2>阶乘 · 栈的呼吸</h2>
+    <div class="demo-panel">
+      <div class="demo-header">
+        <h3><span class="pulse"></span> n! 入栈 / 返回</h3>
+        <div class="demo-controls" style="margin:0">
+          <div class="slider-group"><label>n</label><input type="range" id="facN" min="1" max="8" value="5"><span class="val" id="facNVal">5</span></div>
+          <div class="speed-chips" id="facSpeed">
+            <button data-speed="600">慢</button>
+            <button data-speed="350" class="on">中</button>
+            <button data-speed="150">快</button>
+          </div>
+          <button class="btn btn-primary" id="facRun">▶ 播放</button>
+          <button class="btn" id="facReset">重置</button>
+        </div>
+      </div>
+      <div class="demo-body">
+        <div class="pre-wrap"><span class="kw">int</span> <span class="fn">fac</span>(n) {
+  <span class="kw">if</span> (n==1) <span class="kw">return</span> 1;     <span class="cm">// 边界 · 救命稻草</span>
+  <span class="kw">return</span> <span class="fn">fac</span>(n-1) * n;      <span class="cm">// 缩小 · 再组合</span>
+}</div>
+        <div id="facStack" style="display:flex;flex-direction:column-reverse;gap:8px;min-height:220px;align-items:center;padding:1rem"></div>
+        <div class="status-bar" id="facStatus">按下播放，看栈如何一层层叠高，再一层层弹回。</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-section="s3" id="s3">
+    <h2>汉诺塔 · 递归三板斧</h2>
+    <div class="demo-panel">
+      <div class="demo-header">
+        <h3>🗼 神塔搬迁直播</h3>
+        <div class="demo-controls" style="margin:0">
+          <div class="slider-group"><label>盘数</label><input type="range" id="hanN" min="1" max="6" value="3"><span class="val" id="hanNVal">3</span></div>
+          <button class="btn btn-primary" id="hanPlay">自动演示</button>
+          <button class="btn" id="hanStep">单步</button>
+          <button class="btn" id="hanReset">重置</button>
+        </div>
+      </div>
+      <div class="demo-body">
+        <canvas id="hanCanvas" width="720" height="300" style="width:100%;max-width:720px;height:auto;display:block;margin:0 auto;background:#060a14;border-radius:14px;border:1px solid var(--border)"></canvas>
+        <div class="status-bar" id="hanStatus">最少步数 = 2ⁿ − 1。n=64 时比宇宙年龄还长 👀</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-section="s4" id="s4">
+    <h2>递归三条件</h2>
+    <div class="steps">
+      <div class="step"><div class="step-body"><strong>可分解</strong> — 原问题 = 同构小问题</div></div>
+      <div class="step"><div class="step-body"><strong>有限深</strong> — 不会无限套娃</div></div>
+      <div class="step"><div class="step-body"><strong>有边界</strong> — 必须有人喊停</div></div>
+    </div>
+  </section>
+
+  <section data-section="s5" id="s5">
+    <h2>挑战测验</h2>
+    <div class="quiz-card" data-quiz id="q2" data-xp="40">
+      <span class="q-badge">Q · +40XP</span>
+      <p style="font-weight:700;margin:.6rem 0 .7rem">汉诺塔 n=4 最少步数？</p>
+      <button class="quiz-option" data-correct="0">8</button>
+      <button class="quiz-option" data-correct="1">15</button>
+      <button class="quiz-option" data-correct="0">16</button>
+      <button class="quiz-option" data-correct="0">7</button>
+      <div class="quiz-feedback callout callout-success" style="display:none;margin-top:.8rem">2⁴−1=15。T(n)=2T(n−1)+1。</div>
+    </div>
+  </section>
+
+  <div class="chapter-nav"><a href="ch01-intro.html"><span class="dir">← 上一章</span><span class="name">🚀 第1章 绪论</span></a><a href="ch03-brute.html" style="text-align:right"><span class="dir">下一章 →</span><span class="name">🔍 第3章 穷举法</span></a></div>
+
+</main>
+</div>
+<script src="../assets/common.js"></script>
+<script>
+
+const facSp=makeSpeed(350); facSp.bind(document.getElementById('facSpeed'));
+document.getElementById('facN').oninput=function(){document.getElementById('facNVal').textContent=this.value};
+function buildFac(n){
+  const steps=[];
+  for(let i=n;i>=1;i--) steps.push({type:'push',val:i,text:`调用 fac(${i})`});
+  let acc=1;
+  for(let i=1;i<=n;i++){ acc*=i; steps.push({type:'pop',val:i,res:acc,text:`fac(${i}) → ${acc}`}); }
+  return steps;
+}
+function renderFacStack(stack){
+  const el=document.getElementById('facStack');
+  if(!stack.length){el.innerHTML='<span style="color:var(--text-muted)">栈空 · 像深呼吸后的平静</span>';return;}
+  el.innerHTML=stack.map((v,i)=>`<div class="cell ${i===stack.length-1?'active':''}" style="width:auto;min-width:110px;padding:0 1.1rem;height:42px">fac(${v})</div>`).join('');
+}
+document.getElementById('facReset').onclick=()=>{renderFacStack([]);setStatus('#facStatus','已重置');};
+document.getElementById('facRun').onclick=async()=>{
+  const n=+document.getElementById('facN').value;
+  let stack=[];
+  for(const s of buildFac(n)){
+    if(s.type==='push'){stack.push(s.val);renderFacStack(stack);setStatus('#facStatus','⬇️ '+s.text);}
+    else{stack.pop();renderFacStack(stack);setStatus('#facStatus','⬆️ '+s.text);}
+    await sleep(facSp.ms);
+  }
+  setStatus('#facStatus',`<strong>${n}! = ${buildFac(n).at(-1).res}</strong> · 栈空，任务完成`);
+  addXP(12,'看完阶乘栈');
+};
+// Hanoi
+const poles=[[],[],[]], colors=['#7aa2ff','#c4a1ff','#3ee8a8','#ffc14d','#ff8ec8','#4de8ff'];
+let moves=[], moveI=0, hanBusy=false;
+function hanoiGen(n,a,b,c,out){ if(n===1){out.push([a,c]);return;} hanoiGen(n-1,a,c,b,out); out.push([a,c]); hanoiGen(n-1,b,a,c,out); }
+function resetHan(){
+  const n=+document.getElementById('hanN').value;
+  poles[0]=[];poles[1]=[];poles[2]=[];
+  for(let i=n;i>=1;i--) poles[0].push(i);
+  moves=[]; moveI=0; hanoiGen(n,0,1,2,moves);
+  drawHan(); setStatus('#hanStatus',`共 ${moves.length} 步 · 2^${n}-1=${2**n-1}`);
+}
+function drawHan(){
+  const cv=document.getElementById('hanCanvas'), ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height; ctx.clearRect(0,0,W,H);
+  const baseY=H-36, names=['A','B','C'];
+  for(let p=0;p<3;p++){
+    const cx=W/6+p*W/3;
+    ctx.fillStyle='rgba(148,163,184,.25)';
+    ctx.fillRect(cx-5,55,10,baseY-55);
+    ctx.fillRect(cx-80,baseY,160,10);
+    ctx.fillStyle='#8b9bb8'; ctx.font='bold 14px Noto Sans SC'; ctx.textAlign='center';
+    ctx.fillText(names[p],cx,H-10);
+    poles[p].forEach((disk,i)=>{
+      const w=24+disk*20,h=20,y=baseY-14-(i+1)*h;
+      const g=ctx.createLinearGradient(cx-w/2,y,cx+w/2,y);
+      g.addColorStop(0,colors[disk-1]); g.addColorStop(1,colors[disk-1]+'99');
+      ctx.fillStyle=g;
+      ctx.beginPath();
+      if(ctx.roundRect) ctx.roundRect(cx-w/2,y,w,h,6); else ctx.rect(cx-w/2,y,w,h);
+      ctx.fill();
+      ctx.fillStyle='#0b1020'; ctx.font='bold 12px JetBrains Mono';
+      ctx.fillText(disk,cx,y+14);
+    });
+  }
+}
+async function doMove(){
+  if(moveI>=moves.length){setStatus('#hanStatus','<strong>通关！</strong> 塔已就位 🎉');confetti(40);return false;}
+  const [f,t]=moves[moveI++];
+  const d=poles[f].pop(); poles[t].push(d); drawHan();
+  setStatus('#hanStatus',`步 ${moveI}/${moves.length} · 盘 ${d}：${'ABC'[f]} → ${'ABC'[t]}`);
+  return moveI<moves.length;
+}
+document.getElementById('hanN').oninput=function(){document.getElementById('hanNVal').textContent=this.value;resetHan();};
+document.getElementById('hanReset').onclick=resetHan;
+document.getElementById('hanStep').onclick=()=>doMove();
+document.getElementById('hanPlay').onclick=async()=>{
+  if(hanBusy)return; hanBusy=true;
+  if(moveI>=moves.length) resetHan();
+  while(await doMove()) await sleep(380);
+  hanBusy=false; addXP(15,'看完汉诺塔');
+};
+resetHan();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>回溯法总览 · 第5章 回溯法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">05</div>算法可视化 · <span>第5章 回溯法</span></div>
+<div class="links"><a class="pill active" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-trees.html">树类型</a><a class="pill" href="03-powerset.html">幂集</a><a class="pill" href="04-prune.html">剪支</a><a class="pill" href="05-knapsack.html">背包</a><a class="pill" href="06-coloring.html">着色</a><a class="pill" href="07-perm.html">全排列</a><a class="pill" href="08-nqueens.html">n皇后</a><a class="pill" href="09-opt.html">任务分配</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow"><span class="pulse-dot"></span> Chapter 5 · Backtracking · Deep Demo</div>
+  <h1>第5章 回溯法 · 算法演示加深</h1>
+  <p>在解空间树 DFS，用约束与限界尽早剪支。皇后、着色、背包限界、任务分配全部可逐步播放。</p>
+  <div class="hero-meta"><span class="chip on">9 节加深</span><span class="chip">剪支可视化</span></div>
+</section>
+
+<div class="objectives"><h3>本章学习目标</h3><ol>
+  <li>能够<b>陈述</b>回溯法（backtracking）的定义"在解空间树上做深度优先搜索，并在搜索过程中剪支"，并准确使用<b>活结点</b>、<b>扩展结点</b>、<b>死结点</b>三个术语描述搜索状态。</li>
+  <li>能够<b>默写</b>回溯法的通用递归框架，并指出框架中"约束函数"与"限界函数"两处剪支点各自的作用与差别。</li>
+  <li>能够<b>识别</b>三类解空间树——子集树（2<sup>n</sup> 个叶子）、排列树（n! 个叶子）、m 叉树（m<sup>n</sup> 个叶子）——并为一个新问题选择正确的解空间树。</li>
+  <li>能够<b>设计</b>具体问题的剪支条件：子集和的可行性剪支、0/1 背包的分数背包上界、图着色的邻点冲突判定、n 皇后的对角线判定、任务分配的行最小值下界。</li>
+  <li>能够<b>论证</b>限界函数的正确性（剪掉的分支中不可能存在更优解），并解释为什么剪支不改变最坏情况的指数级复杂度。</li>
+  <li>能够<b>分析</b>本章各算法的时间复杂度，并说明"实际访问结点数"与"理论上界"之间为何可以相差几个数量级。</li>
+</ol></div>
+<div class="grid grid-3"><a class="feature-card" href="01-overview.html" data-ico="🌳" style="--c:#6E5691"><div class="num">§ 01</div><h3>回溯概述</h3><p>DFS+剪支 · 解空间树</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="02-trees.html" data-ico="🔀" style="--c:#7E62A6"><div class="num">§ 02</div><h3>树类型</h3><p>子集树 vs 排列树</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="03-powerset.html" data-ico="📦" style="--c:#C2603F"><div class="num">§ 03</div><h3>幂集</h3><p>选/不选动画</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="04-prune.html" data-ico="✂️" style="--c:#A02C55"><div class="num">§ 04</div><h3>剪支与子集和</h3><p>可行性剪支</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="05-knapsack.html" data-ico="🎒" style="--c:#9C7420"><div class="num">§ 05</div><h3>背包限界</h3><p>bound 上界</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="06-coloring.html" data-ico="🎨" style="--c:#3B7A57"><div class="num">§ 06</div><h3>m 着色</h3><p>冲突剪支</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="07-perm.html" data-ico="🔢" style="--c:#4A6C8C"><div class="num">§ 07</div><h3>全排列</h3><p>交换法展开</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="08-nqueens.html" data-ico="♛" style="--c:#A02C55"><div class="num">§ 08</div><h3>n 皇后</h3><p>对角线剪支</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="09-opt.html" data-ico="🗺️" style="--c:#6E5691"><div class="num">§ 09</div><h3>任务分配</h3><p>最优性限界 · TSP 衔接</p><div class="go">进入加深演示 →</div></a></div>
+
+<section class="sec"><div class="sec-head"><h2>知识地图</h2><span class="sub">Knowledge Map · 九节之间的依赖关系</span></div>
+
+<div class="list-step"><span class="n">A</span><div class="body"><b>方法论主干（§01 &rarr; §02）</b>：§01 建立"回溯 = 解空间树上的 DFS + 剪支"这一总纲，给出活结点／扩展结点／死结点的定义、通用递归框架，以及<b>约束函数</b>与<b>限界函数</b>的分工；§02 把解空间树分成子集树、排列树、m 叉树三型。这两节是全章的"语法"，后面七节都是这两节的实例化。</div></div>
+<div class="list-step"><span class="n">B</span><div class="body"><b>子集树族（§03 &rarr; §04 &rarr; §05）</b>：三节共用同一棵 2<sup>n</sup> 规模的二叉子集树，剪支强度逐级递增。§03 幂集<b>不剪支</b>（所有叶子都是解）；§04 子集和加<b>可行性剪支</b>（约束函数）；§05 0/1 背包再叠加<b>最优性剪支</b>（限界函数）。建议按此顺序阅读，剪支概念是层层加码的。</div></div>
+<div class="list-step"><span class="n">C</span><div class="body"><b>m 叉树（§06）</b>：图的 m 着色问题中，每个顶点有 m 种颜色可选，解空间是 m<sup>n</sup> 的 m 叉树，是介于子集树（m=2）与排列树之间的第三种形态。剪支依据是"相邻顶点不同色"这一纯约束条件，没有最优性目标。</div></div>
+<div class="list-step"><span class="n">D</span><div class="body"><b>排列树族（§07 &rarr; §08 &rarr; §09）</b>：三节共用 n! 规模的排列树。§07 讲排列树的<b>生成机制</b>（swap 展开 + 回溯换回）；§08 n 皇后在排列树上加<b>对角线约束</b>；§09 任务分配在排列树上加<b>代价下界</b>，是本章唯一的最小化最优解问题，也是通向第 6 章分支限界法的桥梁。</div></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>小节</th><th>解空间树</th><th>叶子规模</th><th>剪支类型</th><th>时间复杂度（最坏）</th></tr>
+  <tr><td>§01 回溯概述</td><td>通用</td><td>—</td><td>约束函数 + 限界函数</td><td class="hl">指数级</td></tr>
+  <tr><td>§02 树类型</td><td>子集/排列/m 叉</td><td>2<sup>n</sup> / n! / m<sup>n</sup></td><td>—</td><td class="hl">&Theta;(2<sup>n</sup>)、&Theta;(n!)、&Theta;(m<sup>n</sup>)</td></tr>
+  <tr><td>§03 幂集</td><td>子集树</td><td>2<sup>n</sup></td><td>无（全是解）</td><td class="hl">&Theta;(2<sup>n</sup>)</td></tr>
+  <tr><td>§04 子集和</td><td>子集树</td><td>2<sup>n</sup></td><td>可行性剪支</td><td class="hl">O(2<sup>n</sup>)</td></tr>
+  <tr><td>§05 0/1 背包</td><td>子集树</td><td>2<sup>n</sup></td><td>可行性 + 最优性</td><td class="hl">O(n&middot;2<sup>n</sup>)</td></tr>
+  <tr><td>§06 m 着色</td><td>m 叉树</td><td>m<sup>n</sup></td><td>邻点冲突（约束）</td><td class="hl">O(n&middot;m<sup>n</sup>)</td></tr>
+  <tr><td>§07 全排列</td><td>排列树</td><td>n!</td><td>无</td><td class="hl">&Theta;(n&middot;n!)</td></tr>
+  <tr><td>§08 n 皇后</td><td>排列树</td><td>n!</td><td>对角线（约束）</td><td class="hl">O(n!)</td></tr>
+  <tr><td>§09 任务分配</td><td>排列树</td><td>n!</td><td>代价下界（限界）</td><td class="hl">O(n&middot;n!)</td></tr>
+</table></div>
+
+<div class="tip info"><strong>阅读建议：</strong>务必先吃透 §01 的通用框架与两类剪支函数的区别——它是理解 §04（只有约束函数）、§05／§09（约束 + 限界）差异的钥匙。若时间紧张，最低限度掌握 §01 框架、§02 三型树、§05 限界函数正确性证明三处；§03 与 §07 分别是子集树、排列树的"最小可运行样例"，可作为写代码时的模板。</div>
+
+<div class="tip"><strong>与前后章的关系：</strong>第 3 章穷举法是"生成完整候选解再检验"，回溯法则是"边生成边检验、发现不可能就立刻退回"，二者解空间相同而搜索策略不同。第 6 章分支限界法与本章共用限界函数思想，区别在于用<b>广度优先／优先队列</b>取代深度优先，且通常只求一个最优解而不求全部解。</div>
+
+<div class="terms">
+  <span class="term"><b>回溯法</b>backtracking</span>
+  <span class="term"><b>解空间树</b>state space tree</span>
+  <span class="term"><b>活结点</b>live node</span>
+  <span class="term"><b>扩展结点</b>E-node / expansion node</span>
+  <span class="term"><b>死结点</b>dead node</span>
+  <span class="term"><b>剪支</b>pruning</span>
+  <span class="term"><b>约束函数</b>constraint function</span>
+  <span class="term"><b>限界函数</b>bounding function</span>
+  <span class="term"><b>子集树</b>subset tree</span>
+  <span class="term"><b>排列树</b>permutation tree</span>
+</div>
+</section>
+
+<div class="page-nav"><div></div><a href="01-overview.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">概述</span></a></div>
+<div class="footer">算法设计与分析 · <b>第5章 回溯法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(110,86,145,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

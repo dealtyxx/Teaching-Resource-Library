@@ -1,0 +1,156 @@
+---
+module: 8
+moduleName: 数据预处理
+order: 32
+title: 多部门业务表集成标准化
+level: 进阶选做
+scene: 数据集成
+knowledge: [数据集成, 字段对齐, 单位归一化, 时效校验]
+stars: 3
+minutes: 50
+goal: 掌握多源数据集成
+sizheng: 落实最小化使用的隐私保护原则
+dims: [职业伦理, 法治意识]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import PyStepRunner from '../../components/react/PyStepRunner';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+
+## 场景导入
+
+学校要做一份「毕业生就业质量报告」，就业办给了一张表（字段叫 `tel`、薪资单位是「千元/月」），校友会给了另一张（字段叫 `手机号`、薪资是「元/月」），两表还都带着身份证号。把它们合成一张标准表只是技术活的一半——另一半是判断：**做就业统计，根本用不到手机号和身份证**。集成的第一步，是决定哪些字段不该进来。
+
+## 逐行看懂
+
+字段对齐 → 单位归一化 → 最小化裁剪，三步走：
+
+<PyStepRunner
+  client:visible
+  title="逐行执行：两张表合成一张标准表"
+  fileName="integrate.py"
+  code={`FIELD_MAP = {"tel": "phone", "手机号": "phone",
+             "月薪": "salary_yuan", "salary_k": "salary_yuan"}
+KEEP = ["city", "industry", "salary_yuan"]
+
+row_a = {"tel": "13812345678", "salary_k": 15,
+         "city": "杭州", "industry": "互联网"}
+
+std = {}
+for k, v in row_a.items():
+    std[FIELD_MAP.get(k, k)] = v
+if "salary_k" in row_a:
+    std["salary_yuan"] = row_a["salary_k"] * 1000
+final = {k: std[k] for k in KEEP}
+print(final)`}
+  steps={[
+    { line: 0, desc: '字段映射字典：把各部门五花八门的字段名统一到标准 schema——集成的「翻译词典」。', vars: { '映射规则': '4 条' } },
+    { line: 2, desc: '最小化白名单 KEEP：就业统计只需要城市、行业、薪资。注意——phone 压根不在名单里。', vars: { 'KEEP': 'city/industry/salary_yuan' } },
+    { line: 4, desc: '就业办的一行原始数据：字段叫 tel，薪资单位是千元。' },
+    { line: 7, desc: '准备装标准化结果的空字典。' },
+    { line: 8, desc: '遍历原始字段，逐个查词典改名。', vars: { 'k': 'tel → phone' } },
+    { line: 9, desc: 'FIELD_MAP.get(k, k)：词典里有就翻译，没有就保留原名——对齐不丢字段。' },
+    { line: 10, desc: '单位归一化：千元 × 1000 = 元。两表薪资从此可比。', vars: { 'salary_yuan': '15000' } },
+    { line: 11, desc: '同上，完成换算。' },
+    { line: 12, desc: '关键一步：按白名单重建字典——手机号在这里被有意留在门外。', vars: { 'final': '3 个字段' } },
+    { line: 13, desc: '输出的标准行不含任何个人联系方式：统计够用，隐私零暴露。', out: "{'city': '杭州', 'industry': '互联网', 'salary_yuan': 15000}" },
+  ]}
+/>
+
+## 动手实验
+
+完整版：两个部门各两行数据，含时效校验与「丢弃审计」——每个被裁掉的字段都要说明理由：
+
+<PyPlayground
+  client:visible
+  title="多部门集成流水线：对齐 + 归一 + 最小化 + 审计"
+  height={340}
+  note="试着把 CUTOFF 改成 2026 看时效校验如何拦下旧数据；或往 KEEP 里加回 phone，体会「技术上一行代码，合规上一个决定」。"
+  code={`FIELD_MAP = {"tel": "phone", "手机号": "phone", "薪资元": "salary",
+             "salary_k": "salary", "行业": "industry", "城市": "city"}
+KEEP = ["city", "industry", "salary", "year"]   # 最小化白名单
+DROP_REASON = {"phone": "统计用不到联系方式", "id_card": "身份证与就业统计无关"}
+CUTOFF = 2025                                    # 时效：只要近一年的
+
+dept_a = [  # 就业办：千元薪资
+    {"tel": "13812345678", "salary_k": 15, "城市": "杭州", "行业": "互联网", "year": 2025},
+    {"tel": "15987654321", "salary_k": 9,  "城市": "成都", "行业": "制造业", "year": 2023},
+]
+dept_b = [  # 校友会：元薪资 + 身份证
+    {"手机号": "13611112222", "薪资元": 12000, "城市": "西安",
+     "行业": "教育", "year": 2025, "id_card": "610101200001011234"},
+]
+
+rows, dropped, expired = [], {}, 0
+for raw in dept_a + dept_b:
+    std = {FIELD_MAP.get(k, k): v for k, v in raw.items()}
+    if "salary_k" in raw:                        # 单位归一化
+        std["salary"] = raw["salary_k"] * 1000
+    if std.get("year", 0) < CUTOFF:              # 时效校验
+        expired += 1
+        continue
+    for k in list(std):                          # 最小化裁剪 + 审计
+        if k not in KEEP:
+            dropped[k] = DROP_REASON.get(k, "不在业务必需清单")
+            del std[k]
+    rows.append(std)
+
+print("标准表：")
+for r in rows:
+    print(" ", r)
+print(f"时效淘汰 {expired} 行（早于 {CUTOFF}）")
+print("裁剪审计：")
+for k, why in dropped.items():
+    print(f"  丢弃字段 {k}：{why}")`}
+/>
+
+## 思政会客厅
+
+<DimCard dim="职业伦理" title="集成的第一问：这个字段该不该进来">
+  <ul>
+    <li>白名单（KEEP）优于黑名单：默认不进，必需才进——把最小化原则做成数据结构。</li>
+    <li>丢弃要留审计：每个被裁字段写明理由，未来复盘时「为什么没有手机号」有据可查。</li>
+    <li>单位、字段名的混乱是常态，标准化的耐心正是数据工程师的基本功。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="法治意识" title="最小化不是美德，是法定原则">
+  <ul>
+    <li>《个人信息保护法》第6条：收集个人信息应当限于实现处理目的的最小范围——就业统计拿身份证号即属超范围。</li>
+    <li>部门间共享数据同样受法律约束：内部流转不等于随意流转。</li>
+    <li>时效校验也有合规含义：超过保存期限的个人信息应当删除或匿名化。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="🌻" tone="gold" title="一行代码，一个决定">
+把 phone 加回 KEEP 只要一秒钟，但那不再是技术决定，而是合规决定——写代码的人，同时握着这两支笔。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p32-d1"
+  question="如果报告后期确实需要电话回访部分毕业生，如何在不破坏最小化原则的前提下设计流程？"
+  hints={['统计表与联系方式表物理分离，联系方式留在就业办受控系统内', '回访通过学号/工单号回查，分析团队全程不接触号码', '回访完成后按期删除临时授权数据']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="FIELD_MAP.get(k, k) 这行代码的作用是？"
+  options={['删除未知字段', '字段名在映射表中则改名，否则保留原名', '把所有字段改成英文', '校验字段类型']}
+  answer={1}
+  explain="dict.get(key, default) 的 default 设为 k 本身：能翻译就翻译（tel→phone），不认识的字段原样通过——对齐而不丢数据。"
+/>
+
+<QuizItem
+  client:visible
+  question="就业统计集成中把身份证号一并合入标准表，最准确的评价是？"
+  options={['多留点数据总没坏处', '违反最小必要原则，属超范围处理个人信息', '只要不外发就合规', '技术上做了就等于合规']}
+  answer={1}
+  explain="《个保法》第6条要求处理限于目的所需最小范围。就业统计用不到身份证号，合入即超范围——与是否外发无关，采集与留存本身就应有依据。"
+/>

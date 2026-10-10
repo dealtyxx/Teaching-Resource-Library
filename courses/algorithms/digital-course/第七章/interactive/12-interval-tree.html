@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>区间/树形 · 第7章 动态规划</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">07</div>算法可视化 · <span>第7章 动态规划</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-principle.html">原理</a><a class="pill" href="03-models.html">模型</a><a class="pill" href="04-maxsub.html">最大子段和</a><a class="pill" href="05-lis.html">LIS</a><a class="pill" href="06-triangle.html">三角形</a><a class="pill" href="07-lcs.html">LCS</a><a class="pill" href="08-edit.html">编辑距离</a><a class="pill" href="09-knapsack.html">01背包</a><a class="pill" href="10-multi.html">完全/多重</a><a class="pill" href="11-tsp.html">状压TSP</a><a class="pill active" href="12-interval-tree.html">区间/树形</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 12 · 进阶模型</div>
+  <h1>区间 DP 与树形 DP</h1>
+  <p>区间：按长度枚举合并；树形：先子后父合并。下方分别给可运行的小演示。</p>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>学习目标</h2><span class="sub">Learning Objectives</span></div>
+  <div class="objectives"><h3>本节学完后你应当</h3><ol>
+    <li>能写出<b>区间 DP 的状态定义 dp[l][r]</b>（区间 [l,r] 的最优值）与「枚举分割点 k」的转移。</li>
+    <li>能解释区间 DP 为何必须<b>按区间长度从小到大枚举</b>，而不能简单地按左端点循环。</li>
+    <li>能写出<b>树形 DP</b>的状态定义（含结点选/不选两个分量）与<b>先子后父</b>的合并顺序。</li>
+    <li>能用<b>后序遍历（DFS 回溯时合并）</b>实现树形 DP，理解父结点依赖全部子结点已算好。</li>
+    <li>能分别推出石子合并的 <b>O(n³)</b> 与树上独立集的 <b>O(n)</b> 复杂度。</li>
+  </ol></div>
+</section>
+<div class="grid grid-2">
+  <div class="card">
+    <div class="badge">区间 DP</div>
+    <h3>石子合并（示意）</h3>
+    <p class="desc">相邻堆合并代价 = 两段和。枚举分裂点 k。</p>
+    <div class="code"><span class="kw">for</span> len=2..n:
+  <span class="kw">for</span> l:
+    r=l+len-1
+    <span class="kw">for</span> k=l..r-1:
+      dp[l][r]=min(dp[l][k]+dp[k+1][r]+sum)</div>
+    <div class="toolbar"><button class="btn primary" id="runI">合并动画</button></div>
+    <div class="log" id="logI">4 堆石子 [1,3,5,2]</div>
+  </div>
+  <div class="card">
+    <div class="badge green">树形 DP</div>
+    <h3>树上独立集（示意）</h3>
+    <p class="desc">每个结点：选 / 不选。选则孩子必须不选。</p>
+    <div class="toolbar"><button class="btn primary" id="runT">树 DP 点亮</button></div>
+    <div class="stage-wrap light">
+      <canvas class="stage" id="tcv" width="420" height="220"></canvas>
+    </div>
+  </div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>① 区间 DP · 石子合并</h2><span class="sub">Interval DP</span></div>
+  <div class="defn"><span class="lbl">状态定义</span>
+    <p><b>dp[l][r]</b> 表示<b>把第 l 堆到第 r 堆石子合并成一堆的最小总代价</b>（每次只能合并<b>相邻</b>两堆，代价为两堆石子数之和）。这类「在一段区间上做决策、由更小的子区间拼成」的问题统称<b>区间 DP</b>。</p></div>
+  <div class="defn thm"><span class="lbl">最优子结构 · 枚举分割点</span>
+    <p>合并区间 [l,r] 的<b>最后一步</b>一定是把左右两个已合并好的子堆并起来，分界在某个 k（l ≤ k &lt; r）：左子堆 [l,k]、右子堆 [k+1,r]。这最后一并的代价固定为整段之和 <b>sum(l..r)</b>（无论怎么并，[l,r] 的所有石子都要在最后被称一次）。于是枚举分割点 k 取最小：<br/>dp[l][r] = min<sub>k</sub>( dp[l][k] + dp[k+1][r] + sum(l..r) )。子区间的最优解一旦定下不受外部影响——<b>无后效性</b>成立。</p></div>
+  <div class="formula lg">dp[l][r] = min<sub>l ≤ k &lt; r</sub>( dp[l][k] + dp[k+1][r] ) + sum(l..r)</div>
+  <div class="defn prop"><span class="lbl">边界 · 计算顺序（区间 DP 的关键）</span>
+    <p><b>边界 dp[i][i] = 0</b>（单堆无需合并）。<br/><b>计算顺序必须按区间长度 len 从小到大</b>：dp[l][r] 依赖<b>更短</b>的子区间 dp[l][k]、dp[k+1][r]，只有先把所有长度 &lt; len 的区间算完，长度为 len 的才有据可依。所以三重循环是 <b>外层 len、中层左端点 l（r = l+len−1）、内层分割点 k</b>——绝不能简单地「l 从小到大」，那样会用到还没算好的长区间。</p></div>
+  <div class="deriv">
+<span class="step">石子 [1, 3, 5, 2]，前缀和 sum：len=2 先算：</span>
+<span class="step">dp[0][1] = 0+0 + (1+3) = 4</span>
+<span class="step">dp[1][2] = 0+0 + (3+5) = 8</span>
+<span class="step">dp[2][3] = 0+0 + (5+2) = 7</span>
+<span class="step">len=3：dp[0][2] = min(dp00+dp12, dp01+dp22) + 9 = min(0+8, 4+0) + 9 = 13</span>
+<span class="step">len=3：dp[1][3] = min(dp11+dp23, dp12+dp33) + 10 = min(0+7, 8+0) + 10 = 17</span>
+<span class="step">len=4：dp[0][3] = min(0+dp13, dp01+dp23, dp02+0) + 11 = min(17, 11, 13) + 11 = 22</span>
+  </div>
+  <div class="tip ok"><strong>答案：</strong>最小合并代价 = <b>dp[0][3] = 22</b>。分割点在 len=4 时取 k=1（dp[0][1]+dp[2][3]+11 = 4+7+11 = 22）最优——即先分别合并 [1,3] 与 [5,2]，再合并两大堆。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>② 区间 DP · C++ 代码</h2><span class="sub">Implementation</span></div>
+  <div class="code"><span class="cm">// 石子合并：dp[l][r] = 合并区间 [l,r] 的最小代价，O(n³)</span>
+<span class="kw">int</span> stoneMerge(<span class="kw">const vector</span>&lt;<span class="kw">int</span>&gt;&amp; a) {
+    <span class="kw">int</span> n = a.size();
+    <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt; s(n + 1, 0);
+    <span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt; n; ++i) s[i+1] = s[i] + a[i];   <span class="cm">// 前缀和，O(1) 求区间和</span>
+    <span class="kw">vector</span>&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt; dp(n, <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;(n, 0));      <span class="cm">// 边界：dp[i][i]=0</span>
+    <span class="kw">for</span> (<span class="kw">int</span> len = 2; len &lt;= n; ++len)                     <span class="cm">// ① 先枚举区间长度</span>
+        <span class="kw">for</span> (<span class="kw">int</span> l = 0; l + len - 1 &lt; n; ++l) {              <span class="cm">// ② 再枚举左端点</span>
+            <span class="kw">int</span> r = l + len - 1;
+            dp[l][r] = INT_MAX;
+            <span class="kw">for</span> (<span class="kw">int</span> k = l; k &lt; r; ++k)                       <span class="cm">// ③ 枚举分割点</span>
+                dp[l][r] = min(dp[l][r], dp[l][k] + dp[k+1][r] + s[r+1] - s[l]);
+        }
+    <span class="kw">return</span> dp[0][n-1];
+}
+<span class="cm">// stoneMerge({1,3,5,2}) → 返回 22</span></div>
+  <div class="tip info"><strong>为什么外层是 len 而非 l？</strong>区间 DP 的依赖方向是「短区间 → 长区间」。若外层写 l、内层写 r，当算 dp[l][r] 时其右侧子区间 dp[k+1][r] 可能对应更长的、尚未计算的区间。<b>按长度递增</b>能严格保证所有被依赖的短区间都已就绪，这是区间 DP 与线性 DP 最不同的一点。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>③ 树形 DP · 树上最大独立集</h2><span class="sub">Tree DP</span></div>
+  <div class="defn"><span class="lbl">状态定义（两个分量）</span>
+    <p><b>f[u][0]</b> = 以 u 为根的子树中，<b>不选 u</b> 时的最大权；<b>f[u][1]</b> = <b>选 u</b> 时的最大权。<br/>「独立集」要求所选结点两两不相邻，因此<b>选了 u 就不能选它的任何孩子</b>。用「选 / 不选」两个分量正是为了把这个约束在父子间传递下去。</p></div>
+  <div class="formula lg">f[u][1] = val[u] + Σ<sub>c ∈ 子(u)</sub> f[c][0]</div>
+  <div class="formula lg">f[u][0] = Σ<sub>c ∈ 子(u)</sub> max( f[c][0], f[c][1] )</div>
+  <div class="defn thm"><span class="lbl">父子合并 · 先子后父</span>
+    <p><b>选 u（f[u][1]）</b>：加上 u 自身权值，其每个孩子都<b>只能不选</b>，故累加 f[c][0]。<br/><b>不选 u（f[u][0]）</b>：孩子可选可不选，各取 <b>max(f[c][0], f[c][1])</b>。<br/>父结点的两个分量都由<b>全部孩子已算好的值</b>合并而来，所以必须<b>先算完所有子结点再算父结点</b>——这正是<b>后序遍历（DFS 递归返回时合并）</b>的顺序。答案 = <b>max(f[root][0], f[root][1])</b>。</p></div>
+  <div class="deriv">
+<span class="step">本页树：0 的孩子 {1,2,5}，2 的孩子 {3,4}；权 val = {0:3,1:2,2:4,3:1,4:2,5:2}</span>
+<span class="step">叶子：f[1]=(0,2) f[3]=(0,1) f[4]=(0,2) f[5]=(0,2) <span class="why">(不选, 选)</span></span>
+<span class="step">结点 2：f[2][1] = 4 + f[3][0] + f[4][0] = 4+0+0 = 4</span>
+<span class="step">结点 2：f[2][0] = max(0,1) + max(0,2) = 1+2 = 3</span>
+<span class="step">结点 0：f[0][1] = 3 + f[1][0]+f[2][0]+f[5][0] = 3+0+3+0 = 6</span>
+<span class="step">结点 0：f[0][0] = max(0,2)+max(3,4)+max(0,2) = 2+4+2 = 8</span>
+  </div>
+  <div class="tip ok"><strong>答案：</strong>最大独立集权 = <b>max(f[0][0], f[0][1]) = max(8, 6) = 8</b>。取得 8 的方案是<b>不选根 0，选 {1, 2, 5}</b>（权 2+4+2 = 8）——它们互不相邻、也都不与被跳过的根相邻，合法。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>④ 树形 DP · C++ 代码</h2><span class="sub">Implementation</span></div>
+  <div class="code"><span class="cm">// 树上最大权独立集：f[u][0/1] = 子树内 u 不选/选 的最大权，O(n)</span>
+<span class="kw">vector</span>&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt; g;                 <span class="cm">// 邻接表</span>
+<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt; val, f0, f1;
+
+<span class="kw">void</span> dfs(<span class="kw">int</span> u, <span class="kw">int</span> fa) {
+    f1[u] = val[u];                    <span class="cm">// 选 u：先记自身权</span>
+    f0[u] = 0;                         <span class="cm">// 不选 u</span>
+    <span class="kw">for</span> (<span class="kw">int</span> c : g[u]) <span class="kw">if</span> (c != fa) {
+        dfs(c, u);                     <span class="cm">// 先递归算完子结点（后序）</span>
+        f1[u] += f0[c];                <span class="cm">// 选 u ⇒ 孩子必不选</span>
+        f0[u] += max(f0[c], f1[c]);    <span class="cm">// 不选 u ⇒ 孩子随意取大</span>
+    }
+}
+<span class="cm">// 调用 dfs(root, -1) 后，答案 = max(f0[root], f1[root])</span></div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>模型</th><th>状态</th><th>计算顺序</th><th>复杂度</th></tr>
+    <tr><td>区间 DP（石子合并）</td><td>dp[l][r]</td><td class="hl">区间长度 len 递增</td><td>O(n³)</td></tr>
+    <tr><td>树形 DP（独立集）</td><td>f[u][0/1]</td><td class="hl">后序（先子后父）</td><td>O(n)</td></tr>
+  </table></div>
+  <div class="terms">
+    <span class="term"><b>区间 DP</b>interval DP</span>
+    <span class="term"><b>树形 DP</b>tree DP</span>
+    <span class="term"><b>后序遍历</b>post-order</span>
+    <span class="term"><b>最大独立集</b>maximum independent set</span>
+    <span class="term"><b>前缀和</b>prefix sum</span>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑤ 易错点</h2><span class="sub">Pitfalls</span></div>
+  <div class="pitfall"><span class="lbl">易错点</span><ul>
+    <li><b>区间 DP 外层误写左端点 l</b>。必须<b>外层枚举长度 len</b>，否则计算 dp[l][r] 时其子区间可能尚未算好，得到错误值。</li>
+    <li><b>区间 DP 忘记初始化 dp[l][r] 为 +∞</b>。取 min 前若不置为极大值，第一次比较就会被残留的 0 污染。</li>
+    <li><b>区间和用循环现算</b>。sum(l..r) 应借助<b>前缀和 s[r+1]−s[l]</b> 做到 O(1)，逐次累加会让复杂度多一个因子。</li>
+    <li><b>树形 DP 顺序写反（先父后子）</b>。父结点依赖全部孩子的 f 值，必须<b>后序</b>（DFS 递归返回时合并），先算父会读到未初始化的子值。</li>
+    <li><b>树形 DP 递归不传父结点、导致往回走</b>。无根树用邻接表时要用 <span class="kbd">if (c != fa)</span> 跳过父亲，否则会在父子间来回递归死循环。</li>
+    <li><b>选 u 时错误地对孩子取 max</b>。选了 u 后孩子<b>只能不选</b>，累加的是 f[c][0]；若写成 max(f[c][0],f[c][1]) 就可能选中相邻结点，破坏独立集约束。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>本节小结</h2><span class="sub">Summary</span></div>
+  <div class="summary"><span class="lbl">本节小结</span><ul>
+    <li><b>区间 DP</b>：dp[l][r] = 区间 [l,r] 的最优值，枚举分割点 k 合并；<b>必须按区间长度从小到大</b>计算。</li>
+    <li>石子合并转移 <b>dp[l][r] = min<sub>k</sub>(dp[l][k]+dp[k+1][r]) + sum(l..r)</b>，用前缀和 O(1) 求区间和，复杂度 <b>O(n³)</b>。</li>
+    <li><b>树形 DP</b>：为每个结点设「选 / 不选」两个分量，把相邻约束在父子间传递。</li>
+    <li>独立集转移：<b>f[u][1] = val[u] + Σf[c][0]</b>，<b>f[u][0] = Σmax(f[c][0],f[c][1])</b>；答案 max(f[root][0], f[root][1])。</li>
+    <li>树形 DP 用<b>后序遍历（先子后父）</b>合并，复杂度 <b>O(n)</b>；答案在根结点取两分量最大。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>自测题</h2><span class="sub">点击选项查看解析</span></div>
+  <div class="quiz">
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">1</span>区间 DP（石子合并）的三重循环，最外层应枚举什么？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>左端点 l</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>区间长度 len（从小到大）</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>分割点 k</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>右端点 r（从大到小）</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。dp[l][r] 依赖更短的子区间 dp[l][k] 与 dp[k+1][r]，只有<b>按长度递增</b>才能保证所有短区间先算好。A 若外层是 l，算长区间时其右侧子区间可能还没算，读到错误值；C 分割点必须在最内层；D 单看 r 递减也无法保证「短区间先于长区间」这个真正的依赖方向。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">2</span>树上最大独立集里，f[u][1]（选 u）的转移是？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>val[u] + Σ max(f[c][0], f[c][1])</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>val[u] + Σ f[c][0]</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>Σ f[c][1]</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>max(f[u][0], val[u])</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。选中 u 后，独立集约束要求它的每个孩子都<b>不能被选</b>，故累加各孩子的 f[c][0]，再加 u 自身权 val[u]。A 是 f[u][0]（不选 u）的式子——不选 u 时孩子才可自由取 max；C 漏了 u 自身权且让孩子全选，直接违反相邻约束；D 无意义。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">3</span>对石子 [1,3,5,2]，最小合并代价是？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>11，即所有石子之和</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>22</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>24（一律从最左开始顺次合并）</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>13</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。按区间 DP 填表 dp[0][3] = 22（分割点 k=1：先合并 [1,3] 得 4、合并 [5,2] 得 7，再合并两大堆 +11，共 22）。A 的 11 只是石子总数，合并需多次称重，代价必然大于它；C 是「从左到右顺次合并」这种贪心顺序的代价：4 +（4+5）+（9+2）= 4+9+11 = 24，比最优的 22 大——正说明贪心不最优、必须用 DP 枚举分割点；D 的 13 是子区间 dp[0][2] 的值，不是整段答案。</div>
+    </div>
+  </div>
+</section>
+
+<div class="page-nav"><a href="11-tsp.html"><span class="dir">← 上一节</span><span class="name">状压TSP</span></a><a href="index.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">返回总览</span></a></div>
+<div class="footer">算法设计与分析 · <b>第7章 动态规划</b> · 强交互可视化版<br/>Canvas 填表 · 路径回溯 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:32},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.12-Math.random()*.3, a:.12+Math.random()*.3}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(185,100,52,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+// interval merge demo
+runI.onclick=async()=>{
+  const a=[1,3,5,2], n=a.length;
+  const sum=[0]; a.forEach(x=>sum.push(sum[sum.length-1]+x));
+  const dp=Array.from({length:n},()=>Array(n).fill(0));
+  let lines=['初始堆: '+a.join(' ')];
+  for(let len=2;len<=n;len++){
+    for(let l=0;l+len-1<n;l++){
+      const r=l+len-1; dp[l][r]=1e9;
+      for(let k=l;k<r;k++){
+        const cost=dp[l][k]+dp[k+1][r]+(sum[r+1]-sum[l]);
+        if(cost<dp[l][r]) dp[l][r]=cost;
+      }
+      lines.push(`dp[${l}][${r}]=${dp[l][r]}`);
+      logI.textContent=lines.join('\\n'); await sleep(250);
+    }
+  }
+  lines.push('最少合并代价 = '+dp[0][n-1]); logI.textContent=lines.join('\\n');
+};
+// tree DP visual
+const tcv=document.getElementById('tcv'), tctx=tcv.getContext('2d');
+const T={id:0,x:210,y:40,ch:[{id:1,x:100,y:120,ch:[]},{id:2,x:210,y:120,ch:[{id:3,x:160,y:190,ch:[]},{id:4,x:260,y:190,ch:[]}]},{id:5,x:320,y:120,ch:[]}]};
+function flat(n,arr=[]){ arr.push(n); n.ch.forEach(c=>flat(c,arr)); return arr; }
+function drawT(active=new Set(), vals={}){
+  tctx.clearRect(0,0,tcv.width,tcv.height);
+  function edges(n){ n.ch.forEach(c=>{ tctx.strokeStyle='#D5CFC1'; tctx.beginPath(); tctx.moveTo(n.x,n.y+14); tctx.lineTo(c.x,c.y-14); tctx.stroke(); edges(c); }); }
+  edges(T);
+  flat(T).forEach(n=>{
+    const on=active.has(n.id);
+    tctx.beginPath(); tctx.arc(n.x,n.y,16,0,Math.PI*2);
+    tctx.fillStyle=on?'#B96434':'#C2603F'; tctx.fill();
+    tctx.fillStyle='#fff'; tctx.font='bold 12px Segoe UI'; tctx.textAlign='center'; tctx.textBaseline='middle';
+    tctx.fillText(n.id, n.x, n.y);
+    if(vals[n.id]!=null){ tctx.fillStyle='#443F37'; tctx.font='10px ui-monospace'; tctx.fillText(vals[n.id], n.x, n.y+28); }
+  });
+}
+runT.onclick=async()=>{
+  // simple tree DP: value of node = 1 + sum(skip children) vs sum(max of children)
+  const val={0:3,1:2,2:4,3:1,4:2,5:2};
+  const dp0={}, dp1={}; // not take / take
+  const order=[];
+  (function dfs(n){ n.ch.forEach(dfs); order.push(n); })(T);
+  const active=new Set();
+  for(const n of order){
+    active.add(n.id);
+    let take=val[n.id], skip=0;
+    n.ch.forEach(c=>{ take+=dp0[c.id]; skip+=Math.max(dp0[c.id],dp1[c.id]); });
+    dp1[n.id]=take; dp0[n.id]=skip;
+    const show={}; order.forEach(x=>{ if(dp0[x.id]!=null) show[x.id]=`${dp0[x.id]}/${dp1[x.id]}`; });
+    drawT(active, show); await sleep(400);
+  }
+  const best=Math.max(dp0[0],dp1[0]);
+  drawT(new Set([0,1,2,3,4,5]), {0:`最优${best}`});
+};
+drawT();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

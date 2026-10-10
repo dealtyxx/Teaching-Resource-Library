@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>广度优先 · 第6章 分支限界法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">06</div>算法可视化 · <span>第6章 分支限界法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述对比</a><a class="pill" href="02-bound.html">限界函数</a><a class="pill" href="03-framework.html">两种框架</a><a class="pill active" href="04-bfs.html">广度优先</a><a class="pill" href="05-sssp.html">3D迷宫</a><a class="pill" href="06-knapsack.html">背包树</a><a class="pill" href="07-assign-tsp.html">TSP巡游</a><a class="pill" href="08-astar.html">A* 可视</a><a class="pill" href="09-8puzzle.html">八数码3D</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 4 · 粒子波前</div>
+  <h1>BFS：能量波在图上扩散</h1>
+  <p>每次扩展一个结点，向邻边发射粒子。颜色深度表示 dist。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>论证</b>广度优先搜索就是最简单的队列式分支限界法，并指出 BFS 中谁扮演扩展结点、活结点表与剪支。</li>
+  <li>能够用本章术语<b>重新解读</b> BFS 的每一步操作。</li>
+  <li>能够<b>实现</b>基于邻接表的 BFS 并求出单源最短路径（边权为 1）。</li>
+  <li>能够<b>推导</b> BFS 的时间复杂度 Θ(V+E) 与空间复杂度 Θ(V)。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="run">▶ 自动</button>
+    <button class="btn" id="step">单步</button>
+    <button class="btn ghost" id="reset">重置</button>
+    <div class="speed" id="spd"><button data-ms="700">慢</button><button data-ms="380" class="on">中</button><button data-ms="150">快</button></div>
+  </div>
+  <div class="stage-wrap">
+    <canvas class="stage" id="cv" width="1000" height="420"></canvas>
+    <div class="stage-hud"><span class="hud-pill" id="hud">BFS</span><span class="hud-pill" id="hud2">queue []</span></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>扩展点</span><b class="blue" id="cur">—</b></div>
+    <div class="stat"><span>已发现</span><b class="green" id="found">1</b></div>
+  </div>
+  <div class="log" id="log">就绪</div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>一、BFS 就是最简单的队列式分支限界法</h2><span class="sub">用本章术语重读上面的动画</span></div>
+  <p class="desc">很多同学在数据结构课上学过 BFS，却看不出它和分支限界法的关系。其实<strong>把第 3 节的 FIFO 框架里的问题特化成图搜索，得到的就是一字不差的 BFS</strong>。下面把动画中的每个元素逐一翻译成本章术语。</p>
+
+  <div class="table-scroll"><table class="data">
+    <tr><th>分支限界术语</th><th>在 BFS 中对应什么</th><th>动画中的表现</th></tr>
+    <tr><td><b>解空间树的结点</b></td><td>图中的一个顶点 u（更准确说：从源点到 u 的一条最短路径前缀）</td><td>画面上的圆形结点</td></tr>
+    <tr><td class="hl"><b>扩展结点 E-node</b></td><td>当前正在遍历邻接表的那个顶点</td><td class="hl">被红色光晕包裹、HUD 显示「扩展 u」的结点</td></tr>
+    <tr><td class="hl"><b>活结点表</b></td><td>普通队列 <code>queue&lt;int&gt; q</code>（先进先出）</td><td class="hl">HUD 中的 <code>queue [...]</code> 列表</td></tr>
+    <tr><td><b>分支（生成全部子结点）</b></td><td>遍历 u 的<strong>全部</strong>邻接点 v</td><td>从 u 同时向各邻居发射粒子</td></tr>
+    <tr><td class="hl"><b>剪支</b></td><td><code>if (dist[v] &gt;= 0) continue;</code> 即 <b>visited 判重</b></td><td class="hl">已着色的邻居不再被重复入队</td></tr>
+    <tr><td><b>死结点</b></td><td>邻接表已遍历完的顶点</td><td>变成青绿色的结点</td></tr>
+    <tr><td><b>目标值</b></td><td>dist[v]，源点到 v 的最短边数</td><td>结点下方的 <code>d=k</code> 标注</td></tr>
+  </table></div>
+
+  <div class="defn thm"><span class="lbl">定理 · BFS 的最短路性质</span>
+    <p>在<strong>边权均为 1</strong>的图上，队列式分支限界（即 BFS）从源点 s 出发，顶点 v 第一次被加入队列时所赋的 dist[v] 就是 s 到 v 的最短路径长度。</p>
+  </div>
+  <div class="deriv">
+    <span class="step">关键不变量：BFS 队列中的顶点，其 dist 值<strong>单调不减</strong>，且最多相差 1 <span class="why">对扩展轮数归纳可证</span></span>
+    <span class="step">⇒ 队列严格按 dist 分层：先出完所有 dist＝k 的点，再出 dist＝k+1 的点</span>
+    <span class="step">⇒ 顶点 v 首次入队时，是由某个 dist＝k 的扩展结点发现的，故 dist[v] ＝ k+1</span>
+    <span class="step">若存在更短路径（长度 ≤ k），则其倒数第二个顶点的 dist ≤ k−1，早已出队并会更早发现 v，矛盾</span>
+    <span class="step">⇒ 首次赋值即最短 ∎ <span class="why">这正是第 3 节「LC 首次取叶即最优」在单位权下的特例</span></span>
+  </div>
+  <div class="tip info"><strong>为什么 BFS 用普通队列就够了？</strong>边权均为 1 时，「层数」就是「代价」，而 FIFO 队列天然按层数排序——<strong>普通队列此时恰好等价于以 dist 为优先级的优先队列</strong>。一旦边权不全为 1，这个巧合破裂，就必须换成真正的优先队列，那就是 Dijkstra 算法（也是一种 LC 分支限界）。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>二、C++ 实现</h2><span class="sub">邻接表 + 队列 + 前驱数组</span></div>
+  <div class="code"><span class="cm">// ===== 队列式分支限界（BFS）求单源最短路径 · 边权均为 1 =====</span>
+<span class="cm">// G 为邻接表：G[u] 存放 u 的所有邻接点</span>
+<span class="kw">const</span> <span class="kw">int</span> MAXV = 1005;
+vector&lt;<span class="kw">int</span>&gt; G[MAXV];
+<span class="kw">int</span> dist[MAXV], pre[MAXV];      <span class="cm">// 最短距离 / 前驱，用于回溯路径</span>
+
+<span class="kw">void</span> <span class="fn">bfs</span>(<span class="kw">int</span> s, <span class="kw">int</span> n) {
+    <span class="fn">fill</span>(dist, dist + n, -1);   <span class="cm">// -1 表示未发现（兼作 visited 标记）</span>
+    <span class="fn">fill</span>(pre,  pre  + n, -1);
+
+    queue&lt;<span class="kw">int</span>&gt; q;                <span class="cm">// ← 活结点表：普通队列</span>
+    dist[s] = 0;  q.<span class="fn">push</span>(s);      <span class="cm">// ← 第①步：根结点入表</span>
+
+    <span class="kw">while</span> (!q.<span class="fn">empty</span>()) {
+        <span class="kw">int</span> u = q.<span class="fn">front</span>(); q.<span class="fn">pop</span>();      <span class="cm">// ← 第②步：取队首为扩展结点</span>
+
+        <span class="kw">for</span> (<span class="kw">int</span> v : G[u]) {                <span class="cm">// ← 第③步：生成 u 的全部子结点</span>
+            <span class="kw">if</span> (dist[v] != -1) <span class="kw">continue</span>;      <span class="cm">// ← 第④步：剪支（visited 判重）</span>
+            dist[v] = dist[u] + 1;           <span class="cm">//    首次发现即为最短</span>
+            pre[v]  = u;
+            q.<span class="fn">push</span>(v);                      <span class="cm">//    存活 ⇒ 入队尾</span>
+        }
+        <span class="cm">// u 的邻接表已遍历完 ⇒ u 成为死结点</span>
+    }                                        <span class="cm">// ← 第⑤步：队空则结束</span>
+}
+
+<span class="cm">// 回溯输出 s → t 的最短路径</span>
+<span class="kw">void</span> <span class="fn">printPath</span>(<span class="kw">int</span> t) {
+    <span class="kw">if</span> (dist[t] == -1) { <span class="fn">puts</span>(<span class="st">"不可达"</span>); <span class="kw">return</span>; }
+    vector&lt;<span class="kw">int</span>&gt; path;
+    <span class="kw">for</span> (<span class="kw">int</span> x = t; x != -1; x = pre[x]) path.<span class="fn">push_back</span>(x);
+    <span class="fn">reverse</span>(path.<span class="fn">begin</span>(), path.<span class="fn">end</span>());
+    <span class="kw">for</span> (<span class="kw">int</span> x : path) <span class="fn">printf</span>(<span class="st">"%d "</span>, x);
+}</div>
+  <div class="tip"><strong>实现要点：</strong>用 <code>dist[v] == -1</code> 同时充当「未访问」标记，省掉一个 visited 数组。<strong>注意判重必须在入队时做，不能在出队时做</strong>——否则同一个顶点会被多个邻居重复入队，队列长度可能膨胀到 Θ(E)，虽然结果仍正确但空间白白浪费。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>三、复杂度分析</h2><span class="sub">Θ(V+E) 的来历</span></div>
+  <div class="deriv">
+    <span class="step">每个顶点因 visited 判重，<strong>至多入队一次、出队一次</strong> <span class="why">这就是剪支带来的收益</span></span>
+    <span class="step">⇒ 出队总次数 ＝ Θ(V)，每次出队的队列操作为 Θ(1)</span>
+    <span class="step">每个顶点出队时遍历其邻接表一次，总遍历量 ＝ Σ<sub>u</sub> deg(u) ＝ 2E（无向图）</span>
+    <span class="step">⇒ 时间 T(V,E) ＝ Θ(V) + Θ(E) ＝ <strong>Θ(V + E)</strong></span>
+    <span class="step">空间：dist、pre 数组各 Θ(V)；队列峰值最坏为 Θ(V)（某一层含几乎所有顶点）⇒ <strong>Θ(V)</strong></span>
+  </div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>存图方式</th><th>时间复杂度</th><th>空间复杂度</th><th>适用场景</th></tr>
+    <tr><td class="hl">邻接表</td><td class="hl">Θ(V + E)</td><td>Θ(V + E)</td><td class="hl">稀疏图，通用首选</td></tr>
+    <tr><td>邻接矩阵</td><td>Θ(V<sup>2</sup>)</td><td>Θ(V<sup>2</sup>)</td><td>稠密图 E ≈ V<sup>2</sup> 时无劣势</td></tr>
+    <tr><td>网格隐式图</td><td>Θ(行×列)</td><td>Θ(行×列)</td><td>迷宫、棋盘（见下一节）</td></tr>
+  </table></div>
+  <div class="tip info"><strong>对比：</strong>若去掉 visited 剪支，同一顶点会沿不同路径被反复扩展，时间退化为 Θ(路径总数)，在含环图上甚至<strong>不终止</strong>。可见「visited 判重」这个看似朴素的操作，正是本章意义上的<strong>剪支</strong>，且是把指数级降为线性级的关键一步。</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li>把判重写在<strong>出队时</strong>而非入队时——虽然答案正确，但队列长度可能膨胀到 Θ(E)，且同一顶点被重复处理，失去了「每点至多入队一次」的复杂度保证。</li>
+  <li>在<strong>边权不全为 1</strong> 的图上直接用 BFS 求最短路——结论不成立。此时必须改用优先队列（Dijkstra，边权非负）或 Bellman-Ford（含负权）。</li>
+  <li>忘记初始化 <code>dist[s] = 0</code> 就把 s 入队，导致源点被当作未访问、后续可能被重新入队。</li>
+  <li>把 dist 数组初始化为 0 而非 −1／INF，使得「未访问」与「距离为 0」无法区分。</li>
+  <li>只记录 dist 不记录 pre，最后无法输出<strong>路径本身</strong>，只能报出长度。</li>
+  <li>误以为 BFS 求出的是「所有最短路径」——它只求出<strong>一棵</strong> BFS 树，每个顶点只保留一个前驱。要枚举全部最短路径需额外记录多前驱。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li><b>BFS ＝ 队列式分支限界法的最简形态</b>：活结点表是普通队列，扩展结点是当前遍历邻接表的顶点，剪支就是 visited 判重。</li>
+  <li><b>最短路性质</b>：边权均为 1 时，顶点首次入队所赋的 dist 即最短距离。依据是队列中 dist 单调不减、严格分层。</li>
+  <li><b>普通队列此时等价于以 dist 为优先级的优先队列</b>——这是单位权带来的巧合；边权一般化后必须改用真正的优先队列（Dijkstra）。</li>
+  <li><b>复杂度</b>：邻接表下时间 Θ(V+E)，空间 Θ(V)。若去掉剪支则可能退化为指数级甚至不终止。</li>
+  <li>记录 pre 前驱数组即可回溯出完整最短路径。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>用本章术语描述 BFS，下列对应关系<b>错误</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>活结点表 ↔ 普通队列 <code>queue</code></span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>剪支 ↔ visited（dist ≠ −1）判重</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>扩展结点 ↔ 队列中 dist 最小的那个顶点</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>死结点 ↔ 邻接表已遍历完毕的顶点</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>C 错误，是本题答案。BFS 取的是<strong>队首</strong>，依据是「入队的先后」而非「dist 的大小」。这两者在单位权下<strong>碰巧一致</strong>（因为队列天然按 dist 分层），但描述机制时必须说「取队首」——一旦边权不全为 1，队列就不再按 dist 有序，「取 dist 最小者」就需要真正的优先队列了。把巧合当作机制，正是理解 BFS 与 Dijkstra 关系时最常见的思维陷阱。A、B、D 均正确。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>某同学把判重条件从「入队前检查」改为「出队后检查」，即出队时若已访问过就跳过。结果会怎样？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>答案变错，因为同一顶点可能被赋不同的 dist 值</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>答案仍正确，但队列长度可能达到 Θ(E)，空间开销变大</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>程序会死循环</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>时间复杂度升为 Θ(V·E)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。出队时判重仍能保证每个顶点<strong>只被真正扩展一次</strong>，且第一次出队的必然是 dist 最小的那份副本，因此答案正确；代价是同一顶点可能被多个邻居重复塞进队列，队列长度上界从 Θ(V) 升到 Θ(E)。A 错：只要保证「第一次出队时才定 dist」，值仍然是最短的。C 错：每个顶点扩展一次后就被标记，队列会不断缩短，必然终止。D 错：总入队量是 Θ(E)，每个元素出队 Θ(1)，遍历邻接表总量仍是 Θ(E)，时间仍为 Θ(V+E)，只是常数变大——把空间问题误当成时间问题是常见混淆。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>在一个边权为正整数（不全为 1）的图上求单源最短路，直接套用本节的 BFS 代码会怎样？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>仍然正确，因为 BFS 保证按层扩展</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>可能得到错误答案，应改用优先队列（Dijkstra）</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>正确但很慢，复杂度升为 Θ(V<sup>2</sup>)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>只要把 <code>dist[v]=dist[u]+1</code> 改成 <code>dist[v]=dist[u]+w(u,v)</code> 即可正确</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。边权不全为 1 时，「边数少」不等于「代价小」——一条含 1 条权为 10 的边的路径，可能劣于含 3 条权为 1 的边的路径，而 BFS 会先访问前者并把它错当成最短。D 是最具迷惑性的选项：仅改累加式子<strong>远远不够</strong>，因为致命问题出在<strong>出队顺序</strong>上。FIFO 队列不再按 dist 有序，顶点首次出队时其 dist 未必已是最优，而 visited 判重又禁止它被再次松弛，最短距离就此丢失。要修好，要么把队列换成按 dist 排序的优先队列（Dijkstra），要么取消 visited 判重并允许重复入队（SPFA/Bellman-Ford 思路）——两者都是结构性改动。A、C 均不成立。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="03-framework.html"><span class="dir">← 上一节</span><span class="name">两种框架</span></a><a href="05-sssp.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">3D迷宫</span></a></div>
+<div class="footer">算法设计与分析 · <b>第6章 分支限界法</b> · 强交互可视化版<br/>Canvas / CSS 3D · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+// ambient particles
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let w,h,parts=[],raf;
+  function resize(){ w=cv.width=innerWidth*devicePixelRatio; h=cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px'; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:36},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2.2, vx:(Math.random()-.5)*.25, vy:-.15-Math.random()*.35, a:.15+Math.random()*.35}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(194,96,63,${p.a})`; ctx.fill();
+    });
+    raf=requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const POS=[[120,210],[280,90],[520,90],[720,210],[520,330],[280,330]];
+const E=[[0,1],[0,5],[1,2],[1,5],[2,3],[2,4],[3,4],[4,5]];
+const G=Array.from({length:6},()=>[]); E.forEach(([u,v])=>{G[u].push(v);G[v].push(u);});
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let dist,q,head,done,ms=380,parts=[],expanded;
+function init(){
+  dist=Array(6).fill(-1); dist[0]=0; q=[0]; head=0; done=false; expanded=new Set(); parts=[];
+  cur.textContent='—'; found.textContent='1'; log.textContent='从 0 出发'; draw();
+}
+function draw(active=-1){
+  const W=cv.width,H=cv.height; ctx.clearRect(0,0,W,H);
+  // soft vignette
+  const vg=ctx.createRadialGradient(W/2,H/2,40,W/2,H/2,500);
+  vg.addColorStop(0,'rgba(194,96,63,.08)'); vg.addColorStop(1,'transparent'); ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+  E.forEach(([u,v])=>{
+    ctx.strokeStyle='rgba(162,156,144,.35)'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(POS[u][0],POS[u][1]); ctx.lineTo(POS[v][0],POS[v][1]); ctx.stroke();
+  });
+  // particles
+  parts=parts.filter(p=>p.t<1);
+  parts.forEach(p=>{
+    p.t+=.03; const x=p.x0+(p.x1-p.x0)*p.t, y=p.y0+(p.y1-p.y0)*p.t;
+    ctx.beginPath(); ctx.arc(x,y,3.5,0,Math.PI*2);
+    ctx.fillStyle=`rgba(227,154,124,${1-p.t})`; ctx.fill();
+  });
+  POS.forEach((p,i)=>{
+    const r=26;
+    ctx.beginPath(); ctx.arc(p[0],p[1],r+8,0,Math.PI*2);
+    if(i===active){ ctx.fillStyle='rgba(179,69,59,.2)'; ctx.fill(); }
+    else if(dist[i]>=0){ ctx.fillStyle=`rgba(194,96,63,${0.08+Math.min(dist[i],4)*0.04})`; ctx.fill(); }
+    ctx.beginPath(); ctx.arc(p[0],p[1],r,0,Math.PI*2);
+    const g=ctx.createRadialGradient(p[0]-6,p[1]-6,3,p[0],p[1],r);
+    if(i===active){ g.addColorStop(0,'#E3A294'); g.addColorStop(1,'#A02C55'); }
+    else if(expanded.has(i)){ g.addColorStop(0,'#98CBAF'); g.addColorStop(1,'#356F62'); }
+    else if(dist[i]>=0){ g.addColorStop(0,'#EFBBA3'); g.addColorStop(1,'#C2603F'); }
+    else { g.addColorStop(0,'#D5CFC1'); g.addColorStop(1,'#7A746A'); }
+    ctx.fillStyle=g; ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 16px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(i,p[0],p[1]);
+    if(dist[i]>=0){ ctx.fillStyle='#E4E0D4'; ctx.font='12px ui-monospace'; ctx.fillText('d='+dist[i],p[0],p[1]+40); }
+  });
+}
+function stepOnce(){
+  if(done||head>=q.length){ done=true; log.textContent+='\\n✓ 完成'; return false; }
+  const u=q[head++]; expanded.add(u); cur.textContent=u; draw(u);
+  let msg=`扩展 ${u}`;
+  for(const v of G[u]){
+    if(dist[v]<0){
+      dist[v]=dist[u]+1; q.push(v); msg+=` → ${v}`;
+      parts.push({x0:POS[u][0],y0:POS[u][1],x1:POS[v][0],y1:POS[v][1],t:0});
+    }
+  }
+  found.textContent=dist.filter(x=>x>=0).length;
+  hud2.textContent='queue ['+q.slice(head).join(',')+']';
+  log.textContent+=(log.textContent?'\\n':'')+msg; log.scrollTop=1e9;
+  return head<q.length;
+}
+spd.querySelectorAll('button').forEach(b=>b.onclick=()=>{spd.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');ms=+b.dataset.ms;});
+let busy=false;
+run.onclick=async()=>{ if(busy)return; busy=true; init(); while(stepOnce()){ for(let i=0;i<8;i++){draw(cur.textContent==='—'?-1:+cur.textContent); await sleep(ms/8);} } busy=false; };
+step.onclick=()=>{ if(done) init(); stepOnce(); };
+reset.onclick=init;
+(function loop(){ draw(cur.textContent==='—'?-1:+cur.textContent); requestAnimationFrame(loop); })();
+init();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>背包递归 · 第2章 递归算法设计技术</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">02</div>算法可视化 · <span>第2章 递归算法设计技术</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-concept.html">概念</a><a class="pill" href="02-model.html">模型</a><a class="pill" href="03-cases.html">情形</a><a class="pill" href="04-stack.html">系统栈</a><a class="pill" href="05-fib-tree.html">Fib树</a><a class="pill" href="06-hanoi.html">汉诺塔</a><a class="pill" href="07-induction.html">归纳</a><a class="pill active" href="08-knapsack.html">背包递归</a><a class="pill" href="09-recurrence.html">递推式</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 8 · 加深</div><h1>0/1 背包递归 vs 记忆化</h1>
+<p>dfs(i,c)= max( dfs(i+1,c), v[i]+dfs(i+1,c-w[i]) )。对比调用次数。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+<li>能够<b>用一句话准确说出</b>状态 dfs(i, c) 的语义，并据此写出递归出口与递归体。</li>
+<li>能够<b>推导</b>朴素递归的复杂度 Θ(2<sup>n</sup>) 与记忆化后的 Θ(n·W)，并说明差距来自何处。</li>
+<li>能够<b>写出</b>朴素递归与记忆化递归两版 C++ 代码，并正确处理"物品放不下"的分支。</li>
+<li>能够<b>把记忆化递归改写为</b>自底向上的二维表 dp[i][c]，理解它就是第 7 章动态规划的标准形态。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="naive">朴素递归</button>
+    <button class="btn" id="memo">记忆化</button>
+  </div>
+  <div id="items"></div>
+  <div class="stat-row">
+    <div class="stat"><span>最优</span><b class="p" id="best">—</b></div>
+    <div class="stat"><span>调用</span><b class="a" id="calls">0</b></div>
+    <div class="stat"><span>容量</span><b class="g">10</b></div>
+  </div>
+  <div class="log" id="log">物品 4 个，W=10</div>
+</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul><li><b>不选 / 选 两分支写反</b>：不选是 <code>dfs(i+1, c)</code>，选是 <code>dfs(i+1, c&minus;w[i])+v[i]</code>，且只有 <code>c&ge;w[i]</code> 时才能选。</li><li><b>边界漏写</b>：<code>i==n</code>（物品取完）应返回 0，否则递归不终止。</li><li><b>把 0/1 背包当完全背包</b>：每件物品至多取一次，选后必须 <code>i+1</code> 进入下一件，不能停在 <code>i</code>。</li><li><b>忽视重复子问题</b>：朴素递归 <code>O(2<sup>n</sup>)</code> 会指数爆炸；用记忆化 <code>dp[i][c]</code> 才降到 <code>O(nc)</code>。</li><li><b>记忆化只按 i 一维</b>：状态由 (剩余物品 i, 剩余容量 c) 共同决定，只按 i 记忆会串味出错。</li><li><b>容量为负仍尝试选</b>：<code>c&minus;w[i]&lt;0</code> 时该分支非法，须先判 <code>c&ge;w[i]</code>。</li></ul></div>
+<div class="summary"><span class="lbl">本节小结</span><ul><li>状态 <code>dfs(i,c)</code> = 只考虑第 <code>i..n&minus;1</code> 件、容量为 <code>c</code> 时的最大价值。</li><li>转移 <code>dfs(i,c)=max(dfs(i+1,c), dfs(i+1,c&minus;w[i])+v[i])</code>（后者需 <code>c&ge;w[i]</code>）。</li><li>边界 <code>dfs(n,c)=0</code>。</li><li>朴素递归 <code>O(2<sup>n</sup>)</code>；记忆化 / 递推降为 <code>O(nc)</code> 伪多项式，空间 <code>O(nc)</code>。</li><li>“伪多项式”指复杂度含数值 <code>c</code>，随容量位数指数增长。</li></ul></div>
+<div class="quiz"><div class="quiz-item"><div class="quiz-q"><span class="qn">1</span>递归求 0/1 背包时，“选第 i 件”的转移是？</div><div class="quiz-opts"><div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>dfs(i+1, c&minus;w[i]) + v[i]</span></div><div class="quiz-opt"><span class="mk">B</span><span>dfs(i+1, c) + v[i]</span></div><div class="quiz-opt"><span class="mk">C</span><span>dfs(i, c&minus;w[i]) + v[i]</span></div></div><div class="quiz-exp">选了第 i 件后容量减少 <code>w[i]</code>、价值加 <code>v[i]</code>，并进入下一件 <code>i+1</code>。</div></div><div class="quiz-item"><div class="quiz-q"><span class="qn">2</span>朴素递归（无记忆化）解 0/1 背包的时间复杂度是？</div><div class="quiz-opts"><div class="quiz-opt"><span class="mk">A</span><span>O(nc)</span></div><div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>O(2<sup>n</sup>)</span></div><div class="quiz-opt"><span class="mk">C</span><span>O(n&sup2;)</span></div></div><div class="quiz-exp">每件物品有选 / 不选两分支，共 <code>2<sup>n</sup></code> 条路径。</div></div><div class="quiz-item"><div class="quiz-q"><span class="qn">3</span>加上记忆化 <code>dp[i][c]</code> 后，时间复杂度降为？</div><div class="quiz-opts"><div class="quiz-opt"><span class="mk">A</span><span>O(2<sup>n</sup>)</span></div><div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>O(nc)</span></div><div class="quiz-opt"><span class="mk">C</span><span>O(n log c)</span></div></div><div class="quiz-exp">状态数 <code>n&times;c</code>，每个状态 O(1) 转移。</div></div></div>
+<div class="page-nav"><a href="07-induction.html"><span class="dir">← 上一节</span><span class="name">归纳</span></a><a href="09-recurrence.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">递推式</span></a></div>
+<div class="footer">算法设计与分析 · <b>第2章 递归算法设计技术</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(126,98,166,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const w=[2,3,4,5], v=[3,4,5,6], W=10;
+document.getElementById('items').innerHTML=w.map((wi,i)=>`<div class="list-step"><div class="n">${i}</div><div class="body">w=${wi} v=${v[i]}</div></div>`).join('');
+naive.onclick=()=>{
+  let c=0;
+  function dfs(i,cap){
+    c++;
+    if(i>=w.length) return 0;
+    let best=dfs(i+1,cap);
+    if(w[i]<=cap) best=Math.max(best, v[i]+dfs(i+1,cap-w[i]));
+    return best;
+  }
+  best.textContent=dfs(0,W); calls.textContent=c; log.textContent='朴素递归调用 '+c;
+};
+memo.onclick=()=>{
+  let c=0; const dp=new Map();
+  function dfs(i,cap){
+    c++;
+    const key=i+','+cap; if(dp.has(key)) return dp.get(key);
+    if(i>=w.length) return 0;
+    let ans=dfs(i+1,cap);
+    if(w[i]<=cap) ans=Math.max(ans, v[i]+dfs(i+1,cap-w[i]));
+    dp.set(key,ans); return ans;
+  }
+  best.textContent=dfs(0,W); calls.textContent=c; log.textContent='记忆化调用 '+c+' · 状态约 '+(w.length*(W+1));
+};
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

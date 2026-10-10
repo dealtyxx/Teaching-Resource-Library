@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>会议室 · 第8章 贪心法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">08</div>算法可视化 · <span>第8章 贪心法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-activity.html">活动安排</a><a class="pill" href="03-merge.html">区间合并</a><a class="pill active" href="04-rooms.html">会议室</a><a class="pill" href="05-fractional.html">分数背包</a><a class="pill" href="06-tianji.html">田忌赛马</a><a class="pill" href="07-coin.html">零钱兑换</a><a class="pill" href="08-huffman.html">哈夫曼</a><a class="pill" href="09-matroid.html">拟阵</a><a class="pill" href="10-schedule.html">任务调度</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 4 · 扫描线</div>
+  <h1>最少会议室 · 事件扫描</h1>
+  <p>开始 +1，结束 −1，峰值即最少房间数。看占用曲线如何起伏。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>证明</b>「最少会议室数 = 最大同时重叠数」，即分别给出<b>下界论证</b>与<b>下界可达</b>的构造。</li>
+  <li>能够<b>实现</b>扫描线（事件差分）与<b>最小堆</b>（优先队列）两种解法，并说明各自适用场景。</li>
+  <li>能够<b>手工推演</b>会议 [0,30] [5,10] [15,20] [12,25] 得到答案 3。</li>
+  <li>能够<b>分析</b>两种解法的复杂度均为 O(n log n)，并指出瓶颈所在。</li>
+  <li>能够<b>区分</b>本节与上一节「区间合并」的不同目标。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar"><button class="btn primary" id="run">▶ 扫描线动画</button></div>
+  <div class="stage-wrap light">
+    <canvas class="stage" id="cv" width="1000" height="300"></canvas>
+    <div class="stage-hud"><span class="hud-pill light">sweep line</span><span class="hud-pill light" id="hud">—</span></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>当前占用</span><b class="blue" id="cur">0</b></div>
+    <div class="stat"><span>峰值（答案）</span><b class="green" id="peak">0</b></div>
+  </div>
+  <div class="log" id="log">会议: [0,30] [5,10] [15,20] [12,25]</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>问题描述与实验数据</h2><span class="sub">Meeting Rooms II · 最少会议室</span></div>
+<div class="defn"><span class="lbl">定义</span><p>给定 n 个会议的时间区间 [s<sub>i</sub>, e<sub>i</sub>)，每间会议室<b>同一时刻只能容纳一个会议</b>，且所有会议都<b>必须</b>被安排（不能取消）。求所需会议室的<b>最少数量</b>。</p></div>
+<div class="tip info"><strong>与 02 活动安排的区别：</strong>02 只有<b>一间</b>教室，目标是<b>挑</b>出最多的活动（可以放弃一些）；本节要求<b>全部</b>会议都开，目标是<b>最少开几间</b>房。前者是"选择"问题，后者是"分配/着色"问题。</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>会议</th><th>M1</th><th>M2</th><th>M3</th><th>M4</th></tr>
+  <tr><th>开始 s<sub>i</sub></th><td>0</td><td>5</td><td>15</td><td>12</td></tr>
+  <tr><th>结束 e<sub>i</sub></th><td>30</td><td>10</td><td>20</td><td>25</td></tr>
+</table></div>
+
+<div class="deriv">
+<span class="step"><b>事件扫描推演</b>（开始事件 +1，结束事件 &#8722;1；同一时刻先处理 &#8722;1）</span>
+<span class="step">t = 0　M1 开始　cur = 1　peak = 1</span>
+<span class="step">t = 5　M2 开始　cur = 2　peak = 2</span>
+<span class="step">t = 10　M2 结束　cur = 1　peak = 2</span>
+<span class="step">t = 12　M4 开始　cur = 2　peak = 2</span>
+<span class="step">t = 15　M3 开始　cur = 3　peak = <b>3</b> <span class="why">M1、M4、M3 三者同时进行</span></span>
+<span class="step">t = 20　M3 结束　cur = 2　peak = 3</span>
+<span class="step">t = 25　M4 结束　cur = 1　peak = 3</span>
+<span class="step">t = 30　M1 结束　cur = 0　peak = 3</span>
+<span class="step"><b>答案：最少需要 3 间会议室</b>（峰值出现在时段 [15, 20)）</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>正确性论证</h2><span class="sub">为什么「峰值重叠数」恰好等于「最少房间数」？</span></div>
+<div class="defn thm"><span class="lbl">定理</span><p>记 k* = max<sub>t</sub> |{ i : t ∈ [s<sub>i</sub>, e<sub>i</sub>) }| 为任一时刻的<b>最大同时重叠数</b>，OPT 为最少会议室数，则 <b>OPT = k*</b>。</p></div>
+
+<div class="deriv">
+<span class="step"><b>第一步：证明 OPT ≥ k*（下界）</b></span>
+<span class="step">设时刻 t* 处达到峰值，此刻有 k* 个会议 M<sub>i1</sub>, …, M<sub>ik*</sub> 同时进行</span>
+<span class="step">这 k* 个会议<b>两两冲突</b>（它们共同包含时刻 t*）</span>
+<span class="step">&#8658; 任何合法安排都必须把它们放进 <b>k* 间互不相同</b>的会议室</span>
+<span class="step">&#8658; OPT ≥ k* <span class="why">下界成立</span></span>
+<span class="step">&nbsp;</span>
+<span class="step"><b>第二步：证明 OPT ≤ k*（下界可达，用最小堆算法构造）</b></span>
+<span class="step">按开始时间升序处理会议；维护各房间当前会议的结束时间</span>
+<span class="step">处理会议 i 时：若存在房间的结束时间 ≤ s<sub>i</sub>，复用之；否则新开一间</span>
+<span class="step">&nbsp;</span>
+<span class="step">设算法在处理会议 i 时<b>新开了第 m 间</b>房，则此刻已有的 m &#8722; 1 间房</span>
+<span class="step">&nbsp;&nbsp;每一间的当前会议结束时间都 &gt; s<sub>i</sub>；又因按开始时间升序，它们的开始时间都 ≤ s<sub>i</sub></span>
+<span class="step">&nbsp;&nbsp;&#8658; 这 m &#8722; 1 个会议在时刻 s<sub>i</sub> <b>都还在进行</b></span>
+<span class="step">&nbsp;&nbsp;&#8658; 连同会议 i 本身，时刻 s<sub>i</sub> 共有 <b>m 个会议同时进行</b></span>
+<span class="step">&nbsp;&nbsp;&#8658; m ≤ k*（k* 是所有时刻的最大重叠数）</span>
+<span class="step">算法开出的房间总数就是最大的那个 m &#8658; 总房间数 ≤ k*</span>
+<span class="step">&nbsp;</span>
+<span class="step">两步夹逼：k* ≤ OPT ≤ k* &#8658; <b>OPT = k*</b> &#8718;</span>
+</div>
+
+<div class="tip info"><strong>图论视角（选读）：</strong>把每个会议看作一个顶点，冲突的会议之间连边，得到的是<b>区间图</b>（interval graph）。分配会议室 = 图着色，最少房间数 = 色数 χ；最大同时重叠数 = 最大团 ω。一般图只有 χ ≥ ω，但区间图是<b>完美图</b>，满足 χ = ω——这正是本定理的图论表述。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>解法一 · 扫描线（事件差分）</h2><span class="sub">把区间拆成两个事件点</span></div>
+<div class="defn prop"><span class="lbl">思路</span><p>把每个会议 [s<sub>i</sub>, e<sub>i</sub>) 拆成两个事件：(s<sub>i</sub>, +1) 与 (e<sub>i</sub>, &#8722;1)。把全部 2n 个事件按<b>时间升序</b>排序（同一时刻 <b>&#8722;1 排在 +1 之前</b>），然后从左到右累加，途中记录最大值即为答案。</p></div>
+<div class="code"><span class="cm">// 解法一：扫描线 / 事件差分</span>
+<span class="cm">// 时间 O(n log n)，空间 O(n)</span>
+<span class="kw">int</span> <span class="fn">minRoomsSweep</span>(<span class="kw">const</span> vector&lt;pair&lt;<span class="kw">int</span>, <span class="kw">int</span>&gt;&gt; &amp;m) {
+    vector&lt;pair&lt;<span class="kw">int</span>, <span class="kw">int</span>&gt;&gt; ev;
+    ev.<span class="fn">reserve</span>(2 * m.<span class="fn">size</span>());
+    <span class="kw">for</span> (<span class="kw">auto</span> &amp;p : m) {
+        ev.<span class="fn">push_back</span>({p.first,  +1});   <span class="cm">// 开始事件</span>
+        ev.<span class="fn">push_back</span>({p.second, -1});   <span class="cm">// 结束事件</span>
+    }
+    <span class="cm">// pair 默认先比时间、再比标记；-1 &lt; +1 保证同刻先退房再进房</span>
+    <span class="fn">sort</span>(ev.<span class="fn">begin</span>(), ev.<span class="fn">end</span>());          <span class="cm">// O(n log n)</span>
+
+    <span class="kw">int</span> cur = 0, peak = 0;
+    <span class="kw">for</span> (<span class="kw">auto</span> &amp;e : ev) {                   <span class="cm">// O(n)</span>
+        cur += e.second;
+        peak = <span class="fn">max</span>(peak, cur);
+    }
+    <span class="kw">return</span> peak;
+}</div>
+<div class="tip warn"><strong>边界关键：</strong>同一时刻必须<b>先处理结束事件</b>。会议 [1,3) 与 [3,5) 可以共用一间房；若先加 +1 再减 &#8722;1，t = 3 时计数会瞬间冲到 2，答案错报为 2。代码中利用 <code>-1 &lt; +1</code> 让 pair 排序天然满足这一要求。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>解法二 · 最小堆（优先队列）</h2><span class="sub">另一经典做法 · 还能还原「谁在哪间房」</span></div>
+<div class="defn prop"><span class="lbl">思路</span><p>按<b>开始时间升序</b>处理会议；用一个<b>小顶堆</b>存放各已开房间中<b>当前会议的结束时间</b>，堆顶即"最早能空出来的房间"。<br/>&nbsp;&nbsp;若 <b>堆顶 ≤ 当前会议开始时间</b>：该房间已空，<b>复用</b>（弹出堆顶，压入新结束时间，堆大小不变）；<br/>&nbsp;&nbsp;否则：连最早空的房间都还占着，<b>新开一间</b>（直接压入，堆大小 +1）。<br/>扫描结束后，<b>堆的大小</b>就是所需的会议室数。</p></div>
+<div class="deriv">
+<span class="step"><b>推演</b>（按开始时间排序：M1[0,30]　M2[5,10]　M4[12,25]　M3[15,20]）</span>
+<span class="step">M1[0,30]：堆空 &#8658; 新开 1 间，堆 = {30}　　　　房间数 = 1</span>
+<span class="step">M2[5,10]：堆顶 30 &gt; 5 &#8658; 新开 1 间，堆 = {10, 30}　房间数 = 2</span>
+<span class="step">M4[12,25]：堆顶 10 ≤ 12 &#8658; <b>复用</b>，弹 10 压 25，堆 = {25, 30}　房间数 = 2</span>
+<span class="step">M3[15,20]：堆顶 25 &gt; 15 &#8658; 新开 1 间，堆 = {20, 25, 30}　房间数 = <b>3</b></span>
+<span class="step"><b>答案 = 堆的大小 = 3</b>，与扫描线一致 &#10004;</span>
+</div>
+<div class="code"><span class="cm">// 解法二：最小堆（优先队列）</span>
+<span class="cm">// 时间 O(n log n)，空间 O(n)</span>
+<span class="kw">int</span> <span class="fn">minRoomsHeap</span>(vector&lt;pair&lt;<span class="kw">int</span>, <span class="kw">int</span>&gt;&gt; m) {
+    <span class="kw">if</span> (m.<span class="fn">empty</span>()) <span class="kw">return</span> 0;
+    <span class="fn">sort</span>(m.<span class="fn">begin</span>(), m.<span class="fn">end</span>());     <span class="cm">// ① 按开始时间升序 O(n log n)</span>
+
+    <span class="cm">// 小顶堆：各会议室当前会议的结束时间</span>
+    priority_queue&lt;<span class="kw">int</span>, vector&lt;<span class="kw">int</span>&gt;, greater&lt;<span class="kw">int</span>&gt;&gt; pq;
+
+    <span class="kw">for</span> (<span class="kw">auto</span> &amp;p : m) {            <span class="cm">// ② n 次堆操作，每次 O(log n)</span>
+        <span class="kw">if</span> (!pq.<span class="fn">empty</span>() &amp;&amp; pq.<span class="fn">top</span>() &lt;= p.first)
+            pq.<span class="fn">pop</span>();               <span class="cm">// 最早空出的房间可复用</span>
+        pq.<span class="fn">push</span>(p.second);          <span class="cm">// 占用该房间到 p.second</span>
+    }
+    <span class="kw">return</span> (<span class="kw">int</span>)pq.<span class="fn">size</span>();       <span class="cm">// 堆的大小 = 开过的房间数</span>
+}</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>对比</th><th>扫描线（事件差分）</th><th>最小堆（优先队列）</th></tr>
+  <tr><td>核心数据结构</td><td>排序后的事件数组</td><td>小顶堆</td></tr>
+  <tr><td>时间复杂度</td><td class="hl">O(n log n)（排序 2n 个事件）</td><td class="hl">O(n log n)（排序 + n 次堆操作）</td></tr>
+  <tr><td>空间复杂度</td><td>O(n)（2n 个事件）</td><td>O(n)（堆最多 n 个元素）</td></tr>
+  <tr><td>代码长度</td><td>更短，常数更小</td><td>略长</td></tr>
+  <tr><td>能否还原分配方案</td><td>否，只给出数量</td><td class="hl">能，堆中每个槽位对应一间房</td></tr>
+  <tr><td>能否在线处理</td><td>否，需先收齐全部事件</td><td class="hl">可以，会议按开始时间流式到达即可</td></tr>
+  <tr><td>推广能力</td><td>易改成"求每个时刻的占用曲线"</td><td>易改成"每间房收费不同"等变体</td></tr>
+</table></div>
+<div class="formula">T(n) = O(n log n)<span>（排序主导）</span>　　S(n) = O(n)</div>
+<div class="terms">
+  <span class="term"><b>扫描线</b>sweep line</span>
+  <span class="term"><b>差分</b>difference array</span>
+  <span class="term"><b>优先队列</b>priority queue</span>
+  <span class="term"><b>最小堆</b>min-heap</span>
+  <span class="term"><b>区间图</b>interval graph</span>
+  <span class="term"><b>图着色</b>graph coloring</span>
+  <span class="term"><b>最大团</b>maximum clique</span>
+</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>同一时刻先加后减。</b>最典型的边界错误：[1,3) 与 [3,5) 本可共用一间房，若结束事件排在开始事件之后，峰值会虚高 1。排序时让 &#8722;1 优先。</li>
+  <li><b>把开始时间与结束时间各自独立排序后配对比较。</b>这种"双指针"写法本身是对的（等价于扫描线），但很多人写成"排序后逐位比较 s<sub>i</sub> 与 e<sub>i</sub>"，忽略了指针推进规则，会得到错误结果。</li>
+  <li><b>误以为答案等于区间合并后的段数。</b>见 03 节对照表：[1,10] [2,3] [4,5] 合并只有 1 段，却需要 2 间房。</li>
+  <li><b>最小堆里存开始时间。</b>堆里必须存<b>结束时间</b>（房间何时空出），存开始时间毫无意义。</li>
+  <li><b>复用判断写成 <code>pq.top() &lt; p.first</code>。</b>闭合边界下，上一个会议在 t 结束、下一个在 t 开始是可以复用的，应当用 <code>&lt;=</code>；写成严格小于会多开房间。</li>
+  <li><b>最后返回 peak 而非 pq.size()（或反之）。</b>两种解法的答案出口不同，混写会得到错误结果。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>最少会议室问题：<b>所有</b>会议都要开，求最少房间数；答案 = <b>最大同时重叠数 k*</b>。</li>
+  <li><b>下界</b>：峰值时刻的 k* 个会议两两冲突，必须占 k* 间不同房；<b>可达</b>：最小堆算法新开第 m 间房时恰有 m 个会议同时进行，故用房不超过 k*。夹逼得 OPT = k*。</li>
+  <li><b>解法一 扫描线</b>：拆成 2n 个事件，同刻先 &#8722;1 后 +1，累加取峰值。</li>
+  <li><b>解法二 最小堆</b>：按开始时间处理，堆顶 ≤ 当前开始时间则复用、否则新开，堆的最终大小即答案。</li>
+  <li>两法复杂度均为 <b>O(n log n)</b>、空间 O(n)；最小堆还能还原具体的房间分配方案且支持在线处理。</li>
+  <li>本页数据 [0,30] [5,10] [15,20] [12,25] 的答案是 <b>3</b>，峰值出现在 [15, 20)。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>会议 [0,30] [5,10] [15,20] [12,25] 最少需要几间会议室？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>2 间</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>3 间</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>4 间</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>1 间</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>在时段 [15, 20) 内，[0,30]、[12,25]、[15,20] <b>三个会议同时进行</b>，峰值重叠数为 3，故需 3 间，选 B。<br/>A 是最常见的错误：注意到 [5,10] 与 [15,20] 互不重叠，就以为两间够了，却忽略了 [0,30] <b>全程占用一间</b>，而 [12,25] 与 [15,20] 又在其上再叠一层。<br/>C 的 4 等于会议总数，只有当所有会议<b>两两重叠</b>时才需要这么多。<br/>D 显然不行，[0,30] 与 [5,10] 就已冲突。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>扫描线解法中若把结束事件排在开始事件<b>之后</b>（同一时刻先 +1 再 &#8722;1），下列哪组数据会被算错？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>[1,3] [4,6]</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>[1,3] [3,5]</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>[1,5] [2,3]</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>顺序无所谓，不会算错</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>B 中前一个会议在 t = 3 结束、后一个在 t = 3 开始，前者刚散场后者就能进同一间房，正确答案是 <b>1 间</b>。若同刻先执行 +1，计数会瞬间变成 2，峰值被错报为 <b>2</b>，选 B。<br/>A 的四个事件时刻 1、3、4、6 互不重合，排序次序问题根本不会触发。<br/>C 的事件时刻 1、2、3、5 也互不重合；而且这两个会议确实重叠，答案本就是 2，与边界处理无关。<br/>D 错——这正是本题要考的边界陷阱。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>最小堆解法中，条件 <code>pq.top() &lt;= 当前会议开始时间</code> 成立意味着什么？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>必须新开一间会议室</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>最早空出的那间房已经空闲，可以复用，堆的大小保持不变</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>堆已满，需要扩容</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>当前会议无法安排，应当丢弃</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>小顶堆存放各房间当前会议的<b>结束时间</b>，堆顶就是"最早能腾出来的房间"。若堆顶 ≤ 当前会议开始时间，说明这间房已经空了，可以直接复用——弹出旧结束时间、压入新结束时间，<b>堆大小不变</b>，选 B。<br/>A 恰好说反：只有当堆顶 <b>&gt;</b> 开始时间（连最早空的房间都还占着，其余只会更晚）时才需要新开一间。<br/>C 混淆了"优先队列"与"定容缓冲区"，堆会自动增长，不存在"满"的概念。<br/>D 错——本问题要求<b>所有</b>会议都必须安排，绝不能丢弃；能丢弃的是 02 节的活动安排问题。</div>
+</div>
+</div>
+
+<div class="page-nav"><a href="03-merge.html"><span class="dir">← 上一节</span><span class="name">区间合并</span></a><a href="05-fractional.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">分数背包</span></a></div>
+<div class="footer">算法设计与分析 · <b>第8章 贪心法</b> · 强交互可视化版<br/>时间轴 · 扫描线 · 树生长 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:30},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.12-Math.random()*.28, a:.12+Math.random()*.3}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(59,122,87,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const meetings=[[0,30],[5,10],[15,20],[12,25]];
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+run.onclick=async()=>{
+  const ev=[]; meetings.forEach(([s,e])=>{ev.push([s,1,'start']); ev.push([e,-1,'end']);});
+  ev.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+  let curV=0, peakV=0, hist=[{t:0,v:0}], lines=[];
+  const maxT=35;
+  function drawSweep(t){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    const pad=50, x=tt=>pad+tt/maxT*(cv.width-2*pad), y=v=>240-v*40;
+    // meetings as bars
+    meetings.forEach((m,i)=>{
+      ctx.fillStyle='rgba(194,96,63,.2)';
+      ctx.fillRect(x(m[0]), 40+i*22, x(m[1])-x(m[0]), 14);
+    });
+    // curve
+    ctx.strokeStyle='#4D9268'; ctx.lineWidth=3; ctx.beginPath();
+    hist.forEach((h,i)=>{ const X=x(h.t), Y=y(h.v); i?ctx.lineTo(X,Y):ctx.moveTo(X,Y); });
+    ctx.stroke();
+    // sweep
+    ctx.strokeStyle='#B8862B'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+    ctx.beginPath(); ctx.moveTo(x(t),20); ctx.lineTo(x(t),260); ctx.stroke(); ctx.setLineDash([]);
+  }
+  for(const [t,d,tp] of ev){
+    curV+=d; peakV=Math.max(peakV,curV);
+    hist.push({t,v:curV});
+    cur.textContent=curV; peak.textContent=peakV;
+    lines.push(`t=${t} ${tp} → 占用=${curV}`);
+    log.textContent=lines.join('\\n'); hud.textContent=`t=${t}`;
+    drawSweep(t); await sleep(450);
+  }
+  hud.textContent='peak='+peakV;
+};
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

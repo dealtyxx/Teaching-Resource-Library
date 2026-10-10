@@ -1,0 +1,98 @@
+---
+module: 7
+moduleName: 结构体
+order: 40
+title: 分布式光伏站点台账管理
+level: 进阶选做
+scene: 信创场景
+knowledge: [结构体数组, 增删改查, 数据台账]
+stars: 5
+minutes: 130
+goal: 新能源场站数据架构设计
+sizheng: 千家万户的屋顶电站汇成绿色电网——台账连着每一度阳光
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import PvLedgerLab from '../../components/react/PvLedgerLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：CRUD——信息系统的四个原子动作
+
+县里的分布式光伏台账：村委屋顶、小学车棚、养殖场大棚……每个站点一条记录。运维每天在做四件事：**增**（新站并网）、**删**（站点注销）、**改**（离线标记）、**查**（按 ID 找站）。
+
+这四个动作合称 **CRUD**，是从学籍系统到 12306 的一切信息系统的骨架。C 语言的最小实现 = **结构体数组 + 计数器**：
+
+```c
+Station ledger[CAP];   /* 固定容量的"账本" */
+int     count = 0;     /* 当前有效条数 */
+```
+
+四个动作各有一个必须想清楚的细节：增要**查满**（count 到顶拒绝）；删要**搬移**（后续记录整体前移补洞）；查要**处理找不到**（返回 -1）；改要**先查后写**（find 到下标再动成员）。
+
+## 一步一步看"删除"的搬移
+
+<CStepRunner
+  client:visible
+  title="删除模拟：抽走中间一条，后面的怎么补位"
+  badge="数组删除模拟"
+  doneNote="删除=覆盖+缩表：用后续记录整体前移盖掉被删项，count 减一。旧的最后一条还残留在 ledger[2]，但 count=2 已宣告它无效——数据的『有效性』由 count 定义，不由内存内容定义。"
+  code={`#include <string.h>
+#define CAP 4
+
+typedef struct { char id[8]; int kw; } Station;
+
+int main(void) {
+    Station ledger[CAP] = {
+        {"PV-101", 120},
+        {"PV-102", 45},
+        {"PV-103", 200}
+    };
+    int count = 3;
+    /* 删除下标1(PV-102) */
+    int i = 1;
+    memmove(&ledger[i], &ledger[i+1],
+            (count-1-i) * sizeof(Station));
+    count--;
+    return 0;
+}`}
+  steps={[
+    { line: 6, desc: '账本现状：[101, 102, 103]，count=3。要删中间的 PV-102（下标 1）。', vars: { ledger: '[101,102,103]', count: '3' } },
+    { line: 14, desc: '不能只把它清零——那会在账本中间留个"空洞"，遍历逻辑全乱。正确做法：后面的记录整体前移。', vars: { ledger: '[101,102,103]' } },
+    { line: 14, desc: 'memmove 搬移 (3-1-1)×sizeof = 1 条记录：把 ledger[2]（PV-103）整体拷到 ledger[1]。', vars: { ledger: '[101,103,103]' } },
+    { line: 16, desc: 'count-- → 2。注意 ledger[2] 还残留着 103 的旧数据，但它已在 count 界外——逻辑上不存在了。', vars: { ledger: '[101,103,(残留)]', count: '2' } },
+    { line: 17, desc: '遍历只到 count（循环条件 i 小于 count）——残留数据永远不会被读到。『count 是账本的唯一真相』。' },
+  ]}
+/>
+
+## 动手实验：管一本真台账
+
+<PvLedgerLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：实现 add/del/find 三个函数 + main 菜单循环（项目 16 的 do-while 菜单回归）。自检：增满了会怎样？删不存在的下标会怎样？
+2. **AI 优化进阶版**：让 AI 增加"按容量排序输出报表"（复用项目 38）与"总装机/在线率统计"（复用项目 14 三大件）。审查它遍历是 `i < count` 还是 `i < CAP`——后者会把残留垃圾统计进去！
+3. **信创加固定稿版**：ID 唯一性检查（add 前先 find，重复拒绝）；删除改"软删除"（加 deleted 标志，审计需要——金融/能源行业的合规常识）；对比软硬删除各自的代价。
+
+## 素养与思政
+
+截至 2024 年，全国分布式光伏装机超过 3.7 亿千瓦，其中很大一部分来自农村屋顶——"整县推进"让阳光成了农民的存折。每个县的调度中心里，都有一本这样的台账：谁并网了、谁离线了、今天发了多少度。
+**台账的严谨=收益的公正**：漏记一条，就是一户人家的电费损失。CRUD 写得对不对，从来不只是技术问题。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="删除数组中间元素后，为什么必须让后续元素前移（或采用其他补位策略）？"
+  options={['为了美观', '不补位会在有效区留下『空洞』，遍历、统计、排序都会读到无效数据', 'C 语言强制要求', '为了释放内存']}
+  answer={1}
+  explain="数组的『有效区』必须连续（0 到 count-1），所有算法都建立在这个约定上。搬移是 O(n) 的代价——这正是链表（第 11 章）要解决的痛点。"
+/>
+
+<QuizItem
+  client:visible
+  question="删除后 ledger[count] 位置还残留旧数据，这有问题吗？"
+  options={['有，必须立即清零', '逻辑上无问题——只要所有遍历都以 count 为界，残留数据不可达；但若含敏感信息（如密码），安全上应主动清除', '会导致程序崩溃', '会让 count 变大']}
+  answer={1}
+  explain="『逻辑删除』与『物理清除』是两个层面：功能正确只需前者；涉密数据（项目 33 的密钥销毁）才需要后者。分清层面，才能在性能与安全间正确取舍。"
+/>

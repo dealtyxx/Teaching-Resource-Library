@@ -1,0 +1,106 @@
+---
+module: 7
+moduleName: 结构体
+order: 37
+title: 学生信息录入与展示
+level: 基础必做
+scene: 校园应用
+knowledge: [结构体定义, 成员访问, 结构体变量]
+stars: 4
+minutes: 80
+goal: 掌握结构体的基本概念与使用
+sizheng: 为一个人建一份完整的档案——数据建模始于对信息的尊重
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import StudentStructLab from '../../components/react/StudentStructLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：数组装不下"一个人"
+
+模块四的数组只能装**同类型**数据：一列学号、或一列成绩。可"一名学生"是学号+姓名+年级+成绩的**异构组合**——四个数组各存一列？下标一乱，张三的成绩就配给了李四。
+
+**结构体**把属于同一实体的数据打包成一个新类型：
+
+```c
+struct Student {
+    uint32_t id;
+    char     name[6];
+    uint8_t  grade;
+    float    score;
+};                       /* 这是"蓝图"，不占内存 */
+struct Student s;        /* 这才是"实例"，占内存 */
+s.score = 92.5f;         /* 点号访问成员 */
+```
+
+**定义是蓝图，变量是实例，点号是钥匙**——三句话记住结构体。
+
+## 一步一步看成员访问
+
+<CStepRunner
+  client:visible
+  title="结构体模拟：录入一名学生"
+  badge="成员访问模拟"
+  doneNote="四个成员各就各位：每个成员有自己的偏移量，s.score 的本质是『s 的首地址 + 12 字节处的 float』——结构体是带名字的偏移表。"
+  code={`#include <stdio.h>
+#include <stdint.h>
+
+struct Student {
+    uint32_t id;       /* 偏移0 */
+    char     name[6];  /* 偏移4 */
+    uint8_t  grade;    /* 偏移10 */
+    float    score;    /* 偏移12(对齐) */
+};
+
+int main(void) {
+    struct Student s;
+    s.id = 20250301;
+    s.grade = 1;
+    s.score = 92.5f;
+    printf("学号%u 年级%u %.1f分\\n",
+           s.id, s.grade, s.score);
+    printf("sizeof=%zu\\n", sizeof(s));
+    return 0;
+}`}
+  steps={[
+    { line: 11, desc: '声明实例 s：编译器按蓝图一次性划出 16 字节连续内存（含 1 字节对齐填充）。', vars: { 's@': '0x7F00~0x7F0F' } },
+    { line: 12, desc: 's.id = 20250301：写入 s 首地址+0 处的 4 个字节。点号=按偏移定位。', vars: { 's.id': '20250301' } },
+    { line: 13, desc: 's.grade = 1：写入偏移 10 处的 1 个字节。', vars: { 's.id': '20250301', 's.grade': '1' } },
+    { line: 14, desc: 's.score = 92.5f：写入偏移 12 处——不是 11！编译器为对齐在 grade 后垫了 1 字节。', vars: { 's.grade': '1', 's.score': '92.5' } },
+    { line: 15, desc: '读取三个成员打印。每个成员类型不同、格式符不同——异构数据的"各归各位"。', out: '学号20250301 年级1 92.5分' },
+    { line: 17, desc: 'sizeof 揭晓：16，不是 4+6+1+4=15。多出的 1 字节就是对齐填充——结构体大小永远以 sizeof 实测为准，不要口算！', out: 'sizeof=16' },
+  ]}
+/>
+
+## 动手实验：亲手填一份 16 字节的档案
+
+<StudentStructLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：定义 Student 结构体，录入并打印 1 名学生。用 `sizeof` 验证你口算的大小——十有八九会被填充"背刺"。
+2. **AI 优化进阶版**：让 AI 把成员重排为"从大到小"（float/uint32 在前，uint8 在后）再测 sizeof。审查它对"为什么填充变少了"的解释是否到位。
+3. **信创加固定稿版**：用指定初始化器（`.id = ...`）替代按序赋值（防成员顺序调整引发错位）；给 name 录入超长字符串测试截断防护；思考跨平台传输结构体时对齐差异的坑（第 12 章文件存储的伏笔）。
+
+## 素养与思政
+
+一条学生记录，对应一个真实的人：学号是身份、成绩是努力、姓名是尊严。《个人信息保护法》要求处理个人信息"目的明确、最小必要"——建模时多问一句"这个字段真的需要吗"，就是把法律要求落进了 struct 定义。
+**数据建模的第一课不是语法，是敬畏**：你定义的每个成员，都是对一个人某个侧面的承诺——存就存准确，用就用正当。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="struct Student { ... }; 这条定义本身占用内存吗？"
+  options={['占用，和变量一样', '不占用——它只是『蓝图』（类型定义），声明变量（实例）时才分配内存', '占用一半', '取决于编译器']}
+  answer={1}
+  explain="类型定义是给编译器看的说明书；struct Student s; 才真正在栈上划出 16 字节。『蓝图不占地，盖房才占地』。"
+/>
+
+<QuizItem
+  client:visible
+  question="成员共 15 字节的结构体，sizeof 却是 16，原因是？"
+  options={['编译器出错了', '对齐填充：编译器在成员间垫字节，让每个成员落在其对齐要求的地址上，访问更快（部分平台不对齐会硬件异常）', 'sizeof 总是向上取偶数', '多出的字节存结构体名字']}
+  answer={1}
+  explain="float 要求 4 字节对齐，所以在 1 字节的 grade 后垫 1 字节。嵌入式通信协议里结构体常用 packed 属性去填充——但那是用性能换空间的显式决定。"
+/>

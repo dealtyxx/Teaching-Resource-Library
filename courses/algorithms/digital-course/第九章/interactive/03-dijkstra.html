@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Dijkstra · 第9章 图算法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">09</div>算法可视化 · <span>第9章 图算法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-prim.html">Prim</a><a class="pill" href="02-kruskal.html">Kruskal</a><a class="pill active" href="03-dijkstra.html">Dijkstra</a><a class="pill" href="04-bf-spfa.html">BF/SPFA</a><a class="pill" href="05-floyd.html">Floyd</a><a class="pill" href="06-flow.html">网络流</a><a class="pill" href="07-ff.html">FF</a><a class="pill" href="08-ek.html">EK</a><a class="pill" href="09-dinic.html">Dinic</a><a class="pill" href="10-match.html">匹配</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 3 · 最短路</div>
+  <h1>Dijkstra · 非负权单源最短路</h1>
+  <p>每次确定 dist 最小的未定点，再松弛出边。结点上的数字是当前 dist。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>手工模拟</b> Dijkstra：逐轮写出被选定的顶点、dist 数组的变化，并给出最终最短距离与路径。</li>
+  <li>能够<b>论证</b> Dijkstra 的正确性，并明确指出论证在哪一步用到了"<b>边权非负</b>"这个前提。</li>
+  <li>能够<b>构造</b>一个使 Dijkstra 给出错误答案的负权反例，并说明为什么"随手加一条负边"往往<b>构造不出</b>反例。</li>
+  <li>能够<b>默写</b>朴素与堆优化两版代码，并分别推导 O(n<sup>2</sup>)、O((n+e) log n)、O(n log n + e) 三种复杂度。</li>
+  <li>能够<b>选择</b>：给定图的疏密与是否含负权，判断该用 Dijkstra 还是 Bellman-Ford。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="run">▶ 运行</button>
+    <button class="btn ghost" id="reset">重置</button>
+    <div class="speed" id="spd"><button data-ms="700">慢</button><button data-ms="400" class="on">中</button><button data-ms="180">快</button></div>
+  </div>
+  <div class="stage-wrap">
+    <canvas class="stage" id="cv" width="900" height="400"></canvas>
+    <div class="stage-hud"><span class="hud-pill">Dijkstra</span><span class="hud-pill" id="hud">src=0</span></div>
+  </div>
+  <div class="cells" id="distRow"></div>
+  <div class="tip">下方格子为 dist[] · 绿=已确定 · 蓝=松弛更新中</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、定义与算法框架</h2><span class="sub">Single-Source Shortest Path</span></div>
+
+<div class="defn"><span class="lbl">定义</span><p>给定带权有向（或无向）图 G = (V, E, W) 与源点 s，<b>单源最短路径问题</b>（single-source shortest path, SSSP）要求对每个顶点 v 求出 s 到 v 的最短路径长度 dist[v]（不可达时为 &infin;）。<b>松弛</b>（relaxation）操作指：若 dist[u] + w(u,v) &lt; dist[v]，则令 dist[v] = dist[u] + w(u,v)。</p></div>
+
+<div class="defn"><span class="lbl">Dijkstra 算法</span><p>把顶点分为两类：<b>已定型集合 S</b>（dist 值已确定为最终最短距离）与未定型集合 V&minus;S。初始 dist[s] = 0、其余为 &infin;，S = &empty;。重复 n 次：从 V&minus;S 中取出 dist 值<b>最小</b>的顶点 u 加入 S（此刻宣布 dist[u] 已确定），然后用 u 松弛它的所有出边。<b>前提：所有边权 w &ge; 0。</b></p></div>
+
+<div class="defn thm"><span class="lbl">正确性定理</span><p>若图中所有边权非负，则每当 Dijkstra 把顶点 u（当前 V&minus;S 中 dist 最小者）加入 S 时，dist[u] 已等于 s 到 u 的真实最短距离。</p></div>
+
+<div class="deriv">
+  <span class="step">反证 设 u 是<b>第一个</b>被错误定型的顶点，即 dist[u] &gt; &delta;(s, u)（&delta; 表真实最短距离） <span class="why">"第一个"保证 S 中已有顶点全部正确</span></span>
+  <span class="step">第一步 取一条 s&rarr;u 的真实最短路径 P，沿 P 走，令 y 是 P 上<b>第一个不在 S 中</b>的顶点，x 为 P 上 y 的前驱（x &isin; S） <span class="why">u &notin; S 且 u 在 P 上，故这样的 y 必存在</span></span>
+  <span class="step">第二步 x 已正确定型，dist[x] = &delta;(s, x)；x 入 S 时松弛过边 (x, y)，故 dist[y] = &delta;(s, y) <span class="why">最短路径的前缀也是最短路径（最优子结构）</span></span>
+  <span class="step">第三步 y 在 P 上位于 u 之前（或等于 u），且 P 上 y&rarr;u 段的长度 <b>&ge; 0</b> <span class="why">&#9733; 此处唯一用到"边权非负"</span></span>
+  <span class="step">第四步 于是 &delta;(s, y) &le; &delta;(s, u)，即 dist[y] &le; &delta;(s, u) &lt; dist[u] <span class="why">最后一个不等号来自反证假设</span></span>
+  <span class="step">第五步 但算法此刻选的是 V&minus;S 中 dist 最小者 u，应有 dist[u] &le; dist[y]，矛盾 <span class="why">故不存在被错误定型的顶点</span></span>
+  <span class="step">结论 非负权下 Dijkstra 正确；<b>第三步一旦允许负权即崩塌</b> <span class="why">y&rarr;u 段若含负边，其长度可小于 0，&delta;(s,y) 就可能大于 &delta;(s,u)</span></span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、为什么不能有负权：一个完整反例</h2><span class="sub">Counterexample · 本节最重要的内容</span></div>
+
+<div class="tip danger"><strong>核心结论：</strong>Dijkstra 的贪心前提是"<b>已加入 S 的顶点，其 dist 不会再变小</b>"。这一前提成立，是因为任何后续路径都只会在已有距离上<b>再加非负值</b>。一旦出现负权边，"绕远路反而更短"成为可能，被过早定型的顶点<b>再也没有机会被更新</b>，错误就此固化并沿着最短路径树向下传播。</div>
+
+<h3>反例图（有向图，4 个顶点）</h3>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>边</th><th>s &rarr; a</th><th>s &rarr; b</th><th>b &rarr; a</th><th>a &rarr; t</th></tr>
+  <tr><td>权 w</td><td>2</td><td>5</td><td class="hl">&minus;4</td><td>1</td></tr>
+</table></div>
+
+<div class="deriv">
+  <span class="step">初始 dist = [s:0, a:&infin;, b:&infin;, t:&infin;]，S = &empty; <span class="why">源点 s</span></span>
+  <span class="step">第 1 轮 选 s（dist=0）入 S。松弛 s&rarr;a 得 dist[a]=2；松弛 s&rarr;b 得 dist[b]=5 <span class="why">dist = [0, 2, 5, &infin;]</span></span>
+  <span class="step">第 2 轮 V&minus;S 中最小者是 a（dist=2），<b>定型 dist[a] = 2</b>。松弛 a&rarr;t 得 dist[t] = 3 <span class="why">dist = [0, 2, 5, 3]</span></span>
+  <span class="step">第 3 轮 最小者是 t（dist=3），<b>定型 dist[t] = 3</b>。t 无出边 <span class="why">错误已经扩散到 t</span></span>
+  <span class="step">第 4 轮 选 b（dist=5）入 S。松弛 b&rarr;a：5 + (&minus;4) = 1 &lt; 2 <span class="why">&#9733; 但 a 已在 S 中，被跳过，dist[a] 保持 2</span></span>
+  <span class="step">算法输出 dist[a] = 2，dist[t] = 3 <span class="why">算法终止</span></span>
+  <span class="step">真实答案 s&rarr;b&rarr;a = 5 &minus; 4 = <b>1</b>；s&rarr;b&rarr;a&rarr;t = 1 + 1 = <b>2</b> <span class="why">Dijkstra 在 a 与 t 上<b>同时出错</b></span></span>
+</div>
+
+<div class="formula">Dijkstra 输出 dist[a] = <em>2</em>、dist[t] = <em>3</em> &nbsp;&nbsp;&ne;&nbsp;&nbsp; 真实 &delta;(s,a) = <em>1</em>、&delta;(s,t) = <em>2</em></div>
+
+<div class="tip info"><strong>错在哪一步：</strong>对照第一节的正确性证明，第 2 轮定型 a 时，真实最短路径 P = s&rarr;b&rarr;a 上第一个不在 S 中的顶点是 y = b，此时 dist[b] = 5。证明的第四步要求 &delta;(s, b) &le; &delta;(s, a)，即 5 &le; 1——<b>不成立</b>。原因正是 P 上从 b 到 a 那一段的长度是 &minus;4 &lt; 0，违反了第三步"该段长度 &ge; 0"的假设。</div>
+
+<h3>为什么反例必须这样构造</h3>
+
+<p class="desc">很多同学会随手画一个含负边的图，却发现 Dijkstra 居然算对了。例如这个常见的"伪反例"：<b>s&rarr;a 权 1，s&rarr;b 权 4，a&rarr;b 权 &minus;3</b>。</p>
+
+<div class="deriv">
+  <span class="step">第 1 轮 选 s，松弛得 dist[a] = 1、dist[b] = 4 <span class="why">dist = [0, 1, 4]</span></span>
+  <span class="step">第 2 轮 选 a（dist=1）定型，松弛 a&rarr;b：1 + (&minus;3) = &minus;2 &lt; 4 <span class="why">b <b>尚未定型</b>，更新成功，dist[b] = &minus;2</span></span>
+  <span class="step">第 3 轮 选 b（dist=&minus;2）定型 <span class="why">输出 dist[b] = &minus;2</span></span>
+  <span class="step">真实答案 s&rarr;a&rarr;b = 1 &minus; 3 = &minus;2 <span class="why">&#10003; Dijkstra 竟然算<b>对</b>了</span></span>
+</div>
+
+<div class="tip warn"><strong>关键：</strong>负边本身并不足以致错，<b>负边必须指向一个已被定型的顶点</b>才会出错。在"伪反例"中，负边 a&rarr;b 的终点 b 在松弛时还是未定型的，所以更新照常生效。要造出真正的反例，必须让负边的<b>终点先被定型</b>——因此负边的终点应当是一个 dist 很小、会被<b>早早选中</b>的顶点，而负边的起点应当 dist 较大、<b>很晚才被选中</b>。上面 4 顶点反例中，a 的初始 dist 是 2（早选），b 是 5（晚选），负边正是 b&rarr;a，这才成功。</div>
+
+<div class="tip danger"><strong>补充：不要试图用"全体加常数"来消除负权。</strong>把每条边的权都加上一个大常数 C 会破坏最短路——因为不同路径<b>边数不同</b>，边多的路径被多加了 C，原本最短的多边路径可能变得不再最短。含负权时正确做法是改用 <b>Bellman-Ford / SPFA</b>（下一节），或在无负环时用 <b>Johnson 重赋权</b>（用势函数 h(v) 令 w&prime;(u,v) = w(u,v) + h(u) &minus; h(v) &ge; 0，这样加的量沿路径可伸缩抵消）。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、规范 C++ 代码</h2><span class="sub">两种实现</span></div>
+
+<div class="code"><span class="cm">// ========== 实现一：邻接矩阵朴素 Dijkstra —— O(n^2)，适合稠密图 ==========</span>
+<span class="kw">const</span> <span class="kw">int</span> N = <span class="nu">1005</span>, INF = <span class="nu">0x3f3f3f3f</span>;
+<span class="kw">int</span> A[N][N];                 <span class="cm">// 邻接矩阵，无边为 INF</span>
+<span class="kw">int</span> dist_[N], pre[N];       <span class="cm">// dist_：最短距离；pre：前驱，用于还原路径</span>
+<span class="kw">bool</span> vis[N];                 <span class="cm">// 是否已定型（是否已加入集合 S）</span>
+
+<span class="kw">void</span> <span class="fn">dijkstra</span>(<span class="kw">int</span> n, <span class="kw">int</span> s) {
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; i++) { dist_[i] = INF; vis[i] = <span class="kw">false</span>; pre[i] = <span class="nu">-1</span>; }
+    dist_[s] = <span class="nu">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> cnt = <span class="nu">0</span>; cnt &lt; n; cnt++) {
+        <span class="kw">int</span> u = <span class="nu">-1</span>, mn = INF;
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; i++)                 <span class="cm">// ① 选未定型中 dist 最小者：O(n)</span>
+            <span class="kw">if</span> (!vis[i] &amp;&amp; dist_[i] &lt; mn) { mn = dist_[i]; u = i; }
+        <span class="kw">if</span> (u == <span class="nu">-1</span>) <span class="kw">break</span>;                        <span class="cm">// 剩余顶点均不可达</span>
+        vis[u] = <span class="kw">true</span>;                              <span class="cm">// ② 定型：dist_[u] 从此不再改变</span>
+        <span class="kw">for</span> (<span class="kw">int</span> v = <span class="nu">0</span>; v &lt; n; v++)                 <span class="cm">// ③ 用 u 松弛所有出边：O(n)</span>
+            <span class="kw">if</span> (!vis[v] &amp;&amp; A[u][v] != INF &amp;&amp; dist_[u] + A[u][v] &lt; dist_[v]) {
+                dist_[v] = dist_[u] + A[u][v];
+                pre[v] = u;
+            }
+    }
+}
+
+<span class="cm">// 还原 s 到 v 的路径（递归输出）</span>
+<span class="kw">void</span> <span class="fn">printPath</span>(<span class="kw">int</span> v) {
+    <span class="kw">if</span> (pre[v] != <span class="nu">-1</span>) { <span class="fn">printPath</span>(pre[v]); <span class="fn">printf</span>(<span class="st">"-&gt;"</span>); }
+    <span class="fn">printf</span>(<span class="st">"%d"</span>, v);
+}
+
+<span class="cm">// ========== 实现二：邻接表 + 优先队列 —— O((n+e) log n)，适合稀疏图 ==========</span>
+<span class="kw">typedef</span> pair&lt;<span class="kw">int</span>, <span class="kw">int</span>&gt; pii;               <span class="cm">// (当前距离, 顶点)</span>
+vector&lt;pii&gt; g[N];                                 <span class="cm">// g[u] = {(v, w), ...}</span>
+<span class="kw">int</span> dis[N];
+
+<span class="kw">void</span> <span class="fn">dijkstraHeap</span>(<span class="kw">int</span> n, <span class="kw">int</span> s) {
+    <span class="fn">memset</span>(dis, <span class="nu">0x3f</span>, <span class="kw">sizeof</span>(<span class="kw">int</span>) * n);       <span class="cm">// 0x3f3f3f3f，相加不溢出</span>
+    priority_queue&lt;pii, vector&lt;pii&gt;, greater&lt;pii&gt;&gt; pq;   <span class="cm">// 小根堆</span>
+    dis[s] = <span class="nu">0</span>; pq.<span class="fn">push</span>({<span class="nu">0</span>, s});
+    <span class="kw">while</span> (!pq.<span class="fn">empty</span>()) {
+        <span class="kw">auto</span> [d, u] = pq.<span class="fn">top</span>(); pq.<span class="fn">pop</span>();
+        <span class="kw">if</span> (d &gt; dis[u]) <span class="kw">continue</span>;                  <span class="cm">// 惰性删除：过期元素直接丢弃</span>
+        <span class="kw">for</span> (<span class="kw">auto</span> [v, w] : g[u])
+            <span class="kw">if</span> (dis[u] + w &lt; dis[v]) {            <span class="cm">// 松弛成功才入堆</span>
+                dis[v] = dis[u] + w;
+                pq.<span class="fn">push</span>({dis[v], v});
+            }
+    }
+}</div>
+
+<div class="tip"><strong>惰性删除（lazy deletion）：</strong>C++ 的 priority_queue 不支持 decrease-key，所以每次松弛成功就压入一个新元素，旧元素留在堆里。取出时用 <span class="cm">if (d &gt; dis[u]) continue;</span> 判掉过期项。堆内元素上界 O(e)，因此仍是 O((n+e) log n)。<b>漏掉这一句</b>会让每个顶点被重复扩展，复杂度上升且在稠密图上明显变慢。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、时间与空间复杂度</h2><span class="sub">三种实现分别列出</span></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>实现（优先队列结构）</th><th>选最小 &times; n 次</th><th>松弛/减键 &times; e 次</th><th>总时间</th><th>额外空间</th><th>适用</th></tr>
+  <tr><td>数组线性扫描（邻接矩阵）</td><td>O(n) 每次</td><td>O(1) 每次</td><td class="hl">&Theta;(n<sup>2</sup>)</td><td>O(n)</td><td><b>稠密图</b> e &asymp; n<sup>2</sup></td></tr>
+  <tr><td>二叉堆 / 配对堆（邻接表）</td><td>O(log n) 每次</td><td>O(log n) 每次</td><td class="hl">O((n + e) log n)</td><td>O(n + e)</td><td><b>稀疏图</b> e = O(n)</td></tr>
+  <tr><td>斐波那契堆（邻接表）</td><td>O(log n) 摊还</td><td>O(1) 摊还</td><td class="hl">O(n log n + e)</td><td>O(n + e)</td><td>理论最优，常数大、少用</td></tr>
+</table></div>
+
+<div class="deriv">
+  <span class="step">通用式 T = n &middot; T<sub>extract-min</sub> + e &middot; T<sub>decrease-key</sub> <span class="why">n 次定型，每条边至多松弛一次</span></span>
+  <span class="step">数组实现 n &middot; O(n) + e &middot; O(1) = O(n<sup>2</sup> + e) = &Theta;(n<sup>2</sup>) <span class="why">简单图中 e &le; n<sup>2</sup>，故 n<sup>2</sup> 项吸收 e</span></span>
+  <span class="step">二叉堆 n &middot; O(log n) + e &middot; O(log n) = O((n + e) log n) <span class="why">稀疏图 e = O(n) 时约 O(n log n)</span></span>
+  <span class="step">斐波那契堆 n &middot; O(log n) + e &middot; O(1) = O(n log n + e) <span class="why">把 decrease-key 降到摊还 O(1) 是其全部价值</span></span>
+  <span class="step">临界 当 e &gt; n<sup>2</sup>/log n 时，二叉堆版反而慢于 O(n<sup>2</sup>) 朴素版 <span class="why">这就是稠密图仍用朴素实现的定量理由</span></span>
+</div>
+
+<div class="tip info"><strong>与 Bellman-Ford 的取舍：</strong>Bellman-Ford 为 O(ne)，比 Dijkstra 慢，但能处理负权并检测负环。<b>若边权全部非负，永远优先 Dijkstra</b>；只要存在一条负边，就必须换用 Bellman-Ford / SPFA（下一节）。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>五、例题演算</h2><span class="sub">对上方演示图（6 点 9 边，无向，源点 0）</span></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>边</th><th>(0,1)</th><th>(0,5)</th><th>(1,2)</th><th>(1,5)</th><th>(2,3)</th><th>(2,4)</th><th>(2,5)</th><th>(3,4)</th><th>(4,5)</th></tr>
+  <tr><td>权 w</td><td>6</td><td>5</td><td>5</td><td>3</td><td>4</td><td>3</td><td>4</td><td>5</td><td>2</td></tr>
+</table></div>
+
+<div class="deriv">
+  <span class="step">初始 dist = [0, &infin;, &infin;, &infin;, &infin;, &infin;]，S = &empty; <span class="why">源点 0</span></span>
+  <span class="step">第 1 轮 选 <b>0</b>（0）。松弛 0&rarr;1 得 6；0&rarr;5 得 5 <span class="why">dist = [0, 6, &infin;, &infin;, &infin;, 5]</span></span>
+  <span class="step">第 2 轮 选 <b>5</b>（5）。松弛 5&rarr;1：5+3=8 &gt; 6 不更新；5&rarr;2：5+4=9 &#10003;；5&rarr;4：5+2=7 &#10003; <span class="why">dist = [0, 6, 9, &infin;, 7, 5]</span></span>
+  <span class="step">第 3 轮 选 <b>1</b>（6）。松弛 1&rarr;2：6+5=11 &gt; 9 不更新 <span class="why">dist 不变</span></span>
+  <span class="step">第 4 轮 选 <b>4</b>（7）。松弛 4&rarr;2：7+3=10 &gt; 9 不更新；4&rarr;3：7+5=12 &#10003; <span class="why">dist = [0, 6, 9, 12, 7, 5]</span></span>
+  <span class="step">第 5 轮 选 <b>2</b>（9）。松弛 2&rarr;3：9+4=13 &gt; 12 不更新 <span class="why">dist 不变</span></span>
+  <span class="step">第 6 轮 选 <b>3</b>（12）。全部定型，结束 <span class="why">定型顺序：0, 5, 1, 4, 2, 3，<b>dist 值严格非降</b></span></span>
+</div>
+
+<div class="formula">dist = [0, 6, 9, 12, 7, 5]；例如 0&rarr;3 的最短路径为 <em>0 &rarr; 5 &rarr; 4 &rarr; 3</em>，长度 5 + 2 + 5 = 12</div>
+
+<div class="tip"><strong>一条重要观察：</strong>顶点被定型的 dist 值序列 0, 5, 6, 7, 9, 12 是<b>单调非降</b>的。这正是非负权的直接推论，也是"已定型顶点不会再变小"的直观表现。如果你手算时发现某轮定型的 dist 比上一轮小，那要么算错了，要么图里有负权边。</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>对含负权边的图使用 Dijkstra</b>。这是本节头号错误：程序不会报错、不会死循环，只会<b>静悄悄给出错误答案</b>。判断标准只看边权，与图是否有环、是否有向都无关。</li>
+  <li>误以为"没有负环就能用 Dijkstra"：负环只是 Bellman-Ford 的判定对象；<b>只要有一条负边，Dijkstra 就可能出错</b>，哪怕图是无环的 DAG。</li>
+  <li>试图给所有边权统一加常数 C 来消除负权：不同路径边数不同，加的总量不同，会改变最短路的相对大小。</li>
+  <li>堆优化中漏写 <span class="cm">if (d &gt; dis[u]) continue;</span>，或误写成 <span class="cm">if (vis[u]) continue;</span> 却忘了给 vis 赋值。</li>
+  <li>INF 用 INT_MAX：<span class="cm">dist[u] + w</span> 溢出成负数，会把不可达点当成"距离极短"而错误定型。用 0x3f3f3f3f。</li>
+  <li>把 Dijkstra 的松弛式写成 Prim 的 <span class="cm">w &lt; dis[v]</span>：那求的是最小生成树而不是最短路（见第 1 节）。</li>
+  <li>只求一个终点就以为可以少算：Dijkstra 必须按 dist 升序定型，可以在<b>目标点被定型时</b>提前 break，但不能跳过中间顶点。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>Dijkstra 求<b>非负权</b>图的单源最短路：每轮取未定型顶点中 dist 最小者定型，再用它松弛出边，共 n 轮。</li>
+  <li>正确性证明的关键一步是"最短路径上 y 到 u 的一段长度 &ge; 0"，<b>这正是非负权前提的落点</b>；负权使该步失效。</li>
+  <li><b>负权反例</b>（s&rarr;a=2、s&rarr;b=5、b&rarr;a=&minus;4、a&rarr;t=1）：Dijkstra 输出 dist[a]=2、dist[t]=3，真值为 1 和 2。致错要害是<b>负边指向已定型顶点</b>；若负边终点尚未定型（如 s&rarr;a=1、s&rarr;b=4、a&rarr;b=&minus;3），Dijkstra 反而恰好算对，故反例必须精心构造。</li>
+  <li>复杂度：数组 &Theta;(n<sup>2</sup>)（稠密图）、二叉堆 O((n+e) log n)（稀疏图）、斐波那契堆 O(n log n + e)（理论最优）。</li>
+  <li>顶点定型的 dist 值单调非降，可作为手算自检的判据。含负权时改用 Bellman-Ford / SPFA。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>有向图：s&rarr;a 权 2，s&rarr;b 权 5，b&rarr;a 权 &minus;4，a&rarr;t 权 1。从 s 出发运行 Dijkstra，输出的 dist[t] 与真实最短距离分别是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>都是 3，因为图中无负环，Dijkstra 仍然正确</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>Dijkstra 输出 3，真实值为 2</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>Dijkstra 输出 2，真实值为 3</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>Dijkstra 会陷入死循环，无输出</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。Dijkstra 第 2 轮选中 a（dist=2）并<b>定型</b>，随即松弛 a&rarr;t 得 dist[t]=3 并在第 3 轮定型；直到第 4 轮才轮到 b，此时松弛 b&rarr;a 得 5&minus;4=1 &lt; 2，但 a 已定型被跳过，错误无法回滚。真实路径 s&rarr;b&rarr;a&rarr;t = 5&minus;4+1 = 2。A 的迷惑性最强——"无负环"是 Bellman-Ford 的适用条件，不是 Dijkstra 的；Dijkstra 要求的是<b>每条边非负</b>，本图虽无环但含负边，照样出错。C 把两个数字弄反了。D 错：Dijkstra 主循环固定执行 n 次，不含负环也不会死循环，它的失败方式是<b>安静地给出错误结果</b>，这比崩溃更危险。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>某图 n = 5000、e = 12 000 000（接近完全图），边权均非负，求单源最短路。最优选择是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>邻接矩阵 + 数组线性扫描，&Theta;(n<sup>2</sup>) = 2.5&times;10<sup>7</sup></span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>邻接表 + 二叉堆，O((n+e) log n) &asymp; 1.5&times;10<sup>8</sup></span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>Bellman-Ford，O(ne) = 6&times;10<sup>10</sup>，通用性最好</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>Floyd，O(n<sup>3</sup>)，一次算出全源更划算</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>A 正确。稠密图中 e &asymp; n<sup>2</sup>/2，堆优化的 (n+e) log n &asymp; 1.2&times;10<sup>7</sup>&times;12.3 &asymp; 1.5&times;10<sup>8</sup>，<b>反而大于</b> n<sup>2</sup> = 2.5&times;10<sup>7</sup>，且堆操作常数远大于数组扫描。B 的算式正确但结论错——"堆优化一定更快"只在稀疏图成立。C 虽然能算出正确答案，但边权非负时用 O(ne) 换通用性完全没必要，且 6&times;10<sup>10</sup> 已超时。D 更离谱：n<sup>3</sup> = 1.25&times;10<sup>11</sup>，且题目只要单源，求全源是巨大浪费。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>下列关于 Dijkstra 的说法中，<b>正确</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>把所有边权同时加上一个足够大的正数 C，即可用 Dijkstra 处理负权图</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>顶点被定型的先后顺序，就是它们按到源点距离由近到远的顺序，因此中途可以随意跳过不感兴趣的顶点</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>顶点被定型时的 dist 值序列单调非降；若只需求 s 到某个特定点 t 的距离，可在 t 被定型的那一刻立即终止</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>无向图中若存在一条负权边，只要它不构成负环，Dijkstra 仍可正确求解</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>C 正确：非负权保证定型值单调非降，t 定型时其 dist 已是最终值，后续轮次只会处理更远的顶点，故可安全 break（这也是 A* 等启发式搜索的基础）。A 错，这是最经典的错误直觉：不同路径边数不同，一条 3 条边的路径会被加 3C，一条 1 条边的路径只加 C，路径间的大小关系被扭曲；正确的重赋权方法是 Johnson 算法的势函数 w&prime;(u,v)=w(u,v)+h(u)&minus;h(v)，它沿路径求和时中间项相消，才不改变最短路。B 前半句对、后半句错——"跳过"中间顶点意味着不用它松弛出边，而 t 的最短路可能正好经过被跳过的顶点，结果会偏大。D 错，无向图中一条负边 (u,v) 本身就等价于 u&rarr;v 与 v&rarr;u 两条负边，来回走一趟即构成权为 2w &lt; 0 的<b>负环</b>，最短路根本不存在，Dijkstra 与 Bellman-Ford 都无法给出有意义的答案。</div>
+  </div>
+</div>
+
+<div class="terms">
+  <span class="term"><b>单源最短路</b>single-source shortest path</span>
+  <span class="term"><b>松弛</b>relaxation</span>
+  <span class="term"><b>定型 / 已确定集合</b>settled set</span>
+  <span class="term"><b>最优子结构</b>optimal substructure</span>
+  <span class="term"><b>惰性删除</b>lazy deletion</span>
+  <span class="term"><b>减键操作</b>decrease-key</span>
+  <span class="term"><b>斐波那契堆</b>Fibonacci heap</span>
+  <span class="term"><b>重赋权</b>reweighting (Johnson)</span>
+</div>
+
+<div class="page-nav"><a href="02-kruskal.html"><span class="dir">← 上一节</span><span class="name">Kruskal</span></a><a href="04-bf-spfa.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">BF/SPFA</span></a></div>
+<div class="footer">算法设计与分析 · <b>第9章 图算法</b> · 强交互可视化版<br/>MST · 最短路 · 网络流 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:28},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.1-Math.random()*.25, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(110,86,145,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+// shared graph geometry
+const GPOS=[[120,200],[300,80],[520,80],[700,200],[520,320],[300,320]];
+const GEDGES=[[0,1,6],[0,5,5],[1,2,5],[1,5,3],[2,3,4],[2,4,3],[2,5,4],[3,4,5],[4,5,2]];
+
+function drawGraph(ctx, mst=[], U=new Set(), hl=null, dist=null, done=null){
+  const W=ctx.canvas.width, H=ctx.canvas.height;
+  ctx.clearRect(0,0,W,H);
+  // soft bg glow
+  const vg=ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,400);
+  vg.addColorStop(0,'rgba(110,86,145,.08)'); vg.addColorStop(1,'transparent');
+  ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+  GEDGES.forEach(([u,v,w])=>{
+    const inM=mst.some(e=>(e[0]===u&&e[1]===v)||(e[0]===v&&e[1]===u));
+    const isH=hl&&((hl[0]===u&&hl[1]===v)||(hl[0]===v&&hl[1]===u));
+    ctx.strokeStyle=inM?'#6FB48B':(isH?'#D0A344':'rgba(162,156,144,.35)');
+    ctx.lineWidth=inM||isH?4:2;
+    if(inM){ ctx.shadowColor='#6FB48B'; ctx.shadowBlur=12; }
+    ctx.beginPath(); ctx.moveTo(GPOS[u][0],GPOS[u][1]); ctx.lineTo(GPOS[v][0],GPOS[v][1]); ctx.stroke();
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#A29C90'; ctx.font='12px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(w,(GPOS[u][0]+GPOS[v][0])/2+8,(GPOS[u][1]+GPOS[v][1])/2-6);
+  });
+  GPOS.forEach((p,i)=>{
+    const inU=U.has?U.has(i):(done&&done[i]);
+    const g=ctx.createRadialGradient(p[0]-6,p[1]-6,3,p[0],p[1],22);
+    if(inU){ g.addColorStop(0,'#B4A8D4'); g.addColorStop(1,'#6E5691'); }
+    else { g.addColorStop(0,'#D5CFC1'); g.addColorStop(1,'#7A746A'); }
+    ctx.beginPath(); ctx.arc(p[0],p[1],20,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.4)'; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='#fff'; ctx.font='bold 14px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(i,p[0],p[1]-(dist?6:0));
+    if(dist){ ctx.fillStyle='#E6CE93'; ctx.font='11px ui-monospace';
+      ctx.fillText(dist[i]>=1e9?'∞':dist[i], p[0], p[1]+12); }
+  });
+}
+
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const n=6; const g=Array.from({length:n},()=>[]);
+GEDGES.forEach(([u,v,w])=>{g[u].push([v,w]);g[v].push([u,w]);});
+let dist, done, ms=400;
+function showDist(active=-1, visit=-1){
+  distRow.innerHTML=dist.map((d,i)=>`<div class="cell ${done[i]?'hit':i===active?'on':i===visit?'done':''}">${d>=1e9?'∞':d}</div>`).join('');
+}
+function init(){
+  dist=Array(n).fill(1e9); dist[0]=0; done=Array(n).fill(false);
+  drawGraph(ctx,[],new Set([0]),null,dist,done); showDist(); hud.textContent='init dist[0]=0';
+}
+spd.querySelectorAll('button').forEach(b=>b.onclick=()=>{spd.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');ms=+b.dataset.ms;});
+run.onclick=async()=>{
+  init();
+  for(let it=0;it<n;it++){
+    let u=-1,b=1e9; for(let i=0;i<n;i++) if(!done[i]&&dist[i]<b){b=dist[i];u=i;}
+    if(u<0) break;
+    done[u]=true;
+    const U=new Set(done.map((d,i)=>d?i:-1).filter(i=>i>=0));
+    drawGraph(ctx,[],U,null,dist,done); showDist(u); hud.textContent=`确定 ${u} dist=${dist[u]}`; await sleep(ms);
+    for(const [v,w] of g[u]){
+      if(!done[v]&&dist[u]+w<dist[v]){
+        dist[v]=dist[u]+w;
+        drawGraph(ctx,[],U,[u,v],dist,done); showDist(u,v);
+        hud.textContent=`松弛 ${u}→${v} = ${dist[v]}`; await sleep(ms*0.75);
+      }
+    }
+  }
+  drawGraph(ctx,[],new Set([...Array(n).keys()]),null,dist,done); showDist();
+  hud.textContent='完成 ['+dist.join(', ')+']';
+};
+reset.onclick=init; init();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

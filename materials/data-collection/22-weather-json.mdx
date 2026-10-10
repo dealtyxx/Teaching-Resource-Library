@@ -1,0 +1,149 @@
+---
+module: 6
+moduleName: 信息标记与提取方法
+order: 22
+title: 天气API数据JSON解析
+level: 基础必做
+scene: 接口数据
+knowledge: [JSON格式, json库, 键值提取, 中文编码]
+stars: 2
+minutes: 20
+goal: 掌握JSON解析，能从接口返回数据中提取目标字段
+sizheng: 用好开放接口，遵守调用约定——API世界的契约精神
+dims: [职业伦理, 开源共享]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import PyStepRunner from '../../components/react/PyStepRunner';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+
+## 场景导入
+
+社团想在活动室挂一块「今日校园天气」小屏幕，你去调了一个开放天气接口。请求发出去，返回的不是排好队的表格，而是一长串带大括号的文本——这就是 JSON。它是几乎所有 Web 接口的「通用语」：键值成对、层层嵌套，机器好解析、人也读得懂。今天的任务很实在：把这串文本变成 Python 能操作的数据，再从里面精准挑出「今日概况」和「高温预警」两样东西。
+
+## 动手实验
+
+接口返回的 JSON 就存在 `resp` 这个字符串里。核心其实只有一步——`json.loads()` 把文本解析成字典，之后就像查字典一样用「键」逐层取值。注意最后 `json.dumps()` 里的 `ensure_ascii=False`，它是让中文正常显示、而不是变成一堆转义码的关键：
+
+<PyPlayground
+  client:visible
+  title="天气接口 JSON 解析"
+  note="试着在 alerts 列表里再加一条大风预警，或把 city 改成你的城市，再运行看看输出。"
+  code={`import json
+
+# 模拟天气 API 返回的 JSON 字符串（真实接口返回的就是这种文本）
+resp = '''
+{
+  "city": "杭州",
+  "date": "2026-07-21",
+  "today": {"weather": "晴", "temp_high": 39, "temp_low": 30, "aqi": 62},
+  "alerts": [
+    {"type": "高温", "level": "橙色", "desc": "最高气温将达39℃以上"},
+    {"type": "紫外线", "level": "黄色", "desc": "紫外线照射强，请注意防护"}
+  ]
+}
+'''
+
+# 第一步：把字符串解析成 Python 字典（dict）
+data = json.loads(resp)
+
+# 第二步：逐层用「键」取值——像剥洋葱一样一层层往里取
+city = data["city"]
+today = data["today"]                       # today 本身又是一个字典
+overview = f"{today['weather']}，{today['temp_low']}~{today['temp_high']}℃，AQI {today['aqi']}"
+print(f"【今日概况】{city} {data['date']}：{overview}")
+
+# 第三步：遍历预警列表，把「高温」预警单独标出来
+print("【预警信息】")
+for a in data["alerts"]:
+    mark = "⚠ 高温" if a["type"] == "高温" else "· 一般"
+    print(f"  [{mark}] {a['level']}{a['type']}预警：{a['desc']}")
+
+# 第四步：把提取结果打包回 JSON——ensure_ascii=False 让中文正常显示
+has_heat = any(a["type"] == "高温" for a in data["alerts"])
+summary = {"城市": city, "高温预警": has_heat}
+print("【回传摘要】" + json.dumps(summary, ensure_ascii=False))`}
+/>
+
+## 逐行看懂
+
+解析到底是「怎么一步步走」的？点开下面的模拟器，单步观察数据从一串字符串，变成字典，再被逐层取出的全过程：
+
+<PyStepRunner
+  client:visible
+  title="json.loads 逐层取值全过程"
+  fileName="weather.py"
+  code={`import json
+
+resp = '{"city": "杭州", "temp": 39, "alerts": ["高温", "紫外线"]}'
+data = json.loads(resp)
+
+city = data["city"]
+temp = data["temp"]
+alerts = data["alerts"]
+
+print(f"{city} 今日 {temp}℃")
+if "高温" in alerts:
+    print("触发高温预警！")`}
+  steps={[
+    { line: 0, desc: '引入标准库 json——Python 自带、无需安装，专门用来读写 JSON。' },
+    { line: 2, desc: '接口返回的其实就是这样一串文本，此刻它还只是一个普通字符串。', vars: { resp: 'str（一串 JSON 文本）' } },
+    { line: 3, desc: 'json.loads 把 JSON 文本解析成 Python 字典 dict——最关键的一步。', vars: { resp: 'str', data: 'dict 字典' } },
+    { line: 5, desc: '像查字典一样，用键 city 取出城市名。', vars: { data: 'dict', city: '杭州' } },
+    { line: 6, desc: '用键 temp 取出温度（一个数字）。', vars: { city: '杭州', temp: '39' } },
+    { line: 7, desc: '用键 alerts 取出预警列表（一个 list）。', vars: { temp: '39', alerts: "['高温', '紫外线']" } },
+    { line: 9, desc: '格式化输出今日概况。', out: '杭州 今日 39℃', vars: { city: '杭州', temp: '39' } },
+    { line: 10, desc: '判断预警列表里是否包含「高温」。', vars: { alerts: "['高温', '紫外线']" } },
+    { line: 11, desc: '条件成立，打印高温预警——目标字段成功提取！', out: '触发高温预警！' },
+  ]}
+/>
+
+## 思政会客厅
+
+<DimCard dim="职业伦理" title="调用别人的接口，先守别人的规矩">
+  <ul>
+    <li>开放接口不是「免费自助餐」：多数平台要求先注册申请 API Key、标注数据来源，并限制调用频次（QPS 与每日上限）。守约调用，是数据工程师的职业底线。</li>
+    <li>高德开放平台、和风天气等真实服务都设有配额，恶意高频请求会触发风控限流甚至封禁——尊重规则，也是尊重对方的服务器与其他使用者。</li>
+    <li>《数据安全法》第三十二条要求：收集数据应采取合法、正当的方式。按约定用接口，就是「合法正当」最日常的体现。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="开源共享" title="站在开放能力的肩膀上">
+  <ul>
+    <li>气象、地图、翻译这些能力被封装成开放 API 共享出来，小团队也能几行代码就用上——这正是「共享」精神的技术形态。</li>
+    <li>享受开放资源的同时，也应回馈约定：注明出处、遵守协议、发现问题反馈给维护方，让这份共享生态可持续。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="🔑" tone="blue" title="契约精神藏在 API Key 里">
+一把 Key、一个配额、一份服务协议，构成了 API 世界的「契约」。写脚本前先读文档、算清调用量、做好本地缓存降频——这不是束缚，而是把「用好开放接口」变成一种专业素养。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p22-d1"
+  question="有人写脚本每秒请求上百次某个免费天气接口来「压测」，很快 IP 就被封了。你怎么看这件事的对错与边界？"
+  hints={['免费额度是服务方的善意，不是无限资源，高频请求会挤占他人服务、抬高服务器成本', '合规做法是申请更高配额、加本地缓存、主动降频，而不是绕过限制', '契约精神：能力开放的前提，是使用者自觉守约']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="用 Python 把一段 JSON 字符串变成字典，应该用下面哪个函数？"
+  options={['json.dumps()', 'json.loads()', 'json.read()', 'json.parse()']}
+  answer={1}
+  explain="loads 意为 load string，把 JSON 文本解析成 Python 对象；dumps 是反过来把对象序列化成字符串；json.parse() 是 JavaScript 的写法，Python 里没有。"
+/>
+
+<QuizItem
+  client:visible
+  question="调用一个每天限 1000 次的免费天气接口，更专业负责的做法是？"
+  options={['写死循环尽量多抓，抓满为止', '对结果做本地缓存、按需请求，尊重配额', '不停更换 IP 绕过限流', '把 Key 公开分享给全班一起刷量']}
+  answer={1}
+  explain="遵守调用配额、做缓存与降频，是对服务方规则和服务器资源的尊重，这就是 API 世界的契约精神；绕过限流、共享 Key 刷量都可能违反服务条款。"
+/>

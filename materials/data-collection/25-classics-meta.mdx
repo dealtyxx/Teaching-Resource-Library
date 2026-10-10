@@ -1,0 +1,121 @@
+---
+module: 6
+moduleName: 信息标记与提取方法
+order: 25
+title: 中华典籍元数据标记整合系统
+level: 综合挑战
+scene: 文化数字化
+knowledge: [多格式整合, 元数据规范, 中文编码兼容]
+stars: 4
+minutes: 60
+goal: 构建典籍数据标记系统
+sizheng: 树立技术赋能文化传承的自信
+dims: [文化自信, 创新思维]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+import FormatTrioLab from '../../components/react/labs/FormatTrioLab';
+
+## 场景导入
+
+想象你在做一个「中华典籍数字馆」：《论语》的元数据来自甲机构的 JSON 接口，《诗经》来自乙系统导出的 XML，《史记》又躺在一份 YAML 配置里。三家来源、三种格式、字段名还各不相同（有的叫 name，有的叫 title）。要把它们并进同一份可检索的清单，就得先把「乱」收拾成「序」——这正是数据工程里最常见也最有价值的一步：多源异构整合。这一节，我们让千年典籍在代码里「对齐」。
+
+## 玩一玩
+
+先回顾三种格式各自的模样——同一条典籍元数据，JSON、XML、YAML 各有各的写法与体积。切换看看，为后面的「统一」建立手感：
+
+<FormatTrioLab client:visible />
+
+## 动手实验
+
+整合三步走：**先各自解析**（`json.loads` / `ET.fromstring` / `yaml.safe_load`），**再统一映射**到同一套 schema（`title` / `dynasty` / `category`），**最后合并输出**。字段名不同不要紧，`normalize` 函数就是那把「对齐尺」。全程 `ensure_ascii=False`，让中文清清爽爽：
+
+<PyPlayground
+  client:visible
+  title="多源典籍元数据整合系统"
+  note="试着再加一条来自 JSON 的《周易》元数据，塞进 records，看看统一清单是否自动多出一行。"
+  packages={['pyyaml']}
+  code={`import json, yaml
+import xml.etree.ElementTree as ET
+
+# 三条典籍元数据，来自三种不同「数据源」（现实里可能来自不同机构、不同系统）
+src_json = '{"name": "论语", "era": "先秦", "type": "儒家经典"}'
+src_xml = '<book><name>诗经</name><era>先秦</era><type>诗歌总集</type></book>'
+src_yaml = "name: 史记\\nera: 西汉\\ntype: 纪传体史书"
+
+# 难点：三源「意思相同、写法不同」，目标是统一成同一套 schema
+def normalize(name, era, type_):
+    return {"title": name, "dynasty": era, "category": type_}
+
+records = []
+# 来源①：JSON 字符串
+d = json.loads(src_json)
+records.append(normalize(d["name"], d["era"], d["type"]))
+# 来源②：XML 文档树
+r = ET.fromstring(src_xml)
+records.append(normalize(r.find("name").text, r.find("era").text, r.find("type").text))
+# 来源③：YAML 文本
+y = yaml.safe_load(src_yaml)
+records.append(normalize(y["name"], y["era"], y["type"]))
+
+# 合并输出——一份规范化的典籍清单
+print("中华典籍元数据整合清单")
+print("=" * 36)
+for i, rec in enumerate(records, 1):
+    print(f"{i}. 《{rec['title']}》｜{rec['dynasty']}｜{rec['category']}")
+
+# 导出统一存档 JSON（ensure_ascii=False 保证中文可读）
+print("——统一存档（JSON）——")
+print(json.dumps(records, ensure_ascii=False, indent=2))`}
+/>
+
+## 思政会客厅
+
+<DimCard dim="文化自信" title="让古籍在数字时代活起来">
+  <ul>
+    <li>给典籍做标准化、结构化的元数据标记，它们才能被检索、被链接、被计算——技术不是消解传统，而是让千年文脉「传得更广、留得更久」。</li>
+    <li>国家图书馆「中华古籍资源库」已在线发布海量古籍数字影像，免费面向公众开放阅览。这份从容与底气，来自技术，更来自文化本身。</li>
+    <li>当《论语》《诗经》《史记》能一键检索、彼此关联，我们守护的不只是数据，更是一个民族的记忆与自信。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="创新思维" title="多源异构整合是真本事">
+  <ul>
+    <li>不同机构、不同格式、不同字段名，能统一到一套 schema 再合并使用——「先解析、再映射、后合并」的思路，是数据工程的核心能力。</li>
+    <li>抽象出一个 `normalize` 对齐函数，就把「格式差异」挡在了门外：以后再来第四、第五种来源，也只需接一个解析入口。这就是可扩展的设计。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="📜" tone="gold" title="技术让典籍触手可及">
+从国家图书馆「中华古籍资源库」，到北京大学与字节跳动合作的「识典古籍」平台，OCR、元数据标记、知识图谱等技术正让古籍从「深藏库房」走向「人人可读」。信息标记看似朴素，却是文化数字化的第一块基石。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p25-d1"
+  question="有人说「古籍就该躺在库房里慢慢老去，数字化是对传统的打扰」。你同意吗？技术在文化传承里到底该扮演什么角色？"
+  hints={['数字化让脆弱的古籍免于反复翻阅的损耗，也让偏远地区、普通人都能读到善本', '技术是工具，关键看怎么用：数字化与实体保护可以并行不悖', '活态传承需要被看见、被使用、被再创造，束之高阁反而容易被遗忘']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="要把来自 JSON、XML、YAML、且字段名各不相同的数据合并使用，最关键的一步是？"
+  options={['把它们统统转成图片保存', '统一映射到同一套 schema（字段规范）后再合并', '只保留 JSON，丢掉另外两种来源', '按文件大小从小到大排序']}
+  answer={1}
+  explain="多源异构整合的核心是「统一 schema」：先各自解析，再把不同字段名映射到同一套规范字段（如 title/dynasty/category），才能合并成一致的清单。"
+/>
+
+<QuizItem
+  client:visible
+  question="用信息标记技术给中华典籍做元数据整合，最恰当的意义是？"
+  options={['把古籍内容删繁就简、变得简单', '让典籍可检索、可链接、可传播，助力文化活态传承', '证明古籍已经没有保存价值', '用数字版彻底取代纸质古籍收藏']}
+  answer={1}
+  explain="结构化标记让典籍能被检索、被计算、被更多人可及，是技术赋能文化传承的体现；数字化与实体保护并行，让千年典籍「活起来、传下去」。"
+/>

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>活动安排 · 第8章 贪心法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">08</div>算法可视化 · <span>第8章 贪心法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill active" href="02-activity.html">活动安排</a><a class="pill" href="03-merge.html">区间合并</a><a class="pill" href="04-rooms.html">会议室</a><a class="pill" href="05-fractional.html">分数背包</a><a class="pill" href="06-tianji.html">田忌赛马</a><a class="pill" href="07-coin.html">零钱兑换</a><a class="pill" href="08-huffman.html">哈夫曼</a><a class="pill" href="09-matroid.html">拟阵</a><a class="pill" href="10-schedule.html">任务调度</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 2 · 经典</div>
+  <h1>活动安排 · 最早结束优先</h1>
+  <p>时间轴上选尽量多的不重叠活动。正确策略 vs 错误策略（最短时长）一键对比。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够用<b>形式化语言</b>写出活动安排问题的输入、约束与目标函数。</li>
+  <li>能够<b>完整书写</b>「存在一个最优解包含结束最早的活动」的交换论证证明，并接上归纳完成定理。</li>
+  <li>能够<b>手工模拟</b>本页 11 个活动的贪心过程，得到答案 4 并写出所选活动编号。</li>
+  <li>能够为「最短时长优先」「最早开始优先」两种错误策略<b>各举一个反例</b>。</li>
+  <li>能够<b>写出</b> C++ 实现并说明为何只需与「最后一个已选活动」比较即可。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="runOk">✅ 正确策略</button>
+    <button class="btn danger" id="runBad">❌ 最短时长（错误）</button>
+    <button class="btn ghost" id="reset">重置</button>
+    <div class="speed" id="spd"><button data-ms="600">慢</button><button data-ms="350" class="on">中</button><button data-ms="150">快</button></div>
+  </div>
+  <div class="stage-wrap light" style="height:340px">
+    <canvas class="stage" id="cv" width="1000" height="340"></canvas>
+    <div class="stage-hud"><span class="hud-pill light" id="hud">activity</span><span class="hud-pill light" id="hud2">—</span></div>
+  </div>
+  <div class="legend">
+    <span><i style="background:#6FB48B"></i>选中</span>
+    <span><i style="background:#E39A7C"></i>考察中</span>
+    <span><i style="background:#D2705F"></i>冲突跳过</span>
+    <span><i style="background:#D5CFC1"></i>未处理</span>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>已选数量</span><b class="green" id="cnt">0</b></div>
+    <div class="stat"><span>当前结束线</span><b class="blue" id="endL">—</b></div>
+  </div>
+  <div class="tip" id="tip">正确策略：按结束时间排序，能放就放。</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>问题描述与实验数据</h2><span class="sub">Activity Selection Problem · 可离线复算</span></div>
+<div class="defn"><span class="lbl">定义</span><p>给定 n 个活动的集合 S = {a<sub>1</sub>, a<sub>2</sub>, …, a<sub>n</sub>}，活动 a<sub>i</sub> 占用<b>半开区间</b> [s<sub>i</sub>, f<sub>i</sub>)，s<sub>i</sub> 为开始时间、f<sub>i</sub> 为结束时间。所有活动竞争<b>同一个</b>资源（同一间教室），若 s<sub>i</sub> ≥ f<sub>j</sub> 或 s<sub>j</sub> ≥ f<sub>i</sub>，称 a<sub>i</sub> 与 a<sub>j</sub> <b>相容</b>（compatible）。求一个<b>元素两两相容</b>且<b>元素个数最多</b>的子集。</p></div>
+<div class="formula">max |A|　　s.t.　A ⊆ S，且 &#8704; a<sub>i</sub>, a<sub>j</sub> ∈ A (i ≠ j)：[s<sub>i</sub>, f<sub>i</sub>) ∩ [s<sub>j</sub>, f<sub>j</sub>) = ∅</div>
+<div class="tip info"><strong>注意：</strong>目标是活动<b>数量</b>最多，<b>不是</b>占用时间最长、也不是收益最大。若每个活动带权值并求权值和最大，则贪心失效，必须用动态规划（带权活动选择问题）。</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>活动</th><th>A1</th><th>A2</th><th>A3</th><th>A4</th><th>A5</th><th>A6</th><th>A7</th><th>A8</th><th>A9</th><th>A10</th><th>A11</th></tr>
+  <tr><th>开始 s<sub>i</sub></th><td>1</td><td>3</td><td>0</td><td>5</td><td>3</td><td>5</td><td>6</td><td>8</td><td>8</td><td>2</td><td>12</td></tr>
+  <tr><th>结束 f<sub>i</sub></th><td class="hl">4</td><td>5</td><td>6</td><td class="hl">7</td><td>9</td><td>9</td><td>10</td><td class="hl">11</td><td>12</td><td>14</td><td class="hl">16</td></tr>
+  <tr><th>时长</th><td>3</td><td>2</td><td>6</td><td>2</td><td>6</td><td>4</td><td>4</td><td>3</td><td>4</td><td>12</td><td>4</td></tr>
+</table></div>
+<div class="tip info"><strong>数据已按结束时间升序给出</strong>（f<sub>1</sub> ≤ f<sub>2</sub> ≤ … ≤ f<sub>11</sub>），可直接进入扫描阶段。高亮列为贪心最终选中的活动。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>贪心策略的正式表述</h2><span class="sub">最早结束时间优先 · Earliest Finish Time First</span></div>
+<div class="defn prop"><span class="lbl">贪心准则</span><p>将所有活动按<b>结束时间 f<sub>i</sub> 升序</b>排序；依次考察，若当前活动的开始时间 <b>不早于</b> 已选活动集合中最晚的结束时间，则选入，并更新该结束时间；否则跳过。</p></div>
+<div class="defn prop"><span class="lbl">直觉</span><p>结束得越早，留给后续活动的<b>剩余可用时间越长</b>。既然每个活动的"贡献"都是 1，就应当用尽可能小的时间代价换取这个 1——把资源尽早腾出来。</p></div>
+<div class="deriv">
+<span class="step">手工模拟（last 表示已选活动的最晚结束时间，初值 0）：</span>
+<span class="step">&nbsp;A1 [1,4)：1 ≥ 0 &#10004; 选入，last = 4 <span class="why">已选 1 个</span></span>
+<span class="step">&nbsp;A2 [3,5)：3 &lt; 4 &#10008; 跳过</span>
+<span class="step">&nbsp;A3 [0,6)：0 &lt; 4 &#10008; 跳过</span>
+<span class="step">&nbsp;A4 [5,7)：5 ≥ 4 &#10004; 选入，last = 7 <span class="why">已选 2 个</span></span>
+<span class="step">&nbsp;A5 [3,9)：3 &lt; 7 &#10008; 跳过</span>
+<span class="step">&nbsp;A6 [5,9)：5 &lt; 7 &#10008; 跳过</span>
+<span class="step">&nbsp;A7 [6,10)：6 &lt; 7 &#10008; 跳过</span>
+<span class="step">&nbsp;A8 [8,11)：8 ≥ 7 &#10004; 选入，last = 11 <span class="why">已选 3 个</span></span>
+<span class="step">&nbsp;A9 [8,12)：8 &lt; 11 &#10008; 跳过</span>
+<span class="step">&nbsp;A10 [2,14)：2 &lt; 11 &#10008; 跳过</span>
+<span class="step">&nbsp;A11 [12,16)：12 ≥ 11 &#10004; 选入，last = 16 <span class="why">已选 4 个</span></span>
+<span class="step"><b>结果：{A1, A4, A8, A11}，共 4 个活动</b></span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>正确性论证 · 交换论证</h2><span class="sub">本章的样板证明，请逐字掌握</span></div>
+
+<div class="defn thm"><span class="lbl">引理（贪心选择性质）</span><p>设活动已按结束时间升序排列，f<sub>1</sub> ≤ f<sub>2</sub> ≤ … ≤ f<sub>n</sub>。则<b>存在</b>一个最大相容子集包含结束最早的活动 a<sub>1</sub>。</p></div>
+<div class="deriv">
+<span class="step"><b>证明（交换论证）</b></span>
+<span class="step">设 O = {o<sub>1</sub>, o<sub>2</sub>, …, o<sub>m</sub>} 为<b>任意一个</b>最优解，其中元素已按结束时间升序编号，|O| = m <span class="why">取对象</span></span>
+<span class="step">情形一：若 o<sub>1</sub> = a<sub>1</sub>，则 O 本身即为所求，命题成立</span>
+<span class="step">情形二：若 o<sub>1</sub> ≠ a<sub>1</sub>，构造 O&#39; = (O &#8722; {o<sub>1</sub>}) ∪ {a<sub>1</sub>} <span class="why">第一处分歧，做交换</span></span>
+<span class="step">&nbsp;</span>
+<span class="step"><b>【验可行性】</b>a<sub>1</sub> 是全体活动中结束最早的 &#8658; f(a<sub>1</sub>) ≤ f(o<sub>1</sub>)</span>
+<span class="step">&nbsp;&nbsp;O 相容 &#8658; 对每个 k ≥ 2 有 s(o<sub>k</sub>) ≥ f(o<sub>1</sub>)</span>
+<span class="step">&nbsp;&nbsp;两式串联：s(o<sub>k</sub>) ≥ f(o<sub>1</sub>) ≥ f(a<sub>1</sub>)，即 a<sub>1</sub> 与每个 o<sub>k</sub>(k ≥ 2) 均不相交</span>
+<span class="step">&nbsp;&nbsp;&#8658; O&#39; 是相容集合 &#10004; <span class="why">可行性成立</span></span>
+<span class="step">&nbsp;</span>
+<span class="step"><b>【验不劣性】</b>交换是「删一个、加一个」&#8658; |O&#39;| = m &#8722; 1 + 1 = m = |O| &#10004; <span class="why">数量不减</span></span>
+<span class="step">&nbsp;</span>
+<span class="step">&#8658; O&#39; 与 O 规模相同且可行 &#8658; O&#39; 也是最优解，且 O&#39; 含 a<sub>1</sub></span>
+<span class="step">&#8756; 存在一个包含 a<sub>1</sub> 的最优解 &#8718;</span>
+</div>
+
+<div class="defn thm"><span class="lbl">定理（最优子结构 + 归纳）</span><p>最早结束时间优先的贪心算法输出的解是最优解。</p></div>
+<div class="deriv">
+<span class="step"><b>证明（对活动数 n 作数学归纳）</b></span>
+<span class="step"><b>基础</b>：n = 0 时空集为唯一解，贪心平凡地最优；n = 1 时贪心选中该活动，显然最优</span>
+<span class="step"><b>归纳假设</b>：设活动数少于 n 时贪心均最优</span>
+<span class="step"><b>归纳步骤</b>：对 n 个活动的集合 S</span>
+<span class="step">&nbsp;由引理，存在最优解 O&#39; 含 a<sub>1</sub>（结束最早者）</span>
+<span class="step">&nbsp;令 S&#39; = { a ∈ S : s(a) ≥ f(a<sub>1</sub>) }，即选定 a<sub>1</sub> 后仍可用的活动 <span class="why">子问题</span></span>
+<span class="step">&nbsp;<b>断言</b>：O&#39; &#8722; {a<sub>1</sub>} 是 S&#39; 的最优解 <span class="why">最优子结构</span></span>
+<span class="step">&nbsp;&nbsp;反设 S&#39; 存在相容子集 Q 满足 |Q| &gt; |O&#39; &#8722; {a<sub>1</sub>}|</span>
+<span class="step">&nbsp;&nbsp;则 Q ∪ {a<sub>1</sub>} 相容（Q 中活动均在 f(a<sub>1</sub>) 之后开始）且 |Q ∪ {a<sub>1</sub>}| &gt; |O&#39;|</span>
+<span class="step">&nbsp;&nbsp;与 O&#39; 最优矛盾 &#8658; 断言成立</span>
+<span class="step">&nbsp;|S&#39;| &lt; n（至少 a<sub>1</sub> 被排除），由归纳假设，贪心在 S&#39; 上得到最优解</span>
+<span class="step">&nbsp;贪心在 S 上的输出恰为 {a<sub>1</sub>} ∪ 贪心(S&#39;)，规模等于 1 + |O&#39; &#8722; {a<sub>1</sub>}| = |O&#39;|</span>
+<span class="step">&#8756; 贪心解与最优解等势，贪心最优 &#8718;</span>
+</div>
+
+<div class="defn thm"><span class="lbl">另证（贪心保持领先）</span><p>设贪心依次选出 g<sub>1</sub>, …, g<sub>k</sub>，任一相容解依次为 o<sub>1</sub>, …, o<sub>m</sub>（均按结束时间升序）。用归纳可证：对每个 j ≤ min(k, m) 都有 <b>f(g<sub>j</sub>) ≤ f(o<sub>j</sub>)</b>——贪心第 j 个活动结束得<b>不晚于</b>任何方案的第 j 个。若反设 m &gt; k，则 o<sub>k+1</sub> 满足 s(o<sub>k+1</sub>) ≥ f(o<sub>k</sub>) ≥ f(g<sub>k</sub>)，说明贪心在选完 g<sub>k</sub> 后仍有可选活动，与贪心已停止矛盾。故 k ≥ m，贪心最优 ∎</p></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>两种错误策略及其反例</h2><span class="sub">看起来都很有道理——所以才必须证明</span></div>
+
+<div class="defn"><span class="lbl">错误策略 ①</span><p><b>最短时长优先</b>：优先选择持续时间 f<sub>i</sub> − s<sub>i</sub> 最短的活动。<br/>动机看似合理："占用资源少的先安排"。</p></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>活动</th><th>区间</th><th>时长</th><th>最短时长优先</th><th>最优方案</th></tr>
+  <tr><td>B1</td><td>[0, 5)</td><td>5</td><td>被 B2 阻塞</td><td class="hl">选中</td></tr>
+  <tr><td>B2</td><td>[4, 6)</td><td class="hl">2</td><td>第 1 个选中</td><td>不选</td></tr>
+  <tr><td>B3</td><td>[5, 10)</td><td>5</td><td>被 B2 阻塞</td><td class="hl">选中</td></tr>
+  <tr><th>合计</th><td>——</td><td>——</td><td><b>1 个</b></td><td><b>2 个</b></td></tr>
+</table></div>
+<div class="tip warn"><strong>失败原因：</strong>B2 时长虽短，却<b>横跨</b>了 B1 与 B3 的交界处，一个活动同时"毒杀"了两个。时长短 ≠ 妨碍小。</div>
+
+<div class="defn"><span class="lbl">错误策略 ②</span><p><b>最早开始时间优先</b>：优先选择 s<sub>i</sub> 最小的活动。<br/>动机看似合理："先到先得，尽早开工"。</p></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>活动</th><th>区间</th><th>最早开始优先</th><th>最优方案</th></tr>
+  <tr><td>C1</td><td>[0, 20)</td><td class="hl">第 1 个选中</td><td>不选</td></tr>
+  <tr><td>C2</td><td>[1, 3)</td><td>被阻塞</td><td class="hl">选中</td></tr>
+  <tr><td>C3</td><td>[4, 6)</td><td>被阻塞</td><td class="hl">选中</td></tr>
+  <tr><td>C4</td><td>[7, 9)</td><td>被阻塞</td><td class="hl">选中</td></tr>
+  <tr><th>合计</th><td>——</td><td><b>1 个</b></td><td><b>3 个</b></td></tr>
+</table></div>
+<div class="tip warn"><strong>失败原因：</strong>C1 开始最早，但它<b>独占</b>了几乎整条时间轴。开始早 ≠ 结束早。</div>
+
+<div class="defn"><span class="lbl">在本页 11 个活动上</span><p>「最早开始优先」同样会翻车：按 s 升序考察 A3[0,6) → 选中（last=6）；A1、A10、A2、A5、A4、A6 均冲突；A7[6,10) → 选中（last=10）；A8、A9 冲突；A11[12,16) → 选中。最终只得 <b>{A3, A7, A11} 共 3 个</b>，少于正确策略的 4 个。可在上方演示中对照观察。</p></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>策略</th><th>贪心准则</th><th>是否最优</th><th>反例</th></tr>
+  <tr><td>最早结束优先</td><td>f<sub>i</sub> 升序</td><td class="hl">是（可证明）</td><td>无</td></tr>
+  <tr><td>最短时长优先</td><td>f<sub>i</sub> − s<sub>i</sub> 升序</td><td>否</td><td>[0,5) [4,6) [5,10) → 1 vs 2</td></tr>
+  <tr><td>最早开始优先</td><td>s<sub>i</sub> 升序</td><td>否</td><td>[0,20) [1,3) [4,6) [7,9) → 1 vs 3</td></tr>
+  <tr><td>冲突数最少优先</td><td>与其他活动相交数升序</td><td>否</td><td>存在反例，且需 O(n<sup>2</sup>) 预处理</td></tr>
+</table></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>C++ 实现与复杂度</h2><span class="sub">排序 + 一遍扫描</span></div>
+<div class="code"><span class="cm">// 活动安排问题 · 最早结束时间优先</span>
+<span class="cm">// 输入：n 个活动的 [s, f)；输出：最大相容活动数，pick 记录所选下标</span>
+<span class="kw">struct</span> Act { <span class="kw">int</span> s, f, id; };
+
+<span class="kw">int</span> <span class="fn">activitySelect</span>(vector&lt;Act&gt; &amp;a, vector&lt;<span class="kw">int</span>&gt; &amp;pick) {
+    <span class="kw">int</span> n = a.<span class="fn">size</span>();
+    <span class="fn">sort</span>(a.<span class="fn">begin</span>(), a.<span class="fn">end</span>(), [](<span class="kw">const</span> Act &amp;x, <span class="kw">const</span> Act &amp;y) {
+        <span class="kw">return</span> x.f &lt; y.f;          <span class="cm">// ① 按结束时间升序 —— O(n log n)</span>
+    });
+
+    <span class="kw">int</span> cnt = 0;
+    <span class="kw">int</span> last = INT_MIN;             <span class="cm">// last = 已选活动中最晚的结束时间</span>
+
+    <span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt; n; ++i) {   <span class="cm">// ② 一遍扫描 —— O(n)</span>
+        <span class="kw">if</span> (a[i].s &gt;= last) {       <span class="cm">// 与已选全部相容（理由见下方说明）</span>
+            pick.<span class="fn">push_back</span>(a[i].id);
+            last = a[i].f;
+            ++cnt;
+        }
+    }
+    <span class="kw">return</span> cnt;
+}</div>
+
+<div class="tip info"><strong>为什么只比较 last 就够？</strong>已选活动是按结束时间<b>递增</b>加入的，因此 last 就是它们当中<b>最大</b>的结束时间。只要 s<sub>i</sub> ≥ last，就自动 ≥ 所有已选活动的结束时间，与它们<b>全部</b>相容。这一步把每次 O(k) 的相容性检查降为 O(1)，是扫描阶段能做到 O(n) 的关键。</div>
+
+<div class="code"><span class="cm">// 递归写法（教材常见形式）：在 [i+1, n) 中找第一个与 a[i] 相容的活动</span>
+<span class="kw">void</span> <span class="fn">recSelect</span>(vector&lt;Act&gt; &amp;a, <span class="kw">int</span> i, <span class="kw">int</span> last, vector&lt;<span class="kw">int</span>&gt; &amp;pick) {
+    <span class="kw">int</span> n = a.<span class="fn">size</span>();
+    <span class="kw">while</span> (i &lt; n &amp;&amp; a[i].s &lt; last) ++i;   <span class="cm">// 跳过冲突的</span>
+    <span class="kw">if</span> (i &gt;= n) <span class="kw">return</span>;
+    pick.<span class="fn">push_back</span>(a[i].id);
+    <span class="fn">recSelect</span>(a, i + 1, a[i].f, pick);    <span class="cm">// 尾递归，等价于上面的循环</span>
+}</div>
+
+<div class="formula">T(n) = O(n log n)<span>（排序）</span> + O(n)<span>（扫描）</span> = <b>O(n log n)</b></div>
+<div class="table-scroll"><table class="data">
+  <tr><th>阶段</th><th>操作</th><th>时间</th><th>空间</th></tr>
+  <tr><td>① 排序</td><td>按 f<sub>i</sub> 升序</td><td class="hl">O(n log n)</td><td>O(log n) 递归栈</td></tr>
+  <tr><td>② 扫描</td><td>每个活动看且仅看一次</td><td>O(n)</td><td>O(1)</td></tr>
+  <tr><td>合计</td><td>——</td><td class="hl">O(n log n)</td><td>O(n) 存结果</td></tr>
+  <tr><td>特例</td><td>输入已按 f<sub>i</sub> 有序</td><td>O(n)</td><td>O(1)</td></tr>
+</table></div>
+<div class="terms">
+  <span class="term"><b>活动安排问题</b>activity selection problem</span>
+  <span class="term"><b>相容</b>compatible</span>
+  <span class="term"><b>最早结束优先</b>earliest finish time first</span>
+  <span class="term"><b>交换论证</b>exchange argument</span>
+  <span class="term"><b>贪心保持领先</b>greedy stays ahead</span>
+</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>按开始时间排序。</b>最常见的错误，反例 [0,20) [1,3) [4,6) [7,9) 只能选 1 个而非 3 个。</li>
+  <li><b>按时长排序。</b>反例 [0,5) [4,6) [5,10) 只能选 1 个而非 2 个。</li>
+  <li><b>把「相邻端点」当作冲突。</b>区间是半开的 [s, f)，s<sub>i</sub> = f<sub>j</sub> 时两活动<b>相容</b>，判断条件是 <code>s &gt;= last</code> 而不是 <code>s &gt; last</code>。本页 A4[5,7) 紧接 A1[1,4) 之后能否选中，取决于 A4 的 5 ≥ 4，写成严格大于会漏解。</li>
+  <li><b>把 last 初始化为 0。</b>若存在负数时间或时间从 0 之前开始，会漏掉首个活动；用 INT_MIN 更稳。</li>
+  <li><b>误以为该策略也能解「带权活动选择」。</b>一旦每个活动带不同权值、目标改为权值和最大，贪心立刻失效（取一个高权长活动可能优于取多个低权短活动），必须改用动态规划。</li>
+  <li><b>排序后忘记记录原始下标</b>，导致无法回答"选了哪几个活动"。代码中的 <code>id</code> 字段就是为此。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>活动安排问题：在<b>同一资源</b>上选出<b>数量最多</b>的两两相容活动。</li>
+  <li>正确贪心准则是<b>最早结束时间优先</b>；直觉是"尽早腾出资源"，但直觉不能代替证明。</li>
+  <li><b>引理</b>（交换论证）：存在一个最优解包含结束最早的活动 a<sub>1</sub>——把最优解的首个活动换成 a<sub>1</sub>，靠 f(a<sub>1</sub>) ≤ f(o<sub>1</sub>) 保证可行，靠"删一加一"保证数量不减。</li>
+  <li><b>定理</b>：引理 + 最优子结构 + 对 n 归纳 ⇒ 贪心最优。也可用"贪心保持领先"f(g<sub>j</sub>) ≤ f(o<sub>j</sub>) 另证。</li>
+  <li>本页 11 个活动的答案是 <b>{A1, A4, A8, A11}，共 4 个</b>；最早开始优先只能得 3 个。</li>
+  <li>复杂度 <b>O(n log n)</b>，排序主导；扫描阶段因"只需比较 last"而降为 O(n)。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>对本页数据 A1[1,4) A2[3,5) A3[0,6) A4[5,7) A5[3,9) A6[5,9) A7[6,10) A8[8,11) A9[8,12) A10[2,14) A11[12,16)，最早结束时间优先选出的活动集合是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>{A1, A4, A8, A11}，共 4 个</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>{A3, A7, A11}，共 3 个</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>{A1, A2, A4, A8, A11}，共 5 个</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>{A1, A4, A7, A11}，共 4 个</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>正确过程见正文手工模拟：选 A1(last=4) → 选 A4(last=7) → 选 A8(last=11) → 选 A11，共 4 个，故选 A。<br/>B 是<b>最早开始优先</b>这一错误策略的结果，数量少 1，正好用来对照。<br/>C 不合法：A1 是 [1,4)、A2 是 [3,5)，在 [3,4) 上重叠，二者<b>不相容</b>，不可能同时入选——凑数目最多的答案往往就是陷阱。<br/>D 不合法：A4 是 [5,7)、A7 是 [6,10)，在 [6,7) 上重叠。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>要说明「最早开始时间优先」策略错误，下列哪组数据构成<b>有效反例</b>？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>[0,1) [1,2) [2,3)</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>[0,20) [1,3) [4,6) [7,9)</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>[0,5) [5,10)</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>该策略其实是正确的，不存在反例</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>B 中开始最早的 [0,20) 独占几乎整条时间轴，按该策略只能选出 <b>1 个</b>，而最优方案 {[1,3), [4,6), [7,9)} 有 <b>3 个</b>，差距明显，是有效反例。<br/>A、C 的所有活动本就<b>两两不相交</b>，任何策略都会把它们全部选中，结果一致，<b>无法暴露</b>策略优劣——这是构造反例时最常见的失误：反例必须制造真实的"冲突竞争"。<br/>D 错，B 已经推翻它。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>在证明「存在一个最优解包含结束最早的活动 a<sub>1</sub>」时，把最优解 O 的首个活动 o<sub>1</sub> 替换为 a<sub>1</sub> 后，保证 O&#39; <b>仍然可行</b>所依赖的关键不等式是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>s(a<sub>1</sub>) ≤ s(o<sub>1</sub>)</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>f(a<sub>1</sub>) ≤ f(o<sub>1</sub>)</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>f(a<sub>1</sub>) − s(a<sub>1</sub>) ≤ f(o<sub>1</sub>) − s(o<sub>1</sub>)</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>|O&#39;| = |O|</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>a<sub>1</sub> 按定义是全体活动中<b>结束最早</b>的，故 f(a<sub>1</sub>) ≤ f(o<sub>1</sub>)；再由 O 相容知每个 o<sub>k</sub>(k ≥ 2) 满足 s(o<sub>k</sub>) ≥ f(o<sub>1</sub>) ≥ f(a<sub>1</sub>)，于是 a<sub>1</sub> 与它们全都不冲突，可行性成立，选 B。<br/>A 不成立也不需要：a<sub>1</sub> 结束最早，但它的<b>开始</b>时间完全可能晚于 o<sub>1</sub>（例如 o<sub>1</sub>=[0,6)、a<sub>1</sub>=[1,4)）。<br/>C 说的是<b>时长</b>，与相容性毫无关系——恰恰是"最短时长优先"这个错误策略的着眼点。<br/>D 是交换后关于<b>不劣性</b>的结论，属于证明的另一半，不是保证可行性的依据。</div>
+</div>
+</div>
+
+<div class="page-nav"><a href="01-overview.html"><span class="dir">← 上一节</span><span class="name">概述</span></a><a href="03-merge.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">区间合并</span></a></div>
+<div class="footer">算法设计与分析 · <b>第8章 贪心法</b> · 强交互可视化版<br/>时间轴 · 扫描线 · 树生长 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:30},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.12-Math.random()*.28, a:.12+Math.random()*.3}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(59,122,87,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const A=[[1,4],[3,5],[0,6],[5,7],[3,9],[5,9],[6,10],[8,11],[8,12],[2,14],[12,16]];
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let ms=350;
+spd.querySelectorAll('button').forEach(b=>b.onclick=()=>{spd.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');ms=+b.dataset.ms;});
+function draw(hl=-1, sel=[], bad=[]){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const pad=50, W=cv.width, H=cv.height;
+  const x=t=>pad+t/16*(W-2*pad);
+  ctx.strokeStyle='#D5CFC1'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(pad,H-36); ctx.lineTo(W-pad,H-36); ctx.stroke();
+  for(let t=0;t<=16;t+=2){
+    ctx.fillStyle='#7A746A'; ctx.font='12px ui-monospace'; ctx.fillText(t, x(t)-4, H-16);
+    ctx.strokeStyle='rgba(162,156,144,.15)'; ctx.beginPath(); ctx.moveTo(x(t),20); ctx.lineTo(x(t),H-40); ctx.stroke();
+  }
+  A.forEach((a,i)=>{
+    const y=22+i*24;
+    let col='#D5CFC1';
+    if(sel.includes(i)) col='#4D9268';
+    else if(bad.includes(i)) col='#D2705F';
+    else if(i===hl) col='#D97757';
+    const g=ctx.createLinearGradient(x(a[0]),0,x(a[1]),0);
+    g.addColorStop(0,col); g.addColorStop(1,col+'cc');
+    ctx.fillStyle=g;
+    const bw=Math.max(6,x(a[1])-x(a[0]));
+    roundRect(ctx,x(a[0]),y,bw,16,5); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='left';
+    ctx.fillText('A'+(i+1), x(a[0])+4, y+12);
+  });
+}
+function roundRect(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+async function run(orderFn, label){
+  const idx=[...A.keys()].sort(orderFn);
+  const chosen=[], skipped=[]; let end=-1;
+  hud.textContent=label;
+  for(const i of idx){
+    draw(i, chosen, skipped);
+    hud2.textContent=`考察 A${i+1} [${A[i]}]`;
+    cnt.textContent=chosen.length; endL.textContent=end<0?'—':end;
+    await sleep(ms);
+    if(A[i][0]>=end){
+      chosen.push(i); end=A[i][1];
+      tip.className='tip ok'; tip.innerHTML=`✅ 选择 <strong>A${i+1}</strong> · 结束线 → ${end}`;
+    } else {
+      skipped.push(i);
+      tip.className='tip danger'; tip.textContent=`跳过 A${i+1}（与已选冲突）`;
+    }
+    draw(-1, chosen, skipped);
+    cnt.textContent=chosen.length; endL.textContent=end;
+    await sleep(ms*0.55);
+  }
+  tip.className='tip ok';
+  tip.innerHTML=`<strong>${label}</strong> 完成 · 选中 ${chosen.length} 个：`+chosen.map(i=>'A'+(i+1)).join(' ');
+  return chosen.length;
+}
+runOk.onclick=()=>run((i,j)=>A[i][1]-A[j][1]||A[i][0]-A[j][0], '最早结束优先');
+runBad.onclick=async()=>{
+  const badN=await run((i,j)=>(A[i][1]-A[i][0])-(A[j][1]-A[j][0]), '❌ 最短时长优先');
+  await sleep(500);
+  const okN=await run((i,j)=>A[i][1]-A[j][1]||A[i][0]-A[j][0], '✅ 最早结束优先');
+  tip.innerHTML=`对比：错误策略 <strong class="red">${badN}</strong> 个 vs 正确 <strong>${okN}</strong> 个`+(badN<okN?' · 策略错就少选！':'');
+};
+reset.onclick=()=>{draw();cnt.textContent=0;endL.textContent='—';tip.className='tip';tip.textContent='已重置';hud2.textContent='—';};
+draw();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

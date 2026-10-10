@@ -1,0 +1,313 @@
+---
+chapter: 5
+chapterName: 电子邮件客户端编程
+order: 5
+title: SMTP协议与邮件安全
+subtitle: 从"邮件门"到钓鱼诈骗——加密是数字时代的信任基石
+position: 5.2 SMTP发送电子邮件实战
+knowledge: [SMTP协议, smtplib, SSL/TLS加密, SPF/DKIM/DMARC, 反垃圾邮件]
+mainDims: [社会责任, 科学精神]
+subDims: [职业伦理, 创新思维]
+minutes: 12
+quote: 不开发垃圾邮件工具、不硬编码密码、尊重用户退订权——安全意识是职业底线
+icon: "📧"
+color: "#0e7490"
+segments:
+  - { name: 导入, minutes: 2 }
+  - { name: 技术讲解, minutes: 5 }
+  - { name: 思政融入, minutes: 4 }
+  - { name: 互动, minutes: 1 }
+---
+
+import PyStepRunner from '../../components/react/PyStepRunner';
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, CaseFileCard, Callout } from '../../components/react/ui';
+import MitmMailLab from '../../components/react/labs/MitmMailLab';
+import PhishGameLab from '../../components/react/labs/PhishGameLab';
+
+## 章节定位
+
+本案例服务于第 5 章「电子邮件客户端编程」5.2 节 SMTP 发送电子邮件实战。SMTP 协议诞生于网络上只有互信科研机构的年代,协议本身既无加密也无发件人认证;在 `smtplib` 里,明文与加密只差一行代码,却是隐私「裸奔」与受保护的分水岭。学习发邮件的同时,我们把 SSL/TLS 加密、SPF/DKIM/DMARC 认证与反垃圾邮件技术,同社会责任、科学精神的养成结合起来——会发邮件只是技能,负责任地发邮件才是职业素养。
+
+## 背景导入:当一封邮件改变历史
+
+电子邮件是互联网最古老的应用之一,也是安全事故最密集的地带。先翻开三份真实档案:
+
+<CaseFileCard name="希拉里「邮件门」事件" year={2016} tag="信息安全" verdict="事件持续发酵,深刻影响2016年美国总统大选">
+时任美国国务卿希拉里被曝使用私人邮箱处理公务,其中 2800 封邮件涉及机密信息。公务与私邮的边界一旦失守,泄密风险便无从管控——一套邮件系统的安全配置,足以搅动一个大国的政治走向。
+</CaseFileCard>
+
+<CaseFileCard name="索尼影业邮件泄露事件" year={2014} tag="黑客攻击" verdict="直接与间接损失超过1亿美元">
+黑客入侵索尼影业内部网络,窃取 47000 封内部邮件,员工薪资、未上映电影剧本等机密被公开泄露。邮件服务器一旦沦陷,企业多年积累的商业机密与员工隐私将被一锅端走。
+</CaseFileCard>
+
+<CaseFileCard name="某企业财务遭钓鱼邮件诈骗" year={2020} tag="钓鱼诈骗" verdict="损失500万元人民币">
+攻击者伪造 CEO 邮箱向财务人员发出「紧急转账」指令,财务人员未经核实即执行汇款。这类攻击不破解任何密码,专攻「人」的信任与流程漏洞。
+</CaseFileCard>
+
+<Callout icon="🗑️" tone="amber" title="第四件事:垃圾邮件的汪洋">
+全球邮件流量中约 70% 是垃圾邮件——广告、诈骗、恶意链接充斥其间,既浪费网络带宽资源,也时刻威胁信息安全。你收件箱的清净,背后是反垃圾技术数十年的持续对抗。
+</Callout>
+
+这些事故背后,是五类典型的邮件安全威胁:**钓鱼邮件**(伪装成银行、电商窃取密码)、**恶意附件**(病毒、木马、勒索软件)、**邮件伪造**(伪造发件人地址)、**中间人攻击**(窃听未加密邮件)与**垃圾邮件**(骚扰、诈骗)。技术界的回应同样清晰:SPF 校验发信服务器授权以防伪造,DKIM 用数字签名保证邮件未被篡改,DMARC 在两者之上给出综合认证策略,SSL/TLS 为传输过程加密,贝叶斯分类与机器学习则负责过滤垃圾邮件。
+
+## 可视化实验
+
+中间人攻击为什么可怕?下面的动画让「窃听者」现身。分别在 25 端口(明文)与 465 端口(SSL 加密)发送同一封邮件,观察报文经过中间人时,对方各能看到什么:
+
+<MitmMailLab client:visible />
+
+加密解决的是「传输安全」,但钓鱼邮件攻击的是「人」——再强的加密也拦不住你亲手把密码交出去。来测测你的眼力:5 封邮件依次呈现,哪些是钓鱼?判断时盯住四条线索:发件人域名是否为官方域名、是否使用紧急施压话术、链接是否为裸 IP 直链、是否索要密码。
+
+<PhishGameLab client:visible />
+
+## 技术讲解
+
+`smtplib` 提供三种发送方式,安全性天差地别:
+
+| 端口 | 连接方式 | 安全性 |
+| --- | --- | --- |
+| 25 | `SMTP` 明文连接 | ⚠️ 无加密,可被窃听、篡改 |
+| 465 | `SMTP_SSL` 连接即加密 | ✅ 全程 TLS 保护(推荐) |
+| 587 | `SMTP` 连接后 `starttls()` 升级 | ✅ 升级握手后受保护 |
+
+核心代码对比如下——注意密码管理与批量发送的两处细节:
+
+```python
+import smtplib, ssl, os, time
+from email.mime.text import MIMEText
+
+sender = os.environ.get('EMAIL_SENDER')      # ⑴ 账号与密码来自环境变量
+password = os.environ.get('EMAIL_PASSWORD')  #    绝不硬编码进源代码!
+
+# ⑵ 明文发送(25端口)——⚠️ 不推荐:账号、密码、正文在链路上"裸奔"
+def send_plain(msg):
+    server = smtplib.SMTP('smtp.example.com', 25)   # 无任何加密
+    server.login(sender, password)                  # 密码明文传输!
+    server.sendmail(sender, msg['To'], msg.as_string())
+    server.quit()
+
+# ⑶ SSL加密(465端口)——✅ 推荐:连接建立即加密,全程受保护
+def send_ssl(msg):
+    context = ssl.create_default_context()
+    with smtplib.SMTP_SSL('smtp.example.com', 465, context=context) as server:
+        server.login(sender, password)
+        server.send_message(msg)
+
+# ⑷ STARTTLS(587端口)——先建普通连接,再升级为TLS加密
+def send_starttls(msg):
+    server = smtplib.SMTP('smtp.example.com', 587)
+    server.starttls()                # 升级为加密通道
+    server.login(sender, password)
+    server.send_message(msg)
+    server.quit()
+
+# ⑸ 批量发送——限频 + 个性化,不做垃圾邮件制造者
+def send_bulk(receivers):
+    context = ssl.create_default_context()
+    with smtplib.SMTP_SSL('smtp.example.com', 465, context=context) as server:
+        server.login(sender, password)
+        for receiver in receivers:
+            msg = MIMEText(f'您好,{receiver.split("@")[0]}!', 'plain', 'utf-8')
+            msg['From'], msg['To'] = sender, receiver
+            msg['Subject'] = '重要通知(含退订方式)'
+            server.send_message(msg)
+            time.sleep(2)            # 每封间隔2秒,避免被判为垃圾邮件
+```
+
+465 端口的 `SMTP_SSL` 是最稳妥的选择。真实的邮件发送涉及网络连接,课堂上先用模拟器逐行看清一次安全发送的完整过程——重点观察右侧「连接状态」的变化:
+
+<PyStepRunner
+  client:visible
+  title="SSL 加密发送全流程:一行不落地看明白"
+  fileName="send_secure.py"
+  code={`import smtplib, ssl, os
+from email.mime.text import MIMEText
+
+def send_secure_email():
+    sender = 'sender@example.com'
+    password = os.environ.get('EMAIL_PASSWORD')
+    message = MIMEText('这是一封SSL加密传输的邮件', 'plain', 'utf-8')
+    message['From'] = sender
+    message['To'] = 'receiver@example.com'
+    message['Subject'] = '安全的测试邮件'
+    context = ssl.create_default_context()
+    server = smtplib.SMTP_SSL('smtp.example.com',
+                              465, context=context)
+    server.login(sender, password)
+    server.sendmail(sender, 'receiver@example.com',
+                    message.as_string())
+    server.quit()
+    print('✅ 邮件已加密发送')
+
+send_secure_email()`}
+  steps={[
+    { line: 19, desc: '程序入口:调用 send_secure_email(),开始一次安全的邮件发送。' },
+    { line: 4, desc: '设定发件人地址。注意:源代码里只有地址,没有密码。', vars: { sender: 'sender@example.com' } },
+    { line: 5, desc: '从环境变量读取密码——绝不把密码硬编码进源代码,这是安全底线。', vars: { password: '来自环境变量(不落盘)' } },
+    { line: 6, desc: '用 MIMEText 构造邮件体:正文内容、类型 plain、编码 utf-8。', vars: { message: 'MIMEText对象' } },
+    { line: 9, desc: '依次填写 From、To、Subject 三个头部字段,一封标准邮件构造完成。', vars: { 邮件头: 'From/To/Subject就绪' } },
+    { line: 10, desc: 'ssl.create_default_context() 创建 TLS 上下文:自动加载系统根证书、启用证书校验。', vars: { TLS上下文: '已创建(含CA证书)' } },
+    { line: 12, desc: '连接服务器 465 端口:TCP 连接建立后立即进行 TLS 握手,信道从第一个字节起就是加密的。', vars: { 连接状态: 'TLS加密通道已建立', 端口: '465' } },
+    { line: 13, desc: 'login 登录认证:账号与密码经加密通道传输,中间人只能看到密文。', vars: { 认证: '通过(密文传输)' } },
+    { line: 14, desc: 'sendmail 依次执行 SMTP 命令 MAIL FROM、RCPT TO、DATA,投递邮件内容。', vars: { SMTP状态: '250 OK 已接收' } },
+    { line: 16, desc: 'quit 发送 QUIT 命令,礼貌地关闭连接,释放服务器资源。', vars: { 连接状态: '已关闭' } },
+    { line: 17, desc: '打印成功提示。整个过程没有一个字节以明文暴露在链路上。', out: '✅ 邮件已加密发送' },
+  ]}
+  doneNote="从构造 MIME、创建 TLS 上下文到 465 端口加密登录发送——每一步都在为「机密性」上锁。"
+/>
+
+防守方的代码同样可以动手写。下面的钓鱼检测器用「危险关键词 + IP 直链正则」给邮件做安检,点击运行看它如何给三封示例邮件下结论,再试着修改邮件内容或扩充关键词列表:
+
+<PyPlayground
+  client:visible
+  title="动手实验:钓鱼邮件检测器 is_safe_email_content"
+  height={340}
+  code={`import re
+
+# 危险关键词与可疑链接特征(取自真实钓鱼邮件样本)
+DANGER_WORDS = ['紧急转账', '中奖', '点击链接', '输入密码',
+                '验证账户', '立即行动']
+IP_LINK = r'https?://\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}'
+
+def is_safe_email_content(subject, body):
+    """检测邮件内容是否可疑:命中危险关键词或IP直链即报警"""
+    text = subject + ' ' + body
+    hits = [w for w in DANGER_WORDS if w in text]
+    ip_links = re.findall(IP_LINK, text)
+    print(f'📧 检测:《{subject}》')
+    for w in hits:
+        print(f'   ⚠️ 命中危险关键词: {w}')
+    for link in ip_links:
+        print(f'   ⚠️ 检测到IP直链: {link}')
+    if hits or ip_links:
+        print('   🚨 结论: 可疑邮件,建议拦截并人工复核')
+        return False
+    print('   ✅ 结论: 未见异常特征')
+    return True
+
+# 用三封示例邮件测试检测器
+mails = [
+    ('恭喜您中奖100万', '点击链接 http://203.0.113.66/prize 领取奖金'),
+    ('CEO指示', '请立即行动, 向指定账户紧急转账50万元'),
+    ('教学例会通知', '本周三15:00在实验楼402会议室召开例会'),
+]
+safe_count = 0
+for subject, body in mails:
+    if is_safe_email_content(subject, body):
+        safe_count += 1
+    print('-' * 34)
+print(f'检测完毕: {len(mails)} 封中 {safe_count} 封正常')`}
+  note="这就是反垃圾邮件系统最朴素的雏形:关键词规则 + 正则特征。工业级系统在此之上叠加贝叶斯分类与机器学习模型,原理一脉相承。试试把「过期作废」加入关键词表,或给正常邮件加一个 IP 链接,观察结论变化。"
+/>
+
+## 思政引导
+
+技术是中性的,`smtplib` 既能发会议通知,也能发百万封垃圾邮件——分界线在写代码的人心里。
+
+<DimCard dim="社会责任" title="不做垃圾邮件的制造者">
+  <ul>
+    <li>垃圾邮件占全球邮件流量约 70%:浪费网络带宽资源、干扰正常工作生活、传播诈骗与不良信息。</li>
+    <li>开发者责任三条:不开发垃圾邮件发送工具;为批量脚本添加发送频率限制(如每封间隔 2 秒);提供退订功能(Unsubscribe)。</li>
+    <li>尊重收件人的注意力,就是尊重公共网络资源——你的一行 for 循环,可能是别人收件箱里的一场灾难。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="科学精神" title="安全感来自可验证的密码学,而非口头承诺">
+  <ul>
+    <li>SSL/TLS 保护邮件传输隐私,SPF/DKIM 用密码学签名防伪造,DMARC 给出综合认证策略——每一层防线都建立在可证明的数学之上。</li>
+    <li>安全意识三件套:不在代码中硬编码密码;使用环境变量或密钥管理服务;定期更换密码。</li>
+    <li>演示明文风险不是制造恐慌:威胁可以被技术手段有效防范,严谨求证、以技术对抗风险,正是科学态度。</li>
+  </ul>
+</DimCard>
+
+<CaseFileCard name="Zoom 邮件营销违规" year={2020} tag="违规营销" verdict="被美国联邦贸易委员会(FTC)罚款">
+Zoom 因未经用户同意发送营销邮件受到 FTC 处罚。「用户同意」不是营销的可选项,而是合规的起点——再大的公司,越界同样要付出代价。
+</CaseFileCard>
+
+<DimCard dim="职业伦理" title="邮件营销的四条边界">
+  <ul>
+    <li>必须获得用户同意(Opt-in);提供退订选项;不购买用户邮箱列表;不伪造发件人。</li>
+    <li>能写出群发脚本是能力,守住「该不该发」的边界是操守——职业底线不在于技术上能不能,而在于伦理上该不该。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="创新思维" title="攻防演进中的技术创新">
+  <ul>
+    <li>邮件安全的三次跃迁:明文传输走向 SSL/TLS 加密;无认证走向 SPF/DKIM/DMARC 体系;人工过滤走向贝叶斯分类与机器学习反垃圾。</li>
+    <li>中国方案:网易、腾讯等企业深耕反垃圾邮件技术,并参与国际邮件安全标准制定——在攻防对抗中贡献中国智慧。</li>
+    <li>安全不是一劳永逸的终点,而是持续创新的过程:今天的防线,来自昨天的教训。</li>
+  </ul>
+</DimCard>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="c5-d1"
+  question="结合钓鱼识别小游戏:如果你是学校信息中心的工程师,会从哪几个维度设计一套钓鱼邮件预警系统?"
+  hints={[
+    '技术维度:发件人域名核验(SPF/DKIM/DMARC)、IP直链与短链检测、危险关键词与机器学习模型',
+    '人的维度:全员安全培训、定期模拟钓鱼演练、大额转账双人复核制度',
+    '流程维度:可疑邮件一键举报入口、隔离区人工复核、安全事件响应预案',
+  ]}
+/>
+
+<DiscussCard
+  client:visible
+  storageKey="c5-d2"
+  question="为什么说「不在代码中硬编码密码」是职业底线?一段带着邮箱密码上传到开源平台的代码,可能引发怎样的连锁后果?"
+  hints={[
+    '密码随代码进入版本历史,即使后来删除也能被翻出来',
+    '邮箱沦陷后可被用于冒名群发钓鱼邮件,受害的不只是你自己,还有信任你地址的所有人',
+    '正确做法:环境变量或密钥管理服务存放凭据,并定期更换密码',
+  ]}
+/>
+
+<DiscussCard
+  client:visible
+  storageKey="c5-d3"
+  question="全球邮件流量约七成是垃圾邮件。从开发者、邮件平台、法规标准三个角色出发,谈谈各自能为治理垃圾邮件做什么?"
+  hints={[
+    '开发者:不开发垃圾邮件工具,批量脚本自带频率限制与退订功能',
+    '平台:贝叶斯分类与机器学习过滤,如网易、腾讯的反垃圾技术实践',
+    '法规与标准:Opt-in 同意机制与处罚约束——Zoom 未经同意发送营销邮件即被 FTC 罚款',
+  ]}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="使用 smtplib 发送邮件时,哪种做法能让传输从第一个字节起就全程加密?"
+  options={['SMTP 连接 25 端口直接发送', 'SMTP_SSL 连接 465 端口并传入 ssl.create_default_context()', 'SMTP 连接 587 端口但不调用 starttls()', '把密码改为从环境变量读取']}
+  answer={1}
+  explain="SMTP_SSL 在 TCP 连接建立后立即完成 TLS 握手,全程加密;587 端口须调用 starttls() 升级后才受保护;环境变量解决的是密码存储安全,与传输加密是两回事。"
+/>
+
+<QuizItem
+  client:visible
+  question="SPF、DKIM、DMARC 这组技术主要解决什么问题?"
+  options={['压缩邮件体积,加快发送速度', '验证发件人身份,防止邮件伪造', '过滤邮件正文中的广告图片', '自动翻译外文邮件']}
+  answer={1}
+  explain="SPF 校验发信服务器是否获得域名授权,DKIM 用数字签名保证邮件未被篡改,DMARC 在两者之上给出综合处置策略——三者合力对抗邮件伪造,正是「CEO 邮箱被伪造骗走 500 万」这类骗局的技术解药。"
+/>
+
+<QuizItem
+  client:visible
+  question="你受命开发一个面向注册用户的邮件通知脚本,以下哪种做法符合职业底线?"
+  options={['购买第三方邮箱列表扩大触达范围', '把发件人伪装成知名银行以提高打开率', '仅向已同意接收的用户限频发送,并在邮件中提供退订入口', '去掉退订链接,防止用户流失']}
+  answer={2}
+  explain="邮件营销必须获得用户同意(Opt-in)、提供退订选项、不购买邮箱列表、不伪造发件人——这既是职业伦理,也是 Zoom 因违规营销被 FTC 处罚一案给出的现实警示。"
+/>
+
+## 配套资源
+
+- 📺 说课视频(10 分钟):SMTP 协议与邮件安全
+- 📑 教学课件(PPT,25 页):SMTP 协议详解、SSL/TLS 加密原理、SPF/DKIM/DMARC 认证、垃圾邮件过滤技术
+- 🎬 视频素材:钓鱼邮件案例分析(3 分钟)、SSL/TLS 握手过程动画(2 分钟)
+- 💻 代码示例:加密邮件发送完整代码、HTML 邮件模板、批量发送脚本
+- 🛡️ 安全指南:邮件安全最佳实践、钓鱼邮件识别指南、密码管理规范
+- ❓ 讨论问题(7 个):SMTP 如何工作、SSL/TLS 如何保护邮件、什么是 SPF/DKIM/DMARC、如何识别钓鱼邮件、为什么不能硬编码密码、垃圾邮件如何过滤、邮件营销的合规要求

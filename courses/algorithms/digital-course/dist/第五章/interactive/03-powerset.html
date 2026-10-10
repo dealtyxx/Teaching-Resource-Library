@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>幂集 · 第5章 回溯法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">05</div>算法可视化 · <span>第5章 回溯法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-trees.html">树类型</a><a class="pill active" href="03-powerset.html">幂集</a><a class="pill" href="04-prune.html">剪支</a><a class="pill" href="05-knapsack.html">背包</a><a class="pill" href="06-coloring.html">着色</a><a class="pill" href="07-perm.html">全排列</a><a class="pill" href="08-nqueens.html">n皇后</a><a class="pill" href="09-opt.html">任务分配</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 3 · 加深</div><h1>求幂集 · 选/不选</h1>
+<p>a={1,2,3} 子集树逐步展开，实时列出已生成子集。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>陈述</b>幂集的定义，并说明 n 元集合的幂集恰有 2<sup>n</sup> 个元素。</li>
+  <li>能够<b>独立写出</b>用子集树回溯求幂集的完整 C++ 代码（不看模板），并解释"选 / 不选"两次递归的含义。</li>
+  <li>能够<b>手工模拟</b> a = {1,2,3} 的搜索过程，按算法的实际访问顺序写出全部 8 个子集。</li>
+  <li>能够<b>分析</b>求幂集的时间复杂度：访问结点 &Theta;(2<sup>n</sup>)，含输出则为 &Theta;(n&middot;2<sup>n</sup>)，空间 &Theta;(n)。</li>
+  <li>能够<b>说明</b>为什么求幂集是回溯法中<b>唯一不需要剪支</b>的情形。</li>
+</ol></div>
+<div class="card">
+  <div class="toolbar"><button class="btn primary" id="run">▶ 生成幂集</button><button class="btn" id="step">单步</button></div>
+  <div class="cells" id="cur"></div>
+  <div class="stat-row"><div class="stat"><span>已生成</span><b class="p" id="cnt">0</b></div></div>
+  <div id="list" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px"></div>
+  <div class="log" id="log">开始回溯…</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>问题定义</h2><span class="sub">幂集 · 子集树的最小样例</span></div>
+
+<div class="defn"><span class="lbl">定义 · 幂集</span><p>设 a 是含 n 个元素的有限集合，a 的<b>全部子集</b>（含空集 &empty; 与全集 a 本身）所构成的集合称为 a 的<b>幂集</b>（power set），记作 2<sup>a</sup> 或 P(a)。</p></div>
+
+<div class="defn thm"><span class="lbl">定理 · 幂集的规模</span><p>若 |a| = n，则 |P(a)| = <b>2<sup>n</sup></b>。</p></div>
+
+<div class="deriv">
+  <span class="step">对每个元素 a[i]，构造子集时只有"选入"与"不选入"两种互斥选择 <span class="why">子集由成员资格唯一确定</span></span>
+  <span class="step">n 个元素的选择互相独立，由乘法原理，方案总数 = 2 &times; 2 &times; &hellip; &times; 2 = 2<sup>n</sup> <span class="why">n 个因子</span></span>
+  <span class="step">每一组选择对应唯一子集，不同选择对应不同子集 <span class="why">双射</span></span>
+  <span class="step">&rArr; |P(a)| = 2<sup>n</sup>，即子集树恰有 2<sup>n</sup> 个叶子，每个叶子就是一个解 <span class="why">证毕</span></span>
+</div>
+
+<div class="tip info"><strong>本节的特殊之处：</strong>幂集问题<b>没有任何约束条件</b>，也<b>没有目标函数</b>，因此既不需要约束函数、也不需要限界函数——解空间树的<b>每一个叶子都是解</b>，一个都不能剪。这使它成为观察子集树"骨架"的最纯净样例；从 §04 起才开始往这副骨架上添加剪支。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>算法实现</h2><span class="sub">C++ · 对应上方演示的 a = {1,2,3}</span></div>
+
+<div class="code"><span class="cm">// ── 回溯法求幂集（子集树，无剪支）─────────────────</span>
+<span class="cm">// 对应上方演示：a = {1, 2, 3}，共输出 2^3 = 8 个子集</span>
+<span class="kw">const</span> <span class="kw">int</span> n = <span class="nu">3</span>;
+<span class="kw">int</span> a[n] = {<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>};
+<span class="kw">int</span> x[n];                      <span class="cm">// x[i] = 1 表示选中 a[i]，0 表示不选</span>
+
+<span class="kw">void</span> <span class="fn">output</span>() {                 <span class="cm">// 把当前 x[] 翻译成一个子集并打印</span>
+    <span class="fn">printf</span>(<span class="st">"{"</span>);
+    <span class="kw">for</span> (<span class="kw">int</span> k = <span class="nu">0</span>; k &lt; n; k++)
+        <span class="kw">if</span> (x[k]) <span class="fn">printf</span>(<span class="st">"%d "</span>, a[k]);
+    <span class="fn">printf</span>(<span class="st">"}\n"</span>);
+}
+
+<span class="kw">void</span> <span class="fn">dfs</span>(<span class="kw">int</span> i) {              <span class="cm">// i：当前考察第 i 个元素（第 i 层）</span>
+    <span class="kw">if</span> (i &gt;= n) { <span class="fn">output</span>(); <span class="kw">return</span>; }   <span class="cm">// 叶子 ⇒ 一个完整子集</span>
+    x[i] = <span class="nu">1</span>; <span class="fn">dfs</span>(i + <span class="nu">1</span>);        <span class="cm">// 左支：选 a[i]</span>
+    x[i] = <span class="nu">0</span>; <span class="fn">dfs</span>(i + <span class="nu">1</span>);        <span class="cm">// 右支：不选 a[i]（隐式回溯：下次赋值即覆盖）</span>
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() { <span class="fn">dfs</span>(<span class="nu">0</span>); <span class="kw">return</span> <span class="nu">0</span>; }</div>
+
+<div class="code"><span class="cm">// ── 等价写法：用 vector 记录路径（显式回溯）───────</span>
+<span class="cm">// 好处是叶子处 path 直接就是子集，无需再扫一遍 x[]</span>
+<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt; path;
+
+<span class="kw">void</span> <span class="fn">dfs2</span>(<span class="kw">int</span> i) {
+    <span class="kw">if</span> (i &gt;= n) { <span class="fn">print</span>(path); <span class="kw">return</span>; }
+    path.<span class="fn">push_back</span>(a[i]);      <span class="cm">// ① 做选择</span>
+    <span class="fn">dfs2</span>(i + <span class="nu">1</span>);               <span class="cm">// ② 深入</span>
+    path.<span class="fn">pop_back</span>();           <span class="cm">// ③ 撤销 ← 少写这一行就全错</span>
+    <span class="fn">dfs2</span>(i + <span class="nu">1</span>);               <span class="cm">// ④ 不选 a[i] 的分支</span>
+}</div>
+
+<div class="tip warn"><strong>两种写法的关键差异：</strong>第一种用 x[i] 覆盖式赋值，属于<b>隐式回溯</b>，可以不写撤销语句；第二种用共享的 path 容器，属于<b>显式回溯</b>，<b>必须</b>成对写 push_back / pop_back。初学者最常见的错误就是在第二种写法里漏掉 pop_back，导致 path 只增不减，输出全是错的。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>复杂度分析</h2><span class="sub">结点数 · 输出量 · 空间</span></div>
+
+<div class="deriv">
+  <span class="step">子集树高度为 n，第 k 层有 2<sup>k</sup> 个结点 <span class="why">完全二叉树</span></span>
+  <span class="step">结点总数 N = 2<sup>0</sup>+2<sup>1</sup>+&hellip;+2<sup>n</sup> = 2<sup>n+1</sup>&minus;1 <span class="why">等比求和</span></span>
+  <span class="step">无剪支 ⇒ 每个结点都被访问一次，每次仅做 O(1) 的赋值与递归 <span class="why">不含输出</span></span>
+  <span class="step">&rArr; 搜索本身的时间 = &Theta;(2<sup>n</sup>) <span class="why">2<sup>n+1</sup>&minus;1 = &Theta;(2<sup>n</sup>)</span></span>
+  <span class="step">每到一个叶子需扫描 x[0..n&minus;1] 输出，代价 &Theta;(n)，共 2<sup>n</sup> 个叶子 <span class="why">output() 的开销</span></span>
+  <span class="step">&rArr; 含输出的总时间 = &Theta;(2<sup>n</sup>) + &Theta;(n&middot;2<sup>n</sup>) = &Theta;(n&middot;2<sup>n</sup>) <span class="why">输出项占主导</span></span>
+</div>
+
+<div class="formula lg">T<sub>搜索</sub>(n) = &Theta;(2<sup>n</sup>)&emsp;&emsp;T<sub>含输出</sub>(n) = &Theta;(n &middot; 2<sup>n</sup>)&emsp;&emsp;S(n) = &Theta;(n)</div>
+
+<div class="defn prop"><span class="lbl">性质 · 下界的必然性</span><p>求幂集的复杂度 &Theta;(2<sup>n</sup>) 是<b>无法改进</b>的：因为输出规模本身就是 2<sup>n</sup> 个子集，<b>任何</b>正确算法都至少要花 &Omega;(2<sup>n</sup>) 的时间把它们产生出来。这类"输出规模决定复杂度下界"的问题称为<b>输出敏感</b>（output-sensitive）问题，它与"算法写得好不好"无关。</p></div>
+
+<div class="tip"><strong>空间为什么只有 &Theta;(n)？</strong>回溯法在任一时刻只保存<b>从根到当前结点的一条路径</b>：递归栈深度至多 n+1 层，解向量 x 占 n 个单元。它<b>不</b>把 2<sup>n</sup> 个子集全部存下来（除非题目要求返回全部结果）。这是回溯法相对于"先生成全部再筛选"的显著优势。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>例题</h2><span class="sub">手工模拟访问顺序</span></div>
+
+<div class="defn prop"><span class="lbl">例题 1</span><p>对 a = {1, 2, 3}，按上面代码"先左支（选）后右支（不选）"的顺序，写出 8 个子集被输出的<b>先后次序</b>。</p></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>序号</th><th>x = (x<sub>0</sub>,x<sub>1</sub>,x<sub>2</sub>)</th><th>输出的子集</th><th>元素和</th></tr>
+  <tr><td>1</td><td>(1,1,1)</td><td class="hl">{1, 2, 3}</td><td>6</td></tr>
+  <tr><td>2</td><td>(1,1,0)</td><td class="hl">{1, 2}</td><td>3</td></tr>
+  <tr><td>3</td><td>(1,0,1)</td><td class="hl">{1, 3}</td><td>4</td></tr>
+  <tr><td>4</td><td>(1,0,0)</td><td class="hl">{1}</td><td>1</td></tr>
+  <tr><td>5</td><td>(0,1,1)</td><td class="hl">{2, 3}</td><td>5</td></tr>
+  <tr><td>6</td><td>(0,1,0)</td><td class="hl">{2}</td><td>2</td></tr>
+  <tr><td>7</td><td>(0,0,1)</td><td class="hl">{3}</td><td>3</td></tr>
+  <tr><td>8</td><td>(0,0,0)</td><td class="hl">&empty;</td><td>0</td></tr>
+</table></div>
+
+<div class="tip info"><strong>规律：</strong>把 x 视作一个 n 位二进制数（x<sub>0</sub> 为最高位），输出次序恰好是 <b>111, 110, 101, 100, 011, 010, 001, 000</b>，即从 2<sup>n</sup>&minus;1 <b>递减</b>到 0。若把代码里两条递归语句<b>对调</b>（先不选、后选），次序就变成 000 递增到 111——这正是第 3 章位运算枚举 <code>for (m = 0; m &lt; (1&lt;&lt;n); m++)</code> 的顺序。两种方法解空间完全相同，仅遍历次序不同。</div>
+
+<div class="defn prop"><span class="lbl">例题 2</span><p>若在上面的代码中，只想输出<b>元素个数恰为 2</b> 的子集，应如何最小改动？这算剪支吗？</p></div>
+
+<div class="list-step"><span class="n">1</span><div class="body"><b>朴素做法</b>：在 output() 前加判断 <code>if (cnt == 2)</code>，其中 cnt 为 x[] 中 1 的个数。这<b>不是剪支</b>——所有 2<sup>n</sup> 个叶子仍被访问，只是输出时过滤，时间仍为 &Theta;(2<sup>n</sup>)。</div></div>
+<div class="list-step"><span class="n">2</span><div class="body"><b>真正的剪支</b>：维护当前已选个数 cnt 与剩余可选个数 n&minus;i，在<b>内部结点</b>判断：若 cnt &gt; 2 则剪（选多了，再往下只会更多）；若 cnt + (n&minus;i) &lt; 2 则剪（剩下全选也凑不够 2 个）。这两条正是 §04 子集和剪支的"雏形"，能让访问结点数降到 O(C(n,2)&middot;n) 量级。</div></div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>用 vector 记录路径却漏写 pop_back。</b>症状是输出的子集越来越大且永不缩小。凡是修改了<b>共享状态</b>就必须显式撤销——这是回溯法第一号错误。</li>
+  <li><b>把递归出口写成 <code>if (i == n - 1)</code>。</b>正确的是 <code>i &gt;= n</code>（或 <code>i == n</code>）。写成 n&minus;1 会少考察最后一个元素，只输出 2<sup>n&minus;1</sup> 个子集。</li>
+  <li><b>忘记空集也是子集。</b>幂集有 2<sup>n</sup> 个元素而不是 2<sup>n</sup>&minus;1 个；若代码里加了 <code>if (!path.empty())</code> 才输出，就漏掉了 &empty;。</li>
+  <li><b>误认为"没有剪支"就不是回溯法。</b>幂集问题本来就没有约束条件，无支可剪；它依然是标准的子集树回溯，只是剪支函数恒为 true。</li>
+  <li><b>把复杂度写成 O(2<sup>n</sup>) 却在叶子处做了 O(n) 的输出。</b>严格来说含输出的总时间是 &Theta;(n&middot;2<sup>n</sup>)。答题时要说清"是否计入输出代价"。</li>
+  <li><b>改用位运算枚举时 n 超过 31。</b><code>1 &lt;&lt; n</code> 在 32 位 int 上 n &ge; 31 即溢出，须换 <code>1LL &lt;&lt; n</code>；而递归写法不受此限（但 n=40 时 2<sup>40</sup> 已远超可行时间）。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li><b>幂集</b>是 n 元集合全部子集构成的集合，规模恰为 <b>2<sup>n</sup></b>（含空集与全集），由乘法原理可证。</li>
+  <li>求幂集用<b>子集树</b>回溯：第 i 层对 a[i] 做"<b>选 / 不选</b>"两次递归，叶子处输出 x[] 对应的子集。</li>
+  <li>本节是回溯法中<b>唯一无需剪支</b>的情形——没有约束条件也没有目标函数，每个叶子都是解。</li>
+  <li>时间 <b>&Theta;(2<sup>n</sup>)</b>（不计输出）或 <b>&Theta;(n&middot;2<sup>n</sup>)</b>（计输出），且这个下界<b>无法改进</b>，因为输出规模本身就是 2<sup>n</sup>；空间仅 <b>&Theta;(n)</b>。</li>
+  <li>用 x[] 覆盖赋值是<b>隐式回溯</b>（可省撤销），用 path 容器是<b>显式回溯</b>（<b>必须</b> push/pop 配对）。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>用子集树回溯求 n 元集合的幂集，<b>不计输出</b>时算法访问的结点总数是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>2<sup>n</sup></span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>2<sup>n+1</sup> &minus; 1</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>2<sup>n</sup> &minus; 1</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>n &middot; 2<sup>n</sup></span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。子集树是高度为 n 的完全二叉树，第 k 层有 2<sup>k</sup> 个结点，总数 = 2<sup>0</sup>+&hellip;+2<sup>n</sup> = 2<sup>n+1</sup>&minus;1。A 只数了<b>叶子</b>（2<sup>n</sup> 个），漏掉了 2<sup>n</sup>&minus;1 个内部结点。C 是"内部结点数"或"非空子集数"，都不是结点总数。D 是<b>含输出</b>的时间量级，不是结点数。注意 B 与 A 只差常数因子，写成渐进阶时都是 &Theta;(2<sup>n</sup>)，但题目问的是<b>精确的结点总数</b>。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>下面这段代码试图输出 a 的全部子集，但结果错误。问题出在哪？<br/><code>void dfs(int i){ if(i&gt;=n){print(path);return;} path.push_back(a[i]); dfs(i+1); dfs(i+1); }</code></div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>递归出口写错了，应为 i &gt; n</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>缺少 path.pop_back()，"不选"分支实际上仍带着 a[i]</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>两条 dfs(i+1) 重复了，应删去一条</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>应把 push_back 移到 dfs 之后</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。正确写法是 <code>push_back(a[i]); dfs(i+1); pop_back(); dfs(i+1);</code>——第二条 dfs 代表"不选 a[i]"的右支，进入它之前必须先把 a[i] 弹出。现在缺了 pop_back，两条递归的现场完全相同，程序会输出 2<sup>n</sup> 个<b>完全一样</b>的全集。A 错，出口 <code>i &gt;= n</code> 正确，改成 <code>i &gt; n</code> 反而会越界访问 a[n]。C 错，两次递归恰恰是子集树"选/不选"两个分支，删掉一条就只剩一条路径、只输出 1 个子集。D 错，push_back 必须在进入左支<b>之前</b>执行，移到之后就等于没做选择。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>关于求幂集的复杂度，下列说法<b>错误</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>不计输出时时间为 &Theta;(2<sup>n</sup>)</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>递归实现的空间复杂度为 &Theta;(n)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>加上合适的剪支后可以把时间降到多项式级</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>任何正确算法的时间都是 &Omega;(2<sup>n</sup>)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C（错误项）。幂集问题<b>没有任何约束条件</b>，每个叶子都是必须输出的解，因此<b>无支可剪</b>；更根本地说，输出规模本身就是 2<sup>n</sup> 个子集，任何算法都必须至少写出这么多结果，故下界 &Omega;(2<sup>n</sup>) 不可突破（这正是 D 的含义，D 正确）。A 正确：结点总数 2<sup>n+1</sup>&minus;1 = &Theta;(2<sup>n</sup>)。B 正确：回溯只保存根到当前结点的一条路径，栈深至多 n+1。请注意区分：<b>剪支能减少的是"无解子树"的访问，而这里根本没有无解子树</b>。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="02-trees.html"><span class="dir">← 上一节</span><span class="name">树类型</span></a><a href="04-prune.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">剪支</span></a></div>
+<div class="footer">算法设计与分析 · <b>第5章 回溯法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(110,86,145,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const a=[1,2,3]; let frames=[], fi=0;
+function gen(){
+  frames=[]; const x=[], sols=[];
+  function dfs(i){
+    frames.push({i,x:x.slice(),sols:sols.map(s=>s.slice())});
+    if(i>=a.length){ sols.push(x.slice()); return; }
+    x.push(a[i]); dfs(i+1); x.pop();
+    dfs(i+1);
+  }
+  dfs(0); return sols;
+}
+function paint(f){
+  cur.innerHTML=a.map((v,i)=>`<div class="cell ${i<f.i?(f.x.includes(v)?'hit':'dead'):(i===f.i?'on':'')}">${v}</div>`).join('');
+  list.innerHTML=f.sols.map(s=>`<div class="cell hit" style="min-width:auto;padding:8px 12px;font-size:12px">{${s.join(',')||'∅'}</div>`).join('');
+  cnt.textContent=f.sols.length; log.textContent=`深度 i=${f.i} 当前路径 [${f.x}]`;
+}
+gen();
+run.onclick=async()=>{ gen(); for(const f of frames){ paint(f); await sleep(280);} };
+step.onclick=()=>{ if(!frames.length) gen(); if(fi>=frames.length) fi=0; paint(frames[fi++]); };
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

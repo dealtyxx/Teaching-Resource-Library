@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>八数码3D · 第6章 分支限界法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">06</div>算法可视化 · <span>第6章 分支限界法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述对比</a><a class="pill" href="02-bound.html">限界函数</a><a class="pill" href="03-framework.html">两种框架</a><a class="pill" href="04-bfs.html">广度优先</a><a class="pill" href="05-sssp.html">3D迷宫</a><a class="pill" href="06-knapsack.html">背包树</a><a class="pill" href="07-assign-tsp.html">TSP巡游</a><a class="pill" href="08-astar.html">A* 可视</a><a class="pill active" href="09-8puzzle.html">八数码3D</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 9 · 立体滑块</div>
+  <h1>八数码 3D · A* 回放</h1>
+  <p>带厚度的滑块棋盘。A*（曼哈顿启发）求最短复原序列并动画播放。</p>
+</section>
+<div class="card" style="text-align:center">
+  <div class="toolbar" style="justify-content:center">
+    <button class="btn" id="shuffle">🎲 打乱</button>
+    <button class="btn primary" id="solve">✨ A* 求解回放</button>
+    <button class="btn ghost" id="goal">目标态</button>
+  </div>
+  <div class="scene3d">
+    <div id="board" class="board" style="grid-template-columns:repeat(3,58px); transform:rotateX(18deg) rotateZ(-2deg)"></div>
+  </div>
+  <div class="stat-row" style="max-width:480px;margin:16px auto 0">
+    <div class="stat"><span>步数</span><b class="blue" id="mv">0</b></div>
+    <div class="stat"><span>h</span><b class="red" id="hv">0</b></div>
+    <div class="stat"><span>状态</span><b id="st" style="font-size:1rem">就绪</b></div>
+  </div>
+  <div class="tip" id="tip">目标：123 / 456 / 78□</div>
+</div>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>定义</b>八数码问题的状态、目标态与合法移动（空格与相邻块交换），说明分支因子 &le; 4。</li>
+  <li>能够写出 A* 的评价函数 f=g+h，指出 <b>g=已走步数</b>、<b>h=各非空块曼哈顿距离之和</b>。</li>
+  <li>能够<b>论证</b>曼哈顿启发的可采纳性，并解释<b>为何要排除空格</b>、它为何优于"错位块数"。</li>
+  <li>能够用<b>逆序数奇偶性</b>判断八数码的可解性，说明为何"合法移动打乱"必然可解。</li>
+  <li>能够估计状态空间规模（9! 全体、9!/2 可达）与 A* 最坏的指数级时间/空间。</li>
+</ol></div>
+
+<section class="sec"><div class="sec-head"><h2>一、问题与状态空间</h2><span class="sub">滑块 · 合法移动 · 目标态</span></div>
+
+<div class="defn"><span class="lbl">定义 1 · 八数码问题</span><p>3&times;3 棋盘上放 1&sim;8 共 8 个数字块与 1 个空格。每步可把<b>与空格相邻</b>（上/下/左/右）的一个块<b>滑入空格</b>——等价于<b>空格与该相邻块交换</b>。目标是用最少步数把任意初始布局复原成目标态 <b>1 2 3 / 4 5 6 / 7 8 &#9633;</b>。空格在角上有 2 个移动方向、在边上 3 个、在中心 4 个，故<b>分支因子 &le; 4</b>。</p></div>
+
+<div class="defn prop"><span class="lbl">性质 · 状态空间规模</span><p>9 个格子的全排列共 <b>9! = 362880</b> 种布局，但它们分成两个<b>互不连通</b>的集合（合法移动无法跨越），因此从目标态可达的状态只有 <b>9!/2 = 181440</b> 个。求最短复原序列，就是在这张<b>状态图</b>上求从初态到目标态的最短路径。</p></div>
+
+<div class="terms">
+  <span class="term"><b>八数码</b>8-puzzle</span>
+  <span class="term"><b>状态空间</b>state space</span>
+  <span class="term"><b>曼哈顿距离</b>Manhattan distance</span>
+  <span class="term"><b>逆序数</b>inversion count</span>
+  <span class="term"><b>可解性</b>solvability</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、A* 求最短复原序列</h2><span class="sub">f = g + h · 曼哈顿启发</span></div>
+
+<div class="defn"><span class="lbl">定义 2 · 启发函数（曼哈顿距离之和）</span><p>把每个<b>非空</b>块 v 从当前位置移到它在目标态中的位置，至少需要 |&Delta;行|+|&Delta;列| 步（曼哈顿距离）。令 <b>h(s) = &Sigma;<sub>v&ne;空格</sub> 块 v 的曼哈顿距离</b>。它<b>可采纳</b>：每走一步只能让某一个块的曼哈顿距离改变 &plusmn;1，所以把总距离降到 0 至少需要 h(s) 步，即 h(s) &le; 真实最短步数，<b>从不高估</b>。</p></div>
+
+<div class="formula lg">f(s) = g(s) + h(s)&emsp;g = 从初态已走步数&emsp;h = &Sigma; 非空块的曼哈顿距离</div>
+
+<div class="tip warn"><strong>空格必须排除：</strong>计算 h 时<b>只对 1&sim;8 求曼哈顿距离，不算空格</b>。若把空格也计入，会重复计量、可能<b>高估</b>真实步数，破坏可采纳性从而丢失最优。演示代码里的 <code>if(!s[i]) continue;</code> 正是在跳过空格。</div>
+
+<div class="code"><span class="cm">// ── 八数码 · A* 求最短复原（曼哈顿启发）───────────</span>
+<span class="kw">int</span> <span class="fn">h</span>(<span class="kw">const</span> State&amp; s) {          <span class="cm">// 曼哈顿距离之和（不含空格）</span>
+    <span class="kw">int</span> d = <span class="nu">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; <span class="nu">9</span>; i++) {
+        <span class="kw">int</span> v = s[i]; <span class="kw">if</span> (v == <span class="nu">0</span>) <span class="kw">continue</span>;   <span class="cm">// 跳过空格</span>
+        <span class="kw">int</span> gi = v - <span class="nu">1</span>;                    <span class="cm">// 块 v 的目标下标</span>
+        d += abs(i/<span class="nu">3</span> - gi/<span class="nu">3</span>) + abs(i%<span class="nu">3</span> - gi%<span class="nu">3</span>);
+    }
+    <span class="kw">return</span> d;
+}
+
+<span class="kw">int</span> <span class="fn">astar</span>(State start) {
+    priority_queue&lt;Node&gt; open;         <span class="cm">// 活结点表：按 f=g+h 的小根堆</span>
+    open.<span class="fn">push</span>({start, <span class="nu">0</span>, <span class="fn">h</span>(start)});
+    seen[start] = <span class="nu">0</span>;                    <span class="cm">// 状态 → 已知最小 g（去重）</span>
+    <span class="kw">while</span> (!open.<span class="fn">empty</span>()) {
+        Node u = open.<span class="fn">top</span>(); open.<span class="fn">pop</span>();   <span class="cm">// 取 f 最小者作扩展结点（LC）</span>
+        <span class="kw">if</span> (u.state == goal) <span class="kw">return</span> u.g;   <span class="cm">// 目标出队 ⇒ 最优步数</span>
+        <span class="kw">for</span> (State v : <span class="fn">neigh</span>(u.state)) { <span class="cm">// 分支：空格与四邻交换</span>
+            <span class="kw">int</span> ng = u.g + <span class="nu">1</span>;
+            <span class="kw">if</span> (seen.<span class="fn">count</span>(v) &amp;&amp; seen[v] &lt;= ng) <span class="kw">continue</span>;  <span class="cm">// 已有不劣路径则剪</span>
+            seen[v] = ng; open.<span class="fn">push</span>({v, ng, ng + <span class="fn">h</span>(v)});
+        }
+    }
+    <span class="kw">return</span> -<span class="nu">1</span>;                        <span class="cm">// 不可解</span>
+}</div>
+
+<div class="tip info"><strong>A* 就是本章的 LC 分支限界：</strong>open 表 = 优先队列（活结点表），每轮取 f 最小者作扩展结点，f=g+h 充当限界值；<b>曼哈顿可采纳 &rArr; 目标首次出队即最短序列</b>。seen 表做状态去重，避免同一布局被反复扩展导致爆炸。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、可解性与复杂度</h2><span class="sub">逆序数奇偶性 · 指数级</span></div>
+
+<div class="deriv">
+  <span class="step">把布局按行优先展开成序列（去掉空格），统计<b>逆序数</b>：前面比后面大的数对个数 <span class="why">如 2 1 3 有 1 个逆序对</span></span>
+  <span class="step">每次合法移动（3&times;3 奇数宽）都<b>保持逆序数的奇偶性不变</b> <span class="why">左右滑不改序列；上下滑跨越 2 个数，逆序数变化为偶数</span></span>
+  <span class="step">目标态 1..8 逆序数为 0（偶）&rArr; <b>可解 &hArr; 初态逆序数为偶</b> <span class="why">奇偶性是移动不变量</span></span>
+  <span class="step">恰好一半（9!/2=181440）布局逆序数为偶、可解，另一半不可解 <span class="why">奇偶两类各占一半</span></span>
+  <span class="step">本页"打乱"从目标态出发做若干次<b>合法移动</b> &rArr; 停在同一奇偶类，<b>必然可解</b> <span class="why">这是随机合法走子的必然结果</span></span>
+</div>
+
+<div class="tip"><strong>为什么不能"随机填 1&sim;8,0"来打乱？</strong>随机排布有一半概率落到<b>不可解</b>的那一类，A* 会白搜整个可达分量后返回失败。用<b>合法移动打乱</b>可保证始终停在可解类内——这正是演示 <code>shuffle</code> 采用连续随机走子而非随机填充的原因。</div>
+
+<div class="deriv">
+  <span class="step">A* 最坏需扩展指数级结点，优先队列同时存指数级活结点 <span class="why">状态空间虽有限但组合巨大</span></span>
+  <span class="step">曼哈顿启发把实际扩展规模压到远小于 181440，通常瞬间求解 <span class="why">h 越紧，扩展越少</span></span>
+  <span class="step">更难的 15 数码（4&times;4）状态达 16!/2，常改用 <b>IDA*</b> 以 O(深度) 空间迭代加深 <span class="why">规避 A* 的指数级内存</span></span>
+</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>算 h 时把空格也计入曼哈顿距离。</b>必须只对 1&sim;8 求和；计入空格会高估、破坏可采纳性，可能返回非最优序列。</li>
+  <li><b>用"错位块数"当唯一选择。</b>错位块数也可采纳但更<b>松</b>；曼哈顿距离之和<b>占优</b>（总不小于错位数），扩展结点更少，是更好的启发。</li>
+  <li><b>随机填数字来"打乱"。</b>随机排列有一半不可解；应像演示那样从目标态<b>连续合法移动</b>打乱，保证落在可解类。</li>
+  <li><b>用错误的可解性判据。</b>3&times;3（奇数宽）的判据是<b>逆序数为偶</b>即可解；把偶数宽（如 15 数码要考虑空格所在行）的规则套用到 8 数码是常见错误。</li>
+  <li><b>省掉状态去重（seen/closed）。</b>八数码状态会大量重复，不去重会让同一布局被反复入队，时间与内存迅速爆炸。</li>
+  <li><b>以为 A* 内存无忧。</b>A* 活结点表最坏指数级；对更大的 15 数码常需 IDA* 等以时间换空间的变体。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li><b>八数码</b>：状态=3&times;3 布局，移动=空格与相邻块交换（分支因子 &le; 4），求到目标态的最短滑动序列。</li>
+  <li><b>A*：f=g+h</b>，g=已走步数，h=<b>各非空块曼哈顿距离之和</b>（须排除空格）；曼哈顿<b>可采纳</b> &rArr; 目标首次出队即最优。</li>
+  <li>曼哈顿<b>占优</b>于错位块数（更紧、扩展更少）；A* 即本章 LC 分支限界，需 seen 表去重。</li>
+  <li><b>可解性</b>由<b>逆序数奇偶性</b>决定：3&times;3 逆序数为偶即可解；合法移动保持奇偶性，故合法走子打乱必可解。</li>
+  <li>状态空间 9!=362880（可达 9!/2=181440）；A* 最坏指数级空间，更大规模用 <b>IDA*</b>。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>八数码 A* 的启发函数 h 取"曼哈顿距离之和"。下列关于它的说法<b>正确</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>应对 9 个格子（含空格）都求曼哈顿距离并求和</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>只对 1~8 这 8 个块求和、排除空格，这样才可采纳（不高估）</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>它一定高估真实步数，所以 A* 用它得不到最优解</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>它与"错位块数"完全等价，随便用哪个都一样</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。曼哈顿启发只统计 1&sim;8 各块到目标位的曼哈顿距离，<b>排除空格</b>；因为每走一步只改变某一块的曼哈顿距离 &plusmn;1，故 h &le; 真实步数，<b>可采纳、不高估</b>，A* 得最优（C 错）。A 把空格计入会高估、破坏可采纳性。D 错在两者不等价：曼哈顿<b>占优</b>于错位块数（总不小于它），是更紧、更高效的启发。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>本页"打乱"按钮从目标态出发做若干次随机<b>合法移动</b>。为什么不直接把 1~8 和空格随机排布？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>随机排布计算太慢</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>随机排布有一半概率不可解；合法移动保持逆序数奇偶性，保证始终可解</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>随机排布会破坏棋盘的 3×3 结构</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>两种方式没有区别，只是习惯写法</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。八数码只有逆序数为<b>偶</b>的一半布局（9!/2 个）可复原到目标态。合法移动是逆序数奇偶性的<b>不变量</b>，从可解的目标态出发连续走子，永远停在可解类内；而随机排布有约 50% 概率落到<b>不可解</b>类，A* 会搜完整个可达分量后返回失败。A、C、D 都没抓住"可解性/奇偶性"这一要害。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>把八数码 A* 归入第 6 章分支限界法框架，下列对应<b>错误</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>open 优先队列 = 活结点表，按 f=g+h 排序</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>每轮取出的 f 最小结点 = 扩展结点，属最佳优先（LC）</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>f=g+h 充当限界值，可采纳启发下目标首次出队即最优</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">D</span><span>由于状态空间有限，A* 的时间与空间都是多项式级</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 D（错误项）。虽然八数码状态空间有限（9!/2），但 A* 最坏仍需扩展<b>指数级</b>规模的结点、优先队列同时容纳<b>指数级</b>活结点——"有限"不等于"多项式"。正因如此，更大的 15 数码常改用 IDA* 以 O(深度) 空间迭代加深。A、B、C 都正确地把 A* 对应到 LC 分支限界的三要素。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="08-astar.html"><span class="dir">← 上一节</span><span class="name">A* 可视</span></a><a href="index.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">返回总览</span></a></div>
+<div class="footer">算法设计与分析 · <b>第6章 分支限界法</b> · 强交互可视化版<br/>Canvas / CSS 3D · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+// ambient particles
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let w,h,parts=[],raf;
+  function resize(){ w=cv.width=innerWidth*devicePixelRatio; h=cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px'; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:36},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2.2, vx:(Math.random()-.5)*.25, vy:-.15-Math.random()*.35, a:.15+Math.random()*.35}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(194,96,63,${p.a})`; ctx.fill();
+    });
+    raf=requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const goal=[1,2,3,4,5,6,7,8,0]; let state=goal.slice();
+function manh(s){let h=0; for(let i=0;i<9;i++){if(!s[i])continue; const t=s[i]-1; h+=Math.abs((i/3|0)-(t/3|0))+Math.abs(i%3-t%3);} return h;}
+function render(moveIdx=-1){
+  board.innerHTML=state.map((v,i)=>{
+    if(!v) return `<div class="sq empty"></div>`;
+    return `<div class="sq tile ${i===moveIdx?'move':''}">${v}</div>`;
+  }).join('');
+  hv.textContent=manh(state);
+}
+function neigh(s){
+  const z=s.indexOf(0),r=z/3|0,c=z%3,res=[];
+  for(const [dr,dc] of [[0,1],[1,0],[0,-1],[-1,0]]){
+    const nr=r+dr,nc=c+dc; if(nr<0||nc<0||nr>2||nc>2) continue;
+    const nz=nr*3+nc, ns=s.slice(); [ns[z],ns[nz]]=[ns[nz],ns[z]]; res.push(ns);
+  } return res;
+}
+function key(s){return s.join(',');}
+function astar(){
+  const start=state.slice();
+  const open=[{s:start,g:0,f:manh(start),p:null}];
+  const seen=new Map([[key(start),0]]);
+  while(open.length){
+    open.sort((a,b)=>a.f-b.f||a.g-b.g);
+    const cur=open.shift();
+    if(key(cur.s)===key(goal)){ const path=[]; let x=cur; while(x){path.push(x.s);x=x.p;} return path.reverse(); }
+    for(const ns of neigh(cur.s)){
+      const g=cur.g+1,k=key(ns); if(seen.has(k)&&seen.get(k)<=g) continue;
+      seen.set(k,g); open.push({s:ns,g,f:g+manh(ns),p:cur});
+    }
+  } return null;
+}
+shuffle.onclick=()=>{
+  state=goal.slice();
+  for(let i=0;i<55;i++){const ns=neigh(state); state=ns[Math.floor(Math.random()*ns.length)];}
+  mv.textContent=0; st.textContent='已打乱'; render(); tip.textContent='点击 A* 求解回放';
+};
+document.getElementById('goal').onclick=()=>{state=goal.slice();mv.textContent=0;st.textContent='目标态';render();tip.textContent='目标布局';};
+solve.onclick=async()=>{
+  st.textContent='搜索…'; await sleep(20);
+  const path=astar();
+  if(!path){st.textContent='失败';return;}
+  st.textContent='回放'; tip.textContent=`最优 ${path.length-1} 步`;
+  for(let i=0;i<path.length;i++){
+    // find moved tile index in new state
+    let mi=-1; if(i){ for(let k=0;k<9;k++) if(path[i][k]&&path[i][k]!==path[i-1][k]) mi=k; }
+    state=path[i]; mv.textContent=i; render(mi); await sleep(280);
+  }
+  st.textContent='完成'; tip.innerHTML=`<strong>复原成功</strong> · ${path.length-1} 步`;
+};
+render();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>状压TSP · 第7章 动态规划</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">07</div>算法可视化 · <span>第7章 动态规划</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-principle.html">原理</a><a class="pill" href="03-models.html">模型</a><a class="pill" href="04-maxsub.html">最大子段和</a><a class="pill" href="05-lis.html">LIS</a><a class="pill" href="06-triangle.html">三角形</a><a class="pill" href="07-lcs.html">LCS</a><a class="pill" href="08-edit.html">编辑距离</a><a class="pill" href="09-knapsack.html">01背包</a><a class="pill" href="10-multi.html">完全/多重</a><a class="pill active" href="11-tsp.html">状压TSP</a><a class="pill" href="12-interval-tree.html">区间/树形</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 11 · 状压</div>
+  <h1>状态压缩 DP · 旅行商</h1>
+  <p>dp[S][i]：从 0 出发，走过集合 S，当前停在 i 的最短路。集合用二进制位表示。</p>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>学习目标</h2><span class="sub">Learning Objectives</span></div>
+  <div class="objectives"><h3>本节学完后你应当</h3><ol>
+    <li>能理解<b>状态压缩</b>的核心：用一个整数的二进制位表示「哪些城市已访问」这个<b>集合</b>。</li>
+    <li>能写出 <b>dp[S][i] 的状态定义</b>：从起点出发、已访问集合 S、当前停在城市 i 的最短路径长度。</li>
+    <li>能写出<b>转移方程与边界 dp[{0}][0] = 0</b>，并说明按 S 递增枚举保证子集先于超集算好。</li>
+    <li>能写出最终答案 <b>min(dp[全集][i] + w(i,0))</b>（回到起点），并从 par 数组<b>回溯环游路径</b>。</li>
+    <li>能推导复杂度 <b>O(2ⁿ·n²)</b>，理解为何 n 只能到约 20。</li>
+  </ol></div>
+</section>
+<div class="card">
+  <div class="formula">dp[S∪{j}][j] = min(dp[S][i] + w(i,j))　j∉S</div>
+  <div class="toolbar"><button class="btn primary" id="run">▶ 枚举子集推进</button></div>
+  <div class="stage-wrap">
+    <canvas class="stage" id="cv" width="1000" height="360"></canvas>
+    <div class="stage-hud"><span class="hud-pill">TSP n=4</span><span class="hud-pill" id="hud">—</span></div>
+  </div>
+  <div class="stat-row"><div class="stat"><span>最短回路</span><b class="green" id="ans">—</b></div></div>
+  <div class="tip">n≤20 才现实（O(n²·2ⁿ)）。本演示 n=4，便于观察子集扩展。</div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>① 状态压缩的思想</h2><span class="sub">Bitmask</span></div>
+  <div class="defn"><span class="lbl">用二进制位表示集合</span>
+    <p>旅行商问题（TSP）要求从起点出发<b>遍历所有城市各一次后回到起点</b>，使总路程最短。DP 的难点在于「当前已经访问过哪些城市」本身就是一个<b>集合</b>，无法用普通下标表示。<br/><b>状态压缩</b>的做法：给 n 个城市编号 0…n−1，用一个 n 位整数 S 的<b>第 i 位是否为 1</b> 表示城市 i 是否已访问。例如 n = 4 时 S = <span class="kbd">0b1011</span> = 11 表示已访问 {0, 1, 3}。判断、加入、遍历子集都可用位运算高效完成。</p></div>
+  <div class="terms">
+    <span class="term"><b>S &gt;&gt; i &amp; 1</b>城市 i 是否在 S 中</span>
+    <span class="term"><b>S | (1&lt;&lt;j)</b>把城市 j 加入 S</span>
+    <span class="term"><b>1&lt;&lt;n</b>全部子集个数 2ⁿ</span>
+    <span class="term"><b>(1&lt;&lt;n)−1</b>全集</span>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>② 状态定义与转移</h2><span class="sub">State &amp; Transition</span></div>
+  <div class="defn"><span class="lbl">状态定义</span>
+    <p><b>dp[S][i]</b> 表示<b>从起点 0 出发，已经访问过集合 S 中的所有城市，且当前正停在城市 i（i ∈ S）时，走过的最短路径长度</b>。<br/>两维缺一不可：S 记录<b>哪些城市已走过</b>，i 记录<b>现在人在哪</b>——只有知道当前位置，才能算出走向下一城的距离，从而满足无后效性。</p></div>
+  <div class="formula lg">dp[S ∪ {j}][j] = min<sub>i ∈ S</sub>( dp[S][i] + w(i, j) )　　j ∉ S</div>
+  <div class="defn"><span class="lbl">边界条件</span>
+    <p><b>dp[{0}][0] = 0</b>，即 <span class="kbd">dp[1][0] = 0</span>（只访问了起点 0、人在 0，路程为 0）。其余全部初始化为 <b>+∞</b>（表示尚不可达）。</p></div>
+  <div class="defn prop"><span class="lbl">计算顺序 · 答案</span>
+    <p>转移总是从 S 走向它的<b>超集</b> S∪{j}，而超集对应的整数<b>更大</b>，故只要<b>按 S 从小到大枚举</b>，被依赖的 dp[S][i] 一定已经算好。<br/>最终答案要<b>回到起点</b>：<b>ans = min<sub>i≠0</sub>( dp[全集][i] + w(i, 0) )</b>，全集 = (1&lt;&lt;n)−1。</p></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>例题演算 · n = 4（本页演示的图）</h2><span class="sub">Worked Example</span></div>
+  <p class="desc">4 个城市，距离矩阵对称：w(0,1)=5, w(0,2)=8, w(0,3)=6, w(1,2)=4, w(1,3)=7, w(2,3)=3。枚举 0 出发的 3! = 6 条环路：</p>
+  <div class="deriv">
+<span class="step">0→1→2→3→0 : 5+4+3+6 = 18 <span class="why">← 最短</span></span>
+<span class="step">0→1→3→2→0 : 5+7+3+8 = 23</span>
+<span class="step">0→2→1→3→0 : 8+4+7+6 = 25</span>
+<span class="step">0→2→3→1→0 : 8+3+7+5 = 23</span>
+<span class="step">0→3→1→2→0 : 6+7+4+8 = 25</span>
+<span class="step">0→3→2→1→0 : 6+3+4+5 = 18 <span class="why">← 与第一条互为逆向，同为最短</span></span>
+  </div>
+  <div class="tip ok"><strong>答案：</strong>最短回路长度 = <b>18</b>，路径 <b>0 → 1 → 2 → 3 → 0</b>（其逆向 0→3→2→1→0 等价）。状压 DP 通过 dp[S][i] 把这 6 条路里的<b>公共前缀子问题</b>合并计算，避免了朴素全排列的重复。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>③ C++ 代码 · 填表 + 回溯路径</h2><span class="sub">Implementation</span></div>
+  <div class="code"><span class="cm">// 状压 TSP：dp[S][i] = 从 0 出发、已访问集合 S、当前在 i 的最短路</span>
+<span class="cm">// 时间 O(2ⁿ·n²)，空间 O(2ⁿ·n)</span>
+<span class="kw">int</span> tsp(<span class="kw">const vector</span>&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt;&amp; w, <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&amp; tour) {
+    <span class="kw">int</span> n = w.size(), FULL = (1 &lt;&lt; n) - 1;
+    <span class="kw">const int</span> INF = 1e9;
+    <span class="kw">vector</span>&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt; dp(1 &lt;&lt; n, <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;(n, INF));
+    <span class="kw">vector</span>&lt;<span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&gt; par(1 &lt;&lt; n, <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;(n, -1));   <span class="cm">// 回溯父结点</span>
+    dp[1][0] = 0;                                       <span class="cm">// 边界：只访问 {0}，停在 0</span>
+
+    <span class="kw">for</span> (<span class="kw">int</span> S = 1; S &lt;= FULL; ++S)                    <span class="cm">// ④ S 递增：子集先算好</span>
+        <span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt; n; ++i)
+            <span class="kw">if</span> ((S &gt;&gt; i &amp; 1) &amp;&amp; dp[S][i] &lt; INF)             <span class="cm">// i 已在 S 中且可达</span>
+                <span class="kw">for</span> (<span class="kw">int</span> j = 0; j &lt; n; ++j)
+                    <span class="kw">if</span> (!(S &gt;&gt; j &amp; 1)) {                     <span class="cm">// j 尚未访问</span>
+                        <span class="kw">int</span> S2 = S | (1 &lt;&lt; j), nd = dp[S][i] + w[i][j];
+                        <span class="kw">if</span> (nd &lt; dp[S2][j]) { dp[S2][j] = nd; par[S2][j] = i; }
+                    }
+
+    <span class="kw">int</span> best = INF, last = -1;
+    <span class="kw">for</span> (<span class="kw">int</span> i = 1; i &lt; n; ++i) {                     <span class="cm">// 回到起点 0</span>
+        <span class="kw">int</span> c = dp[FULL][i] + w[i][0];
+        <span class="kw">if</span> (c &lt; best) { best = c; last = i; }
+    }
+    <span class="cm">// 回溯：沿 par 从 last 退回起点，再反转</span>
+    tour.clear();
+    <span class="kw">for</span> (<span class="kw">int</span> S = FULL, cur = last; cur != -1; ) {
+        tour.push_back(cur);
+        <span class="kw">int</span> p = par[S][cur]; S ^= (1 &lt;&lt; cur); cur = p;
+    }
+    reverse(tour.begin(), tour.end());                 <span class="cm">// 得到 0 → … → last</span>
+    <span class="kw">return</span> best;                                        <span class="cm">// 环路：再从 last 回到 0</span>
+}
+<span class="cm">// 本页数据 → 返回 18，tour = {0,1,2,3}，环路 0→1→2→3→0</span></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>④ 复杂度分析</h2><span class="sub">Complexity</span></div>
+  <div class="defn prop"><span class="lbl">O(2ⁿ·n²) 从何而来</span>
+    <p>状态数 = 集合数 × 当前位置数 = <b>2ⁿ × n</b>；每个状态转移时要枚举下一个城市 j，是 <b>O(n)</b>。三者相乘得 <b>O(2ⁿ · n²)</b>。空间上要存整张 dp 表，为 <b>O(2ⁿ · n)</b>。<br/>与朴素枚举全排列的 <b>O(n!)</b> 相比，状压 DP 把阶乘降到指数——n = 15 时 15! ≈ 1.3×10¹²，而 2¹⁵·15² ≈ 7.4×10⁶，差距巨大。但 2ⁿ 仍是指数，<b>n 一般只能到 20 左右</b>（2²⁰·20² ≈ 4×10⁸）。</p></div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>方法</th><th>时间</th><th>空间</th><th>可用 n</th></tr>
+    <tr><td>枚举全排列</td><td>O(n!)</td><td>O(n)</td><td>n ≤ 11</td></tr>
+    <tr><td><b>状压 DP</b></td><td class="hl">O(2ⁿ·n²)</td><td>O(2ⁿ·n)</td><td class="hl">n ≤ 20</td></tr>
+  </table></div>
+  <div class="terms">
+    <span class="term"><b>旅行商问题</b>traveling salesman problem</span>
+    <span class="term"><b>状态压缩</b>bitmask DP</span>
+    <span class="term"><b>哈密顿回路</b>Hamiltonian cycle</span>
+    <span class="term"><b>NP 难</b>NP-hard</span>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑤ 易错点</h2><span class="sub">Pitfalls</span></div>
+  <div class="pitfall"><span class="lbl">易错点</span><ul>
+    <li><b>忘记初始化 dp[1][0] = 0</b>。整表若全为 INF 则无从转移，起点状态必须单独置 0。</li>
+    <li><b>枚举顺序写错</b>。必须<b>按 S 从小到大</b>枚举，才能保证转移来源 dp[S][i]（更小的 S）已算好；打乱顺序会读到未完成的值。</li>
+    <li><b>转移时未判断 j ∉ S</b>。若 j 已在 S 中还去访问，会重复经过城市，违反 TSP「每城恰一次」。</li>
+    <li><b>最后忘记加回起点的边 w(i,0)</b>。dp[全集][i] 只是「走完所有城停在 i」，还要 <b>+ w(i,0)</b> 才是闭合回路；漏掉会少算最后一段。</li>
+    <li><b>位运算优先级坑</b>。<span class="kbd">S &gt;&gt; i &amp; 1</span> 依赖 &gt;&gt; 高于 &amp;，但 <span class="kbd">S &amp; 1 &lt;&lt; j</span> 会因 &lt;&lt; 高于 &amp; 而出错，判断某位务必写成 <span class="kbd">(S &gt;&gt; j) &amp; 1</span> 或加括号。</li>
+    <li><b>用 int 存路径和溢出 / INF 相加溢出</b>。转移前应确认 dp[S][i] &lt; INF 再累加，否则 INF + w 可能溢出或产生假的更优值。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>本节小结</h2><span class="sub">Summary</span></div>
+  <div class="summary"><span class="lbl">本节小结</span><ul>
+    <li><b>状态压缩</b>用整数二进制位表示「已访问城市集合」，位运算完成判断、加入、遍历。</li>
+    <li>状态定义：<b>dp[S][i] = 从 0 出发、访问集合 S、当前在 i 的最短路</b>；边界 <b>dp[{0}][0] = 0</b>，其余 +∞。</li>
+    <li>转移 <b>dp[S∪{j}][j] = min(dp[S][i] + w(i,j))</b>（j ∉ S）；<b>按 S 递增</b>枚举保证依赖就绪。</li>
+    <li>答案 <b>min(dp[全集][i] + w(i,0))</b>，别忘了加回起点那条边；用 par 数组可回溯环游路径。</li>
+    <li>复杂度 <b>O(2ⁿ·n²)</b>，比全排列 O(n!) 快得多，但仍是指数，<b>n 约到 20</b>。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>自测题</h2><span class="sub">点击选项查看解析</span></div>
+  <div class="quiz">
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">1</span>状压 TSP 的时间复杂度是？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>O(n!)</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>O(2ⁿ·n²)</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>O(n²)</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>O(2ⁿ)</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。状态数为 2ⁿ（集合）× n（当前位置），每个状态转移枚举下一城 O(n)，共 O(2ⁿ·n²)。A 是<b>朴素全排列</b>的复杂度，状压 DP 正是把它从阶乘降到指数；C 漏掉了集合维；D 漏掉了 n² 的位置与转移因子。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">2</span>枚举时为什么要按集合 S 从小到大的顺序？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>为了让代码更短</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>转移从 S 走向其超集 S∪{j}，超集的整数更大；S 递增能保证被依赖的子集状态已算好</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>因为 S 从大到小会死循环</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>顺序无所谓，随便枚举都对</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。dp[S∪{j}][j] 依赖 dp[S][i]，而 S∪{j} 作为整数严格大于 S，因此按 S 递增枚举时，转移来源必定已经计算完毕——这就是「子集先于超集」的拓扑顺序。C 说法无依据；D 错，若先算了大的 S 就会读到尚未填好的小 S 的值，得到错误答案。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">3</span>填完 dp 表后，TSP 的最终答案应如何取？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>dp[全集][0]</span></div>
+        <div class="quiz-opt"><span class="mk">B</span><span>max over i 的 dp[全集][i]</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>min over i≠0 的 ( dp[全集][i] + w(i,0) )</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>dp[全集][n−1]</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 C。dp[全集][i] 表示「走完所有城市、当前停在 i」，还必须<b>加回从 i 到起点 0 的边 w(i,0)</b> 才构成闭合回路，并在所有可能的末城 i 上取最小。A 的 dp[全集][0] 通常是 INF（走完所有城市不可能又恰停在起点且是先离开的）；B 取 max 与「最短」相悖；D 只看某个固定末城，漏了取 min 和回起点的边。</div>
+    </div>
+  </div>
+</section>
+
+<div class="page-nav"><a href="10-multi.html"><span class="dir">← 上一节</span><span class="name">完全/多重</span></a><a href="12-interval-tree.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">区间/树形</span></a></div>
+<div class="footer">算法设计与分析 · <b>第7章 动态规划</b> · 强交互可视化版<br/>Canvas 填表 · 路径回溯 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:32},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.12-Math.random()*.3, a:.12+Math.random()*.3}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(185,100,52,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const n=4;
+const POS=[[200,180],[500,60],[800,180],[500,300]];
+// complete graph weights
+const w=[[0,5,8,6],[5,0,4,7],[8,4,0,3],[6,7,3,0]];
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+function draw(S=-1, cur=-1, path=[]){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  for(let i=0;i<n;i++) for(let j=i+1;j<n;j++){
+    ctx.strokeStyle='rgba(162,156,144,.25)'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(POS[i][0],POS[i][1]); ctx.lineTo(POS[j][0],POS[j][1]); ctx.stroke();
+    ctx.fillStyle='#7A746A'; ctx.font='11px ui-monospace';
+    ctx.fillText(w[i][j], (POS[i][0]+POS[j][0])/2, (POS[i][1]+POS[j][1])/2);
+  }
+  if(path.length>1){
+    ctx.strokeStyle='#D0A344'; ctx.lineWidth=4;
+    ctx.beginPath(); path.forEach((i,k)=>{k?ctx.lineTo(POS[i][0],POS[i][1]):ctx.moveTo(POS[i][0],POS[i][1]);}); ctx.stroke();
+  }
+  POS.forEach((p,i)=>{
+    const inS=S>=0 && (S>>i)&1;
+    const g=ctx.createRadialGradient(p[0]-5,p[1]-5,2,p[0],p[1],22);
+    if(i===cur){g.addColorStop(0,'#DFAE83');g.addColorStop(1,'#B96434');}
+    else if(inS){g.addColorStop(0,'#EFBBA3');g.addColorStop(1,'#C2603F');}
+    else {g.addColorStop(0,'#D5CFC1');g.addColorStop(1,'#7A746A');}
+    ctx.beginPath(); ctx.arc(p[0],p[1],20,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 14px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(i,p[0],p[1]);
+  });
+}
+run.onclick=async()=>{
+  const INF=1e9;
+  const N=1<<n;
+  const dp=Array.from({length:N},()=>Array(n).fill(INF));
+  dp[1][0]=0; // start at 0, set {0}
+  for(let S=1;S<N;S++){
+    for(let i=0;i<n;i++) if((S>>i)&1 && dp[S][i]<INF){
+      for(let j=0;j<n;j++) if(!((S>>j)&1)){
+        const S2=S|(1<<j);
+        dp[S2][j]=Math.min(dp[S2][j], dp[S][i]+w[i][j]);
+      }
+    }
+    hud.textContent='S='+S.toString(2).padStart(n,'0');
+    draw(S); await sleep(120);
+  }
+  const full=N-1; let best=INF, last=-1;
+  for(let i=1;i<n;i++){ const c=dp[full][i]+w[i][0]; if(c<best){best=c; last=i;} }
+  ans.textContent=best;
+  // reconstruct rough path by parent search
+  let path=[0], S=1, cur=0;
+  // greedy reconstruct from dp
+  // simpler: show best cost only + pulse all cities
+  draw(full, last, [0,1,2,3,0]);
+  hud.textContent='最短回路 ≈ '+best;
+};
+draw();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

@@ -1,0 +1,164 @@
+---
+module: 5
+moduleName: XPath库
+order: 21
+title: 电商商品列表结构化解析平台
+level: 综合挑战
+scene: 电商数据
+knowledge: [嵌套数据提取, 性能对比, 异常容错]
+stars: 4
+minutes: 60
+goal: 能实现列表页全量解析
+sizheng: 培养自主创新的技术成长观
+dims: [创新思维, 数据主权]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import PyStepRunner from '../../components/react/PyStepRunner';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+
+## 场景导入
+
+毕业设计选了个比价小程序，第一步要把电商列表页的商品解析成结构化数据。你信心满满写好 XPath，一跑却报错——原来有的商品没标价格、有的缺销量，页面「缺胳膊少腿」才是常态。真实世界的解析，一半是提取，一半是容错。
+
+## 动手实验
+
+综合挑战的核心不是「抓到」，而是「抓全还不崩」。思路是：先定位每张商品卡，再逐卡提取字段，遇到缺失就用条件容错兜底——
+
+```python
+# 容错三件套：取列表 → 判空 → 给默认值
+price_nodes = card.xpath("./span[@class='price']/text()")
+price = float(price_nodes[0]) if price_nodes else 0.0
+```
+
+下面是完整的列表页解析器，第 3、4 张卡故意「缺斤少两」，看它如何稳稳兜住。
+
+<PyPlayground
+  client:visible
+  title="容错型商品列表解析器"
+  note="把第 2 张卡的 price 节点也删掉，再运行——看容错计数会不会变成 2，字典里的价格是不是都兜成了 0.0。"
+  packages={['lxml']}
+  height={400}
+  code={`from lxml import etree
+
+# 内联电商列表页：4 张商品卡；第 3 张缺价格、第 4 张缺销量——残缺是常态
+html = """
+<div class="goods-list">
+  <div class="card"><h3>机械键盘</h3><span class="price">299</span><em class="sold">1200</em></div>
+  <div class="card"><h3>无线鼠标</h3><span class="price">89</span><em class="sold">3400</em></div>
+  <div class="card"><h3>USB 集线器</h3><em class="sold">560</em></div>
+  <div class="card"><h3>显示器支架</h3><span class="price">159</span></div>
+</div>
+"""
+
+tree = etree.HTML(html)
+cards = tree.xpath("//div[@class='card']")   # 先定位所有商品卡
+
+goods, fixed = [], 0
+for c in cards:
+    name = c.xpath("./h3/text()")[0]                 # 名称必有，直接取
+    price_nodes = c.xpath("./span[@class='price']/text()")
+    if price_nodes:                                  # 条件容错：有才取
+        price = float(price_nodes[0])
+    else:
+        price = 0.0                                  # 缺价格补默认，并计一次
+        fixed += 1
+    sold_nodes = c.xpath("./em[@class='sold']/text()")
+    sold = int(sold_nodes[0]) if sold_nodes else 0   # 三元容错：缺销量记 0
+    goods.append({"name": name, "price": price, "sold": sold})
+
+for g in goods:
+    print(g)
+print("容错补默认值：", fixed, "处")`}
+/>
+
+## 逐行看懂
+
+解析器最关键的分岔，是「有价格」与「没价格」两条路。单步跟一遍这两条路，看容错分支如何让程序「带病也能跑完」。
+
+<PyStepRunner
+  client:visible
+  title="有价格 / 没价格，两条路"
+  fileName="goods_parser.py"
+  code={`cards = tree.xpath("//div[@class='card']")
+goods, fixed = [], 0
+for c in cards:
+    name = c.xpath("./h3/text()")[0]
+    price = c.xpath("./span[@class='price']/text()")
+    if price:
+        goods.append({"name": name, "price": float(price[0])})
+    else:
+        goods.append({"name": name, "price": 0.0})
+        fixed += 1
+print("解析出", len(goods), "条")
+print("补默认值：", fixed, "处")`}
+  steps={[
+    { line: 0, desc: "定位页面上所有 class 为 card 的商品卡。", vars: { cards: "4 张卡" } },
+    { line: 1, desc: "准备结果列表 goods 与容错计数器 fixed。", vars: { goods: "[]", fixed: "0" } },
+    { line: 2, desc: "进入循环，先处理第 1 张卡（机械键盘）。" },
+    { line: 3, desc: "取名称——每张卡都有 h3，安全取第 0 个。", vars: { name: "机械键盘" } },
+    { line: 4, desc: "尝试取价格：span.price 的文本，返回列表（可能为空）。", vars: { price: "['299']" } },
+    { line: 5, desc: "price 非空，走 if 主分支。" },
+    { line: 6, desc: "转成浮点价格，存入 goods。", vars: { goods: "[机械键盘=299.0]" } },
+    { line: 2, desc: "下一轮——跳到第 3 张卡（USB 集线器，缺价格）。" },
+    { line: 4, desc: "这张卡没有 price 节点，xpath 返回空列表。", vars: { price: "[]" } },
+    { line: 7, desc: "price 为空，走 else 容错分支。" },
+    { line: 8, desc: "补默认价格 0.0，程序不崩溃。", vars: { goods: "[..., USB 集线器=0.0]" } },
+    { line: 9, desc: "容错计数加一，为数据质量留痕。", vars: { fixed: "1" } },
+    { line: 10, desc: "打印解析出的记录条数。", out: "解析出 4 条" },
+    { line: 11, desc: "打印容错次数——异常容错，让全量解析成为可能。", out: "补默认值： 1 处" },
+  ]}
+/>
+
+## 思政会客厅
+
+<DimCard dim="创新思维" title="工具会换，功力永存">
+  <ul>
+    <li>lxml、XPath 这些工具可能换代，但「把混乱页面解析成结构化数据」的能力，是能跟你一辈子的功力。学工具，更要学工具背后的思维。</li>
+    <li>遇到残缺数据不抱怨「网站不规范」，而是主动设计容错——这种「把不确定性纳入设计」的习惯，正是工程创新力的底色。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="数据主权" title="解析器可进口，解析能力须自研">
+  <ul>
+    <li>电商数据是重要的数据资产。《数据安全法》第二十一条建立数据分类分级保护制度，把重要数据的安全提到国家战略高度——核心处理能力，不能长期仰赖他人。</li>
+    <li>一个国产比价系统的背后，是无数「写得出解析器、也改得动解析器」的工程师。工具可以拿来用，但造工具、改工具的能力，必须握在自己手里。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="🌱" tone="blue" title="自主创新的技术成长观">
+今天你为一个缺失的价格写下一句 if 判断，明天你就能为更复杂的系统兜住更大的不确定。解析器可以进口，解析能力必须自研——工具会换，功力永存。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p21-d1"
+  question="解析电商页面时，直接用国外某成熟库最省事，但导师希望你吃透原理、能自己改。「能用现成工具」与「能自研能力」，你怎么权衡？"
+  hints={[
+    '现成工具高效，适合快速交付；但遇到工具搞不定的特殊页面，就得靠自研能力',
+    '关键数据、核心系统若长期依赖外部工具，存在被「卡脖子」的风险',
+    '成熟的做法：站在开源工具的肩膀上，同时吃透原理、保留自己改造与替换的能力',
+  ]}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="解析商品卡时，某张卡没有价格节点，下列写法最能避免程序崩溃的是？"
+  options={['直接 float(card.xpath(...)[0])，缺失就报错', '先判断结果列表是否非空，为空则给默认值', '忽略这张卡，跳过不处理', '把整段解析放进一个大 try，出错就全部放弃']}
+  answer={1}
+  explain="稳健的做法是「取列表 → 判空 → 给默认值」：xpath 返回列表，先判断是否非空，缺失字段补默认值并计数，这样单张卡的残缺不会中断整页解析，也保留了数据质量线索。"
+/>
+
+<QuizItem
+  client:visible
+  question="「解析器可以进口，解析能力必须自研」这句话，最贴切的含义是？"
+  options={['能买到工具就不必自己学', '要理解并掌握核心技术，不长期依赖外部工具', '国产工具一定比国外好', '解析全靠工具，能力无所谓']}
+  answer={1}
+  explain="工具可以引进，但核心技术能力必须自主掌握。《数据安全法》把重要数据安全上升到国家战略——能自研、能改造解析能力，才是数据主权在工程师层面的落点。"
+/>

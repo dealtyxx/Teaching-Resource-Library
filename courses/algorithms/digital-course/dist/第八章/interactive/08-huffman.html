@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>哈夫曼 · 第8章 贪心法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">08</div>算法可视化 · <span>第8章 贪心法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-activity.html">活动安排</a><a class="pill" href="03-merge.html">区间合并</a><a class="pill" href="04-rooms.html">会议室</a><a class="pill" href="05-fractional.html">分数背包</a><a class="pill" href="06-tianji.html">田忌赛马</a><a class="pill" href="07-coin.html">零钱兑换</a><a class="pill active" href="08-huffman.html">哈夫曼</a><a class="pill" href="09-matroid.html">拟阵</a><a class="pill" href="10-schedule.html">任务调度</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 8 · 编码树</div>
+  <h1>哈夫曼树生长动画</h1>
+  <p>每次合并权最小的两棵，新树权为二者之和。看森林如何收成一棵。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能陈述哈夫曼贪心：每次从森林中取<b>权最小的两棵</b>合并，新树权为二者之和。</li>
+  <li>能对权 [5,9,12,13,16,45] <b>手工建树</b>并算出 <b>WPL = 224</b>。</li>
+  <li>能用两种方法核对 WPL：Σ(叶权×叶深) 与 Σ(每次合并产生的新权)。</li>
+  <li>能用<b>交换论证</b>证明"两个最小权字符可放在最优树的最深兄弟位"。</li>
+  <li>能说明哈夫曼编码是<b>最优前缀码</b>，并对比定长码的位数节省。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="run">🌳 生长</button>
+    <button class="btn ghost" id="reset">重置</button>
+  </div>
+  <div class="stage-wrap light" style="height:400px">
+    <canvas class="stage" id="cv" width="1000" height="400"></canvas>
+    <div class="stage-hud"><span class="hud-pill light">Huffman</span><span class="hud-pill light" id="hud">—</span></div>
+  </div>
+  <div class="log" id="log">初始权: 5,9,12,13,16,45</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>问题与贪心策略</h2><span class="sub">哈夫曼编码 · 最优前缀码</span></div>
+<div class="defn"><span class="lbl">定义</span><p>给定 n 个字符及其出现频率（权）w<sub>1</sub>, …, w<sub>n</sub>。用<b>二叉树</b>为每个字符分配 01 编码：字符全在叶子上，从根到叶的路径即其编码——这样任何编码都不是另一编码的前缀（<b>前缀码</b>，可无歧义解码）。设叶子 i 的深度为 d<sub>i</sub>，定义<b>带权路径长度</b>（WPL）＝编码后的总位数：</p></div>
+<div class="formula">WPL = Σ<sub>i=1</sub><sup>n</sup> w<sub>i</sub> · d<sub>i</sub>　　（目标：最小化）</div>
+<div class="defn prop"><span class="lbl">贪心准则</span><p>把 n 个权看作 n 棵单结点树放入<b>小根堆</b>；每次取出<b>权最小的两棵</b>合并为一棵新树，新树根的权 = 两子树权之和，放回堆中；重复 n−1 次直到只剩一棵，即哈夫曼树。</p></div>
+<div class="tip info"><strong>直觉：</strong>权大的字符应离根近（编码短），权小的离根远（编码长）。让当前<b>最小的两个权</b>沉到最底层配成兄弟，正是把"长编码"分配给"最不常用"的字符。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>正确性 · 交换论证</h2><span class="sub">贪心选择性质 + 最优子结构</span></div>
+<div class="defn thm"><span class="lbl">引理（贪心选择性质）</span><p>设 x、y 是频率<b>最小</b>的两个字符。则<b>存在</b>一棵最优前缀码树，其中 x 与 y 是<b>最深层的兄弟</b>（同一父结点）。</p></div>
+<div class="deriv">
+<span class="step"><b>证明（交换论证）</b></span>
+<span class="step">取任意最优树 T。设 a、b 是 T 中处于<b>最深层</b>的一对兄弟叶子 <span class="why">最深处必有一对兄弟</span></span>
+<span class="step">不失一般性设 w(x) ≤ w(y)、w(a) ≤ w(b)；因 x、y 是全局最小 ⇒ w(x) ≤ w(a)、w(y) ≤ w(b)</span>
+<span class="step">把 x 与 a 交换位置得 T&#39;。WPL 改变量：</span>
+<span class="step">&nbsp;&nbsp;ΔWPL = ( w(x)·d<sub>a</sub> + w(a)·d<sub>x</sub> ) − ( w(x)·d<sub>x</sub> + w(a)·d<sub>a</sub> ) = ( w(a) − w(x) )( d<sub>x</sub> − d<sub>a</sub> )</span>
+<span class="step">&nbsp;&nbsp;因 w(a) ≥ w(x) 且 d<sub>a</sub> ≥ d<sub>x</sub>（a 在最深层）⇒ ( w(a)−w(x) ) ≥ 0、( d<sub>x</sub>−d<sub>a</sub> ) ≤ 0 ⇒ ΔWPL ≤ 0 <span class="why">交换不使 WPL 变大</span></span>
+<span class="step">同理再把 y 与 b 交换，WPL 仍不增 ⇒ 得到一棵<b>不劣于 T</b>、且 x、y 为最深兄弟的最优树 ∎</span>
+</div>
+<div class="defn thm"><span class="lbl">最优子结构</span><p>把 x、y 合并成一个权为 w(x)+w(y) 的新字符 z，得到规模 n−1 的子问题。可证：子问题最优树换回 x、y 后，WPL 恰好增加 w(x)+w(y)（z 变父结点，x、y 各深一层）。故<b>子问题最优 ⇒ 原问题最优</b>，对 n 归纳即得哈夫曼树最优。</p></div>
+<div class="tip info"><strong>合并权 = WPL 增量：</strong>每次合并让两棵子树各下沉一层，总位数正好增加"新结点的权"。因此 <b>WPL = 所有合并所产生的新权之和</b>——这给了一条独立的验算路径。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>手工建树与 WPL 自检</h2><span class="sub">权 [5,9,12,13,16,45] · 对应上方演示</span></div>
+<div class="deriv">
+<span class="step">堆 {5,9,12,13,16,45}</span>
+<span class="step">合并 5 + 9 → <b>14</b>；堆 {12,13,14,16,45}</span>
+<span class="step">合并 12 + 13 → <b>25</b>；堆 {14,16,25,45}</span>
+<span class="step">合并 14 + 16 → <b>30</b>；堆 {25,30,45}</span>
+<span class="step">合并 25 + 30 → <b>55</b>；堆 {45,55}</span>
+<span class="step">合并 45 + 55 → <b>100</b>；堆 {100} ⇒ 建树完成，根权 = 100 = 总权 ✓</span>
+</div>
+<div class="table-scroll"><table class="data">
+  <tr><th>字符权 w<sub>i</sub></th><th>编码</th><th>深度 d<sub>i</sub></th><th>w<sub>i</sub> · d<sub>i</sub></th></tr>
+  <tr><td>45</td><td>0</td><td>1</td><td class="hl">45</td></tr>
+  <tr><td>12</td><td>100</td><td>3</td><td>36</td></tr>
+  <tr><td>13</td><td>101</td><td>3</td><td>39</td></tr>
+  <tr><td>16</td><td>111</td><td>3</td><td>48</td></tr>
+  <tr><td>5</td><td>1100</td><td>4</td><td>20</td></tr>
+  <tr><td>9</td><td>1101</td><td>4</td><td>36</td></tr>
+  <tr><th>合计</th><td>——</td><td>——</td><td class="hl">224</td></tr>
+</table></div>
+<div class="deriv">
+<span class="step"><b>WPL 双重自检：</b></span>
+<span class="step">法一（叶权×叶深）：45·1 + 12·3 + 13·3 + 16·3 + 5·4 + 9·4 = 45 + 36 + 39 + 48 + 20 + 36 = <b>224</b></span>
+<span class="step">法二（合并新权之和）：14 + 25 + 30 + 55 + 100 = <b>224</b> ✓ 两法一致</span>
+<span class="step">对比定长码：6 个字符需 ⌈log₂6⌉ = 3 位/字符，总权 100 ⇒ 100·3 = <b>300 位</b>；哈夫曼仅 224 位，省约 25%</span>
+</div>
+<div class="tip warn"><strong>编码不唯一但 WPL 唯一：</strong>左右孩子谁记 0 谁记 1 可任选，故编码表可能不同；但只要每步都合并最小的两个权，<b>WPL 一定是 224</b>（最优值唯一）。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>C++ 实现与复杂度</h2><span class="sub">小根堆 + WPL 计算</span></div>
+<div class="code"><span class="cm">// 哈夫曼树：每次取两棵权最小的树合并</span>
+<span class="kw">struct</span> Node { <span class="kw">int</span> w; Node *l, *r; };
+<span class="kw">struct</span> Cmp { <span class="kw">bool</span> <span class="fn">operator</span>()(Node *a, Node *b){ <span class="kw">return</span> a-&gt;w &gt; b-&gt;w; } };  <span class="cm">// 小根堆</span>
+
+Node* <span class="fn">buildHuffman</span>(vector&lt;<span class="kw">int</span>&gt; &amp;freq) {
+    priority_queue&lt;Node*, vector&lt;Node*&gt;, Cmp&gt; pq;
+    <span class="kw">for</span> (<span class="kw">int</span> f : freq) pq.<span class="fn">push</span>(<span class="kw">new</span> Node{f, <span class="kw">nullptr</span>, <span class="kw">nullptr</span>});
+    <span class="kw">while</span> (pq.<span class="fn">size</span>() &gt; 1) {
+        Node *a = pq.<span class="fn">top</span>(); pq.<span class="fn">pop</span>();   <span class="cm">// 最小</span>
+        Node *b = pq.<span class="fn">top</span>(); pq.<span class="fn">pop</span>();   <span class="cm">// 次小</span>
+        pq.<span class="fn">push</span>(<span class="kw">new</span> Node{a-&gt;w + b-&gt;w, a, b});  <span class="cm">// 合并，新权 = 两子权之和</span>
+    }
+    <span class="kw">return</span> pq.<span class="fn">top</span>();               <span class="cm">// 根结点</span>
+}
+
+<span class="cm">// 带权路径长度 WPL = Σ 叶权 × 叶深</span>
+<span class="kw">long</span> <span class="kw">long</span> <span class="fn">wpl</span>(Node *r, <span class="kw">int</span> depth = 0) {
+    <span class="kw">if</span> (!r) <span class="kw">return</span> 0;
+    <span class="kw">if</span> (!r-&gt;l &amp;&amp; !r-&gt;r) <span class="kw">return</span> (<span class="kw">long</span> <span class="kw">long</span>)r-&gt;w * depth;  <span class="cm">// 叶子</span>
+    <span class="kw">return</span> <span class="fn">wpl</span>(r-&gt;l, depth + 1) + <span class="fn">wpl</span>(r-&gt;r, depth + 1);
+}</div>
+<div class="formula">T(n) = O(n log n) <span>（n−1 次堆操作，每次 O(log n)）</span>　　S(n) = O(n)</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>合并后忘记把新树放回堆。</b>新权必须重新参与后续"取最小两棵"的比较，否则建出的不是哈夫曼树。</li>
+  <li><b>新结点权算错。</b>新权 = 两子树根权之和，不是叶子个数、也不是深度。</li>
+  <li><b>WPL 用错公式。</b>WPL = Σ 叶权×叶深；等价地 = 所有合并新权之和，两者应相等，可互检。</li>
+  <li><b>把内部结点也当字符编码。</b>只有叶子对应字符，内部结点仅是路径分叉。</li>
+  <li><b>误以为编码表唯一。</b>左右 0/1 可互换、等权结点合并次序可不同，编码可能不同，但最优 WPL 唯一。</li>
+  <li><b>用反复排序找最小而非堆。</b>每轮重排是 O(n² log n)，用小根堆才能做到 O(n log n)。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>哈夫曼编码 = 每次从小根堆取<b>权最小的两棵树合并</b>，新权为二者之和，共 n−1 次。</li>
+  <li>正确性由<b>交换论证</b>保证：两个最小权字符可放到最优树的最深兄弟位，交换 ΔWPL ≤ 0。</li>
+  <li>权 [5,9,12,13,16,45] 建树后 <b>WPL = 224</b>；叶权×叶深与合并新权之和两法互检一致。</li>
+  <li>相比定长码 300 位，哈夫曼 224 位，体现<b>最优前缀码</b>对高频字符用短码的思想。</li>
+  <li>复杂度 <b>O(n log n)</b>（堆），空间 O(n)；编码表不唯一但最优 WPL 唯一。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>权值为 {5,9,12,13,16,45} 的哈夫曼树，其带权路径长度 WPL 为？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>200</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>224</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>240</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>300</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>合并顺序 5+9=14、12+13=25、14+16=30、25+30=55、45+55=100，WPL = 14+25+30+55+100 = <b>224</b>；也可按叶权×叶深核对：45·1+12·3+13·3+16·3+5·4+9·4 = 224，选 B。300 是定长 3 位码的位数，不是哈夫曼结果。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>构造哈夫曼树时，每一步的贪心操作是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>取权最大的两棵树合并</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>取权最小的两棵树合并，新树权为二者之和</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>取权最小和权最大的两棵树合并</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>按字符出现顺序两两合并</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>哈夫曼贪心每次取<b>权最小的两棵</b>合并（选 B），使小权字符沉到最深、获得较长编码，大权字符靠近根、编码更短，从而最小化 WPL。取最大或按顺序合并都得不到最优前缀码。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>哈夫曼编码是"前缀码"，其含义与好处是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>所有编码都以相同前缀开头，便于压缩</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>任一编码都不是另一编码的前缀，故解码无歧义、无需分隔符</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>每个编码长度相同，便于对齐</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>编码越短的字符出现频率越低</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>字符都在叶子上，没有哪个叶子在另一叶子到根的路径上，因此<b>任一编码都不是另一编码的前缀</b>（选 B），解码时沿树走到叶即可切分，无需额外分隔符。C 是定长码，与哈夫曼相反；D 说反了——频率<b>越高</b>编码越短。</div>
+</div>
+</div>
+
+<div class="terms">
+  <span class="term"><b>前缀码</b>prefix code</span>
+  <span class="term"><b>带权路径长度</b>WPL</span>
+  <span class="term"><b>小根堆</b>min-heap</span>
+  <span class="term"><b>最优子结构</b>optimal substructure</span>
+</div>
+
+<div class="page-nav"><a href="07-coin.html"><span class="dir">← 上一节</span><span class="name">零钱兑换</span></a><a href="09-matroid.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">拟阵</span></a></div>
+<div class="footer">算法设计与分析 · <b>第8章 贪心法</b> · 强交互可视化版<br/>时间轴 · 扫描线 · 树生长 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:30},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.12-Math.random()*.28, a:.12+Math.random()*.3}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(59,122,87,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let forest=[];
+function seed(){
+  const w=[5,9,12,13,16,45];
+  forest=w.map((v,i)=>({w:v, name:String.fromCharCode(65+i), x:80+i*140, y:320, left:null, right:null}));
+  draw(); hud.textContent='n='+forest.length;
+}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  function edges(n){
+    if(!n) return;
+    if(n.left){ ctx.strokeStyle='#A29C90'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(n.x,n.y-16); ctx.lineTo(n.left.x,n.left.y+16); ctx.stroke(); edges(n.left); }
+    if(n.right){ ctx.strokeStyle='#A29C90'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(n.x,n.y-16); ctx.lineTo(n.right.x,n.right.y+16); ctx.stroke(); edges(n.right); }
+  }
+  function node(n){
+    if(!n) return;
+    node(n.left); node(n.right);
+    const g=ctx.createRadialGradient(n.x-5,n.y-5,2,n.x,n.y,18);
+    g.addColorStop(0,'#98CBAF'); g.addColorStop(1,'#3B7A57');
+    ctx.beginPath(); ctx.arc(n.x,n.y,18,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(n.w, n.x, n.y);
+    ctx.fillStyle='#443F37'; ctx.font='10px Segoe UI'; ctx.fillText(n.name.length>6?n.name.slice(0,5)+'…':n.name, n.x, n.y+28);
+  }
+  forest.forEach(r=>{ edges(r); node(r); });
+}
+function layout(){
+  // simple layout: leaves on bottom, parents above mid
+  const leaves=[];
+  function collect(n){ if(!n.left&&!n.right) leaves.push(n); else { if(n.left)collect(n.left); if(n.right)collect(n.right);} }
+  forest.forEach(collect);
+  // actually re-layout whole tree if single root
+  if(forest.length===1){
+    const positions=[];
+    let leafI=0;
+    function place(n, depth){
+      if(!n) return;
+      if(!n.left&&!n.right){ n.x=80+(leafI++)*90; n.y=340; return; }
+      place(n.left, depth+1); place(n.right, depth+1);
+      n.x=((n.left?n.left.x:0)+(n.right?n.right.x:0))/2;
+      n.y=60+depth*70;
+    }
+    // count leaves first for spacing
+    leafI=0; place(forest[0],0);
+  } else {
+    forest.forEach((n,i)=>{ n.x=80+i*150; n.y=320; });
+  }
+}
+run.onclick=async()=>{
+  seed();
+  let lines=['初始: '+forest.map(x=>x.name+':'+x.w).join(' ')];
+  while(forest.length>1){
+    forest.sort((a,b)=>a.w-b.w);
+    const a=forest.shift(), b=forest.shift();
+    const p={w:a.w+b.w, name:`(${a.name}+${b.name})`, left:a, right:b, x:0, y:0};
+    forest.push(p);
+    layout(); draw();
+    lines.push(`合并 ${a.name}(${a.w}) + ${b.name}(${b.w}) → ${p.w}`);
+    log.textContent=lines.join('\\n'); hud.textContent='剩余 '+forest.length;
+    await sleep(700);
+  }
+  layout(); draw();
+  lines.push('完成 Huffman 树'); log.textContent=lines.join('\\n');
+};
+reset.onclick=seed; seed();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

@@ -1,0 +1,89 @@
+---
+module: 1
+moduleName: 顺序结构
+order: 3
+title: 北斗经纬度分秒换算
+level: 基础必做
+scene: 北斗场景
+knowledge: [浮点运算, 类型转换, 工程公式]
+stars: 2
+minutes: 60
+goal: 理解工程数据计算与精度控制
+sizheng: 北斗的亚米级精度，是把每一位小数都当回事的工程态度换来的
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import BeidouDmsLab from '../../components/react/BeidouDmsLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：接收机吐出的"奇怪数字"
+
+北斗接收机输出的 NMEA 报文里，纬度长这样：`3954.4074,N`。
+它**不是** 3954.4074 度，而是 **39 度 54.4074 分**（ddmm.mmmm 格式）。地图应用需要的是十进制度 39.906790°。谁来完成这步换算？你的 C 程序。
+
+换算公式只有三步，每一步都依赖上一步的结果——顺序结构天生适合表达这种"流水线计算"：
+
+1. **取度**：`deg = (int)(raw / 100)` —— 强制类型转换把 39.544074 截断成 39；
+2. **取分**：`min = raw - deg * 100` —— 减去"度"的部分，剩下 54.4074 分；
+3. **合成**：`dec = deg + min / 60` —— 1 度 = 60 分，把分折算回度。
+
+## 一步一步看换算流水线
+
+<CStepRunner
+  client:visible
+  title="顺序执行模拟：ddmm.mmmm → 十进制度"
+  code={`#include <stdio.h>
+
+int main(void) {
+    double raw = 3954.4074;
+    int    deg = (int)(raw / 100.0);
+    double min = raw - deg * 100.0;
+    double dec = deg + min / 60.0;
+    printf("十进制度 = %.6f\\n", dec);
+    return 0;
+}`}
+  steps={[
+    { line: 2, desc: '程序入口，准备开始换算流水线。' },
+    { line: 3, desc: 'raw 装入 NMEA 原始值 3954.4074（用 double！第 3 章的『精度优先』原则）。', vars: { raw: '3954.4074' } },
+    { line: 4, desc: 'raw/100.0 = 39.544074，強制转换 (int) 截断小数 → deg = 39。这里的截断是我们故意利用的！', vars: { raw: '3954.4074', deg: '39' } },
+    { line: 5, desc: '3954.4074 − 39×100 = 54.4074，分离出"分"。此步依赖上一步算出的 deg——顺序不可换。', vars: { raw: '3954.4074', deg: '39', min: '54.4074' } },
+    { line: 6, desc: '54.4074 ÷ 60 = 0.906790，加上 39 度 → 39.906790°。换算完成！', vars: { raw: '3954.4074', deg: '39', min: '54.4074', dec: '39.906790' } },
+    { line: 7, desc: '输出保留 6 位小数——对应约 0.1 米的分辨率。', out: '十进制度 = 39.906790' },
+    { line: 8, desc: 'return 0，流水线收工。' },
+  ]}
+/>
+
+> 第 4 行的 `(int)` 强制转换是本项目的"题眼"：**同一个语言特性，在矩形面积项目里是陷阱（丢精度），在这里却是工具（取整数部分）**。懂原理的人才能分清什么时候是坑、什么时候是招。
+
+## 动手实验：换算 + float/double 精度对比
+
+<BeidouDmsLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：用 `float` 完成换算，输出 6 位小数，观察哪几位是"假精度"。
+2. **AI 优化进阶版**：让 AI 升级为 `double` 并加上输入校验（分 ≥ 60 应判为非法）。逐行审查：它用 `atof` 还是 `strtod`？（第 3 章 3.6.1 讲过两者的差别。）
+3. **信创加固定稿版**：定义错误码枚举（`NMEA_OK` / `NMEA_ERR_RANGE` …），南纬西经取负，范围校验（纬度 ≤ 90°）。这是能部署到国产 MCU 的版本。
+
+## 素养与思政
+
+从北斗一号"有源定位"到北斗三号全球组网，精度从数十米一路提升到厘米级（RTK）。
+每提升一个数量级，背后都是对**每一位小数的锱铢必较**：星载原子钟 10⁻¹⁴ 的稳定度、地面站毫米级的标校。你今天在 float 与 double 之间的选择，就是这种精度文化在代码里的投影——**大国重器的精度，是一行行"较真"的代码堆出来的**。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="NMEA 值 11623.4404 (E) 换算成十进制度约是？"
+  options={['11623.44°', '116.390673°', '116.234404°', '1162.34°']}
+  answer={1}
+  explain="deg=116，min=23.4404，dec = 116 + 23.4404/60 ≈ 116.390673°。直接把 ddmm.mmmm 当十进制度用是最常见的工程事故。"
+/>
+
+<QuizItem
+  client:visible
+  question="为什么北斗经纬度必须用 double 而不是 float？"
+  options={['double 运算更快', 'float 的 6~7 位有效数字不足以支撑经度 3 位整数 + 6 位小数的精度需求', 'float 不能存负数', '国产 MCU 不支持 float']}
+  answer={1}
+  explain="116.390673 需要约 9 位有效数字，超出 float 的 6~7 位——小数点后几位会变成噪声，定位误差可达百米级。"
+/>

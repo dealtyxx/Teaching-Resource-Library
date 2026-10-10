@@ -1,0 +1,97 @@
+---
+module: 5
+moduleName: 函数
+order: 27
+title: 北斗坐标换算工具函数
+level: 基础必做
+scene: 北斗场景
+knowledge: [函数封装, 参数传递, 复用性]
+stars: 4
+minutes: 90
+goal: 学会工程工具函数的封装方法
+sizheng: 北斗向全球免费开放服务——好的封装本身就是一种开放与共享
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import BeidouCoordFnLab from '../../components/react/BeidouCoordFnLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：同一段逻辑，你已经写过两遍了
+
+第 3 章手写过 NMEA 坐标换算，第 6 章的实训又写了一遍——纬度一份、经度一份，逻辑完全相同。
+这就是**封装**要消灭的"复制粘贴式复用"：
+
+```c
+double nmea_to_deg(double raw);   /* 封装一次 */
+nmea_to_deg(lat);                 /* 调用 N 次 */
+nmea_to_deg(lon);
+```
+
+封装的关键是**参数传递**的机制——C 语言是**值传递**（pass by value）：调用时把实参的**值拷贝**给形参，函数内部操作的是副本。两次调用传入不同的值，同一份代码就产出不同的结果——这就是复用的原理。
+
+## 一步一步看值传递
+
+<CStepRunner
+  client:visible
+  title="值传递模拟：函数里改形参，外面的实参毫发无损"
+  badge="值传递模拟"
+  doneNote="形参 raw 是实参 lat 的副本：函数里 raw 被改成了度数，main 的 lat 依旧是 3954.4074。想让函数修改外部变量？等第 9 章的指针。"
+  code={`#include <stdio.h>
+
+double nmea_to_deg(double raw) {
+    int deg = (int)(raw / 100);
+    raw = deg + (raw - deg * 100) / 60.0;
+    return raw;    /* 改的是副本 */
+}
+
+int main(void) {
+    double lat = 3954.4074;
+    double d = nmea_to_deg(lat);
+    printf("换算=%.4f\\n", d);
+    printf("原值=%.4f\\n", lat);
+    return 0;
+}`}
+  steps={[
+    { line: 9, desc: 'main 的 lat = 3954.4074。', vars: { 'main.lat': '3954.4074' } },
+    { line: 10, desc: '调用发生：lat 的值被【拷贝】给形参 raw——此刻内存里有两个 3954.4074，各归各家。', vars: { 'main.lat': '3954.4074', 'fn.raw': '3954.4074' } },
+    { line: 3, desc: 'deg = (int)(3954.4074/100) = 39。', vars: { 'fn.raw': '3954.4074', 'fn.deg': '39' } },
+    { line: 4, desc: '大胆操作：直接把形参 raw 覆盖成换算结果 39.9068。main 的 lat 会跟着变吗？', vars: { 'fn.raw': '39.9068', 'fn.deg': '39' } },
+    { line: 5, desc: 'return raw——副本的值被带回。', vars: { 'fn.raw': '39.9068' } },
+    { line: 10, desc: '回到 main：d=39.9068。', vars: { 'main.lat': '3954.4074', 'main.d': '39.9068' } },
+    { line: 11, desc: '打印换算结果。', out: '换算=39.9068' },
+    { line: 12, desc: '验证：lat 原值纹丝未动！函数里改的从头到尾都是副本。', out: '原值=3954.4074' },
+  ]}
+/>
+
+## 动手实验：看实参怎么"拷贝"给形参
+
+<BeidouCoordFnLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：封装 `nmea_to_deg` 并用它换算一组北京坐标（纬度+经度各调用一次）。体会"逻辑只写一遍"。
+2. **AI 优化进阶版**：让 AI 增加方向参数 `nmea_to_deg(double raw, char dir)`（S/W 为负）。审查参数顺序设计：值在前、修饰在后是否更顺手？它的非法 dir 处理返回什么？
+3. **信创加固定稿版**：给函数写清"契约注释"（输入范围/输出范围/错误约定），做成可被同学直接调用的 `.h + .c` 工具对（第 8 章多文件的预演）；对比第 3 章信创版，思考哪些防护应该放进函数、哪些留给调用者。
+
+## 素养与思政
+
+北斗系统建成后向全球用户**免费开放**基本导航服务——定位精度、接口协议（ICD 文件）公开发布，全球任何厂商按接口即可接入。这是大国工程的胸怀，也是"封装与接口"的最高示范：**把复杂留给自己，把简单交给世界**。
+你封装的每个工具函数也是一次微型的"开放服务"：接口清晰、文档完备、行为可靠，让同伴调用时不必了解内部实现——工程师的专业与善意，都写在函数签名里。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="C 语言的值传递意味着？"
+  options={['函数能直接修改实参变量', '实参的值被拷贝给形参，函数内对形参的修改不影响实参', '参数传递不占内存', '只有 int 类型能传参']}
+  answer={1}
+  explain="值传递=复印件机制：函数拿到的是数据副本。这保护了调用者的数据，但也意味着函数无法通过参数『改到外面』——第 9 章指针将补上这块拼图。"
+/>
+
+<QuizItem
+  client:visible
+  question="把重复代码封装成函数，最重要的工程收益是？"
+  options={['程序文件更小', '逻辑只存在一份：修 bug、改规则都只改一处，所有调用点自动受益', '运行速度必然更快', '不再需要测试']}
+  answer={1}
+  explain="复制粘贴的代码是 bug 的温床——改了这处忘那处。『单一事实来源』（Single Source of Truth）是软件工程的核心纪律，函数是它的最小实现单元。"
+/>

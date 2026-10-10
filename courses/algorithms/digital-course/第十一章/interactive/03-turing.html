@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>图灵机 · 第11章 计算复杂性</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">11</div>算法可视化 · <span>第11章 计算复杂性</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-easy-hard.html">易解难解</a><a class="pill" href="02-decision.html">判定优化</a><a class="pill active" href="03-turing.html">图灵机</a><a class="pill" href="04-p-np.html">P与NP</a><a class="pill" href="05-classes.html">类关系</a><a class="pill" href="06-reduce.html">归约</a><a class="pill" href="07-npc.html">NPC证明</a><a class="pill" href="08-sat.html">SAT</a><a class="pill" href="09-clique.html">团问题</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 3 · 计算模型</div>
+  <h1>图灵机 · 纸带动画</h1>
+  <p>无限纸带 + 读写头 + 有限状态。算法 ≈ 对任意输入都停机的<strong>确定性图灵机（DTM）</strong>。</p>
+</section>
+
+<div class="objectives">
+  <h3>学习目标</h3>
+  <ol>
+    <li>能够默写图灵机的<b>七元组定义</b> M = (Q, Σ, Γ, δ, q<sub>0</sub>, q<sub>accept</sub>, q<sub>reject</sub>)，并说明每个分量的含义。</li>
+    <li>能够读懂并<b>填写转移函数 δ 的表格</b>，据此手工模拟一台图灵机的运行（以「二进制加一」为例）。</li>
+    <li>能够写出<b>格局（configuration）</b>的表示法，用它描述计算过程。</li>
+    <li>能够说清<b>非确定性图灵机（NTM）</b>与 DTM 的唯一区别：δ 返回的是<b>集合</b>；并解释「存在一条接受路径即接受」的语义。</li>
+    <li>能够论证 <b>NTM ⟺「猜测 + 验证」</b>的等价性，从而理解第 4 节 NP 的两种定义为何一致。</li>
+    <li>能够用<b>步数</b>与<b>纸带格数</b>分别定义时间复杂度与空间复杂度，写出 P = ∪<sub>k</sub> TIME(n<sup>k</sup>)。</li>
+  </ol>
+</div>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="run">▶ 运行（二元加一示意）</button>
+    <button class="btn" id="reset">重置</button>
+    <div class="speed" id="spd">
+      <button data-s="1" class="on">1×</button><button data-s="2">2×</button><button data-s="4">4×</button>
+    </div>
+  </div>
+  <div class="stage-wrap">
+    <canvas class="stage" id="cv" width="1000" height="220"></canvas>
+    <div class="stage-hud">
+      <span class="hud-pill" id="state">q₀</span>
+      <span class="hud-pill" id="hud">就绪</span>
+    </div>
+  </div>
+  <div class="grid grid-2" style="margin-top:14px">
+    <div class="card" style="--accent:linear-gradient(90deg,#C2603F,#4A6C8C);box-shadow:none">
+      <span class="badge" style="background:var(--blueS);color:var(--blue)">DTM</span>
+      <h3>确定性图灵机</h3>
+      <p>每步唯一转移 · 经典刻画 <b>P</b> 类</p>
+    </div>
+    <div class="card" style="--accent:linear-gradient(90deg,#A02C55,#7E62A6);box-shadow:none">
+      <span class="badge violet">NTM</span>
+      <h3>非确定性图灵机</h3>
+      <p>同一格局可有<b>多个</b>后继（δ 返回集合）· 只要<b>存在</b>一条接受路径就接受 · 经典刻画 <b>NP</b></p>
+    </div>
+  </div>
+  <div class="tip">复杂度按<strong>最坏输入</strong>下停机步数（时间）/ 使用格数（空间）度量。</div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>一、图灵机的正式定义（七元组）</h2><span class="sub">Deterministic Turing Machine</span></div>
+  <p class="desc">「算法」这个词在 1936 年之前并没有数学定义。图灵机的意义就在于：它把「机械地一步步算」这件事<b>形式化</b>成了七个集合与一个函数，此后才谈得上「证明某问题没有算法」。</p>
+
+  <div class="defn"><span class="lbl">定义 3.1 · 确定性图灵机（DTM）</span>
+    <p>一台<b>单带确定性图灵机</b>是一个七元组</p>
+  </div>
+  <div class="formula lg">M = (Q, Σ, Γ, δ, q<sub>0</sub>, q<sub>accept</sub>, q<sub>reject</sub>)</div>
+
+  <div class="table-scroll"><table class="data">
+    <tr><th>分量</th><th>名称</th><th>含义</th></tr>
+    <tr><td class="hl">Q</td><td>状态集</td><td>有限个状态的集合，代表「控制器此刻记住了什么」</td></tr>
+    <tr><td class="hl">Σ</td><td>输入字母表</td><td>有限符号集，<b>不含</b>空白符 ⊔（如 Σ = {0, 1}）</td></tr>
+    <tr><td class="hl">Γ</td><td>纸带字母表</td><td>有限符号集，满足 Σ ⊆ Γ 且 ⊔ ∈ Γ；可含运算中用的辅助符号（如 X、#）</td></tr>
+    <tr><td class="hl">δ</td><td>转移函数</td><td>δ : Q × Γ → Q × Γ × {L, R}<br/>读到什么 ⇒ 写什么、变到哪个状态、读写头左移还是右移</td></tr>
+    <tr><td class="hl">q<sub>0</sub></td><td>初始状态</td><td>q<sub>0</sub> ∈ Q，计算从这里开始，读写头位于输入最左端</td></tr>
+    <tr><td class="hl">q<sub>accept</sub></td><td>接受状态</td><td>一旦进入立即停机并输出 yes</td></tr>
+    <tr><td class="hl">q<sub>reject</sub></td><td>拒绝状态</td><td>一旦进入立即停机并输出 no；要求 q<sub>accept</sub> ≠ q<sub>reject</sub></td></tr>
+  </table></div>
+
+  <div class="defn prop"><span class="lbl">定义 3.2 · 格局与计算</span>
+    <p>把「纸带内容 + 状态 + 读写头位置」这三样东西打包，称为一个<b>格局（configuration）</b>，写作 <b>u q v</b>：纸带上从左到右依次是串 uv（其余为 ⊔），当前状态为 q，读写头正指着 v 的<b>第一个</b>符号。若 δ(q, a) = (q′, b, R)，则格局 <b>u q a w</b> 一步转移到 <b>u b q′ w</b>，记作 ⊢。一次<b>计算</b>就是从初始格局 q<sub>0</sub>x 出发的格局序列；含 q<sub>accept</sub> 的格局称接受格局。</p>
+  </div>
+
+  <div class="defn prop"><span class="lbl">定义 3.3 · 判定语言</span>
+    <p>M <b>接受</b>串 x，若从 q<sub>0</sub>x 出发的计算最终进入 q<sub>accept</sub>。M 接受的语言 L(M) = { x | M 接受 x }。若 M 对<b>一切</b>输入都停机（不会无限运行），则称 M <b>判定（decide）</b>语言 L(M)。<b>「算法」= 对所有输入都停机的图灵机</b>——这就是<b>丘奇–图灵论题（Church–Turing thesis）</b>所主张的：任何直观意义上「可机械计算」的东西，都能被图灵机计算。</p>
+  </div>
+
+  <div class="terms">
+    <span class="term"><b>图灵机</b>Turing machine</span>
+    <span class="term"><b>转移函数</b>transition function</span>
+    <span class="term"><b>格局</b>configuration</span>
+    <span class="term"><b>空白符</b>blank ⊔</span>
+    <span class="term"><b>丘奇–图灵论题</b>Church–Turing thesis</span>
+    <span class="term"><b>停机</b>halt</span>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>二、读懂 δ 表：上面动画的「二进制加一」机</h2><span class="sub">A worked δ table</span></div>
+  <p class="desc">上方演示的那台机器，正式写出来就是下面这张表。纸带上写着二进制数 <b>1011</b>，读写头从<b>最低位</b>（最右端）开始，逐位处理进位，得到 <b>1100</b>。</p>
+
+  <div class="formula">M<sub>+1</sub> = ( {q<sub>0</sub>, q<sub>carry</sub>, q<sub>accept</sub>},　Σ = {0, 1},　Γ = {0, 1, ⊔},　δ 如下表,　q<sub>0</sub>,　q<sub>accept</sub>,　q<sub>reject</sub> )</div>
+
+  <div class="table-scroll"><table class="data">
+    <tr><th>当前状态 q</th><th>读到符号 a</th><th>δ(q, a) = (新状态, 写入, 移动)</th><th>直观含义</th></tr>
+    <tr><td>q<sub>0</sub></td><td>1</td><td class="hl">(q<sub>carry</sub>, 0, L)</td><td>1 + 1 = 10：本位写 0，产生进位，左移</td></tr>
+    <tr><td>q<sub>0</sub></td><td>0</td><td class="hl">(q<sub>accept</sub>, 1, S)</td><td>0 + 1 = 1：本位写 1，无进位，完成</td></tr>
+    <tr><td>q<sub>carry</sub></td><td>1</td><td class="hl">(q<sub>carry</sub>, 0, L)</td><td>1 + 进位：写 0，进位继续向左传</td></tr>
+    <tr><td>q<sub>carry</sub></td><td>0</td><td class="hl">(q<sub>accept</sub>, 1, S)</td><td>0 + 进位：写 1，进位被吸收，完成</td></tr>
+    <tr><td>q<sub>carry</sub></td><td>⊔</td><td class="hl">(q<sub>accept</sub>, 1, S)</td><td>最高位还要进位：在左侧补一个 1（如 111 → 1000）</td></tr>
+  </table></div>
+  <p class="desc">注：演示里为了画面整洁，把纸带预填成 0 而非 ⊔，因此第 5 行在动画中表现为「读到 0 就写 1 停机」。标准图灵机用 ⊔ 表示空白格。表里的 S 表示原地不动（stay）；只允许 L/R 的教科书版本可用「先 R 再 L」两步等价实现，不影响复杂度的多项式量级。</p>
+
+  <div class="deriv">
+    <span class="step">q<sub>0</sub> 指着最低位：1 0 1 <b>1</b>　格局 101 q<sub>0</sub> 1 <span class="why">初始</span></span>
+    <span class="step">δ(q<sub>0</sub>,1) = (q<sub>carry</sub>,0,L)：1 0 <b>1</b> 0 <span class="why">写 0，进位</span></span>
+    <span class="step">δ(q<sub>carry</sub>,1) = (q<sub>carry</sub>,0,L)：1 <b>0</b> 0 0 <span class="why">写 0，进位继续</span></span>
+    <span class="step">δ(q<sub>carry</sub>,0) = (q<sub>accept</sub>,1,S)：1 <b>1</b> 0 0 <span class="why">写 1，停机</span></span>
+    <span class="step">结果 1011 + 1 = <b>1100</b>，用了 3 步，访问了 3 个纸带格 <span class="why">时间 / 空间</span></span>
+  </div>
+
+  <div class="code"><span class="cm">// 把 δ 表写成代码，就是上方动画的核心循环（等价于一台 DTM）</span>
+<span class="kw">while</span> (<span class="kw">true</span>) {
+    <span class="kw">char</span> a = tape[head];              <span class="cm">// 读</span>
+    <span class="kw">if</span> (q == Q0 &amp;&amp; a == <span class="st">'1'</span>) { tape[head] = <span class="st">'0'</span>; q = CARRY;  head--; }
+    <span class="kw">else</span> <span class="kw">if</span> (q == CARRY &amp;&amp; a == <span class="st">'1'</span>) { tape[head] = <span class="st">'0'</span>; q = CARRY;  head--; }
+    <span class="kw">else</span> { tape[head] = <span class="st">'1'</span>; q = ACCEPT; <span class="kw">break</span>; }   <span class="cm">// 读到 0 或 ⊔</span>
+}
+<span class="cm">// 每轮循环 = 一步转移；循环次数 = 时间；head 走过的格子数 = 空间</span></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>三、非确定性图灵机 NTM：把「唯一后继」换成「一堆后继」</h2><span class="sub">Nondeterministic Turing Machine</span></div>
+  <p class="desc">NTM 与 DTM 的区别<b>只有一处</b>：转移函数的值域。别的（纸带、读写头、状态、格局）一模一样。</p>
+
+  <div class="defn"><span class="lbl">定义 3.4 · 非确定性图灵机（NTM）</span>
+    <p>NTM 的七元组与 DTM 完全相同，唯独转移函数改为返回一个<b>集合</b>：</p>
+  </div>
+  <div class="formula lg">DTM：δ : Q × Γ → Q × Γ × {L, R}<br/>NTM：δ : Q × Γ → <b>P</b>( Q × Γ × {L, R} )</div>
+  <p class="desc">P(·) 表示<b>幂集</b>。也就是说，处在同一个格局、读到同一个符号时，NTM 可以有 0 个、1 个或<b>多个</b>合法的下一步。于是计算不再是一条链，而是一棵<b>计算树（computation tree）</b>：根是初始格局，每个结点的孩子是它所有可能的后继。</p>
+
+  <div class="defn prop"><span class="lbl">定义 3.5 · NTM 的接受语义（存在量词）</span>
+    <p>NTM <b>接受</b> x，当且仅当计算树中<b>至少存在一条</b>从根到 q<sub>accept</sub> 的路径。注意这是<b>存在</b>而非「全部」：哪怕 999 条路径都跌进 q<sub>reject</sub>，只要有 1 条路通向接受，整台机器就判 yes。反之，只有当<b>所有</b>路径都拒绝时才判 no。直观上可以理解为：NTM 在分叉处「<b>并行猜测所有分支</b>」，或者说「<b>每次都恰好猜对</b>」。</p>
+  </div>
+
+  <div class="code"><span class="cm">// 计算树示意：判定「4 个数中是否存在子集和 = t」，每层猜一个数选或不选</span>
+                       q0 : 初始格局
+                      /              \
+              选 a1                   不选 a1
+             /      \                /        \
+        选 a2      不选 a2       选 a2       不选 a2
+        /   \       /   \         /  \        /   \
+      ...   ...   ...   ...     ...  ...    ...   ...
+       |     |     |     |       |    |      |     |
+    reject accept reject reject ... reject reject reject
+              ^
+              +--- 只要存在这样一条接受路径，NTM 就接受该输入
+
+<span class="cm">// 树高 = 4（猜 4 次）  ⇒  NTM 的运行时间 = 最短接受路径长度 = O(n)</span>
+<span class="cm">// 树的结点总数 = 2^4 ⇒ DTM 逐条遍历需要 O(2^n) 时间（这就是 P 与 NP 的落差所在）</span></div>
+
+  <div class="defn thm"><span class="lbl">定理 3.1 · NTM ⟺ 「猜测 + 验证」</span>
+    <p>一台多项式时间 NTM 的运行，总可以拆成两个阶段：<b>① 猜测阶段</b>——用非确定性分叉在纸带上写下一个长度为 poly(n) 的串 c（因为多项式步内最多写下多项式个符号）；<b>② 验证阶段</b>——之后完全确定性地检查 (x, c) 是否合法。反过来，给定一个多项式时间验证器 V(x, c)，也能造一台 NTM：先非确定性地逐位猜出 c，再确定性地运行 V。两个方向都是多项式时间的，故二者<b>等价</b>。</p>
+  </div>
+
+  <div class="deriv">
+    <span class="step">NTM 接受 x <span class="why">定义 3.5</span></span>
+    <span class="step">⟺ 计算树中存在一条接受路径 <span class="why">展开</span></span>
+    <span class="step">⟺ 存在一串「分叉选择」c（每个分叉记一次选了第几个后继） <span class="why">路径 ≡ 选择序列</span></span>
+    <span class="step">⟺ 存在 |c| = poly(n) 的串 c，使确定性地沿 c 走会到达 q<sub>accept</sub> <span class="why">poly 步内 |c| 必为 poly</span></span>
+    <span class="step">⟺ 存在证书 c 使验证器 V(x, c) = yes <span class="why">「沿 c 走一遍」就是验证器</span></span>
+    <span class="step">⇒ 第 4 节 NP 的两个定义（NTM 版 / 证书版）是<b>同一件事</b> <span class="why">结论</span></span>
+  </div>
+
+  <div class="tip info"><strong>NTM 是数学工具，不是机器：</strong>现实中造不出 NTM，它也<b>不是</b>并行计算机、更不是量子计算机。它的价值在于把「运气好的时候能多快解出来」这件事写成了严格定义。用 DTM 逐条模拟 NTM 的所有分支（广度优先遍历计算树）是可行的，但时间会从 t 步涨到 <b>b<sup>t</sup></b> 量级（b 为最大分叉数）——目前<b>没有人知道</b>能否把这个指数降为多项式，那正是 P vs NP。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>四、复杂度怎样度量：步数与格数</h2><span class="sub">Time &amp; space measures</span></div>
+
+  <div class="defn"><span class="lbl">定义 3.6 · 时间复杂度</span>
+    <p>设 DTM M 对一切输入都停机。M 的<b>时间复杂度</b>是函数 t(n)：所有长度为 n 的输入中，M 停机前所执行的<b>转移步数</b>的<b>最大值</b>（最坏情况）。对 NTM，t(n) 定义为计算树中<b>最短接受路径</b>的长度（若拒绝，则取树的最大深度）。</p>
+  </div>
+
+  <div class="defn"><span class="lbl">定义 3.7 · 空间复杂度</span>
+    <p>M 的<b>空间复杂度</b>是函数 s(n)：所有长度为 n 的输入中，M 在整个计算过程里<b>访问过的不同纸带格数</b>的最大值。</p>
+  </div>
+
+  <div class="formula">TIME(f(n)) = { L | 存在 O(f(n)) 时间的 DTM 判定 L }　　SPACE(f(n)) = { L | 存在 O(f(n)) 空间的 DTM 判定 L }</div>
+  <div class="formula lg">P = ⋃<sub>k ≥ 1</sub> TIME(n<sup>k</sup>)　　NP = ⋃<sub>k ≥ 1</sub> NTIME(n<sup>k</sup>)</div>
+
+  <div class="table-scroll"><table class="data">
+    <tr><th>度量</th><th>在图灵机上</th><th>在演示动画中</th><th>对应类</th></tr>
+    <tr><td>时间</td><td class="hl">转移步数</td><td>动画播放了几帧转移</td><td>P、NP、EXP</td></tr>
+    <tr><td>空间</td><td class="hl">访问过的纸带格数</td><td>读写头走过几个方格</td><td>L、PSPACE</td></tr>
+  </table></div>
+
+  <div class="defn prop"><span class="lbl">性质 3.1 · 时间与空间的基本关系</span>
+    <p>一步转移最多让读写头移动一格、访问一个新格子，所以 <b>s(n) ≤ t(n) + O(1)</b>：<b>空间永远不会超过时间</b>。反之不然——用 O(n) 空间可以跑很久。由此可得基本包含链：<b>P ⊆ NP ⊆ PSPACE ⊆ EXP</b>。</p>
+  </div>
+
+  <div class="tip"><strong>为什么可以放心用「步数」当复杂度？</strong>因为各种合理模型（单带 / 多带图灵机、RAM、真实 CPU）之间可<b>多项式时间互相模拟</b>：例如 k 带机的 t 步可被单带机在 O(t<sup>2</sup>) 步内模拟。平方是多项式，因此「是不是多项式时间」这件事在模型之间<b>不变</b>——这正是第 1 节所说的健壮性。</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span>
+  <ul>
+    <li>把 NTM 当成「并行计算机」或「量子计算机」。NTM 是<b>纯数学构造</b>，物理上不可实现；量子计算机遵循的是完全不同的（BQP）模型，并<b>没有</b>被证明能解 NPC 问题。</li>
+    <li>误以为 NTM 的接受条件是「所有路径都接受」。恰恰相反：<b>存在一条</b>接受路径即接受（∃ 而非 ∀）；「所有路径都接受」对应的是 co-NP 那一侧的语义。</li>
+    <li>把 NTM 的运行时间算成「计算树的结点数」。它是<b>最短接受路径的长度</b>（树高量级），不是结点总数——正因如此 NTM 才「看上去」比 DTM 快指数倍。</li>
+    <li>忘记 Σ ⊆ Γ 且 ⊔ ∈ Γ、以及 q<sub>accept</sub> ≠ q<sub>reject</sub> 这些定义中的约束条件。</li>
+    <li>混淆「接受语言 L(M)」与「判定语言 L」。接受只要求 yes 实例会停在 q<sub>accept</sub>；<b>判定</b>额外要求对 no 实例也必须停机（不能死循环）。前者对应可枚举（RE），后者才对应「有算法」。</li>
+    <li>用「运行时间」度量却忘了取<b>最坏情况</b>。所有复杂性类都按长度为 n 的输入中的最大值定义。</li>
+  </ul>
+</div>
+
+<div class="summary"><span class="lbl">本节小结</span>
+  <ul>
+    <li>图灵机 = 七元组 <b>M = (Q, Σ, Γ, δ, q<sub>0</sub>, q<sub>accept</sub>, q<sub>reject</sub>)</b>；核心是转移函数 δ : Q × Γ → Q × Γ × {L, R}。</li>
+    <li><b>格局 u q v</b> 把纸带、状态、头位置打包；一次计算就是一串格局的转移序列。</li>
+    <li>「<b>算法</b>」的严格定义 = 对一切输入都<b>停机</b>的 DTM（丘奇–图灵论题）。</li>
+    <li>NTM 与 DTM 唯一的区别是 <b>δ 返回集合</b>（幂集）；接受语义是<b>存在一条</b>接受路径，可理解为「并行猜测所有分支」。</li>
+    <li>NTM 多项式时间 ⟺ <b>多项式长证书 + 多项式时间验证器</b>；这保证了 NP 的两种定义一致。</li>
+    <li>时间 = <b>转移步数</b>，空间 = <b>访问过的纸带格数</b>，均取最坏情况；P = ⋃<sub>k</sub> TIME(n<sup>k</sup>)，且 s(n) ≤ t(n)。</li>
+  </ul>
+</div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>确定性图灵机（DTM）与非确定性图灵机（NTM）在定义上的唯一区别是什么？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>NTM 有无限多条纸带，DTM 只有一条</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>NTM 的转移函数返回<b>集合</b>：δ : Q × Γ → P(Q × Γ × {L,R})，同一格局可有多个后继；其余分量完全相同</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>NTM 的读写头可以任意跳到纸带的任何位置，DTM 只能左右各移一格</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>NTM 每一步都随机决定走哪条分支，因此可能算错</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。NTM 的七元组与 DTM 一字不差，只是 δ 的<b>值域</b>从单个三元组变成了三元组的<b>幂集</b>。A 说的是多带图灵机（与单带多项式等价）；C 说的是随机存取模型；D 错在 NTM <b>不是随机</b>机器——它的接受条件是确定性的逻辑判断「∃ 一条接受路径」，与概率毫无关系（那是概率图灵机 / BPP）。</div>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>一台 NTM 在某输入上的计算树共有 2<sup>n</sup> 个结点，其中恰有 1 条长度为 n 的路径到达 q<sub>accept</sub>，其余全部到达 q<sub>reject</sub>。该 NTM 的运行时间与判定结果是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>时间 O(2<sup>n</sup>)，判定为 reject（因为绝大多数路径都拒绝）</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>时间 O(n)，判定为 accept（存在一条接受路径即接受，时间按最短接受路径计）</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>时间 O(2<sup>n</sup>)，判定为 accept（必须把整棵树遍历完才敢下结论）</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>无法判定，因为接受路径与拒绝路径互相矛盾</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。NTM 的接受语义是<b>存在量词</b>：一条接受路径就够了，多数决不作数（排除 A）。运行时间定义为<b>最短接受路径的长度</b>，即树高 n，而非结点总数（排除 C——那是 DTM <b>模拟</b> NTM 的代价）。D 混淆了「多条路径给出不同结果」与「矛盾」：NTM 的定义本就允许这种情况。</div>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>关于图灵机的时间与空间复杂度，下列说法正确的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>空间可能远大于时间，因为纸带是无限长的</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>s(n) ≤ t(n) + O(1)，因为每步最多访问一个新纸带格；由此可得 P ⊆ PSPACE</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>时间与空间总是相等，一步转移正好用掉一格</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>时间取平均情况，空间取最坏情况</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。纸带虽然无限长，但<b>访问过</b>的格子数受步数限制：t 步最多让读写头移动 t 次，故 s(n) ≤ t(n) + O(1)（排除 A）。反向不成立——原地打转可以在 O(1) 空间里耗掉指数时间，所以 C 也错。D 错在两者<b>都</b>取最坏情况。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="02-decision.html"><span class="dir">← 上一节</span><span class="name">判定优化</span></a><a href="04-p-np.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">P与NP</span></a></div>
+<div class="footer">算法设计与分析 · <b>第11章 计算复杂性</b> · 强交互可视化版<br/>增长 · 归约 · SAT · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(179,69,59,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let tape, head, q, speed=1, busy=false;
+function init(){
+  tape=Array(24).fill('0');
+  // binary 1011 at cells 6..9
+  '1011'.split('').forEach((c,i)=>tape[6+i]=c);
+  head=9; q='q0';
+  draw(); state.textContent=q; hud.textContent='就绪 · 加一示意';
+}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const cellW=40, startX=40, y=100;
+  // tape cells
+  for(let i=0;i<tape.length;i++){
+    const x=startX+i*cellW;
+    ctx.fillStyle=i===head?'rgba(179,69,59,.25)':'rgba(255,255,255,.06)';
+    ctx.strokeStyle=i===head?'#CC7267':'#565046';
+    ctx.lineWidth=i===head?2.5:1;
+    ctx.fillRect(x,y,cellW-4,48);
+    ctx.strokeRect(x,y,cellW-4,48);
+    ctx.fillStyle='#E4E0D4'; ctx.font='bold 18px ui-monospace';
+    ctx.fillText(tape[i], x+12, y+32);
+  }
+  // head
+  const hx=startX+head*cellW+(cellW-4)/2;
+  ctx.fillStyle='#A02C55';
+  ctx.beginPath(); ctx.moveTo(hx,y-8); ctx.lineTo(hx-10,y-28); ctx.lineTo(hx+10,y-28); ctx.closePath(); ctx.fill();
+  ctx.font='12px ui-monospace'; ctx.fillStyle='#E0A79C'; ctx.fillText('读写头', hx-18, y-34);
+  // control box
+  ctx.fillStyle='rgba(126,98,166,.25)'; ctx.strokeStyle='#A992CE';
+  ctx.beginPath(); roundRect(ctx, 40, 20, 160, 48, 10); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#DED0EC'; ctx.font='bold 14px sans-serif'; ctx.fillText('状态 '+q, 60, 50);
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r);
+}
+// increment binary from rightmost
+async function run(){
+  if(busy) return; busy=true;
+  // move left while 1, flip to 0; when 0 flip to 1 halt
+  while(true){
+    state.textContent=q; draw(); hud.textContent='读 '+tape[head];
+    await sleep(450/speed);
+    if(tape[head]==='1'){ tape[head]='0'; q='carry'; head=Math.max(0,head-1); }
+    else { tape[head]='1'; q='halt'; draw(); hud.textContent='停机 · 完成加一'; state.textContent=q; break; }
+  }
+  busy=false;
+}
+spd.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  spd.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); speed=+b.dataset.s;
+});
+run.onclick=run; reset.onclick=init; init();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

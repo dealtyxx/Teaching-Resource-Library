@@ -1,0 +1,324 @@
+---
+chapter: 2
+chapterName: 多线程与多进程编程
+order: 2
+title: 多线程爬虫的效率与伦理边界
+subtitle: 10倍效率与500万赔偿之间——技术可行不等于法律允许
+position: 2.1 多线程编程
+knowledge: [threading模块, 线程池, GIL, robots.txt协议, 请求限速]
+mainDims: [职业伦理, 法治意识]
+subDims: [社会责任, 人文素养]
+minutes: 15
+quote: 技术是工具，人心定善恶——爬虫的边界不在代码里，在法律与良知里
+icon: "🕷️"
+color: "#b45309"
+segments:
+  - { name: 导入, minutes: 2 }
+  - { name: 技术讲解, minutes: 7 }
+  - { name: 思政融入, minutes: 5 }
+  - { name: 互动, minutes: 1 }
+---
+
+import PyStepRunner from '../../components/react/PyStepRunner';
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, CaseFileCard, Callout } from '../../components/react/ui';
+import CrawlerSimLab from '../../components/react/labs/CrawlerSimLab';
+import GilCompareLab from '../../components/react/labs/GilCompareLab';
+
+## 章节定位
+
+本案例落在第 2 章「多线程与多进程编程」的 2.1 节。网络请求属于典型的 I/O 密集型任务——线程大部分时间在等待响应，正好适合用 `threading` 与线程池并发提速。可当同样的 `threading` 技术被用来对一个网站发起成百上千并发请求时，效率的另一面就是破坏。因此本节把 threading 模块、线程池、GIL 这三个知识点，与「职业伦理」「法治意识」直接绑在一起讲：**学会开线程之前，先学会为线程装上刹车。**
+
+## 背景导入：10 倍效率的诱惑与代价
+
+单线程爬虫一次只等一个响应；换成多线程或线程池，数十个请求同时在途，数据采集效率可以提升 10 到 100 倍。电商价格监控、舆情分析、学术数据采集，都建立在这种并发能力之上。
+
+但效率一旦失控，就会越过法律与伦理的边界。下面四个真实判例，是每一个写爬虫的人都该先读一遍的「前车之鉴」。
+
+<CaseFileCard name="今日头条诉趣头条 不正当竞争案" year={2018} tag="不正当竞争" verdict="法院判决趣头条赔偿 500 万元，认定构成不正当竞争">
+趣头条通过爬虫抓取「今日头条」的全站内容并在自家产品中呈现。法院认定：擅自抓取、使用竞争对手投入大量成本形成的数据，破坏了公平竞争秩序。**即使技术上完全可行，也不代表法律允许。**
+</CaseFileCard>
+
+<CaseFileCard name="大众点评诉百度地图 数据抓取案" year={2016} tag="数据权属" verdict="判决百度停止抓取并赔偿">
+百度地图大量抓取「大众点评」的用户评论数据用于自身服务。法院支持大众点评的主张：用户生成内容是平台长期运营积累的成果，**数据权属受法律保护**，不能被随意搬运。
+</CaseFileCard>
+
+<CaseFileCard name="LinkedIn 诉 hiQ 数据抓取案" year="2022 · 美国" tag="公开数据边界" verdict="历经多次上诉，hiQ 最终败诉">
+hiQ 抓取 LinkedIn 上公开的用户资料用于商业分析。案件几经反复，最终确立一条对中国从业者同样有启示的原则：**公开数据 ≠ 可以随意抓取**，未经授权的大规模采集依然可能违法。
+</CaseFileCard>
+
+<CaseFileCard name="12306 抢票插件被封案" year={2018} tag="拒绝服务风险" verdict="12306 封禁相关 IP，工信部介入要求规范抢票软件">
+某抢票软件以极高频率轮询 12306 接口，占用大量服务器资源，引发普通用户投诉。**过度请求本质上就是一种拒绝服务式攻击**，既损害系统稳定，也破坏了购票的公平秩序。
+</CaseFileCard>
+
+<Callout icon="⚠️" tone="amber" title="技术滥用的四种社会危害">
+服务器负载——DDoS 式爬取可致网站瘫痪；数据泄露——爬取手机号、住址等个人隐私；不正当竞争——窃取他人商业数据；破坏公平——抢票插件挤占普通用户的正当权益。
+</Callout>
+
+## 可视化实验
+
+先直观感受「加压」这件事有多危险。下面的模拟器把两个最关键的旋钮交到你手里：并发线程数与请求间隔。请把线程数拉高、间隔调到接近 0，观察服务器压力如何一步步从绿色滑向红色，以及请求日志里 429、403 是怎么涌出来的。
+
+<CrawlerSimLab client:visible />
+
+合规爬虫的基线其实很朴素：线程数 ≤ 5、请求间隔 ≥ 1 秒。守住这条线，压力值就稳稳停在绿色区间；一旦贪图那 10 倍效率而突破它，红色警示条里的 500 万赔偿就不再只是别人的故事。
+
+接下来换一个视角：多线程真的「万能加速」吗？下面这张图对比同一任务在单线程、多线程、多进程下的耗时。切换任务类型，你会发现 Python 的 GIL（全局解释器锁）划出了一条清晰的分界线。
+
+<GilCompareLab client:visible />
+
+**结论**：I/O 密集型任务（如爬虫的网络等待）里，线程在等待时会释放 GIL，多线程能显著提速；而 CPU 密集型任务里，GIL 让线程无法真正并行，多线程甚至比单线程还慢——这时只能靠多进程绕过 GIL。
+
+## 技术讲解
+
+一个「守规矩」的爬虫，和一个「野蛮」的爬虫，代码差别往往只在几行克制。下面是合规爬虫 `EthicalCrawler` 的核心抓取逻辑——它在真正发请求之前，先过了 robots.txt、请求间隔、身份标识、限流响应这四道关。
+
+```python
+import urllib.robotparser
+from time import sleep
+import requests
+
+
+class EthicalCrawler:
+    """符合伦理规范的爬虫：线程数 ≤ 5、请求间隔 ≥ 1 秒、尊重 429"""
+
+    def __init__(self, num_threads=3, delay=1.0):
+        self.num_threads = min(num_threads, 5)   # 线程数封顶，保护对方服务器
+        self.delay = delay                        # 请求间隔（秒）
+        self.robot_parsers = {}
+
+    def can_fetch(self, url):
+        """检查 robots.txt 是否允许抓取该 URL"""
+        from urllib.parse import urlparse
+        base = "{0.scheme}://{0.netloc}".format(urlparse(url))
+        if base not in self.robot_parsers:
+            rp = urllib.robotparser.RobotFileParser()
+            rp.set_url(base + "/robots.txt")
+            try:
+                rp.read()
+            except Exception:
+                return False            # 读不到就保守处理：不抓
+            self.robot_parsers[base] = rp
+        return self.robot_parsers[base].can_fetch("*", url)
+
+    def fetch_url(self, url):
+        # 1. 先查 robots.txt 是否允许抓取
+        if not self.can_fetch(url):
+            print("跳过（robots 禁止）: " + url)
+            return
+        # 2. 主动 sleep，拉开请求间隔，给服务器喘息
+        sleep(self.delay)
+        # 3. 带上表明身份的 User-Agent，声明用途与联系方式
+        headers = {"User-Agent": "EthicalCrawler/1.0 (+mailto:me@example.com)"}
+        resp = requests.get(url, headers=headers, timeout=10)
+        # 4. 尊重 429：对方喊停就退避，而不是硬闯
+        if resp.status_code == 429:
+            print("收到 429，退避 10 秒: " + url)
+            sleep(10)
+            return
+        print("合规抓取成功: " + url + "  状态 " + str(resp.status_code))
+```
+
+下面把 `fetch_url` 的执行过程逐行拆开看。点击「单步执行」，跟着它走完一次克制、合规、可追溯的抓取。
+
+<PyStepRunner
+  client:visible
+  title="合规抓取流程：EthicalCrawler.fetch_url 逐行模拟"
+  fileName="ethical_crawler.py"
+  code={`def fetch_url(self, url):
+    # 1. 先查 robots.txt 是否允许抓取
+    if not self.can_fetch(url):
+        print("跳过（robots 禁止）: " + url)
+        return
+    # 2. 主动 sleep，拉开请求间隔，给服务器喘息
+    sleep(self.delay)
+    # 3. 带上表明身份的 User-Agent
+    headers = {"User-Agent": "EthicalCrawler/1.0 (+mailto:me@example.com)"}
+    resp = requests.get(url, headers=headers, timeout=10)
+    # 4. 尊重 429：对方喊停就退避
+    if resp.status_code == 429:
+        print("收到 429，退避 10 秒: " + url)
+        sleep(10)
+        return
+    print("合规抓取成功: " + url + "  状态 " + str(resp.status_code))`}
+  steps={[
+    { line: 0, desc: '工作线程取到一个待抓取的 URL，进入合规抓取流程。', vars: { url: 'https://shop.example.com/p/1024' } },
+    { line: 2, desc: '第一道关：解析目标站点的 robots.txt，确认该路径是否被 Disallow。robots.txt 是网站所有者的意愿表达，遵守它是职业底线。' },
+    { line: 6, desc: '第二道关：主动 sleep(self.delay)。合规基线是间隔 ≥ 1 秒——给服务器留出喘息，避免形成 DDoS 式压力。', out: '（等待 1.0 秒…）' },
+    { line: 8, desc: '第三道关：带上表明身份的 User-Agent，声明用途与联系方式，而不是伪装成普通浏览器偷偷采集。' },
+    { line: 9, desc: '发起请求。多线程的价值正在这一步：网络等待期间 GIL 被释放，其他线程得以并发工作。' },
+    { line: 11, desc: '第四道关：检查状态码。这次返回 200；若是 429，则会进入分支打印提示并 sleep(10) 退避后再说。', vars: { status_code: '200' } },
+    { line: 15, desc: '正常情况下记录抓取成功——一次克制、合规、可追溯的采集就此完成。', out: '合规抓取成功: https://shop.example.com/p/1024  状态 200' },
+  ]}
+/>
+
+真正的第一道关是 robots.txt。下面这个实验用标准库 `urllib.robotparser` 离线解析一段内联的 robots.txt 文本（用 `parse(lines)` 喂入，不联网），逐个检查 URL 能否抓取。运行它，看看规则是怎样把不同 UA、不同路径分门别类地放行或拦下的。
+
+<PyPlayground
+  client:visible
+  title="robots.txt 解析：谁能抓，谁被拦"
+  height={320}
+  note="rp.parse(lines) 直接解析内联文本，完全离线；真实项目里改用 rp.set_url(...) + rp.read() 读取线上 robots.txt。"
+  code={`import urllib.robotparser
+
+# 把网站的 robots.txt 当作内联字符串（离线解析，不联网）
+robots = """User-agent: *
+Disallow: /admin/
+Disallow: /api/private/
+Disallow: /user/
+Allow: /
+Crawl-delay: 2
+
+User-agent: EvilBot
+Disallow: /"""
+
+rp = urllib.robotparser.RobotFileParser()
+rp.parse(robots.splitlines())   # 用 parse(lines) 喂内联文本
+
+tests = [
+    ("*", "https://demo.com/product/1024"),
+    ("*", "https://demo.com/api/private/orders"),
+    ("*", "https://demo.com/admin/login"),
+    ("EvilBot", "https://demo.com/product/1024"),
+]
+
+print("robots.txt 抓取许可检查")
+print("-" * 42)
+for agent, url in tests:
+    ok = rp.can_fetch(agent, url)
+    flag = "允许 OK " if ok else "禁止 NO "
+    print("[" + agent.rjust(8) + "] " + flag + " " + url)
+
+print("-" * 42)
+print("站点建议抓取间隔 Crawl-delay =", rp.crawl_delay("*"), "秒")
+print("结论：即使数据公开，也要先问过 robots.txt——这是爬虫的第一条职业底线。")`}
+/>
+
+<Callout icon="🔒" tone="blue" title="为什么爬虫适合多线程，密码破解却不适合？">
+关键在 GIL。网络请求是 I/O 密集型：线程在等待响应时会释放 GIL，其他线程趁机干活，所以多线程能提速。而纯计算是 CPU 密集型：GIL 保证同一时刻只有一个线程执行字节码，多线程无法真正并行，想加速只能用多进程绕开 GIL——这正是上面对比图揭示的分界线。
+</Callout>
+
+## 思政引导
+
+<DimCard dim="职业伦理" title="robots.txt 与合理使用">
+  <ul>
+    <li>robots.txt 是网站所有者的意愿表达：其中的 Disallow 明确写着「不希望被爬取」，遵守它是程序员的职业道德。</li>
+    <li>合理使用原则：学术研究、新闻报道可以适度引用，但不能大规模商业化利用，更不能损害原网站的正当利益。</li>
+    <li>身份透明：用 User-Agent 声明自己是谁、为何而来，而不是伪装、隐匿、绕过反爬——技术人的体面，藏在这些细节里。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="法治意识" title="爬虫头顶的四部法律">
+  <ul>
+    <li>《反不正当竞争法》第 12 条：禁止擅自抓取竞争对手数据（今日头条案的判决依据）。</li>
+    <li>《网络安全法》第 44 条：未经授权不得收集个人信息。</li>
+    <li>《数据安全法》：数据采集需遵守合法、正当、必要原则。</li>
+    <li>《个人信息保护法》：禁止以非法方式获取个人信息。</li>
+    <li>三条判例启示：今日头条案——技术可行不等于法律允许；LinkedIn 案——公开数据不等于可随意抓取；12306 案——过度请求等于拒绝服务攻击。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="社会责任" title="合规爬虫的五个硬要求">
+  <ul>
+    <li>保护服务器资源：请求间隔 ≥ 1 秒、线程数 ≤ 5、避免在业务高峰期爬取。</li>
+    <li>尊重限流：收到 429 就退避等待，而不是换 IP 继续硬闯。</li>
+    <li>表明身份：UA 中写清用途与联系方式，让对方能找到你。</li>
+    <li>保护用户隐私：不爬手机号、身份证号等未公开的个人信息，必要时做数据脱敏。</li>
+    <li>你写下的 num_threads 默认值，可能就是别人服务器上的一场雪崩——把责任感写进默认参数里。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="人文素养" title="换位思考与技术向善">
+  <ul>
+    <li>换位思考：如果你的网站被爬垮、你的数据被窃取，你会怎么想？把这一问放在写代码之前。</li>
+    <li>技术是工具，人心定善恶：同样的多线程爬虫，可以窃取商业数据，也可以做疫情数据统计、环境监测等公益之事。</li>
+    <li>克制是一种能力：能写出 50 线程的人很多，愿意把它压到 5 线程的人，才真正理解工程师的分寸。</li>
+  </ul>
+</DimCard>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="c2-d1"
+  question="robots.txt 只是一个没有强制力的文本文件。那么遵守它到底是「法律义务」还是「道德自觉」？违反 robots.txt 一定违法吗？"
+  hints={[
+    'robots.txt 本身不是法律，但它是「意愿的明示」，可作为判断是否「未经授权」的重要参考。',
+    '违反 robots.txt 不必然违法，但叠加过度请求、抓取隐私、商业化利用等情节后，很可能踩中《反不正当竞争法》《网络安全法》。',
+    '把它当作职业自觉：守约不是因为会被罚，而是因为这是同行之间的基本尊重。',
+  ]}
+/>
+
+<DiscussCard
+  client:visible
+  storageKey="c2-d2"
+  question="12306 抢票插件帮普通人抢到了票，看起来是「便民」的。它为什么反而要被封禁和规范？抢票插件的伦理边界在哪里？"
+  hints={[
+    '技术上：高频轮询挤占服务器资源，本质是拒绝服务式冲击，可能拖慢所有人的购票体验。',
+    '公平上：插件用户相当于「插队」，破坏了先到先得的公平秩序，损害了不用插件的多数人。',
+    '边界在于：是否损害系统稳定、是否损害他人正当权益——便利不能建立在对公共资源的透支之上。',
+  ]}
+/>
+
+<DiscussCard
+  client:visible
+  storageKey="c2-d3"
+  question="LinkedIn 案确立了「公开数据 ≠ 可随意抓取」。可数据既然已经公开，抓取它为什么还会侵权？公开数据的使用边界应该怎么划？"
+  hints={[
+    '「能看到」不等于「能批量拿走再商用」：平台对用户生成内容的聚合投入了成本，享有权益。',
+    '规模与用途是关键：个人偶尔查看，与工业级采集后商业变现，性质完全不同。',
+    '还要考虑数据里的个人信息——公开的手机号、履历，未经授权的批量收集同样受《个保法》约束。',
+  ]}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="为什么多线程能大幅加速爬虫（I/O 密集），却几乎无法加速纯计算任务（CPU 密集）？"
+  options={[
+    '因为网络比 CPU 快，所以线程更多',
+    '因为 GIL 在 I/O 等待时被释放，线程可并发；而纯计算时 GIL 只允许一个线程执行字节码',
+    '因为爬虫代码更简单，计算代码更复杂',
+    '因为多线程会自动变成多进程',
+  ]}
+  answer={1}
+  explain="I/O 等待期间线程释放 GIL，其他线程得以并发，所以多线程对爬虫有效；CPU 密集时 GIL 让线程无法真正并行，只能靠多进程绕过它。"
+/>
+
+<QuizItem
+  client:visible
+  question="「今日头条诉趣头条案」判赔 500 万元，对写爬虫的人最核心的启示是？"
+  options={[
+    '只要爬取速度够快就不会被发现',
+    '只要数据是公开的就可以随便抓',
+    '技术上可行不代表法律上允许，擅自抓取竞争对手数据可能构成不正当竞争',
+    '赔偿只针对公司，个人开发者不受约束',
+  ]}
+  answer={2}
+  explain="判决核心正是「技术可行 ≠ 法律允许」。擅自抓取他人投入成本形成的数据、破坏公平竞争，可能触犯《反不正当竞争法》第 12 条。"
+/>
+
+<QuizItem
+  client:visible
+  question="合规爬虫在请求时收到服务器返回的 429 Too Many Requests，正确的做法是？"
+  options={[
+    '立刻更换 IP 和 UA 继续以原速率抓取',
+    '把线程数再翻一倍，尽快抓完',
+    '主动退避、延长等待间隔，尊重服务器的限流指示',
+    '无视它，429 不是错误',
+  ]}
+  answer={2}
+  explain="429 是服务器明确的「请慢一点」。合规爬虫应退避等待（如 sleep 后重试），而不是换皮硬闯——尊重限流是职业伦理，也是规避法律风险的护栏。"
+/>
+
+## 配套资源
+
+- **说课视频（12 分钟）**：多线程爬虫的技术与伦理
+- **教学课件（PPT，30 页）**：多线程原理与 GIL、爬虫法律案例集、robots.txt 协议详解、合规爬虫设计规范
+- **视频素材**：12306 抢票插件争议新闻（3 分钟）、今日头条案庭审视频（5 分钟）
+- **代码示例**：基础多线程爬虫、合规爬虫完整代码、robots.txt 解析器
+- **法律文件**：今日头条案判决书、《反不正当竞争法》第 12 条、《网络安全法》第 44 条
+- **讨论问题（8 个）**：多线程为何适合 I/O 密集型任务？GIL 如何影响多线程性能？robots.txt 的法律效力如何？公开数据能否随意抓取？如何判断爬虫是否违法？抢票插件的伦理边界在哪？如何设计合规爬虫？学术研究中爬虫的使用规范？

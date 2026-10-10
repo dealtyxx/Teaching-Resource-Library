@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>n皇后 · 第5章 回溯法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">05</div>算法可视化 · <span>第5章 回溯法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-trees.html">树类型</a><a class="pill" href="03-powerset.html">幂集</a><a class="pill" href="04-prune.html">剪支</a><a class="pill" href="05-knapsack.html">背包</a><a class="pill" href="06-coloring.html">着色</a><a class="pill" href="07-perm.html">全排列</a><a class="pill active" href="08-nqueens.html">n皇后</a><a class="pill" href="09-opt.html">任务分配</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 8 · 加深</div><h1>n 皇后 · 对角线剪支</h1>
+<p>列排列保证不同列；valid 检查对角线。逐步放置与冲突回退动画。</p></section>
+<div class="grid grid-2">
+  <div class="card">
+    <div class="toolbar">
+      <label>n=<b id="qn">4</b></label><input type="range" id="qr" min="4" max="8" value="4" style="width:120px;accent-color:#6E5691"/>
+      <button class="btn primary" id="anim">▶ 搜索过程</button>
+      <button class="btn" id="sols">轮播解</button>
+    </div>
+    <div style="text-align:center" id="board"></div>
+    <div class="stat-row"><div class="stat"><span>解数</span><b class="p" id="sc">0</b></div><div class="stat"><span>尝试</span><b class="a" id="tryCnt">0</b></div></div>
+  </div>
+  <div class="card">
+    <div class="formula">|q[k]−q[i]| ≠ |i−k|</div>
+    <div class="log" id="log">—</div>
+    <div class="tip">4 皇后两解：{1,3,0,2} 与 {2,0,3,1}（0-based 列）。</div>
+  </div>
+</div>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够把 n 皇后问题<b>建模</b>为解向量 q[0..n&minus;1]，说明"用行下标做维度、列号做取值"如何自动消去行冲突。</li>
+  <li>能够<b>推导并默写</b>对角线冲突的判定式 |q[i]&minus;q[k]| = |i&minus;k|，解释为什么它同时覆盖两条对角线。</li>
+  <li>能够写出 n 皇后的<b>约束函数</b> place()，并说明本问题<b>只有约束函数、没有限界函数</b>的原因。</li>
+  <li>能够<b>对比</b>两种解空间组织：n 叉树（q[i]&isin;{0..n&minus;1}）与排列树（列的排列），指出各自还需检查哪些冲突。</li>
+  <li>能够<b>说出</b>n 皇后解的规模特征（如 4 皇后 2 解、8 皇后 92 解，且解数随 n 非单调）与最坏情况的指数复杂度。</li>
+</ol></div>
+
+<section class="sec"><div class="sec-head"><h2>一、问题建模与三类冲突</h2><span class="sub">行 / 列 / 对角线</span></div>
+
+<div class="defn"><span class="lbl">定义 1 · 解向量</span><p>在 n&times;n 棋盘上放 n 个皇后，使任意两个不在同一行、同一列或同一对角线上。<b>关键建模</b>：既然每行<b>恰好</b>放一个皇后，就用<b>行下标 i 作为解向量的维度</b>，用 <b>q[i] &isin; {0,1,&hellip;,n&minus;1} 表示第 i 行皇后所在的列</b>。这样解就是定长向量 q = (q<sub>0</sub>, &hellip;, q<sub>n-1</sub>)，且"每行一个皇后"被建模<b>天然满足</b>——剩下只需排除<b>列冲突</b>与<b>对角线冲突</b>。</p></div>
+
+<div class="defn"><span class="lbl">定义 2 · 对角线冲突判定</span><p>第 i 行、第 k 行的两个皇后位于坐标 (i, q[i]) 与 (k, q[k])。它们在<b>同一条对角线</b>上，当且仅当"行差的绝对值等于列差的绝对值"：</p></div>
+
+<div class="formula lg">同列：q[i] = q[k]&emsp;&emsp;同对角线：|q[i] &minus; q[k]| = |i &minus; k|</div>
+
+<div class="step">为什么一条式子能同时管两条对角线？<span class="why">主对角线（↘）上 行&minus;列 为常数 &rArr; i&minus;q[i]=k&minus;q[k] &rArr; i&minus;k=q[i]&minus;q[k]；副对角线（↙）上 行+列 为常数 &rArr; i+q[i]=k+q[k] &rArr; i&minus;k=q[k]&minus;q[i]。两种情形合并即 |i&minus;k|=|q[i]&minus;q[k]|。</span></div>
+
+<div class="tip info"><strong>对照演示：</strong>上方公式牌写的正是 <b>|q[k]&minus;q[i]| &ne; |i&minus;k|</b>（不冲突的条件）。放置第 k 行皇后时，只要它与前面每一行都满足该不等式且不同列，即为合法。</div>
+
+<div class="terms">
+  <span class="term"><b>n 皇后</b>n-queens</span>
+  <span class="term"><b>约束函数</b>constraint function</span>
+  <span class="term"><b>可行性剪支</b>feasibility pruning</span>
+  <span class="term"><b>主/副对角线</b>diagonals</span>
+  <span class="term"><b>排列树</b>permutation tree</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、回溯算法与约束函数</h2><span class="sub">只需约束，不需限界</span></div>
+
+<div class="code"><span class="cm">// ── n 皇后 · 逐行放置的回溯算法 ───────────────────</span>
+<span class="cm">// q[i]：第 i 行皇后所在的列；n：皇后数 = 棋盘阶数</span>
+<span class="kw">int</span> n, q[MAXN], cnt = <span class="nu">0</span>;
+
+<span class="kw">bool</span> <span class="fn">place</span>(<span class="kw">int</span> k) {                 <span class="cm">// 约束函数：第 k 行是否与前 k 行冲突</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; k; i++)
+        <span class="kw">if</span> (q[i] == q[k] <span class="kw">||</span> abs(q[i]-q[k]) == abs(i-k))  <span class="cm">// 同列 或 同对角线</span>
+            <span class="kw">return</span> <span class="kw">false</span>;
+    <span class="kw">return</span> <span class="kw">true</span>;
+}
+
+<span class="kw">void</span> <span class="fn">queen</span>(<span class="kw">int</span> k) {                 <span class="cm">// 逐行放置，k 为当前行（扩展结点层次）</span>
+    <span class="kw">if</span> (k &gt;= n) { cnt++; <span class="fn">record</span>(q); <span class="kw">return</span>; }   <span class="cm">// n 行放满 → 得到一个解</span>
+    <span class="kw">for</span> (<span class="kw">int</span> c = <span class="nu">0</span>; c &lt; n; c++) {    <span class="cm">// 枚举第 k 行的每一列</span>
+        q[k] = c;                       <span class="cm">// 做选择</span>
+        <span class="kw">if</span> (<span class="fn">place</span>(k))                   <span class="cm">// 约束剪支：合法才深入</span>
+            <span class="fn">queen</span>(k + <span class="nu">1</span>);              <span class="cm">// 递归放下一行</span>
+    }                                   <span class="cm">// c 循环靠覆盖式赋值 q[k]=c，无需显式撤销</span>
+}</div>
+
+<div class="defn prop"><span class="lbl">性质 · 为什么没有限界函数</span><p>n 皇后是一个<b>判定/枚举</b>问题——目标是"找出所有合法布局"或"找到任一解"，<b>没有目标函数可优化</b>。因此它只需要管"合法不合法"的<b>约束函数</b> place()，而不存在管"值得不值得"的<b>限界函数</b>。限界函数只在带目标函数的<b>最优化问题</b>（如下一节的任务分配、第 6 章的背包/TSP）里才出现。</p></div>
+
+<div class="tip"><strong>两种解空间组织（本页两个按钮的差别）：</strong>「搜索过程」按 q[i]&isin;{0..n&minus;1} 组织成<b>n 叉树</b>，place() 需同时查<b>列冲突和对角线冲突</b>；「轮播解」用<b>交换法</b>把列做成一个排列（排列树），<b>列冲突已被结构性排除</b>，valid() 只需查对角线 |q[k]&minus;q[i]|=i&minus;k。两者殊途同归。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、复杂度与解的规模</h2><span class="sub">指数级 · 解数非单调</span></div>
+
+<div class="deriv">
+  <span class="step">若视作 q[i]&isin;{0..n&minus;1} 的 n 叉树，结点上界 O(n<sup>n</sup>) <span class="why">深度 n、每层 n 个分支</span></span>
+  <span class="step">列冲突约束把"可延伸到叶子"的路径压到列的排列，即至多 n! 条 <span class="why">不同列 &hArr; 列号是一个排列</span></span>
+  <span class="step">对角线约束在 n! 之上进一步剪支，实际访问结点远少于 n! <span class="why">大量部分布局提前被判死</span></span>
+  <span class="step">每个结点 place() 检查 O(n)，故最坏时间 O(n&middot;n!) 量级，随 n 指数增长 <span class="why">剪支只降常数与实际结点数，不改指数阶</span></span>
+  <span class="step">空间 O(n)：只存一条根到当前行的路径 q[] 与递归栈 <span class="why">回溯法的固有优势</span></span>
+</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>n</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th></tr>
+  <tr><td>不同解个数</td><td class="hl">2</td><td>10</td><td class="hl">4</td><td>40</td><td class="hl">92</td></tr>
+</table></div>
+
+<div class="tip warn"><strong>注意解数的非单调：</strong>6 皇后只有 <b>4</b> 个解，反而少于 5 皇后的 <b>10</b> 个。解的数量由对角线约束的组合结构决定，<b>不随 n 单调增长</b>；不能想当然认为"棋盘越大解越多"。8 皇后的 <b>92</b> 解是最常考的数字（其中本质不同的只有 12 个，其余为旋转/镜像）。</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>对角线判定写错。</b>正确式是 <b>|q[i]&minus;q[k]| = |i&minus;k|</b>（行差绝对值 = 列差绝对值）。漏掉绝对值就只判了一条对角线，会漏掉另一条方向上的冲突。</li>
+  <li><b>误以为 n 皇后需要限界函数。</b>它是求可行解/全部解的问题，<b>没有目标函数</b>，只用约束函数 place()；把它和最优化问题混为一谈是概念性错误。</li>
+  <li><b>用排列树时还去重复查同列。</b>交换法生成列的排列已<b>结构性保证不同列</b>，此时只需查对角线；若用 n 叉树组织，才必须同时查列与对角线。</li>
+  <li><b>"找一个解"与"找全部解"的收尾写反。</b>找任一解时递归应<b>短路返回</b>（<code>if(...&&dfs(k+1)) return true;</code>）；找全部解时到叶子只 <code>cnt++/record</code> 后 <b>return 继续枚举</b>，不可提前 return true。</li>
+  <li><b>认为解数随 n 单调递增。</b>反例：6 皇后 4 解 &lt; 5 皇后 10 解。解数由组合结构决定，非单调。</li>
+  <li><b>断言剪支把复杂度降为多项式。</b>最坏情况仍是指数级；总能构造使约束很晚才触发的规模，剪支只改善实际结点数与常数因子。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li><b>建模</b>：q[i]=第 i 行皇后的列号，行冲突被"每行一个"天然消去，只剩列冲突 q[i]=q[k] 与对角线冲突 |q[i]&minus;q[k]|=|i&minus;k|。</li>
+  <li><b>对角线判定</b>一式两用：主对角线 行&minus;列 恒定、副对角线 行+列 恒定，合并即 |i&minus;k|=|q[i]&minus;q[k]|。</li>
+  <li><b>只用约束函数 place()、无限界函数</b>：n 皇后是枚举/判定问题，无目标函数可优化。</li>
+  <li>解空间可组织成 <b>n 叉树</b>（查列+对角线）或 <b>排列树</b>（列冲突自动排除，只查对角线）；时间最坏指数级，空间仅 O(n)。</li>
+  <li>解数<b>非单调</b>：4&rarr;2、5&rarr;10、6&rarr;4、7&rarr;40、8&rarr;92（8 皇后 92 解须记牢）。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>第 2 行皇后在第 5 列、第 5 行皇后在第 8 列（下标从 0 计，即 i=2,q[i]=5 与 k=5,q[k]=8）。这两个皇后是否冲突？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>不冲突，列号 5≠8，行号 2≠5</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>冲突，因为 |q[i]−q[k]|=|5−8|=3=|2−5|=|i−k|，在同一对角线上</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>不冲突，因为对角线只看 q[i]+q[k] 是否相等</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>无法判断，还需要知道棋盘阶数 n</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。虽然不同行、不同列，但 |i&minus;k|=|2&minus;5|=3，|q[i]&minus;q[k]|=|5&minus;8|=3，两者相等，说明二者行差等于列差，位于<b>同一条对角线</b>，冲突。A 只查了行、列忽略了对角线；C 把判定式记成"列号之和相等"是错的（正确是行差绝对值=列差绝对值）；D 错在对角线判定与 n 无关，只看两皇后的相对坐标。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>关于 n 皇后回溯算法中的剪支函数，正确的说法是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>既要用约束函数排除冲突，也要用限界函数剪掉"皇后个数偏少"的分支</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>只需约束函数 place()；n 皇后无目标函数，不存在限界函数</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>只需限界函数，约束由排列树结构自动完成，无需额外判断</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>约束函数和限界函数在 n 皇后里是同一个函数的两个名字</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。限界函数用于<b>最优性剪支</b>，只在有目标函数的<b>最优化</b>问题里出现；n 皇后要"找出所有合法布局"，没有任何值要最大化或最小化，因此<b>不存在</b>限界函数，只有做可行性剪支的约束函数 place()。A、D 都错把限界函数强加进来；C 错在即便用排列树也仍需 valid() 查对角线冲突，约束判断不能省。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>用交换法把列做成排列来求 n 皇后（本页"轮播解"按钮的做法），下列判断正确的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>此时约束函数需同时检查列冲突与对角线冲突</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>列冲突被排列结构自动排除，约束函数只需检查对角线冲突</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>排列树的叶子数是 n<sup>n</sup>，比 n 叉树更多</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>用排列树后就不再需要撤销现场</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。交换法生成的是列号的一个<b>排列</b>，任意两行的列号必然不同，<b>列冲突被结构性排除</b>，故 valid() 只剩下检查对角线 |q[k]&minus;q[i]|=i&minus;k 一项。A 多此一举；C 说反了——排列树叶子是 n!，<b>少于</b> n 叉树的 n<sup>n</sup>；D 错在交换法修改共享数组 q[]，swap 后必须换回，撤销不可省。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="07-perm.html"><span class="dir">← 上一节</span><span class="name">全排列</span></a><a href="09-opt.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">任务分配</span></a></div>
+<div class="footer">算法设计与分析 · <b>第5章 回溯法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(110,86,145,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+function valid(q,i){ for(let k=0;k<i;k++) if(Math.abs(q[k]-q[i])===i-k) return false; return true; }
+function draw(q,n,attack=null){
+  let h=`<div class="board" style="grid-template-columns:repeat(${n},36px)">`;
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++){
+    const light=(i+j)%2===0, isQ=q&&q[i]===j, att=attack&&attack.has(i*n+j);
+    h+=`<div class="sq ${light?'light':'dark'} ${isQ?'q':''} ${att?'att':''}">${isQ?'♛':''}</div>`;
+  }
+  board.innerHTML=h+'</div>';
+}
+function solve(n){
+  const out=[], q=[...Array(n).keys()];
+  function dfs(i){
+    if(i>=n){ out.push(q.slice()); return; }
+    for(let j=i;j<n;j++){ [q[i],q[j]]=[q[j],q[i]]; if(valid(q,i)) dfs(i+1); [q[i],q[j]]=[q[j],q[i]]; }
+  }
+  dfs(0); return out;
+}
+qr.oninput=()=>{ qn.textContent=qr.value; draw(null,+qr.value); };
+anim.onclick=async()=>{
+  const n=+qr.value; const q=Array(n).fill(-1); let tries=0;
+  async function dfs(row){
+    if(row>=n){ sc.textContent=(+sc.textContent||0)+1; return true; }
+    for(let c=0;c<n;c++){
+      tries++; tryCnt.textContent=tries; q[row]=c;
+      let ok=true; for(let k=0;k<row;k++) if(q[k]===c||Math.abs(q[k]-c)===row-k) ok=false;
+      draw(q,n); log.textContent=`行${row} 试列${c} ${ok?'✓':'✗对角线/列冲突'}`; await sleep(200);
+      if(ok && await dfs(row+1)) return true;
+      q[row]=-1;
+    }
+    return false;
+  }
+  sc.textContent=0; await dfs(0); draw(q,n); log.textContent+='\\n找到一个解';
+};
+sols.onclick=async()=>{
+  const n=+qr.value; const S=solve(n); sc.textContent=S.length;
+  for(const q of S){ draw(q,n); log.textContent='['+q.join(',')+']'; await sleep(800); }
+};
+draw(null,4);
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

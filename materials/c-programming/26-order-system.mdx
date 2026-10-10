@@ -1,0 +1,101 @@
+---
+module: 5
+moduleName: 函数
+order: 26
+title: 自助点餐系统（模块化）
+level: 基础必做
+scene: 生活应用
+knowledge: [多函数拆分, 功能模块化]
+stars: 4
+minutes: 100
+goal: 理解模块化程序设计思想
+sizheng: 一人一岗、各司其职——模块化是现代分工写进代码的样子
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import OrderSystemLab from '../../components/react/OrderSystemLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：把 200 行的 main 拆成 6 个函数
+
+真实的点餐机要做的事：显示菜单、加菜、撤单、算钱、打折、出票。全塞进 main 里就是 200 行"面条代码"——改打折规则时，你得在面条堆里找那三行。
+
+**模块化设计**的做法是：按职责拆函数，每个函数**只做一件事**：
+
+```
+main() 只当总调度：
+  show_menu() → add_item() → calc_total()
+  → apply_discount() → print_receipt()
+```
+
+好处立竿见影：改折扣只动 `apply_discount`；测试算钱只调 `calc_total`；换打印格式只碰 `print_receipt`。**改动被"关"在函数边界内**，这就是低耦合。
+
+## 一步一步看 main 当总调度
+
+<CStepRunner
+  client:visible
+  title="模块化模拟：一次点餐的函数接力"
+  badge="多函数协作模拟"
+  doneNote="main 只有 5 行调用，却完成了全部业务——每个函数各管一段，像接力赛的四棒。这就是『main 做调度、函数做事情』的模块化骨架。"
+  code={`#include <stdio.h>
+
+int  calc_total(int cnt, int price) {
+    return cnt * price;
+}
+int  apply_discount(int total) {
+    return total >= 30 ? total - 5 : total;
+}
+void print_receipt(int pay) {
+    printf("应付:%d元\\n", pay);
+}
+
+int main(void) {
+    int total = calc_total(2, 18);
+    int pay = apply_discount(total);
+    print_receipt(pay);
+    return 0;
+}`}
+  steps={[
+    { line: 13, desc: 'main 开工：先喊 calc_total 算钱（2 份 18 元的牛肉面）。', vars: {} },
+    { line: 3, desc: 'calc_total 接棒：2×18=36，return 交回。它不知道也不关心什么折扣——不归它管。', vars: { 'calc.cnt': '2', 'calc.price': '18' } },
+    { line: 13, desc: '回到 main：total=36。第一棒完成。', vars: { 'main.total': '36' } },
+    { line: 14, desc: '第二棒：apply_discount(36)。', vars: { 'main.total': '36' } },
+    { line: 6, desc: '36 大于等于 30，满减触发：返回 31。折扣规则只活在这一个函数里。', vars: { 'disc.total': '36' } },
+    { line: 14, desc: '回到 main：pay=31。', vars: { 'main.pay': '31' } },
+    { line: 15, desc: '第三棒：print_receipt(31)——它只管打印，不管钱怎么算出来的。', vars: { 'main.pay': '31' } },
+    { line: 9, desc: '小票打出。三个函数各司其职，main 全程只发号施令。', out: '应付:31元' },
+  ]}
+/>
+
+## 动手实验：点一餐，看函数分工
+
+<OrderSystemLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：实现 6 个函数版点餐系统。动手前先画"函数分工表"：函数名/输入/输出/职责一句话——写不出一句话职责的函数，说明拆分有问题。
+2. **AI 优化进阶版**：让 AI 增加"会员9折（与满减不叠加，取更优）"。审查它把新逻辑放进了哪个函数？如果它改了 calc_total，就违反了单一职责——折扣的事归 apply_discount。
+3. **信创加固定稿版**：把菜单数据（名称/价格）从代码里分离成 const 数组统一维护；函数间只传必要参数（避免全局变量满天飞）；为 calc_total 写 3 个测试用例（空车/单品/多品）。
+
+## 素养与思政
+
+一部 C919 大飞机有 600 万个零部件，来自 22 个省市的上千家供应商——机翼归机翼、航电归航电，接口标准定义清楚，各自把各自做到极致。
+**现代工程的伟力不在个人全能，而在分工协作**。模块化编程就是这套文明成果在代码里的映射：函数各司其职、接口清晰承诺，你的 6 个小函数与 600 万个零件遵循的是同一条组织学原理。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="『一个函数只做一件事』的直接好处是？"
+  options={['代码行数更少', '修改某项规则时只动对应函数，影响被隔离在边界内；函数还能被单独测试和复用', '程序运行更快', '不需要写注释了']}
+  answer={1}
+  explain="单一职责的价值在『变化来临时』兑现：改折扣不碰算钱，测算钱不用点菜。低耦合让改动局部化——大型软件能被维护的根本原因。"
+/>
+
+<QuizItem
+  client:visible
+  question="模块化拆分后，main 函数的理想角色是？"
+  options={['包揽所有计算', '尽量为空', '总调度：按业务顺序调用各函数、传递中间结果，自身几乎不含业务逻辑', '只写注释']}
+  answer={2}
+  explain="main 像乐队指挥：不演奏任何乐器，但决定谁在何时出场。读 main 就能看懂业务流程——这是模块化程序『自文档化』的境界。"
+/>

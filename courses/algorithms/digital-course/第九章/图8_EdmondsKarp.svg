@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="792" viewBox="0 0 1400 792" font-family="'Noto Sans SC','Source Han Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif">
+<rect x="0" y="0" width="1400" height="792" fill="#f9f9f7"/>
+<defs>
+<marker id="arr" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#52514e"/>
+</marker>
+<marker id="arrB" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#2a78d6"/>
+</marker>
+<marker id="arrO" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#eb6834"/>
+</marker>
+<marker id="arrG" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#127a56"/>
+</marker>
+<marker id="arrM" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+  <path d="M1,1 L8,4.5 L1,8 Z" fill="#898781"/>
+</marker>
+</defs>
+<text x="700.0" y="60" font-size="36" fill="#0b0b0b" font-weight="700" text-anchor="middle"   >Edmonds-Karp 算法</text>
+<text x="700.0" y="94" font-size="18" fill="#898781" font-weight="normal" text-anchor="middle"   >用 BFS 每次找「边数最少」的增广路径（9.3.3）</text>
+<text x="1360" y="40" font-size="13" fill="#898781" font-weight="normal" text-anchor="end"   >算法设计与分析 · 第9章 图算法</text>
+<rect x="40" y="128" width="700" height="616" fill="#ffffff" stroke="#e1e0d9" stroke-width="1.5" rx="16" opacity="1" />
+<text x="66" y="168" font-size="22" fill="#0b0b0b" font-weight="700" text-anchor="start"   >核心改进：BFS 最短增广路径</text>
+<rect x="64" y="186" width="652" height="88" fill="#e9f7f1" stroke="#a9e0cb" stroke-width="1.3" rx="12" opacity="1" />
+<text x="80" y="212" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   >Ford-Fulkerson 用 DFS 找任意增广路径，路径可能很长，</text>
+<text x="80" y="234" font-size="12.5" fill="#b0491d" font-weight="700" text-anchor="start"   >迭代次数依赖最大流量 f* → O(e·f*)，流量大时很慢。</text>
+<text x="80" y="258" font-size="12.5" fill="#127a56" font-weight="700" text-anchor="start"   >Edmonds-Karp 每次用 BFS 找边数最少的增广路径 → 与 f* 无关。</text>
+<text x="80" y="306" font-size="12.5" fill="#0b0b0b" font-weight="700" text-anchor="start"   >BFS 分层（从 S 逐层扩展，先到 T 的即最短增广路径）</text>
+<rect x="104" y="338" width="92" height="190" fill="#fbfbfa" stroke="#eeeee8" stroke-width="1" rx="10" opacity="1" />
+<text x="150" y="356" font-size="11" fill="#898781" font-weight="700" text-anchor="middle"   >第0层</text>
+<rect x="274" y="338" width="92" height="190" fill="#fbfbfa" stroke="#eeeee8" stroke-width="1" rx="10" opacity="1" />
+<text x="320" y="356" font-size="11" fill="#898781" font-weight="700" text-anchor="middle"   >第1层</text>
+<rect x="444" y="338" width="92" height="190" fill="#fbfbfa" stroke="#eeeee8" stroke-width="1" rx="10" opacity="1" />
+<text x="490" y="356" font-size="11" fill="#898781" font-weight="700" text-anchor="middle"   >第2层</text>
+<rect x="604" y="338" width="92" height="190" fill="#fbfbfa" stroke="#eeeee8" stroke-width="1" rx="10" opacity="1" />
+<text x="650" y="356" font-size="11" fill="#898781" font-weight="700" text-anchor="middle"   >第3层</text>
+<path d="M 170.30080978509176 422.62625623335805 L 295.8323693034622 389.3973140079071" stroke="#c3c2b7" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrM)" />
+<path d="M 170.30080978509176 433.37374376664195 L 295.8323693034622 466.6026859920929" stroke="#c3c2b7" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrM)" />
+<path d="M 341.0 383.0 L 465.0 383.0" stroke="#c3c2b7" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrM)" />
+<path d="M 338.5595462432883 392.8256421287997 L 467.90530209132345 461.3028069895242" stroke="#c3c2b7" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrM)" />
+<path d="M 341.0 473.0 L 465.0 473.0" stroke="#c3c2b7" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrM)" />
+<path d="M 510.2156697432319 388.68565711528396 L 625.9337264961525 421.2313605770429" stroke="#c3c2b7" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrM)" />
+<path d="M 510.2156697432319 467.31434288471604 L 625.9337264961525 434.7686394229571" stroke="#c3c2b7" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrM)" />
+<path d="M 170.30080978509176 433.37374376664195 L 295.8323693034622 466.6026859920929" stroke="#127a56" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrG)" />
+<path d="M 341.0 473.0 L 465.0 473.0" stroke="#127a56" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrG)" />
+<path d="M 510.2156697432319 467.31434288471604 L 625.9337264961525 434.7686394229571" stroke="#127a56" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrG)" />
+<circle cx="150" cy="428.0" r="21" fill="#3a2e86" stroke="#3a2e86" stroke-width="2" opacity="1"/>
+<text x="150" y="433.0" font-size="13" fill="#fff" font-weight="700" text-anchor="middle"   >0</text>
+<circle cx="320" cy="383.0" r="21" fill="#e9f7f1" stroke="#127a56" stroke-width="2" opacity="1"/>
+<text x="320" y="388.0" font-size="13" fill="#127a56" font-weight="700" text-anchor="middle"   >1</text>
+<circle cx="320" cy="473.0" r="21" fill="#e9f7f1" stroke="#127a56" stroke-width="2" opacity="1"/>
+<text x="320" y="478.0" font-size="13" fill="#127a56" font-weight="700" text-anchor="middle"   >2</text>
+<circle cx="490" cy="383.0" r="21" fill="#e9f7f1" stroke="#127a56" stroke-width="2" opacity="1"/>
+<text x="490" y="388.0" font-size="13" fill="#127a56" font-weight="700" text-anchor="middle"   >3</text>
+<circle cx="490" cy="473.0" r="21" fill="#e9f7f1" stroke="#127a56" stroke-width="2" opacity="1"/>
+<text x="490" y="478.0" font-size="13" fill="#127a56" font-weight="700" text-anchor="middle"   >4</text>
+<circle cx="650" cy="428.0" r="21" fill="#b0491d" stroke="#b0491d" stroke-width="2" opacity="1"/>
+<text x="650" y="433.0" font-size="13" fill="#fff" font-weight="700" text-anchor="middle"   >5</text>
+<text x="150" y="396.0" font-size="11" fill="#3a2e86" font-weight="700" text-anchor="middle"   >S</text>
+<text x="650" y="396.0" font-size="11" fill="#b0491d" font-weight="700" text-anchor="middle"   >T</text>
+<text x="80" y="550" font-size="12" fill="#127a56" font-weight="700" text-anchor="start"   >绿色即一条边数最少（3 条边）的增广路径，如 0→2→4→5。</text>
+<rect x="64" y="572" width="652" height="148" fill="#fbfbfa" stroke="#e1e0d9" stroke-width="1.3" rx="12" opacity="1" />
+<text x="80" y="598" font-size="13" fill="#0b0b0b" font-weight="700" text-anchor="start"   >为什么更快？</text>
+<text x="80" y="622" font-size="12" fill="#52514e" font-weight="normal" text-anchor="start"   >• 可证明：每轮 BFS 找到的最短增广路径长度单调不减。</text>
+<text x="80" y="644" font-size="12" fill="#52514e" font-weight="normal" text-anchor="start"   >• 每条边成为「瓶颈」的次数为 O(n)，边数 2e。</text>
+<text x="80" y="666" font-size="12" fill="#52514e" font-weight="normal" text-anchor="start"   >• 故增广总次数为 O(n·e)，每次 BFS 为 O(e)。</text>
+<text x="80" y="694" font-size="12.5" fill="#127a56" font-weight="700" text-anchor="start"   >→ 总时间复杂度 O(n·e²)，与最大流量 f* 无关。</text>
+<rect x="760" y="128" width="600" height="616" fill="#ffffff" stroke="#e1e0d9" stroke-width="1.5" rx="16" opacity="1" />
+<text x="786" y="168" font-size="22" fill="#0b0b0b" font-weight="700" text-anchor="start"   >BFS 找增广路径</text>
+<rect x="784" y="186" width="552" height="250" fill="#fbfbfa" stroke="#e1e0d9" stroke-width="1.3" rx="12" opacity="1" />
+<text x="800" y="212" font-size="13" fill="#0b0b0b" font-weight="700" text-anchor="start"   >bfs()：返回是否存在增广路径</text>
+<text x="800" y="238" font-size="11.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">path[]=-1; qu.push(S);</text>
+<text x="800" y="256" font-size="11.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">while (!qu.empty()) {</text>
+<text x="800" y="274" font-size="11.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">  u = qu.front(); qu.pop();</text>
+<text x="800" y="292" font-size="11.5" fill="#b0491d" font-weight="700" text-anchor="start"   font-family="ui-monospace,monospace">  if (u==T) break;</text>
+<text x="800" y="310" font-size="11.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">  for (每条剩余边 &lt;u,v&gt;, flow&gt;0)</text>
+<text x="800" y="328" font-size="11.5" fill="#127a56" font-weight="700" text-anchor="start"   font-family="ui-monospace,monospace">    if (path[v]==-1) {   // v 未访问</text>
+<text x="800" y="346" font-size="11.5" fill="#127a56" font-weight="700" text-anchor="start"   font-family="ui-monospace,monospace">      path[v] = 该边下标;</text>
+<text x="800" y="364" font-size="11.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">      qu.push(v);</text>
+<text x="800" y="382" font-size="11.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">    }</text>
+<text x="800" y="400" font-size="11.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">}</text>
+<text x="800" y="418" font-size="11.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">return path[T] != -1;</text>
+<rect x="784" y="448" width="552" height="76" fill="#f6f4fb" stroke="#cbc4ee" stroke-width="1.2" rx="12" opacity="1" />
+<text x="800" y="474" font-size="13" fill="#4a3aa7" font-weight="700" text-anchor="start"   >增广（沿 path 反向遍历）</text>
+<text x="800" y="498" font-size="12" fill="#52514e" font-weight="normal" text-anchor="start"   >求 delta = 路径最小剩余容量；</text>
+<text x="800" y="518" font-size="12" fill="#4a3aa7" font-weight="700" text-anchor="start"   >正向边 flow−delta，反向边 flow+delta。</text>
+<rect x="784" y="536" width="552" height="184" fill="#fff7f2" stroke="#f3c1ac" stroke-width="1.3" rx="12" opacity="1" />
+<text x="800" y="562" font-size="14" fill="#b0491d" font-weight="700" text-anchor="start"   >与 Ford-Fulkerson 对比</text>
+<line x1="800" y1="574" x2="1320" y2="574" stroke="#f3c1ac" stroke-width="1" stroke-linecap="butt" />
+<text x="800" y="596" font-size="11" fill="#52514e" font-weight="normal" text-anchor="start"   ></text>
+<text x="960" y="596" font-size="11.5" fill="#0b0b0b" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">Ford-Fulkerson</text>
+<text x="1190" y="596" font-size="11.5" fill="#127a56" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">Edmonds-Karp</text>
+<text x="800" y="622" font-size="11.5" fill="#52514e" font-weight="700" text-anchor="start"   >找增广路径</text>
+<text x="960" y="622" font-size="11.5" fill="#52514e" font-weight="middle" text-anchor="start"   font-family="ui-monospace,monospace">DFS（任意）</text>
+<text x="1190" y="622" font-size="11.5" fill="#127a56" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">BFS（最短）</text>
+<text x="800" y="650" font-size="11.5" fill="#52514e" font-weight="700" text-anchor="start"   >迭代次数</text>
+<text x="960" y="650" font-size="11.5" fill="#52514e" font-weight="middle" text-anchor="start"   font-family="ui-monospace,monospace">依赖 f*</text>
+<text x="1190" y="650" font-size="11.5" fill="#127a56" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">O(n·e)</text>
+<text x="800" y="678" font-size="11.5" fill="#52514e" font-weight="700" text-anchor="start"   >时间复杂度</text>
+<text x="960" y="678" font-size="11.5" fill="#52514e" font-weight="middle" text-anchor="start"   font-family="ui-monospace,monospace">O(e·f*)</text>
+<text x="1190" y="678" font-size="11.5" fill="#127a56" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">O(n·e²)</text>
+<text x="800" y="706" font-size="11.5" fill="#b0491d" font-weight="700" text-anchor="start"   >流量很大时 EK 明显更优，且实现依然简单。</text>
+</svg>

@@ -1,0 +1,141 @@
+---
+module: 3
+moduleName: BeautifulSoup库
+order: 12
+title: CSS选择器精准解析系统
+level: 进阶选做
+scene: 复杂网页
+knowledge: ["select()", 选择器, lxml解析器]
+stars: 3
+minutes: 40
+goal: 熟练使用CSS选择器，能对比不同解析器性能差异
+sizheng: 用数据说话——性能对比中的实证精神
+dims: [科研诚信, 创新思维]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import PyStepRunner from '../../components/react/PyStepRunner';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+
+## 场景导入
+
+课程小组在解析一个复杂的校园二手交易页面：商品卡嵌套三层、类名一大堆。用 `find_all` 层层嵌套写了 20 行，师姐路过看了一眼：「一行 `select('div.item > span.price')` 的事。」更妙的是，她还顺手做了一件事——**用计时数据证明**换上 lxml 解析器后整体快了多少，而不是「感觉快了」。
+
+## 逐行看懂
+
+先看 `select()` 如何用一行选择器顶替层层 `find`：
+
+<PyStepRunner
+  client:visible
+  title="逐行执行：select() 的一击命中"
+  fileName="selector.py"
+  code={`from bs4 import BeautifulSoup
+
+html = """
+<div class='market'>
+  <div class='item'><span class='price'>Y58</span></div>
+  <div class='item hot'><span class='price'>Y128</span></div>
+  <div class='ad'><span class='price'>Y9999(广告)</span></div>
+</div>"""
+
+soup = BeautifulSoup(html, 'html.parser')
+prices = soup.select("div.item > span.price")
+for p in prices:
+    print(p.get_text())
+hot = soup.select_one("div.item.hot .price")
+print("热销价:", hot.get_text())`}
+  steps={[
+    { line: 0, desc: '导入 BeautifulSoup——本页重点是它的 CSS 选择器接口 select()。' },
+    { line: 2, desc: '内联一段三层嵌套的市场页面：两张正常商品卡、一张広告卡（类名是 ad）。', vars: { '商品卡': '2', '广告卡': '1' } },
+    { line: 9, desc: '构造文档树。解析器先用内置的 html.parser，稍后实验里换 lxml 对比速度。', vars: { '解析器': 'html.parser' } },
+    { line: 10, desc: '一行选择器：div.item 的「直接子级」span.price——广告卡的 ad 类不匹配，被天然排除。', vars: { '命中': '2 个节点' } },
+    { line: 11, desc: '遍历命中的节点。', },
+    { line: 12, desc: '打印两个正常价格。注意 Y9999 的广告价没有混进来——选择器即过滤器。', out: 'Y58' },
+    { line: 12, desc: '第二个价格出炉。', out: 'Y128' },
+    { line: 13, desc: 'select_one 返回首个命中：复合类 div.item.hot 加后代选择 .price，精准拿到热销卡。', vars: { 'hot': '<span class=price>' } },
+    { line: 14, desc: '输出热销价，完成一次「零嵌套」的精准解析。', out: '热销价: Y128' },
+  ]}
+/>
+
+## 动手实验
+
+换上 lxml 解析器，到底快多少？别猜——跑 200 轮计时，让数据自己说话：
+
+<PyPlayground
+  client:visible
+  title="html.parser vs lxml：200 轮实测计时"
+  packages={['beautifulsoup4', 'lxml']}
+  note="把 ROUNDS 改成 500，或把 html 复制几倍变成更大的页面，看两者差距如何变化——结论必须跟着数据走。"
+  code={`from bs4 import BeautifulSoup
+import time
+
+# 内联一段商品列表页面（重复 8 次模拟较大文档）
+card = "<div class='item'><a href='/g'><span class='price'>Y58</span></a></div>"
+html = "<html><body>" + card * 8 + "</body></html>"
+
+ROUNDS = 200
+
+def bench(parser):
+    """用指定解析器跑 ROUNDS 轮「建树 + select」，返回耗时（毫秒）"""
+    t0 = time.perf_counter()
+    for _ in range(ROUNDS):
+        soup = BeautifulSoup(html, parser)
+        soup.select("div.item > a > span.price")
+    return (time.perf_counter() - t0) * 1000
+
+t_std = bench("html.parser")
+t_lxml = bench("lxml")
+
+print(f"html.parser : {t_std:7.1f} ms")
+print(f"lxml        : {t_lxml:7.1f} ms")
+print(f"速度比     : lxml 约为 html.parser 的 {t_std / t_lxml:.1f} 倍")
+print()
+print("结论只认数据：换解析器前先实测，别把「听说很快」写进技术选型报告。")`}
+/>
+
+## 思政会客厅
+
+<DimCard dim="科研诚信" title="性能结论必须来自实测">
+  <ul>
+    <li>「lxml 更快」是社区共识，但写进你的选型报告之前，要有自己机器上的计时数据——引用结论和验证结论是两种职业习惯。</li>
+    <li>基准测试要控制变量：同一文档、同一选择器、足够轮次，否则数据本身就是造假。</li>
+    <li>把 perf_counter 用成肌肉记忆：可复现的数字，是工程师之间最硬的通货。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="创新思维" title="表达力就是生产力">
+  <ul>
+    <li>CSS 选择器把「三层 find_all 嵌套」压缩成一行声明——学会站在更高的抽象层写代码。</li>
+    <li>选择器语法与前端通用：一次学习，浏览器 DevTools、爬虫、自动化测试三处受益。</li>
+    <li>工具在演进（html.parser → lxml → 更快的解析器），但「先量化再选择」的方法论不过时。</li>
+  </ul>
+</DimCard>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p12-d1"
+  question="同学 A 说「我测过一次 lxml 反而更慢」，你如何和他一起把实验做严谨？"
+  hints={['检查轮次是否太少：单次计时受系统调度波动影响巨大', '检查是否混入了首次 import 的加载时间——预热后再计时', '统一文档规模与选择器复杂度，多跑几组取中位数']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="选择器 div.item > span.price 中「大于号」的含义是？"
+  options={['价格大于某值', '选择直接子元素', '选择所有后代元素', '按顺序选第一个']}
+  answer={1}
+  explain="大于号是「直接子级组合器」：span.price 必须是 div.item 的第一层孩子；换成空格则匹配任意层级后代。"
+/>
+
+<QuizItem
+  client:visible
+  question="要得出「lxml 比 html.parser 快」的可信结论，最关键的做法是？"
+  options={['看官方文档的宣传语', '在相同文档与选择器下多轮实测计时', '问一位有经验的师兄', '选 GitHub 星标更多的那个']}
+  answer={1}
+  explain="实证精神的核心是可复现的对照实验：同一输入、同一操作、足够轮次。文档与经验可作参考，但结论要由你的数据背书。"
+/>

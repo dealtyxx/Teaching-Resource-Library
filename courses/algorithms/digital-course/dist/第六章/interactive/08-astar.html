@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>A*可视 · 第6章 分支限界法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">06</div>算法可视化 · <span>第6章 分支限界法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述对比</a><a class="pill" href="02-bound.html">限界函数</a><a class="pill" href="03-framework.html">两种框架</a><a class="pill" href="04-bfs.html">广度优先</a><a class="pill" href="05-sssp.html">3D迷宫</a><a class="pill" href="06-knapsack.html">背包树</a><a class="pill" href="07-assign-tsp.html">TSP巡游</a><a class="pill active" href="08-astar.html">A* 可视</a><a class="pill" href="09-8puzzle.html">八数码3D</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 8 · A* 热力网格</div>
+  <h1>f = g + h 在格子上发光</h1>
+  <p>从 S 到 E，A* 优先扩展 f 小的格子。颜色越亮表示越先被扩展。h 为曼哈顿距离。</p>
+</section>
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="run">⭐ 运行 A*</button>
+    <button class="btn" id="reset">重置墙</button>
+    <label>点格切换墙</label>
+  </div>
+  <div class="stage-wrap light" style="height:460px">
+    <canvas class="stage" id="cv" width="720" height="460"></canvas>
+    <div class="stage-hud"><span class="hud-pill light">A* GRID</span><span class="hud-pill light" id="ah">click walls</span></div>
+  </div>
+  <div class="formula">f(n)=g(n)+h(n) · h=曼哈顿 · 可采纳 ⇒ 最优</div>
+  <div class="stat-row">
+    <div class="stat"><span>扩展数</span><b class="blue" id="exp">0</b></div>
+    <div class="stat"><span>路径长</span><b class="green" id="plen">—</b></div>
+  </div>
+</div>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>拆解</b>评价函数 f(n) = g(n) + h(n) 的三个部分，说明 g、h、f 各自的含义。</li>
+  <li>能够把 A* <b>归位</b>到分支限界法框架：它是以 f 为优先级的<b>优先队列式（LC）</b>最佳优先搜索。</li>
+  <li>能够<b>陈述并运用</b>启发函数的<b>可采纳性</b>（h &le; 真实剩余代价）如何保证 A* 找到最优路径。</li>
+  <li>能够判断曼哈顿距离在<b>四连通</b>网格上可采纳、在<b>允许对角移动</b>时会高估，从而选对启发函数。</li>
+  <li>能够分析 h=0 时 A* 退化为 Dijkstra/BFS，理解"h 越接近真实、扩展结点越少"。</li>
+</ol></div>
+
+<section class="sec"><div class="sec-head"><h2>一、f = g + h 与分支限界的关系</h2><span class="sub">A* 就是以 f 为限界的 LC 搜索</span></div>
+
+<div class="defn"><span class="lbl">定义 1 · 评价函数</span><p>A* 为每个结点 n 计算<b>评价函数</b> f(n) = g(n) + h(n)：<b>g(n)</b> 是从起点到 n <b>已经走过</b>的实际最短代价；<b>h(n)</b> 是从 n 到目标的<b>估计</b>剩余代价（启发函数）；<b>f(n)</b> 则是"经过 n 的整条路径总代价"的一个估计。A* 每次<b>优先扩展 f 最小</b>的结点。</p></div>
+
+<div class="formula lg">f(n) = g(n) + h(n)&emsp;=&emsp;已走实际代价 g&emsp;+&emsp;到目标的估计代价 h</div>
+
+<div class="defn prop"><span class="lbl">性质 · A* = 优先队列式分支限界</span><p>把 f(n) 看作"经过 n 的最优解代价的一个<b>下界</b>"，A* 就完全落入第 6 章框架：<b>活结点表</b> = 按 f 排序的<b>优先队列</b>（open 表）；<b>扩展结点</b> = 每轮取出的 f 最小者；<b>限界函数</b> = f 本身，当 f(n) &ge; 已知最优时该结点可剪。因此 <b>A* 正是以 f 为限界值的优先队列式（LC）分支限界法</b>，也叫最佳优先搜索。</p></div>
+
+<div class="tip info"><strong>只用 h 会怎样？</strong>若把优先级改成只看 h（贪心最佳优先，greedy best-first），会一头扎向目标方向，速度快但<b>放弃了 g</b>，<b>不保证最优</b>。A* 的精髓正是把"已花代价 g"与"未来估计 h"<b>相加</b>，兼顾"来路"与"去路"。</div>
+
+<div class="terms">
+  <span class="term"><b>A* 算法</b>A* search</span>
+  <span class="term"><b>评价函数</b>evaluation function f</span>
+  <span class="term"><b>启发函数</b>heuristic h</span>
+  <span class="term"><b>可采纳</b>admissible</span>
+  <span class="term"><b>最佳优先</b>best-first search</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、可采纳性与最优性</h2><span class="sub">h 不高估 ⇒ A* 最优</span></div>
+
+<div class="defn"><span class="lbl">定义 2 · 可采纳启发函数</span><p>若对每个结点 n 都有 <b>h(n) &le; h*(n)</b>（h*(n) 为 n 到目标的<b>真实</b>最短剩余代价），即 h <b>从不高估</b>，则称 h <b>可采纳</b>（admissible）。<b>可采纳性保证 A* 返回最优路径</b>：因为 f=g+h 此时是经过 n 的真实最优代价的下界，A* 不会在找到最优解前错误地放弃它。</p></div>
+
+<div class="deriv">
+  <span class="step">设目标最优代价为 C*，某条次优路径上的目标结点为 G<sub>2</sub>，f(G<sub>2</sub>)=g(G<sub>2</sub>)&gt;C* <span class="why">目标处 h=0，g 即真实长度</span></span>
+  <span class="step">最优路径上任一未扩展结点 n 满足 f(n)=g(n)+h(n) &le; g(n)+h*(n)=C* <span class="why">可采纳：h &le; h*</span></span>
+  <span class="step">于是 f(n) &le; C* &lt; f(G<sub>2</sub>)，A* 必先扩展 n 而非弹出次优目标 G<sub>2</sub> <span class="why">优先队列按 f 最小出队</span></span>
+  <span class="step">&rArr; A* 不可能先返回次优解，弹出目标时即最优 <span class="why">这就是可采纳 ⇒ 最优</span></span>
+</div>
+
+<div class="code"><span class="cm">// ── A* 网格最短路（四连通，单位边权）─────────────</span>
+<span class="cm">// h = 曼哈顿距离，可采纳 ⇒ 结果最优</span>
+priority_queue&lt;Node&gt; open;          <span class="cm">// 活结点表：按 f 最小的小根堆</span>
+g[start] = <span class="nu">0</span>; open.<span class="fn">push</span>({start, <span class="fn">h</span>(start)});
+<span class="kw">while</span> (!open.<span class="fn">empty</span>()) {
+    Node u = open.<span class="fn">top</span>(); open.<span class="fn">pop</span>();   <span class="cm">// 取 f 最小者作扩展结点（LC）</span>
+    <span class="kw">if</span> (closed.<span class="fn">count</span>(u)) <span class="kw">continue</span>;      <span class="cm">// 已扩展过则跳过（惰性删除旧副本）</span>
+    closed.<span class="fn">insert</span>(u);
+    <span class="kw">if</span> (u == goal) <span class="kw">break</span>;              <span class="cm">// 目标出队 ⇒ 已得最优路径</span>
+    <span class="kw">for</span> (Node v : <span class="fn">neighbors</span>(u)) {      <span class="cm">// 分支：生成四邻</span>
+        <span class="kw">if</span> (<span class="fn">wall</span>(v)) <span class="kw">continue</span>;          <span class="cm">// 约束：墙不可通行</span>
+        <span class="kw">int</span> ng = g[u] + <span class="nu">1</span>;
+        <span class="kw">if</span> (ng &lt; g[v]) {                <span class="cm">// 松弛：发现更短的到 v 的路径</span>
+            g[v] = ng; prev[v] = u;
+            open.<span class="fn">push</span>({v, ng + <span class="fn">h</span>(v)});  <span class="cm">// 用新 f = g+h 入表</span>
+        }
+    }
+}</div>
+
+<div class="tip warn"><strong>四连通下曼哈顿可采纳，八连通下不然：</strong>本页只允许上下左右移动（四连通、每步代价 1），此时曼哈顿距离 |&Delta;行|+|&Delta;列| 恰是"无墙时的最少步数"，绝不高估，<b>可采纳</b>。但若<b>允许对角移动</b>（八连通），一步可同时减少行差与列差，曼哈顿会<b>高估</b>，须改用切比雪夫/对角距离，否则 A* 可能返回非最优路径。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、h 的强弱与复杂度</h2><span class="sub">从 BFS 到理想启发</span></div>
+
+<div class="deriv">
+  <span class="step">h(n)=0 &rArr; f=g，A* 退化为 <b>Dijkstra</b>；网格单位边权下 Dijkstra 即 <b>BFS</b> <span class="why">丢掉方向信息，向四周均匀扩散</span></span>
+  <span class="step">h 越接近真实 h*，f 的区分力越强，被扩展的结点越少 <span class="why">越"识路"，越少走冤枉路</span></span>
+  <span class="step">h(n)=h*(n)（理想启发）&rArr; A* 只沿最优路径前进，几乎不扩展多余结点 <span class="why">上界情形</span></span>
+  <span class="step">仍可采纳但更紧的 h 总是<b>不劣于</b>更松的 h（在扩展结点数意义上） <span class="why">这称为启发函数的"占优"dominance</span></span>
+  <span class="step">最坏情况（h 很弱或图无结构）时间/空间仍可指数级 <span class="why">A* 不改变问题固有难度</span></span>
+</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>方法</th><th>优先级</th><th>是否最优</th><th>特点</th></tr>
+  <tr><td>BFS / Dijkstra</td><td>g（h=0）</td><td class="hl">是</td><td>均匀扩散，扩展结点最多</td></tr>
+  <tr><td>贪心最佳优先</td><td>h（丢 g）</td><td>否</td><td>冲向目标，快但可能绕远/非最优</td></tr>
+  <tr><td>A*</td><td class="hl">f = g + h</td><td class="hl">是（h 可采纳时）</td><td>兼顾来路与去路，扩展结点最少</td></tr>
+</table></div>
+
+<div class="tip info"><strong>看动画理解：</strong>格子颜色越亮表示越早被扩展。可采纳的曼哈顿启发让高亮区域<b>朝目标方向拉长</b>（而非像 BFS 那样铺成圆形），这正是 h 提供的"方向感"在减少无谓扩展。</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>混淆 g 与 h。</b>g 是<b>已走的实际代价</b>（向后看），h 是<b>到目标的估计代价</b>（向前看）；f=g+h 缺一不可，只用其一都不是 A*。</li>
+  <li><b>用了高估的启发函数还期望最优。</b>h 一旦<b>高估</b>（不可采纳），A* 可能提前锁定次优路径，<b>不再保证最优</b>。</li>
+  <li><b>在允许对角移动的网格仍用曼哈顿。</b>八连通下曼哈顿会高估，应改用切比雪夫/对角距离；四连通下曼哈顿才可采纳。</li>
+  <li><b>把 A* 当成"h 更大就更好"。</b>启发函数应在<b>可采纳前提下</b>尽量大（更紧、占优）；单纯放大 h 越过 h* 就破坏最优性。</li>
+  <li><b>认为 h=0 时算法出错。</b>h=0 只是退化为 Dijkstra/BFS，<b>仍返回最优</b>，只是扩展的结点更多、更慢。</li>
+  <li><b>忘记 A* 仍是指数级下的分支限界。</b>它在困难问题（如八数码、TSP）上最坏仍需指数时间/空间，启发函数只压低实际搜索规模。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li><b>f(n)=g(n)+h(n)</b>：g 已走实际代价、h 到目标估计代价、f 经过 n 的路径代价估计；A* 每轮扩展 f 最小者。</li>
+  <li><b>A* = 优先队列式（LC）分支限界</b>：open 表是按 f 排序的优先队列，f 充当限界值/下界，最佳优先搜索。</li>
+  <li><b>可采纳性 h &le; h* &rArr; A* 最优</b>；曼哈顿距离在<b>四连通</b>网格可采纳，<b>八连通</b>会高估须换启发。</li>
+  <li><b>h=0</b> 退化为 Dijkstra/BFS（仍最优、扩展更多）；<b>h 越紧</b>扩展结点越少，理想 h=h* 几乎直达。</li>
+  <li>A* 兼顾来路 g 与去路 h，优于只看 g 的 BFS 与只看 h 的贪心；最坏仍为指数级。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>A* 的评价函数 f(n)=g(n)+h(n) 中，g(n) 与 h(n) 分别是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>g 是从起点到 n 已走的实际代价，h 是从 n 到目标的估计代价</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>g 是从 n 到目标的估计代价，h 是从起点到 n 的实际代价</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>g 与 h 都是到目标的估计代价，只是用不同启发函数</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>g 是曼哈顿距离，h 是欧氏距离</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 A。g(n) 向后看，是起点到 n 的<b>已走实际代价</b>；h(n) 向前看，是 n 到目标的<b>估计剩余代价</b>（启发函数）。B 把二者对调；C 错在 g 是实际值而非估计；D 张冠李戴，g/h 是"已走/待走"的语义划分，不是两种距离度量的名字。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>要保证 A* 一定找到最优路径，启发函数 h 需满足什么条件？在本页四连通网格上曼哈顿距离满足吗？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>h 必须尽可能大，越大越准，曼哈顿满足</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>h 必须可采纳（h ≤ 真实剩余代价，从不高估）；四连通网格上曼哈顿满足</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>h 必须恒等于 0，曼哈顿不满足所以 A* 非最优</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>只要 h 连续可导即可，与是否高估无关</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。最优性的充分条件是启发函数<b>可采纳</b>：h(n) &le; h*(n)，即从不高估真实剩余代价。四连通、单位边权网格上，曼哈顿距离 |&Delta;行|+|&Delta;列| 恰是无墙时的最少步数，墙只会让真实代价更大，故 h &le; h*，可采纳。A 错在"越大越好"——超过 h* 就破坏最优；C 错在 h=0 只是退化为 Dijkstra 并非唯一最优条件；D 与可采纳性无关。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>若把 A* 的启发函数设为 h(n)≡0，算法会怎样？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>算法出错，无法找到路径</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>退化为 Dijkstra（网格单位边权下即 BFS），仍返回最优解，但扩展的结点更多</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>变成贪心最佳优先，速度最快但可能非最优</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>路径长度会翻倍</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。h≡0 时 f=g，A* 只按已走代价扩展，正是 <b>Dijkstra</b>；在单位边权网格上 Dijkstra 等价于 <b>BFS</b>。它<b>仍然最优</b>（h=0 是最松的可采纳启发），只是失去方向感、向四周均匀扩散、扩展结点更多、更慢。A、D 无稽；C 说反了——贪心最佳优先是"只用 h 丢掉 g"，而这里是"只用 g 丢掉 h"。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="07-assign-tsp.html"><span class="dir">← 上一节</span><span class="name">TSP巡游</span></a><a href="09-8puzzle.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">八数码3D</span></a></div>
+<div class="footer">算法设计与分析 · <b>第6章 分支限界法</b> · 强交互可视化版<br/>Canvas / CSS 3D · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+// ambient particles
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let w,h,parts=[],raf;
+  function resize(){ w=cv.width=innerWidth*devicePixelRatio; h=cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px'; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:36},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2.2, vx:(Math.random()-.5)*.25, vy:-.15-Math.random()*.35, a:.15+Math.random()*.35}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(194,96,63,${p.a})`; ctx.fill();
+    });
+    raf=requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const R=12,C=18, cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const cell=Math.min((cv.width-40)/C,(cv.height-40)/R);
+const ox=20, oy=20;
+let wall=Array.from({length:R},()=>Array(C).fill(0));
+const S=[1,1], E=[R-2,C-2];
+// sprinkle walls
+function sprinkle(){
+  wall=Array.from({length:R},()=>Array(C).fill(0));
+  for(let k=0;k<40;k++){ const i=1+Math.floor(Math.random()*(R-2)), j=1+Math.floor(Math.random()*(C-2)); wall[i][j]=1; }
+  wall[S[0]][S[1]]=0; wall[E[0]][E[1]]=0;
+}
+function h(i,j){return Math.abs(i-E[0])+Math.abs(j-E[1]);}
+function draw(meta={}){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  for(let i=0;i<R;i++) for(let j=0;j<C;j++){
+    const x=ox+j*cell, y=oy+i*cell;
+    let col='#F5F3EC';
+    if(wall[i][j]) col='#2B2822';
+    if(meta.g && meta.g[i][j]<1e9){
+      const t=Math.min(1, meta.order[i][j]/Math.max(1,meta.maxO));
+      col=`hsl(${220-t*80} 85% ${88-t*35}%)`;
+    }
+    if(meta.path && meta.path.has(i+','+j)) col='#A992CE';
+    if(i===S[0]&&j===S[1]) col='#D0A344';
+    if(i===E[0]&&j===E[1]) col='#6FB48B';
+    ctx.fillStyle=col;
+    ctx.beginPath(); ctx.roundRect(x+1,y+1,cell-2,cell-2,5); ctx.fill();
+  }
+}
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.moveTo(x+r,y);this.arcTo(x+w,y,x+w,y+h,r);this.arcTo(x+w,y+h,x,y+h,r);this.arcTo(x,y+h,x,y,r);this.arcTo(x,y,x+w,y,r);};
+}
+async function astar(){
+  const g=Array.from({length:R},()=>Array(C).fill(1e9));
+  const order=Array.from({length:R},()=>Array(C).fill(0));
+  const prev=Array.from({length:R},()=>Array(C).fill(null));
+  g[S[0]][S[1]]=0; let open=[{i:S[0],j:S[1],f:h(S[0],S[1])}], closed=new Set(), step=0, maxO=1;
+  const key=(i,j)=>i+','+j;
+  while(open.length){
+    open.sort((a,b)=>a.f-b.f||g[a.i][a.j]-g[b.i][b.j]);
+    const u=open.shift(); const k=key(u.i,u.j);
+    if(closed.has(k)) continue; closed.add(k);
+    order[u.i][u.j]=++step; maxO=step; exp.textContent=step;
+    draw({g,order,maxO}); await sleep(25);
+    if(u.i===E[0]&&u.j===E[1]) break;
+    for(const [di,dj] of [[0,1],[1,0],[0,-1],[-1,0]]){
+      const ni=u.i+di,nj=u.j+dj; if(ni<0||nj<0||ni>=R||nj>=C||wall[ni][nj]) continue;
+      const ng=g[u.i][u.j]+1; if(ng<g[ni][nj]){ g[ni][nj]=ng; prev[ni][nj]=[u.i,u.j]; open.push({i:ni,j:nj,f:ng+h(ni,nj)}); }
+    }
+  }
+  const path=new Set(); let cur=E;
+  if(g[E[0]][E[1]]>=1e9){ plen.textContent='∞'; ah.textContent='no path'; return; }
+  while(cur){ path.add(cur[0]+','+cur[1]); cur=prev[cur[0]][cur[1]]; }
+  plen.textContent=g[E[0]][E[1]]; ah.textContent='path ready';
+  draw({g,order,maxO,path});
+}
+cv.onclick=e=>{
+  const r=cv.getBoundingClientRect(), x=(e.clientX-r.left)*cv.width/r.width, y=(e.clientY-r.top)*cv.height/r.height;
+  const j=Math.floor((x-ox)/cell), i=Math.floor((y-oy)/cell);
+  if(i<0||j<0||i>=R||j>=C) return;
+  if((i===S[0]&&j===S[1])||(i===E[0]&&j===E[1])) return;
+  wall[i][j]^=1; draw();
+};
+run.onclick=astar; reset.onclick=()=>{sprinkle();draw();exp.textContent=0;plen.textContent='—';};
+sprinkle(); draw();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

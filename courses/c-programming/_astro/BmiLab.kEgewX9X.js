@@ -1,0 +1,17 @@
+import{j as e}from"./jsx-runtime.D_zvdyIk.js";import{r as d}from"./index.DBy5LfQW.js";import{L as b,S as x,C as j,T as g}from"./ui.BRGL6oFt.js";const p=`#include <stdio.h>
+
+int main(void) {
+    float height_m = 1.75f, weight_kg = 65.0f;
+    float bmi = weight_kg / (height_m * height_m);
+    printf("BMI = %.1f\\n", bmi);
+    if (bmi < 18.5f) {
+        printf("偏瘦：注意营养均衡\\n");
+    } else if (bmi < 24.0f) {
+        printf("正常：继续保持\\n");
+    } else if (bmi < 28.0f) {
+        printf("超重：建议加强锻炼\\n");
+    } else {
+        printf("肥胖：建议咨询医生\\n");
+    }
+    return 0;
+}`;function y(){const[t,o]=d.useState(175),[i,h]=d.useState(65),s=d.useMemo(()=>{const m=t/100,c=i/(m*m);let l="",a=0,n="",r="";return c<18.5?(l="偏瘦",a=6,n="bg-sky-500",r="偏瘦：注意营养均衡"):c<24?(l="正常",a=8,n="bg-emerald-500",r="正常：继续保持"):c<28?(l="超重",a=10,n="bg-amber-500",r="超重：建议加强锻炼"):(l="肥胖",a=12,n="bg-rose-500",r="肥胖：建议咨询医生"),{bmi:c,label:l,line:a,color:n,advice:r}},[t,i]),f=Math.max(0,Math.min(100,(s.bmi-14)/22*100));return e.jsx(b,{title:"互动实验：你的 BMI 会走进哪个分支？",badge:"if-else if · 关系运算",children:e.jsxs("div",{className:"grid gap-4 lg:grid-cols-2",children:[e.jsxs("div",{className:"space-y-4",children:[e.jsx(x,{label:"身高",value:t,min:140,max:200,unit:" cm",onChange:o}),e.jsx(x,{label:"体重",value:i,min:35,max:120,unit:" kg",onChange:h}),e.jsxs("div",{className:"rounded-xl border border-slate-200 p-3",children:[e.jsxs("div",{className:"flex items-baseline justify-between",children:[e.jsxs("span",{className:"text-sm text-slate-600",children:["BMI = ",i," ÷ ",(t/100).toFixed(2),"²"]}),e.jsx("span",{className:"font-mono text-2xl font-bold text-[#123c72]",children:s.bmi.toFixed(1)})]}),e.jsxs("div",{className:"mt-3",children:[e.jsxs("div",{className:"relative flex h-4 overflow-hidden rounded-full text-[9px] font-bold text-white",children:[e.jsx("div",{className:"flex items-center justify-center bg-sky-500",style:{width:`${(18.5-14)/22*100}%`},children:"偏瘦"}),e.jsx("div",{className:"flex items-center justify-center bg-emerald-500",style:{width:`${(24-18.5)/22*100}%`},children:"正常"}),e.jsx("div",{className:"flex items-center justify-center bg-amber-500",style:{width:`${4/22*100}%`},children:"超重"}),e.jsx("div",{className:"flex grow items-center justify-center bg-rose-500",children:"肥胖"})]}),e.jsx("div",{className:"relative h-3",children:e.jsx("span",{className:"absolute -translate-x-1/2 text-base leading-3",style:{left:`${f}%`},children:"▲"})}),e.jsxs("div",{className:"flex justify-between font-mono text-[10px] text-slate-400",children:[e.jsx("span",{children:"14"}),e.jsx("span",{children:"18.5"}),e.jsx("span",{children:"24"}),e.jsx("span",{children:"28"}),e.jsx("span",{children:"36"})]})]}),e.jsxs("p",{className:"mt-2 text-sm",children:["判定结果：",e.jsx("span",{className:`rounded-full px-2.5 py-0.5 text-xs font-bold text-white ${s.color}`,children:s.label})]})]}),e.jsxs("p",{className:"rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800",children:["💡 观察右侧代码：不管 BMI 是多少，",e.jsx("strong",{children:"四个分支只有一个会执行"}),"（高亮行）。 else if 链从上到下逐个测试，命中即停——所以第二个条件写 ",e.jsx("code",{className:"font-mono",children:"bmi < 24"})," 就够了， 不必写 ",e.jsx("code",{className:"font-mono",children:"bmi >= 18.5 && bmi < 24"}),"。想想为什么？"]})]}),e.jsxs("div",{className:"space-y-3",children:[e.jsx(j,{code:p.replace("1.75f, weight_kg = 65.0f",`${(t/100).toFixed(2)}f, weight_kg = ${i}.0f`),highlight:s.line+1}),e.jsx(g,{lines:[`BMI = ${s.bmi.toFixed(1)}`,s.advice],title:"运行结果"})]})]})})}export{y as default};

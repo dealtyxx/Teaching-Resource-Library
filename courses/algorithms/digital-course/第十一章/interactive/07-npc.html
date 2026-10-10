@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>NPC证明 · 第11章 计算复杂性</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">11</div>算法可视化 · <span>第11章 计算复杂性</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-easy-hard.html">易解难解</a><a class="pill" href="02-decision.html">判定优化</a><a class="pill" href="03-turing.html">图灵机</a><a class="pill" href="04-p-np.html">P与NP</a><a class="pill" href="05-classes.html">类关系</a><a class="pill" href="06-reduce.html">归约</a><a class="pill active" href="07-npc.html">NPC证明</a><a class="pill" href="08-sat.html">SAT</a><a class="pill" href="09-clique.html">团问题</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 7 · 证明套路</div>
+  <h1>NP 完全：定义与证明</h1>
+  <p>NPC = NP ∩ NP-Hard。第一个 NPC 问题：<strong>SAT</strong>（Cook-Levin 定理）。</p>
+</section>
+
+<div class="objectives">
+  <h3>学习目标</h3>
+  <ol>
+    <li>能写出 <b>NP-Hard</b> 的定义：所有 NP 问题都可多项式归约到它（本身未必在 NP 中）。</li>
+    <li>能写出 <b>NPC（NP 完全）</b>的定义：<b>既在 NP 中，又是 NP-Hard</b>。</li>
+    <li>能陈述 <b>Cook-Levin 定理</b>：SAT 是第一个被证明的 NPC 问题，及其证明思路。</li>
+    <li>能复述<b>证 L∈NPC 的两步模板</b>：先证 L∈NP，再把某个已知 NPC 问题归约到 L。</li>
+    <li>能说明关键推论：<b>只要某个 NPC 问题 ∈ P，就有 P = NP</b>。</li>
+  </ol>
+</div>
+
+<div class="card">
+  <div class="formula lg">L ∈ NPC  ⟺  L ∈ NP  且  L 是 NP-Hard</div>
+  <div class="toolbar" style="margin-top:14px">
+    <button class="btn primary" id="step">下一步证明</button>
+    <button class="btn" id="reset">重置清单</button>
+  </div>
+  <div id="steps"></div>
+  <div class="tip" id="tip">按「下一步」展开标准证明清单。</div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>一、NP-Hard 与 NP 完全</h2><span class="sub">NP-Hard &amp; NP-Complete</span></div>
+  <p class="desc">「NP 完全」把两件事捏在一起：<b>它自己在 NP 里</b>（不太难，答案可验证），同时<b>又是 NP 里最难的一档</b>（所有 NP 问题都能归约到它）。</p>
+
+  <div class="defn"><span class="lbl">定义 1 · NP-Hard（NP 难）</span>
+    <p>语言 L 是 <b>NP-Hard</b>，当且仅当<b>每一个</b> L′ ∈ NP 都满足 <b>L′ ≤<sub>p</sub> L</b>。即 L「至少和 NP 中所有问题一样难」。<b>注意：NP-Hard 并不要求 L 本身属于 NP</b>——L 可以更难，甚至<b>不可判定</b>（例如停机问题就是 NP-Hard 却不在 NP 中）。</p>
+  </div>
+
+  <div class="defn"><span class="lbl">定义 2 · NP 完全（NPC）</span>
+    <p>语言 L 是 <b>NP 完全（NP-Complete）</b>，当且仅当同时满足：<b>① L ∈ NP</b>，且 <b>② L 是 NP-Hard</b>。NPC 恰好是 NP 与 NP-Hard 的交集，代表 NP 内部「最难」的问题——它们彼此多项式等价，一荣俱荣、一损俱损。</p>
+  </div>
+  <div class="formula lg">L ∈ NPC ⟺ L ∈ NP 且 ∀ L′∈NP，L′ ≤<sub>p</sub> L</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>二、Cook-Levin 定理：第一个 NPC</h2><span class="sub">Cook–Levin Theorem</span></div>
+  <p class="desc">证 NPC 的模板要「借」一个已知的 NPC 当起点。但第一个 NPC 无从借起——它必须<b>从定义硬证</b>：让<b>任意</b> NP 问题都归约到它。Cook 与 Levin 完成了这件事。</p>
+
+  <div class="defn thm"><span class="lbl">定理 3 · Cook-Levin（1971 Cook / 1973 Levin 独立）</span>
+    <p><b>SAT ∈ NPC。</b>即布尔可满足性问题是第一个被证明的 NP 完全问题。证明思路：任取 L∈NP，它由某台<b>非确定图灵机</b>在多项式时间内判定；把「该机在输入 x 上存在一条长度多项式的接受计算」这件事，用一个<b>规模多项式</b>的 CNF 公式 φ<sub>x</sub> 完整编码（变量描述每一步纸带格与状态，子句约束初始/转移/接受合法），使得 <b>φ<sub>x</sub> 可满足 ⟺ 机器接受 x ⟺ x∈L</b>。这就构造出 L ≤<sub>p</sub> SAT，对一切 L∈NP 成立，故 SAT 是 NP-Hard；又 SAT∈NP，于是 SAT∈NPC。</p>
+  </div>
+  <div class="tip info"><strong>归约方向别记反：</strong>Cook-Levin 证的是「<b>所有</b> NP 问题 ≤<sub>p</sub> SAT」（大家归约到 SAT），而不是「SAT 归约到别人」。有了这块基石，之后只需 <b>SAT ≤<sub>p</sub> 3-SAT ≤<sub>p</sub> 团 ≤<sub>p</sub> …</b> 借传递性繁衍出整个 NPC 家族。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>三、证 L∈NPC 的标准两步模板</h2><span class="sub">The proof template</span></div>
+  <p class="desc">右侧演示的清单，正是课本证明 NPC 的固定套路。核心是「借传递性」：不再从头证「所有 NP 归约到 L」，而是找一个<b>已知 NPC 的 A</b> 归约到 L。</p>
+
+  <div class="deriv">
+    <span class="step">① 证 <b>L ∈ NP</b>：给出证书格式 + 多项式时间验证算法 <span class="why">缺这步只证到 NP-Hard</span></span>
+    <span class="step">② 选一个<b>已知 NPC 问题 A</b>（如 3-SAT、团、顶点覆盖、哈密顿） <span class="why">起点</span></span>
+    <span class="step">③ 构造多项式时间 f，把 A 的任意实例变成 L 的实例 <span class="why">A ≤<sub>p</sub> L</span></span>
+    <span class="step">④ 证等价：x∈A ⟺ f(x)∈L <span class="why">双向保真</span></span>
+    <span class="step">A∈NPC ⇒ A 是 NP-Hard，且 A ≤<sub>p</sub> L ⇒（传递性）L 也 NP-Hard <span class="why">难度接力</span></span>
+    <span class="step">L∈NP 且 L 是 NP-Hard ⇒ <b>L ∈ NPC</b> <span class="why">证毕</span></span>
+  </div>
+
+  <div class="defn thm"><span class="lbl">定理 4 · NPC 与 P=NP 的杠杆</span>
+    <p>若<b>任意一个</b> NPC 问题 L 属于 P，则 <b>P = NP</b>。因为对每个 L′∈NP 有 L′ ≤<sub>p</sub> L 且 L∈P，由难度传递 L′∈P，故 NP⊆P，又 P⊆NP，得 P=NP。反之，若相信 P≠NP，则所有 NPC 问题都<b>没有</b>多项式算法。</p>
+  </div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span>
+  <ul>
+    <li>混淆 <b>NP-Hard 与 NPC</b>。NP-Hard 只要求「所有 NP 归约到它」，<b>不必在 NP 中</b>（可更难、甚至不可判定）；NPC 额外要求 <b>∈ NP</b>。停机问题是 NP-Hard 但不是 NPC。</li>
+    <li>证 NPC 时<b>漏掉「L∈NP」这一步</b>，只证了难。只证难得到的是 NP-Hard，不是 NP 完全。</li>
+    <li><b>归约方向反了</b>：证 L 难要把<b>已知 NPC 的 A 归约到 L</b>（A ≤<sub>p</sub> L），不是 L ≤<sub>p</sub> A。</li>
+    <li>误记 Cook-Levin 的方向。它是「<b>所有</b> NP 问题归约到 SAT」，从而 SAT 最难；不是「SAT 归约到某问题」。</li>
+    <li>以为 NPC 问题「无解 / 算不出」。它们完全可解（如枚举证书），只是<b>没有已知的多项式算法</b>；难解 ≠ 不可计算。</li>
+    <li>忘了<b>杠杆推论</b>：任一 NPC ∈ P 就推出 P=NP。这也是「找到某 NPC 的多项式算法」如此重大的原因。</li>
+  </ul>
+</div>
+
+<div class="summary"><span class="lbl">本节小结</span>
+  <ul>
+    <li><b>NP-Hard</b>：所有 NP 问题都 ≤<sub>p</sub> 它；本身<b>未必</b>在 NP 中。</li>
+    <li><b>NPC = NP ∩ NP-Hard</b>：既 ∈NP，又是 NP-Hard，是 NP 中最难的一档。</li>
+    <li><b>Cook-Levin</b>：SAT 是第一个 NPC，靠「把任意 NP 机器的接受计算编码成多项式规模 CNF」硬证。</li>
+    <li>证 L∈NPC 两步：① L∈NP；② 已知 NPC 的 A ≤<sub>p</sub> L（借传递性得 L 是 NP-Hard）。</li>
+    <li><b>任一 NPC ∈ P ⇒ P = NP</b>；相信 P≠NP 即相信 NPC 无多项式算法。</li>
+  </ul>
+</div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>NP-Hard 与 NP 完全（NPC）的区别是什么？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>二者完全相同，只是叫法不同</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>NPC 要求问题额外属于 NP；NP-Hard 不要求，可能更难甚至不可判定</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>NP-Hard 一定属于 NP，NPC 不一定</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>NP-Hard 更容易，NPC 更难</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。NPC = NP ∩ NP-Hard，比 NP-Hard 多了「∈NP」这一约束。停机问题是 NP-Hard 却不在 NP 中，故不是 NPC。C 恰好说反了。</div>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>Cook-Levin 定理的核心内容是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>证明了 P = NP</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>SAT 是第一个 NPC 问题：任意 NP 问题都可多项式归约到 SAT</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>SAT 可以在多项式时间内求解</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>SAT 可以归约到任意 NP 问题</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。Cook-Levin 把「任意 NP 机器的多项式接受计算」编码为多项式规模 CNF，得到「所有 NP ≤<sub>p</sub> SAT」，故 SAT 是第一个 NPC。A、C 都是未知/不成立的强命题；D 把方向记反了。</div>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>若某人给出了某个 NPC 问题的多项式时间算法，可以得出什么结论？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>只有那一个问题变简单，其他 NP 问题不受影响</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>P = NP：所有 NP 问题都随之有多项式算法</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>说明该问题原本就不是 NPC</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>停机问题也随之可判定</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。设该 NPC 问题 L∈P。对每个 L′∈NP 有 L′≤<sub>p</sub>L，由难度传递 L′∈P，故 NP⊆P，得 P=NP。A 忽视了归约的连锁效应；C 无端否定前提；D 与 NP 无关（停机问题不在 NP 中，P=NP 也不使其可判定）。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="06-reduce.html"><span class="dir">← 上一节</span><span class="name">归约</span></a><a href="08-sat.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">SAT</span></a></div>
+<div class="footer">算法设计与分析 · <b>第11章 计算复杂性</b> · 强交互可视化版<br/>增长 · 归约 · SAT · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(179,69,59,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const items=[
+  {t:'步骤 ① · 证明 ∈ NP', d:'给出「是」答案的证书格式，并写多项式时间验证算法。'},
+  {t:'步骤 ② · 选已知 NPC', d:'常从 3-SAT、顶点覆盖、团、哈密顿等出发。'},
+  {t:'步骤 ③ · 构造归约', d:'已知 NPC 问题 A 的任意实例 → 多项式变换为 L 的实例。'},
+  {t:'步骤 ④ · 证明等价', d:'x∈A 当且仅当 f(x)∈L；时间必须 poly(|x|)。'},
+  {t:'结论', d:'L ∈ NP 且 A ≤ₚ L ⇒ L ∈ NPC。'},
+];
+let k=0;
+function render(){
+  steps.innerHTML=items.map((it,i)=>`
+    <div class="list-step" style="opacity:${i<k?1:.35};${i===k-1?'border-color:#A02C55;background:#FBF1EC':''}">
+      <div class="n">${i+1}</div>
+      <div class="body"><b>${it.t}</b><br/>${i<k?it.d:'…'}</div>
+    </div>`).join('');
+  tip.innerHTML=k===0?'按「下一步」展开标准证明清单。':(k<items.length?items[k-1].d:'<strong>完成！</strong> 这就是课本里的 NPC 证明模板。');
+}
+step.onclick=()=>{ if(k<items.length){ k++; render(); } };
+reset.onclick=()=>{ k=0; render(); };
+render();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

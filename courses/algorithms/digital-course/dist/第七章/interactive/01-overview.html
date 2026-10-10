@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>概述 · 第7章 动态规划</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">07</div>算法可视化 · <span>第7章 动态规划</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill active" href="01-overview.html">概述</a><a class="pill" href="02-principle.html">原理</a><a class="pill" href="03-models.html">模型</a><a class="pill" href="04-maxsub.html">最大子段和</a><a class="pill" href="05-lis.html">LIS</a><a class="pill" href="06-triangle.html">三角形</a><a class="pill" href="07-lcs.html">LCS</a><a class="pill" href="08-edit.html">编辑距离</a><a class="pill" href="09-knapsack.html">01背包</a><a class="pill" href="10-multi.html">完全/多重</a><a class="pill" href="11-tsp.html">状压TSP</a><a class="pill" href="12-interval-tree.html">区间/树形</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 1 · 入门</div>
+  <h1>从 Fibonacci 看见「记忆」的力量</h1>
+  <p>朴素递归重复计算同一子问题；DP 填表一次算完。下方同时展示<strong>调用爆炸柱</strong>与<strong>线性填表</strong>。</p>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>学习目标</h2><span class="sub">Learning Objectives</span></div>
+  <div class="objectives"><h3>本节学完后你应当</h3><ol>
+    <li>能用自己的话说出动态规划的两个适用条件——<b>最优子结构</b>与<b>重叠子问题</b>，并在 Fibonacci 上逐一指认。</li>
+    <li>能<b>写出 Fibonacci 的递推式与边界条件</b>，并解释边界为何必须显式给出。</li>
+    <li>能写出<b>朴素递归、记忆化搜索、自底向上递推</b>三份 C++ 代码，说清三者的差别。</li>
+    <li>能定量说明改进来源：求解次数从 <b>O(2<sup>n</sup>)</b> 降到 <b>Θ(n)</b>。</li>
+    <li>面对一个新问题，能判断该用<b>记忆化（自顶向下）</b>还是<b>递推（自底向上）</b>。</li>
+  </ol></div>
+</section>
+
+<div class="card">
+  <div class="toolbar">
+    <label>n</label><input type="range" id="n" min="5" max="16" value="10"/><span class="kbd" id="nv">10</span>
+    <button class="btn primary" id="run">▶ 双轨对比</button>
+    <div class="speed" id="spd"><button data-ms="400">慢</button><button data-ms="220" class="on">中</button><button data-ms="80">快</button></div>
+  </div>
+  <div class="stage-wrap" style="height:320px">
+    <canvas class="stage" id="cv" width="1000" height="320"></canvas>
+    <div class="stage-hud"><span class="hud-pill" id="hud">Fib Lab</span><span class="hud-pill" id="hud2">—</span></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>Fib(n)</span><b class="orange" id="ans">—</b></div>
+    <div class="stat"><span>朴素调用约</span><b class="red" id="calls">—</b></div>
+    <div class="stat"><span>DP 加法次数</span><b class="green" id="adds">—</b></div>
+  </div>
+  <div class="tip">左：递归调用次数（对数轴观感）；右：dp 表逐格点亮。</div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>① 状态定义与递推式</h2><span class="sub">State &amp; Recurrence</span></div>
+  <div class="defn"><span class="lbl">状态定义</span>
+    <p><b>f(n)</b>（也常写作 dp[n]）表示<b>第 n 项 Fibonacci 数</b>。这里的下标 n 就是「问题规模」，一个整数即可完整刻画一个子问题——这是最简单的一维线性状态。</p></div>
+  <div class="formula lg">f(n) = f(n−1) + f(n−2)　　(n ≥ 3)</div>
+  <div class="defn"><span class="lbl">边界条件</span>
+    <p><b>f(1) = f(2) = 1</b>。边界是递推的「地基」：递推式只对 n ≥ 3 成立，若不显式给出 f(1)、f(2)，递推会无限向下展开而无法终止（递归版栈溢出，递推版读到未初始化的 dp[1]、dp[2] 得到 0）。</p></div>
+  <div class="defn prop"><span class="lbl">计算顺序</span>
+    <p>f(n) 依赖 f(n−1) 与 f(n−2)，即<b>下标小的先算</b>。因此自底向上时 i 必须<b>从 3 递增到 n</b>；顺序一旦反了，被依赖的值还是初值，结果全错。</p></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>② DP 的两个适用条件在 Fibonacci 上的对应</h2><span class="sub">Applicability</span></div>
+  <div class="defn prop"><span class="lbl">条件一 · 最优子结构 / 子结构性质</span>
+    <p>大问题的解可以由子问题的解<b>直接组合</b>得到：f(n) 完全由 f(n−1) 与 f(n−2) 相加得出，不需要知道这两个子问题内部是怎么算的。<br/>与之等价的另一说法是<b>无后效性（no aftereffect）</b>：一旦 f(n−1)、f(n−2) 的值确定，f(n) 就确定了，与「它们是经由哪条递归路径算出来的」无关。</p></div>
+  <div class="defn prop"><span class="lbl">条件二 · 重叠子问题</span>
+    <p>同一个子问题被<b>反复求解</b>。展开 f(5) 的递归树可见：f(3) 出现 2 次、f(2) 出现 3 次、f(1) 出现 2 次。规模越大重复越剧烈——这正是「把算过的存起来」能带来指数级收益的根源。</p></div>
+  <div class="tip info"><strong>反例提醒：</strong>归并排序也满足最优子结构，但左右两半互不重叠，每个子问题只出现一次。此时加备忘录毫无收益——<b>没有重叠子问题就没有 DP 的用武之地</b>，那属于分治（第 4 章）。</div>
+  <div class="terms">
+    <span class="term"><b>动态规划</b>dynamic programming</span>
+    <span class="term"><b>最优子结构</b>optimal substructure</span>
+    <span class="term"><b>重叠子问题</b>overlapping subproblems</span>
+    <span class="term"><b>无后效性</b>no aftereffect</span>
+    <span class="term"><b>备忘录</b>memoization</span>
+    <span class="term"><b>自顶向下</b>top-down</span>
+    <span class="term"><b>自底向上</b>bottom-up</span>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>③ 三种实现 · C++ 代码</h2><span class="sub">Naive / Memoized / Tabulated</span></div>
+  <div class="code"><span class="cm">// ① 朴素递归（naive recursion）：同一子问题被反复展开</span>
+<span class="kw">long long</span> fib1(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n &lt;= 2) <span class="kw">return</span> 1;             <span class="cm">// 边界 f(1)=f(2)=1</span>
+    <span class="kw">return</span> fib1(n - 1) + fib1(n - 2);
+}</div>
+  <div class="code"><span class="cm">// ② 记忆化搜索（memoized search）：自顶向下 + 备忘录</span>
+<span class="kw">const int</span> MAXN = 95;
+<span class="kw">long long</span> memo[MAXN];                     <span class="cm">// 全局数组初值 0，表示「尚未计算」</span>
+
+<span class="kw">long long</span> fib2(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n &lt;= 2) <span class="kw">return</span> 1;             <span class="cm">// 边界</span>
+    <span class="kw">if</span> (memo[n] != 0) <span class="kw">return</span> memo[n];  <span class="cm">// 查表命中：整棵子树被剪掉</span>
+    <span class="kw">return</span> memo[n] = fib2(n - 1) + fib2(n - 2);   <span class="cm">// 算完立刻记账</span>
+}</div>
+  <div class="code"><span class="cm">// ③ 自底向上递推（tabulation）：一次填表</span>
+<span class="kw">long long</span> fib3(<span class="kw">int</span> n) {
+    <span class="kw">vector</span>&lt;<span class="kw">long long</span>&gt; dp(n + 1, 0);
+    dp[1] = 1; <span class="kw">if</span> (n &gt;= 2) dp[2] = 1;  <span class="cm">// 边界初始化</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = 3; i &lt;= n; ++i)     <span class="cm">// 计算顺序：i 必须递增</span>
+        dp[i] = dp[i - 1] + dp[i - 2];
+    <span class="kw">return</span> dp[n];
+}
+
+<span class="cm">// ③' 滚动变量：只保留最近两项，空间降到 O(1)</span>
+<span class="kw">long long</span> fib4(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n &lt;= 2) <span class="kw">return</span> 1;
+    <span class="kw">long long</span> a = 1, b = 1;               <span class="cm">// a=f(i-2), b=f(i-1)</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = 3; i &lt;= n; ++i) {
+        <span class="kw">long long</span> c = a + b; a = b; b = c;
+    }
+    <span class="kw">return</span> b;
+}</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>④ 记忆化搜索 vs 自底向上递推</h2><span class="sub">教材必考的一组对照</span></div>
+  <div class="tip info"><strong>核心区别：</strong>二者<b>状态定义与转移方程完全相同</b>，只是「谁来安排计算顺序」不同——记忆化让<b>递归调用栈</b>隐式安排，递推让<b>程序员用循环</b>显式安排。</div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>对比维度</th><th>记忆化搜索（自顶向下）</th><th>递推填表（自底向上）</th></tr>
+    <tr><td>书写形式</td><td>递归函数 + 备忘录数组</td><td>循环 + dp 数组</td></tr>
+    <tr><td>计算顺序</td><td>由递归调用<b>隐式</b>决定，不必自己想</td><td>必须<b>显式</b>安排，保证依赖先算完</td></tr>
+    <tr><td>求解范围</td><td>只算<b>真正用得到</b>的状态（状态空间稀疏时省时间）</td><td>通常把<b>所有状态</b>都算一遍</td></tr>
+    <tr><td>常数开销</td><td>递归调用开销大，深度 n 时有<b>爆栈</b>风险</td><td class="hl">无递归开销，常数最小</td></tr>
+    <tr><td>空间优化</td><td>难以滚动（备忘录必须整表保留）</td><td class="hl">易做<b>滚动数组</b>降维</td></tr>
+    <tr><td>适用场景</td><td>转移顺序难以排定（树上 DP、区间搜索、状态图复杂）</td><td>阶段清晰、状态稠密（多数线性/背包 DP）</td></tr>
+  </table></div>
+  <div class="tip"><strong>选择口诀：</strong>「顺序说得清就递推，说不清就记忆化」。二者时间复杂度同阶，都等于 <b>状态数 × 单次转移代价</b>。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑤ 复杂度分析</h2><span class="sub">Complexity</span></div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>实现方式</th><th>时间复杂度</th><th>空间复杂度</th><th>每个子问题求解次数</th></tr>
+    <tr><td>① 朴素递归</td><td class="hl">Θ(φ<sup>n</sup>) ≈ O(2<sup>n</sup>)</td><td>O(n)（递归栈）</td><td>指数次</td></tr>
+    <tr><td>② 记忆化搜索</td><td>Θ(n)</td><td>O(n) 备忘录 + O(n) 栈</td><td>恰 1 次</td></tr>
+    <tr><td>③ 递推填表</td><td>Θ(n)</td><td>O(n)</td><td>恰 1 次</td></tr>
+    <tr><td>③' 滚动变量</td><td>Θ(n)</td><td class="hl">O(1)</td><td>恰 1 次</td></tr>
+  </table></div>
+  <div class="defn thm"><span class="lbl">为什么朴素递归是指数级</span>
+    <p>设 T(n) 为求 f(n) 的调用次数，则 T(n) = T(n−1) + T(n−2) + 1，与 Fibonacci 数同阶，故 T(n) = Θ(φ<sup>n</sup>)，其中 φ = (1+√5)/2 ≈ 1.618。<br/>加上备忘录后，<b>每个状态只在首次被访问时真正计算</b>，状态数为 n，单次转移是 O(1) 的一次加法，于是总时间 = 状态数 × 转移代价 = <b>Θ(n)</b>。这条「时间 = 状态数 × 转移代价」的估算法则贯穿整章。</p></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑥ 例题演算 · 手算 f(6)</h2><span class="sub">Worked Example</span></div>
+  <div class="deriv">
+<span class="step">dp[1] = 1 <span class="why">边界</span></span>
+<span class="step">dp[2] = 1 <span class="why">边界</span></span>
+<span class="step">dp[3] = dp[2] + dp[1] = 1 + 1 = 2</span>
+<span class="step">dp[4] = dp[3] + dp[2] = 2 + 1 = 3</span>
+<span class="step">dp[5] = dp[4] + dp[3] = 3 + 2 = 5</span>
+<span class="step">dp[6] = dp[5] + dp[4] = 5 + 3 = 8 <span class="why">答案 f(6)=8，共做 4 次加法</span></span>
+  </div>
+  <div class="tip">对照：朴素递归求 f(6) 要发生 <b>25 次</b>函数调用，其中 f(3) 被算 3 次、f(2) 被算 5 次；而填表只做 <b>4 次</b>加法。n 越大差距越悬殊——n=45 时朴素递归约 2.7×10<sup>9</sup> 次调用，填表 43 次加法。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑦ 易错点</h2><span class="sub">Pitfalls</span></div>
+  <div class="pitfall"><span class="lbl">易错点</span><ul>
+    <li><b>忘记写边界</b>：只写 dp[i]=dp[i−1]+dp[i−2] 而不初始化 dp[1]、dp[2]，整张表全是 0。DP 三件套「转移方程 + 边界 + 顺序」缺一不可。</li>
+    <li><b>循环方向写反</b>：写成 <span class="kbd">for (i = n; i &gt;= 3; --i)</span>，此时 dp[i−1]、dp[i−2] 尚未计算，结果恒为 0。</li>
+    <li><b>用 0 作「未计算」标记不安全</b>：Fibonacci 恒正所以可行，但若某状态的合法值本身就可能是 0（如方案数、最大子段和），必须改用 −1 或另设 vis[] 标记，否则会退化成朴素递归甚至陷入重复计算。</li>
+    <li><b>误以为记忆化不是 DP</b>：记忆化搜索是 DP 的自顶向下实现，与递推同属动态规划，不是「优化过的暴力」。</li>
+    <li><b>数据溢出</b>：f(47) 已超过 <span class="kbd">int</span> 范围，务必用 <span class="kbd">long long</span>。这与算法无关，但是最常见的失分点。</li>
+    <li><b>把「有递归」等同于「有重叠」</b>：归并排序、二分查找也是递归，但子问题不重叠，加备忘录无益。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>本节小结</h2><span class="sub">Summary</span></div>
+  <div class="summary"><span class="lbl">本节小结</span><ul>
+    <li>Fibonacci 的递推式为 <b>f(n) = f(n−1) + f(n−2)</b>，边界 <b>f(1) = f(2) = 1</b>。</li>
+    <li>动态规划的两个适用条件：<b>最优子结构（无后效性）</b>保证「能拼」，<b>重叠子问题</b>保证「值得存」。二者缺一不可。</li>
+    <li>同一套状态与转移，有两种实现：<b>记忆化搜索</b>（自顶向下，递归 + 备忘录）与<b>递推填表</b>（自底向上，循环 + dp 数组），复杂度同阶。</li>
+    <li>时间复杂度从 <b>O(2<sup>n</sup>)</b> 降到 <b>Θ(n)</b>，本质是「每个子问题只解一次」；空间可用滚动变量压到 <b>O(1)</b>。</li>
+    <li>估算法则：<b>DP 时间 ≈ 状态数 × 单次转移代价</b>；DP 空间 ≈ 状态数（可再用滚动数组降维）。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>自测题</h2><span class="sub">点击选项查看解析</span></div>
+  <div class="quiz">
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">1</span>下列哪一项<b>不是</b>动态规划相对朴素递归产生加速的直接原因？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>问题存在重叠子问题</span></div>
+        <div class="quiz-opt"><span class="mk">B</span><span>每个子问题只被真正求解一次</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>问题规模 n 比较小</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>子问题的解可以被后续复用</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 C。DP 的提速来自「重叠子问题 + 结果复用」，把指数次重复求解压缩成每个状态求解一次（A、B、D 正是这条链上的三个环节）。规模 n 的大小与是否采用 DP、能否加速<b>没有因果关系</b>——n 小只是让朴素递归也能跑完而已；反过来说，若子问题互不重叠（如归并排序左右两半），无论 n 多大，加备忘录都不会带来任何收益。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">2</span>把递推写成 <span class="kbd">for (int i = n; i &gt;= 3; --i) dp[i] = dp[i-1] + dp[i-2];</span>（其余不变），结果会怎样？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>结果不变，只是填表顺序不同</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>结果错误：dp[i−1]、dp[i−2] 此时尚未计算</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>编译不通过</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>结果正确，但时间复杂度升为 O(n<sup>2</sup>)</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。自底向上的正确性条件是<b>「计算某状态时，它依赖的状态必须已经算好」</b>。倒序时 dp[n−1]、dp[n−2] 还是初值 0，于是 dp[n]=0，逐层传染，最终除边界外全为 0。这说明「计算顺序」不是排版细节而是<b>正确性要求</b>。A 错在忽视依赖方向；C 错在语法完全合法，编译器不会报错——这类错误只能靠对拍或手算发现；D 错在循环次数一次都没变，复杂度仍是 Θ(n)，问题出在答案而非效率。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">3</span>记忆化实现中 <span class="kbd">if (memo[n] != 0) return memo[n];</span> 这种「以 0 表示未计算」的写法，在什么情况下会失效？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>n 太大导致 long long 溢出时</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>某个状态的合法答案本身就等于 0 时</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>递归深度超过栈容量时</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>任何情况下都不会失效</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。用某个特殊值当「未计算」哨兵的前提是<b>该值不可能是任何状态的真实答案</b>。Fibonacci 恒为正，用 0 恰好安全；但换成「方案数」「最大子段和」「最小代价」等答案可能为 0 的问题，程序会把已算出的 0 误判为「没算过」，于是反复重算，退化回指数级——这是记忆化最隐蔽的性能 bug。正确做法是初始化为 −1，或另设 <span class="kbd">bool vis[]</span>。A 是数值范围问题、C 是栈深度问题，它们确实会出错但与「哨兵标记」无关；D 显然过于绝对。</div>
+    </div>
+  </div>
+</section>
+
+<div class="page-nav"><a href="index.html"><span class="dir">← 上一节</span><span class="name">总览</span></a><a href="02-principle.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">原理</span></a></div>
+<div class="footer">算法设计与分析 · <b>第7章 动态规划</b> · 强交互可视化版<br/>Canvas 填表 · 路径回溯 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:32},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.12-Math.random()*.3, a:.12+Math.random()*.3}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(185,100,52,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let ms=220;
+n.oninput=()=>nv.textContent=n.value;
+spd.querySelectorAll('button').forEach(b=>b.onclick=()=>{spd.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');ms=+b.dataset.ms;});
+function naiveCalls(x){ let c=0; (function f(k){ c++; return k<=2?1:f(k-1)+f(k-2); })(x); return c; }
+function draw(dp, hi, callsLog){
+  const W=cv.width, H=cv.height; ctx.clearRect(0,0,W,H);
+  // split
+  ctx.strokeStyle='rgba(162,156,144,.25)'; ctx.beginPath(); ctx.moveTo(W/2,20); ctx.lineTo(W/2,H-20); ctx.stroke();
+  ctx.fillStyle='#A29C90'; ctx.font='12px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText('朴素递归调用量 (示意)', W*0.25, 28);
+  ctx.fillText('DP 填表', W*0.75, 28);
+  // left bar for calls
+  const maxC=Math.max(...callsLog,1);
+  callsLog.forEach((c,i)=>{
+    const h=Math.max(4, Math.log10(c+1)/Math.log10(maxC+1)*200);
+    const x=40+i*((W/2-80)/Math.max(callsLog.length,1));
+    ctx.fillStyle=i===hi?'#CB7440':'#CC7267';
+    ctx.fillRect(x, H-40-h, 18, h);
+  });
+  // right dp
+  const maxD=Math.max(...dp,1);
+  dp.forEach((v,i)=>{
+    if(i===0) return;
+    const h=Math.max(6,(v/maxD)*200), x=W/2+40+(i-1)*((W/2-80)/Math.max(dp.length-1,1));
+    const g=ctx.createLinearGradient(x,0,x,H);
+    if(i===hi){ g.addColorStop(0,'#DFAE83'); g.addColorStop(1,'#B96434'); }
+    else { g.addColorStop(0,'#EFBBA3'); g.addColorStop(1,'#C2603F'); }
+    ctx.fillStyle=g; ctx.fillRect(x, H-40-h, 22, h);
+    ctx.fillStyle='#7A746A'; ctx.font='10px ui-monospace'; ctx.fillText(i, x+11, H-22);
+  });
+}
+run.onclick=async()=>{
+  const N=+n.value;
+  const dp=Array(N+1).fill(0); dp[1]=1; if(N>=2) dp[2]=1;
+  const callsLog=[0,1,1];
+  for(let i=3;i<=N;i++) callsLog.push(naiveCalls(i));
+  adds.textContent=Math.max(0,N-2);
+  calls.textContent=callsLog[N];
+  for(let i=1;i<=N;i++){
+    if(i>=3) dp[i]=dp[i-1]+dp[i-2];
+    ans.textContent=dp[i]; hud2.textContent=`i=${i}`;
+    draw(dp,i,callsLog.slice(0,i+1));
+    await sleep(ms);
+  }
+  hud2.textContent='done';
+};
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

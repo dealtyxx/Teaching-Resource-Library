@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>树类型 · 第5章 回溯法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">05</div>算法可视化 · <span>第5章 回溯法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill active" href="02-trees.html">树类型</a><a class="pill" href="03-powerset.html">幂集</a><a class="pill" href="04-prune.html">剪支</a><a class="pill" href="05-knapsack.html">背包</a><a class="pill" href="06-coloring.html">着色</a><a class="pill" href="07-perm.html">全排列</a><a class="pill" href="08-nqueens.html">n皇后</a><a class="pill" href="09-opt.html">任务分配</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 2</div><h1>子集树 vs 排列树</h1>
+<p>子集：每元素选/不选 O(2ⁿ)。排列：交换展开 O(n·n!)。m 叉：每层 m 选一 O(mⁿ)。拖动 n 对比规模。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>说出</b>子集树、排列树、m 叉树三类解空间树的<b>构造方式</b>与<b>叶子规模</b>（2<sup>n</sup>、n!、m<sup>n</sup>）。</li>
+  <li>能够<b>根据问题特征选型</b>：分量取值为"选/不选"用子集树，为"m 个标号之一"用 m 叉树，为"互不相同的排列"用排列树。</li>
+  <li>能够<b>推导</b>三类树的结点总数公式，并说明"结点总数"与"叶子数"的渐进关系。</li>
+  <li>能够<b>比较</b> 2<sup>n</sup>、m<sup>n</sup>、n! 三者的增长速度，指出 n! 在 n &ge; 4 后超过 2<sup>n</sup>。</li>
+  <li>能够<b>写出</b>三类树各自的回溯代码骨架，尤其区分子集树的"两次递归"与排列树的"swap + 换回"。</li>
+</ol></div>
+<div class="grid grid-3">
+  <div class="card"><span class="badge">Subset</span><h3>子集树</h3>
+    <div class="code">dfs(i):
+  if i>=n: 输出子集
+  else:
+    x[i]=1; dfs(i+1)  // 选
+    x[i]=0; dfs(i+1)  // 不选</div>
+    <div class="formula">幂集 · 子集和 · 0/1 背包 · 着色</div></div>
+  <div class="card"><span class="badge">Perm</span><h3>排列树</h3>
+    <div class="code">dfs(i):
+  if i>=n: 输出排列
+  else for j=i..n-1:
+    swap(i,j); dfs(i+1); swap(i,j)</div>
+    <div class="formula">全排列 · n 皇后 · 分配 · TSP</div></div>
+  <div class="card"><span class="badge">m-ary</span><h3>m 叉树</h3>
+    <div class="code">dfs(i):
+  if i&gt;=n: 输出方案
+  else for c=0..m-1:
+    x[i]=c            // 第 i 项取第 c 号
+    if 可行(i): dfs(i+1)</div>
+    <div class="formula">图 m 着色 · 装载多车 · 任务分组</div></div>
+</div>
+<div class="card" style="margin-top:14px">
+  <div class="toolbar"><label>n=<b id="nv">6</b></label><input type="range" id="nr" min="1" max="10" value="6" style="width:200px;accent-color:#6E5691"/></div>
+  <div class="stat-row">
+    <div class="stat"><span>2ⁿ 叶子</span><b class="p" id="s2">64</b></div>
+    <div class="stat"><span>n! 叶子</span><b class="a" id="sf">720</b></div>
+    <div class="stat"><span>n!/2ⁿ</span><b class="g" id="sr">11.3</b></div>
+  </div>
+  <div class="stage-wrap light" style="height:200px"><canvas class="stage" id="cv" width="900" height="200"></canvas></div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>三类解空间树</h2><span class="sub">选型决定了你要写的代码骨架</span></div>
+
+<div class="defn"><span class="lbl">定义 1 · 子集树</span><p>当问题是"从 n 个元素的集合 S 中找出满足某种性质的<b>子集</b>"时，解向量 x = (x<sub>0</sub>, &hellip;, x<sub>n&minus;1</sub>) 的每个分量取值于 <b>{0, 1}</b>（不选 / 选）。相应的解空间树是一棵高度为 n 的<b>完全二叉树</b>，称为<b>子集树</b>（subset tree）。它有 <b>2<sup>n</sup></b> 个叶子、<b>2<sup>n+1</sup>&minus;1</b> 个结点。</p></div>
+
+<div class="defn"><span class="lbl">定义 2 · 排列树</span><p>当问题是"确定 n 个元素满足某种性质的<b>排列</b>"时，解向量的分量取值于"<b>尚未使用</b>的元素集合"，第 i 层的分支数为 n&minus;i。相应的解空间树称为<b>排列树</b>（permutation tree），有 <b>n!</b> 个叶子。它不是正则树：越往下分支越少。</p></div>
+
+<div class="defn"><span class="lbl">定义 3 · m 叉树</span><p>当解向量的每个分量都独立地取值于同一个大小为 m 的标号集合 <b>{0, 1, &hellip;, m&minus;1}</b> 时，解空间树是一棵高度为 n 的<b>完全 m 叉树</b>，称为 <b>m 叉树</b>（m-ary tree），有 <b>m<sup>n</sup></b> 个叶子、<b>(m<sup>n+1</sup>&minus;1)/(m&minus;1)</b> 个结点。<b>图的 m 着色问题</b>（§06）正是这一型：n 个顶点各要从 m 种颜色中挑一种，与"选/不选"和"排列"都不同。显然子集树是 <b>m = 2</b> 的特例。</p></div>
+
+<div class="tip info"><strong>为什么必须单列 m 叉树？</strong>常见教材只强调"子集树与排列树"两型，学生到了 §06 图着色就会困惑：既不是二选一（不是子集树），颜色又<b>允许重复</b>使用（不是排列树）。m 叉树正是补上这一缺口的第三型。判据很简单：<b>分量取值集合固定且允许重复 &rarr; m 叉树；分量取值必须互不相同 &rarr; 排列树；分量只有二值 &rarr; 子集树</b>。</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>树型</th><th>分量取值</th><th>第 i 层分支数</th><th>叶子数</th><th>结点总数</th><th>典型问题</th></tr>
+  <tr><td>子集树</td><td>{0, 1}</td><td>2</td><td class="hl">2<sup>n</sup></td><td>2<sup>n+1</sup>&minus;1</td><td>幂集、子集和、0/1 背包、装载</td></tr>
+  <tr><td>m 叉树</td><td>{0, &hellip;, m&minus;1}</td><td>m</td><td class="hl">m<sup>n</sup></td><td>(m<sup>n+1</sup>&minus;1)/(m&minus;1)</td><td>图 m 着色、多机调度分组</td></tr>
+  <tr><td>排列树</td><td>未使用的元素</td><td>n&minus;i</td><td class="hl">n!</td><td>&asymp; e&middot;n! &asymp; 2.72&middot;n!</td><td>全排列、n 皇后、任务分配、TSP</td></tr>
+</table></div>
+
+<div class="deriv">
+  <span class="step">子集树结点总数 = 2<sup>0</sup>+2<sup>1</sup>+&hellip;+2<sup>n</sup> = 2<sup>n+1</sup>&minus;1 = &Theta;(2<sup>n</sup>) <span class="why">等比求和，公比 2</span></span>
+  <span class="step">m 叉树结点总数 = 1+m+&hellip;+m<sup>n</sup> = (m<sup>n+1</sup>&minus;1)/(m&minus;1) = &Theta;(m<sup>n</sup>) <span class="why">等比求和，公比 m &gt; 1</span></span>
+  <span class="step">排列树第 k 层结点数 = n&middot;(n&minus;1)&hellip;(n&minus;k+1) = n!/(n&minus;k)! <span class="why">前 k 个位置的有序选法</span></span>
+  <span class="step">排列树结点总数 = &sum;<sub>k=0..n</sub> n!/(n&minus;k)! = n!&middot;&sum;<sub>j=0..n</sub> 1/j! &lt; e&middot;n! <span class="why">令 j = n&minus;k，右和收敛到 e</span></span>
+  <span class="step">&rArr; 三类树的结点总数与叶子数<b>同阶</b>，故复杂度分析只需数叶子 <span class="why">常数因子被 O 吸收</span></span>
+</div>
+
+<div class="formula lg">&Theta;(2<sup>n</sup>) &nbsp;&lt;&nbsp; &Theta;(m<sup>n</sup>)<sub>(m&ge;3)</sub> &nbsp;&lt;&nbsp; &Theta;(n!) &nbsp;&lt;&nbsp; &Theta;(n<sup>n</sup>)</div>
+
+<div class="tip"><strong>关于增长速度：</strong>由斯特林公式 n! &asymp; &radic;(2&pi;n)&middot;(n/e)<sup>n</sup> 可知 n! 的底数 n/e 随 n 增大而增大，因此 n! 最终超过任何固定底数的 m<sup>n</sup>。具体地，<b>n &ge; 4 时 n! &gt; 2<sup>n</sup></b>（4! = 24 &gt; 16 = 2<sup>4</sup>，而 3! = 6 &lt; 8 = 2<sup>3</sup>）。请拖动上方滑块亲自验证这个交叉点。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>例题</h2><span class="sub">解空间树选型</span></div>
+
+<div class="defn prop"><span class="lbl">例题 1</span><p>为下列四个问题各选择一种解空间树，并写出叶子数：<b>(1)</b> 求 n 个整数中所有和为 t 的组合；<b>(2)</b> 把 n 个作业分配给 n 台机器，每台机器恰做一个作业，求总耗时最小的分配；<b>(3)</b> 用 4 种颜色给一张 10 个顶点的地图着色，求全部合法方案；<b>(4)</b> 把 n 个物品装入 3 个容量不同的箱子，求能否全部装下。</p></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>问题</th><th>分量含义</th><th>取值集合</th><th>树型</th><th>叶子数</th></tr>
+  <tr><td>(1) 子集和</td><td>第 i 个数选不选</td><td>{0, 1}</td><td>子集树</td><td class="hl">2<sup>n</sup></td></tr>
+  <tr><td>(2) 作业分配</td><td>第 i 台机器做哪个作业</td><td>未分配的作业</td><td>排列树</td><td class="hl">n!</td></tr>
+  <tr><td>(3) 地图着色</td><td>第 i 个顶点的颜色</td><td>{0,1,2,3}</td><td>m 叉树（m=4）</td><td class="hl">4<sup>10</sup> = 1 048 576</td></tr>
+  <tr><td>(4) 三箱装载</td><td>第 i 个物品放哪个箱</td><td>{0,1,2}</td><td>m 叉树（m=3）</td><td class="hl">3<sup>n</sup></td></tr>
+</table></div>
+
+<div class="tip info"><strong>(2) 与 (4) 的区别值得细品：</strong>两者形式上都是"第 i 项分配给某个编号"，但 (2) 要求<b>一台机器只能做一个作业</b>（分量互不相同 &rarr; 排列树，n!），而 (4) 允许<b>多个物品放进同一个箱子</b>（分量可重复 &rarr; m 叉树，3<sup>n</sup>）。是否允许重复，就是排列树与 m 叉树的分水岭。</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>把"分量可重复"的问题错当排列树。</b>图着色中两个不相邻顶点完全可以同色，若按排列树写（每种颜色只用一次）会漏掉绝大多数方案，且 m &lt; n 时一个解都找不到。</li>
+  <li><b>把 m 叉树的规模写成 n<sup>m</sup>。</b>正确的是 <b>m<sup>n</sup></b>：底数是每层的分支数 m，指数是层数 n。10 个顶点 4 种颜色是 4<sup>10</sup> 而不是 10<sup>4</sup>，两者差了 100 倍。</li>
+  <li><b>认为 2<sup>n</sup> 总是小于 n!。</b>只有 <b>n &ge; 4</b> 时才成立；n = 1,2,3 时 n! &le; 2<sup>n</sup>。写"&Theta;(n!) 一定大于 &Theta;(2<sup>n</sup>)"作为渐进结论没问题，但当成对所有 n 成立的不等式就错了。</li>
+  <li><b>子集树写成一层一个 for 循环。</b>子集树的标准写法是<b>两次递归</b>（选 / 不选），不是 for 循环；写成 <code>for c in {0,1}</code> 虽然等价，但会掩盖"左支加约束、右支不加"这一常见剪支差异。</li>
+  <li><b>排列树里忘记 swap 换回。</b><code>swap(i,j); dfs(i+1);</code> 之后必须再 <code>swap(i,j)</code> 还原，否则数组顺序被打乱，后续兄弟分支枚举的根本不是原集合。</li>
+  <li><b>把结点总数与叶子数当成不同的复杂度阶。</b>三类树的结点总数都与叶子数同阶（子集树 &lt; 2&times;叶子，排列树 &lt; e&times;叶子），分析时数叶子即可。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li><b>子集树</b>：分量取 {0,1}，完全二叉树，<b>2<sup>n</sup></b> 个叶子，用于"选出一个子集"的问题（幂集、子集和、0/1 背包）。</li>
+  <li><b>m 叉树</b>：分量取固定的 m 个标号且<b>可重复</b>，完全 m 叉树，<b>m<sup>n</sup></b> 个叶子，用于"给每项贴一个标签"的问题（图 m 着色、分箱）。子集树是 m=2 的特例。</li>
+  <li><b>排列树</b>：分量取"尚未使用的元素"且<b>互不相同</b>，第 i 层分支数 n&minus;i，<b>n!</b> 个叶子，用于"确定一个排列/一一对应"的问题（全排列、n 皇后、任务分配、TSP）。</li>
+  <li>三类树的<b>结点总数与叶子数同阶</b>，因此复杂度分析只需数叶子并乘上单结点处理代价。</li>
+  <li>选型判据一句话：<b>二值 &rarr; 子集树；固定标号可重复 &rarr; m 叉树；互不相同 &rarr; 排列树</b>。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>把 n 个不同的球放入 m 个不同的盒子（允许空盒），求所有放法。其解空间树与叶子数是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>排列树，n! 个叶子</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>m 叉树，m<sup>n</sup> 个叶子</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>m 叉树，n<sup>m</sup> 个叶子</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>子集树，2<sup>n</sup> 个叶子</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。解向量为 x = (x<sub>0</sub>,&hellip;,x<sub>n&minus;1</sub>)，x<sub>i</sub> 表示第 i 个球放入哪个盒子，取值于 {0,&hellip;,m&minus;1} 且<b>允许重复</b>（多个球可放同一盒），故为高度 n 的完全 m 叉树，叶子数 m<sup>n</sup>。A 错在允许空盒、球与盒并非一一对应，不是排列。C 把底数和指数写反了——每层分支数 m 是底数、层数 n 是指数。D 只在 m=2 时才成立。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>关于排列树的结点总数，下列估计正确的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>恰好 n! 个，因为每个叶子对应一个排列</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>约 2n! 个，与完全二叉树同理</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>约 e&middot;n! &asymp; 2.72&middot;n! 个，仍是 &Theta;(n!)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>约 n<sup>n</sup> 个，因为每层都有 n 种选择</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。结点总数 = &sum;<sub>k=0..n</sub> n!/(n&minus;k)!，令 j = n&minus;k 得 n!&middot;&sum;<sub>j=0..n</sub> 1/j!，而 &sum;<sub>j&ge;0</sub> 1/j! = e，故总数 &lt; e&middot;n!，仍为 &Theta;(n!)。A 只数了叶子，漏掉了全部内部结点。B 的 2 倍关系是完全二叉树的性质（叶子数 &asymp; 内部结点数），排列树各层分支数递减，比例不是 2 而是 e。D 是"每层都有 n 个分支"的错误假设——排列树第 i 层只有 n&minus;i 个分支，因为已用过的元素不能再选；n<sup>n</sup> 对应的是允许重复的 m 叉树（m=n）。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>某问题的解空间是 3<sup>n</sup>，另一问题是 n!。当 n 从 5 增至 10 时，下列判断正确的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>n=5 时 n! 已经大于 3<sup>n</sup>，n=10 时更是如此</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>n=5 时 3<sup>n</sup> 更大（243 &gt; 120），n=10 时 n! 反超（3628800 &gt; 59049）</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>两者始终同阶，因为都是指数级</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>3<sup>n</sup> 始终更大，因为底数 3 大于 1</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。3<sup>5</sup> = 243 而 5! = 120，此时 m 叉树更大；3<sup>10</sup> = 59 049 而 10! = 3 628 800，此时排列树已大出 60 余倍。这说明<b>渐进阶的比较结论在小规模上可能反向</b>——由斯特林公式 n! &asymp; &radic;(2&pi;n)(n/e)<sup>n</sup>，其"等效底数" n/e 在 n &gt; 3e &asymp; 8.15 之后才超过 3。A 把交叉点估早了。C 混淆了"都是指数级"与"同阶"：&Theta;(3<sup>n</sup>) 与 &Theta;(n!) 并不同阶，后者严格更大。D 只看底数不看底数是否随 n 增长，正是最典型的误解。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="01-overview.html"><span class="dir">← 上一节</span><span class="name">概述</span></a><a href="03-powerset.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">幂集</span></a></div>
+<div class="footer">算法设计与分析 · <b>第5章 回溯法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(110,86,145,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+function fact(n){let r=1;for(let i=2;i<=n;i++)r*=i;return r;}
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+function upd(){
+  const n=+nr.value; nv.textContent=n;
+  const a=2**Math.min(n,20), b=fact(n);
+  s2.textContent=a; sf.textContent=b; sr.textContent=(b/a).toFixed(1);
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const max=Math.max(a,b,1);
+  ctx.fillStyle='#6E5691'; ctx.fillRect(80,40, Math.min(700,600*a/max),40);
+  ctx.fillStyle='#9C7420'; ctx.fillRect(80,110, Math.min(700,600*b/max),40);
+  ctx.fillStyle='#1D1B16'; ctx.font='13px sans-serif';
+  ctx.fillText('2ⁿ = '+a, 80, 30); ctx.fillText('n! = '+b, 80, 100);
+}
+nr.oninput=upd; upd();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

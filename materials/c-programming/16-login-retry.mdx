@@ -1,0 +1,101 @@
+---
+module: 3
+moduleName: 循环结构
+order: 16
+title: 账号登录验证（3次机会）
+level: 进阶选做
+scene: 系统应用
+knowledge: [do-while, 循环计数, 条件终止]
+stars: 3
+minutes: 80
+goal: 理解后置判断循环的应用场景
+sizheng: 三次锁定的背后是《网络安全法》——安全规则要长进代码里
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import LoginRetryLab from '../../components/react/LoginRetryLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：必须先问一次的循环
+
+登录验证有个微妙的逻辑：**判断"密码对不对"之前，必须先让用户输入一次**。
+while 是"先判断、后执行"——第一圈判断时连输入都还没有，条件从何谈起？这正是 `do-while` 的主场：
+
+```c
+do {
+    /* 循环体：先无条件执行一次 */
+} while (条件);   /* 再决定要不要下一圈 */
+```
+
+**do-while 保证循环体至少执行一次**。凡是"先做一次再说"的场景——询问密码、显示菜单、游戏"再来一局"——它都是最贴切的表达。配上计数器 `tries` 和复合条件 `!ok && tries < 3`，就是完整的"三次机会"逻辑。
+
+## 一步一步看后置判断
+
+<CStepRunner
+  client:visible
+  title="循环模拟：两次错误 + 一次成功"
+  badge="do-while 模拟"
+  doneNote="注意判断发生在每圈『之后』：第一圈无条件执行。while 版本在这个场景里第一圈就会因为『还没输入』而逻辑混乱。"
+  code={`#include <stdio.h>
+#include <string.h>
+
+int main(void) {
+    char pw[32];
+    int tries = 0, ok = 0;
+    do {
+        scanf("%31s", pw);   /* 输入:abc,123,BeiDou */
+        tries++;
+        if (strcmp(pw, "BeiDou") == 0)
+            ok = 1;
+    } while (!ok && tries < 3);
+    printf(ok ? "成功\\n" : "锁定\\n");
+    return 0;
+}`}
+  steps={[
+    { line: 6, desc: '进入 do——没有任何前置判断，循环体直接开始执行！', vars: { tries: '0', ok: '0' } },
+    { line: 7, desc: '第 1 次输入 "abc"。', vars: { pw: '"abc"', tries: '0', ok: '0' } },
+    { line: 9, desc: 'strcmp 比较："abc" ≠ "BeiDou"，ok 保持 0。', vars: { pw: '"abc"', tries: '1', ok: '0' } },
+    { line: 11, desc: '圈末才判断：!ok(真) && tries<3(真) → 再来一圈。', vars: { tries: '1', ok: '0' } },
+    { line: 7, desc: '第 2 次输入 "123"——仍然不对。', vars: { pw: '"123"', tries: '2', ok: '0' } },
+    { line: 11, desc: '判断：!ok && 2<3 → 还有最后一次机会。', vars: { tries: '2', ok: '0' } },
+    { line: 7, desc: '第 3 次输入 "BeiDou"。', vars: { pw: '"BeiDou"', tries: '2', ok: '0' } },
+    { line: 10, desc: 'strcmp == 0！ok 置 1。', vars: { pw: '"BeiDou"', tries: '3', ok: '1' } },
+    { line: 11, desc: '判断：!ok 为假 → && 短路，整体为假 → 退出循环。', vars: { tries: '3', ok: '1' } },
+    { line: 12, desc: '登录成功。若三次都错，退出时 ok=0，走"锁定"。', out: '成功' },
+  ]}
+/>
+
+> 第 12 行的退出条件 `!ok && tries < 3` 是**两个终止原因的合取**：猜对了退出（`!ok` 为假），次数用尽也退出（`tries < 3` 为假）。模块二的逻辑运算与本模块的循环，在这里完成合体。
+
+## 动手实验：真实登录一次（3 次机会）
+
+<LoginRetryLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：实现 3 次机会登录（密码写死）。对照写一个 while 版本，体会哪里别扭。
+2. **AI 优化进阶版**：让 AI 增加"锁定 30 秒后可重试"提示与错误次数持久化思路。审查它的 `scanf("%s")` 有没有宽度限制——没有 `%31s` 就是缓冲区溢出（第 2 章三大 AI 高频错误之一）。
+3. **信创加固定稿版**：密码比较改为恒定时间比较的思路讨论（防时序侧信道）；错误提示不要区分"用户名不存在/密码错误"（防枚举）；把 3 次上限设为宏。
+
+## 素养与思政
+
+《网络安全法》第二十一条要求网络运营者"采取防范计算机病毒和网络攻击、网络侵入等危害网络安全行为的技术措施"。登录失败次数限制，是这条法律在代码层面最常见的落点——你写的 `tries < 3`，是暴力破解者面前的第一道闸。
+**安全不是产品经理的需求清单，是工程师的法定义务。** 从这个 do-while 开始，把"安全内建"（Security by Design）当成写代码的默认姿势。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="do-while 与 while 的本质区别是？"
+  options={['do-while 更快', 'do-while 先执行后判断，循环体至少执行一次；while 先判断后执行，可能一次都不执行', '功能完全相同', 'do-while 不能用 break']}
+  answer={1}
+  explain="判断位置决定了『至少一次』还是『可能零次』。需要先做一次再决定的场景（输入、菜单、重试），do-while 是语义最贴切的选择。"
+/>
+
+<QuizItem
+  client:visible
+  question="退出条件 while (!ok && tries < 3)：用户第 1 次就输对时，循环共执行几圈？"
+  options={['3 圈', '1 圈', '0 圈', '2 圈']}
+  answer={1}
+  explain="第 1 圈执行后 ok=1，圈末判断 !ok 为假，立即退出——总共 1 圈。do-while 的『至少一次』在这里恰好也是『仅此一次』。"
+/>

@@ -1,0 +1,165 @@
+---
+module: 3
+moduleName: BeautifulSoup库
+order: 13
+title: 招聘网站职位信息全量采集
+level: 综合挑战
+scene: 求职数据
+knowledge: [全方法综合, 嵌套结构解析, 结构化输出]
+stars: 4
+minutes: 70
+goal: 能实现复杂网页全量解析
+sizheng: 培养开源创新的技术思维
+dims: [开源共享, 创新思维]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import PyStepRunner from '../../components/react/PyStepRunner';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+
+## 场景导入
+
+毕业季，你想做一个「数据岗位薪资地图」。招聘页上每张职位卡都是一个嵌套小宇宙：标题里套着链接，公司名旁边挂着融资阶段，薪资藏在 span 里，技能标签是一串 li。这一战要把本模块所学全部用上——`find_all` 拿卡片、Tag 属性取链接、`select` 精准掏薪资，最后输出规范的 JSON。这也是你与 BeautifulSoup 的「毕业答辩」。
+
+## 逐行看懂
+
+全量解析的骨架——先取卡，再逐卡拆字段，容错兜底：
+
+<PyStepRunner
+  client:visible
+  title="逐行执行：一张职位卡的完整拆解"
+  fileName="job_parser.py"
+  code={`from bs4 import BeautifulSoup
+
+html = """
+<div class='job-card'>
+  <h3><a href='/job/1024'>数据采集工程师</a></h3>
+  <p class='company'>葵花数据 <em>B轮</em></p>
+  <span class='salary'>15-25K</span>
+  <ul class='tags'><li>Python</li><li>爬虫</li></ul>
+</div>"""
+
+soup = BeautifulSoup(html, 'html.parser')
+card = soup.find('div', class_='job-card')
+title = card.h3.a.get_text()
+link = card.h3.a['href']
+salary = card.select_one('.salary').get_text()
+tags = [li.get_text() for li in card.select('ul.tags li')]
+print(title, link, salary, tags)`}
+  steps={[
+    { line: 0, desc: '综合战开始：一张卡片用齐 find / Tag属性 / select 三套武器。' },
+    { line: 2, desc: '内联一张典型职位卡：标题套链接、公司名带融资阶段、薪资、技能标签列表。' },
+    { line: 10, desc: '建树。真实项目中这段 HTML 来自合规请求的响应文本。', vars: { '文档': '已解析' } },
+    { line: 11, desc: 'find 定位职位卡容器——全量采集时换成 find_all 循环处理每一张。', vars: { 'card': '<div class=job-card>' } },
+    { line: 12, desc: '点号链式下潜：card.h3.a 直达标题链接节点，get_text 取文字。', vars: { 'title': '数据采集工程师' } },
+    { line: 13, desc: 'Tag 对象当字典用：中括号取 href 属性。', vars: { 'link': '/job/1024' } },
+    { line: 14, desc: 'select_one 用类选择器掏薪资——嵌套再深也一击命中。', vars: { 'salary': '15-25K' } },
+    { line: 15, desc: '列表推导式批量收割技能标签：select 返回列表，逐个 get_text。', vars: { 'tags': "['Python', '爬虫']" } },
+    { line: 16, desc: '四个字段到手，一张卡完成结构化。', out: "数据采集工程师 /job/1024 15-25K ['Python', '爬虫']" },
+  ]}
+/>
+
+## 动手实验
+
+放大到「整页」：三张卡（其中一张缺薪资），全量解析 + 容错 + JSON 结构化输出：
+
+<PyPlayground
+  client:visible
+  title="全量采集：嵌套解析 + 容错 + JSON 输出"
+  packages={['beautifulsoup4']}
+  height={340}
+  note="试着再添一张缺 tags 的卡片，看容错逻辑是否稳住；或把输出改成只保留 15K 以上的岗位。"
+  code={`from bs4 import BeautifulSoup
+import json
+
+html = """
+<div class='job-card'>
+  <h3><a href='/job/1'>数据采集工程师</a></h3>
+  <span class='salary'>15-25K</span>
+  <ul class='tags'><li>Python</li><li>爬虫</li></ul>
+</div>
+<div class='job-card'>
+  <h3><a href='/job/2'>数据分析师</a></h3>
+  <span class='salary'>12-20K</span>
+  <ul class='tags'><li>SQL</li><li>可视化</li></ul>
+</div>
+<div class='job-card'>
+  <h3><a href='/job/3'>实习生-数据标注</a></h3>
+  <ul class='tags'><li>细心</li></ul>
+</div>"""
+
+soup = BeautifulSoup(html, 'html.parser')
+jobs = []
+miss = 0
+for card in soup.find_all('div', class_='job-card'):
+    s = card.select_one('.salary')          # 可能缺失
+    if s is None:
+        miss += 1
+    jobs.append({
+        "title": card.h3.a.get_text(),
+        "link": card.h3.a['href'],
+        "salary": s.get_text() if s else "面议",
+        "tags": [li.get_text() for li in card.select('ul.tags li')],
+    })
+
+print(json.dumps(jobs, ensure_ascii=False, indent=2))
+print(f"共 {len(jobs)} 岗，其中 {miss} 岗缺薪资已容错为「面议」")`}
+/>
+
+## 思政会客厅
+
+<DimCard dim="开源共享" title="你解析的每一行，都站在开源的肩膀上">
+  <ul>
+    <li>BeautifulSoup 由 Leonard Richardson 维护二十余年、免费送给全世界——你的「毕业答辩」用的正是开源社区的礼物。</li>
+    <li>受益者的本分：给项目点 Star、报一个复现清晰的 issue、把踩坑经验写成博客，都是回馈。</li>
+    <li>采集来的求职数据若要开放共享，记得脱敏聚合、注明来源与许可——共享精神同样适用于数据本身。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="创新思维" title="从「会用方法」到「组合方法」">
+  <ul>
+    <li>综合挑战的本质是编排：find_all 圈范围、Tag 属性拿关键值、select 掏深层字段——像指挥一支小乐队。</li>
+    <li>容错是全量采集的生命线：一张残缺卡片不该让整个流水线崩溃。</li>
+    <li>输出即接口：ensure_ascii=False 的规范 JSON，让下游的分析同学直接开工。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="🌻" tone="gold" title="别忘了采集的前提">
+真实招聘站的数据采集，仍要先过模块 2 的三道关：robots.txt 允许、频率礼貌、用途正当（个人求职分析可以，倒卖简历数据违法）。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p13-d1"
+  question="如果把这份「岗位薪资地图」整理后开源发布，你会做哪些处理才安心？"
+  hints={['只发布聚合统计（城市/岗位维度的分布），不发布任何单条原始记录', '注明数据来源、采集时间与许可证（如 CC-BY-4.0）', '检查是否含公司未公开信息或可识别到个人的字段']}
+/>
+
+<DiscussCard
+  client:visible
+  storageKey="p13-d2"
+  question="嵌套解析时，「链式点号下潜」和「select 一步到位」各适合什么场景？"
+  hints={['结构稳定、层级浅：点号链最直观', '层级深、类名明确：选择器更简洁抗变动', '生产代码要考虑 None 安全：链条上任一环缺失都会 AttributeError']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="第三张职位卡没有 salary 节点，代码却没有崩溃，靠的是？"
+  options={['BeautifulSoup 自动补全缺失节点', 'select_one 返回 None 后做了条件兜底', 'Python 忽略所有异常', 'JSON 序列化时自动跳过空值']}
+  answer={1}
+  explain="select_one 找不到时返回 None；先判空再取值（s.get_text() if s else「面议」）是全量解析的标准容错姿势——任何自动补全都不存在。"
+/>
+
+<QuizItem
+  client:visible
+  question="使用 BeautifulSoup 这样的开源库，下列哪种做法最符合开源精神？"
+  options={['用得越多越好，别的不用管', '遇到 bug 提交清晰可复现的 issue 甚至补丁', '把库改个名字当成果发表', '只用不升级，避免麻烦']}
+  answer={1}
+  explain="开源生态靠共建维持：清晰的 issue、文档改进、经验分享都是回馈。把他人成果改名冒领则是学术与开源双重失信。"
+/>

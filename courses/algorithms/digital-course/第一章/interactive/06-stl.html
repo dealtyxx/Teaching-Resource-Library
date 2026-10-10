@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>STL · 第1章 绪论</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">01</div>算法可视化 · <span>第1章 绪论</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-algorithm.html">算法定义</a><a class="pill" href="02-design-steps.html">设计步骤</a><a class="pill" href="03-complexity.html">复杂度</a><a class="pill" href="04-asymptotic.html">渐进界</a><a class="pill" href="05-cases.html">三种情况</a><a class="pill active" href="06-stl.html">STL</a><a class="pill" href="07-sequence.html">序列容器</a><a class="pill" href="08-adapters.html">适配器</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 6</div><h1>STL 体系结构</h1>
+<p>容器 · 迭代器 · 算法 · 适配器 · 函数对象。点击分类查看说明。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>列举</b> STL 的五大组成部分，并说明迭代器为什么是连接容器与算法的关键。</li>
+  <li>能够<b>写出</b>包含头文件、声明容器、插入元素、调用泛型算法的完整 C++ 代码。</li>
+  <li>能够<b>查表说出</b> vector / list / deque / set / map / unordered_map 各自插入、查找、删除的复杂度。</li>
+  <li>能够<b>依据复杂度</b>为给定场景选择合适的容器，并说明理由。</li>
+</ol></div>
+
+<div class="grid grid-3" id="cats">
+  <div class="card cat" data-d="vector/deque/list/array — 元素线性排列"><span class="badge">容器</span><h3>序列容器</h3></div>
+  <div class="card cat" data-d="set/map/unordered_* — 键查找"><span class="badge">容器</span><h3>关联容器</h3></div>
+  <div class="card cat" data-d="stack/queue/priority_queue 基于其他容器"><span class="badge">适配器</span><h3>容器适配器</h3></div>
+  <div class="card cat" data-d="sort/find/accumulate 与迭代器解耦"><span class="badge">算法</span><h3>泛型算法</h3></div>
+  <div class="card cat" data-d="遍历容器的统一接口"><span class="badge">迭代器</span><h3>Iterator</h3></div>
+  <div class="card cat" data-d="less/greater 等可调用对象"><span class="badge">仿函数</span><h3>函数对象</h3></div>
+</div>
+<div class="tip" id="tip">点击卡片。</div>
+<div class="card" style="margin-top:14px">
+  <div class="toolbar"><button class="btn primary" id="run">▶ 冒泡排序动画（示意"算法作用于区间"）</button></div>
+  <div class="cells" id="arr"></div>
+  <div class="tip warn"><strong>说明：</strong>上面这段动画为便于逐帧观看，演示的是<b>冒泡排序</b>（O(n<sup>2</sup>)），仅用来示意"泛型算法通过迭代器遍历区间"这一思想，<b>并不是</b> <code>std::sort</code> 的真实实现。<code>std::sort</code> 实际采用<b>内省排序（Introsort）</b>——以快速排序为主，递归过深时切换堆排序，子区间较短时改用插入排序，其平均与最坏时间复杂度<b>均为 O(n log n)</b>。</div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>一、STL 五大组件</h2><span class="sub">Standard Template Library</span></div>
+  <div class="defn"><span class="lbl">定义</span><p><b>STL（Standard Template Library，标准模板库）</b>是 C++ 标准库中基于<b>泛型编程</b>思想设计的组件集合，由<b>容器（Container）、迭代器（Iterator）、算法（Algorithm）、容器适配器（Adapter）、函数对象（Function Object）</b>五部分构成。其核心设计是：<b>算法不直接依赖容器，而是通过迭代器访问数据</b>，从而使 m 个算法与 n 个容器只需 m + n 份代码，而非 m × n 份。</p></div>
+  <div class="formula">算法 ── 迭代器 ── 容器　（迭代器是解耦二者的"胶水"）</div>
+
+  <div class="code"><span class="cm">// STL 最小完整示例：容器 + 迭代器 + 算法</span>
+<span class="kw">#include</span> <span class="st">&lt;iostream&gt;</span>
+<span class="kw">#include</span> <span class="st">&lt;vector&gt;</span>          <span class="cm">// 序列容器</span>
+<span class="kw">#include</span> <span class="st">&lt;algorithm&gt;</span>       <span class="cm">// sort / find / count 等泛型算法</span>
+<span class="kw">using</span> <span class="kw">namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    vector&lt;<span class="kw">int</span>&gt; v;                      <span class="cm">// 声明一个空的 int 向量</span>
+    v.<span class="fn">push_back</span>(<span class="nu">7</span>);                    <span class="cm">// 尾部插入，均摊 O(1)</span>
+    v.<span class="fn">push_back</span>(<span class="nu">2</span>);
+    v.<span class="fn">push_back</span>(<span class="nu">9</span>);
+    v.<span class="fn">push_back</span>(<span class="nu">1</span>);
+
+    <span class="fn">sort</span>(v.<span class="fn">begin</span>(), v.<span class="fn">end</span>());          <span class="cm">// 升序排序，O(n log n)</span>
+
+    <span class="kw">auto</span> it = <span class="fn">find</span>(v.<span class="fn">begin</span>(), v.<span class="fn">end</span>(), <span class="nu">9</span>);  <span class="cm">// 顺序查找，O(n)</span>
+    <span class="kw">if</span> (it != v.<span class="fn">end</span>())
+        cout &lt;&lt; <span class="st">"找到 9，下标 = "</span> &lt;&lt; (it - v.<span class="fn">begin</span>()) &lt;&lt; endl;
+
+    <span class="kw">for</span> (<span class="kw">int</span> x : v) cout &lt;&lt; x &lt;&lt; <span class="st">' '</span>;   <span class="cm">// 范围 for，输出 1 2 7 9</span>
+    cout &lt;&lt; endl;
+    <span class="kw">return</span> <span class="nu">0</span>;
+}</div>
+
+  <div class="tip info"><strong>迭代器区间约定：</strong>STL 一律使用<b>左闭右开</b>区间 [begin, end)。<code>end()</code> 指向"<b>最后一个元素的下一个位置</b>"，不可解引用。因此空容器满足 <code>begin() == end()</code>，元素个数恰为 <code>end() - begin()</code>。</div>
+
+  <div class="code"><span class="cm">// 泛型的威力：同一个 sort 调用形式适用于不同容器/不同排序规则</span>
+<span class="kw">#include</span> <span class="st">&lt;functional&gt;</span>      <span class="cm">// greater&lt;int&gt; 等函数对象</span>
+
+<span class="fn">sort</span>(v.<span class="fn">begin</span>(), v.<span class="fn">end</span>(), greater&lt;<span class="kw">int</span>&gt;());   <span class="cm">// 降序：传入函数对象</span>
+<span class="fn">sort</span>(v.<span class="fn">begin</span>(), v.<span class="fn">end</span>(), [](<span class="kw">int</span> a, <span class="kw">int</span> b) {
+    <span class="kw">return</span> <span class="fn">abs</span>(a) &lt; <span class="fn">abs</span>(b);                 <span class="cm">// 按绝对值升序：传入 lambda</span>
+});
+<span class="fn">sort</span>(a, a + n);                            <span class="cm">// 原生数组也能用：指针即迭代器</span></div>
+  <p class="desc">最后一行说明了迭代器抽象的精髓：<b>原生指针本身就满足随机访问迭代器的全部要求</b>，所以为容器写的算法可以原封不动地用在数组上。</p>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>二、容器操作复杂度对照表</h2><span class="sub">选容器的唯一依据</span></div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>容器</th><th>底层结构</th><th>随机访问</th><th>头部插删</th><th>尾部插删</th><th>中间插删</th><th>按值查找</th></tr>
+    <tr><td>vector</td><td>动态数组</td><td class="path">O(1)</td><td class="hl">O(n)</td><td>均摊 O(1)</td><td class="hl">O(n)</td><td>O(n)</td></tr>
+    <tr><td>deque</td><td>分段连续数组</td><td class="path">O(1)</td><td class="path">O(1)</td><td class="path">O(1)</td><td class="hl">O(n)</td><td>O(n)</td></tr>
+    <tr><td>list</td><td>双向链表</td><td class="hl">不支持</td><td class="path">O(1)</td><td class="path">O(1)</td><td class="path">O(1)*</td><td>O(n)</td></tr>
+    <tr><td>forward_list</td><td>单向链表</td><td class="hl">不支持</td><td class="path">O(1)</td><td>不支持</td><td>O(1)*</td><td>O(n)</td></tr>
+    <tr><td>set / multiset</td><td>红黑树</td><td>不支持</td><td colspan="3">插入 / 删除均为 O(log n)</td><td class="path">O(log n)</td></tr>
+    <tr><td>map / multimap</td><td>红黑树</td><td>按键 O(log n)</td><td colspan="3">插入 / 删除均为 O(log n)</td><td class="path">O(log n)</td></tr>
+    <tr><td>unordered_set</td><td>哈希表</td><td>不支持</td><td colspan="3">插入 / 删除均摊 O(1)，最坏 O(n)</td><td class="path">均摊 O(1)</td></tr>
+    <tr><td>unordered_map</td><td>哈希表</td><td>按键均摊 O(1)</td><td colspan="3">插入 / 删除均摊 O(1)，最坏 O(n)</td><td class="path">均摊 O(1)</td></tr>
+  </table></div>
+  <p class="desc">* list / forward_list 的"中间插删 O(1)"有前提：<b>必须已经持有指向该位置的迭代器</b>。若还要先找到位置，查找本身就是 O(n)，总代价仍是 O(n)。这是链表最容易被夸大的优势。</p>
+
+  <div class="table-scroll"><table class="data">
+    <tr><th>常用泛型算法</th><th>头文件</th><th>时间复杂度</th><th>前置条件</th></tr>
+    <tr><td>sort</td><td>&lt;algorithm&gt;</td><td class="hl">O(n log n)（平均与最坏）</td><td>随机访问迭代器</td></tr>
+    <tr><td>stable_sort</td><td>&lt;algorithm&gt;</td><td>O(n log<sup>2</sup>n)，内存充足时 O(n log n)</td><td>随机访问迭代器</td></tr>
+    <tr><td>find</td><td>&lt;algorithm&gt;</td><td>O(n)</td><td>输入迭代器</td></tr>
+    <tr><td>binary_search / lower_bound</td><td>&lt;algorithm&gt;</td><td class="path">O(log n)</td><td class="hl">区间必须已有序</td></tr>
+    <tr><td>accumulate</td><td>&lt;numeric&gt;</td><td>O(n)</td><td>输入迭代器</td></tr>
+    <tr><td>reverse</td><td>&lt;algorithm&gt;</td><td>O(n)</td><td>双向迭代器</td></tr>
+    <tr><td>list::sort（成员函数）</td><td>&lt;list&gt;</td><td>O(n log n)</td><td>链表专用归并排序</td></tr>
+  </table></div>
+  <div class="tip danger"><strong>注意：</strong><code>sort(l.begin(), l.end())</code> 对 <code>list</code> <b>无法编译</b>——<code>std::sort</code> 要求随机访问迭代器，而 list 只提供双向迭代器。必须改用成员函数 <code>l.sort()</code>。这是迭代器分类在实际编程中的直接体现。</div>
+
+  <div class="terms">
+    <span class="term"><b>标准模板库</b>STL</span>
+    <span class="term"><b>泛型编程</b>Generic Programming</span>
+    <span class="term"><b>容器</b>Container</span>
+    <span class="term"><b>迭代器</b>Iterator</span>
+    <span class="term"><b>函数对象</b>Functor</span>
+    <span class="term"><b>内省排序</b>Introsort</span>
+  </div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>以为 <code>std::sort</code> 是快速排序、最坏 O(n<sup>2</sup>)。</b>它是<b>内省排序</b>：递归深度超过 2·log<sub>2</sub>n 时自动切换堆排序，因此<b>最坏也是 O(n log n)</b>。但它<b>不稳定</b>，需要稳定性时用 <code>stable_sort</code>。</li>
+  <li><b>对未排序区间调用 <code>binary_search</code> / <code>lower_bound</code>。</b>编译能过、运行不报错，但结果是错的。二分查找的前置条件是区间已按同一比较规则有序。</li>
+  <li><b>对 list 调用 <code>std::sort</code>。</b>编译报错，原因是迭代器类别不满足。应使用 <code>l.sort()</code>。</li>
+  <li><b>把 <code>end()</code> 当作最后一个元素。</b>它是"尾后位置"，解引用是未定义行为。区间恒为左闭右开 [begin, end)。</li>
+  <li><b>认为 unordered_map 一定比 map 快。</b>哈希表是<b>均摊</b> O(1)，大量冲突时退化为 O(n)；且它<b>不保证有序</b>。需要按键有序遍历、或需要 <code>lower_bound</code> 时必须用 map。</li>
+  <li><b>在遍历中直接插入/删除元素。</b>vector 的插删会使插入点之后的迭代器<b>全部失效</b>，扩容更是使<b>所有</b>迭代器失效；正确写法是 <code>it = v.erase(it);</code> 接住返回值。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>STL 五大组件：<b>容器、迭代器、算法、容器适配器、函数对象</b>；迭代器把算法与容器解耦，使代码量从 m×n 降为 m+n。</li>
+  <li>标准用法：<code>#include &lt;vector&gt;</code> → <code>vector&lt;int&gt; v;</code> → <code>v.push_back(x);</code> → <code>sort(v.begin(), v.end());</code>。</li>
+  <li>迭代器区间恒为<b>左闭右开 [begin, end)</b>，<code>end()</code> 不可解引用；原生指针即随机访问迭代器。</li>
+  <li><code>std::sort</code> 是<b>内省排序</b>，平均与最坏均 <b>O(n log n)</b>，但不稳定；<code>stable_sort</code> 稳定。</li>
+  <li>选容器看复杂度表：随机访问选 vector / deque；频繁中间插删且已持有迭代器选 list；按键查找选 map（有序，O(log n)）或 unordered_map（无序，均摊 O(1)）。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>关于 <code>std::sort(v.begin(), v.end())</code>，下列说法<b>正确</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>它就是标准的快速排序，最坏情况为 O(n<sup>2</sup>)</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>它是冒泡排序的高效实现，复杂度 O(n<sup>2</sup>)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>它是内省排序，平均与最坏均为 O(n log n)，但不保证稳定</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>它是归并排序，因此既是 O(n log n) 又是稳定的</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>正确答案 C。<code>std::sort</code> 的主流实现是 <b>Introsort（内省排序）</b>：以快排划分为主，当递归深度超过约 2·log<sub>2</sub>n 时切换<b>堆排序</b>以避免退化，子区间长度小于阈值（通常 16）时改用<b>插入排序</b>减少常数开销。<br/>A 是最常见的误解——正是"切换堆排序"这一步消除了 O(n<sup>2</sup>) 的最坏情况。<br/>B 完全错误。<br/>D 的迷惑点在于把"O(n log n)"与"稳定"绑定：归并排序确实两者兼备，但 <code>std::sort</code> 用的不是归并；要稳定必须显式用 <code>stable_sort</code>。</div>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>需要维护一批学号，要求能<b>按学号从小到大遍历</b>，且插入与查找都要快。最合适的容器是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>vector，插入 O(1)、访问 O(1)</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>unordered_set，查找均摊 O(1) 最快</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>set，插入与查找均为 O(log n) 且天然有序</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>list，插入 O(1) 最快</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>正确答案 C。set 基于<b>红黑树</b>，中序遍历天然升序，插入 / 查找 / 删除均为 O(log n)，同时满足两项要求。<br/>B 是最具迷惑性的：unordered_set 查找确实更快（均摊 O(1)），但它基于哈希表，<b>元素无序</b>，无法满足"按学号从小到大遍历"——需要有序时必须付出 O(log n) 的代价。<br/>A 的 vector 若要保持有序，每次插入需移动元素，是 O(n)。<br/>D 的 list 插入 O(1) 的前提是已知位置；按值查找是 O(n)，且无法保持有序。</div>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>下列代码存在问题，问题在哪里？<br/><code>list&lt;int&gt; l = {3,1,2}; sort(l.begin(), l.end());</code></div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>没问题，可以正常编译运行</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>能编译，但结果错误</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>编译失败，因为 list 只提供双向迭代器，而 std::sort 要求随机访问迭代器</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>编译失败，因为 list 不支持初始化列表</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>正确答案 C。<code>std::sort</code> 内部需要 <code>it + k</code>、<code>it2 - it1</code> 这类<b>随机访问</b>操作来做划分，而 list 的节点在内存中不连续，其迭代器只支持 <code>++</code> / <code>--</code>（双向迭代器），因此模板实例化失败。<br/>正确写法是调用成员函数 <code>l.sort();</code>，它是专为链表设计的归并排序，O(n log n) 且只改指针不搬数据。<br/>B 错在这是<b>编译期</b>就能发现的类型错误，不会留到运行期；D 错在 list 支持初始化列表。<br/><b>本题说明：迭代器分类不是理论装饰，它直接决定哪些算法可用。</b></div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="05-cases.html"><span class="dir">← 上一节</span><span class="name">三种情况</span></a><a href="07-sequence.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">序列容器</span></a></div>
+<div class="footer">算法设计与分析 · <b>第1章 绪论</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(194,96,63,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+document.querySelectorAll('.cat').forEach(el=>{
+  el.style.cursor='pointer';
+  el.onclick=()=>{ tip.innerHTML='<strong>'+el.querySelector('h3').textContent+'：</strong>'+el.dataset.d; };
+});
+let a=[7,2,9,1,5,3];
+function show(hi=-1){ arr.innerHTML=a.map((v,i)=>`<div class="cell ${i===hi?'on':''}">${v}</div>`).join(''); }
+run.onclick=async()=>{
+  // simple bubble for demo of "algorithm on iterators"
+  for(let i=0;i<a.length;i++) for(let j=0;j<a.length-1-i;j++){
+    show(j); await sleep(200);
+    if(a[j]>a[j+1]){ [a[j],a[j+1]]=[a[j+1],a[j]]; show(j+1); await sleep(200); }
+  }
+  show(); tip.textContent='sort 完成（示意冒泡，STL 为更优算法）';
+};
+show();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

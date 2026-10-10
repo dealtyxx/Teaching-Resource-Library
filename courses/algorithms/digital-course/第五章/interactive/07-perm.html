@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>全排列 · 第5章 回溯法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">05</div>算法可视化 · <span>第5章 回溯法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-trees.html">树类型</a><a class="pill" href="03-powerset.html">幂集</a><a class="pill" href="04-prune.html">剪支</a><a class="pill" href="05-knapsack.html">背包</a><a class="pill" href="06-coloring.html">着色</a><a class="pill active" href="07-perm.html">全排列</a><a class="pill" href="08-nqueens.html">n皇后</a><a class="pill" href="09-opt.html">任务分配</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 7 · 加深</div><h1>全排列 · 交换法</h1>
+<p>swap 展开排列树，回溯换回。逐步显示当前排列与已收集结果。</p></section>
+<div class="card">
+  <div class="toolbar">
+    <label>n=<b id="nv">3</b></label><input type="range" id="nr" min="2" max="4" value="3" style="width:120px;accent-color:#6E5691"/>
+    <button class="btn primary" id="run">▶ 逐步生成</button>
+    <button class="btn" id="all">列出全部</button>
+  </div>
+  <div class="cells" id="x"></div>
+  <div id="list" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px"></div>
+  <div class="log" id="log">—</div>
+</div>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>刻画</b>排列树的结构：树深、各层分支数、叶子数与结点总数，并说明它与子集树的本质区别。</li>
+  <li>能够<b>默写</b>交换法（swap 法）生成全排列的递归框架，指出"做选择—递归深入—撤销现场"分别对应哪两次 swap。</li>
+  <li>能够<b>论证</b>交换法为何天然保证"各位置元素互不相同"，从而不需要显式的重复性约束函数。</li>
+  <li>能够<b>推导</b>全排列问题的时间复杂度 O(n·n!) 与空间复杂度 O(n)。</li>
+  <li>能够<b>对比</b>交换法与标记数组法（used[]）在<b>输出顺序</b>与<b>现场维护</b>上的差异。</li>
+</ol></div>
+
+<section class="sec"><div class="sec-head"><h2>一、排列树与交换法</h2><span class="sub">解向量 · 分支结构 · 现场维护</span></div>
+
+<div class="defn"><span class="lbl">定义 1 · 排列树</span><p>当解向量 (x<sub>0</sub>, &hellip;, x<sub>n-1</sub>) 的各分量取自同一集合且要求<b>两两不同</b>（即一个解就是 n 个元素的某个排列）时，其解空间树称为<b>排列树</b>（permutation tree）。根到叶的每条路径对应一个排列：根有 n 个分支，第 1 层每个结点有 n&minus;1 个分支，&hellip;&hellip;第 i 层每个结点有 <b>n&minus;i</b> 个分支。因此叶子数为 <b>n!</b>，恰是 n 个元素的全排列个数。与子集树"每个元素选/不选、分支数恒为 2"不同，排列树的分支数<b>逐层递减</b>。</p></div>
+
+<div class="defn"><span class="lbl">定义 2 · 交换法的循环不变式</span><p>交换法用一个共享数组 a[] 就地生成排列。递归进入 <code>perm(i)</code> 时始终维持不变式：<b>a[0..i&minus;1] 是已经定好的前缀，a[i..n&minus;1] 恰是尚未使用的全部元素</b>（顺序任意）。第 i 层的 for 循环 <code>for j=i..n&minus;1</code> 依次把 a[j] 交换到位置 i，就等价于"让第 i 位取遍所有剩余元素"。正因为候选只在 a[i..n&minus;1] 中选取，<b>已用元素绝不会被重复放置</b>——这就是排列树无需显式约束函数的原因。</p></div>
+
+<div class="code"><span class="cm">// ── 排列树 · 交换法生成 1..n 的全排列 ─────────────</span>
+<span class="cm">// a[] ：待排列元素，初值 a[k] = k+1；n：元素个数</span>
+<span class="kw">int</span> n, a[MAXN];
+
+<span class="kw">void</span> <span class="fn">perm</span>(<span class="kw">int</span> i) {                 <span class="cm">// i：当前要确定第 i 个位置的元素</span>
+    <span class="kw">if</span> (i &gt;= n) {                       <span class="cm">// ① 前 n 位都定好 → 得到一个排列</span>
+        <span class="kw">for</span> (<span class="kw">int</span> k = <span class="nu">0</span>; k &lt; n; k++) cout &lt;&lt; a[k] &lt;&lt; <span class="nu">' '</span>;
+        cout &lt;&lt; <span class="nu">'\n'</span>;
+        <span class="kw">return</span>;
+    }
+    <span class="kw">for</span> (<span class="kw">int</span> j = i; j &lt; n; j++) {    <span class="cm">// ② 让 a[i] 依次取遍 a[i..n-1]</span>
+        swap(a[i], a[j]);               <span class="cm">// ③ 做选择：把 a[j] 换到第 i 位</span>
+        <span class="fn">perm</span>(i + <span class="nu">1</span>);                  <span class="cm">// ④ 递归深入，确定后续位置</span>
+        swap(a[i], a[j]);               <span class="cm">// ⑤ 撤销：换回，恢复剩余元素集合</span>
+    }
+}
+
+<span class="fn">perm</span>(<span class="nu">0</span>);   <span class="cm">// 从第 0 位启动</span></div>
+
+<div class="tip warn"><strong>第 ⑤ 步不可省：</strong>交换法修改的是<b>共享</b>数组 a[]，属于"动了全局状态"。若省掉换回，进入下一轮 j 时 a[i..n&minus;1] 已被打乱、剩余元素集合被污染，会漏排列且产生重复。这与幂集"覆盖式赋值 x[i]=0/1 可免撤销"（隐式回溯）形成鲜明对照。</div>
+
+<div class="terms">
+  <span class="term"><b>排列树</b>permutation tree</span>
+  <span class="term"><b>全排列</b>permutation</span>
+  <span class="term"><b>交换法</b>swap method</span>
+  <span class="term"><b>循环不变式</b>loop invariant</span>
+  <span class="term"><b>现场恢复</b>state restoration</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、复杂度与两种实现</h2><span class="sub">O(n·n!) · swap 法 vs 标记法</span></div>
+
+<div class="deriv">
+  <span class="step">排列树叶子数 = n!，每个叶子对应一个完整排列 <span class="why">各层分支数 n, n&minus;1, &hellip;, 1 连乘</span></span>
+  <span class="step">结点总数 N = n!&middot;&sum;<sub>m=0</sub><sup>n</sup> 1/m! &asymp; e&middot;n! = &Theta;(n!) <span class="why">m=n&minus;i，级数收敛到 e&asymp;2.718</span></span>
+  <span class="step">每到一个叶子需 O(n) 时间输出/复制该排列 <span class="why">解向量长度为 n</span></span>
+  <span class="step">&rArr; 时间 T(n) = &Theta;(n!)&middot;O(n) = <b>O(n&middot;n!)</b> <span class="why">叶子数 × 单叶代价（内部结点的 swap 是 O(1)，被叶子输出主导）</span></span>
+  <span class="step">递归深度 &le; n，全程只用一份共享数组 a[] &rArr; 空间 <b>O(n)</b> <span class="why">就地交换，不为分支复制数组</span></span>
+</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>对比项</th><th>交换法 swap</th><th>标记数组法 used[]</th></tr>
+  <tr><td>候选来源</td><td>剩余元素 a[i..n&minus;1]</td><td>值 1..n 中 used[v]==false 者</td></tr>
+  <tr><td>去重方式</td><td class="hl">结构性保证（不会选到已用元素）</td><td class="hl">显式 used[] 标记</td></tr>
+  <tr><td>输出顺序</td><td>非字典序（取决于 swap 打乱）</td><td class="hl">字典序（值从小到大枚举）</td></tr>
+  <tr><td>额外空间</td><td>O(1)（就地）</td><td>O(n)（used 数组 + x 解向量）</td></tr>
+  <tr><td>撤销操作</td><td>swap 换回（必需）</td><td>used[v]=false（必需）</td></tr>
+  <tr><td>时间复杂度</td><td>O(n&middot;n!)</td><td>O(n&middot;n!)</td></tr>
+</table></div>
+
+<div class="tip info"><strong>选择建议：</strong>只要求"生成全部排列、顺序无所谓"用<b>交换法</b>最省（就地、无需 used）；若要求<b>字典序</b>输出或需要"当前值是否已用"的快速判断，用<b>标记法</b>更自然。n 皇后（§08）正是在交换法骨架上加一个对角线约束函数 <code>valid()</code>，把排列树剪成 n 皇后的解空间树。</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>把排列树当成子集树。</b>子集树分支数恒为 2、深度 n、叶子 2<sup>n</sup>；排列树分支数逐层从 n 递减到 1、叶子 n!。二者结点规模完全不同。</li>
+  <li><b>循环写成 <code>for j=0..n&minus;1</code>。</b>必须从 <code>j=i</code> 起。若从 0 起，会把已固定的前缀 a[0..i&minus;1] 也换进来，破坏不变式，产生重复且残缺的"排列"。</li>
+  <li><b>忘记第 ⑤ 步换回。</b>交换法动了共享数组，撤销是强制的；漏掉会污染兄弟分支的剩余元素集合，典型症状是"只有第一条排列对，后面全乱"。</li>
+  <li><b>误以为交换法输出是字典序。</b>交换法的顺序由 swap 决定，通常<b>不是</b>字典序；要字典序须改用标记法（值从小到大枚举）或对结果排序。</li>
+  <li><b>给纯全排列强行加"约束函数"去重。</b>排列树的互异性由"只从剩余元素中选"结构性保证，不存在也不需要重复性约束函数；约束函数只在具体问题（如 n 皇后对角线冲突）里才出现。</li>
+  <li><b>断言"加剪支后复杂度低于 O(n!)"。</b>输出全部 n! 个排列本身就需要 &Omega;(n!) 下界，最坏情况无法突破；剪支只在带约束的派生问题（n 皇后）里减少实际访问的结点数。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li><b>排列树</b>：解为 n 元素排列时的解空间树，第 i 层分支数 n&minus;i，叶子 n!，结点总数 &Theta;(n!)。</li>
+  <li><b>交换法</b>：<code>for j=i..n&minus;1: swap(a[i],a[j]) &rarr; perm(i+1) &rarr; swap 换回</code>，靠"只从剩余元素 a[i..n&minus;1] 中选"结构性保证互异，无需显式约束函数。</li>
+  <li>两次 swap 分别是<b>做选择</b>与<b>撤销现场</b>；因修改共享数组，撤销强制不可省。</li>
+  <li>时间复杂度 <b>O(n&middot;n!)</b>（n! 个叶子、每叶 O(n) 输出），空间复杂度 <b>O(n)</b>（就地交换 + 递归深度）。</li>
+  <li>交换法输出非字典序、O(1) 额外空间；<b>标记法</b>用 used[] 输出字典序、O(n) 额外空间；n 皇后即在交换法上加对角线约束。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>用交换法生成 1&hellip;n 的全排列，其解空间树是排列树。当 n=4 时，叶子数与"访问到叶子时的输出总代价"分别是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>叶子 2<sup>4</sup>=16，输出代价 O(2<sup>4</sup>)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>叶子 4!=24，输出全部排列代价 O(4·4!)=O(96)</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>叶子 4!=24，输出代价 O(4!)=O(24)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>叶子 4<sup>4</sup>=256，输出代价 O(4·4<sup>4</sup>)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。排列树叶子数是全排列个数 n!=4!=24（A 把它当成子集树 2<sup>n</sup>、D 当成 n<sup>n</sup> 都错）。每到一个叶子要把长度为 n=4 的排列输出一遍，代价 O(n)，共 n! 个叶子，故总输出代价 O(n&middot;n!)=O(4&middot;24)=O(96)。C 漏掉了"每个排列输出需 O(n)"这个因子，把总代价错算成 O(n!)。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>若把交换法框架中的第 ⑤ 步 <code>swap(a[i], a[j])</code>（换回）删掉，程序行为会怎样？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>无影响，输出依然是全部 n! 个正确排列，只是顺序变了</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>会正确输出，但时间复杂度上升到 O(n·n!<sup>2</sup>)</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>a[i..n−1] 的剩余元素集合被污染，导致漏排列并出现重复/非法输出</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>程序死循环，永远无法结束</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。交换法修改的是<b>共享</b>数组 a[]，属于"改动了全局状态"，撤销是强制的。不换回时，进入同一层的下一个 j 之前，a[i..n&minus;1] 已经被上一分支永久打乱，"剩余元素恰为未使用元素"的循环不变式被破坏，于是既会漏掉某些排列、又会重复或输出非法结果。递归深度仍受 i&lt;n 控制，不会死循环（D 错）；A、B 都错在以为撤销可省。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>关于交换法与标记数组法（used[]）生成全排列，下列说法<b>正确</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>两者输出顺序相同，都保证字典序</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>交换法需要 O(n) 的 used 数组，标记法则不需要任何额外空间</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>标记法按值从小到大枚举，输出字典序；交换法输出通常非字典序</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>标记法可以省去撤销操作，交换法则必须撤销</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。标记法在每层从值 1 到 n 顺序枚举未用元素，天然产生<b>字典序</b>；交换法把候选元素 swap 到位，顺序被打乱，通常<b>非</b>字典序。A 错在说两者顺序相同。B 把两者的空间说反了：<b>标记法</b>才需要 O(n) 的 used[] 数组，交换法是就地操作、额外空间 O(1)。D 错在两者都必须撤销——标记法要 <code>used[v]=false</code>、交换法要 swap 换回，凡改动共享状态都得恢复现场。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="06-coloring.html"><span class="dir">← 上一节</span><span class="name">着色</span></a><a href="08-nqueens.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">n皇后</span></a></div>
+<div class="footer">算法设计与分析 · <b>第5章 回溯法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(110,86,145,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+let n=3;
+function genFrames(){
+  const frames=[], arr=[...Array(n)].map((_,i)=>i+1), sols=[];
+  function dfs(i){
+    frames.push({arr:arr.slice(),i,sols:sols.map(s=>s.slice())});
+    if(i>=n){ sols.push(arr.slice()); return; }
+    for(let j=i;j<n;j++){ [arr[i],arr[j]]=[arr[j],arr[i]]; dfs(i+1); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  }
+  dfs(0); return frames;
+}
+function paint(f){
+  x.innerHTML=f.arr.map((v,i)=>`<div class="cell ${i===f.i?'on':i<f.i?'hit':''}">${v}</div>`).join('');
+  list.innerHTML=f.sols.map(s=>`<div class="cell hit" style="min-width:auto;padding:6px 10px;font-size:12px">${s.join(' ')}</div>`).join('');
+  log.textContent=`深度 i=${f.i} 已收集 ${f.sols.length} 个排列`;
+}
+nr.oninput=()=>{n=+nr.value;nv.textContent=n;};
+run.onclick=async()=>{ const frames=genFrames(); for(const f of frames){ paint(f); await sleep(180);} };
+all.onclick=()=>{ const f=genFrames().at(-1); paint(f); };
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

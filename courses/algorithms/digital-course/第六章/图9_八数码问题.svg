@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="792" viewBox="0 0 1400 792" font-family="'Noto Sans SC','Source Han Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif">
+<rect x="0" y="0" width="1400" height="792" fill="#f9f9f7"/>
+<defs>
+<marker id="arr" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#52514e"/>
+</marker>
+<marker id="arrB" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#2a78d6"/>
+</marker>
+<marker id="arrO" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#eb6834"/>
+</marker>
+<marker id="arrG" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#127a56"/>
+</marker>
+<marker id="arrM" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+  <path d="M1,1 L8,4.5 L1,8 Z" fill="#898781"/>
+</marker>
+</defs>
+<text x="700.0" y="60" font-size="36" fill="#0b0b0b" font-weight="700" text-anchor="middle"   >A* 应用 · 八数码问题</text>
+<text x="700.0" y="94" font-size="18" fill="#898781" font-weight="normal" text-anchor="middle"   >f=g+h：g 为移动次数，h 为错位格数（例6.4）</text>
+<text x="1360" y="40" font-size="13" fill="#898781" font-weight="normal" text-anchor="end"   >算法设计与分析 · 第6章 分支限界法</text>
+<rect x="40" y="128" width="560" height="636" fill="#ffffff" stroke="#e1e0d9" stroke-width="1.5" rx="16" opacity="1" />
+<text x="66" y="168" font-size="22" fill="#0b0b0b" font-weight="700" text-anchor="start"   >状态表示</text>
+<text x="166" y="167" font-size="14" fill="#898781" font-weight="normal" text-anchor="start"   >3×3 棋盘 → 字符串</text>
+<text x="80" y="216" font-size="14" fill="#0b0b0b" font-weight="700" text-anchor="start"   >初始状态</text>
+<rect x="80" y="228" width="48" height="48" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="104.0" y="258.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >1</text>
+<rect x="128" y="228" width="48" height="48" fill="#f0efec" stroke="#c3c2b7" stroke-width="1.3" rx="6" opacity="1" />
+<rect x="176" y="228" width="48" height="48" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="200.0" y="258.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >3</text>
+<rect x="80" y="276" width="48" height="48" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="104.0" y="306.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >4</text>
+<rect x="128" y="276" width="48" height="48" fill="#fdeceb" stroke="#f3b7b6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="152.0" y="306.0" font-size="18" fill="#b3201f" font-weight="700" text-anchor="middle"   >2</text>
+<rect x="176" y="276" width="48" height="48" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="200.0" y="306.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >6</text>
+<rect x="80" y="324" width="48" height="48" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="104.0" y="354.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >7</text>
+<rect x="128" y="324" width="48" height="48" fill="#fdeceb" stroke="#f3b7b6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="152.0" y="354.0" font-size="18" fill="#b3201f" font-weight="700" text-anchor="middle"   >5</text>
+<rect x="176" y="324" width="48" height="48" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="200.0" y="354.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >8</text>
+<text x="80" y="384" font-size="14" fill="#52514e" font-weight="700" text-anchor="start"   font-family="ui-monospace,monospace">"103426758"</text>
+<text x="360" y="216" font-size="14" fill="#0b0b0b" font-weight="700" text-anchor="start"   >目标状态 goal</text>
+<rect x="360" y="228" width="48" height="48" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="384.0" y="258.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >1</text>
+<rect x="408" y="228" width="48" height="48" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="432.0" y="258.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >2</text>
+<rect x="456" y="228" width="48" height="48" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="480.0" y="258.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >3</text>
+<rect x="360" y="276" width="48" height="48" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="384.0" y="306.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >4</text>
+<rect x="408" y="276" width="48" height="48" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="432.0" y="306.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >5</text>
+<rect x="456" y="276" width="48" height="48" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="480.0" y="306.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >6</text>
+<rect x="360" y="324" width="48" height="48" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="384.0" y="354.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >7</text>
+<rect x="408" y="324" width="48" height="48" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="432.0" y="354.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >8</text>
+<rect x="456" y="324" width="48" height="48" fill="#f0efec" stroke="#c3c2b7" stroke-width="1.3" rx="6" opacity="1" />
+<text x="360" y="384" font-size="14" fill="#127a56" font-weight="700" text-anchor="start"   font-family="ui-monospace,monospace">"123456780"</text>
+<rect x="68" y="420" width="504" height="96" fill="#fdeceb" stroke="#f3b7b6" stroke-width="1.2" rx="12" opacity="1" />
+<text x="86" y="448" font-size="14.5" fill="#b3201f" font-weight="700" text-anchor="start"   >启发式 h = 错位格数</text>
+<text x="86" y="474" font-size="13" fill="#52514e" font-weight="normal" text-anchor="start"   >与目标（不计 0）对应位置不同的格子数。</text>
+<text x="86" y="500" font-size="13.5" fill="#b3201f" font-weight="700" text-anchor="start"   font-family="ui-monospace,monospace">本例初始 h = 3（红色格），g=0 → f=3</text>
+<rect x="68" y="530" width="504" height="96" fill="#f4f7fb" stroke="#b7d3f6" stroke-width="1.2" rx="12" opacity="1" />
+<text x="86" y="558" font-size="14.5" fill="#1c5cab" font-weight="700" text-anchor="start"   >扩展方式</text>
+<text x="86" y="584" font-size="13.5" fill="#52514e" font-weight="normal" text-anchor="start"   >把 0 与上下左右相邻的数字交换，</text>
+<text x="86" y="608" font-size="13.5" fill="#52514e" font-weight="normal" text-anchor="start"   >得到新棋盘状态（新结点）。</text>
+<rect x="68" y="640" width="504" height="96" fill="#f6f4fb" stroke="#cbc4ee" stroke-width="1.2" rx="12" opacity="1" />
+<text x="86" y="668" font-size="14.5" fill="#3a2e86" font-weight="700" text-anchor="start"   >优先队列 + 去重</text>
+<text x="86" y="694" font-size="13" fill="#52514e" font-weight="normal" text-anchor="start"   >按 f 越小越优先出队；用 unordered_set</text>
+<text x="86" y="718" font-size="13" fill="#52514e" font-weight="normal" text-anchor="start"   >&lt;string&gt; 记录已访问状态，避免重复。</text>
+<rect x="620" y="128" width="740" height="636" fill="#ffffff" stroke="#e1e0d9" stroke-width="1.5" rx="16" opacity="1" />
+<text x="646" y="168" font-size="22" fill="#0b0b0b" font-weight="700" text-anchor="start"   >求解过程</text>
+<text x="746" y="167" font-size="14" fill="#898781" font-weight="normal" text-anchor="start"   >k=3，3 步到达目标 → 返回 true</text>
+<rect x="648" y="198" width="684" height="50" fill="#fff7f2" stroke="#f3c1ac" stroke-width="1.2" rx="12" opacity="1" />
+<text x="990.0" y="229" font-size="15.5" fill="#b0491d" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">f = g + h  （g:移动次数，h:错位格数）</text>
+<rect x="664" y="278" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="686.0" y="306.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >1</text>
+<rect x="708" y="278" width="44" height="44" fill="#f0efec" stroke="#c3c2b7" stroke-width="1.3" rx="6" opacity="1" />
+<rect x="752" y="278" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="774.0" y="306.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >3</text>
+<rect x="664" y="322" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="686.0" y="350.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >4</text>
+<rect x="708" y="322" width="44" height="44" fill="#fdeceb" stroke="#f3b7b6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="730.0" y="350.0" font-size="18" fill="#b3201f" font-weight="700" text-anchor="middle"   >2</text>
+<rect x="752" y="322" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="774.0" y="350.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >6</text>
+<rect x="664" y="366" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="686.0" y="394.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >7</text>
+<rect x="708" y="366" width="44" height="44" fill="#fdeceb" stroke="#f3b7b6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="730.0" y="394.0" font-size="18" fill="#b3201f" font-weight="700" text-anchor="middle"   >5</text>
+<rect x="752" y="366" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="774.0" y="394.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >8</text>
+<text x="730.0" y="430" font-size="12" fill="#52514e" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">g=0 h=3 f=3</text>
+<path d="M 802 344.0 L 824 344.0" stroke="#eb6834" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrO)" />
+<rect x="836" y="278" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="858.0" y="306.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >1</text>
+<rect x="880" y="278" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="902.0" y="306.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >2</text>
+<rect x="924" y="278" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="946.0" y="306.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >3</text>
+<rect x="836" y="322" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="858.0" y="350.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >4</text>
+<rect x="880" y="322" width="44" height="44" fill="#f0efec" stroke="#c3c2b7" stroke-width="1.3" rx="6" opacity="1" />
+<rect x="924" y="322" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="946.0" y="350.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >6</text>
+<rect x="836" y="366" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="858.0" y="394.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >7</text>
+<rect x="880" y="366" width="44" height="44" fill="#fdeceb" stroke="#f3b7b6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="902.0" y="394.0" font-size="18" fill="#b3201f" font-weight="700" text-anchor="middle"   >5</text>
+<rect x="924" y="366" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="946.0" y="394.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >8</text>
+<text x="902.0" y="430" font-size="12" fill="#52514e" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">g=1 h=2 f=3</text>
+<path d="M 974 344.0 L 996 344.0" stroke="#eb6834" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrO)" />
+<rect x="1008" y="278" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="1030.0" y="306.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >1</text>
+<rect x="1052" y="278" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="1074.0" y="306.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >2</text>
+<rect x="1096" y="278" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="1118.0" y="306.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >3</text>
+<rect x="1008" y="322" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="1030.0" y="350.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >4</text>
+<rect x="1052" y="322" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="1074.0" y="350.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >5</text>
+<rect x="1096" y="322" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="1118.0" y="350.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >6</text>
+<rect x="1008" y="366" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="1030.0" y="394.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >7</text>
+<rect x="1052" y="366" width="44" height="44" fill="#f0efec" stroke="#c3c2b7" stroke-width="1.3" rx="6" opacity="1" />
+<rect x="1096" y="366" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="1118.0" y="394.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >8</text>
+<text x="1074.0" y="430" font-size="12" fill="#52514e" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">g=2 h=1 f=3</text>
+<path d="M 1146 344.0 L 1168 344.0" stroke="#eb6834" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrO)" />
+<rect x="1180" y="278" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="1202.0" y="306.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >1</text>
+<rect x="1224" y="278" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="1246.0" y="306.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >2</text>
+<rect x="1268" y="278" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="1290.0" y="306.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >3</text>
+<rect x="1180" y="322" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="1202.0" y="350.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >4</text>
+<rect x="1224" y="322" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="1246.0" y="350.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >5</text>
+<rect x="1268" y="322" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="1290.0" y="350.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >6</text>
+<rect x="1180" y="366" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="1202.0" y="394.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >7</text>
+<rect x="1224" y="366" width="44" height="44" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.3" rx="6" opacity="1" />
+<text x="1246.0" y="394.0" font-size="18" fill="#1c5cab" font-weight="700" text-anchor="middle"   >8</text>
+<rect x="1268" y="366" width="44" height="44" fill="#f0efec" stroke="#c3c2b7" stroke-width="1.3" rx="6" opacity="1" />
+<text x="1246.0" y="430" font-size="12" fill="#52514e" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">g=3 h=0 f=3</text>
+<text x="812" y="332.0" font-size="11" fill="#b0491d" font-weight="700" text-anchor="middle"   >上移 2</text>
+<text x="984" y="332.0" font-size="11" fill="#b0491d" font-weight="700" text-anchor="middle"   >上移 5</text>
+<text x="1156" y="332.0" font-size="11" fill="#b0491d" font-weight="700" text-anchor="middle"   >左移 8</text>
+<text x="1246.0" y="264" font-size="13" fill="#127a56" font-weight="700" text-anchor="middle"   >= goal</text>
+<rect x="648" y="508" width="684" height="96" fill="#e9f7f1" stroke="#a9e0cb" stroke-width="1.2" rx="12" opacity="1" />
+<text x="666" y="536" font-size="14.5" fill="#127a56" font-weight="700" text-anchor="start"   >为什么用 A* 而非纯 BFS？</text>
+<text x="666" y="562" font-size="13.5" fill="#52514e" font-weight="normal" text-anchor="start"   >h 提供“离目标还有多远”的估计，f 小的状态优先扩展，</text>
+<text x="666" y="586" font-size="13.5" fill="#52514e" font-weight="normal" text-anchor="start"   >大幅减少无谓状态的搜索，更快逼近目标。</text>
+<rect x="648" y="622" width="684" height="118" fill="#fbfbfa" stroke="#e1e0d9" stroke-width="1.2" rx="12" opacity="1" />
+<text x="666" y="648" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">int geth(string &amp;str) {   // 错位格数</text>
+<text x="666" y="668" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">  int h=0;</text>
+<text x="666" y="688" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">  for (i=0;i&lt;9;i++)</text>
+<text x="666" y="708" font-size="12.5" fill="#b3201f" font-weight="600" text-anchor="start"   font-family="ui-monospace,monospace">    if (goal[i]!='0' &amp;&amp; goal[i]!=str[i]) h++;</text>
+<text x="666" y="728" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">  return h; }</text>
+</svg>

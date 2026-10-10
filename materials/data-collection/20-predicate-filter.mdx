@@ -1,0 +1,114 @@
+---
+module: 5
+moduleName: XPath库
+order: 20
+title: 带谓语条件精准筛选系统
+level: 进阶选做
+scene: 复杂定位
+knowledge: [谓词表达式, "position()", 多条件组合]
+stars: 3
+minutes: 40
+goal: 熟练使用谓词筛选，实现复杂条件的精确定位
+sizheng: 精确定位、最小采集——不多拿一个节点
+dims: [职业伦理]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+import XPathTreasureLab from '../../components/react/labs/XPathTreasureLab';
+
+## 场景导入
+
+上个项目你学会了「把图片全抓下来」，但师姐提醒你一句：「别什么都抓，服务器会烦，你也用不完。」真正的高手采集像做外科手术——只取需要的那几个节点。XPath 的谓语（写在方括号里的条件）就是手术刀：价格高于 50 的、排在前两位的、既是中文又便宜的……想要哪些，说清楚，一次命中。
+
+## 玩一玩
+
+还是那张「XPath 寻宝」地图，这次请把注意力放在带方括号的谓语步骤上——`[2]`、`[price>50]`、`[@lang]`，每一个都是一次精准筛选。
+
+<XPathTreasureLab client:visible />
+
+## 动手实验
+
+同一个书店，三种诉求：「贵的」「靠前的」「又中文又便宜的」。看谓语怎么把「全都要」翻译成「只取所需」。
+
+<PyPlayground
+  client:visible
+  title="三组谓语对比筛选"
+  note="试着把第三组谓语改成 //book[@lang='en' or price>60]，把 and 换成 or，看命中结果多了哪几本。"
+  packages={['lxml']}
+  height={340}
+  code={`from lxml import etree
+
+# 内联书店 XML：每本书带 lang 属性、书名与价格
+xml = """
+<bookstore>
+  <book lang="zh"><title>数据采集实战</title><price>45</price></book>
+  <book lang="zh"><title>Python 之道</title><price>68</price></book>
+  <book lang="en"><title>Web Scraping</title><price>52</price></book>
+  <book lang="zh"><title>数据之美</title><price>39</price></book>
+</bookstore>
+"""
+
+tree = etree.XML(xml)
+
+def names(nodes):
+    # 把命中的 book 节点转成书名列表，方便对比
+    return [b.findtext("title") for b in nodes]
+
+# 谓语一：价格高于 50（子节点值比较）
+q1 = tree.xpath("//book[price>50]")
+# 谓语二：position() 取前两本（位置筛选）
+q2 = tree.xpath("//book[position()<=2]")
+# 谓语三：多条件 and 组合（中文书且价格低于 60）
+q3 = tree.xpath("//book[@lang='zh' and price<60]")
+
+print("价格高于 50         →", names(q1))
+print("排在前两位          →", names(q2))
+print("中文书且价格低于 60 →", names(q3))`}
+/>
+
+## 思政会客厅
+
+<DimCard dim="职业伦理" title="最小采集：不多拿一个节点">
+  <ul>
+    <li>谓语让采集从「全都要」变成「只取所需」。技术上你能用 //* 抓走整棵树，但职业伦理要求你只取与目的直接相关的那部分。</li>
+    <li>「最小必要」不是能力不足，而是专业克制。多拿的每一个节点，都是多一分存储成本、多一分合规风险、多一分对他人系统的打扰。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="⚖️" tone="gold" title="最小必要原则">
+《个人信息保护法》第六条要求：收集个人信息应限于「实现处理目的的最小范围」，不得过度收集。谓语表达式，正是这条法律原则在代码里的模样——先想清楚「要什么」，再动手「取什么」。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p20-d1"
+  question="老师只要「某读书网站评分最高的 10 本书」，你却顺手把全站 5 万本书的所有字段都爬了下来。这样有什么问题？谓语能帮你怎么改？"
+  hints={[
+    '目标只需 10 本书的书名与评分，全量采集是典型的过度采集',
+    '用谓语精确定位：先按评分取前 10，再只取 title 与 score 两个字段',
+    '最小采集既减轻目标服务器压力，也让你的数据更干净、更好维护',
+  ]}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="XPath 谓语中，position() 配合「小于等于 2」的条件会选出？"
+  options={['选出第 2 本书', '选出前两本书', '选出价格小于等于 2 的书', '选出最后两本书']}
+  answer={1}
+  explain="position() 返回节点在匹配集合中的位置（从 1 开始），条件为 position() 小于等于 2，即位置 1 或 2，选出前两本书；它与下标写法 [2]（只选第 2 本）并不相同。"
+/>
+
+<QuizItem
+  client:visible
+  question="关于数据采集的「最小必要」原则，理解正确的是？"
+  options={['能多采就多采，数据即资产', '只采与目的直接相关的最小范围数据', '先全采下来，用不用以后再说', '字段越全，数据越有价值']}
+  answer={1}
+  explain="《个人信息保护法》第六条确立最小必要原则：采集应限于实现目的的最小范围，不得过度收集。谓语的精确筛选正是这一原则的技术实现——精确定位，不多拿一个节点。"
+/>

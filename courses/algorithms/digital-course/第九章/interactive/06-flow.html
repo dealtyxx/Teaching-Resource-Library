@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>网络流 · 第9章 图算法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">09</div>算法可视化 · <span>第9章 图算法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-prim.html">Prim</a><a class="pill" href="02-kruskal.html">Kruskal</a><a class="pill" href="03-dijkstra.html">Dijkstra</a><a class="pill" href="04-bf-spfa.html">BF/SPFA</a><a class="pill" href="05-floyd.html">Floyd</a><a class="pill active" href="06-flow.html">网络流</a><a class="pill" href="07-ff.html">FF</a><a class="pill" href="08-ek.html">EK</a><a class="pill" href="09-dinic.html">Dinic</a><a class="pill" href="10-match.html">匹配</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 6 · 概念</div>
+  <h1>网络流基本概念</h1>
+  <p>容量、流量、残留网络、最小割。拖动滑块模拟边上的流量填充。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够准确写出流网络中的两条约束——<b>容量约束</b> 0&le;f&le;c 与<b>流量守恒</b>，以及流量值 <b>|f|</b> 的定义。</li>
+  <li>理解<b>残量网络</b>：正向残量 c<sub>f</sub> = c&minus;f、反向边残量 = f，以及"<b>增广路</b>"是残量网络中的 s&rarr;t 路径。</li>
+  <li>掌握 <b>s-t 割</b> 的定义、割容量<b>只计 S&rarr;T 的正向边</b>，并理解弱对偶 |f| &le; 任一割容量。</li>
+  <li>能够<b>陈述最大流最小割定理</b>，并说清它的三个等价命题（最大流 / 无增广路 / 等于某割容量）。</li>
+  <li>能够把<b>二分图匹配、项目分配</b>等问题建模成最大流。</li>
+</ol></div>
+
+<div class="grid grid-3">
+  <div class="card"><div class="badge">容量 c</div><h3>上界</h3><p class="desc">边上可流过的最大流量</p></div>
+  <div class="card"><div class="badge green">流量 f</div><h3>守恒</h3><p class="desc">0≤f≤c，中间点流入=流出</p></div>
+  <div class="card"><div class="badge cyan">残留</div><h3>c−f 与反向</h3><p class="desc">还可推多少 / 可撤销多少</p></div>
+</div>
+<div class="card" style="margin-top:16px">
+  <div class="formula lg">最大流 ＝ 最小割</div>
+  <div class="toolbar" style="margin-top:12px">
+    <label>边 s→a 流量</label><input type="range" id="f1" min="0" max="10" value="4"/>
+    <label>边 a→t 流量</label><input type="range" id="f2" min="0" max="10" value="4"/>
+  </div>
+  <div class="stage-wrap">
+    <canvas class="stage" id="cv" width="900" height="260"></canvas>
+  </div>
+  <div class="tip" id="tip">简单路径 s→a→t，容量均为 10。流量不能超过容量。</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、流网络与流的定义</h2><span class="sub">Flow Network</span></div>
+
+<div class="defn"><span class="lbl">流网络</span><p>一个<b>流网络</b>是有向图 G = (V, E)，每条边 (u, v) 有非负<b>容量</b> c(u, v) &ge; 0（无边则 c = 0），并指定一个<b>源点 s</b> 与一个<b>汇点 t</b>。目标是从 s 尽可能多地把"流"送到 t。</p></div>
+
+<div class="defn"><span class="lbl">流（flow）</span><p>一个<b>流</b> f 给每条边赋一个实数 f(u, v)，需同时满足两条约束：<br/>&#9312; <b>容量约束</b>：对每条边 0 &le; f(u, v) &le; c(u, v)——流量不超过容量、不为负；<br/>&#9313; <b>流量守恒</b>：对每个中间点 v &ne; s, t，<b>流入量 = 流出量</b>，即 &sum;<sub>u</sub> f(u, v) = &sum;<sub>w</sub> f(v, w)。<br/>流的<b>值</b> |f| 定义为源点净流出量 |f| = &sum;<sub>v</sub> f(s, v) &minus; &sum;<sub>v</sub> f(v, s)，它也等于汇点的净流入量。</p></div>
+
+<div class="formula">容量约束 0 &le; f(u,v) &le; c(u,v) &nbsp;&nbsp;&middot;&nbsp;&nbsp; 守恒 &sum; 入 = &sum; 出 (v&ne;s,t) &nbsp;&nbsp;&middot;&nbsp;&nbsp; |f| = 源点净流出</div>
+
+<div class="tip"><strong>直观：</strong>把边想成水管、容量是管径、流量是实际水流。除了水源 s 和水槽 t，任何接头处流进多少必须流出多少（不能凭空积水或造水）。整个系统能送到 t 的总水量就是 |f|，我们要让它最大。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、残量网络与增广路</h2><span class="sub">Residual Network</span></div>
+
+<div class="defn"><span class="lbl">残量网络</span><p>给定当前流 f，<b>残量网络</b> G<sub>f</sub> 描述"还能怎么调整"。每条原边 (u, v) 产生两份残量：<br/>&#9312; <b>正向残量</b> c<sub>f</sub>(u, v) = c(u, v) &minus; f(u, v)——顺着还能再推多少；<br/>&#9313; <b>反向残量</b> c<sub>f</sub>(v, u) = f(u, v)——逆着可以撤回多少已推的流。<br/>只保留 c<sub>f</sub> &gt; 0 的边构成 G<sub>f</sub>。G<sub>f</sub> 中一条 s&rarr;t 的路径称为<b>增广路</b>，沿它可把流增加"路径上最小残量"那么多。</p></div>
+
+<div class="tip info"><strong>反向边为什么重要：</strong>反向残量给了算法"<b>反悔</b>"的能力。某条边上先前推了 5 单位流，反向残量就是 5——后续如果发现这 5 单位走别的路更划算，可以通过走反向边把它"抽回来"重新分配。没有反向边，贪心一旦走错就无法纠正，最大流可能求不对（详见下一节 Ford-Fulkerson）。</div>
+
+<div class="code"><span class="cm">// 残量网络的标准存法：成对存边，i 与 i^1 互为正反向</span>
+<span class="kw">struct</span> Edge { <span class="kw">int</span> to, cap; };      <span class="cm">// cap = 当前残量 c_f</span>
+vector&lt;Edge&gt; e;                        <span class="cm">// 所有边（含反向边）</span>
+vector&lt;<span class="kw">int</span>&gt; g[N];                     <span class="cm">// g[u]：从 u 出发各边在 e 中的下标</span>
+
+<span class="kw">void</span> <span class="fn">addEdge</span>(<span class="kw">int</span> u, <span class="kw">int</span> v, <span class="kw">int</span> c) {
+    g[u].<span class="fn">push_back</span>(e.<span class="fn">size</span>()); e.<span class="fn">push_back</span>({v, c});   <span class="cm">// 正向：残量 = c</span>
+    g[v].<span class="fn">push_back</span>(e.<span class="fn">size</span>()); e.<span class="fn">push_back</span>({u, <span class="nu">0</span>});   <span class="cm">// 反向：残量 = 0</span>
+}
+<span class="cm">// 沿边 i 推流 d：正向减、反向加。e[i^1] 即 e[i] 的反向边（异或取偶/奇）</span>
+<span class="kw">void</span> <span class="fn">push</span>(<span class="kw">int</span> i, <span class="kw">int</span> d) { e[i].cap -= d; e[i ^ <span class="nu">1</span>].cap += d; }</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、割与最大流最小割定理</h2><span class="sub">Max-Flow Min-Cut</span></div>
+
+<div class="defn"><span class="lbl">s-t 割</span><p>一个 <b>s-t 割</b> (S, T) 把顶点集划成两部分，使 s &isin; S、t &isin; T（且 S &cup; T = V，S &cap; T = &empty;）。割的<b>容量</b> c(S, T) = &sum; 所有从 S 指向 T 的边 (u, v) 的 c(u, v)。<b>注意：只累加 S&rarr;T 的正向边，T&rarr;S 的反向边不计入。</b></p></div>
+
+<div class="deriv">
+  <span class="step">跨割净流 对任意流 f 与任意割 (S,T)，穿过割的净流 f(S,T) = (S→T 的流) &minus; (T→S 的流) <span class="why">守恒使中间点抵消</span></span>
+  <span class="step">等于流值 由流量守恒可证 |f| = f(S,T) 对每个割都成立 <span class="why">从 s 出发的净流必等量穿过任一把 s、t 分开的割</span></span>
+  <span class="step">弱对偶 f(S,T) &le; (S→T 的流) &le; (S→T 的容量) = c(S,T) <span class="why">流不超容量，且减去非负的反向流</span></span>
+  <span class="step">于是 |f| &le; c(S,T)：任一流值 &le; 任一割容量 <span class="why">最大流 &le; 最小割</span></span>
+</div>
+
+<div class="defn thm"><span class="lbl">最大流最小割定理</span><p>在任意流网络中，<b>最大流的值 = 最小割的容量</b>。等价地，以下三个命题相互等价：<br/>&#9312; f 是<b>最大流</b>；<br/>&#9313; 残量网络 G<sub>f</sub> 中<b>不存在增广路</b>（s 到不了 t）；<br/>&#9314; 存在某个割 (S, T) 使 <b>|f| = c(S, T)</b>。<br/>其中 S = "在 G<sub>f</sub> 中从 s 可达的点集"，这个 (S, T) 就是一个最小割。</p></div>
+
+<div class="tip"><strong>为什么定理成立（要点）：</strong>&#9312;&rArr;&#9313; 若还有增广路就能增大流，矛盾；&#9313;&rArr;&#9314; 取 S 为残量图中 s 可达点集，则所有 S&rarr;T 的原边都<b>已满载</b>（否则残量 &gt; 0，T 中点应可达），故 |f| = c(S, T)；&#9314;&rArr;&#9312; 由弱对偶 |f| &le; 任一割 &le;，已取等号故 f 必为最大流。这条链既是定理证明，也是所有增广路算法"无增广路即停止"的正确性依据。</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>把守恒用到 s、t 上</b>：流量守恒只对<b>中间点</b>成立；源点净流出、汇点净流入正是流值 |f|，本就不守恒。</li>
+  <li>计算割容量时<b>把 T&rarr;S 的反向边也加进去</b>：割容量只累加 S&rarr;T 的正向边容量，反向边一律不计。</li>
+  <li>忘记建<b>反向边</b>：没有反向残量，算法无法"反悔"，可能收敛到非最大流的错误值。</li>
+  <li>误以为"最小割 = 边数最少的割"：最小割指<b>容量之和最小</b>，与边的条数无关。</li>
+  <li>把"无增广路"理解成"图中已无 s-t 路径"：应是<b>残量网络 G<sub>f</sub></b> 中无 s-t 路径，原图里可能还有路径但都已满载。</li>
+  <li>处理<b>反平行边</b>（同时有 u→v 和 v→u）时直接混用：需拆点或用成对存边，避免正反向残量互相污染。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>流需同时满足<b>容量约束</b> 0&le;f&le;c 与<b>中间点流量守恒</b>；流值 |f| = 源点净流出 = 汇点净流入。</li>
+  <li><b>残量网络</b> G<sub>f</sub>：正向残量 c&minus;f、反向残量 = f；G<sub>f</sub> 中的 s&rarr;t 路径即<b>增广路</b>，反向边提供"反悔"能力。</li>
+  <li><b>s-t 割</b> 容量只计 S&rarr;T 正向边；对任意流与任意割有弱对偶 <b>|f| &le; c(S, T)</b>。</li>
+  <li><b>最大流最小割定理</b>：最大流值 = 最小割容量；"f 最大 &hArr; 无增广路 &hArr; |f| 等于某割容量"三者等价。</li>
+  <li>该定理是一切增广路算法（FF / EK / Dinic）"无增广路即停止"的正确性基石，也是把匹配等问题转化为最大流的桥梁。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>在残量网络中，一条已推了流量 f = 3、容量 c = 5 的边 (u, v)，其正向与反向残量分别是多少？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>正向 c<sub>f</sub>(u,v) = 5&minus;3 = 2，反向 c<sub>f</sub>(v,u) = 3</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>正向 = 5，反向 = 0</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>正向 = 3，反向 = 5</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>正向 = 2，反向 = 0（残量网络没有反向边）</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>A 正确。正向残量 = 还能再推的量 = c&minus;f = 5&minus;3 = 2；反向残量 = 已推、可撤回的量 = f = 3。D 的错误在于否认反向边——反向边正是残量网络的核心，它让算法能撤销之前的推流。C 把两者的公式弄反了。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>关于最大流最小割定理，下列说法<b>正确</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>最大流的值总是严格小于最小割的容量</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>最小割指割开的边数最少的那个割</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>最大流值 = 最小割容量；当残量网络中不存在增广路时，当前流即为最大流</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>只要原图中还存在一条 s 到 t 的路径，就一定还能继续增广</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>C 正确，这是定理与三个等价命题的直接表述。A 错：是"相等"不是"严格小于"，弱对偶给出 &le;，定理进一步给出取等。B 错：最小割比的是<b>容量之和</b>最小，不是边的条数。D 错：判据是<b>残量网络</b> G<sub>f</sub> 中无 s-t 路径；原图里可能还有 s→t 的路径，但如果这些路径上的边都已满载（残量为 0），就不再是增广路，无法继续增广。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>割 (S, T) 的容量 c(S, T) 应如何计算？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>所有跨越割的边容量之和，S&rarr;T 与 T&rarr;S 都算</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>只累加从 S 指向 T 的边的容量，T&rarr;S 的边不计</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>跨割边的容量之和，再减去 T&rarr;S 边的容量</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>S 中所有点的出边容量之和</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。割容量的定义只统计<b>方向为 S&rarr;T</b> 的正向边容量，T&rarr;S 的反向边不计入（它们在跨割<b>净流</b>里出现，但不在割<b>容量</b>里）。A、C 把反向边也算进容量，会算大。D 错：应只数跨越割的边，S 内部边不算。正是"割容量只计正向边"这一点，配合弱对偶推出 |f| &le; c(S, T)。</div>
+  </div>
+</div>
+
+<div class="terms">
+  <span class="term"><b>流网络</b>flow network</span>
+  <span class="term"><b>容量约束</b>capacity constraint</span>
+  <span class="term"><b>流量守恒</b>flow conservation</span>
+  <span class="term"><b>残量网络</b>residual network</span>
+  <span class="term"><b>增广路</b>augmenting path</span>
+  <span class="term"><b>s-t 割</b>s-t cut</span>
+  <span class="term"><b>最大流最小割</b>max-flow min-cut</span>
+</div>
+
+<div class="page-nav"><a href="05-floyd.html"><span class="dir">← 上一节</span><span class="name">Floyd</span></a><a href="07-ff.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">FF</span></a></div>
+<div class="footer">算法设计与分析 · <b>第9章 图算法</b> · 强交互可视化版<br/>MST · 最短路 · 网络流 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:28},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.1-Math.random()*.25, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(110,86,145,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+// shared graph geometry
+const GPOS=[[120,200],[300,80],[520,80],[700,200],[520,320],[300,320]];
+const GEDGES=[[0,1,6],[0,5,5],[1,2,5],[1,5,3],[2,3,4],[2,4,3],[2,5,4],[3,4,5],[4,5,2]];
+
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const nodes={s:[120,130],a:[450,130],t:[780,130]};
+function draw(){
+  let fsa=+f1.value, fat=+f2.value;
+  // conservation demo: show min
+  const flow=Math.min(fsa,fat);
+  ctx.clearRect(0,0,cv.width,cv.height);
+  function edge(a,b,f,c,label){
+    ctx.strokeStyle='#443F37'; ctx.lineWidth=14; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
+    // fill portion
+    const t=f/c;
+    ctx.strokeStyle='#6E9AB6'; ctx.lineWidth=10;
+    ctx.beginPath(); ctx.moveTo(a[0],a[1]);
+    ctx.lineTo(a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t); ctx.stroke();
+    ctx.fillStyle='#E4E0D4'; ctx.font='13px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(`${label} ${f}/${c}`, (a[0]+b[0])/2, a[1]-18);
+  }
+  edge(nodes.s,nodes.a,fsa,10,'s→a');
+  edge(nodes.a,nodes.t,fat,10,'a→t');
+  Object.entries(nodes).forEach(([id,p])=>{
+    ctx.beginPath(); ctx.arc(p[0],p[1],28,0,Math.PI*2);
+    ctx.fillStyle=id==='s'?'#D0A344':id==='t'?'#6FB48B':'#8E7EB8'; ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 16px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(id,p[0],p[1]);
+  });
+  const ok=fsa===fat;
+  tip.innerHTML=ok?`<strong>守恒：</strong>路径流量可取 min=${flow}`:`中间点 a 流入 ${fsa} ≠ 流出 ${fat}（演示用，真实流需守恒）`;
+}
+f1.oninput=f2.oninput=draw; draw();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>穷举法总览 · 第3章 穷举法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">03</div>算法可视化 · <span>第3章 穷举法</span></div>
+<div class="links"><a class="pill active" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-enumerate.html">列举</a><a class="pill" href="03-prefix.html">前缀和</a><a class="pill" href="04-uf.html">并查集</a><a class="pill" href="05-maxsub.html">最大子段</a><a class="pill" href="06-powerset.html">幂集</a><a class="pill" href="07-perm.html">全排列</a><a class="pill" href="08-nqueens.html">n皇后</a><a class="pill" href="09-assign-tsp.html">分配TSP</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow"><span class="pulse-dot"></span> Chapter 3 · Brute Force · Deep Demo</div>
+  <h1>第3章 穷举法 · 算法演示加深</h1>
+  <p>系统枚举候选解并检验。前缀和、并查集、Kadane、位运算幂集、皇后与 TSP 全排列均可交互。</p>
+</section>
+
+<div class="objectives"><h3>本章学习目标</h3><ol>
+  <li>能够<b>陈述</b>穷举法（brute force）的定义与"确定解空间 → 系统列举 → 逐一检验"三步框架，并判断一个问题是否适合用穷举法求解。</li>
+  <li>能够<b>写出</b>三类列举方式的代码骨架：多重循环、递归回溯、位运算掩码，并说明各自的适用规模。</li>
+  <li>能够<b>推导</b>本章各算法的时间复杂度：幂集 O(n&middot;2<sup>n</sup>)、全排列 &Theta;(n!)、n 皇后 O(n!)、前缀和预处理 O(n) + 查询 O(1)、并查集近似 O(&alpha;(n))。</li>
+  <li>能够<b>应用</b>前缀和与并查集这两种"降复杂度"工具，并解释穷举法为何只适合小规模问题、后续章节用什么手段突破。</li>
+</ol></div>
+<div class="grid grid-3"><a class="feature-card" href="01-overview.html" data-ico="🔍" style="--c:#356F62"><div class="num">§ 01</div><h3>穷举概述</h3><p>框架与适用</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="02-enumerate.html" data-ico="📋" style="--c:#4A6C8C"><div class="num">§ 02</div><h3>三种列举</h3><p>循环/递归/位运算</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="03-prefix.html" data-ico="Σ" style="--c:#C2603F"><div class="num">§ 03</div><h3>前缀和</h3><p>区间查询 O(1)</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="04-uf.html" data-ico="🔗" style="--c:#7E62A6"><div class="num">§ 04</div><h3>并查集</h3><p>路径压缩可视化</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="05-maxsub.html" data-ico="📈" style="--c:#A02C55"><div class="num">§ 05</div><h3>最大子段和</h3><p>暴力→Kadane</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="06-powerset.html" data-ico="📦" style="--c:#9C7420"><div class="num">§ 06</div><h3>幂集</h3><p>位掩码动画</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="07-perm.html" data-ico="🔢" style="--c:#356F62"><div class="num">§ 07</div><h3>全排列</h3><p>交换法生成</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="08-nqueens.html" data-ico="♛" style="--c:#A02C55"><div class="num">§ 08</div><h3>n 皇后</h3><p>穷举列排列</p><div class="go">进入加深演示 →</div></a><a class="feature-card" href="09-assign-tsp.html" data-ico="🗺️" style="--c:#C2603F"><div class="num">§ 09</div><h3>分配与TSP</h3><p>全排列代价</p><div class="go">进入加深演示 →</div></a></div>
+
+<section class="sec"><div class="sec-head"><h2>知识地图</h2><span class="sub">Knowledge Map · 九节之间的依赖关系</span></div>
+
+<div class="list-step"><span class="n">A</span><div class="body"><b>方法论主干（§01 &rarr; §02）</b>：先建立穷举法的三步框架与通用伪代码模板，再落到三种具体列举手段（多重循环 / 递归回溯 / 位运算掩码）。这两节是全章的"语法基础"。</div></div>
+<div class="list-step"><span class="n">B</span><div class="body"><b>加速工具（§03 前缀和、§04 并查集）</b>：穷举本身无法避免枚举量，但可以把"每次检验"的代价压下来。前缀和把区间求和从 O(n) 降到 O(1)；并查集把连通性判断降到近似 O(&alpha;(n))。它们是穿插在穷举循环内部的常数级工具。</div></div>
+<div class="list-step"><span class="n">C</span><div class="body"><b>子集型解空间（§05 最大子段和、§06 幂集）</b>：解空间是 2<sup>n</sup> 规模。§06 讲"枚举全部子集"这一模式本身，§05 则展示同一问题从 O(n<sup>3</sup>) &rarr; O(n<sup>2</sup>) &rarr; O(n log n) &rarr; O(n) 的优化脉络。</div></div>
+<div class="list-step"><span class="n">D</span><div class="body"><b>排列型解空间（§07 全排列、§08 n 皇后、§09 分配与 TSP）</b>：解空间是 n! 规模。§07 给出生成排列的两套算法；§08 用"列的排列"巧妙压缩解空间；§09 把排列穷举用到两个经典 NP 难问题上，作为全章落脚点。</div></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>小节</th><th>核心对象</th><th>解空间规模</th><th>关键复杂度</th><th>后续章节呼应</th></tr>
+  <tr><td>§01 概述</td><td>三步框架</td><td>—</td><td>—</td><td>全书方法论起点</td></tr>
+  <tr><td>§02 三种列举</td><td>循环/递归/位运算</td><td>2<sup>n</sup> 或 n!</td><td class="hl">O(2<sup>n</sup>)</td><td>第 5 章回溯法</td></tr>
+  <tr><td>§03 前缀和</td><td>区间和查询</td><td>—</td><td class="hl">预处理 O(n)+查询 O(1)</td><td>第 7 章动态规划</td></tr>
+  <tr><td>§04 并查集</td><td>不相交集合</td><td>—</td><td class="hl">近似 O(&alpha;(n))</td><td>第 9 章 Kruskal</td></tr>
+  <tr><td>§05 最大子段和</td><td>连续子段</td><td>C(n,2)</td><td class="hl">O(n)（Kadane）</td><td>第 4 章分治、第 7 章 DP</td></tr>
+  <tr><td>§06 幂集</td><td>集合的全部子集</td><td>2<sup>n</sup></td><td class="hl">O(n&middot;2<sup>n</sup>)</td><td>第 6 章分支限界</td></tr>
+  <tr><td>§07 全排列</td><td>n 元排列</td><td>n!</td><td class="hl">&Theta;(n!)</td><td>第 5 章排列树</td></tr>
+  <tr><td>§08 n 皇后</td><td>列的排列</td><td>n!</td><td class="hl">O(n!)（对比 O(n<sup>n</sup>)）</td><td>第 5 章回溯剪支</td></tr>
+  <tr><td>§09 分配与 TSP</td><td>指派/回路</td><td>n!</td><td class="hl">O(n!)</td><td>第 6 章分支限界、第 7 章状压 DP</td></tr>
+</table></div>
+
+<div class="tip info"><strong>阅读建议：</strong>§01&ndash;§02 建立框架，§03&ndash;§04 是可独立掌握的工具，§05&ndash;§09 按"子集型 &rarr; 排列型"顺序推进。若时间紧张，务必吃透 §01 的通用模板与 §09 的 O(n!) 结论——前者告诉你怎么写，后者告诉你什么时候不能写。</div>
+
+<div class="terms">
+  <span class="term"><b>穷举法</b>brute force / exhaustive search</span>
+  <span class="term"><b>解空间</b>solution space</span>
+  <span class="term"><b>前缀和</b>prefix sum</span>
+  <span class="term"><b>并查集</b>union-find / disjoint set union</span>
+  <span class="term"><b>幂集</b>power set</span>
+  <span class="term"><b>全排列</b>permutation</span>
+  <span class="term"><b>旅行商问题</b>travelling salesman problem</span>
+</div>
+</section>
+
+<div class="page-nav"><div></div><a href="01-overview.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">概述</span></a></div>
+<div class="footer">算法设计与分析 · <b>第3章 穷举法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(53,111,98,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

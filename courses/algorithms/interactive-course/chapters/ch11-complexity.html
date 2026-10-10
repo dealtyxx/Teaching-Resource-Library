@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第11章 计算复杂性 · 算法互动课堂</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/common.css">
+</head>
+<body data-chapter="ch11">
+<button class="menu-toggle" onclick="toggleSidebar()" aria-label="菜单">☰</button>
+
+<div class="app-shell">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <a href="../index.html">
+      <div class="logo"><span>AD</span>算法互动课堂</div>
+      <div class="sub">玩中学 · 看见算法</div>
+    </a>
+  </div>
+  <div class="nav-section">本页导航</div>
+  <a class="nav-link toc" href="#s1">开场</a>
+<a class="nav-link toc" href="#s2">易难</a>
+<a class="nav-link toc" href="#s3">P与NP</a>
+<a class="nav-link toc" href="#s4">归约</a>
+<a class="nav-link toc" href="#s5">NPC</a>
+<a class="nav-link toc" href="#s6">双测</a>
+  <div class="nav-section">全部章节</div>
+  <a class="nav-link" href="ch01-intro.html"><span class="dot"></span>🚀 01 绪论</a>
+<a class="nav-link" href="ch02-recursion.html"><span class="dot"></span>🪞 02 递归</a>
+<a class="nav-link" href="ch03-brute.html"><span class="dot"></span>🔍 03 穷举法</a>
+<a class="nav-link" href="ch04-divide.html"><span class="dot"></span>⚔️ 04 分治法</a>
+<a class="nav-link" href="ch05-backtrack.html"><span class="dot"></span>♟️ 05 回溯法</a>
+<a class="nav-link" href="ch06-branch.html"><span class="dot"></span>🗺️ 06 分支限界</a>
+<a class="nav-link" href="ch07-dp.html"><span class="dot"></span>💎 07 动态规划</a>
+<a class="nav-link" href="ch08-greedy.html"><span class="dot"></span>🎯 08 贪心法</a>
+<a class="nav-link" href="ch09-graph.html"><span class="dot"></span>🕸️ 09 图算法</a>
+<a class="nav-link" href="ch10-geometry.html"><span class="dot"></span>📐 10 计算几何</a>
+<a class="nav-link active" href="ch11-complexity.html"><span class="dot"></span>🌌 11 计算复杂性</a>
+<a class="nav-link" href="ch12-prob-approx.html"><span class="dot"></span>🎲 12 概率与近似</a>
+  <div class="nav-section">返回</div>
+  <a class="nav-link" href="../index.html">🏠 课程大厅</a>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a href="../index.html">课程大厅</a> <span>/</span>
+      <span>第11章 计算复杂性</span>
+    </div>
+    <span class="badge badge-fun">🎮 互动课堂</span>
+  </div>
+  <div class="progress-track" title="阅读进度"><div class="fill"></div></div>
+  
+  <div class="card card-hero fade-in" data-section="s1" id="s1">
+    <span class="hero-emoji">🌌</span>
+    <span class="badge badge-danger" style="margin-left:.5rem">第11章 · 计算复杂性</span>
+    <h1 style="margin-top:.6rem">问题有多难？</h1>
+    <p style="color:var(--text-dim);margin-top:.7rem;font-size:1.02rem">
+      从「算法好不好」升级到「问题难不难」。
+      <strong>P / NP / NPC</strong> 是理论计算机科学的地基；百万美元问题：P=NP？
+    </p>
+    <div class="card-grid" style="margin-top:1.2rem">
+      <div class="metric"><div class="num">P</div><div class="label">多项式可解</div></div>
+      <div class="metric"><div class="num">NP</div><div class="label">多项式可验证</div></div>
+      <div class="metric"><div class="num">NPC</div><div class="label">NP 中最难</div></div>
+    </div>
+  </div>
+  <div class="fun-tip">
+    <div class="avatar">🕵️</div>
+    <div class="bubble"><strong>助教：</strong>NP 不是「非多项式」！是 Nondeterministic Polynomial——有证书就能快速验 yes。</div>
+  </div>
+
+  <section data-section="s2" id="s2">
+    <h2>易解 vs 难解 · 翻转</h2>
+    <div class="flip-grid">
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">✓</div>易解</div>
+        <div class="flip-back">存在多项式时间算法<br>排序、最短路、最大流</div>
+      </div></div>
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">?</div>难解</div>
+        <div class="flip-back">目前只有指数级算法<br>或证明无算法</div>
+      </div></div>
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">⚠</div>伪多项式</div>
+        <div class="flip-back">0/1 背包 O(nW)<br>W 很大时仍非真多项式</div>
+      </div></div>
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">🔄</div>判定/优化</div>
+        <div class="flip-back">优化常转判定：是否存在<br>目标 ≤K 的解？</div>
+      </div></div>
+    </div>
+  </section>
+
+  <section data-section="s3" id="s3">
+    <h2>P / NP 宇宙图 · 点击探索 🔭</h2>
+    <div class="demo-panel">
+      <div class="demo-header"><h3><span class="pulse"></span> 点击彩色区域</h3>
+        <button class="btn" id="vennReset">重置说明</button>
+      </div>
+      <div class="demo-body">
+        <div style="position:relative;height:320px;max-width:520px;margin:0 auto" id="venn">
+          <div class="venn-ring" data-info="【NP-Hard】至少和所有 NP 问题一样难（多项式归约意义下）。不一定在 NP 里。" style="position:absolute;inset:6% 3%;border:2px solid #ff7a90;border-radius:50%;cursor:pointer;transition:all .25s"></div>
+          <div class="venn-ring" data-info="【NP】yes 实例存在多项式长「证书」，可在多项式时间验证。像开卷考试：批改快，出卷难。" style="position:absolute;inset:18% 14%;border:2px solid #ffc14d;border-radius:50%;background:rgba(255,193,77,.07);cursor:pointer"></div>
+          <div class="venn-ring" data-info="【P】确定性图灵机多项式时间可解。排序、最短路、匹配…我们的老朋友。公认 P ⊆ NP。" style="position:absolute;inset:34% 26%;border:2px solid #3ee8a8;border-radius:50%;background:rgba(62,232,168,.14);cursor:pointer;display:grid;place-items:center;font-weight:700;color:#3ee8a8;font-size:1.2rem">P</div>
+          <div class="venn-ring" data-info="【NPC】NP 完全 = 属于 NP 且所有 NP 问题可多项式归约到它。SAT、哈密顿、TSP 判定版…" style="position:absolute;right:12%;top:36%;width:28%;height:28%;border:2px dashed #c4a1ff;border-radius:50%;background:rgba(196,161,255,.16);cursor:pointer;display:grid;place-items:center;font-weight:700;color:#c4a1ff;font-size:.85rem">NPC</div>
+          <span style="position:absolute;top:8px;right:16%;color:#ff7a90;font-size:.75rem;font-weight:700;pointer-events:none">NP-Hard</span>
+          <span style="position:absolute;top:20%;left:50%;transform:translateX(-50%);color:#ffc14d;font-size:.8rem;font-weight:700;pointer-events:none">NP</span>
+        </div>
+        <div class="status-bar" id="vennInfo">点击区域解锁科普 · 探索越多 XP 越多</div>
+        <div class="callout callout-fun" style="margin-top:1rem">
+          <div class="callout-title">💰 百万美元问题</div>
+          若 P=NP，密码学、优化、AI 许多假设要重写。多数人相信 P≠NP，但尚无证明。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-section="s4" id="s4">
+    <h2>多项式归约 · 传递难度</h2>
+    <div class="steps">
+      <div class="step"><div class="step-body"><strong>A ≤p B</strong>：A 的实例可在多项式时间变成 B 的实例，且 yes↔yes</div></div>
+      <div class="step"><div class="step-body">若 B 易解（∈P），则 A 也易解</div></div>
+      <div class="step"><div class="step-body">若 A 难（如 NPC），则 B 至少一样难</div></div>
+    </div>
+    <div class="callout callout-info">
+      证明 B 是 NPC：① B∈NP；② 某个已知 NPC 问题（如 SAT）≤p B。
+    </div>
+  </section>
+
+  <section data-section="s5" id="s5">
+    <h2>经典 NPC 点将台</h2>
+    <div class="card-grid">
+      <div class="feature-card"><span class="ico">🧩</span><h3>SAT / 3-SAT</h3><p>第一个 NPC（Cook-Levin）</p></div>
+      <div class="feature-card"><span class="ico">🔄</span><h3>哈密顿回路</h3><p>每点恰一次再回来</p></div>
+      <div class="feature-card"><span class="ico">🧳</span><h3>TSP 判定</h3><p>是否存在权 ≤K 回路</p></div>
+      <div class="feature-card"><span class="ico">🎨</span><h3>图 m-着色</h3><p>m≥3 时 NPC</p></div>
+    </div>
+  </section>
+
+  <section data-section="s6" id="s6">
+    <h2>挑战测验 · BOSS</h2>
+    <div class="challenge-bar"><div class="title">🏆 第11章挑战</div></div>
+    <div class="quiz-card" data-quiz id="q11a" data-xp="45">
+      <span class="q-badge">Q1 · +45XP</span>
+      <p style="font-weight:700;margin:.6rem 0 .7rem">NPC 问题一定？</p>
+      <button class="quiz-option" data-correct="0">不在 NP 中</button>
+      <button class="quiz-option" data-correct="1">在 NP 中，且所有 NP 可归约到它</button>
+      <button class="quiz-option" data-correct="0">属于 P</button>
+      <button class="quiz-option" data-correct="0">不可判定</button>
+      <div class="quiz-feedback callout callout-success" style="display:none;margin-top:.8rem">NPC = NP ∩ NP-Hard。</div>
+    </div>
+    <div class="quiz-card" data-quiz id="q11b" data-xp="45">
+      <span class="q-badge">Q2 · +45XP</span>
+      <p style="font-weight:700;margin:.6rem 0 .7rem">「NP」中的 N 更准确含义是？</p>
+      <button class="quiz-option" data-correct="0">Non-polynomial 非多项式</button>
+      <button class="quiz-option" data-correct="1">Nondeterministic 非确定性</button>
+      <button class="quiz-option" data-correct="0">Numeric 数值</button>
+      <button class="quiz-option" data-correct="0">Network 网络</button>
+      <div class="quiz-feedback callout callout-success" style="display:none;margin-top:.8rem">这是最常见的误解！NP ≠ 非多项式。</div>
+    </div>
+  </section>
+
+  <div class="chapter-nav"><a href="ch10-geometry.html"><span class="dir">← 上一章</span><span class="name">📐 第10章 计算几何</span></a><a href="ch12-prob-approx.html" style="text-align:right"><span class="dir">下一章 →</span><span class="name">🎲 第12章 概率与近似</span></a></div>
+
+</main>
+</div>
+<script src="../assets/common.js"></script>
+<script>
+
+const explored=new Set();
+document.querySelectorAll('.venn-ring').forEach(el=>{
+  el.addEventListener('click',()=>{
+    setStatus('#vennInfo', el.dataset.info);
+    el.style.transform='scale(1.04)';
+    el.style.filter='brightness(1.2)';
+    setTimeout(()=>{ el.style.transform=''; el.style.filter=''; }, 250);
+    if(!explored.has(el.dataset.info)){
+      explored.add(el.dataset.info);
+      addXP(8,'探索复杂性宇宙');
+      if(explored.size>=4){ confetti(35); toast('宇宙图探索完成！','🌌'); }
+    }
+  });
+});
+document.getElementById('vennReset').onclick=()=>{
+  setStatus('#vennInfo','点击区域解锁科普 · 探索越多 XP 越多');
+};
+
+</script>
+</body>
+</html>

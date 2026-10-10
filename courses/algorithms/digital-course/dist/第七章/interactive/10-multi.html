@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>完全/多重 · 第7章 动态规划</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">07</div>算法可视化 · <span>第7章 动态规划</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-principle.html">原理</a><a class="pill" href="03-models.html">模型</a><a class="pill" href="04-maxsub.html">最大子段和</a><a class="pill" href="05-lis.html">LIS</a><a class="pill" href="06-triangle.html">三角形</a><a class="pill" href="07-lcs.html">LCS</a><a class="pill" href="08-edit.html">编辑距离</a><a class="pill" href="09-knapsack.html">01背包</a><a class="pill active" href="10-multi.html">完全/多重</a><a class="pill" href="11-tsp.html">状压TSP</a><a class="pill" href="12-interval-tree.html">区间/树形</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 10 · 背包变体</div>
+  <h1>完全背包 vs 0/1：一维数组的方向</h1>
+  <p>同样的一维 dp，<strong>逆序</strong>保证每件最多一次；<strong>正序</strong>允许重复使用当前物品。</p>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>学习目标</h2><span class="sub">Learning Objectives</span></div>
+  <div class="objectives"><h3>本节学完后你应当</h3><ol>
+    <li>能说清<b>完全背包与 0/1 背包在一维写法上的唯一区别</b>：容量循环的<b>正序 / 逆序</b>方向。</li>
+    <li>能写出完全背包的转移方程，并解释<b>正序</b>为何让「同一物品被重复选取」得以成立。</li>
+    <li>能写出<b>多重背包</b>（每件有数量上限 cᵢ）的朴素转移，并指出其复杂度瓶颈。</li>
+    <li>能掌握<b>二进制拆分</b>：把 cᵢ 件拆成 1,2,4,…,余数 若干「打包物品」，转成 0/1 背包。</li>
+    <li>能对比三种背包的<b>时间复杂度</b>，理解二进制拆分把 Θ(W·Σcᵢ) 降到 Θ(W·Σlog cᵢ)。</li>
+  </ol></div>
+</section>
+<div class="grid grid-2">
+  <div class="card" style="--accent:#C2603F">
+    <div class="badge blue">0/1</div>
+    <h3>逆序容量</h3>
+    <div class="code"><span class="kw">for</span> item:
+  <span class="kw">for</span> j=W..w:  <span class="cm">// 逆序</span>
+    dp[j]=max(dp[j], dp[j-w]+v)</div>
+  </div>
+  <div class="card" style="--accent:#356F62">
+    <div class="badge green">完全</div>
+    <h3>正序容量</h3>
+    <div class="code"><span class="kw">for</span> item:
+  <span class="kw">for</span> j=w..W:  <span class="cm">// 正序</span>
+    dp[j]=max(dp[j], dp[j-w]+v)</div>
+  </div>
+</div>
+<div class="card" style="margin-top:16px">
+  <p class="desc">演示：物品 w=3,v=4，W=10，对比两种循环得到的 dp 曲线。</p>
+  <div class="toolbar">
+    <button class="btn primary" id="run01">0/1 逆序动画</button>
+    <button class="btn" id="runC">完全 正序动画</button>
+  </div>
+  <div class="stage-wrap light" style="height:220px">
+    <canvas class="stage" id="cv" width="900" height="220"></canvas>
+  </div>
+  <div class="tip" id="tip">观察同一 j 位置数值如何被「重复叠加」或「只用一次」。</div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>① 完全背包 · 正序的道理</h2><span class="sub">Unbounded Knapsack</span></div>
+  <div class="defn"><span class="lbl">问题定义</span>
+    <p><b>完全背包</b>：每种物品有<b>无限件</b>，可重复选取任意多次，求容量 W 内的最大价值。状态定义与 0/1 背包相同：<b>dp[j] = 容量 j 时的最大价值</b>。</p></div>
+  <div class="formula lg">dp[j] = max( dp[j], dp[j − wᵢ] + vᵢ )　　容量 j【正序】枚举</div>
+  <div class="defn thm"><span class="lbl">为什么正序就能重复选取</span>
+    <p>一维更新时，dp[j−wᵢ] 是否已经「含第 i 件」决定了该物品能否被再次使用：<br/><b>· 0/1 背包逆序</b>：dp[j−wᵢ] 尚未被本轮更新，仍是 dp[i−1][j−wᵢ]，第 i 件只能来一次。<br/><b>· 完全背包正序</b>：从小到大枚举 j 时，dp[j−wᵢ] <b>已经在本轮被更新过</b>，可能已经装了一件或多件第 i 件，于是 dp[j−wᵢ]+vᵢ 相当于「在已含若干件 i 的基础上再加一件」——<b>同一物品被反复叠加</b>，恰好实现「无限件」。<br/>换句话说，<b>0/1 与完全背包的代码只差 j 的循环方向</b>，这也是本节最重要的一句话。</p></div>
+  <div class="deriv">
+<span class="step">物品 w=3, v=4, W=10，完全背包正序 j=3…10：</span>
+<span class="step">j=3: max(0, dp[0]+4)=4 <span class="why">装 1 件</span></span>
+<span class="step">j=6: max(0, dp[3]+4)=4+4=8 <span class="why">dp[3] 已含 1 件 → 累计 2 件</span></span>
+<span class="step">j=9: max(0, dp[6]+4)=8+4=12 <span class="why">dp[6] 已含 2 件 → 累计 3 件</span></span>
+<span class="step">j=10: max(0, dp[7]+4)=8+4=12 <span class="why">最多 3 件（重 9 ≤ 10）</span></span>
+  </div>
+  <div class="tip ok"><strong>结果：</strong>完全背包 dp[10] = <b>12</b>（放 3 件，重 9、值 12）。同样数据若按 0/1（逆序、每件仅一次），dp[10] 只有 <b>4</b>（最多一件）。方向之差，答案天壤之别。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>② 多重背包 · 数量有限</h2><span class="sub">Bounded Knapsack</span></div>
+  <div class="defn"><span class="lbl">问题定义</span>
+    <p><b>多重背包</b>：第 i 种物品有<b>确定的 cᵢ 件</b>（介于 0/1 的「1 件」与完全的「无限件」之间），求容量 W 内的最大价值。</p></div>
+  <div class="defn"><span class="lbl">朴素做法与瓶颈</span>
+    <p>最直接的写法是把第 i 种物品「拆成 cᵢ 个相同的 0/1 物品」再跑 0/1 背包，时间 <b>Θ(W·Σcᵢ)</b>。当某种物品数量高达上万时，Σcᵢ 巨大，会超时。<b>二进制拆分</b>正是为压掉这个 Σcᵢ 而生。</p></div>
+  <div class="defn thm"><span class="lbl">二进制拆分（关键技巧）</span>
+    <p>把 cᵢ 件拆成若干「打包物品」，件数取 <b>1, 2, 4, 8, …, 2^(k−1)</b>，最后补一个<b>余数</b> cᵢ − (2^k − 1)。每个打包物品的重量、价值按其件数成比例放大。<br/>例如 <b>cᵢ = 13</b>：拆成 <b>1, 2, 4, 6</b>（前三项 1+2+4 = 7，余数 13 − 7 = 6），共 4 个打包物品。用这 4 个物品做 0/1 选择，可<b>恰好凑出 0…13 的任意件数</b>：1,2,4 覆盖 0…7，再加 6 覆盖 6…13，并起来正是 0…13。<br/>于是每种物品从 cᵢ 个降为 <b>⌈log₂(cᵢ+1)⌉</b> 个，总复杂度降到 <b>Θ(W·Σlog cᵢ)</b>。</p></div>
+  <div class="deriv">
+<span class="step">c = 13 → 1, 2, 4, 6　　（1+2+4=7，余 6）</span>
+<span class="step">验证可凑：5 = 1+4，10 = 4+6，11 = 1+4+6，13 = 1+2+4+6 ✓</span>
+<span class="step">c = 10 → 1, 2, 4, 3　　（1+2+4=7，余 3）</span>
+<span class="step">c = 7  → 1, 2, 4　　　　（恰为 2³−1，无余数）</span>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>③ C++ 代码 · 完全 / 多重</h2><span class="sub">Implementation</span></div>
+  <div class="code"><span class="cm">// 完全背包：一维，容量 j【正序】，允许当前物品被重复选取</span>
+<span class="kw">int</span> completeKnapsack(<span class="kw">int</span> W, <span class="kw">const vector</span>&lt;<span class="kw">int</span>&gt;&amp; w, <span class="kw">const vector</span>&lt;<span class="kw">int</span>&gt;&amp; v) {
+    <span class="kw">int</span> n = w.size();
+    <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt; dp(W + 1, 0);
+    <span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt; n; ++i)
+        <span class="kw">for</span> (<span class="kw">int</span> j = w[i]; j &lt;= W; ++j)                    <span class="cm">// 正序！与 0/1 唯一的区别</span>
+            dp[j] = max(dp[j], dp[j - w[i]] + v[i]);
+    <span class="kw">return</span> dp[W];
+}</div>
+  <div class="code"><span class="cm">// 多重背包：二进制拆分 + 0/1 背包，Θ(W·Σlog cᵢ)</span>
+<span class="kw">int</span> multiKnapsack(<span class="kw">int</span> W, <span class="kw">const vector</span>&lt;<span class="kw">int</span>&gt;&amp; w, <span class="kw">const vector</span>&lt;<span class="kw">int</span>&gt;&amp; v, <span class="kw">const vector</span>&lt;<span class="kw">int</span>&gt;&amp; c) {
+    <span class="kw">int</span> n = w.size();
+    <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt; W2, V2;                                    <span class="cm">// 拆分后的“打包物品”</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt; n; ++i) {
+        <span class="kw">int</span> cnt = c[i];
+        <span class="kw">for</span> (<span class="kw">int</span> k = 1; cnt &gt; 0; k &lt;&lt;= 1) {                 <span class="cm">// 件数取 1,2,4,...</span>
+            <span class="kw">int</span> take = min(k, cnt);                          <span class="cm">// 最后一份是余数</span>
+            W2.push_back(take * w[i]);                       <span class="cm">// 重量按件数放大</span>
+            V2.push_back(take * v[i]);                       <span class="cm">// 价值按件数放大</span>
+            cnt -= take;
+        }
+    }
+    <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt; dp(W + 1, 0);                            <span class="cm">// 对打包物品做 0/1 背包</span>
+    <span class="kw">for</span> (<span class="kw">size_t</span> i = 0; i &lt; W2.size(); ++i)
+        <span class="kw">for</span> (<span class="kw">int</span> j = W; j &gt;= W2[i]; --j)                    <span class="cm">// 0/1 → 逆序</span>
+            dp[j] = max(dp[j], dp[j - W2[i]] + V2[i]);
+    <span class="kw">return</span> dp[W];
+}</div>
+  <div class="tip info"><strong>三种背包一张图记忆：</strong>状态与转移式完全一样，区别只在「第 i 种物品能用几次」。<b>0/1（1 次）＝ 一维逆序</b>；<b>完全（∞ 次）＝ 一维正序</b>；<b>多重（cᵢ 次）＝ 二进制拆成打包物品后再按 0/1 逆序</b>。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>④ 三种背包复杂度对照</h2><span class="sub">Complexity</span></div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>类型</th><th>每种物品可用次数</th><th>一维容量循环</th><th>时间复杂度</th></tr>
+    <tr><td>0/1 背包</td><td>至多 1 次</td><td class="hl">逆序 W→wᵢ</td><td>Θ(nW)</td></tr>
+    <tr><td>完全背包</td><td>无限次</td><td class="hl">正序 wᵢ→W</td><td>Θ(nW)</td></tr>
+    <tr><td>多重背包（朴素）</td><td>至多 cᵢ 次</td><td>拆成 Σcᵢ 个 0/1 物品</td><td>Θ(W·Σcᵢ)</td></tr>
+    <tr><td><b>多重背包（二进制）</b></td><td>至多 cᵢ 次</td><td>拆成 Σlog cᵢ 个打包物品</td><td class="hl">Θ(W·Σlog cᵢ)</td></tr>
+  </table></div>
+  <div class="terms">
+    <span class="term"><b>完全背包</b>unbounded knapsack</span>
+    <span class="term"><b>多重背包</b>bounded knapsack</span>
+    <span class="term"><b>二进制拆分</b>binary decomposition</span>
+    <span class="term"><b>滚动数组</b>rolling array</span>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑤ 易错点</h2><span class="sub">Pitfalls</span></div>
+  <div class="pitfall"><span class="lbl">易错点</span><ul>
+    <li><b>完全背包误写成逆序</b>。逆序 dp[j−wᵢ] 取的是上一行的值，物品只能用一次，退化成 0/1，答案偏小。完全背包<b>必须正序</b>。</li>
+    <li><b>0/1 背包误写成正序</b>。反过来同样致命，正序会把物品重复叠加，答案偏大。方向是两种背包的<b>唯一分水岭</b>。</li>
+    <li><b>二进制拆分忘记补余数</b>。只拆 1,2,4,…,2^(k−1) 而漏掉 cᵢ−(2^k−1) 这一份，凑不出上半区的件数，会漏解。</li>
+    <li><b>拆分余数算错</b>。余数是 <b>cᵢ 减去已拆走的 (2^k − 1)</b>，例如 c=13 拆 1,2,4 后余 6，不是 5 也不是 7。</li>
+    <li><b>打包物品的重量/价值忘记按件数放大</b>。一份「4 件装」的重量应是 4wᵢ、价值 4vᵢ，写成 wᵢ、vᵢ 会算错。</li>
+    <li><b>多重背包拆分后仍用正序</b>。拆出的打包物品是当作 <b>0/1</b> 处理的，容量循环要<b>逆序</b>，正序会让每个打包物品被重复选，超出数量上限。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>本节小结</h2><span class="sub">Summary</span></div>
+  <div class="summary"><span class="lbl">本节小结</span><ul>
+    <li>三种背包状态与转移式相同，区别只在「每种物品能用几次」：<b>0/1 逆序、完全正序、多重二进制拆分后按 0/1 逆序</b>。</li>
+    <li>完全背包<b>正序</b>之所以正确，是因为 dp[j−wᵢ] 已含当前物品，实现「同一物品反复叠加」。</li>
+    <li>多重背包朴素拆分 Θ(W·Σcᵢ) 易超时；<b>二进制拆分</b>把每种 cᵢ 件降为 ⌈log₂(cᵢ+1)⌉ 个打包物品。</li>
+    <li>拆分规则：件数取 <b>1,2,4,…</b> 加一个<b>余数</b>；打包物品的重量、价值按件数成比例放大。</li>
+    <li>复杂度从 Θ(W·Σcᵢ) 降到 <b>Θ(W·Σlog cᵢ)</b>。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>自测题</h2><span class="sub">点击选项查看解析</span></div>
+  <div class="quiz">
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">1</span>完全背包的一维实现中，容量 j 的枚举方向应是？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>正序 j = wᵢ 到 W（从小到大）</span></div>
+        <div class="quiz-opt"><span class="mk">B</span><span>逆序 j = W 到 wᵢ（从大到小）</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>与 0/1 背包一样逆序</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>方向无所谓</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 A。完全背包要让同一物品可重复选取，正序时 dp[j−wᵢ] 已在本轮被更新（可能已含若干件当前物品），于是能不断叠加。B、C 逆序会让 dp[j−wᵢ] 取到上一行的值，物品只能用一次，退化成 0/1；D 错，方向恰恰是完全与 0/1 的唯一区别。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">2</span>多重背包中某物品有 cᵢ = 13 件，二进制拆分应拆成哪几份（件数）？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>1, 2, 4, 8（共 15，超了）</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>1, 2, 4, 6（前三项和 7，余数 6）</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>1, 2, 4, 5</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>13 个各为 1 件（不拆）</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。取 1,2,4（和为 2³−1 = 7），余数 = 13 − 7 = 6，故拆成 1,2,4,6，四份之和恰为 13，且能凑出 0…13 任意件数。A 的 1+2+4+8 = 15 &gt; 13，会让物品用超；C 的余数应是 6 而非 5，1+2+4+5 = 12 ≠ 13，凑不出 13；D 是朴素拆分，Θ(W·Σcᵢ) 会超时，正是二进制拆分要改进的对象。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">3</span>物品 w=3, v=4, W=10。分别按 0/1 与完全背包计算，dp[10] 各是多少？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>都是 4</span></div>
+        <div class="quiz-opt"><span class="mk">B</span><span>都是 12</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>0/1 为 4（最多一件），完全为 12（三件）</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>0/1 为 12，完全为 4</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 C。0/1 每件仅一次，容量 10 只放得下 1 件，dp[10] = 4；完全背包可放 ⌊10/3⌋ = 3 件（重 9 ≤ 10），dp[10] = 3×4 = 12。A、B 忽略了两种背包的本质差别；D 把方向记反了——重复使用（值更大）的是<b>完全</b>背包。</div>
+    </div>
+  </div>
+</section>
+
+<div class="page-nav"><a href="09-knapsack.html"><span class="dir">← 上一节</span><span class="name">01背包</span></a><a href="11-tsp.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">状压TSP</span></a></div>
+<div class="footer">算法设计与分析 · <b>第7章 动态规划</b> · 强交互可视化版<br/>Canvas 填表 · 路径回溯 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:32},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.12-Math.random()*.3, a:.12+Math.random()*.3}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(185,100,52,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+function draw(dp, hi=-1, title=''){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.fillStyle='#7A746A'; ctx.font='13px Segoe UI'; ctx.fillText(title, 20, 24);
+  const maxV=Math.max(...dp,1);
+  dp.forEach((v,j)=>{
+    const h=(v/maxV)*140, x=40+j*70;
+    ctx.fillStyle=j===hi?'#B96434':'#C2603F';
+    ctx.fillRect(x, 180-h, 40, h);
+    ctx.fillStyle='#443F37'; ctx.font='12px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+20, 180-h-8); ctx.fillText('j'+j, x+20, 200);
+  });
+}
+async function run(order){
+  const W=10, w=3, v=4, dp=Array(W+1).fill(0);
+  if(order==='rev'){
+    for(let j=W;j>=w;j--){ dp[j]=Math.max(dp[j], dp[j-w]+v); draw(dp,j,'0/1 逆序'); tip.textContent=`j=${j} 只能用一次`; await sleep(200); }
+  } else {
+    for(let j=w;j<=W;j++){ dp[j]=Math.max(dp[j], dp[j-w]+v); draw(dp,j,'完全 正序'); tip.textContent=`j=${j} 可重复用当前物品`; await sleep(200); }
+  }
+  draw(dp,-1, order==='rev'?'0/1 结果':'完全 结果');
+}
+run01.onclick=()=>run('rev'); runC.onclick=()=>run('fwd');
+draw(Array(11).fill(0),-1,'等待演示');
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

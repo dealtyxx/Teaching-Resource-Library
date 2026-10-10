@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="812" viewBox="0 0 1400 812" font-family="'Noto Sans SC','Source Han Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif">
+<rect x="0" y="0" width="1400" height="812" fill="#f9f9f7"/>
+<defs>
+<marker id="arr" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#52514e"/>
+</marker>
+<marker id="arrB" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#2a78d6"/>
+</marker>
+<marker id="arrO" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#eb6834"/>
+</marker>
+<marker id="arrG" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#127a56"/>
+</marker>
+<marker id="arrM" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+  <path d="M1,1 L8,4.5 L1,8 Z" fill="#898781"/>
+</marker>
+</defs>
+<text x="700.0" y="60" font-size="36" fill="#0b0b0b" font-weight="700" text-anchor="middle"   >动态规划原理 · 多段图最短路径</text>
+<text x="700.0" y="94" font-size="18" fill="#898781" font-weight="normal" text-anchor="middle"   >阶段 / 状态 / 状态转移方程；逆序解法 与 顺序解法（7.1.2）</text>
+<text x="1360" y="40" font-size="13" fill="#898781" font-weight="normal" text-anchor="end"   >算法设计与分析 · 第7章 动态规划</text>
+<rect x="40" y="128" width="772" height="636" fill="#ffffff" stroke="#e1e0d9" stroke-width="1.5" rx="16" opacity="1" />
+<text x="66" y="168" font-size="22" fill="#0b0b0b" font-weight="700" text-anchor="start"   >多段图 G</text>
+<text x="188" y="167" font-size="14" fill="#898781" font-weight="normal" text-anchor="start"   >求 A→E 最短管道</text>
+<text x="122" y="224" font-size="13" fill="#1c5cab" font-weight="700" text-anchor="middle"   >阶段1</text>
+<text x="122" y="244" font-size="10.5" fill="#898781" font-weight="600" text-anchor="middle"   font-family="ui-monospace,monospace">S₁={A}</text>
+<text x="298" y="224" font-size="13" fill="#1c5cab" font-weight="700" text-anchor="middle"   >阶段2</text>
+<text x="298" y="244" font-size="10.5" fill="#898781" font-weight="600" text-anchor="middle"   font-family="ui-monospace,monospace">S₂={B1,B2,B3}</text>
+<text x="492" y="224" font-size="13" fill="#1c5cab" font-weight="700" text-anchor="middle"   >阶段3</text>
+<text x="492" y="244" font-size="10.5" fill="#898781" font-weight="600" text-anchor="middle"   font-family="ui-monospace,monospace">S₃={C1,C2}</text>
+<text x="660" y="224" font-size="13" fill="#1c5cab" font-weight="700" text-anchor="middle"   >阶段4</text>
+<text x="660" y="244" font-size="10.5" fill="#898781" font-weight="600" text-anchor="middle"   font-family="ui-monospace,monospace">S₄={D1,D2}</text>
+<text x="760" y="224" font-size="13" fill="#1c5cab" font-weight="700" text-anchor="middle"   >阶段5</text>
+<text x="760" y="244" font-size="10.5" fill="#898781" font-weight="600" text-anchor="middle"   font-family="ui-monospace,monospace">S₅={E}</text>
+<line x1="137.45105134825832" y1="453.77800955444405" x2="282.5489486517417" y2="320.22199044555595" stroke="#c3c2b7" stroke-width="1.5" stroke-linecap="butt" />
+<line x1="143.0" y1="468.0" x2="277.0" y2="468.0" stroke="#c3c2b7" stroke-width="1.5" stroke-linecap="butt" />
+<line x1="137.5387415413148" y1="482.12612867392255" x2="282.46125845868517" y2="613.8738713260774" stroke="#127a56" stroke-width="3.4" stroke-linecap="butt" />
+<line x1="317.6878228605007" y1="313.30682085544356" x2="472.3121771394993" y2="370.69317914455644" stroke="#c3c2b7" stroke-width="1.5" stroke-linecap="butt" />
+<line x1="310.8103073612053" y1="322.64019306713266" x2="479.1896926387947" y2="541.3598069328674" stroke="#c3c2b7" stroke-width="1.5" stroke-linecap="butt" />
+<line x1="317.04986643600597" y1="459.1624330966983" x2="472.95013356399403" y2="386.8375669033017" stroke="#c3c2b7" stroke-width="1.5" stroke-linecap="butt" />
+<line x1="317.04986643600597" y1="476.8375669033017" x2="472.95013356399403" y2="549.1624330966982" stroke="#c3c2b7" stroke-width="1.5" stroke-linecap="butt" />
+<line x1="310.8743675920948" y1="611.4093201132799" x2="479.1256324079052" y2="394.5906798867201" stroke="#c3c2b7" stroke-width="1.5" stroke-linecap="butt" />
+<line x1="317.75343833674924" y1="620.8724707032349" x2="472.24656166325076" y2="565.1275292967651" stroke="#127a56" stroke-width="3.4" stroke-linecap="butt" />
+<line x1="513.0" y1="378.0" x2="639.0" y2="378.0" stroke="#c3c2b7" stroke-width="1.5" stroke-linecap="butt" />
+<line x1="506.3286832575602" y1="393.35216063310025" x2="645.6713167424398" y2="542.6478393668998" stroke="#c3c2b7" stroke-width="1.5" stroke-linecap="butt" />
+<line x1="506.3286832575602" y1="542.6478393668998" x2="645.6713167424398" y2="393.35216063310025" stroke="#c3c2b7" stroke-width="1.5" stroke-linecap="butt" />
+<line x1="513.0" y1="558.0" x2="639.0" y2="558.0" stroke="#127a56" stroke-width="3.4" stroke-linecap="butt" />
+<line x1="675.6091770711905" y1="392.04825936407144" x2="744.3908229288095" y2="453.95174063592856" stroke="#c3c2b7" stroke-width="1.5" stroke-linecap="butt" />
+<line x1="675.6091770711905" y1="543.9517406359286" x2="744.3908229288095" y2="482.04825936407144" stroke="#127a56" stroke-width="3.4" stroke-linecap="butt" />
+<rect x="170.84" y="402.92" width="22" height="20" fill="#ffffff" stroke="none" stroke-width="1" rx="5" opacity="0.92" />
+<text x="181.84" y="417.92" font-size="12.5" fill="#52514e" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">2</text>
+<rect x="170.84" y="458.0" width="22" height="20" fill="#ffffff" stroke="none" stroke-width="1" rx="5" opacity="0.92" />
+<text x="181.84" y="473.0" font-size="12.5" fill="#52514e" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">4</text>
+<rect x="170.84" y="512.4" width="22" height="20" fill="#ffffff" stroke="none" stroke-width="1" rx="5" opacity="0.92" />
+<text x="181.84" y="527.4" font-size="12.5" fill="#127a56" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">3</text>
+<rect x="352.96000000000004" y="320.48" width="22" height="20" fill="#ffffff" stroke="none" stroke-width="1" rx="5" opacity="0.92" />
+<text x="363.96000000000004" y="335.48" font-size="12.5" fill="#52514e" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">7</text>
+<rect x="352.96000000000004" y="381.68" width="22" height="20" fill="#ffffff" stroke="none" stroke-width="1" rx="5" opacity="0.92" />
+<text x="363.96000000000004" y="396.68" font-size="12.5" fill="#52514e" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">4</text>
+<rect x="352.96000000000004" y="427.4" width="22" height="20" fill="#ffffff" stroke="none" stroke-width="1" rx="5" opacity="0.92" />
+<text x="363.96000000000004" y="442.4" font-size="12.5" fill="#52514e" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">3</text>
+<rect x="352.96000000000004" y="488.6" width="22" height="20" fill="#ffffff" stroke="none" stroke-width="1" rx="5" opacity="0.92" />
+<text x="363.96000000000004" y="503.6" font-size="12.5" fill="#52514e" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">6</text>
+<rect x="352.96000000000004" y="533.0" width="22" height="20" fill="#ffffff" stroke="none" stroke-width="1" rx="5" opacity="0.92" />
+<text x="363.96000000000004" y="548.0" font-size="12.5" fill="#52514e" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">5</text>
+<rect x="352.96000000000004" y="594.2" width="22" height="20" fill="#ffffff" stroke="none" stroke-width="1" rx="5" opacity="0.92" />
+<text x="363.96000000000004" y="609.2" font-size="12.5" fill="#127a56" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">2</text>
+<rect x="538.12" y="368.0" width="22" height="20" fill="#ffffff" stroke="none" stroke-width="1" rx="5" opacity="0.92" />
+<text x="549.12" y="383.0" font-size="12.5" fill="#52514e" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">4</text>
+<rect x="538.12" y="429.2" width="22" height="20" fill="#ffffff" stroke="none" stroke-width="1" rx="5" opacity="0.92" />
+<text x="549.12" y="444.2" font-size="12.5" fill="#52514e" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">6</text>
+<rect x="538.12" y="486.8" width="22" height="20" fill="#ffffff" stroke="none" stroke-width="1" rx="5" opacity="0.92" />
+<text x="549.12" y="501.8" font-size="12.5" fill="#52514e" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">6</text>
+<rect x="538.12" y="548.0" width="22" height="20" fill="#ffffff" stroke="none" stroke-width="1" rx="5" opacity="0.92" />
+<text x="549.12" y="563.0" font-size="12.5" fill="#127a56" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">3</text>
+<rect x="683.0" y="398.6" width="22" height="20" fill="#ffffff" stroke="none" stroke-width="1" rx="5" opacity="0.92" />
+<text x="694.0" y="413.6" font-size="12.5" fill="#52514e" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">3</text>
+<rect x="683.0" y="517.4" width="22" height="20" fill="#ffffff" stroke="none" stroke-width="1" rx="5" opacity="0.92" />
+<text x="694.0" y="532.4" font-size="12.5" fill="#127a56" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">4</text>
+<circle cx="122" cy="468" r="21" fill="#3a2e86" stroke="#3a2e86" stroke-width="2" opacity="1"/>
+<text x="122" y="473" font-size="13.5" fill="#ffffff" font-weight="700" text-anchor="middle"   >A</text>
+<circle cx="298" cy="306" r="21" fill="#eef4fc" stroke="#b7d3f6" stroke-width="2" opacity="1"/>
+<text x="298" y="311" font-size="13.5" fill="#1c5cab" font-weight="700" text-anchor="middle"   >B1</text>
+<circle cx="298" cy="468" r="21" fill="#eef4fc" stroke="#b7d3f6" stroke-width="2" opacity="1"/>
+<text x="298" y="473" font-size="13.5" fill="#1c5cab" font-weight="700" text-anchor="middle"   >B2</text>
+<circle cx="298" cy="628" r="21" fill="#e9f7f1" stroke="#127a56" stroke-width="2" opacity="1"/>
+<text x="298" y="633" font-size="13.5" fill="#127a56" font-weight="700" text-anchor="middle"   >B3</text>
+<circle cx="492" cy="378" r="21" fill="#eef4fc" stroke="#b7d3f6" stroke-width="2" opacity="1"/>
+<text x="492" y="383" font-size="13.5" fill="#1c5cab" font-weight="700" text-anchor="middle"   >C1</text>
+<circle cx="492" cy="558" r="21" fill="#e9f7f1" stroke="#127a56" stroke-width="2" opacity="1"/>
+<text x="492" y="563" font-size="13.5" fill="#127a56" font-weight="700" text-anchor="middle"   >C2</text>
+<circle cx="660" cy="378" r="21" fill="#eef4fc" stroke="#b7d3f6" stroke-width="2" opacity="1"/>
+<text x="660" y="383" font-size="13.5" fill="#1c5cab" font-weight="700" text-anchor="middle"   >D1</text>
+<circle cx="660" cy="558" r="21" fill="#e9f7f1" stroke="#127a56" stroke-width="2" opacity="1"/>
+<text x="660" y="563" font-size="13.5" fill="#127a56" font-weight="700" text-anchor="middle"   >D2</text>
+<circle cx="760" cy="468" r="21" fill="#3a2e86" stroke="#3a2e86" stroke-width="2" opacity="1"/>
+<text x="760" y="473" font-size="13.5" fill="#ffffff" font-weight="700" text-anchor="middle"   >E</text>
+<rect x="66" y="684" width="720" height="56" fill="#e9f7f1" stroke="#a9e0cb" stroke-width="1.3" rx="12" opacity="1" />
+<text x="84" y="710" font-size="13.5" fill="#127a56" font-weight="700" text-anchor="start"   >最短路径</text>
+<text x="172" y="710" font-size="15" fill="#127a56" font-weight="700" text-anchor="start"   font-family="ui-monospace,monospace">A → B3 → C2 → D2 → E</text>
+<text x="84" y="731" font-size="12" fill="#52514e" font-weight="normal" text-anchor="start"   >阶段 k（k=1~5），状态变量 xₖ∈Sₖ；某段状态一旦确定，其后演变与此前决策无关（无后效性）。</text>
+<rect x="832" y="128" width="528" height="636" fill="#ffffff" stroke="#e1e0d9" stroke-width="1.5" rx="16" opacity="1" />
+<text x="858" y="168" font-size="22" fill="#0b0b0b" font-weight="700" text-anchor="start"   >逆序 与 顺序 解法</text>
+<rect x="856" y="188" width="480" height="66" fill="#fff7f2" stroke="#f3c1ac" stroke-width="1.2" rx="12" opacity="1" />
+<text x="872" y="214" font-size="14" fill="#b0491d" font-weight="700" text-anchor="start"   >① 逆序解法（从 E 反推到 A）</text>
+<text x="872" y="240" font-size="14" fill="#0b0b0b" font-weight="700" text-anchor="start"   font-family="ui-monospace,monospace">f(E)=0;  f(s)=min{ c(s,s')+f(s') }</text>
+<rect x="856" y="268" width="480" height="168" fill="#fbfbfa" stroke="#e1e0d9" stroke-width="1.2" rx="12" opacity="1" />
+<text x="872" y="298" font-size="12.5" fill="#1c5cab" font-weight="700" text-anchor="start"   >第5阶段</text>
+<text x="948" y="298" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">f(E)=0</text>
+<text x="872" y="328" font-size="12.5" fill="#1c5cab" font-weight="700" text-anchor="start"   >第4阶段</text>
+<text x="948" y="328" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">f(D1)=3   f(D2)=4</text>
+<text x="1320" y="328" font-size="11.5" fill="#127a56" font-weight="700" text-anchor="end"   >next→E</text>
+<text x="872" y="358" font-size="12.5" fill="#1c5cab" font-weight="700" text-anchor="start"   >第3阶段</text>
+<text x="948" y="358" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">f(C1)=7   f(C2)=7</text>
+<text x="1320" y="358" font-size="11.5" fill="#127a56" font-weight="700" text-anchor="end"   >→D1 / →D2</text>
+<text x="872" y="388" font-size="12.5" fill="#1c5cab" font-weight="700" text-anchor="start"   >第2阶段</text>
+<text x="948" y="388" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">f(B1)=11  f(B2)=10  f(B3)=9</text>
+<text x="1320" y="388" font-size="11.5" fill="#127a56" font-weight="700" text-anchor="end"   >B3→C2</text>
+<text x="872" y="418" font-size="12.5" fill="#1c5cab" font-weight="700" text-anchor="start"   >第1阶段</text>
+<text x="948" y="418" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">f(A)=12</text>
+<text x="1320" y="418" font-size="11.5" fill="#127a56" font-weight="700" text-anchor="end"   >A→B3</text>
+<text x="948" y="446" font-size="11" fill="#898781" font-weight="normal" text-anchor="start"   >f(s) = 状态 s 到终点 E 的最短路径长度</text>
+<rect x="856" y="458" width="480" height="84" fill="#f4f7fb" stroke="#b7d3f6" stroke-width="1.2" rx="12" opacity="1" />
+<text x="872" y="484" font-size="14" fill="#1c5cab" font-weight="700" text-anchor="start"   >② 顺序解法（从 A 正推到 E）</text>
+<text x="872" y="510" font-size="14" fill="#0b0b0b" font-weight="700" text-anchor="start"   font-family="ui-monospace,monospace">f(A)=0;  f(t)=min{ f(t')+c(t',t) }</text>
+<text x="872" y="532" font-size="12" fill="#52514e" font-weight="normal" text-anchor="start"   >f(t)=初始状态 A 到状态 t 的最短路径长度，与逆序对称</text>
+<rect x="856" y="552" width="480" height="186" fill="#eceaf7" stroke="#cbc4ee" stroke-width="1.2" rx="12" opacity="1" />
+<text x="872" y="580" font-size="14.5" fill="#3a2e86" font-weight="700" text-anchor="start"   >动态规划求解 5 步骤</text>
+<text x="872" y="606" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   >① 确定状态：各阶段的情况用不同状态表示</text>
+<text x="872" y="632" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   >② 确定状态转移方程：阶段间状态与指标的关系</text>
+<text x="872" y="658" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   >③ 确定初始条件与边界情况：递推的起点/特殊情形</text>
+<text x="872" y="684" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   >④ 确定计算顺序：顺序求解还是逆序求解</text>
+<text x="872" y="710" font-size="12.5" fill="#52514e" font-weight="normal" text-anchor="start"   >⑤ 消除冗余：如用滚动数组提升时空性能</text>
+</svg>

@@ -1,0 +1,111 @@
+---
+module: 8
+moduleName: 数据预处理
+order: 30
+title: 学生成绩缺失值填充工具
+level: 基础必做
+scene: 数据清洗
+knowledge: [缺失值识别, 均值/中位数填充, 完整性评估]
+stars: 2
+minutes: 25
+goal: 掌握缺失值处理
+sizheng: 树立原始数据不可篡改的科研诚信观
+dims: [科研诚信]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+import CleaningLab from '../../components/react/labs/CleaningLab';
+
+## 场景导入
+
+期末教务处发来一份成绩单，你打开一看愣住了：好几个格子空着——有人缓考、有人漏录、有人系统没同步。可下游的绩点计算、奖学金评定都等着这张表。空着跑不动分析，那就得「填」。但真正的问题是：**这些空格该填什么？谁来决定填多少？** 填得不讲究，一场关于公平的麻烦就悄悄埋下了。
+
+## 玩一玩
+
+先在操作台上感受一下「缺失」。灰色的点就是缺失位，打开「填充缺失值」开关，再切换均值与中位数，看统计量怎么变——顺便盯住右侧那份一直在记录的「诚信档案」：
+
+<CleaningLab client:visible />
+
+## 动手实验
+
+下面这个小工具把一份带 `None` 的成绩单，分别用均值和中位数填一遍，并打印出「填了哪几位、填了多少」的清单。关键点在最后一行：原始列表 `raw` 从头到尾没被碰过——所有填充都发生在副本上。
+
+<PyPlayground
+  client:visible
+  title="成绩缺失值填充：均值 vs 中位数"
+  height={320}
+  note="把 raw 里再多改几个成绩为 None，或把某个分数改成 0，看看均值填充和中位数填充谁受极端值影响更大。"
+  code={`import statistics
+
+# 原始成绩单：None 表示缺考/漏录，是客观事实，绝不能就地改写
+raw = [88, 92, None, 76, 85, None, 90, 68, None, 95]
+
+def fill(scores, how):
+    """按均值或中位数填充缺失值，返回新列表——原件保持不动"""
+    known = [s for s in scores if s is not None]      # 只用已知分数算统计量
+    center = statistics.mean(known) if how == "mean" else statistics.median(known)
+    center = round(center, 1)
+    filled, marks = [], []                            # 新副本 + 填充位置清单
+    for i, s in enumerate(scores):
+        if s is None:
+            filled.append(center)
+            marks.append(f"第{i + 1}位同学：缺失 → 填入 {center}")
+        else:
+            filled.append(s)
+    return filled, marks
+
+for how in ("mean", "median"):
+    result, marks = fill(raw, how)
+    name = "均值" if how == "mean" else "中位数"
+    print(f"【{name}填充】{result}")
+    for m in marks:
+        print("   " + m)
+    print()
+
+# 证明原件从未被篡改——两次填充都基于同一份原始数据
+print(f"原始数据（始终保持不动）：{raw}")`}
+/>
+
+## 思政会客厅
+
+<DimCard dim="科研诚信" title="原始数据是不可篡改的底线">
+  <ul>
+    <li>None 不是「错误」，而是一条诚实的记录：它告诉你「这里没有数据」。抹掉它、随手编一个数，都是对事实的篡改。</li>
+    <li>填充要留痕：填了哪几位、用什么策略、填了多少，都写进清单——让任何人都能复核、能还原。</li>
+    <li>填充值只进副本，原始列表 raw 全程不动。这条「副本操作」的习惯，是科研诚信最朴素的技术体现。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="🌻" tone="gold" title="一句话记住它">
+填充是给缺失处一个「合理的估计」，不是给数据一个「好看的谎言」——估计要透明、可复核、可撤销，原件永远留着。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p30-d1"
+  question="用均值填充后，全班平均分几乎不变。可如果把这份「填充过」的成绩单当作真实数据去评奖学金，公不公平？"
+  hints={['填充值只是统计估计，并不代表这位同学的真实水平', '对高利害场景（评奖、录取），更稳妥的是标注缺失、单独处理，而非一填了之', '想清楚：填充是为了让分析可继续，还是为了让缺失「消失」？']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="一组成绩里混进了一个异常的满分误录，填充其余缺失值时用哪种更稳健？"
+  options={['均值填充，因为它用了全部数据', '中位数填充，它对极端值不敏感', '一律填 0，简单省事', '删除所有含缺失的整行']}
+  answer={1}
+  explain="均值会被极端值拉偏，中位数只看中间位置、对离群点稳健；成绩这类可能含误录的数据，用中位数填充通常更稳妥。"
+/>
+
+<QuizItem
+  client:visible
+  question="处理缺失值时，最符合科研诚信的做法是？"
+  options={['直接在原始表上改，改完看不出来', '填充写入副本并记录填充清单，原始数据保留', '把带缺失的记录偷偷删掉，让表格好看', '随便填个中间数，反正影响不大']}
+  answer={1}
+  explain="科研诚信的核心是原始数据不可篡改、处理过程可追溯：填充只进副本、全程留痕，原件永远保留，任何人都能复核。"
+/>

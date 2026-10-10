@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>LIS · 第7章 动态规划</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">07</div>算法可视化 · <span>第7章 动态规划</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-principle.html">原理</a><a class="pill" href="03-models.html">模型</a><a class="pill" href="04-maxsub.html">最大子段和</a><a class="pill active" href="05-lis.html">LIS</a><a class="pill" href="06-triangle.html">三角形</a><a class="pill" href="07-lcs.html">LCS</a><a class="pill" href="08-edit.html">编辑距离</a><a class="pill" href="09-knapsack.html">01背包</a><a class="pill" href="10-multi.html">完全/多重</a><a class="pill" href="11-tsp.html">状压TSP</a><a class="pill" href="12-interval-tree.html">区间/树形</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 5 · LIS</div>
+  <h1>最长递增子序列</h1>
+  <p>dp[i]=以 a[i] 结尾的 LIS 长度。动画展示每个位置的转移，最后高亮一条最优序列。</p>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>学习目标</h2><span class="sub">Learning Objectives</span></div>
+  <div class="objectives"><h3>本节学完后你应当</h3><ol>
+    <li>能写出 LIS 的<b>状态定义、转移方程与边界 dp[i] = 1</b>，并解释边界的含义。</li>
+    <li>能实现 <b>O(n<sup>2</sup>)</b> 的经典 DP，并用 <b>pre[] 记录前驱</b>回溯打印出一条具体的 LIS。</li>
+    <li>能讲清 <b>O(n log n) 贪心 + 二分</b>优化的核心思想：维护「长度为 k 的递增子序列的<b>最小结尾</b>」数组 tail。</li>
+    <li>能说明 tail 数组<b>本身不一定是一条合法 LIS</b>，只有长度是可靠的。</li>
+    <li>能根据「严格递增 / 非递减」正确选择 <b>lower_bound / upper_bound</b>。</li>
+  </ol></div>
+</section>
+
+<div class="card">
+  <div class="toolbar"><button class="btn primary" id="run">▶ 计算 LIS</button><button class="btn" id="rand">随机</button></div>
+  <div class="cells" id="arr"></div>
+  <div class="stage-wrap light" style="height:200px;margin-top:20px">
+    <canvas class="stage" id="cv" width="1000" height="200"></canvas>
+  </div>
+  <div class="stat-row"><div class="stat"><span>LIS 长度</span><b class="green" id="ans">—</b></div></div>
+  <div class="tip" id="tip">dp[i]=max{dp[j]}+1 (j&lt;i 且 a[j]&lt;a[i])</div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>① 状态定义 ② 转移方程 ③ 边界 ④ 顺序</h2><span class="sub">O(n²) 经典解法</span></div>
+  <div class="defn"><span class="lbl">状态定义</span>
+    <p><b>dp[i]</b> 表示<b>以 a[i] 为最后一个元素</b>的最长严格递增子序列的<b>长度</b>（i = 0, 1, …, n−1）。<br/>与最大子段和同理，「以 a[i] 结尾」这个约束是为了满足<b>无后效性</b>：只有知道子序列的末尾是谁，才能判断 a[i] 能否接上去。子序列<b>不要求连续</b>，但要求下标递增。</p></div>
+  <div class="formula lg">dp[i] = max{ dp[j] } + 1　　其中 0 ≤ j &lt; i 且 a[j] &lt; a[i]</div>
+  <div class="formula">dp[i] = 1　　当不存在满足 j &lt; i 且 a[j] &lt; a[i] 的 j</div>
+  <div class="defn"><span class="lbl">边界条件 · 初始化</span>
+    <p><b>dp[i] = 1（对所有 i）</b>。含义是：<b>每个元素自身就构成一个长度为 1 的递增子序列</b>。<br/>这条初始化同时承担了两个作用：① 处理「a[i] 前面没有任何比它小的元素」的情形；② 让转移写成「取 max」时天然有一个下界，无需再单独判断。<b>若忘记初始化为 1（默认为 0），所有 dp 值会整体少 1。</b></p></div>
+  <div class="defn prop"><span class="lbl">计算顺序 · 答案位置</span>
+    <p>dp[i] 依赖所有 j &lt; i，故 <b>i 从小到大</b>，内层 j 从 0 扫到 i−1。<br/>答案 <b>ans = max<sub>0≤i&lt;n</sub> dp[i]</b>，同样<b>不是 dp[n−1]</b>。</p></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>例题演算 · A = [10, 9, 2, 5, 3, 7, 101, 18]</h2><span class="sub">Worked Example</span></div>
+  <div class="deriv">
+<span class="step">dp[0] = 1 <span class="why">a[0]=10，前无元素</span></span>
+<span class="step">dp[1] = 1 <span class="why">a[1]=9，前面 10 不小于 9</span></span>
+<span class="step">dp[2] = 1 <span class="why">a[2]=2，前面无更小者</span></span>
+<span class="step">dp[3] = dp[2] + 1 = 2 <span class="why">a[3]=5，可接在 2 之后；pre[3]=2</span></span>
+<span class="step">dp[4] = dp[2] + 1 = 2 <span class="why">a[4]=3，可接在 2 之后；pre[4]=2</span></span>
+<span class="step">dp[5] = max(dp[2], dp[3], dp[4]) + 1 = 2 + 1 = 3 <span class="why">a[5]=7，接在 5 或 3 之后；pre[5]=3</span></span>
+<span class="step">dp[6] = dp[5] + 1 = 4 <span class="why">a[6]=101 比所有前项都大；pre[6]=5</span></span>
+<span class="step">dp[7] = dp[5] + 1 = 4 <span class="why">a[7]=18，可接 7 之后（101 太大）；pre[7]=5</span></span>
+  </div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>i</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td></tr>
+    <tr><th>a[i]</th><td>10</td><td>9</td><td>2</td><td>5</td><td>3</td><td>7</td><td>101</td><td>18</td></tr>
+    <tr><th>dp[i]</th><td>1</td><td>1</td><td>1</td><td>2</td><td>2</td><td>3</td><td class="hl">4</td><td class="hl">4</td></tr>
+    <tr><th>pre[i]</th><td>−1</td><td>−1</td><td>−1</td><td>2</td><td>2</td><td>3</td><td>5</td><td>5</td></tr>
+  </table></div>
+  <div class="tip ok"><strong>答案：</strong>LIS 长度 = <b>4</b>。从 dp 最大值所在的 i = 6 出发沿 pre 回溯：6 → 5 → 3 → 2，反转后得下标 [2, 3, 5, 6]，对应子序列 <b>2 → 5 → 7 → 101</b>。<br/>注意 <b>LIS 通常不唯一</b>：[2, 3, 7, 101]、[2, 3, 7, 18] 也都是长度为 4 的合法解。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>③ C++ 代码 · O(n²) + 路径回溯</h2><span class="sub">Implementation</span></div>
+  <div class="code"><span class="cm">// O(n^2) 经典 DP，并用 pre[] 回溯打印一条具体的 LIS</span>
+<span class="kw">int</span> lisN2(<span class="kw">const vector</span>&lt;<span class="kw">int</span>&gt;&amp; a, <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&amp; seq) {
+    <span class="kw">int</span> n = a.size();
+    <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt; dp(n, 1), pre(n, -1);       <span class="cm">// ③ 边界：每个元素自成长度 1</span>
+    <span class="kw">int</span> best = 0;                             <span class="cm">// 最优值所在下标</span>
+
+    <span class="kw">for</span> (<span class="kw">int</span> i = 1; i &lt; n; ++i) {          <span class="cm">// ④ 顺序：i 递增</span>
+        <span class="kw">for</span> (<span class="kw">int</span> j = 0; j &lt; i; ++j)
+            <span class="kw">if</span> (a[j] &lt; a[i] &amp;&amp; dp[j] + 1 &gt; dp[i]) {
+                dp[i] = dp[j] + 1;            <span class="cm">// ② 转移</span>
+                pre[i] = j;                   <span class="cm">// 记录前驱，供回溯</span>
+            }
+        <span class="kw">if</span> (dp[i] &gt; dp[best]) best = i;
+    }
+
+    <span class="cm">// 回溯：从 best 沿 pre 一路向前，再反转</span>
+    seq.clear();
+    <span class="kw">for</span> (<span class="kw">int</span> i = best; i != -1; i = pre[i]) seq.push_back(a[i]);
+    reverse(seq.begin(), seq.end());
+    <span class="kw">return</span> dp[best];
+}</div>
+  <div class="tip info"><strong>回溯的通用套路：</strong>DP 只给出<b>最优值</b>；要还原<b>最优解本身</b>，需要额外一个 pre[]（或 choice[]）数组，在<b>每次刷新 dp[i] 的同时</b>记录「这个最优值是从哪个状态转移来的」。这套「dp 存值 + pre 存决策 + 逆向回溯 + reverse」的模式在 LCS、背包、多段图中反复出现。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>④ O(n log n) 优化 · 贪心 + 二分</h2><span class="sub">Patience Sorting</span></div>
+  <div class="defn"><span class="lbl">辅助数组的定义（本节最关键的一句话）</span>
+    <p><b>tail[k]</b> 表示：在已扫描过的前缀中，<b>所有长度为 k+1 的递增子序列</b>里，<b>结尾元素的最小值</b>（k 从 0 开始计）。<br/>换句话说，tail[k] 回答的是「要凑出长度 k+1 的递增子序列，结尾最小能小到多少」。</p></div>
+  <div class="defn thm"><span class="lbl">为什么维护「最小结尾」是对的</span>
+    <p><b>贪心直觉：</b>结尾越小，后面越容易接上新元素，因此在长度相同的所有子序列中，只保留结尾最小的那个一定不吃亏。<br/><b>关键性质：</b>tail 数组<b>严格递增</b>。反证——若 tail[k] ≥ tail[k+1]，取那条长度为 k+2、结尾为 tail[k+1] 的子序列，砍掉最后一个元素得到一条长度 k+1、结尾 &lt; tail[k+1] ≤ tail[k] 的子序列，与 tail[k] 是最小结尾矛盾。<br/>正因为 tail 严格递增，才能用<b>二分查找</b>定位插入位置，把每步的 O(n) 降到 O(log n)。</p></div>
+  <div class="defn"><span class="lbl">算法流程</span>
+    <p>依次扫描每个 a[i]：<br/>· 若 <b>a[i] &gt; tail 的最后一个元素</b>，说明它能把当前最长的子序列再延长一位 → <b>追加</b>到 tail 末尾，LIS 长度 +1；<br/>· 否则，在 tail 中用<b>二分</b>找到第一个 <b>≥ a[i]</b> 的位置 p，<b>用 a[i] 替换 tail[p]</b>。含义是：长度为 p+1 的子序列现在有了一个更小的结尾，未来更容易接续。替换<b>不改变</b> tail 的长度。<br/>扫描结束后，<b>tail 的长度即为 LIS 的长度</b>。</p></div>
+  <div class="deriv">
+<span class="step">a[0] = 10 → tail 为空，追加 → tail = [10] <span class="why">len = 1</span></span>
+<span class="step">a[1] = 9  → 9 &lt; 10，二分定位 p=0，替换 → tail = [9] <span class="why">len 仍为 1，结尾变小</span></span>
+<span class="step">a[2] = 2  → 2 &lt; 9，p=0，替换 → tail = [2] <span class="why">len 仍为 1</span></span>
+<span class="step">a[3] = 5  → 5 &gt; 2，追加 → tail = [2, 5] <span class="why">len = 2</span></span>
+<span class="step">a[4] = 3  → 3 &lt; 5，p=1，替换 → tail = [2, 3] <span class="why">len 仍为 2，为后续留出空间</span></span>
+<span class="step">a[5] = 7  → 7 &gt; 3，追加 → tail = [2, 3, 7] <span class="why">len = 3</span></span>
+<span class="step">a[6] = 101 → 追加 → tail = [2, 3, 7, 101] <span class="why">len = 4</span></span>
+<span class="step">a[7] = 18 → 18 &lt; 101，p=3，替换 → tail = [2, 3, 7, 18] <span class="why">len 仍为 4 ← 答案</span></span>
+  </div>
+  <div class="tip warn"><strong>务必注意：</strong>tail 数组<b>本身不一定是原序列中的一条合法子序列</b>！它只是「各长度的最小结尾」的记录，元素可能来自被替换后已经失效的组合。<b>只有 tail 的长度是可靠的答案。</b>本例最后 tail = [2,3,7,18] 恰好合法纯属巧合。<br/>若一定要输出<b>具体的 LIS</b>，需在替换时额外记录每个 a[i] 被放到的下标位置以及当时的前驱，再回溯——或者干脆用 O(n<sup>2</sup>) 版本。</div>
+  <div class="code"><span class="cm">// O(n log n)：贪心 + 二分，只求长度</span>
+<span class="kw">int</span> lisNLogN(<span class="kw">const vector</span>&lt;<span class="kw">int</span>&gt;&amp; a) {
+    <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt; tail;                       <span class="cm">// tail[k] = 长度 k+1 的递增子序列的最小结尾</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt; (<span class="kw">int</span>)a.size(); ++i) {
+        <span class="cm">// 严格递增 LIS 用 lower_bound：找第一个 &gt;= a[i] 的位置</span>
+        <span class="kw">auto</span> it = lower_bound(tail.begin(), tail.end(), a[i]);
+        <span class="kw">if</span> (it == tail.end()) tail.push_back(a[i]);   <span class="cm">// 比所有结尾都大 → 延长</span>
+        <span class="kw">else</span>                  *it = a[i];              <span class="cm">// 否则替换，压低结尾</span>
+    }
+    <span class="kw">return</span> tail.size();
+}
+
+<span class="cm">// 若求「最长不下降子序列」（允许相等），改用 upper_bound：</span>
+<span class="cm">//     auto it = upper_bound(tail.begin(), tail.end(), a[i]);</span>
+<span class="cm">// lower_bound 找第一个 &gt;= x，会把相等元素挡在外面（严格递增）；</span>
+<span class="cm">// upper_bound 找第一个 &gt;  x，允许相等元素被追加（非递减）。</span></div>
+  <div class="code"><span class="cm">// O(n log n) 进阶：同时还原一条具体的 LIS</span>
+<span class="kw">int</span> lisNLogNPath(<span class="kw">const vector</span>&lt;<span class="kw">int</span>&gt;&amp; a, <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt;&amp; seq) {
+    <span class="kw">int</span> n = a.size();
+    <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt; tail, idx;                  <span class="cm">// idx[k]：tail[k] 对应的原下标</span>
+    <span class="kw">vector</span>&lt;<span class="kw">int</span>&gt; pre(n, -1);                 <span class="cm">// pre[i]：a[i] 在 LIS 中的前驱下标</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt; n; ++i) {
+        <span class="kw">int</span> p = lower_bound(tail.begin(), tail.end(), a[i]) - tail.begin();
+        <span class="kw">if</span> (p &gt; 0) pre[i] = idx[p - 1];       <span class="cm">// 接在长度 p 的那条之后</span>
+        <span class="kw">if</span> (p == (<span class="kw">int</span>)tail.size()) { tail.push_back(a[i]); idx.push_back(i); }
+        <span class="kw">else</span>                       { tail[p] = a[i];        idx[p] = i;        }
+    }
+    seq.clear();
+    <span class="kw">for</span> (<span class="kw">int</span> i = idx.back(); i != -1; i = pre[i]) seq.push_back(a[i]);
+    reverse(seq.begin(), seq.end());
+    <span class="kw">return</span> tail.size();
+}</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑤ 两种解法对照</h2><span class="sub">Comparison</span></div>
+  <div class="table-scroll"><table class="data">
+    <tr><th>对比项</th><th>O(n<sup>2</sup>) 经典 DP</th><th>O(n log n) 贪心 + 二分</th></tr>
+    <tr><td>核心数组</td><td>dp[i] = 以 a[i] 结尾的 LIS 长度</td><td>tail[k] = 长度 k+1 的递增子序列的<b>最小结尾</b></td></tr>
+    <tr><td>时间复杂度</td><td>Θ(n<sup>2</sup>)</td><td class="hl">Θ(n log n)</td></tr>
+    <tr><td>空间复杂度</td><td>Θ(n)</td><td>Θ(n)</td></tr>
+    <tr><td>可用规模</td><td>n ≤ 5000 左右</td><td class="hl">n ≤ 10<sup>6</sup></td></tr>
+    <tr><td>输出具体 LIS</td><td class="hl">容易：pre[] 直接回溯</td><td>需额外记录 idx[] 与 pre[]，略繁</td></tr>
+    <tr><td>数组含义直观性</td><td class="hl">直观，就是答案本身</td><td>tail 不是合法子序列，易误解</td></tr>
+    <tr><td>是否属于 DP</td><td>纯 DP</td><td>DP 思想 + 贪心 + 二分的复合优化</td></tr>
+    <tr><td>推荐场合</td><td>需要输出方案、n 不大、考试手写</td><td>只要长度、n 很大</td></tr>
+  </table></div>
+  <div class="terms">
+    <span class="term"><b>最长递增子序列</b>longest increasing subsequence</span>
+    <span class="term"><b>子序列</b>subsequence</span>
+    <span class="term"><b>前驱</b>predecessor</span>
+    <span class="term"><b>二分查找</b>binary search</span>
+    <span class="term"><b>耐心排序</b>patience sorting</span>
+    <span class="term"><b>非递减</b>non-decreasing</span>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>⑥ 易错点</h2><span class="sub">Pitfalls</span></div>
+  <div class="pitfall"><span class="lbl">易错点</span><ul>
+    <li><b>忘记把 dp 初始化为 1</b>（默认 0），导致全部答案少 1。边界 dp[i] = 1 表示「元素自身构成长度 1 的子序列」。</li>
+    <li><b>把答案写成 dp[n−1]</b>。答案是 <b>max{dp[i]}</b>；本例 dp[7] = 4 恰好等于答案纯属巧合，换成 A = [1,2,3,0] 时 dp[3] = 1 而答案是 3。</li>
+    <li><b>误以为 tail 数组就是一条 LIS</b>。它只保证<b>长度</b>正确；元素组合可能根本不构成原序列的子序列。</li>
+    <li><b>lower_bound 与 upper_bound 用反</b>。严格递增（不允许相等）用 <span class="kbd">lower_bound</span>；非递减（允许相等）用 <span class="kbd">upper_bound</span>。用反会让答案偏大或偏小 1 甚至更多。</li>
+    <li><b>把「子序列」当成「子段」</b>。LIS 的元素<b>不要求连续</b>，只要求下标递增；若要求连续那是另一道简单得多的题（O(n) 扫描即可）。</li>
+    <li><b>比较写成 a[j] ≤ a[i]</b>。严格递增必须是 <span class="kbd">a[j] &lt; a[i]</span>，否则相等元素会被串起来。</li>
+    <li><b>回溯时忘记 reverse</b>。沿 pre 回溯得到的是<b>倒序</b>，必须反转后再输出。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>本节小结</h2><span class="sub">Summary</span></div>
+  <div class="summary"><span class="lbl">本节小结</span><ul>
+    <li>状态定义：<b>dp[i] = 以 a[i] 结尾的最长递增子序列长度</b>；转移 <b>dp[i] = max{dp[j] | j &lt; i, a[j] &lt; a[i]} + 1</b>；边界 <b>dp[i] = 1</b>；答案 <b>max{dp[i]}</b>。</li>
+    <li>用 <b>pre[i] 记录前驱</b>，从最优下标沿 pre 回溯并 reverse，即可打印出一条具体的 LIS（LIS 通常不唯一）。</li>
+    <li>O(n log n) 优化的核心是维护 <b>tail[k] = 长度 k+1 的递增子序列的最小结尾</b>；tail 严格递增，故可二分。</li>
+    <li>扫描规则：<b>比末尾大就追加（长度 +1），否则二分找第一个 ≥ a[i] 的位置替换（长度不变）</b>。</li>
+    <li><b>tail 只保证长度正确，本身不一定是合法子序列。</b></li>
+    <li>严格递增用 <b>lower_bound</b>，非递减用 <b>upper_bound</b>。</li>
+  </ul></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>自测题</h2><span class="sub">点击选项查看解析</span></div>
+  <div class="quiz">
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">1</span>O(n log n) 解法结束后 tail = [2, 3, 7, 18]。关于它，正确的说法是？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>tail 就是原序列的一条 LIS，可以直接输出</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>只有 tail 的<b>长度</b> 4 是可靠答案，tail 的内容不保证构成原序列的子序列</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>tail 是原序列排序后的前 4 个元素</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>tail[k] 表示长度为 k+1 的递增子序列的最大结尾</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。tail[k] 记录的是「长度 k+1 的递增子序列所能达到的<b>最小</b>结尾」，各个位置的值可能来自<b>不同的、彼此不兼容的</b>子序列，因此拼在一起未必是原序列中真实存在的子序列。本例最后 [2,3,7,18] 恰好合法只是巧合——若把 a[7] 换成一个更早出现的小值，就会露馅。A 正是最常见的误用；C 完全无关，tail 与排序结果没有必然联系（本例排序后前 4 个是 2,3,5,7）；D 把「最小」说反了，若维护最大结尾，后续元素反而更难接上，贪心根本不成立。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">2</span>若题目改为求<b>最长不下降</b>子序列（允许相邻相等，如 [1,3,3,5] 长度为 4），O(n log n) 代码该如何修改？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>把 tail 的维护规则由「最小结尾」改为「最大结尾」</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>把 lower_bound 改成 upper_bound（找第一个 &gt; a[i] 的位置）</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>把比较符 a[j] &lt; a[i] 改成 a[j] &gt; a[i]</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>无需修改，两种问题的答案总是相同</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B。<span class="kbd">lower_bound</span> 找第一个 <b>≥ a[i]</b> 的位置，遇到与 a[i] 相等的结尾时会执行「替换」，从而阻止相等元素被串接——这正是<b>严格递增</b>所需；<span class="kbd">upper_bound</span> 找第一个 <b>&gt; a[i]</b> 的位置，相等的结尾会被跳过，于是 a[i] 可以追加在它后面，得到<b>非递减</b>序列。A 会直接摧毁贪心的正确性：结尾越大越难接续，「最大结尾」根本不满足可交换论证，且 tail 也不再严格递增，二分失去前提；C 把方向弄反了，那求的是递减子序列；D 明显错误，对 [1,3,3,5] 严格递增答案为 3、不下降答案为 4。</div>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="qn">3</span>对 A = [1, 2, 3, 0]，O(n<sup>2</sup>) 解法算出 dp = [1, 2, 3, 1]。LIS 长度是？</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt"><span class="mk">A</span><span>1，即 dp[n−1]</span></div>
+        <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>3，即 max{dp[i]}</span></div>
+        <div class="quiz-opt"><span class="mk">C</span><span>4，因为数组有 4 个元素</span></div>
+        <div class="quiz-opt"><span class="mk">D</span><span>7，即 dp 数组之和</span></div>
+      </div>
+      <div class="quiz-exp"><b>解析：</b>选 B，LIS 为 [1,2,3]，长度 3。这道题专门用来打掉「答案 = dp 最后一格」的惯性——由于状态被限定为<b>以 a[i] 结尾</b>，dp[3] = 1 只说明「以 0 结尾的 LIS 长度是 1」，与全局答案无关。A 正是这个错误；C 忽略了 0 破坏了递增性；D 把「长度」误当成累加量，dp 之和没有任何意义。凡是「以 i 结尾」型状态定义，都要记得<b>答案在 max{dp[i]} 而非 dp[n−1]</b>。</div>
+    </div>
+  </div>
+</section>
+
+<div class="page-nav"><a href="04-maxsub.html"><span class="dir">← 上一节</span><span class="name">最大子段和</span></a><a href="06-triangle.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">三角形</span></a></div>
+<div class="footer">算法设计与分析 · <b>第7章 动态规划</b> · 强交互可视化版<br/>Canvas 填表 · 路径回溯 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:32},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.12-Math.random()*.3, a:.12+Math.random()*.3}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(185,100,52,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+let A=[10,9,2,5,3,7,101,18];
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+function showArr(hi=-1, path=new Set()){
+  arr.innerHTML=A.map((v,i)=>`<div class="cell ${i===hi?'on':path.has(i)?'hit':''}">${v}<span class="idx">${i}</span></div>`).join('');
+}
+function drawDP(dp, hi=-1){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const n=A.length, gap=cv.width/(n+1), maxD=Math.max(...dp,1);
+  dp.forEach((v,i)=>{
+    const h=(v/maxD)*120, x=gap*(i+1);
+    ctx.fillStyle=i===hi?'#B96434':'#C2603F';
+    ctx.fillRect(x-18, 160-h, 36, h);
+    ctx.fillStyle='#443F37'; ctx.font='12px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x, 160-h-8); ctx.fillText('i'+i, x, 180);
+  });
+}
+run.onclick=async()=>{
+  const n=A.length, dp=Array(n).fill(1), pre=Array(n).fill(-1);
+  for(let i=0;i<n;i++){
+    for(let j=0;j<i;j++) if(A[j]<A[i] && dp[j]+1>dp[i]){ dp[i]=dp[j]+1; pre[i]=j; }
+    showArr(i); drawDP(dp,i); tip.textContent=`计算 dp[${i}]=${dp[i]}`; await sleep(280);
+  }
+  let k=0; for(let i=1;i<n;i++) if(dp[i]>dp[k]) k=i;
+  const path=new Set(); for(let x=k;x>=0;x=pre[x]){ path.add(x); if(pre[x]<0) break; }
+  showArr(-1,path); drawDP(dp,-1); ans.textContent=dp[k];
+  tip.innerHTML=`LIS 长度 <strong>${dp[k]}</strong> · 绿色为一条最优子序列`;
+};
+rand.onclick=()=>{A=Array.from({length:10},()=>1+Math.floor(Math.random()*20)); showArr(); ans.textContent='—'; ctx.clearRect(0,0,cv.width,cv.height);};
+showArr();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

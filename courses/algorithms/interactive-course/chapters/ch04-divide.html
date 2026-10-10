@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第4章 分治法 · 算法互动课堂</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/common.css">
+</head>
+<body data-chapter="ch04">
+<button class="menu-toggle" onclick="toggleSidebar()" aria-label="菜单">☰</button>
+
+<div class="app-shell">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <a href="../index.html">
+      <div class="logo"><span>AD</span>算法互动课堂</div>
+      <div class="sub">玩中学 · 看见算法</div>
+    </a>
+  </div>
+  <div class="nav-section">本页导航</div>
+  <a class="nav-link toc" href="#s1">开场</a>
+<a class="nav-link toc" href="#s2">快排</a>
+<a class="nav-link toc" href="#s3">主定理</a>
+<a class="nav-link toc" href="#s4">测验</a>
+  <div class="nav-section">全部章节</div>
+  <a class="nav-link" href="ch01-intro.html"><span class="dot"></span>🚀 01 绪论</a>
+<a class="nav-link" href="ch02-recursion.html"><span class="dot"></span>🪞 02 递归</a>
+<a class="nav-link" href="ch03-brute.html"><span class="dot"></span>🔍 03 穷举法</a>
+<a class="nav-link active" href="ch04-divide.html"><span class="dot"></span>⚔️ 04 分治法</a>
+<a class="nav-link" href="ch05-backtrack.html"><span class="dot"></span>♟️ 05 回溯法</a>
+<a class="nav-link" href="ch06-branch.html"><span class="dot"></span>🗺️ 06 分支限界</a>
+<a class="nav-link" href="ch07-dp.html"><span class="dot"></span>💎 07 动态规划</a>
+<a class="nav-link" href="ch08-greedy.html"><span class="dot"></span>🎯 08 贪心法</a>
+<a class="nav-link" href="ch09-graph.html"><span class="dot"></span>🕸️ 09 图算法</a>
+<a class="nav-link" href="ch10-geometry.html"><span class="dot"></span>📐 10 计算几何</a>
+<a class="nav-link" href="ch11-complexity.html"><span class="dot"></span>🌌 11 计算复杂性</a>
+<a class="nav-link" href="ch12-prob-approx.html"><span class="dot"></span>🎲 12 概率与近似</a>
+  <div class="nav-section">返回</div>
+  <a class="nav-link" href="../index.html">🏠 课程大厅</a>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a href="../index.html">课程大厅</a> <span>/</span>
+      <span>第4章 分治法</span>
+    </div>
+    <span class="badge badge-fun">🎮 互动课堂</span>
+  </div>
+  <div class="progress-track" title="阅读进度"><div class="fill"></div></div>
+  
+  <div class="card card-hero fade-in" data-section="s1" id="s1">
+    <span class="hero-emoji">⚔️</span>
+    <span class="badge badge-accent" style="margin-left:.5rem">第4章 · 分治</span>
+    <h1 style="margin-top:.6rem">分而治之 · 大事化小</h1>
+    <p style="color:var(--text-dim);margin-top:.7rem"><strong>分解 → 解决 → 合并</strong>。快排是分治的门面担当——选个基准，左小右大，递归搞定。</p>
+  </div>
+
+  <section data-section="s2" id="s2">
+    <h2>快速排序 · DJ 控台</h2>
+    <div class="demo-panel">
+      <div class="demo-header">
+        <h3><span class="pulse"></span> QuickSort Live</h3>
+        <div class="demo-controls" style="margin:0">
+          <div class="speed-chips" id="qsSpeed">
+            <button data-speed="500">慢</button>
+            <button data-speed="280" class="on">中</button>
+            <button data-speed="100">快</button>
+          </div>
+          <button class="btn" id="qsRand">🎲 打乱</button>
+          <button class="btn btn-primary" id="qsPlay">自动排序</button>
+          <button class="btn" id="qsStep">单步</button>
+          <button class="btn" id="qsReset">重置</button>
+        </div>
+      </div>
+      <div class="demo-body">
+        <div class="array-row" id="qsArr" style="min-height:100px"></div>
+        <div class="viz-legend">
+          <span><i style="background:linear-gradient(160deg,#f59e0b,#fbbf24)"></i>基准</span>
+          <span><i style="background:linear-gradient(160deg,#3b6dff,#5b8cff)"></i>比较</span>
+          <span><i style="background:linear-gradient(160deg,#059669,#34d399)"></i>已归位</span>
+        </div>
+        <div class="status-bar" id="qsStatus">平均 O(n log n) · 最坏 O(n²)（已排序+劣 pivot）</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-section="s3" id="s3">
+    <h2>主定理速查</h2>
+    <div class="card">
+      <p>T(n)=a·T(n/b)+f(n)，临界指数 c = log_b a</p>
+      <div class="table-wrap" style="margin-top:.8rem">
+        <table class="data">
+          <thead><tr><th>情形</th><th>f 与 n^c</th><th>结论</th></tr></thead>
+          <tbody>
+            <tr><td>1 叶子主导</td><td>f 更小</td><td class="num">Θ(n^{log_b a})</td></tr>
+            <tr><td>2 势均力敌</td><td>同阶</td><td class="num">Θ(n^{log_b a} log n)</td></tr>
+            <tr><td>3 根主导</td><td>f 更大</td><td class="num">Θ(f(n))</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section data-section="s4" id="s4">
+    <h2>挑战测验</h2>
+    <div class="quiz-card" data-quiz id="q4" data-xp="40">
+      <span class="q-badge">Q · +40XP</span>
+      <p style="font-weight:700;margin:.6rem 0 .7rem">归并排序递推通常是？</p>
+      <button class="quiz-option" data-correct="0">T(n)=T(n−1)+O(n)</button>
+      <button class="quiz-option" data-correct="1">T(n)=2T(n/2)+O(n)</button>
+      <button class="quiz-option" data-correct="0">T(n)=T(n/2)+O(1)</button>
+      <button class="quiz-option" data-correct="0">T(n)=nT(n/2)+O(1)</button>
+      <div class="quiz-feedback callout callout-success" style="display:none;margin-top:.8rem">两半 + 线性合并 → 主定理情形2 → Θ(n log n)。</div>
+    </div>
+  </section>
+
+  <div class="chapter-nav"><a href="ch03-brute.html"><span class="dir">← 上一章</span><span class="name">🔍 第3章 穷举法</span></a><a href="ch05-backtrack.html" style="text-align:right"><span class="dir">下一章 →</span><span class="name">♟️ 第5章 回溯法</span></a></div>
+
+</main>
+</div>
+<script src="../assets/common.js"></script>
+<script>
+
+const qsSp=makeSpeed(280); qsSp.bind(document.getElementById('qsSpeed'));
+let qsA=[], qsOrig=[], qsGen=null, qsDone=false;
+function qsRender(st={}){ renderArray('#qsArr', qsA, st); }
+function* qsg(a,l,r){
+  if(l>=r){ if(l===r) yield {type:'done',i:l}; return; }
+  yield {type:'pivot',i:l};
+  let i=l,j=r,p=a[l];
+  while(i<j){
+    while(i<j&&a[j]>=p){ yield {type:'scan',i,j,pivot:l}; j--; }
+    while(i<j&&a[i]<=p){ yield {type:'scan',i,j,pivot:l}; i++; }
+    if(i<j){ [a[i],a[j]]=[a[j],a[i]]; yield {type:'swap',i,j,pivot:l}; }
+  }
+  [a[l],a[i]]=[a[i],a[l]]; yield {type:'place',i};
+  yield* qsg(a,l,i-1); yield* qsg(a,i+1,r);
+}
+function qsInit(){ qsA=qsOrig.slice(); qsDone=false; qsGen=qsg(qsA,0,qsA.length-1); qsRender(); setStatus('#qsStatus','就绪 · 单步或自动'); }
+qsRand.onclick=()=>{ qsOrig=shuffle([...Array(10)].map((_,i)=>i+1)); qsInit(); };
+qsReset.onclick=qsInit;
+function apply(s){
+  const st={};
+  if(s.type==='pivot') st[s.i]='pivot';
+  if(s.type==='scan'){ st[s.pivot]='pivot'; st[s.i]='active'; st[s.j]='active'; }
+  if(s.type==='swap'){ st[s.pivot]='pivot'; st[s.i]='visit'; st[s.j]='visit'; }
+  if(s.type==='place'||s.type==='done') st[s.i]='done';
+  return st;
+}
+function step(){
+  if(!qsGen||qsDone) return false;
+  const n=qsGen.next();
+  if(n.done){
+    qsDone=true; const st={}; qsA.forEach((_,i)=>st[i]='done'); qsRender(st);
+    setStatus('#qsStatus','<strong>排序完成！</strong>'); confetti(35); addXP(18,'快排通关'); return false;
+  }
+  qsRender(apply(n.value));
+  setStatus('#qsStatus', JSON.stringify(n.value).replace(/"/g,''));
+  return true;
+}
+qsStep.onclick=()=>step();
+qsPlay.onclick=async()=>{ while(step()) await sleep(qsSp.ms); };
+qsOrig=shuffle([3,7,2,9,1,5,8,4,6,0]); qsInit();
+
+</script>
+</body>
+</html>

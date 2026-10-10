@@ -1,0 +1,101 @@
+---
+module: 5
+moduleName: 函数
+order: 28
+title: 电网电流滤波函数封装
+level: 进阶选做
+scene: 信创场景
+knowledge: [函数复用, 参数设计, 低耦合]
+stars: 4
+minutes: 100
+goal: 电网场景模块化开发思维
+sizheng: 电网安全毫秒必争——可靠的函数是继电保护的第一道闸
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import GridFilterFnLab from '../../components/react/GridFilterFnLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：一个函数服务全站的采样通道
+
+变电站监测装置要同时处理几十路信号：A/B/C 三相电流、三相电压、零序分量……每路都有毛刺要滤。
+给每路写一份滤波代码？维护灾难。正确姿势是**一个通用滤波函数 + 参数化设计**：
+
+```c
+void filter_ma(const float in[], float out[], int n, int w);
+```
+
+这个签名浓缩了三条**参数设计**原则：
+
+- **数据用数组传**：C 传数组实际传的是首地址——函数能直接读写调用者的数组（与值传递不同！这是第 9 章指针的预告）；
+- **规模用参数传**：点数 n、窗口 w 都不写死——同一函数适配任何通道、任何工况；
+- **只读加 const**：`const float in[]` 向调用者承诺"绝不改你的原始数据"。
+
+## 一步一步看数组传参
+
+<CStepRunner
+  client:visible
+  title="数组传参模拟：函数写 out，main 的数组真的变了"
+  badge="数组传参模拟"
+  doneNote="普通变量传值（副本），数组传首地址（本体）——函数对 out[] 的写入直接落在 main 的内存里。这个差异是第 9 章指针的门票。"
+  code={`#include <stdio.h>
+
+void fill_avg(const float in[], float out[],
+              int n) {
+    for (int i = 0; i < n; i++) {
+        float prev = (i > 0) ? in[i-1] : in[0];
+        out[i] = (prev + in[i]) / 2;
+    }
+}
+
+int main(void) {
+    float raw[3] = {50.0f, 58.0f, 42.0f};
+    float flt[3];
+    fill_avg(raw, flt, 3);
+    printf("%.1f %.1f %.1f\\n",
+           flt[0], flt[1], flt[2]);
+    return 0;
+}`}
+  steps={[
+    { line: 11, desc: 'main 准备两个数组：raw 有数据，flt 还是"垃圾值"。', vars: { raw: '{50,58,42}', flt: '{?,?,?}' } },
+    { line: 13, desc: '调用 fill_avg(raw, flt, 3)：传的不是 6 个 float 的副本，而是两个数组的【首地址】——函数将直接操作 main 的内存！', vars: { raw: '{50,58,42}' } },
+    { line: 6, desc: 'i=0：out[0] = (50+50)/2 = 50。这一笔写进的就是 main 的 flt[0]。', vars: { i: '0', 'out[0]': '50.0' } },
+    { line: 6, desc: 'i=1：out[1] = (50+58)/2 = 54。', vars: { i: '1', 'out[1]': '54.0' } },
+    { line: 6, desc: 'i=2：out[2] = (58+42)/2 = 50。', vars: { i: '2', 'out[2]': '50.0' } },
+    { line: 13, desc: '函数返回（void 无返回值）。但 main 的 flt 已被填好——数组参数是函数的"第二条输出通道"。', vars: { flt: '{50,54,50}' } },
+    { line: 14, desc: '打印证实：毛刺 58 和凹陷 42 都被抚平了一半。', out: '50.0 54.0 50.0' },
+  ]}
+/>
+
+## 动手实验：调窗口，滤两路
+
+<GridFilterFnLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：实现 `filter_ma` 并用它处理一路含毛刺的电流数组。先想清楚：窗口不足 w 个点的起始端怎么办？
+2. **AI 优化进阶版**：让 AI 增加"限幅滤波"函数（变化超过阈值判为毛刺、用上次值替代），组成两级滤波流水线。审查两个函数的**耦合度**：限幅函数里是否混进了滑动平均的逻辑？
+3. **信创加固定稿版**：函数加防御（n 或 w 非法立即返回错误码）；思考在 200 微秒采样周期内，w=16 的滤波在国产 MCU 上来不来得及（运算量估算）；in/out 指向同一数组时会发生什么——文档里要不要禁止？
+
+## 素养与思政
+
+电网频率波动超过 ±0.2Hz，继电保护必须在 20 毫秒内动作——留给滤波函数的时间以**微秒**计。国家电网的信创改造中，这类底层算法函数都要在国产芯片上重新验证时序。
+**大国重器的可靠性是逐函数验证出来的**：每个函数职责单一、接口明确、行为可测，全站几十路信号才能共用一套久经考验的代码。低耦合不是洁癖，是电网安全的工程前提。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="C 语言中数组作为函数参数传递时，实际传递的是？"
+  options={['整个数组的副本', '数组的首地址——函数内对数组元素的修改会影响调用者的原数组', '数组的长度', '第一个元素的值']}
+  answer={1}
+  explain="数组名在传参时『退化』为首地址指针，因此函数必须额外接收长度参数 n（地址里不含长度信息）。这也是为什么 out 数组能当输出通道用。"
+/>
+
+<QuizItem
+  client:visible
+  question="参数 const float in[] 中 const 的作用是？"
+  options={['让数组只能存常量', '承诺函数不会修改 in 指向的数据，编译器强制检查，调用者可放心传入原始数据', '让程序跑得更快', '没有实际作用']}
+  answer={1}
+  explain="const 是写进类型系统的『契约』：函数体内若试图写 in[i]，编译直接报错。接口的可信度不靠人品靠编译器——第 2 章 AI 优化版加 const 的深意在此。"
+/>

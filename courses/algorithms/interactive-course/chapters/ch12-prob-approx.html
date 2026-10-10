@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第12章 概率与近似 · 算法互动课堂</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/common.css">
+</head>
+<body data-chapter="ch12">
+<button class="menu-toggle" onclick="toggleSidebar()" aria-label="菜单">☰</button>
+
+<div class="app-shell">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <a href="../index.html">
+      <div class="logo"><span>AD</span>算法互动课堂</div>
+      <div class="sub">玩中学 · 看见算法</div>
+    </a>
+  </div>
+  <div class="nav-section">本页导航</div>
+  <a class="nav-link toc" href="#s1">开场</a>
+<a class="nav-link toc" href="#s2">分类</a>
+<a class="nav-link toc" href="#s3">估π</a>
+<a class="nav-link toc" href="#s4">蒙特卡罗</a>
+<a class="nav-link toc" href="#s5">近似</a>
+<a class="nav-link toc" href="#s6">双测</a>
+  <div class="nav-section">全部章节</div>
+  <a class="nav-link" href="ch01-intro.html"><span class="dot"></span>🚀 01 绪论</a>
+<a class="nav-link" href="ch02-recursion.html"><span class="dot"></span>🪞 02 递归</a>
+<a class="nav-link" href="ch03-brute.html"><span class="dot"></span>🔍 03 穷举法</a>
+<a class="nav-link" href="ch04-divide.html"><span class="dot"></span>⚔️ 04 分治法</a>
+<a class="nav-link" href="ch05-backtrack.html"><span class="dot"></span>♟️ 05 回溯法</a>
+<a class="nav-link" href="ch06-branch.html"><span class="dot"></span>🗺️ 06 分支限界</a>
+<a class="nav-link" href="ch07-dp.html"><span class="dot"></span>💎 07 动态规划</a>
+<a class="nav-link" href="ch08-greedy.html"><span class="dot"></span>🎯 08 贪心法</a>
+<a class="nav-link" href="ch09-graph.html"><span class="dot"></span>🕸️ 09 图算法</a>
+<a class="nav-link" href="ch10-geometry.html"><span class="dot"></span>📐 10 计算几何</a>
+<a class="nav-link" href="ch11-complexity.html"><span class="dot"></span>🌌 11 计算复杂性</a>
+<a class="nav-link active" href="ch12-prob-approx.html"><span class="dot"></span>🎲 12 概率与近似</a>
+  <div class="nav-section">返回</div>
+  <a class="nav-link" href="../index.html">🏠 课程大厅</a>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a href="../index.html">课程大厅</a> <span>/</span>
+      <span>第12章 概率与近似</span>
+    </div>
+    <span class="badge badge-fun">🎮 互动课堂</span>
+  </div>
+  <div class="progress-track" title="阅读进度"><div class="fill"></div></div>
+  
+  <div class="card card-hero fade-in" data-section="s1" id="s1">
+    <span class="hero-emoji">🎲</span>
+    <span class="badge badge-primary" style="margin-left:.5rem">第12章 · 概率与近似</span>
+    <h1 style="margin-top:.6rem">抛硬币，也能算圆周率</h1>
+    <p style="color:var(--text-dim);margin-top:.7rem;font-size:1.02rem">
+      难解问题两条出路：<strong>随机化</strong>（高概率正确 / 期望更快）或
+      <strong>近似</strong>（多项式时间 + 质量保证 ρ）。
+    </p>
+    <div class="card-grid" style="margin-top:1.2rem">
+      <div class="metric"><div class="num">MC</div><div class="label">蒙特卡罗</div></div>
+      <div class="metric"><div class="num">LV</div><div class="label">拉斯维加斯</div></div>
+      <div class="metric"><div class="num">ρ</div><div class="label">近似比</div></div>
+    </div>
+  </div>
+  <div class="fun-tip">
+    <div class="avatar">🎰</div>
+    <div class="bubble"><strong>助教：</strong>蒙特卡罗 = 时间稳、可能错；拉斯维加斯 = 结果稳、时间飘。别记反！</div>
+  </div>
+
+  <section data-section="s2" id="s2">
+    <h2>概率算法家族 · 翻转</h2>
+    <div class="flip-grid">
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">📊</div>数值概率</div>
+        <div class="flip-back">近似解，越算越准<br>如投点估 π</div>
+      </div></div>
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">🎰</div>蒙特卡罗</div>
+        <div class="flip-back">时间确定<br>结果高概率正确</div>
+      </div></div>
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">🎲</div>拉斯维加斯</div>
+        <div class="flip-back">结果总对（或失败）<br>运行时间随机</div>
+      </div></div>
+      <div class="flip-card"><div class="flip-inner">
+        <div class="flip-front"><div class="big">🃏</div>舍伍德</div>
+        <div class="flip-back">总正确<br>随机化抹平最坏输入</div>
+      </div></div>
+    </div>
+  </section>
+
+  <section data-section="s3" id="s3">
+    <h2>蒙特卡罗 · 天女散花估 π 🎯</h2>
+    <div class="demo-panel">
+      <div class="demo-header">
+        <h3><span class="pulse"></span> 投点实验室</h3>
+        <div class="demo-controls" style="margin:0">
+          <button class="btn btn-primary" id="piRun">投 800</button>
+          <button class="btn btn-accent" id="piMega">狂投 4000</button>
+          <button class="btn btn-warn" id="piRace">🏁 精度赛跑</button>
+          <button class="btn" id="piReset">清空</button>
+        </div>
+      </div>
+      <div class="demo-body">
+        <div style="display:flex;flex-wrap:wrap;gap:1.2rem;align-items:flex-start">
+          <canvas id="piCv" width="340" height="340" style="width:min(100%,340px);height:auto;border-radius:14px;border:1px solid var(--border);background:#060a14"></canvas>
+          <div style="flex:1;min-width:180px">
+            <div class="metric" style="margin-bottom:.7rem"><div class="num" id="piEst">?</div><div class="label">π 估计</div></div>
+            <div class="metric" style="margin-bottom:.7rem"><div class="num" id="piErr">—</div><div class="label">相对误差</div></div>
+            <div class="metric" style="margin-bottom:.7rem"><div class="num" id="piCnt">0</div><div class="label">投点数</div></div>
+            <div class="metric"><div class="num" id="piInN">0</div><div class="label">圆内点数</div></div>
+          </div>
+        </div>
+        <div id="piRaceBoard" style="margin-top:1rem"></div>
+        <div class="status-bar" id="piStatus">圆/正方形 = π/4 ⇒ π ≈ 4 × (圆内/总数)</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-section="s4" id="s4">
+    <h2>蒙特卡罗判定 · 主元素直觉</h2>
+    <div class="callout callout-info">
+      <div class="callout-title">教材例：主元素（出现 &gt; n/2）</div>
+      随机抽一个元素检查是否为主元素：若返回 true 则一定对（偏真）；返回 false 可能漏。重复 k 次可使错误概率 &lt; 2<sup>−k</sup>。
+    </div>
+    <div class="demo-panel">
+      <div class="demo-header">
+        <h3>🎲 随机抽样验主元</h3>
+        <button class="btn btn-primary" id="majRun">抽 5 次</button>
+      </div>
+      <div class="demo-body">
+        <div class="array-row" id="majArr"></div>
+        <div class="status-bar" id="majStatus">数组中多数为 7。随机抽查能否抓到？</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-section="s5" id="s5">
+    <h2>近似算法 · 近似比 ρ</h2>
+    <div class="card-grid">
+      <div class="feature-card"><span class="ico">↓</span><h3>最小化</h3><p>ALG ≤ ρ · OPT（ρ≥1）</p></div>
+      <div class="feature-card"><span class="ico">↑</span><h3>最大化</h3><p>ALG ≥ OPT / ρ</p></div>
+      <div class="feature-card"><span class="ico">🧳</span><h3>度量 TSP</h3><p>Christofides ≈ 1.5</p></div>
+      <div class="feature-card"><span class="ico">📦</span><h3>集合覆盖</h3><p>贪心 ≈ H(n)≈ln n</p></div>
+    </div>
+  </section>
+
+  <section data-section="s6" id="s6">
+    <h2>终章测验 · 课程收官 🎓</h2>
+    <div class="challenge-bar"><div class="title">🏆 第12章 · 全书收官</div></div>
+    <div class="quiz-card" data-quiz id="q12a" data-xp="50">
+      <span class="q-badge">Q1 · +50XP</span>
+      <p style="font-weight:700;margin:.6rem 0 .7rem">蒙特卡罗算法典型特征？</p>
+      <button class="quiz-option" data-correct="0">结果永远正确，时间随机</button>
+      <button class="quiz-option" data-correct="1">时间确定，结果以高概率正确</button>
+      <button class="quiz-option" data-correct="0">一定给出最优解</button>
+      <button class="quiz-option" data-correct="0">只能用于数值积分</button>
+      <div class="quiz-feedback callout callout-success" style="display:none;margin-top:.8rem">拉斯维加斯 = 结果稳、时间飘；蒙特卡罗相反。</div>
+    </div>
+    <div class="quiz-card" data-quiz id="q12b" data-xp="50">
+      <span class="q-badge">Q2 · +50XP</span>
+      <p style="font-weight:700;margin:.6rem 0 .7rem">最小化问题的近似比 ρ 含义？</p>
+      <button class="quiz-option" data-correct="1">ALG ≤ ρ · OPT，ρ 越接近 1 越好</button>
+      <button class="quiz-option" data-correct="0">ALG 必须等于 OPT</button>
+      <button class="quiz-option" data-correct="0">ρ 可以小于 0</button>
+      <button class="quiz-option" data-correct="0">与运行时间无关的任意数</button>
+      <div class="quiz-feedback callout callout-success" style="display:none;margin-top:.8rem">
+        🎓 全书测验线通关！你已经从复杂度曲线走到了 NP 与近似算法——继续刷题巩固吧。
+      </div>
+    </div>
+  </section>
+
+  <div class="chapter-nav"><a href="ch11-complexity.html"><span class="dir">← 上一章</span><span class="name">🌌 第11章 计算复杂性</span></a><div></div></div>
+
+</main>
+</div>
+<script src="../assets/common.js"></script>
+<script>
+
+let piIn=0, piTot=0;
+function piClear(){
+  piIn=0; piTot=0;
+  const cv=document.getElementById('piCv'), ctx=cv.getContext('2d');
+  const s=cv.width, m=18, side=s-2*m;
+  ctx.clearRect(0,0,s,s);
+  ctx.strokeStyle='#475569'; ctx.lineWidth=2; ctx.strokeRect(m,m,side,side);
+  ctx.beginPath(); ctx.arc(m+side/2,m+side/2,side/2,0,Math.PI*2);
+  ctx.strokeStyle='#7aa2ff'; ctx.lineWidth=2; ctx.stroke();
+  document.getElementById('piEst').textContent='?';
+  document.getElementById('piErr').textContent='—';
+  document.getElementById('piCnt').textContent='0';
+  document.getElementById('piInN').textContent='0';
+  setStatus('#piStatus','已清空 · 准备投点');
+}
+async function throwN(n, quiet){
+  const cv=document.getElementById('piCv'), ctx=cv.getContext('2d');
+  const s=cv.width, m=18, side=s-2*m, cx=m+side/2, cy=m+side/2, r=side/2;
+  for(let i=0;i<n;i++){
+    const x=m+Math.random()*side, y=m+Math.random()*side;
+    const inside=(x-cx)**2+(y-cy)**2<=r*r;
+    piTot++; if(inside) piIn++;
+    ctx.fillStyle=inside?'#34d399':'#f87171';
+    ctx.globalAlpha=.85; ctx.fillRect(x-1.2,y-1.2,2.4,2.4); ctx.globalAlpha=1;
+    if(!quiet && (i%50===0||i===n-1)){
+      const est=4*piIn/piTot;
+      document.getElementById('piEst').textContent=est.toFixed(5);
+      document.getElementById('piErr').textContent=((Math.abs(est-Math.PI)/Math.PI)*100).toFixed(2)+'%';
+      document.getElementById('piCnt').textContent=piTot;
+      document.getElementById('piInN').textContent=piIn;
+      setStatus('#piStatus',`圆内 ${piIn}/${piTot} · π≈<strong>${est.toFixed(5)}</strong>`);
+      await sleep(6);
+    }
+  }
+  const est=4*piIn/piTot;
+  document.getElementById('piEst').textContent=est.toFixed(5);
+  document.getElementById('piErr').textContent=((Math.abs(est-Math.PI)/Math.PI)*100).toFixed(2)+'%';
+  document.getElementById('piCnt').textContent=piTot;
+  document.getElementById('piInN').textContent=piIn;
+  if(Math.abs(est-Math.PI)<0.015){ confetti(40); toast('估得很准！','🎯'); }
+  addXP(Math.min(25, Math.floor(n/120)), '蒙特卡罗实验');
+  return est;
+}
+document.getElementById('piReset').onclick=piClear;
+document.getElementById('piRun').onclick=()=>throwN(800);
+document.getElementById('piMega').onclick=()=>throwN(4000);
+document.getElementById('piRace').onclick=async()=>{
+  piClear();
+  const milestones=[100,500,2000,5000];
+  let html='';
+  for(const m of milestones){
+    // throw until total reaches m
+    await throwN(m-piTot, true);
+    const est=4*piIn/piTot;
+    const err=((Math.abs(est-Math.PI)/Math.PI)*100);
+    html+=`<div class="race-row"><div class="label">${m}点</div><div class="race-track"><div class="bar" style="width:${Math.max(5,100-err*8)}%;background:linear-gradient(90deg,#7aa2ff,#3ee8a8)"></div></div><div class="time">${err.toFixed(2)}%</div></div>`;
+    document.getElementById('piRaceBoard').innerHTML=html;
+    document.getElementById('piEst').textContent=est.toFixed(5);
+    document.getElementById('piErr').textContent=err.toFixed(2)+'%';
+    document.getElementById('piCnt').textContent=piTot;
+    setStatus('#piStatus',`精度赛：${m} 点时误差 ${err.toFixed(2)}%`);
+    await sleep(300);
+  }
+  confetti(35); addXP(20,'精度赛跑'); toast('点数↑ 误差↓','📈');
+};
+
+// majority demo
+const majA=[7,3,7,7,2,7,1,7,7,4,7,5,7];
+renderArray('#majArr', majA);
+document.getElementById('majRun').onclick=async()=>{
+  let hits=0;
+  for(let t=0;t<5;t++){
+    const i=Math.floor(Math.random()*majA.length);
+    const st={}; st[i]='active';
+    renderArray('#majArr', majA, st);
+    const cand=majA[i];
+    const cnt=majA.filter(x=>x===cand).length;
+    const ok=cnt>majA.length/2;
+    if(ok) hits++;
+    setStatus('#majStatus',`第${t+1}次抽到 a[${i}]=${cand} · 出现${cnt}次 · ${ok?'✅ 是主元':'❌ 不是'}`);
+    await sleep(600);
+  }
+  setStatus('#majStatus',`5 次中 ${hits} 次抽中主元 7 · 重复抽样降低漏检概率`);
+  renderArray('#majArr', majA);
+  addXP(10,'主元抽样');
+};
+
+piClear();
+
+</script>
+</body>
+</html>

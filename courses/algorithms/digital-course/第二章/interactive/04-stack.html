@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>系统栈 · 第2章 递归算法设计技术</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">02</div>算法可视化 · <span>第2章 递归算法设计技术</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-concept.html">概念</a><a class="pill" href="02-model.html">模型</a><a class="pill" href="03-cases.html">情形</a><a class="pill active" href="04-stack.html">系统栈</a><a class="pill" href="05-fib-tree.html">Fib树</a><a class="pill" href="06-hanoi.html">汉诺塔</a><a class="pill" href="07-induction.html">归纳</a><a class="pill" href="08-knapsack.html">背包递归</a><a class="pill" href="09-recurrence.html">递推式</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 4 · 加深</div><h1>递归与系统栈</h1>
+<p>每次调用压入栈帧（参数、返回地址、局部变量），返回时弹出。观察 fact 的栈变化。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+<li>能够<b>列出</b>栈帧（stack frame）的三大组成部分，并说明每一部分<b>为什么必须保存</b>。</li>
+<li>能够<b>推出</b>递归算法的空间复杂度公式：S(n) = O(最大递归深度)，并用它分析 fact、二分、树遍历。</li>
+<li>能够<b>估算</b>给定栈大小下的最大安全递归深度，说明栈溢出的成因与四种规避手段。</li>
+<li>能够<b>把递归改写为显式栈模拟的迭代</b>，并解释这样做为何能绕开线程栈的容量限制。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar"><button class="btn primary" id="run">▶ fact(4) 栈动画</button></div>
+  <div class="stage-wrap"><canvas class="stage" id="cv" width="700" height="360"></canvas>
+    <div class="stage-hud"><span class="hud-pill" id="hud">stack</span></div></div>
+  <div class="log" id="log">—</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、栈帧到底装了什么</h2><span class="sub">Stack Frame · 三大字段</span></div>
+
+<div class="defn"><span class="lbl">定义 2.5 · 栈帧</span><p>函数每被调用一次，系统就在<b>运行时栈</b>（run-time stack，又称系统栈）的<b>栈顶</b>分配一块连续存储区，称为该次调用的<b>栈帧</b>（stack frame）或<b>活动记录</b>（activation record）。函数返回时该栈帧被<b>弹出</b>。栈帧使得<b>同一个函数的多次调用互不干扰</b>——这正是递归得以成立的物理基础。</p></div>
+
+<div class="tip info"><strong>上方动画中每一个方块，实际上都是下表这样一个三段结构。</strong>动画为简洁只画了 <code>fact(n)</code> 这一行文字，请对照下表理解方块内部真实的内容。</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>#</th><th>字段</th><th>存的是什么</th><th>为什么必须保存</th><th>fact(3) 那一帧的取值</th></tr>
+  <tr>
+    <td>①</td>
+    <td class="hl">实参<br/>parameters</td>
+    <td>本次调用收到的参数值的<b>副本</b></td>
+    <td>每层的 n 各不相同。若只有一份 n，fact(3) 递归进 fact(2) 时 n 会被改写，回溯时就<b>乘错数</b>。<b>每层独立一份是递归正确性的前提。</b></td>
+    <td>n = 3</td>
+  </tr>
+  <tr>
+    <td>②</td>
+    <td class="hl">返回地址<br/>return address</td>
+    <td>调用发生时<b>下一条待执行指令</b>的地址</td>
+    <td>子调用结束后 CPU 必须知道"<b>回到哪儿继续</b>"。fact(3) 在 <code>return n*fact(2)</code> 处暂停，返回地址就指向"拿到结果后做乘法"那条指令。</td>
+    <td>指向 fact(4) 体内的乘法指令</td>
+  </tr>
+  <tr>
+    <td>③</td>
+    <td class="hl">局部变量<br/>local variables</td>
+    <td>函数体内定义的变量、中间结果、需保护的寄存器</td>
+    <td>同样每层一份。若函数体里有 <code>int half = power(a,n/2);</code>，这个 half 必须在<b>本层</b>保存，等子调用回来后使用。</td>
+    <td>（fact 无局部变量，为空）</td>
+  </tr>
+</table></div>
+
+<div class="deriv">
+  <span class="step">执行 fact(4) 触底瞬间，系统栈的真实样貌（栈顶在上）：</span>
+  <span class="step">┌──────────────────────────────┐ ← 栈顶 top / 当前活动帧</span>
+  <span class="step">│ fact(0)  ① n=0  ② 回 fact(1) ③ —  │</span>
+  <span class="step">├──────────────────────────────┤</span>
+  <span class="step">│ fact(1)  ① n=1  ② 回 fact(2) ③ —  │</span>
+  <span class="step">├──────────────────────────────┤</span>
+  <span class="step">│ fact(2)  ① n=2  ② 回 fact(3) ③ —  │</span>
+  <span class="step">├──────────────────────────────┤</span>
+  <span class="step">│ fact(3)  ① n=3  ② 回 fact(4) ③ —  │</span>
+  <span class="step">├──────────────────────────────┤</span>
+  <span class="step">│ fact(4)  ① n=4  ② 回 main    ③ —  │</span>
+  <span class="step">├──────────────────────────────┤</span>
+  <span class="step">│ main     …                        │ ← 栈底 bottom</span>
+  <span class="step">└──────────────────────────────┘</span>
+  <span class="step">此刻栈中共 <b>5 个 fact 栈帧</b>，即最大递归深度 = n + 1 = 5。</span>
+</div>
+
+<div class="tip"><strong>两个阶段：</strong>递归执行分为<b>递推（下降）</b>与<b>回溯（返回）</b>两个阶段。递推阶段不断<b>压栈</b>（push），栈越来越高，直到触及递归出口；回溯阶段不断<b>弹栈</b>（pop），每弹一层就用返回地址回到上层、把返回值代入上层的表达式继续算。<b>动画中"栈越堆越高再逐层消失"演示的就是这两个阶段。</b></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、空间复杂度：递归深度决定一切</h2><span class="sub">S(n) = O(最大递归深度)</span></div>
+
+<div class="defn thm"><span class="lbl">定理 2.1 · 递归算法的空间复杂度</span><p>设递归算法执行过程中<b>最大递归深度</b>为 d(n)，单个栈帧大小为常量 c，且算法未使用与 n 相关的额外数据结构，则其空间复杂度为<br/>S(n) = c · d(n) = <b>O( d(n) )</b>。<br/>即：<b>栈帧数 = 当前递归深度</b>，<b>空间复杂度 = 最大递归深度</b>（而不是总调用次数！）。</p></div>
+
+<div class="formula lg">S(n) = O( 最大递归深度 d(n) )　　≠　O( 总调用次数 )</div>
+
+<div class="tip info"><strong>为什么不是"总调用次数"？</strong>因为栈帧<b>用完就弹出</b>，同一时刻栈上只有<b>当前这条根到叶的路径</b>上的帧。Fib(n) 朴素递归总共调用约 1.618<sup>n</sup> 次，但任一时刻栈里最多只有 n 层——所以它<b>时间</b> Θ(1.618<sup>n</sup>) 而<b>空间</b>只有 Θ(n)。<b>时间数结点，空间数树高</b>（见 §05 递归树）。</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>算法</th><th>递推式</th><th>总调用次数（时间）</th><th>最大递归深度</th><th class="hl">空间复杂度</th></tr>
+  <tr><td>fact(n) 阶乘</td><td>T(n)=T(n−1)+O(1)</td><td>n+1 ⇒ Θ(n)</td><td>n+1</td><td class="hl">Θ(n)</td></tr>
+  <tr><td>power(a,n) 快速幂</td><td>T(n)=T(n/2)+O(1)</td><td>Θ(log n)</td><td>log<sub>2</sub>n</td><td class="hl">Θ(log n)</td></tr>
+  <tr><td>二分查找 递归版</td><td>T(n)=T(n/2)+O(1)</td><td>Θ(log n)</td><td>log<sub>2</sub>n</td><td class="hl">Θ(log n)</td></tr>
+  <tr><td>Fib(n) 朴素递归</td><td>T(n)=T(n−1)+T(n−2)+O(1)</td><td class="hl">Θ(1.618<sup>n</sup>)</td><td>n</td><td class="hl">Θ(n)</td></tr>
+  <tr><td>二叉树遍历（平衡）</td><td>T(n)=2T(n/2)+O(1)</td><td>Θ(n)</td><td>log<sub>2</sub>n</td><td class="hl">Θ(log n)</td></tr>
+  <tr><td>二叉树遍历（单支）</td><td>T(n)=T(n−1)+O(1)</td><td>Θ(n)</td><td>n</td><td class="hl">Θ(n)</td></tr>
+  <tr><td>汉诺塔 hanoi(n)</td><td>T(n)=2T(n−1)+1</td><td class="hl">Θ(2<sup>n</sup>)</td><td>n</td><td class="hl">Θ(n)</td></tr>
+  <tr><td>归并排序 递归版</td><td>T(n)=2T(n/2)+Θ(n)</td><td>Θ(n log n)</td><td>log<sub>2</sub>n</td><td>Θ(n) <small>（辅助数组占主导）</small></td></tr>
+</table></div>
+
+<div class="deriv">
+  <span class="step">推导：以 fact(n) 为例，设单帧 c 字节。</span>
+  <span class="step">S(n) = S(n−1) + c，S(0) = c　　<span class="why">每深一层多一帧</span></span>
+  <span class="step">　　 = S(n−2) + 2c</span>
+  <span class="step">　　 = … = S(0) + n·c = (n+1)c</span>
+  <span class="step">⇒ S(n) = Θ(n)</span>
+  <span class="step"> </span>
+  <span class="step">对比 power(a,n)：S(n) = S(n/2) + c = S(n/4) + 2c = … = S(n/2<sup>k</sup>) + k·c</span>
+  <span class="step">取 k = log<sub>2</sub>n ⇒ S(n) = Θ(log n)　　<span class="why">同样是"减 1 vs 折半"的差别</span></span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、栈溢出：多深会炸，怎么避免</h2><span class="sub">Stack Overflow · 边界估算</span></div>
+
+<div class="defn"><span class="lbl">定义 · 栈溢出</span><p>当程序请求的栈空间超过系统为该线程预留的栈区上限时，栈指针越过栈边界，触发<b>栈溢出</b>（stack overflow）。操作系统检测到访问保护页后立即终止进程：Linux 报 <code>Segmentation fault</code>（信号 SIGSEGV），Windows 报 <code>0xC00000FD STATUS_STACK_OVERFLOW</code>。</p></div>
+
+<div class="deriv">
+  <span class="step">最大安全递归深度的估算公式：</span>
+  <span class="step">d<sub>max</sub> ≈ 栈容量 ÷ 单帧大小</span>
+  <span class="step"> </span>
+  <span class="step">典型栈容量：Linux 主线程默认 8 MB（<code>ulimit -s</code> 查看，常见 8192 KB）</span>
+  <span class="step">　　　　　　Windows 主线程默认 1 MB</span>
+  <span class="step">　　　　　　新建线程默认 1~2 MB；嵌入式系统可能仅几 KB</span>
+  <span class="step">典型单帧：简单函数（1~2 个 int 参数）约 32~64 B</span>
+  <span class="step">　　　　　含大局部数组的函数可达 KB 甚至 MB 级</span>
+  <span class="step"> </span>
+  <span class="step">⇒ Windows 1 MB / 48 B ≈ <b>2 万层</b></span>
+  <span class="step">⇒ Linux　 8 MB / 48 B ≈ <b>17 万层</b></span>
+  <span class="step">⇒ 若函数里有 <code>int buf[1000];</code>（4 KB/帧）：8 MB / 4 KB ≈ <b>2000 层</b>就炸</span>
+</div>
+
+<div class="tip"><strong>工程经验值：</strong>不带大局部变量的简单递归，深度 <b>≤ 10<sup>4</sup> 基本安全</b>，10<sup>4</sup>~10<sup>5</sup> 视平台而定（Windows 上常已危险），<b>&gt; 10<sup>5</sup> 应当假定会溢出</b>。设计算法时必须先估算 d(n)：n=10<sup>6</sup> 的链表用递归遍历<b>一定崩</b>，而 n=10<sup>6</sup> 的平衡树只需 20 层，完全安全。</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>规避手段</th><th>做法</th><th>效果</th><th>代价 / 限制</th></tr>
+  <tr><td class="hl">① 改迭代（首选）</td><td>单链递归改 <code>while</code>；多分支递归用<b>显式栈</b></td><td>栈深降到 O(1)；显式栈开在<b>堆</b>上，容量可达 GB</td><td>代码变长、易错</td></tr>
+  <tr><td>② 尾递归 + 编译优化</td><td>引入累加器改成尾递归，编译时加 <code>-O2</code></td><td>编译器复用栈帧，栈深 O(1)</td><td>C++ <b>不保证</b>；<code>-O0</code> 下无效（见 §02）</td></tr>
+  <tr><td>③ 减小递归深度</td><td>把"规模减 1"改成"规模折半"（分治）</td><td>d(n) 从 n 降到 log n</td><td>需要问题本身支持折半</td></tr>
+  <tr><td>④ 增大栈容量</td><td>Linux <code>ulimit -s unlimited</code>；链接选项 <code>-Wl,--stack,268435456</code>；新建大栈线程</td><td>临时救急，可撑到百万层</td><td><b>治标不治本</b>，且部分评测环境禁用</td></tr>
+  <tr><td>⑤ 减小单帧</td><td>把大局部数组改成 <code>static</code> 或全局；少传值多传引用/指针</td><td>单帧从 KB 降到几十 B，深度提升上百倍</td><td>需注意 <code>static</code> 破坏可重入性</td></tr>
+</table></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、递归改迭代：显式栈模拟</h2><span class="sub">Explicit Stack Simulation</span></div>
+
+<div class="tip info"><strong>核心思想：</strong>递归之所以能工作，是<b>编译器替你维护了一个栈</b>。既然如此，我们完全可以<b>自己声明一个 <code>stack</code> 容器</b>，把原本由栈帧保存的"实参 + 执行进度"手工存进去，用一个 <code>while</code> 循环反复取出处理。这样系统栈深度恒为 O(1)，而数据栈开在堆上，不受 1 MB 限制。</div>
+
+<div class="list-step"><span class="n">1</span><div class="body"><b>确定要保存什么</b>：原递归函数的<b>参数</b>，以及"这一层执行到第几步"的<b>状态标记</b>（若递归调用后还有后续动作）。</div></div>
+<div class="list-step"><span class="n">2</span><div class="body"><b>初始化</b>：把最外层调用的参数压入自建栈。</div></div>
+<div class="list-step"><span class="n">3</span><div class="body"><b>主循环</b>：栈非空时弹出栈顶，做本层 O(1) 工作，再把<b>子问题参数压栈</b>（注意<b>压栈顺序与期望处理顺序相反</b>）。</div></div>
+<div class="list-step"><span class="n">4</span><div class="body"><b>处理返回值</b>：若原递归需要子问题的返回值（如 fact 的乘法），则需在栈中额外保存"待合并的中间结果"，或改用<b>自底向上</b>的循环直接算。</div></div>
+
+<div class="code"><span class="cm">// ===== 情形 A：无返回值依赖（先序遍历）—— 直接压栈即可 =====</span>
+<span class="kw">void</span> <span class="fn">preorderIter</span>(Node *root) {
+    <span class="kw">if</span> (!root) <span class="kw">return</span>;
+    stack&lt;Node*&gt; st;          <span class="cm">// 自建栈，位于堆上</span>
+    st.<span class="fn">push</span>(root);
+    <span class="kw">while</span> (!st.<span class="fn">empty</span>()) {
+        Node *p = st.<span class="fn">top</span>(); st.<span class="fn">pop</span>();
+        <span class="fn">visit</span>(p);
+        <span class="kw">if</span> (p-&gt;right) st.<span class="fn">push</span>(p-&gt;right);  <span class="cm">// 先压右</span>
+        <span class="kw">if</span> (p-&gt;left)  st.<span class="fn">push</span>(p-&gt;left);   <span class="cm">// 后压左 ⇒ 左先出栈</span>
+    }
+}
+
+<span class="cm">// ===== 情形 B：有返回值依赖（阶乘）—— 需保存中间结果 =====</span>
+<span class="cm">// B1. 显式栈版：先把所有 n 压进去，再逐个弹出相乘（模拟回溯阶段）</span>
+<span class="kw">long</span> <span class="kw">long</span> <span class="fn">factStack</span>(<span class="kw">int</span> n) {
+    stack&lt;<span class="kw">int</span>&gt; st;
+    <span class="kw">for</span> (<span class="kw">int</span> k = n; k &gt; <span class="nu">0</span>; --k) st.<span class="fn">push</span>(k);   <span class="cm">// 递推阶段</span>
+    <span class="kw">long</span> <span class="kw">long</span> res = <span class="nu">1</span>;
+    <span class="kw">while</span> (!st.<span class="fn">empty</span>()) {                        <span class="cm">// 回溯阶段</span>
+        res *= st.<span class="fn">top</span>(); st.<span class="fn">pop</span>();
+    }
+    <span class="kw">return</span> res;
+}
+
+<span class="cm">// B2. 其实此例乘法可交换，栈完全多余，直接循环即可（空间 O(1)）</span>
+<span class="kw">long</span> <span class="kw">long</span> <span class="fn">factLoop</span>(<span class="kw">int</span> n) {
+    <span class="kw">long</span> <span class="kw">long</span> res = <span class="nu">1</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> k = <span class="nu">2</span>; k &lt;= n; ++k) res *= k;
+    <span class="kw">return</span> res;
+}</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>方案</th><th>系统栈深度</th><th>额外空间</th><th>额外空间位置</th><th>10<sup>6</sup> 层是否安全</th><th>可读性</th></tr>
+  <tr><td>递归版</td><td class="hl">O(n)</td><td>0</td><td>系统栈（1~8 MB 上限）</td><td><b>否，栈溢出</b></td><td>★★★★★</td></tr>
+  <tr><td>显式栈迭代版</td><td>O(1)</td><td class="hl">O(n)</td><td><b>堆</b>（可达 GB）</td><td>是</td><td>★★☆☆☆</td></tr>
+  <tr><td>纯循环版（若可行）</td><td>O(1)</td><td class="hl">O(1)</td><td>—</td><td>是</td><td>★★★★☆</td></tr>
+</table></div>
+
+<div class="tip"><strong>注意区分"省空间"和"换地方"：</strong>显式栈<b>并没有把空间需求变小</b>（仍是 O(n)），它只是把这 O(n) 从<b>容量很小的系统栈</b>挪到了<b>容量很大的堆</b>上。真正把空间降到 O(1) 的是<b>纯循环改写</b>，但这只在递归结构足够简单（单链、且合并运算可交换/可累积）时才办得到。</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+<li><b>把空间复杂度算成"总调用次数"。</b>Fib 朴素递归调用 Θ(1.618<sup>n</sup>) 次，但空间只有 Θ(n)——栈帧<b>弹出后就释放了</b>。<b>时间数结点数，空间数树的高度。</b></li>
+<li><b>认为"递归没 new 过内存所以空间 O(1)"。</b>栈帧是<b>隐式</b>开销，同样计入空间复杂度。这是本章最高频的错误。</li>
+<li><b>忽略单帧大小。</b>在递归函数里写 <code>int buf[1000];</code>，单帧 4 KB，8 MB 栈只够 2000 层。<b>大数组绝不要放在递归函数的局部变量里</b>，改成全局/static/传引用。</li>
+<li><b>以为记忆化能解决栈溢出。</b>记忆化把<b>时间</b>从指数降到多项式，但<b>递归深度不变</b>（Fib 记忆化后深度仍是 n）。栈溢出要靠改迭代/减深度，不是靠记忆化。</li>
+<li><b>显式栈的压栈顺序搞反。</b>栈是 LIFO，希望先处理左子树就必须<b>后压左子树</b>。写成"先压左后压右"会得到"根右左"序。</li>
+<li><b>用 <code>ulimit -s unlimited</code> 当作正式解决方案。</b>它只在本机生效，评测机、生产环境、其他线程都不吃这一套；且掩盖了算法本身深度过大的设计缺陷。</li>
+<li><b>误以为迭代版一定更快。</b>显式栈的 push/pop 也有开销，有时比编译器高度优化过的栈帧操作还慢。改迭代的首要理由是<b>避免溢出</b>，不是提速。</li>
+</ul></div>
+</section>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+<li><b>栈帧</b>三大字段：① <b>实参</b>（每层独立一份，保证各层互不干扰）② <b>返回地址</b>（告诉 CPU 子调用结束后回哪继续）③ <b>局部变量</b>（含中间结果与被保护的寄存器）。栈帧是递归能够成立的物理基础。</li>
+<li>递归执行分<b>递推（压栈）</b>与<b>回溯（弹栈）</b>两阶段；fact(4) 触底时栈中同时有 5 个栈帧。</li>
+<li><b>定理：S(n) = O(最大递归深度)</b>，<b>不是</b> O(总调用次数)。Fib 朴素递归时间 Θ(1.618<sup>n</sup>) 而空间仅 Θ(n)，就是最好的说明。</li>
+<li><b>栈溢出边界</b>：d<sub>max</sub> ≈ 栈容量 ÷ 单帧大小。Windows 1 MB ≈ 2 万层，Linux 8 MB ≈ 17 万层；深度 &gt; 10<sup>5</sup> 应假定会溢出。</li>
+<li><b>五种规避手段</b>：改迭代（首选）、尾递归 + <code>-O2</code>、减小递归深度（减 1 → 折半）、增大栈容量（治标）、减小单帧（大数组移出局部变量）。</li>
+<li><b>显式栈模拟</b>把编译器维护的栈手工重建在<b>堆</b>上：系统栈深降为 O(1)，额外空间仍是 O(n)——是<b>换地方</b>而非<b>省空间</b>。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>朴素递归 <code>fib(n)</code> 的时间复杂度约为 Θ(1.618<sup>n</sup>)，那么它的<b>空间</b>复杂度是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>Θ(1.618<sup>n</sup>)，因为每次调用都要一个栈帧</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>Θ(n)</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>Θ(log n)</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>Θ(1)，因为函数里没有申请任何数组</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 <b>B</b>。<br/>A 是最典型的陷阱：栈帧确实每次调用都要一个，但它<b>用完立刻弹出</b>。同一时刻栈上只有"从根到当前结点这一条路径"上的帧，而 fib 递归树的<b>高度</b>是 n（最左那条链 n→n−1→…→0），故空间 Θ(n)。<br/>C 错：n 每次只减 1 或 2，不是折半，没有 log。<br/>D 错：栈帧是<b>隐式</b>空间开销，必须计入。<br/><b>口诀：时间数递归树的结点数，空间数递归树的高度。</b></div>
+</div>
+
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>某递归函数体内声明了 <code>int buf[2048];</code>（约 8 KB），运行在 8 MB 栈上。它大约能安全递归多少层？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>约 17 万层，和普通递归函数一样，因为局部数组不占栈</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>约 8 万层</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>约 1000 层</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>无限层，只要不写死循环就不会溢出</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 <b>C</b>。d<sub>max</sub> ≈ 栈容量 ÷ 单帧大小 = 8 MB ÷ 8 KB = <b>1024 层</b>左右。<br/>A 严重错误：<b>局部数组恰恰分配在栈帧里</b>（非 <code>static</code>、非 <code>new</code>），是单帧膨胀的头号元凶，它让安全深度从十几万层暴跌到一千层。<br/>B 错：8 MB/8 KB = 1024，不是 8 万。<br/>D 错：栈容量有硬上限。<br/><b>实践建议：递归函数内避免大局部数组，改成全局数组、<code>static</code>，或用指针/引用传入。</b></div>
+</div>
+
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>把一个深度为 n 的递归改写成"显式栈 + while 循环"的迭代版后，空间复杂度会怎样变化？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>从 O(n) 降为 O(1)，因为不再使用系统栈了</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>渐进阶仍是 O(n)，但从<b>系统栈</b>转移到了<b>堆</b>，从而绕开 1~8 MB 的栈上限</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>升为 O(n<sup>2</sup>)，因为既有系统栈又有自建栈</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>不确定，取决于编译器是否开启 <code>-O2</code></span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 <b>B</b>。这是本节最需要澄清的一点：显式栈是<b>换地方</b>而非<b>省空间</b>。你仍然要存 n 份"待处理的参数"，渐进空间依旧 O(n)；但 <code>std::stack</code> 的元素分配在<b>堆</b>上，堆通常可用 GB 级内存，而线程栈只有 1~8 MB，因此 10<sup>6</sup> 层不再溢出。<br/>A 错：只有把递归改成<b>纯循环</b>（不需要保存历史状态，如 factLoop）才能真正做到 O(1)。<br/>C 错：系统栈此时深度是 O(1)，两者不相乘。<br/>D 错：<code>-O2</code> 影响的是尾递归优化，与显式栈改写无关。</div>
+</div>
+</div>
+
+<div class="page-nav"><a href="03-cases.html"><span class="dir">← 上一节</span><span class="name">情形</span></a><a href="05-fib-tree.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">Fib树</span></a></div>
+<div class="footer">算法设计与分析 · <b>第2章 递归算法设计技术</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(126,98,166,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+function drawStack(frames, msg){
+  ctx.fillStyle='#14130F'; ctx.fillRect(0,0,700,360);
+  ctx.fillStyle='#A29C90'; ctx.font='13px sans-serif'; ctx.fillText('系统栈（顶在上）', 40, 30);
+  frames.forEach((f,i)=>{
+    const y=60+i*55;
+    ctx.fillStyle=i===0?'#7E62A6':'#443F37';
+    ctx.beginPath(); ctx.roundRect?.(40,y,280,48,10);
+    if(!ctx.roundRect){ ctx.fillRect(40,y,280,48); } else { ctx.fill(); }
+    ctx.fillStyle='#fff'; ctx.font='bold 14px monospace';
+    ctx.fillText(f, 55, y+30);
+  });
+  hud.textContent=msg;
+}
+run.onclick=async()=>{
+  const st=[];
+  for(let n=4;n>=0;n--){
+    st.unshift('fact('+n+')');
+    drawStack(st, 'CALL fact('+n+')'); log.textContent='压栈 fact('+n+')'; await sleep(450);
+  }
+  let v=1;
+  for(let n=0;n<=4;n++){
+    if(n>0) v*=n;
+    drawStack(st, 'RETURN '+v); log.textContent='fact('+n+') 返回 '+v; await sleep(400);
+    st.shift();
+    drawStack(st, 'POP'); await sleep(250);
+  }
+  log.textContent='fact(4)=24 完成';
+};
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

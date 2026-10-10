@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Kruskal · 第9章 图算法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">09</div>算法可视化 · <span>第9章 图算法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-prim.html">Prim</a><a class="pill active" href="02-kruskal.html">Kruskal</a><a class="pill" href="03-dijkstra.html">Dijkstra</a><a class="pill" href="04-bf-spfa.html">BF/SPFA</a><a class="pill" href="05-floyd.html">Floyd</a><a class="pill" href="06-flow.html">网络流</a><a class="pill" href="07-ff.html">FF</a><a class="pill" href="08-ek.html">EK</a><a class="pill" href="09-dinic.html">Dinic</a><a class="pill" href="10-match.html">匹配</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 2 · 加边</div>
+  <h1>Kruskal · 便宜边优先</h1>
+  <p>边按权升序；两端不同连通块则加入。并查集判环，绿边逐条点亮。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>手工模拟</b> Kruskal：把边按权升序排列，逐条判定"加入"或"舍弃"，写出每步的连通块划分。</li>
+  <li>能够<b>解释并默写</b>并查集（union-find）的 find 与 union 操作，说明<b>路径压缩</b>与<b>按秩合并</b>各自的作用。</li>
+  <li>能够<b>论证</b> Kruskal 为何同样以割性质为正确性依据。</li>
+  <li>能够<b>推导</b> Kruskal 的总复杂度 O(e log e)，并指出排序是瓶颈而非并查集。</li>
+  <li>能够<b>对比</b> Prim 与 Kruskal 的适用场景，给出稠密图/稀疏图的选型结论。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="run">▶ 加边动画</button>
+    <button class="btn ghost" id="reset">重置</button>
+  </div>
+  <div class="stage-wrap" style="height:400px">
+    <canvas class="stage" id="cv" width="900" height="400"></canvas>
+    <div class="stage-hud"><span class="hud-pill">Kruskal</span><span class="hud-pill" id="hud">—</span></div>
+  </div>
+  <div class="log" id="log">按权排序后依次考察…</div>
+  <div class="stat-row">
+    <div class="stat"><span>已选边</span><b class="ind" id="ec">0</b></div>
+    <div class="stat"><span>总权</span><b class="green" id="tw">0</b></div>
+  </div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、算法思想与正确性</h2><span class="sub">Edge-based Greedy</span></div>
+
+<div class="defn"><span class="lbl">算法描述</span><p><b>Kruskal 算法</b>：把 E 中全部 e 条边按权值<b>非降序</b>排序；初始时 n 个顶点各自成为一个连通块，已选边集 A = &empty;。依次考察每条边 (u, v)：若 u 与 v <b>当前不在同一连通块</b>，则把 (u, v) 加入 A 并合并这两个连通块；否则舍弃（加入会成环）。当 A 中已有 n&minus;1 条边时结束，A 即为一棵最小生成树。</p></div>
+
+<div class="defn prop"><span class="lbl">正确性：仍是割性质</span><p>设算法此刻正考察边 (u, v)，且 u、v 分属不同连通块。令 U = u 所在的连通块，构造割 (U, V&minus;U)。由于所有权值<b>小于</b> w(u,v) 的边都已被考察过：它们要么已被选入（其两端此刻必在同一块内），要么因成环被弃（两端也在同一块内）；因此不存在权值更小的<b>横跨该割</b>的边。故 (u, v) 是割 (U, V&minus;U) 的<b>轻边</b>，由割性质，它属于某棵最小生成树。归纳可得 A 始终是某棵 MST 的子集。</p></div>
+
+<div class="tip info"><strong>与 Prim 的对偶：</strong>Prim 的割是<b>显式</b>的——U 就是已生长的那棵树；Kruskal 的割是<b>隐式</b>的——由当前边两端所在的连通块临时确定。两者都在"某个割上取轻边"，所以共用同一条定理。差别只是：Prim 始终维持<b>一棵</b>树，Kruskal 维持的是一片<b>森林</b>，最后才合并成一棵。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、关键数据结构：并查集</h2><span class="sub">Union-Find / Disjoint Set Union · 承接第 3 章 04 节</span></div>
+
+<p class="desc">Kruskal 每考察一条边都要回答两个问题：<b>u 和 v 在同一连通块吗？</b>（查询）以及<b>把两块并成一块</b>（合并）。若用遍历判连通，单次就要 O(n+e)，总代价退化到 O(e(n+e))。<b>并查集</b>正是为这两个操作而生的结构，可将单次代价压到近似常数。详细原理见 <a href="../../第三章/interactive/04-uf.html">第 3 章 · 04 并查集</a>，这里给出 Kruskal 所需的最小实现。</p>
+
+<div class="defn"><span class="lbl">定义</span><p><b>并查集</b>（union-find set，又称不相交集合 disjoint set union, DSU）维护若干互不相交的集合，支持两种操作：<b>find(x)</b> 返回 x 所在集合的<b>代表元</b>（根）；<b>union(x, y)</b> 把 x 与 y 所在的两个集合合并。判断"同集合"只需比较两者的代表元是否相同。集合用<b>树形</b>结构表示，parent[x] 指向父结点，根结点满足 parent[x] == x。</p></div>
+
+<div class="list-step"><span class="n">1</span><div class="body"><b>路径压缩</b>（path compression）：find 沿途返回时，把路径上所有结点的 parent 直接改指向根。使树高迅速塌陷成近似两层，后续查询几乎 O(1)。</div></div>
+<div class="list-step"><span class="n">2</span><div class="body"><b>按秩（或按大小）合并</b>（union by rank / size）：合并时把<b>矮树</b>挂到<b>高树</b>下，避免树被拉成一条链。单独使用可保证树高 O(log n)。</div></div>
+<div class="list-step"><span class="n">3</span><div class="body"><b>两者同时使用</b>：m 次操作的总代价为 O(m &alpha;(n))，其中 &alpha; 是反 Ackermann 函数，对一切现实规模的 n 都有 &alpha;(n) &le; 4，因此可视为<b>近似常数</b>。</div></div>
+
+<div class="code"><span class="cm">// ========== 并查集：路径压缩 + 按秩合并 ==========</span>
+<span class="kw">const</span> <span class="kw">int</span> N = <span class="nu">100005</span>;
+<span class="kw">int</span> parent[N], rnk[N];
+
+<span class="kw">void</span> <span class="fn">initUF</span>(<span class="kw">int</span> n) {                 <span class="cm">// 初始：每个顶点自成一个集合</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; i++) { parent[i] = i; rnk[i] = <span class="nu">0</span>; }
+}
+
+<span class="kw">int</span> <span class="fn">find</span>(<span class="kw">int</span> x) {                     <span class="cm">// 递归写法 + 路径压缩</span>
+    <span class="kw">if</span> (parent[x] != x) parent[x] = <span class="fn">find</span>(parent[x]);
+    <span class="kw">return</span> parent[x];
+}
+
+<span class="kw">bool</span> <span class="fn">unite</span>(<span class="kw">int</span> x, <span class="kw">int</span> y) {            <span class="cm">// 合并成功返回 true；已同集合返回 false</span>
+    <span class="kw">int</span> rx = <span class="fn">find</span>(x), ry = <span class="fn">find</span>(y);
+    <span class="kw">if</span> (rx == ry) <span class="kw">return</span> <span class="kw">false</span>;         <span class="cm">// &lt;== Kruskal 的"判环"就是这一句</span>
+    <span class="kw">if</span> (rnk[rx] &lt; rnk[ry]) <span class="fn">swap</span>(rx, ry); <span class="cm">// 矮树挂到高树下</span>
+    parent[ry] = rx;
+    <span class="kw">if</span> (rnk[rx] == rnk[ry]) rnk[rx]++;   <span class="cm">// 等高合并才会让树长高一层</span>
+    <span class="kw">return</span> <span class="kw">true</span>;
+}</div>
+
+<div class="tip"><strong>为什么"同一代表元"就等价于"会成环"：</strong>并查集中的一个集合，恰好对应已选边集 A 所形成的一个<b>连通块</b>。若 u、v 已连通，说明 A 中已存在一条 u&rarr;v 的路径，此时再加边 (u,v) 就与该路径构成回路。反之若不连通，加入这条边只会把两块接起来，不可能成环。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、规范 C++ 代码</h2><span class="sub">Kruskal 主体</span></div>
+
+<div class="code"><span class="cm">// ========== Kruskal 求最小生成树 —— O(e log e) ==========</span>
+<span class="kw">struct</span> E { <span class="kw">int</span> u, v, w; };
+
+<span class="kw">bool</span> <span class="fn">cmp</span>(<span class="kw">const</span> E &amp;a, <span class="kw">const</span> E &amp;b) { <span class="kw">return</span> a.w &lt; b.w; }
+
+<span class="cm">// edges：全部 e 条边；n：顶点数；mst：输出所选的 n-1 条边</span>
+<span class="cm">// 返回 MST 总权值；若图不连通返回 -1</span>
+<span class="kw">int</span> <span class="fn">kruskal</span>(vector&lt;E&gt; &amp;edges, <span class="kw">int</span> n, vector&lt;E&gt; &amp;mst) {
+    <span class="fn">sort</span>(edges.<span class="fn">begin</span>(), edges.<span class="fn">end</span>(), cmp);   <span class="cm">// ① 按权升序：O(e log e)</span>
+    <span class="fn">initUF</span>(n);                                <span class="cm">// ② 初始化并查集：O(n)</span>
+    <span class="kw">int</span> total = <span class="nu">0</span>, cnt = <span class="nu">0</span>;
+    <span class="kw">for</span> (<span class="kw">const</span> E &amp;ed : edges) {              <span class="cm">// ③ 逐条考察：O(e a(n))</span>
+        <span class="kw">if</span> (<span class="fn">unite</span>(ed.u, ed.v)) {             <span class="cm">//    不同连通块 =&gt; 不成环 =&gt; 选它</span>
+            mst.<span class="fn">push_back</span>(ed);
+            total += ed.w;
+            <span class="kw">if</span> (++cnt == n - <span class="nu">1</span>) <span class="kw">break</span>;        <span class="cm">//    已够 n-1 条边，可提前结束</span>
+        }
+        <span class="cm">// else：两端同块，加入会成环，直接舍弃</span>
+    }
+    <span class="kw">return</span> cnt == n - <span class="nu">1</span> ? total : <span class="nu">-1</span>;      <span class="cm">// 边不够 =&gt; 图不连通</span>
+}</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、时间与空间复杂度</h2><span class="sub">排序主导</span></div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>步骤</th><th>次数</th><th>单次代价</th><th>小计</th></tr>
+  <tr><td>① 边排序</td><td>1</td><td>比较排序 O(e log e)</td><td class="hl">O(e log e)</td></tr>
+  <tr><td>② 并查集初始化</td><td>1</td><td>O(n)</td><td>O(n)</td></tr>
+  <tr><td>③ find / union</td><td>至多 2e 次 find + n&minus;1 次 union</td><td>O(&alpha;(n)) &asymp; O(1)</td><td>O(e &alpha;(n))</td></tr>
+  <tr><td colspan="3"><b>总时间</b></td><td class="hl">O(e log e) = O(e log n)</td></tr>
+  <tr><td colspan="3"><b>额外空间</b></td><td class="hl">O(n + e)：边数组 O(e) + 并查集 O(n)</td></tr>
+</table></div>
+
+<div class="deriv">
+  <span class="step">为何 O(e log e) 与 O(e log n) 等价 <span class="why">简单图中 e &le; n(n&minus;1)/2 &lt; n<sup>2</sup></span></span>
+  <span class="step">故 log e &lt; log n<sup>2</sup> = 2 log n，即 log e = &Theta;(log n) <span class="why">两种写法只差常数因子，教材上两种都算对</span></span>
+  <span class="step">排序 O(e log e) 与并查集 O(e &alpha;(n)) 相比，&alpha;(n) &le; 4 <span class="why">故<b>排序是唯一瓶颈</b>，并查集的开销可忽略</span></span>
+  <span class="step">推论 若边权是小范围整数、可用基数排序 O(e) 完成排序 <span class="why">Kruskal 总复杂度可降到 O(e &alpha;(n))，近似线性</span></span>
+</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>对比维度</th><th>Prim</th><th>Kruskal</th></tr>
+  <tr><td>贪心对象</td><td>顶点（从一点向外生长）</td><td>边（全局按权挑选）</td></tr>
+  <tr><td>中间状态</td><td>始终是<b>一棵</b>树</td><td>是一片<b>森林</b>，最后合并</td></tr>
+  <tr><td>关键结构</td><td>lowcost 数组 / 优先队列</td><td><b>并查集</b> + 排序</td></tr>
+  <tr><td>时间复杂度</td><td class="hl">O(n<sup>2</sup>) 朴素 / O((n+e) log n) 堆</td><td class="hl">O(e log e)</td></tr>
+  <tr><td>与 e 的关系</td><td>朴素实现<b>完全不依赖 e</b></td><td>完全由 e 主导</td></tr>
+  <tr><td><b>适用图型</b></td><td class="hl"><b>稠密图</b>（e &asymp; n<sup>2</sup>，用朴素 O(n<sup>2</sup>)）</td><td class="hl"><b>稀疏图</b>（e = O(n)，约 O(n log n)）</td></tr>
+  <tr><td>不连通图</td><td>无法完成，需检测失败</td><td>天然得到<b>最小生成森林</b></td></tr>
+  <tr><td>动态加边</td><td>需重算</td><td>易于增量维护</td></tr>
+</table></div>
+
+<div class="tip info"><strong>选型口诀：</strong>点少边多（稠密）用 Prim，点多边少（稀疏）用 Kruskal。定量地看，稠密图 e &asymp; n<sup>2</sup> 时 Kruskal 是 O(n<sup>2</sup> log n)，劣于朴素 Prim 的 O(n<sup>2</sup>)；稀疏图 e &asymp; n 时 Kruskal 是 O(n log n)，远优于朴素 Prim 的 O(n<sup>2</sup>)。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>五、例题演算</h2><span class="sub">与第 1 节同一张图，结果应当一致</span></div>
+
+<p class="desc">图仍为 6 个顶点、9 条边。先按权升序排列全部边：</p>
+
+<div class="formula">(4,5)=2 &lt; (1,5)=3 = (2,4)=3 &lt; (2,3)=4 = (2,5)=4 &lt; (0,5)=5 = (1,2)=5 = (3,4)=5 &lt; (0,1)=6</div>
+
+<div class="deriv">
+  <span class="step">初始 6 个连通块 {0}{1}{2}{3}{4}{5}，A = &empty; <span class="why">并查集 parent = [0,1,2,3,4,5]</span></span>
+  <span class="step">考察 (4,5,2) find(4)=4 &ne; find(5)=5 &rarr; <b>选入</b>。块变为 {0}{1}{2}{3}{4,5}，总权 2 <span class="why">第 1 条边</span></span>
+  <span class="step">考察 (1,5,3) find(1)=1 &ne; find(5)={4,5} 的根 &rarr; <b>选入</b>。块 {0}{2}{3}{1,4,5}，总权 5 <span class="why">第 2 条边</span></span>
+  <span class="step">考察 (2,4,3) find(2)=2 &ne; find(4) &rarr; <b>选入</b>。块 {0}{3}{1,2,4,5}，总权 8 <span class="why">第 3 条边</span></span>
+  <span class="step">考察 (2,3,4) find(2) &ne; find(3)=3 &rarr; <b>选入</b>。块 {0}{1,2,3,4,5}，总权 12 <span class="why">第 4 条边</span></span>
+  <span class="step">考察 (2,5,4) find(2) == find(5) &rarr; <b>舍弃</b>（会与 2&minus;4&minus;5 构成回路） <span class="why">这是本例中唯一被并查集拦下的边</span></span>
+  <span class="step">考察 (0,5,5) find(0)=0 &ne; find(5) &rarr; <b>选入</b>。块 {0,1,2,3,4,5}，总权 <b>17</b> <span class="why">已达 n&minus;1 = 5 条边，提前 break</span></span>
+</div>
+
+<div class="formula">MST 边集 = {(4,5,2), (1,5,3), (2,4,3), (2,3,4), (0,5,5)}，总权 = <em>17</em></div>
+
+<div class="tip"><strong>与 Prim 对照：</strong>第 1 节 Prim 从顶点 0 出发，按 (0,5)&rarr;(4,5)&rarr;(1,5)&rarr;(2,4)&rarr;(2,3) 的顺序加边；Kruskal 按权升序加边。<b>加入顺序完全不同，但最终边集与总权 17 完全相同</b>——这正是割性质对两个算法同时生效的直观证据。</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li>用 <span class="cm">parent[x] == parent[y]</span> 判同集合：必须比较 <b>find(x) == find(y)</b>（根），直接比父结点在多层树上会误判。</li>
+  <li>合并时写 <span class="cm">parent[y] = x</span> 而不是 <span class="cm">parent[find(y)] = find(x)</span>：把非根结点当根挂，会破坏树结构，产生环或丢失成员。</li>
+  <li>只做路径压缩不做按秩合并（或反之）也能用，但若<b>两者都不做</b>，最坏树高 O(n)，Kruskal 退化到 O(e n)。</li>
+  <li>忘记 <span class="cm">cnt == n-1</span> 的终止判断与不连通检测：非连通图会漏边，返回值应视为"最小生成森林"的权值而非 MST。</li>
+  <li>认为 Kruskal 的瓶颈是并查集：<b>瓶颈是排序 O(e log e)</b>，并查集只有 O(e &alpha;(n))。</li>
+  <li>把"稀疏图用 Kruskal"错记成"任何情况 Kruskal 都更快"：稠密图 e &asymp; n<sup>2</sup> 时 Kruskal 是 O(n<sup>2</sup> log n)，慢于朴素 Prim。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>Kruskal：边按权升序，逐条考察，两端不同连通块则选入，直到凑够 n&minus;1 条边。</li>
+  <li>"判环"由<b>并查集</b>完成：find 求代表元、union 合并；路径压缩 + 按秩合并使单次操作近似 O(1)（准确为 O(&alpha;(n))）。</li>
+  <li>正确性同样来自<b>割性质</b>：考察 (u,v) 时，以 u 所在连通块为 U 构成的割，(u,v) 恰是其轻边。</li>
+  <li>复杂度 <b>O(e log e) = O(e log n)</b>，<b>排序是瓶颈</b>；额外空间 O(n + e)。</li>
+  <li>选型：稠密图用朴素 Prim O(n<sup>2</sup>)，稀疏图用 Kruskal O(e log e)；非连通图 Kruskal 天然给出最小生成森林。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>Kruskal 算法的时间复杂度是 O(e log e)。这个 log e 因子主要来自？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>并查集 find 操作的树高</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>对全部 e 条边按权值排序</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>每次合并连通块时的秩比较</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>优先队列取最小边的堆调整</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。排序 e 条边需 O(e log e)，这是全流程唯一的对数级瓶颈。A 是很有迷惑性的错项：并查集在<b>同时</b>使用路径压缩与按秩合并后，m 次操作的摊还代价是 O(&alpha;(n))，&alpha;(n) &le; 4，远小于 log e；即使只用按秩合并，树高也只有 O(log n)，总代价 O(e log n) 仍与排序同阶而非"主要来源"。C 错，秩比较是 O(1) 的常数操作。D 错，Kruskal 用的是一次性排序而非优先队列；若改用堆逐个取最小边，复杂度仍是 O(e log e)，但那属于实现变体，本题问的是标准实现。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>某道路网有 n = 100 000 个路口、e = 300 000 条道路。求连通全部路口的最小造价方案，应当选择？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>邻接矩阵朴素 Prim，O(n<sup>2</sup>) = 10<sup>10</sup></span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>Kruskal，O(e log e) &asymp; 3&times;10<sup>5</sup>&times;18 &asymp; 5.4&times;10<sup>6</sup></span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>Floyd 求全源最短路后取最小的 n&minus;1 条</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>Dijkstra 从任一路口出发，取最短路径树</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。e/n = 3，是典型<b>稀疏图</b>，Kruskal（或堆优化 Prim，同为 O(e log n)）合适。A 错得最离谱：n<sup>2</sup> = 10<sup>10</sup> 已超时，且邻接矩阵本身要 10<sup>10</sup> 个格子，内存直接爆掉——这正是"稠密才用矩阵"的原因。C 错，Floyd 是 O(n<sup>3</sup>) 且求的是最短路，与 MST 是两个问题；"取最小的 n&minus;1 条"既不保证连通也不保证无环。D 错，最短路径树最小化的是<b>各点到源点的距离</b>，MST 最小化的是<b>边权总和</b>，二者一般不同（见第 1 节易错点）。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>某同学实现并查集时只写了路径压缩、没写按秩合并，并把合并写成 <span class="cm">parent[find(x)] = find(y);</span>。关于这份代码，下列判断正确的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>结果会出错，因为缺少按秩合并会导致误判连通性</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>结果正确；单次操作摊还代价为 O(log n)，Kruskal 总复杂度仍由排序 O(e log e) 主导</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>结果正确，但最坏单次操作退化到 O(n)，Kruskal 变成 O(en)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>必须两个优化都写，否则并查集无法保证 find 返回同一个根</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>B 正确。按秩合并影响的是<b>效率</b>而非<b>正确性</b>——无论怎么挂，同一集合的所有结点最终都指向同一个根，find 返回值仍然一致。仅用路径压缩时，m 次操作的摊还代价是 O(log n) 级别（严格结论为 &Theta;(log<sub>1+m/n</sub> n)），仍小于排序的 log e，所以 Kruskal 总复杂度不变。A、D 都把"效率优化"误当成"正确性必需"。C 的"最坏 O(n)"只对<b>单次</b>且<b>无路径压缩</b>的情形成立：这里有路径压缩，第一次深查询之后整条链就被压平了，摊还后不会停留在 O(n)，故 Kruskal 不会退化到 O(en)。</div>
+  </div>
+</div>
+
+<div class="terms">
+  <span class="term"><b>并查集</b>union-find set / DSU</span>
+  <span class="term"><b>代表元</b>representative</span>
+  <span class="term"><b>路径压缩</b>path compression</span>
+  <span class="term"><b>按秩合并</b>union by rank</span>
+  <span class="term"><b>反 Ackermann 函数</b>inverse Ackermann &alpha;(n)</span>
+  <span class="term"><b>连通块</b>connected component</span>
+  <span class="term"><b>最小生成森林</b>minimum spanning forest</span>
+</div>
+
+<div class="page-nav"><a href="01-prim.html"><span class="dir">← 上一节</span><span class="name">Prim</span></a><a href="03-dijkstra.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">Dijkstra</span></a></div>
+<div class="footer">算法设计与分析 · <b>第9章 图算法</b> · 强交互可视化版<br/>MST · 最短路 · 网络流 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:28},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.2, vy:-.1-Math.random()*.25, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(110,86,145,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+// shared graph geometry
+const GPOS=[[120,200],[300,80],[520,80],[700,200],[520,320],[300,320]];
+const GEDGES=[[0,1,6],[0,5,5],[1,2,5],[1,5,3],[2,3,4],[2,4,3],[2,5,4],[3,4,5],[4,5,2]];
+
+function drawGraph(ctx, mst=[], U=new Set(), hl=null, dist=null, done=null){
+  const W=ctx.canvas.width, H=ctx.canvas.height;
+  ctx.clearRect(0,0,W,H);
+  // soft bg glow
+  const vg=ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,400);
+  vg.addColorStop(0,'rgba(110,86,145,.08)'); vg.addColorStop(1,'transparent');
+  ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+  GEDGES.forEach(([u,v,w])=>{
+    const inM=mst.some(e=>(e[0]===u&&e[1]===v)||(e[0]===v&&e[1]===u));
+    const isH=hl&&((hl[0]===u&&hl[1]===v)||(hl[0]===v&&hl[1]===u));
+    ctx.strokeStyle=inM?'#6FB48B':(isH?'#D0A344':'rgba(162,156,144,.35)');
+    ctx.lineWidth=inM||isH?4:2;
+    if(inM){ ctx.shadowColor='#6FB48B'; ctx.shadowBlur=12; }
+    ctx.beginPath(); ctx.moveTo(GPOS[u][0],GPOS[u][1]); ctx.lineTo(GPOS[v][0],GPOS[v][1]); ctx.stroke();
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#A29C90'; ctx.font='12px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(w,(GPOS[u][0]+GPOS[v][0])/2+8,(GPOS[u][1]+GPOS[v][1])/2-6);
+  });
+  GPOS.forEach((p,i)=>{
+    const inU=U.has?U.has(i):(done&&done[i]);
+    const g=ctx.createRadialGradient(p[0]-6,p[1]-6,3,p[0],p[1],22);
+    if(inU){ g.addColorStop(0,'#B4A8D4'); g.addColorStop(1,'#6E5691'); }
+    else { g.addColorStop(0,'#D5CFC1'); g.addColorStop(1,'#7A746A'); }
+    ctx.beginPath(); ctx.arc(p[0],p[1],20,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.4)'; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='#fff'; ctx.font='bold 14px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(i,p[0],p[1]-(dist?6:0));
+    if(dist){ ctx.fillStyle='#E6CE93'; ctx.font='11px ui-monospace';
+      ctx.fillText(dist[i]>=1e9?'∞':dist[i], p[0], p[1]+12); }
+  });
+}
+
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let parent, mst=[], tot=0;
+function find(x){ return parent[x]===x?x:(parent[x]=find(parent[x])); }
+function init(){
+  parent=[0,1,2,3,4,5]; mst=[]; tot=0; ec.textContent=0; tw.textContent=0;
+  drawGraph(ctx,[],new Set()); log.textContent='就绪'; hud.textContent='sort edges';
+}
+run.onclick=async()=>{
+  init();
+  const es=GEDGES.slice().sort((a,b)=>a[2]-b[2]);
+  let lines=['排序: '+es.map(e=>`(${e[0]},${e[1]}):${e[2]}`).join(' ')], cnt=0;
+  for(const [u,v,w] of es){
+    drawGraph(ctx, mst, new Set(), [u,v]);
+    hud.textContent=`考察 (${u},${v}) w=${w}`; await sleep(450);
+    const ru=find(u), rv=find(v);
+    if(ru===rv){ lines.push(`跳过 (${u},${v}) 成环`); log.textContent=lines.join('\\n'); await sleep(300); continue; }
+    parent[ru]=rv; mst.push([u,v,w]); cnt++; tot+=w;
+    lines.push(`✓ 加入 (${u},${v}) w=${w}`);
+    ec.textContent=cnt; tw.textContent=tot; log.textContent=lines.join('\\n');
+    drawGraph(ctx, mst, new Set([0,1,2,3,4,5].filter(i=>find(i)===find(0)||mst.some(e=>e[0]===i||e[1]===i))));
+    // color all connected gradually
+    const U=new Set(); mst.forEach(e=>{U.add(e[0]);U.add(e[1]);});
+    drawGraph(ctx, mst, U);
+    await sleep(400);
+    if(cnt===5) break;
+  }
+  hud.textContent='MST 权='+tot; lines.push('完成 总权='+tot); log.textContent=lines.join('\\n');
+};
+reset.onclick=init; init();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

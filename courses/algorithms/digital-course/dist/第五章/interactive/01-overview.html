@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>回溯概述 · 第5章 回溯法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">05</div>算法可视化 · <span>第5章 回溯法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill active" href="01-overview.html">概述</a><a class="pill" href="02-trees.html">树类型</a><a class="pill" href="03-powerset.html">幂集</a><a class="pill" href="04-prune.html">剪支</a><a class="pill" href="05-knapsack.html">背包</a><a class="pill" href="06-coloring.html">着色</a><a class="pill" href="07-perm.html">全排列</a><a class="pill" href="08-nqueens.html">n皇后</a><a class="pill" href="09-opt.html">任务分配</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 1 · 加深</div><h1>回溯 = DFS + 剪支</h1>
+<p>活结点 / 扩展结点 / 死结点。点击播放在二叉解空间树上的 DFS 高亮。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>陈述</b>回溯法的定义，并说明它与第 3 章穷举法在"何时检验"上的本质差别。</li>
+  <li>能够<b>准确定义并区分</b>活结点、扩展结点、死结点，给定一张搜索快照能指出每个结点当前属于哪一类。</li>
+  <li>能够<b>默写</b>回溯法的通用递归框架，指出框架中"做选择—剪支—深入—撤销"四个位置。</li>
+  <li>能够<b>辨析</b>约束函数与限界函数：前者做可行性剪支，后者做最优性剪支，并说明何种问题需要哪一种。</li>
+  <li>能够<b>解释</b>为什么剪支不能降低回溯法最坏情况的指数级复杂度，却能在实际问题上带来数量级的加速。</li>
+</ol></div>
+<div class="card">
+  <div class="toolbar"><button class="btn primary" id="run">▶ DFS 遍历</button><button class="btn" id="rst">重置</button>
+    <div class="speed" id="spd"><button data-s="1" class="on">1×</button><button data-s="2">2×</button></div></div>
+  <div class="stage-wrap light" style="height:340px"><canvas class="stage" id="cv" width="900" height="340"></canvas>
+    <div class="stage-hud"><span class="hud-pill light">state space tree</span><span class="hud-pill light" id="hud">—</span></div></div>
+  <div class="formula">回溯法 = DFS + 剪支</div>
+  <div class="log" id="log">叶子 = 候选解。</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>基本概念</h2><span class="sub">解空间树与三类结点</span></div>
+
+<div class="defn"><span class="lbl">定义 1 · 解空间树</span><p>把问题的解表示成一个 n 元组 <b>(x<sub>1</sub>, x<sub>2</sub>, &hellip;, x<sub>n</sub>)</b>，其中 x<sub>i</sub> 取自有限集合 S<sub>i</sub>。所有这样的元组构成<b>解空间</b>（solution space）。若用一棵树来组织解空间——根结点表示"尚未做任何选择"，第 i 层的每条向下的边表示为 x<sub>i</sub> 选定一个具体取值，从根到某个叶子的一条路径就对应一个完整的 n 元组——这棵树称为<b>解空间树</b>（state space tree），也叫状态空间树。</p></div>
+
+<div class="defn"><span class="lbl">定义 2 · 活结点</span><p><b>活结点</b>（live node）：已经<b>生成</b>、但其子结点<b>尚未全部生成</b>的结点。换言之，这个结点身上还留有"没走完的路"，将来还可能回到它继续往下试。在递归实现中，活结点恰好就是当前递归调用栈上的那些结点。</p></div>
+
+<div class="defn"><span class="lbl">定义 3 · 扩展结点（E-结点）</span><p><b>扩展结点</b>（expansion node，简称 <b>E-结点</b>）：当前<b>正在生成其子结点</b>的那个活结点。任一时刻<b>有且仅有一个</b>扩展结点，它就是 DFS 递归中最深的那一层，即演示图里被高亮为红色的结点。扩展结点一定是活结点，反之不然。</p></div>
+
+<div class="defn"><span class="lbl">定义 4 · 死结点</span><p><b>死结点</b>（dead node）：<b>不再进一步扩展</b>的结点。它有三种成因：<b>(1)</b> 其子结点已全部生成完毕，无路可走；<b>(2)</b> 它是叶子结点，已经得到一个完整的候选解；<b>(3)</b> 它被<b>剪支</b>掉了——约束函数或限界函数判定以它为根的整棵子树内不可能出现（更优的）解。死结点一旦产生，搜索立即<b>回溯</b>到它的父结点。</p></div>
+
+<div class="tip info"><strong>三者的关系：</strong>结点的生命周期是「<b>被生成 &rarr; 成为活结点 &rarr; 被选中成为扩展结点 &rarr; 子结点生成完毕（或被剪支）&rarr; 变成死结点</b>」。回溯法之所以叫"回溯"，正是因为一个结点变成死结点后，搜索要沿着来路退回上一层，把上一层重新变成扩展结点。请对照上方演示：红色 = 扩展结点，紫色/绿色 = 还在栈上的活结点，灰色 = 已经变成死结点。</div>
+
+<div class="terms">
+  <span class="term"><b>回溯法</b>backtracking</span>
+  <span class="term"><b>解空间树</b>state space tree</span>
+  <span class="term"><b>活结点</b>live node</span>
+  <span class="term"><b>扩展结点</b>E-node</span>
+  <span class="term"><b>死结点</b>dead node</span>
+  <span class="term"><b>剪支</b>pruning</span>
+  <span class="term"><b>深度优先搜索</b>depth-first search</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>通用算法框架</h2><span class="sub">递归形式 · 教材标配模板</span></div>
+
+<div class="defn"><span class="lbl">定义 5 · 回溯法</span><p><b>回溯法</b>是一种"<b>能进则进、进不了则换、换不了则退</b>"的系统搜索方法：从根结点出发按<b>深度优先</b>的方式搜索解空间树，每到一个结点先用<b>约束函数</b>和<b>限界函数</b>判断该结点所代表的子树是否<b>可能</b>包含（更优的）解；若不可能，就不再深入而直接回退（<b>剪支</b>），否则继续向下扩展。一句话概括：</p></div>
+
+<div class="formula lg">回溯法 = 深度优先搜索 + 剪支</div>
+
+<div class="code"><span class="cm">// ── 回溯法通用递归框架 ─────────────────────────────</span>
+<span class="cm">// n    ：解向量的维数（解空间树的深度）</span>
+<span class="cm">// x[i] ：第 i 层所做的选择，即解向量的第 i 个分量</span>
+<span class="kw">int</span> n, x[MAXN];
+
+<span class="kw">void</span> <span class="fn">backtrack</span>(<span class="kw">int</span> i) {              <span class="cm">// i：当前扩展结点所在的层次</span>
+    <span class="kw">if</span> (i &gt;= n) {                       <span class="cm">// ① 到达叶子 → 得到一个完整解</span>
+        <span class="fn">record</span>(x);                      <span class="cm">//    记录/输出，本结点成为死结点</span>
+        <span class="kw">return</span>;                         <span class="cm">//    回溯到父结点</span>
+    }
+    <span class="kw">for</span> (<span class="kw">int</span> c = <span class="fn">first</span>(i); c &lt;= <span class="fn">last</span>(i); c++) {   <span class="cm">// ② 枚举第 i 层的所有分支</span>
+        x[i] = c;                                     <span class="cm">// ③ 做出选择（置位）</span>
+        <span class="kw">if</span> (<span class="fn">constraint</span>(i) <span class="kw">&amp;&amp;</span> <span class="fn">bound</span>(i))            <span class="cm">// ④ 双重剪支：可行 + 有希望</span>
+            <span class="fn">backtrack</span>(i + <span class="nu">1</span>);                     <span class="cm">// ⑤ 深入下一层</span>
+        <span class="fn">undo</span>(i, c);                                <span class="cm">// ⑥ 撤销选择（回溯还原现场）</span>
+    }
+    <span class="cm">// for 循环结束 ⇒ 子结点已全部生成 ⇒ 本结点由活结点变为死结点</span>
+}
+
+<span class="fn">backtrack</span>(<span class="nu">0</span>);   <span class="cm">// 从根结点（第 0 层）启动</span></div>
+
+<div class="list-step"><span class="n">1</span><div class="body"><b>做选择（第 ③ 步）</b>：把 x[i] 置为本次尝试的分支值，相当于在解空间树上沿一条边向下走一步，新结点成为扩展结点。</div></div>
+<div class="list-step"><span class="n">2</span><div class="body"><b>剪支（第 ④ 步）</b>：这是回溯法区别于纯穷举法的<b>唯一</b>要害。穷举法要走到叶子才检验，回溯法在<b>内部结点</b>就检验，一旦判定无望立即砍掉整棵子树。</div></div>
+<div class="list-step"><span class="n">3</span><div class="body"><b>深入（第 ⑤ 步）</b>：递归调用即"深度优先"。调用栈上的所有结点就是当前的全部活结点。</div></div>
+<div class="list-step"><span class="n">4</span><div class="body"><b>撤销（第 ⑥ 步）</b>：把在第 ③ 步修改过的<b>全局状态</b>恢复原样（如取消标记、减去累计和、swap 换回）。若只用 x[i]=c 这种"覆盖式赋值"而没有共享的全局状态，撤销可以省略，称为<b>隐式回溯</b>；只要动了全局变量就<b>必须显式撤销</b>，否则兄弟分支会读到被污染的现场。</div></div>
+
+<div class="tip"><strong>与穷举法对照：</strong>把第 ④ 行的剪支条件改成恒为 <b>true</b>，上面的框架就退化成第 3 章的递归穷举——这说明回溯法的解空间与穷举法完全相同，差别只在"提前判死"。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>两类剪支函数</h2><span class="sub">约束函数 vs 限界函数 · 全章的钥匙</span></div>
+
+<div class="defn"><span class="lbl">定义 6 · 约束函数</span><p><b>约束函数</b>（constraint function）用于<b>可行性剪支</b>。它检查当前部分解 (x<sub>0</sub>, &hellip;, x<sub>i</sub>) 是否<b>违反了问题本身的约束条件</b>。一旦违反，由于后续再怎么选也无法把已经违反的约束"修回来"，该结点子树内<b>不含任何可行解</b>，可以整体剪掉。约束函数针对的是<b>"能不能"</b>。</p></div>
+
+<div class="defn"><span class="lbl">定义 7 · 限界函数</span><p><b>限界函数</b>（bounding function）用于<b>最优性剪支</b>，只在<b>最优化问题</b>中出现。它计算以当前结点为根的子树内、目标函数所能达到的<b>最好值的界</b>：求最大值问题算<b>上界</b> bound，求最小值问题算<b>下界</b> bound。若这个界已经<b>不优于</b>当前已求得的最优值 best，则该子树中不可能出现更优解，可以整体剪掉。限界函数针对的是<b>"值不值"</b>。</p></div>
+
+<div class="formula">求最大值：bound(i) &le; best &rArr; 剪支&emsp;&emsp;求最小值：bound(i) &ge; best &rArr; 剪支</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>对比项</th><th>约束函数 constraint</th><th>限界函数 bound</th></tr>
+  <tr><td>剪支类型</td><td class="hl">可行性剪支</td><td class="hl">最优性剪支</td></tr>
+  <tr><td>判断依据</td><td>是否违反问题约束</td><td>目标函数的界是否已不优于 best</td></tr>
+  <tr><td>剪掉的是</td><td>不可行的分支</td><td>可行但不可能更优的分支</td></tr>
+  <tr><td>适用问题</td><td>判定问题、求所有解、最优化问题</td><td>仅最优化问题</td></tr>
+  <tr><td>是否依赖 best</td><td>否（静态判定）</td><td>是（随 best 变优而愈发有效）</td></tr>
+  <tr><td>本章实例</td><td>§04 sum&gt;t、§06 邻点同色、§08 对角线冲突</td><td>§05 分数背包上界、§09 行最小值下界</td></tr>
+  <tr><td>用错的后果</td><td>漏解或输出非法解</td><td class="hl">界不合法则丢失最优解</td></tr>
+</table></div>
+
+<div class="tip info"><strong>记忆口诀：</strong>约束函数管"<b>合法不合法</b>"，限界函数管"<b>值得不值得</b>"。只求可行解的问题（幂集、着色、n 皇后）只需要约束函数；求最优解的问题（背包、任务分配）两者都要，且限界函数才是效率的主要来源。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>复杂度分析</h2><span class="sub">为什么剪支救不了最坏情况</span></div>
+
+<div class="deriv">
+  <span class="step">设解空间树的深度为 n，每个内部结点的分支数（度）为 d <span class="why">d 由 |S<sub>i</sub>| 决定</span></span>
+  <span class="step">第 k 层的结点数至多为 d<sup>k</sup> <span class="why">每层分支数相乘</span></span>
+  <span class="step">结点总数 N &le; 1 + d + d<sup>2</sup> + &hellip; + d<sup>n</sup> = (d<sup>n+1</sup>&minus;1)/(d&minus;1) = &Theta;(d<sup>n</sup>) <span class="why">等比数列求和，d &gt; 1</span></span>
+  <span class="step">在每个结点上计算约束函数与限界函数的代价记为 O(p(n)) <span class="why">通常为 O(1) 或 O(n)</span></span>
+  <span class="step">&rArr; 总时间 T(n) = O(p(n) &middot; d<sup>n</sup>) <span class="why">结点数 × 单结点代价</span></span>
+</div>
+
+<div class="formula lg">T(n) = O( p(n) &middot; d<sup>n</sup> )&emsp;&mdash;&mdash;&emsp;子集树 d=2 &rArr; O(p(n)&middot;2<sup>n</sup>)，排列树 &rArr; O(p(n)&middot;n!)</div>
+
+<div class="defn prop"><span class="lbl">性质 · 剪支的作用范围</span><p>剪支<b>不改变</b>回溯法在最坏情况下的渐进复杂度。因为总存在这样的输入实例，使得所有剪支条件<b>全部失效</b>（例如 0/1 背包中所有物品都装得下、n 皇后中 n 很小时冲突很少），此时算法退化为完全枚举，仍需访问 &Theta;(d<sup>n</sup>) 个结点。剪支改善的是<b>平均情况</b>与<b>实际运行时间</b>：它把"实际访问的结点数"从理论上界压下来，这个压缩幅度在真实数据上常常达到几个数量级，但<b>渐进阶不变</b>。</p></div>
+
+<div class="tip warn"><strong>因此：</strong>回溯法是求解 <b>NP 难问题</b>的<b>精确算法</b>，它保证找到最优解，代价是最坏情况的指数时间。工程上它适用的规模通常在 n &le; 30&sim;50 之间（视剪支强度而定）。若需要处理更大规模，只能转向近似算法或启发式算法。</div>
+
+<div class="tip"><strong>空间复杂度：</strong>回溯法只保存<b>从根到当前扩展结点的这一条路径</b>（即递归栈 + 解向量 x），因此空间为 <b>O(n)</b>（若解向量分量本身是 O(1) 的话）。这正是回溯法相对于第 6 章分支限界法（需要维护整个活结点表，空间可能达到 O(d<sup>n</sup>)）的最大优势。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>例题</h2><span class="sub">用通用框架套一个具体问题</span></div>
+
+<div class="defn prop"><span class="lbl">例题 1</span><p>给定正整数集合 a = {3, 5, 2, 8, 1, 6} 与目标值 t = 9，用回溯法求出所有和恰为 t 的子集。请指出：<b>(1)</b> 解空间树的类型与规模；<b>(2)</b> 解向量的含义；<b>(3)</b> 约束函数是什么；<b>(4)</b> 是否需要限界函数。</p></div>
+
+<div class="list-step"><span class="n">1</span><div class="body"><b>解空间树</b>：每个元素只有"选"与"不选"两种可能，d = 2，深度 n = 6，是一棵<b>子集树</b>，叶子数 2<sup>6</sup> = 64，结点总数 2<sup>7</sup>&minus;1 = 127。</div></div>
+<div class="list-step"><span class="n">2</span><div class="body"><b>解向量</b>：x = (x<sub>0</sub>, &hellip;, x<sub>5</sub>)，x<sub>i</sub> &isin; {0, 1}，x<sub>i</sub>=1 表示选入 a[i]。</div></div>
+<div class="list-step"><span class="n">3</span><div class="body"><b>约束函数</b>：设 sum 为当前已选元素之和、rest 为尚未考虑的元素之和，则 <b>sum &gt; t</b>（已经超了，再加只会更大）或 <b>sum + rest &lt; t</b>（全加上也不够）时剪支。二者都是可行性剪支。</div></div>
+<div class="list-step"><span class="n">4</span><div class="body"><b>限界函数</b>：<b>不需要</b>。本题要求"所有解"而非"最优解"，没有目标函数可言，因此只有约束函数、没有限界函数。这道题的完整代码与动画见 <b>§04 剪支与子集和</b>，答案是 4 个解：{3,6}、{8,1}、{3,5,1}、{2,1,6}。</div></div>
+
+<div class="tip info"><strong>建模三问：</strong>拿到一个新问题，按顺序问自己——<b>①</b> 解能不能写成定长元组？（决定树深）<b>②</b> 每个分量的取值集合有多大？（决定树型：2 &rarr; 子集树，m &rarr; m 叉树，"剩余未用元素" &rarr; 排列树）<b>③</b> 要求所有解还是最优解？（决定是否需要限界函数）。三问答完，套用上面的框架即可。</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>把"活结点"当成"扩展结点"。</b>活结点可以有很多个（整条递归栈），扩展结点任一时刻<b>只有一个</b>。考试中常问"某时刻活结点有几个"，答案是当前路径长度，而不是 1。</li>
+  <li><b>以为叶子结点才是死结点。</b>被剪支掉的<b>内部</b>结点同样是死结点——这正是剪支的收益所在，一次剪支可以让整棵子树的结点根本没被生成。</li>
+  <li><b>忘记撤销现场。</b>凡是在做选择时修改了共享状态（used[] 标记、累加和、swap 交换），回溯时必须逐一还原。漏掉撤销的典型症状是"只找到第一个解，后面全错"。</li>
+  <li><b>混淆约束函数与限界函数。</b>求所有可行解的问题（幂集、着色、n 皇后）<b>没有</b>限界函数；只有带目标函数的最优化问题才谈得上限界。</li>
+  <li><b>误以为剪支能把指数级降为多项式级。</b>剪支只压低常数因子与实际结点数，最坏情况仍是 &Theta;(d<sup>n</sup>)。若哪道题声称"加了剪支后复杂度变成 O(n<sup>2</sup>)"，一定是错的。</li>
+  <li><b>限界函数取界的方向搞反。</b>最大化问题必须取<b>上界</b>、最小化问题必须取<b>下界</b>；方向反了会剪掉含最优解的分支，得到错误答案却不报错，极难排查。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li><b>回溯法 = 解空间树上的深度优先搜索 + 剪支</b>，其本质是"边生成边检验、无望就回退"的系统搜索。</li>
+  <li><b>活结点</b>是已生成而子结点未全部生成的结点；<b>扩展结点（E-结点）</b>是当前正在生成子结点的那个活结点，任一时刻唯一；<b>死结点</b>是不再扩展的结点，成因为"子结点已生成完"、"是叶子"或"被剪支"。</li>
+  <li>通用框架四步：<b>做选择 &rarr; 剪支判定 &rarr; 递归深入 &rarr; 撤销选择</b>。改动了全局状态就必须显式撤销。</li>
+  <li><b>约束函数</b>做可行性剪支（管合法性），<b>限界函数</b>做最优性剪支（管优劣，仅用于最优化问题）。这是理解后续 §04、§05、§09 的前提。</li>
+  <li>时间复杂度 <b>T(n) = O(p(n)&middot;d<sup>n</sup>)</b>，剪支<b>不改变</b>最坏情况的指数阶，只改善实际结点数；空间复杂度仅 <b>O(n)</b>。</li>
+</ul></div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>在回溯法的某一时刻，从根结点到当前正在处理的结点的路径长度为 5（含根共 6 个结点）。此时活结点与扩展结点的个数分别是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>活结点 1 个，扩展结点 6 个</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>活结点 6 个，扩展结点 1 个</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>活结点 5 个，扩展结点 5 个</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>活结点与扩展结点都是 6 个</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。递归栈上的 6 个结点都是"已生成但子结点尚未全部生成"的结点，全部是<b>活结点</b>；而<b>扩展结点</b>按定义是"当前正在生成其子结点"的那一个，任一时刻<b>有且仅有一个</b>，即路径最深处的那个结点。A 把两者的数量对调了；C 漏掉了根结点，且错误地认为多个结点可以同时扩展；D 混淆了"扩展结点是活结点的子集"这一包含关系——扩展结点一定是活结点，但活结点不一定是扩展结点。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>下列关于约束函数与限界函数的说法，<b>正确</b>的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>两者都用于排除不满足问题约束条件的分支，只是叫法不同</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>求图的 m 着色方案数时，必须同时使用约束函数和限界函数</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>限界函数剪掉的分支中可能存在可行解，但这些可行解都不会优于当前最优解</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>限界函数的值越紧（越接近真实最优值），剪支越少，算法越慢</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。这正是最优性剪支与可行性剪支的关键差别：约束函数剪掉的子树里<b>一个可行解都没有</b>；限界函数剪掉的子树里<b>可能有大量可行解</b>，只是它们的目标值都不可能超过已知的 best，所以丢掉无害。A 错在把两者混为一谈，约束函数管合法性、限界函数管优劣。B 错在 m 着色只要求可行方案、没有目标函数，因此<b>没有</b>限界函数。D 说反了：界越紧，bound 越接近真实最优值，越容易触发"bound 不优于 best"的条件，剪支<b>越多</b>、算法越快；界越松（如取 +&infin;）则一次也剪不掉。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>某同学给 0/1 背包的回溯算法加了很强的限界函数，实测 n=40 时只访问了约 3000 个结点。他据此断言"该算法的时间复杂度是 O(n<sup>2</sup>)"。这一断言的错误在于？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>没有错，实测数据就是复杂度的依据</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>错在应该算成 O(n<sup>3</sup>)，因为 3000 &asymp; 40<sup>3</sup>/20</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>复杂度描述的是最坏情况，而总存在使所有剪支失效的实例，此时仍需访问 &Theta;(2<sup>n</sup>) 个结点</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>错在限界函数本身的计算耗时被忽略了，加上后应为 O(n&middot;2<sup>n</sup>) 的常数倍</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。渐进复杂度是对<b>所有</b>规模为 n 的输入取最坏值，不能由某一组"好数据"的实测反推。对 0/1 背包，只要构造出所有物品都能装下、且价值密度全部相等的实例，限界函数给出的上界将始终大于 best，一次也剪不掉，算法退化为访问全部 &Theta;(2<sup>n</sup>) 个结点。A 混淆了实测性能与渐进上界；B 只是在凑数字，没有任何理论依据；D 指出的"忽略了 bound 的计算代价"确实是个疏漏（它会带来 O(n) 的因子），但这只是次要问题，<b>根本</b>错误在于用单个实例的结点数冒充最坏情况的阶。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="index.html"><span class="dir">← 上一节</span><span class="name">总览</span></a><a href="02-trees.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">树类型</span></a></div>
+<div class="footer">算法设计与分析 · <b>第5章 回溯法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(110,86,145,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d'); let speed=1,T=[];
+function layout(depth=3){
+  T=[]; let id=0;
+  function rec(d,x,y,gap){
+    const me={id:id++,d,x,y,L:null,R:null}; T.push(me);
+    if(d<depth){ const L=rec(d+1,x-gap,y+75,gap*.52); const R=rec(d+1,x+gap,y+75,gap*.52); me.L=L.id; me.R=R.id; }
+    return me;
+  }
+  rec(0,450,28,170); return T;
+}
+function draw(active=-1, done=new Set()){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  T.forEach(n=>{
+    [[n.L,'L'],[n.R,'R']].forEach(([cid])=>{
+      if(cid==null) return; const c=T[cid];
+      ctx.strokeStyle='#D5CFC1'; ctx.beginPath(); ctx.moveTo(n.x,n.y+14); ctx.lineTo(c.x,c.y-14); ctx.stroke();
+    });
+  });
+  T.forEach(n=>{
+    ctx.beginPath(); ctx.arc(n.x,n.y,15,0,Math.PI*2);
+    ctx.fillStyle=n.id===active?'#A02C55':(done.has(n.id)?'#A29C90':(n.L==null?'#3B7A57':'#6E5691'));
+    ctx.fill();
+    if(n.id===active){ ctx.strokeStyle='#1D1B16'; ctx.lineWidth=2; ctx.stroke(); ctx.lineWidth=1; }
+  });
+}
+layout(); draw();
+run.onclick=async()=>{
+  const order=[]; (function dfs(i){ if(i==null)return; order.push(i); const n=T[i]; dfs(n.L); dfs(n.R); })(0);
+  const done=new Set();
+  for(const id of order){ draw(id,done); hud.textContent='访问 #'+id+' 深度'+T[id].d; log.textContent=`扩展结点 #${id}`+(T[id].L==null?' · 叶子':''); await sleep(380/speed); done.add(id); }
+  draw(-1,done); hud.textContent='完成';
+};
+rst.onclick=()=>{draw(); log.textContent='重置';};
+spd.querySelectorAll('button').forEach(b=>b.onclick=()=>{spd.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');speed=+b.dataset.s;});
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

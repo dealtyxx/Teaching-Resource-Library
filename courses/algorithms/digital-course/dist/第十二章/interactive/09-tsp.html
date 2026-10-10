@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>TSP近似 · 第12章 概率算法和近似算法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">12</div>算法可视化 · <span>第12章 概率算法和近似算法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-prob.html">概率概述</a><a class="pill" href="02-pi.html">求π</a><a class="pill" href="03-monte.html">蒙特卡罗</a><a class="pill" href="04-vegas.html">拉斯维加斯</a><a class="pill" href="05-sherwood.html">舍伍德</a><a class="pill" href="06-approx.html">近似概述</a><a class="pill" href="07-sched.html">多机调度</a><a class="pill" href="08-knapsack.html">背包近似</a><a class="pill active" href="09-tsp.html">TSP近似</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 9 · 度量 TSP</div>
+  <h1>度量 TSP 近似 · MST 二倍遍历</h1>
+  <p>满足三角不等式时：求 MST → 二倍边欧拉环游 → 短路成哈密顿回路，得 2-近似；Christofides ≈1.5。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>证明</b>一般 TSP 在 P≠NP 下<b>没有任何常数近似比</b>（由哈密顿回路归约）。</li>
+  <li>能够<b>证明</b> w(MST) ≤ OPT，并解释二倍遍历 + 短路得 <b>2-近似</b>。</li>
+  <li>能够<b>复述</b> Christofides 三步（MST + 奇度点最小匹配 + 短路），得 <b>3/2-近似</b>。</li>
+  <li>能够<b>说明</b> Christofides 的 1.5 = 1（MST≤OPT）+ 1/2（匹配≤OPT/2）的来源。</li>
+  <li>能够<b>区分</b>一般 TSP 与度量 TSP，牢记近似结论只对满足三角不等式者成立。</li>
+</ol></div>
+<div class="card">
+  <div class="toolbar">
+    <button class="btn" id="mst">① 求 MST</button>
+    <button class="btn" id="tour">② 二倍遍历短路</button>
+    <button class="btn primary" id="all">一键演示</button>
+    <button class="btn" id="rand">随机点</button>
+  </div>
+  <div class="stage-wrap light" style="height:400px">
+    <canvas class="stage" id="cv" width="1000" height="400"></canvas>
+    <div class="stage-hud"><span class="hud-pill light">metric TSP</span><span class="hud-pill light" id="hud">—</span></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><span>MST 权</span><b class="green" id="mw">—</b></div>
+    <div class="stat"><span>近似回路</span><b class="amber" id="tw">—</b></div>
+  </div>
+  <div class="list-step"><div class="n">1</div><div class="body">求最小生成树 MST（权 ≤ OPT）</div></div>
+  <div class="list-step"><div class="n">2</div><div class="body">每条树边走两遍 → 欧拉环游（≤ 2·MST ≤ 2·OPT）</div></div>
+  <div class="list-step"><div class="n">3</div><div class="body">按首次访问顺序短路成哈密顿回路（三角不等式不增）</div></div>
+  <div class="tip">一般 TSP 若 P≠NP 则不存在常数近似比（除非额外假设）。</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一般 TSP 没有常数近似</h2><span class="sub">除非 P=NP</span></div>
+<div class="defn"><span class="lbl">定义 · TSP / 度量 TSP</span><p><b>旅行商问题 TSP</b>：给定 n 个城市及两两距离，求一条经过每城恰好一次并回到起点的<b>最短回路</b>。若距离满足<b>三角不等式</b> d(a,c) ≤ d(a,b) + d(b,c)，称为<b>度量 TSP</b>（metric TSP）。度量 TSP 有常数近似算法，<b>一般 TSP 则没有</b>（除非 P=NP）。</p></div>
+<div class="deriv">
+<span class="step">反证：假设存在多项式时间的 ρ-近似算法 A（ρ 为常数）</span>
+<span class="step">给定图 G=(V,E) 的<b>哈密顿回路</b>(HC，NP-完全)判定，构造完全图上的边权：</span>
+<span class="step">&nbsp;&nbsp;&nbsp;若 e∈E 权 = 1；若 e∉E 权 = ρ·|V| + 1 <span class="why">故意放大非边</span></span>
+<span class="step">① 若 G 有 HC：存在权 = |V| 的回路，OPT = |V|，则 A 的输出 ≤ ρ·|V|</span>
+<span class="step">② 若 G 无 HC：任何回路至少用 1 条非边，权 ≥ (ρ|V|+1) + (|V|−1) &gt; ρ·|V|</span>
+<span class="step">③ 于是"A 的输出是否 ≤ ρ|V|"就能<b>区分</b> G 有无 HC</span>
+<span class="step">∴ 可多项式解出 NP-完全的 HC ⟹ P=NP。故 P≠NP 时一般 TSP 无常数近似 ∎</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>度量 TSP 的 MST 2-近似</h2><span class="sub">二倍遍历 + 短路</span></div>
+<div class="deriv">
+<span class="step">前提：满足三角不等式（度量 TSP）</span>
+<span class="step">① <b>MST ≤ OPT</b>：把最优回路删去任意一条边，得到一条哈密顿路径，它是一棵<b>生成树</b>，权 ≥ 最小生成树；而回路权 ≥ 该路径权。故 w(MST) ≤ w(OPT)</span>
+<span class="step">② <b>二倍遍历</b>：把 MST 每条边走两遍，得一条欧拉环游（每点度数变偶），权 = 2·w(MST) ≤ 2·OPT</span>
+<span class="step">③ <b>短路</b>：沿欧拉环游按<b>首次访问</b>顺序跳过已访问点，得哈密顿回路；由三角不等式每次"抄近路"总权<b>不增</b></span>
+<span class="step">∴ 所得回路 ≤ 2·w(MST) ≤ 2·OPT，即 MST 二倍遍历是 <b>2-近似</b> ∎</span>
+</div>
+<div class="formula lg">w(MST) ≤ OPT　⟹　二倍遍历短路 ≤ 2·w(MST) ≤ 2·OPT</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>Christofides 的 3/2-近似</h2><span class="sub">用最小权完美匹配替代"二倍"</span></div>
+<div class="deriv">
+<span class="step">① 求最小生成树 T，w(T) ≤ OPT <span class="why">同上</span></span>
+<span class="step">② 取 T 中<b>奇度顶点</b>集 O（握手定理保证 |O| 为偶数），在 O 上求<b>最小权完美匹配</b> M（多项式可求）</span>
+<span class="step">③ T ∪ M 中每个顶点度数均为偶 → 存在<b>欧拉环游</b></span>
+<span class="step">④ 短路成哈密顿回路（三角不等式不增）</span>
+<span class="step"><b>关键界 w(M) ≤ OPT/2：</b>把 OPT 回路只保留 O 中的点（按序短路），得 O 上一条哈密顿回路，权 ≤ OPT（三角不等式）</span>
+<span class="step">&nbsp;&nbsp;&nbsp;该<b>偶长度</b>环可交替拆成<b>两个完美匹配</b>，二者权之和 ≤ OPT，较小者 ≤ OPT/2；故最小匹配 w(M) ≤ OPT/2</span>
+<span class="step">⑤ 合计：回路 ≤ w(T) + w(M) ≤ OPT + OPT/2 = <b>1.5·OPT</b></span>
+<span class="step">∴ Christofides 是 <b>3/2-近似</b> ∎</span>
+</div>
+<div class="formula lg">Christofides ≤ w(MST) + w(匹配) ≤ OPT + OPT/2 = 3/2·OPT</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>MST 2-近似的代码骨架</h2><span class="sub">C++ · Prim + DFS 前序短路</span></div>
+<div class="code"><span class="cm">// 度量 TSP 的 MST 2-近似：1) 求 MST  2) DFS 前序遍历  3) 按首访顺序短路成回路</span>
+vector&lt;<span class="kw">int</span>&gt; <span class="fn">tsp2approx</span>(<span class="kw">int</span> n, vector&lt;vector&lt;<span class="kw">double</span>&gt;&gt;&amp; d) {
+    vector&lt;<span class="kw">int</span>&gt; par(n, -1); vector&lt;<span class="kw">double</span>&gt; key(n, 1e18); vector&lt;<span class="kw">bool</span>&gt; in(n, <span class="kw">false</span>);
+    key[0] = 0;
+    <span class="kw">for</span> (<span class="kw">int</span> it = 0; it &lt; n; ++it) {          <span class="cm">// Prim 求 MST</span>
+        <span class="kw">int</span> u = -1;
+        <span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt; n; ++i) <span class="kw">if</span> (!in[i] &amp;&amp; (u &lt; 0 || key[i] &lt; key[u])) u = i;
+        in[u] = <span class="kw">true</span>;
+        <span class="kw">for</span> (<span class="kw">int</span> v = 0; v &lt; n; ++v) <span class="kw">if</span> (!in[v] &amp;&amp; d[u][v] &lt; key[v]) { key[v] = d[u][v]; par[v] = u; }
+    }
+    vector&lt;vector&lt;<span class="kw">int</span>&gt;&gt; adj(n);              <span class="cm">// 由 MST 建邻接表</span>
+    <span class="kw">for</span> (<span class="kw">int</span> v = 1; v &lt; n; ++v) { adj[par[v]].<span class="fn">push_back</span>(v); adj[v].<span class="fn">push_back</span>(par[v]); }
+    vector&lt;<span class="kw">int</span>&gt; tour; vector&lt;<span class="kw">bool</span>&gt; seen(n, <span class="kw">false</span>);
+    <span class="fn">function</span>&lt;<span class="kw">void</span>(<span class="kw">int</span>)&gt; dfs = [&amp;](<span class="kw">int</span> u) {   <span class="cm">// DFS 前序，记录首次访问顺序</span>
+        seen[u] = <span class="kw">true</span>; tour.<span class="fn">push_back</span>(u);
+        <span class="kw">for</span> (<span class="kw">int</span> v : adj[u]) <span class="kw">if</span> (!seen[v]) dfs(v);
+    };
+    dfs(0);
+    <span class="kw">return</span> tour;    <span class="cm">// 首访序即哈密顿回路，长度 ≤ 2·MST ≤ 2·OPT</span>
+}</div>
+</section>
+
+<div class="terms">
+  <span class="term"><b>旅行商问题</b>TSP</span>
+  <span class="term"><b>度量 TSP</b>metric TSP</span>
+  <span class="term"><b>三角不等式</b>triangle inequality</span>
+  <span class="term"><b>最小生成树</b>MST</span>
+  <span class="term"><b>欧拉环游</b>Euler tour</span>
+  <span class="term"><b>最小权完美匹配</b>min-weight perfect matching</span>
+  <span class="term"><b>Christofides</b>Christofides algorithm</span>
+</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li><b>对一般 TSP 套用 2-近似 / Christofides。</b>这些结论<b>只对度量 TSP</b>（满足三角不等式）成立；一般 TSP 在 P≠NP 下<b>无任何常数近似</b>。</li>
+  <li><b>近似比方向记反。</b>2-近似指所得回路 ≤ 2·OPT（<b>上界</b>），不是 ≥。</li>
+  <li><b>把 MST≤OPT 说成"MST 是 tour 的子集"。</b>正确理由是：OPT 回路<b>删一条边</b>成生成树，其权 ≥ MST，故 MST ≤ OPT。</li>
+  <li><b>漏证 Christofides 的匹配界。</b>1.5 = 1（w(MST)≤OPT）+ 1/2（w(M)≤OPT/2）；匹配 ≤ OPT/2 来自"偶环交替拆两匹配取较小"，最易被忽略。</li>
+  <li><b>以为匹配可随便配。</b>Christofides 需<b>奇度顶点上的最小权完美匹配</b>（Blossom 算法多项式可求），不是任意匹配。</li>
+  <li><b>混淆"随机"与"近似"。</b>MST 2-近似与 Christofides 都是<b>确定性</b>近似算法，与概率算法无关。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li><b>一般 TSP</b> 在 P≠NP 下没有任何常数近似比（由哈密顿回路归约，放大非边权即可区分）。</li>
+  <li><b>度量 TSP</b>（三角不等式）：w(MST) ≤ OPT；<b>二倍遍历 + 短路</b>得 ≤ 2·MST ≤ 2·OPT，即 <b>2-近似</b>。</li>
+  <li><b>Christofides</b>：MST + 奇度点最小权完美匹配 → 欧拉环游 → 短路，得 <b>3/2-近似</b>。</li>
+  <li>1.5 的来源：<b>w(MST) ≤ OPT</b> 与 <b>w(匹配) ≤ OPT/2</b>（偶环拆两匹配取较小者）。</li>
+  <li>短路每一步靠<b>三角不等式</b>保证总权不增——这是所有度量 TSP 近似的公共支点。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>度量 TSP 用"MST 二倍遍历 + 短路"，得到的近似比是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>3/2</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>2</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>4/3</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>无常数近似比</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>二倍遍历使总权 = 2·w(MST) ≤ 2·OPT，短路（三角不等式）不增，故回路 ≤ 2·OPT，是 <b>2-近似</b>。A 是 Christofides（更优）；D 是<b>一般</b> TSP 的结论，此题前提是度量 TSP。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>Christofides 算法的近似比 3/2 是怎么来的？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>w(MST) ≤ OPT，再乘 3/2</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>w(MST) ≤ OPT 加上奇度点最小匹配 w(M) ≤ OPT/2，合得 3/2·OPT</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>两条 MST 相加除以 2</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>匹配权 ≤ OPT，故 1 + 1 = 2</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>欧拉环游 = T ∪ M，权 = w(MST) + w(M) ≤ OPT + OPT/2 = 1.5·OPT，短路不增，故 B。匹配界 w(M) ≤ OPT/2 来自：OPT 在奇度点集上短路成偶环，交替拆两个完美匹配，取较小者。D 把匹配界错写成 OPT（那只能得 2）。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>对<b>不满足</b>三角不等式的一般 TSP，下列正确的是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>仍可用 MST 得到 2-近似</span></div>
+    <div class="quiz-opt"><span class="mk">B</span><span>用 Christofides 可得 3/2-近似</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>若 P≠NP，则不存在任何多项式时间的常数近似算法</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>存在 FPTAS</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>由哈密顿回路归约可证：若一般 TSP 有多项式常数近似，就能多项式判定 HC，推出 P=NP。故 P≠NP 下一般 TSP <b>无任何常数近似比</b>，C 对。A、B 的前提"短路不增"依赖三角不等式，一般 TSP 不成立。D 更不可能——常数近似都没有，遑论 FPTAS。</div>
+</div>
+</div>
+
+<div class="page-nav"><a href="08-knapsack.html"><span class="dir">← 上一节</span><span class="name">背包近似</span></a><a href="index.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">返回总览</span></a></div>
+<div class="footer">算法设计与分析 · <b>第12章 概率算法和近似算法</b> · 强交互可视化版<br/>随机 · 近似 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(156,116,32,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let pts=[], mstEdges=[], tourPath=[];
+function randomize(){
+  pts=Array.from({length:10},()=>({x:60+Math.random()*880,y:40+Math.random()*320}));
+  mstEdges=[]; tourPath=[]; draw(); mw.textContent='—'; tw.textContent='—'; hud.textContent='随机点';
+}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+function prim(){
+  const n=pts.length, inT=new Array(n).fill(false), key=new Array(n).fill(1e18), par=new Array(n).fill(-1);
+  key[0]=0;
+  for(let it=0;it<n;it++){
+    let u=-1;
+    for(let i=0;i<n;i++) if(!inT[i]&&(u<0||key[i]<key[u])) u=i;
+    inT[u]=true;
+    for(let v=0;v<n;v++) if(!inT[v]){ const d=dist(pts[u],pts[v]); if(d<key[v]){ key[v]=d; par[v]=u; } }
+  }
+  mstEdges=[]; let w=0;
+  for(let v=1;v<n;v++){ mstEdges.push([par[v],v]); w+=dist(pts[par[v]],pts[v]); }
+  return w;
+}
+function buildTour(){
+  // adjacency from MST
+  const adj=Array.from({length:pts.length},()=>[]);
+  mstEdges.forEach(([u,v])=>{ adj[u].push(v); adj[v].push(u); });
+  const order=[], seen=new Set();
+  function dfs(u){ seen.add(u); order.push(u); for(const v of adj[u]) if(!seen.has(v)) dfs(v); }
+  dfs(0); tourPath=order; return order;
+}
+function tourLen(order){
+  let s=0; for(let i=0;i<order.length;i++) s+=dist(pts[order[i]], pts[order[(i+1)%order.length]]);
+  return s;
+}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  if(mstEdges.length){
+    ctx.strokeStyle='#3B7A57'; ctx.lineWidth=3;
+    mstEdges.forEach(([u,v])=>{
+      ctx.beginPath(); ctx.moveTo(pts[u].x,pts[u].y); ctx.lineTo(pts[v].x,pts[v].y); ctx.stroke();
+    });
+  }
+  if(tourPath.length){
+    ctx.strokeStyle='#9C7420'; ctx.lineWidth=2.5; ctx.setLineDash([6,4]);
+    ctx.beginPath(); tourPath.forEach((i,t)=>{ const p=pts[i]; t?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y); });
+    ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
+  }
+  pts.forEach((p,i)=>{
+    ctx.beginPath(); ctx.arc(p.x,p.y,9,0,Math.PI*2);
+    ctx.fillStyle='#1D1B16'; ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='10px sans-serif'; ctx.textAlign='center';
+    ctx.fillText(i, p.x, p.y+3);
+  });
+  ctx.textAlign='left';
+}
+mst.onclick=()=>{ const w=prim(); mw.textContent=w.toFixed(1); tourPath=[]; draw(); hud.textContent='MST 完成'; };
+document.getElementById('tour').onclick=()=>{
+  if(!mstEdges.length) prim();
+  const o=buildTour(); const t=tourLen(o);
+  tw.textContent=t.toFixed(1); draw(); hud.textContent='近似回路 '+t.toFixed(1);
+};
+all.onclick=async()=>{
+  const w=prim(); mw.textContent=w.toFixed(1); draw(); hud.textContent='MST…'; await sleep(500);
+  const o=buildTour(); const t=tourLen(o); tw.textContent=t.toFixed(1); draw();
+  hud.textContent=`2-近似示意 · tour/MST≈${(t/w).toFixed(2)}`;
+};
+document.getElementById('rand').onclick=randomize; randomize();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

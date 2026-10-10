@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第5章 回溯法 · 算法互动课堂</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/common.css">
+</head>
+<body data-chapter="ch05">
+<button class="menu-toggle" onclick="toggleSidebar()" aria-label="菜单">☰</button>
+
+<div class="app-shell">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <a href="../index.html">
+      <div class="logo"><span>AD</span>算法互动课堂</div>
+      <div class="sub">玩中学 · 看见算法</div>
+    </a>
+  </div>
+  <div class="nav-section">本页导航</div>
+  <a class="nav-link toc" href="#s1">开场</a>
+<a class="nav-link toc" href="#s2">N皇后</a>
+<a class="nav-link toc" href="#s3">解空间</a>
+<a class="nav-link toc" href="#s4">测验</a>
+  <div class="nav-section">全部章节</div>
+  <a class="nav-link" href="ch01-intro.html"><span class="dot"></span>🚀 01 绪论</a>
+<a class="nav-link" href="ch02-recursion.html"><span class="dot"></span>🪞 02 递归</a>
+<a class="nav-link" href="ch03-brute.html"><span class="dot"></span>🔍 03 穷举法</a>
+<a class="nav-link" href="ch04-divide.html"><span class="dot"></span>⚔️ 04 分治法</a>
+<a class="nav-link active" href="ch05-backtrack.html"><span class="dot"></span>♟️ 05 回溯法</a>
+<a class="nav-link" href="ch06-branch.html"><span class="dot"></span>🗺️ 06 分支限界</a>
+<a class="nav-link" href="ch07-dp.html"><span class="dot"></span>💎 07 动态规划</a>
+<a class="nav-link" href="ch08-greedy.html"><span class="dot"></span>🎯 08 贪心法</a>
+<a class="nav-link" href="ch09-graph.html"><span class="dot"></span>🕸️ 09 图算法</a>
+<a class="nav-link" href="ch10-geometry.html"><span class="dot"></span>📐 10 计算几何</a>
+<a class="nav-link" href="ch11-complexity.html"><span class="dot"></span>🌌 11 计算复杂性</a>
+<a class="nav-link" href="ch12-prob-approx.html"><span class="dot"></span>🎲 12 概率与近似</a>
+  <div class="nav-section">返回</div>
+  <a class="nav-link" href="../index.html">🏠 课程大厅</a>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a href="../index.html">课程大厅</a> <span>/</span>
+      <span>第5章 回溯法</span>
+    </div>
+    <span class="badge badge-fun">🎮 互动课堂</span>
+  </div>
+  <div class="progress-track" title="阅读进度"><div class="fill"></div></div>
+  
+  <div class="card card-hero fade-in" data-section="s1" id="s1">
+    <span class="hero-emoji">♟️</span>
+    <span class="badge badge-fun" style="margin-left:.5rem">第5章 · 回溯</span>
+    <h1 style="margin-top:.6rem">能进则进，不行就退</h1>
+    <p style="color:var(--text-dim);margin-top:.7rem">回溯 = <strong>DFS + 剪支</strong>。像走迷宫：这条路堵了，退回上一个岔路口再试。</p>
+  </div>
+
+  <section data-section="s2" id="s2">
+    <h2>N 皇后 · 皇室试错秀</h2>
+    <div class="demo-panel">
+      <div class="demo-header">
+        <h3><span class="pulse"></span> Queens Drama</h3>
+        <div class="demo-controls" style="margin:0">
+          <div class="slider-group"><label>N</label><input type="range" id="nqN" min="4" max="8" value="4"><span class="val" id="nqNVal">4</span></div>
+          <div class="speed-chips" id="nqSpeed">
+            <button data-speed="200">慢</button>
+            <button data-speed="80" class="on">中</button>
+            <button data-speed="25">快</button>
+          </div>
+          <button class="btn btn-primary" id="nqPlay">开搜</button>
+          <button class="btn" id="nqReset">重置</button>
+        </div>
+      </div>
+      <div class="demo-body">
+        <canvas id="nqCanvas" width="420" height="420" style="width:min(100%,420px);height:auto;display:block;margin:0 auto;border-radius:14px;border:1px solid var(--border);box-shadow:0 0 40px rgba(255,142,200,.12)"></canvas>
+        <div class="status-bar" id="nqStatus">冲突就剪支 · 成功就放烟花 🎆</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-section="s3" id="s3">
+    <h2>子集树 vs 排列树</h2>
+    <div class="card-grid">
+      <div class="feature-card"><span class="ico">🌿</span><h3>子集树</h3><p>选/不选 · 幂集 · 0/1背包 · O(2ⁿ) 结点</p></div>
+      <div class="feature-card"><span class="ico">🔀</span><h3>排列树</h3><p>剩余元素轮流站位 · 全排列 · TSP · O(n!)</p></div>
+    </div>
+  </section>
+
+  <section data-section="s4" id="s4">
+    <h2>挑战测验</h2>
+    <div class="quiz-card" data-quiz id="q5" data-xp="40">
+      <span class="q-badge">Q · +40XP</span>
+      <p style="font-weight:700;margin:.6rem 0 .7rem">回溯在解空间上本质是？</p>
+      <button class="quiz-option" data-correct="0">广度优先</button>
+      <button class="quiz-option" data-correct="1">深度优先</button>
+      <button class="quiz-option" data-correct="0">Dijkstra</button>
+      <button class="quiz-option" data-correct="0">随机游走</button>
+      <div class="quiz-feedback callout callout-success" style="display:none;margin-top:.8rem">回溯≈DFS；分支限界更偏 BFS/优先队列。</div>
+    </div>
+  </section>
+
+  <div class="chapter-nav"><a href="ch04-divide.html"><span class="dir">← 上一章</span><span class="name">⚔️ 第4章 分治法</span></a><a href="ch06-branch.html" style="text-align:right"><span class="dir">下一章 →</span><span class="name">🗺️ 第6章 分支限界</span></a></div>
+
+</main>
+</div>
+<script src="../assets/common.js"></script>
+<script>
+
+const nqSp=makeSpeed(80); nqSp.bind(document.getElementById('nqSpeed'));
+let nqN=4;
+function nqSafe(b,r,c){
+  for(let i=0;i<r;i++) if(b[i]===c||b[i]-i===c-r||b[i]+i===c+r) return false;
+  return true;
+}
+function nqSolve(n){
+  const steps=[], board=Array(n).fill(-1);
+  function dfs(row){
+    if(row===n){ steps.push({board:board.slice(),ok:true}); return true; }
+    for(let c=0;c<n;c++){
+      board[row]=c; steps.push({board:board.slice(),row,c});
+      if(nqSafe(board,row,c)){ if(dfs(row+1)) return true; }
+      else steps.push({board:board.slice(),bad:true,row,c});
+      board[row]=-1; steps.push({board:board.slice(),back:true,row});
+    }
+    return false;
+  }
+  dfs(0); return steps;
+}
+function nqDraw(board, meta={}){
+  const cv=document.getElementById('nqCanvas'), ctx=cv.getContext('2d');
+  const n=board.length, s=cv.width/n;
+  for(let r=0;r<n;r++) for(let c=0;c<n;c++){
+    const light=(r+c)%2===0;
+    ctx.fillStyle=light?'#1e2a4a':'#121a30';
+    ctx.fillRect(c*s,r*s,s,s);
+  }
+  board.forEach((c,r)=>{
+    if(c<0) return;
+    ctx.font=`${s*0.55}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle=meta.bad&&meta.row===r?'#ff7a90':'#ffc14d';
+    ctx.shadowColor=ctx.fillStyle; ctx.shadowBlur=12;
+    ctx.fillText('♛', c*s+s/2, r*s+s/2+2);
+    ctx.shadowBlur=0;
+  });
+}
+function doNqReset(){
+  nqN=+document.getElementById('nqN').value;
+  nqDraw(Array(nqN).fill(-1));
+  setStatus('#nqStatus',`N=${nqN} · 准备开搜`);
+}
+document.getElementById('nqN').oninput=function(){ document.getElementById('nqNVal').textContent=this.value; doNqReset(); };
+document.getElementById('nqReset').onclick=doNqReset;
+document.getElementById('nqPlay').onclick=async()=>{
+  const steps=nqSolve(nqN);
+  for(const st of steps){
+    nqDraw(st.board,st);
+    if(st.ok){ setStatus('#nqStatus','<strong>找到解！</strong> 🎉'); confetti(55); addXP(20,'N皇后通关'); }
+    else if(st.bad) setStatus('#nqStatus',`💥 冲突 r${st.row} c${st.c} · 剪！`);
+    else if(st.back) setStatus('#nqStatus',`↩️ 回溯离开行 ${st.row}`);
+    else setStatus('#nqStatus',`尝试 ♛ → (${st.row},${st.c})`);
+    await sleep(st.ok?700:nqSp.ms);
+  }
+};
+doNqReset();
+
+</script>
+</body>
+</html>

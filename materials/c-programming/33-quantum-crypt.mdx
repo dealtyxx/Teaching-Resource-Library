@@ -1,0 +1,97 @@
+---
+module: 6
+moduleName: 指针
+order: 33
+title: 量子通讯信息加密
+level: 基础必做
+scene: 思政+信创
+knowledge: [指针操作, 字符串加密, 内存操作]
+stars: 5
+minutes: 110
+goal: 指针在通信安全中的应用
+sizheng: 墨子号让物理定律替密钥站岗——把密钥用对，是地面代码的责任
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import QuantumCryptLab from '../../components/react/QuantumCryptLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：一支指针，走完加密全程
+
+2016 年"墨子号"量子科学实验卫星升空，实现千公里级**量子密钥分发**（QKD）：光子的量子态一被窃听即坍缩，窃听必然留痕。它分发的密钥怎么用？最经典的搭配是**异或加密**：
+
+```c
+*p = *p ^ key[i % klen];   /* 逐字节异或 */
+```
+
+异或的**自反性**（`A^K^K == A`）意味着：同一个函数、同一把密钥，第一次调用是加密，对密文再调一次就是解密。
+指针在这里是天然的工作载体：`p` 从缓冲区头走到尾，逐字节**原地改写**（in-place）——不开新数组、不留明文副本，这在安全代码里本身就是一种美德。
+
+## 一步一步看逐字节异或
+
+<CStepRunner
+  client:visible
+  title="加密模拟：3 个字节的一次一密"
+  badge="指针加密模拟"
+  doneNote="加密与解密是同一段代码的两次执行——异或自反性 A^K^K=A 的威力。指针 p 全程原地改写，内存里从未同时存在明文和密文两份拷贝。"
+  code={`#include <stdio.h>
+
+void xor_crypt(unsigned char *buf, int len,
+               const unsigned char *key) {
+    unsigned char *p = buf;
+    for (int i = 0; i < len; i++) {
+        *p = *p ^ key[i % 2];
+        p++;
+    }
+}
+
+int main(void) {
+    unsigned char msg[3] = {0x42, 0x44, 0x53};
+    unsigned char key[2] = {0x5A, 0xC3};
+    xor_crypt(msg, 3, key);  /* 加密 */
+    xor_crypt(msg, 3, key);  /* 解密 */
+    printf("%c%c%c\\n", msg[0], msg[1], msg[2]);
+    return 0;
+}`}
+  steps={[
+    { line: 12, desc: "明文 {0x42,0x44,0x53}（恰好是 ASCII 的 'B','D','S'——北斗缩写）。", vars: { msg: '42 44 53' } },
+    { line: 6, desc: '第一次调用（加密）i=0：*p = 0x42 ^ 0x5A = 0x18。原地覆盖，明文字节已不存在。', vars: { i: '0', '*p': '0x18' } },
+    { line: 6, desc: 'i=1：0x44 ^ 0xC3 = 0x87。密钥按 i%2 轮换。', vars: { i: '1', '*p': '0x87' } },
+    { line: 6, desc: 'i=2：0x53 ^ 0x5A = 0x09。加密完成，缓冲区=密文 {18 87 09}，信道上跑的就是它。', vars: { msg: '18 87 09' } },
+    { line: 15, desc: '第二次调用（解密）：0x18^0x5A=0x42，0x87^0xC3=0x44，0x09^0x5A=0x53——每个字节都被"异或回来"。', vars: { msg: '42 44 53' } },
+    { line: 16, desc: '打印还原的明文。同一函数，两种身份。', out: 'BDS' },
+  ]}
+/>
+
+## 动手实验：给一句话上量子密钥
+
+<QuantumCryptLab client:only="react" />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：实现 `xor_crypt` 并加密你的名字（UTF-8 多字节——项目 23 的字节视角），打印加密前后的十六进制对照。
+2. **AI 优化进阶版**：让 AI 增加"密钥销毁"函数（用后清零密钥内存）。审查它用的 `memset`——编译器可能把"没人再读的写入"优化删掉！问 AI 知不知道 `volatile` 或 `memset_s`（这是密码工程的真实深坑）。
+3. **信创加固定稿版**：拒绝 NULL 与零长度输入；密钥长度作参数并校验；文档注明"短密钥循环仅作教学，生产必须等长一次一密"——诚实标注安全边界，是安全工程师的第一操守。
+
+## 素养与思政
+
+"墨子号"首席科学家潘建伟说：量子通信要"在别人卡脖子之前，先把路走通"。从墨子号到"京沪干线"，中国在量子保密通信领域实现了从跟跑到领跑。
+但再强的量子密钥，落到地面也要经过你这样一段 C 代码——**密钥分发靠物理，密钥使用靠工程**。指针走过的每一个字节、用后销毁的每一段密钥内存，都是这条安全链路上不可替代的一环。国之重器与手中代码，从来是同一条战线。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="异或加密中，对密文再执行一次相同的异或操作会得到？"
+  options={['更深的密文', '原始明文——因为 A^K^K = A^0 = A', '全零', '随机值']}
+  answer={1}
+  explain="任何数异或自身为 0，异或 0 为自身：A^K^K = A^(K^K) = A^0 = A。自反性让加密解密共用一个函数——优雅，但也提醒你：密钥一旦泄露，密文形同明文。"
+/>
+
+<QuizItem
+  client:visible
+  question="为什么『原地加密』（*p 直接覆盖）比『开新数组存密文』在安全上更好？"
+  options={['省下的内存能加快速度', '内存中不会同时存在明文与密文两份数据，减少明文残留被读取的风险', 'C 语言不支持两个数组', '没有区别']}
+  answer={1}
+  explain="安全编码关心『明文在内存里存在了多久、几份』。原地覆盖让明文即刻消失；配合用后销毁密钥，攻击面进一步收窄——指针的内存操作能力在安全领域直接兑现为防护能力。"
+/>

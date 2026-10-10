@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>团问题 · 第11章 计算复杂性</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">11</div>算法可视化 · <span>第11章 计算复杂性</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-easy-hard.html">易解难解</a><a class="pill" href="02-decision.html">判定优化</a><a class="pill" href="03-turing.html">图灵机</a><a class="pill" href="04-p-np.html">P与NP</a><a class="pill" href="05-classes.html">类关系</a><a class="pill" href="06-reduce.html">归约</a><a class="pill" href="07-npc.html">NPC证明</a><a class="pill" href="08-sat.html">SAT</a><a class="pill active" href="09-clique.html">团问题</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 9 · 经典 NPC</div>
+  <h1>团 · 顶点覆盖 · 哈密顿…</h1>
+  <p>在图上找大小 ≥k 的完全子图（团）。判定版是经典 NPC。右侧点将台浏览更多问题。</p>
+</section>
+
+<div class="objectives">
+  <h3>学习目标</h3>
+  <ol>
+    <li>能定义<b>团（clique）</b>与 <b>k-团</b>：顶点两两相邻的完全子图；并写出 Clique 判定问题。</li>
+    <li>能证明 <b>Clique ∈ NP</b>（顶点集为证书，O(k²) 验证）。</li>
+    <li>能复现经典归约 <b>3-SAT ≤<sub>p</sub> Clique</b> 的<b>构造</b>：每子句一组顶点、跨子句且非矛盾才连边、取 k = 子句数。</li>
+    <li>能证明该归约的<b>正确性</b>：φ 可满足 ⟺ G 中存在 m-团。</li>
+    <li>能说明<b>团 / 独立集 / 顶点覆盖</b>借补图相互转换的关系。</li>
+  </ol>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <div class="toolbar">
+      <label>k = <b id="kv">3</b></label>
+      <input type="range" id="kr" min="2" max="5" value="3" style="width:140px;accent-color:#A02C55"/>
+      <button class="btn primary" id="run">▶ 搜索 k-团</button>
+    </div>
+    <div class="stage-wrap light" style="height:360px">
+      <canvas class="stage" id="cv" width="480" height="360"></canvas>
+      <div class="stage-hud"><span class="hud-pill light">Clique</span><span class="hud-pill light" id="hud">—</span></div>
+    </div>
+    <div class="tip" id="tip">点击运行，暴力枚举大小为 k 的子集并检查是否两两相邻。</div>
+  </div>
+  <div class="card">
+    <span class="badge violet">点将台</span>
+    <div class="list-step"><div class="n">团</div><div class="body"><b>Clique</b> — 是否存在大小 ≥k 的完全子图</div></div>
+    <div class="list-step"><div class="n">VC</div><div class="body"><b>顶点覆盖</b> — 是否存在 ≤k 个点盖住所有边</div></div>
+    <div class="list-step"><div class="n">HC</div><div class="body"><b>哈密顿回路</b> — 是否存在过每点恰一次的回路</div></div>
+    <div class="list-step"><div class="n">TSP</div><div class="body"><b>TSP 判定</b> — 是否存在权 ≤K 的回路</div></div>
+    <div class="list-step"><div class="n">色</div><div class="body"><b>图着色</b> — m≥3 着色判定 NPC</div></div>
+    <div class="list-step"><div class="n">Σ</div><div class="body"><b>子集和</b> — 是否存在子集和为 t（弱 NPC）</div></div>
+    <div class="formula" style="margin-top:12px">独立集 α · 团 ω · 顶点覆盖 β 紧密相关</div>
+  </div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>一、团与 Clique 判定问题</h2><span class="sub">Clique</span></div>
+  <div class="defn"><span class="lbl">定义 1 · 团 / k-团</span>
+    <p>无向图 G = (V, E) 中，顶点子集 S ⊆ V 称为一个<b>团（clique）</b>，当且仅当 S 中<b>任意两个顶点都有边相连</b>（即 S 诱导出一个完全子图）。含 k 个顶点的团称为 <b>k-团</b>，相当于一个 K<sub>k</sub>。</p>
+  </div>
+  <div class="defn"><span class="lbl">定义 2 · Clique 判定问题</span>
+    <p><b>Clique</b>：给定图 G 与整数 k，判定 G 中<b>是否存在大小 ≥ k 的团</b>。它是经典的 NP 完全问题。</p>
+  </div>
+  <div class="defn thm"><span class="lbl">定理 3 · Clique ∈ NP</span>
+    <p>取「构成团的 k 个顶点集合」作为证书：验证器只需检查这 k 个顶点<b>两两之间都有边</b>，共 C(k,2)=O(k²) 次查询，多项式时间完成。故 Clique ∈ NP。要证它是 NPC，还需下面的归约。</p>
+  </div>
+  <p class="desc">左侧演示：拖动 k、点击「搜索 k-团」，程序暴力枚举大小为 k 的顶点子集并检查是否两两相邻——直观感受「找团」的组合爆炸。</p>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>二、经典归约 3-SAT ≤<sub>p</sub> Clique</h2><span class="sub">The classic reduction</span></div>
+  <p class="desc">目标：把任意 3-SAT 实例 φ 多项式时间地变成一个图 G 与整数 k，使得 <b>φ 可满足 ⟺ G 有 k-团</b>。这样 3-SAT 的难度就传给了 Clique。</p>
+
+  <div class="defn"><span class="lbl">构造 · 从 φ 造 (G, k)</span>
+    <p>设 φ = C<sub>1</sub> ∧ … ∧ C<sub>m</sub>，每个子句 C<sub>i</sub> = (ℓ<sub>i1</sub> ∨ ℓ<sub>i2</sub> ∨ ℓ<sub>i3</sub>)。<br/>① <b>顶点</b>：为<b>每个子句里的每个文字出现</b>各造一个顶点，共 3m 个，按子句分成 m 组（每组 3 个顶点）。<br/>② <b>连边</b>：给两个顶点 u（属子句 i）、v（属子句 j）连边，<b>当且仅当</b>：<b>(a) i ≠ j（来自不同子句）</b> 且 <b>(b) 两文字不矛盾</b>（不是同一变量的 x 与 ¬x）。<br/>③ <b>取 k = m</b>（子句数）。<br/>关键：<b>同一子句内的三个顶点彼此不连边</b>（因 i=j），跨子句时只要不互为否定就连边。</p>
+  </div>
+  <div class="formula lg">连边(u,v) ⟺ 子句不同 且 文字不互斥 · k = m</div>
+  <p class="desc">图规模 O(3m) 个顶点、O((3m)²) 条边，构造用时多项式，故 f 是合法的多项式时间归约翻译。</p>
+
+  <div class="defn prop"><span class="lbl">正确性 · φ 可满足 ⟺ G 有 m-团</span>
+    <p>下面两个方向都要证，映射才「双向保真」。</p>
+  </div>
+  <div class="deriv">
+    <span class="step"><b>(⇒)</b> 设 φ 有满足赋值 τ。每个子句至少一个真文字，各选一个，得 m 个顶点（每组一个） <span class="why">每子句取一真文字</span></span>
+    <span class="step">任两个所选顶点：来自不同子句（i≠j，条件 a 满足）；且都在 τ 下为真，故不会是 x 与 ¬x（不矛盾，条件 b 满足）<span class="why">相容</span></span>
+    <span class="step">⇒ 这 m 个顶点两两有边 ⇒ 构成 <b>m-团</b> <span class="why">得到团</span></span>
+    <span class="step"><b>(⇐)</b> 设 G 有 m-团 S。同组顶点无边，故 S 每组至多取一个；|S|=m=组数 ⇒ 每组<b>恰好一个</b> <span class="why">团跨越全部子句</span></span>
+    <span class="step">S 中顶点两两有边 ⇒ 两两不矛盾 ⇒ 令这些文字全为真的赋值<b>无冲突、可实现</b> <span class="why">相容⇒可赋值</span></span>
+    <span class="step">每个子句都有一个被选文字为真 ⇒ 每子句为真 ⇒ φ 可满足 <span class="why">证毕</span></span>
+  </div>
+  <div class="tip info"><strong>为什么条件缺一不可：</strong>「跨子句(i≠j)」保证团必须<b>横跨全部 m 个子句</b>（同组无边，团里每组顶多一个），从而覆盖每一条子句；「不矛盾」保证被选中的文字能<b>被同一个赋值同时置真</b>，不会出现 x=1 又要 x=0。二者合起来才让「m-团」精确对应「满足赋值」。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>三、团 · 独立集 · 顶点覆盖</h2><span class="sub">Three faces of one problem</span></div>
+  <div class="defn prop"><span class="lbl">性质 4 · 补图三兄弟</span>
+    <p>设 G 有 n 个顶点，Ḡ 为其<b>补图</b>（原有边则无、原无边则有）。对顶点子集 S：<br/><b>S 是 G 的团 ⟺ S 是 Ḡ 的独立集</b>（S 内两两<b>无</b>边）<b>⟺ V∖S 是 Ḡ 的顶点覆盖</b>。<br/>于是「G 有 k-团」⟺「Ḡ 有大小 k 的独立集」⟺「Ḡ 有大小 n−k 的顶点覆盖」，三者多项式等价，同属 NPC。</p>
+  </div>
+  <div class="tip warn">这三者的互换<b>只依赖补图与取补集</b>，是纯组合恒等式，<b>与二部图上的 König 定理无关</b>——König（最大匹配 = 最小顶点覆盖）只在二部图成立，而这里的团/覆盖等价对<b>一般图</b>都成立。</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span>
+  <ul>
+    <li><b>连边规则记反</b>：应是「<b>跨子句且不矛盾</b>才连边」。写成「同子句连边」或「矛盾也连边」，正确性立刻崩。</li>
+    <li><b>k 取错</b>：k = <b>子句数 m</b>，不是变量个数、也不是 3m。团必须每组恰选一个、横跨全部子句。</li>
+    <li><b>归约方向反</b>：这里是 <b>3-SAT ≤<sub>p</sub> Clique</b>（用 Clique 证 SAT 难度传给团，即证 Clique 难），不是 Clique ≤<sub>p</sub> 3-SAT。</li>
+    <li>把「团」误当「连通子图」。团要求<b>两两相邻</b>（诱导完全图），连通只要求存在路径，弱得多。</li>
+    <li>忘了<b>同一子句内顶点不连边</b>。若同组连边，团可能挤在一个子句里，就无法对应「每子句各真一个文字」。</li>
+    <li>把团/独立集/顶点覆盖的等价<b>误挂到 König 定理</b>。补图三兄弟对一般图成立；König 只管二部图，二者别混。</li>
+  </ul>
+</div>
+
+<div class="summary"><span class="lbl">本节小结</span>
+  <ul>
+    <li><b>团</b>：两两相邻的顶点集（诱导完全子图）；Clique 判定「是否有大小 ≥ k 的团」，是经典 NPC。</li>
+    <li><b>Clique ∈ NP</b>：顶点集为证书，O(k²) 核对两两有边。</li>
+    <li><b>3-SAT ≤<sub>p</sub> Clique</b> 构造：每子句每文字一个顶点；<b>跨子句且不矛盾</b>才连边；<b>k = m</b>。</li>
+    <li>正确性：φ 可满足 ⟺ G 有 m-团。团横跨全部子句（覆盖），文字相容（可同赋真值）。</li>
+    <li><b>团 / 独立集 / 顶点覆盖</b>经补图与取补集相互转换，同属 NPC；与二部图的 König 定理无关。</li>
+  </ul>
+</div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>在 3-SAT ≤<sub>p</sub> Clique 的归约中，两个顶点之间连边的条件是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>两个文字属于同一个子句</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>两个文字来自不同子句，且不是同一变量的 x 与 ¬x（不矛盾）</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>两个文字相同</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>只要两个文字互为否定就连边</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。连边须同时满足「跨子句(i≠j)」与「不矛盾」。A 正相反——同子句<b>不</b>连边（保证团横跨全部子句）；D 也反了，互为否定（x 与 ¬x）恰恰<b>不</b>连边，否则无法用同一赋值置真。</div>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>该归约中团的目标大小 k 应取多少？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>变量的个数 n</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>子句的个数 m</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>顶点总数 3m</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>任意值都可以</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。取 k=m。因为同一子句的顶点互不连边，团在每个子句组里至多取一个；要凑齐 m 个就必须<b>每组恰一个</b>，正好对应「每个子句各选一个真文字」。取 n 或 3m 都无法建立这一对应。</div>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>关于「团、独立集、顶点覆盖三者等价」，正确的说法是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>它们的等价来自二部图上的 König 定理</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>S 是 G 的团 ⟺ S 是补图 Ḡ 的独立集 ⟺ V∖S 是 Ḡ 的顶点覆盖，对一般图都成立</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>三者都在 P 中，可多项式求解</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>团在原图，独立集必须也在原图同一个 S 上成立</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。三者靠<b>补图 + 取补集</b>相互转换，是对一般图成立的组合恒等式。A 张冠李戴——König 定理只管二部图匹配/覆盖；C 错在它们同属 NPC（未知多项式算法）；D 错在独立集是在<b>补图</b> Ḡ 上、对同一个 S 成立。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="08-sat.html"><span class="dir">← 上一节</span><span class="name">SAT</span></a><a href="index.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">返回总览</span></a></div>
+<div class="footer">算法设计与分析 · <b>第11章 计算复杂性</b> · 强交互可视化版<br/>增长 · 归约 · SAT · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(179,69,59,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const pos=[[240,50],[400,120],[380,260],[100,260],[80,120],[240,180]];
+// edges undirected
+const edges=[[0,1],[1,2],[2,3],[3,4],[4,0],[0,2],[1,3],[4,1],[0,3],[1,5],[2,5],[3,5],[4,5]];
+function hasEdge(a,b){ return edges.some(([u,v])=>(u===a&&v===b)||(u===b&&v===a)); }
+function draw(hi=new Set(), bad=new Set()){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  edges.forEach(([u,v])=>{
+    const both=hi.has(u)&&hi.has(v);
+    ctx.strokeStyle=both?'#A02C55':'#D5CFC1';
+    ctx.lineWidth=both?3.5:1.5;
+    ctx.beginPath(); ctx.moveTo(pos[u][0],pos[u][1]); ctx.lineTo(pos[v][0],pos[v][1]); ctx.stroke();
+  });
+  pos.forEach((p,i)=>{
+    ctx.beginPath(); ctx.arc(p[0],p[1],16,0,Math.PI*2);
+    if(hi.has(i)){ ctx.fillStyle='#A02C55'; }
+    else if(bad.has(i)){ ctx.fillStyle='#D0A344'; }
+    else ctx.fillStyle='#7A746A';
+    ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText(String.fromCharCode(65+i), p[0], p[1]+4);
+  });
+  ctx.textAlign='left';
+}
+function* comb(n,k){
+  const c=[];
+  function* rec(s){
+    if(c.length===k){ yield c.slice(); return; }
+    for(let i=s;i<n;i++){ c.push(i); yield* rec(i+1); c.pop(); }
+  }
+  yield* rec(0);
+}
+async function search(){
+  const k=+kr.value; kv.textContent=k;
+  for(const S of comb(pos.length,k)){
+    const set=new Set(S);
+    draw(set);
+    hud.textContent='检查 {'+S.map(i=>String.fromCharCode(65+i)).join(',')+'}';
+    await sleep(180);
+    let ok=true;
+    for(let i=0;i<S.length&&ok;i++) for(let j=i+1;j<S.length;j++) if(!hasEdge(S[i],S[j])){ ok=false; break; }
+    if(ok){
+      draw(set); hud.textContent='找到 '+k+'-团！';
+      tip.innerHTML='<strong>成功：</strong>子图诱导为完全图 K<sub>'+k+'</sub>。';
+      return;
+    }
+  }
+  hud.textContent='无 '+k+'-团'; tip.textContent='该图不存在大小为 k 的团（或需换 k）。';
+}
+kr.oninput=()=>{ kv.textContent=kr.value; draw(); };
+run.onclick=search; draw();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

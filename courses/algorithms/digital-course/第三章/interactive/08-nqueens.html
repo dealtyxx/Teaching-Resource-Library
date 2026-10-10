@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>n皇后 · 第3章 穷举法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">03</div>算法可视化 · <span>第3章 穷举法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-enumerate.html">列举</a><a class="pill" href="03-prefix.html">前缀和</a><a class="pill" href="04-uf.html">并查集</a><a class="pill" href="05-maxsub.html">最大子段</a><a class="pill" href="06-powerset.html">幂集</a><a class="pill" href="07-perm.html">全排列</a><a class="pill active" href="08-nqueens.html">n皇后</a><a class="pill" href="09-assign-tsp.html">分配TSP</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 8 · 加深</div><h1>n 皇后穷举</h1>
+<p>枚举列的排列，检查对角线。展示搜索与全部解轮播。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>解释</b>为什么用"列的排列"表示候选解，说明这一表示如何把 O(n<sup>n</sup>) 的解空间压缩到 O(n!)。</li>
+  <li>能够<b>推导</b>对角线冲突的判定条件：两皇后同对角线 &hArr; |行差| = |列差| &hArr; |q[k] &minus; q[i]| = |k &minus; i|。</li>
+  <li>能够<b>写出</b> n 皇后的 C++ 穷举/回溯代码，并说明冲突检查放在哪一层。</li>
+  <li>能够<b>对比</b>逐格暴力、列排列穷举与回溯剪支三种做法的解空间规模。</li>
+</ol></div>
+<div class="card">
+  <div class="toolbar">
+    <label>n=<b id="qn">4</b></label><input type="range" id="qr" min="4" max="8" value="4" style="width:120px;accent-color:#356F62"/>
+    <button class="btn primary" id="run">▶ 搜索一个解</button>
+    <button class="btn" id="all">轮播全部解</button>
+  </div>
+  <div style="text-align:center" id="board"></div>
+  <div class="stat-row"><div class="stat"><span>解数</span><b class="p" id="sc">0</b></div></div>
+  <div class="log" id="log">—</div>
+</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul><li><b>解向量含义</b>：<code>q[i]</code> 记第 <code>i</code> 行皇后所在列。逐行放一个天然避免了“同行冲突”。</li><li><b>同列判定</b>：<code>q[i]==q[k]</code> 即同列。</li><li><b>同对角线判定</b>：<code>|q[i]&minus;q[k]| == |i&minus;k|</code> 一式同时覆盖主、副对角线，别只判一条。</li><li><b>用排列穷举时</b>：排列已保证列互不相同（同列自动排除），只需再判对角线。</li><li><b>解数记错</b>：8 皇后共 <b>92</b> 个解，不是 8。</li><li><b>下标越界</b>：<code>q[i]</code> 取值范围 <code>0..n&minus;1</code>，检查冲突只需与已放置的前 <code>i</code> 行比较。</li></ul></div>
+<div class="summary"><span class="lbl">本节小结</span><ul><li>用解向量 <code>q[0..n&minus;1]</code>，<code>q[i]</code> 为第 i 行皇后的列号，逐行放置。</li><li>两皇后 <code>(i,q[i])</code>、<code>(k,q[k])</code> 冲突 ⟺ 同列 <code>q[i]==q[k]</code> 或同对角线 <code>|q[i]&minus;q[k]|==|i&minus;k|</code>。</li><li>穷举全排列判对角线为 <code>O(n!&middot;n)</code>；回溯边扩展边剪枝远快于纯穷举。</li><li>解的规模随 n 增长不单调：4→2、5→10、6→4、7→40、8→92。</li><li>空间 <code>O(n)</code>（仅一个解向量）。</li></ul></div>
+<div class="quiz"><div class="quiz-item"><div class="quiz-q"><span class="qn">1</span>两个皇后位于同一对角线的判定条件是？</div><div class="quiz-opts"><div class="quiz-opt"><span class="mk">A</span><span>q[i] == q[k]</span></div><div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>|q[i]&minus;q[k]| == |i&minus;k|</span></div><div class="quiz-opt"><span class="mk">C</span><span>q[i]+q[k] == n</span></div></div><div class="quiz-exp">行差的绝对值等于列差的绝对值即共对角线，一式覆盖主、副两条对角线。</div></div><div class="quiz-item"><div class="quiz-q"><span class="qn">2</span>8 皇后问题共有多少个不同解？</div><div class="quiz-opts"><div class="quiz-opt"><span class="mk">A</span><span>8</span></div><div class="quiz-opt"><span class="mk">B</span><span>40</span></div><div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>92</span></div></div><div class="quiz-exp">经典结论：8&times;8 棋盘共 92 个解。</div></div><div class="quiz-item"><div class="quiz-q"><span class="qn">3</span>用“全排列”枚举皇后列号，排列这一结构直接避免了哪种冲突？</div><div class="quiz-opts"><div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>同列冲突</span></div><div class="quiz-opt"><span class="mk">B</span><span>同对角线冲突</span></div><div class="quiz-opt"><span class="mk">C</span><span>同行冲突</span></div></div><div class="quiz-exp">排列保证各行列号互不相同，即天然无同列冲突；同行由“逐行放置”避免；对角线仍需另判。</div></div></div>
+<div class="page-nav"><a href="07-perm.html"><span class="dir">← 上一节</span><span class="name">全排列</span></a><a href="09-assign-tsp.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">分配TSP</span></a></div>
+<div class="footer">算法设计与分析 · <b>第3章 穷举法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(53,111,98,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+function valid(q,i){for(let k=0;k<i;k++) if(Math.abs(q[k]-q[i])===i-k) return false; return true;}
+function draw(q,n){
+  let h=`<div class="board" style="grid-template-columns:repeat(${n},36px)">`;
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++){
+    const light=(i+j)%2===0, isQ=q&&q[i]===j;
+    h+=`<div class="sq ${light?'light':'dark'} ${isQ?'q':''}">${isQ?'♛':''}</div>`;
+  }
+  board.innerHTML=h+'</div>';
+}
+function solve(n){
+  const out=[], q=[...Array(n).keys()];
+  function dfs(i){ if(i>=n){out.push(q.slice());return;} for(let j=i;j<n;j++){ [q[i],q[j]]=[q[j],q[i]]; if(valid(q,i)) dfs(i+1); [q[i],q[j]]=[q[j],q[i]]; } }
+  dfs(0); return out;
+}
+qr.oninput=()=>{qn.textContent=qr.value; draw(null,+qr.value);};
+run.onclick=async()=>{
+  const n=+qr.value, q=Array(n).fill(-1);
+  async function dfs(row){
+    if(row>=n) return true;
+    for(let c=0;c<n;c++){
+      q[row]=c; let ok=true;
+      for(let k=0;k<row;k++) if(q[k]===c||Math.abs(q[k]-c)===row-k) ok=false;
+      draw(q,n); log.textContent=`行${row}列${c} ${ok?'✓':'✗'}`; await sleep(180);
+      if(ok&&await dfs(row+1)) return true; q[row]=-1;
+    }
+    return false;
+  }
+  await dfs(0); sc.textContent=solve(n).length;
+};
+all.onclick=async()=>{ const n=+qr.value,S=solve(n); sc.textContent=S.length; for(const q of S){ draw(q,n); log.textContent='['+q+']'; await sleep(700);} };
+draw(null,4);
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

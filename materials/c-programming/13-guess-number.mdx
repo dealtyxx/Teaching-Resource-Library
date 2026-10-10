@@ -1,0 +1,103 @@
+---
+module: 3
+moduleName: 循环结构
+order: 13
+title: 猜数字游戏
+level: 基础必做
+scene: 游戏趣味
+knowledge: [while循环, break, 循环控制]
+stars: 2
+minutes: 70
+goal: 理解条件循环与跳出机制
+sizheng: 二分逼近是科学方法的缩影——用最少的提问逼近真相
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import GuessNumberLab from '../../components/react/GuessNumberLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：不知道要转几圈的循环
+
+for 循环适合"转固定圈数"；但猜数字要转几圈？**没人知道**——可能 1 次猜中，也可能 10 次。
+这种"重复到某个事件发生为止"的场景，属于 `while` 的领地。最经典的写法是：
+
+```c
+while (1) {        /* 条件恒真：靠 break 退出 */
+    /* 猜一次、判一次 */
+    if (猜中) break;   /* 唯一出口 */
+}
+```
+
+`while(1) + break` 是嵌入式开发的"国民写法"——北斗接收机的主程序，本质就是一个永不停歇的 `while(1)`，靠事件驱动内部逻辑。
+
+## 一步一步看 while + break
+
+<CStepRunner
+  client:visible
+  title="循环模拟：三次猜中 7 的全过程"
+  badge="while+break 模拟"
+  doneNote="while(1) 的条件永远为真，循环本身不会停——是 break 在猜中的那一刻精确地凿开了出口。"
+  code={`#include <stdio.h>
+
+int main(void) {
+    int secret = 7, guess, tries = 0;
+    while (1) {
+        scanf("%d", &guess);   /* 输入:5,9,7 */
+        tries++;
+        if (guess > secret) {
+            printf("大了!\\n");
+        } else if (guess < secret) {
+            printf("小了!\\n");
+        } else {
+            printf("对了!%d次\\n", tries);
+            break;
+        }
+    }
+    return 0;
+}`}
+  steps={[
+    { line: 4, desc: '进入 while(1)：条件恒为真，第 1 圈开始。', vars: { secret: '7', tries: '0' } },
+    { line: 5, desc: '读到玩家输入 5。', vars: { guess: '5', tries: '0' } },
+    { line: 10, desc: '5 < 7 → 走"小了"分支。本圈结束，回到循环开头。', out: '小了!', vars: { guess: '5', tries: '1' } },
+    { line: 5, desc: '第 2 圈：读到 9。', vars: { guess: '9', tries: '1' } },
+    { line: 8, desc: '9 > 7 → "大了"。又回到循环开头——循环与分支在协同工作。', out: '大了!', vars: { guess: '9', tries: '2' } },
+    { line: 5, desc: '第 3 圈：读到 7。', vars: { guess: '7', tries: '2' } },
+    { line: 12, desc: '不大不小——进入 else 分支。', vars: { guess: '7', tries: '3' } },
+    { line: 13, desc: '宣布胜利！', out: '对了!3次', vars: { guess: '7', tries: '3' } },
+    { line: 14, desc: 'break！立即冲出 while，不再回头。', vars: { tries: '3' } },
+    { line: 17, desc: 'return 0。如果没有这个 break，程序将永远转下去——死循环。' },
+  ]}
+/>
+
+## 动手实验：真的来玩一局
+
+<GuessNumberLab client:only="react" />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：实现完整游戏（`rand()%100+1` 生成秘密数）。故意把 break 删掉编译运行，感受一次"死循环"（Ctrl+C 可强制结束）。
+2. **AI 优化进阶版**：让 AI 增加"最多 7 次机会"与每次提示剩余次数。审查它把次数判断放在哪里——`while(tries < 7)` 还是循环内 `if+break`？两种写法等价吗？
+3. **信创加固定稿版**：处理非数字输入（`scanf` 返回值检查！输入字母会怎样？）；用 `unsigned` 计数；思考 `rand()` 的随机性够不够做验证码（提示：不够，这是第 14 章安全话题的伏笔）。
+
+## 素养与思政
+
+你在游戏里自发使用的"猜中间"策略，就是计算机科学的**二分查找**：每次提问淘汰一半可能，100 个候选 7 次锁定，10 亿个候选也只要 30 次。
+这正是科学方法的缩影——**好的提问比多的提问更重要**。钱学森之问、"卡脖子"清单，本质都是在庞大的未知空间里寻找关键突破口。学会二分逼近的思维，比赢下这局游戏重要得多。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="while(1) 循环靠什么结束？"
+  options={['条件自动变假', '循环体内的 break（或 return）', '转满 100 圈自动停', '不能结束，是错误写法']}
+  answer={1}
+  explain="while(1) 条件恒真，唯一出口是循环体内的 break/return。这是嵌入式主循环的标准形态——『永不停机，事件退出』。"
+/>
+
+<QuizItem
+  client:visible
+  question="猜 1~100 之间的数，二分策略最坏要猜几次？"
+  options={['50 次', '10 次', '7 次', '100 次']}
+  answer={2}
+  explain="每次淘汰一半：100→50→25→12→6→3→1，2⁷=128>100，7 次必中。对数级收敛是算法效率的第一个震撼。"
+/>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SAT · 第11章 计算复杂性</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">11</div>算法可视化 · <span>第11章 计算复杂性</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-easy-hard.html">易解难解</a><a class="pill" href="02-decision.html">判定优化</a><a class="pill" href="03-turing.html">图灵机</a><a class="pill" href="04-p-np.html">P与NP</a><a class="pill" href="05-classes.html">类关系</a><a class="pill" href="06-reduce.html">归约</a><a class="pill" href="07-npc.html">NPC证明</a><a class="pill active" href="08-sat.html">SAT</a><a class="pill" href="09-clique.html">团问题</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 8 · Cook-Levin</div>
+  <h1>SAT 与 3-SAT · 交互赋值</h1>
+  <p>布尔可满足性：是否存在 0/1 赋值使公式为真。点击文字切换真值，观察子句点亮。</p>
+</section>
+
+<div class="objectives">
+  <h3>学习目标</h3>
+  <ol>
+    <li>能定义<b>文字（literal）、子句（clause）、合取范式（CNF）</b>三个基本概念。</li>
+    <li>能写出 <b>SAT 问题</b>的判定式定义：给定 CNF 公式 φ，是否存在使 φ 为真的变量赋值。</li>
+    <li>能定义 <b>3-SAT</b>，陈述「3-SAT 仍是 NPC」而「2-SAT ∈ P」这一分水岭。</li>
+    <li>能对<b>小规模实例</b>逐子句判定其可满足性并给出满足赋值。</li>
+    <li>能说明 SAT / 3-SAT 为何是海量 NPC 证明的<b>归约起点</b>。</li>
+  </ol>
+</div>
+
+<div class="card">
+  <div class="formula" id="formula">φ = (x₁ ∨ ¬x₂ ∨ x₃) ∧ (¬x₁ ∨ x₂ ∨ x₄) ∧ (x₂ ∨ x₃ ∨ ¬x₄) ∧ (¬x₁ ∨ ¬x₃ ∨ x₄)</div>
+  <div class="toolbar">
+    <span class="chip">变量赋值（点击切换）</span>
+    <button class="btn" id="rand">随机赋值</button>
+    <button class="btn primary" id="search">暴力搜可满足</button>
+  </div>
+  <div class="cells" id="vars"></div>
+  <div class="grid grid-2" style="margin-top:12px">
+    <div>
+      <h3 style="margin-bottom:8px">子句状态</h3>
+      <div id="clauses"></div>
+    </div>
+    <div>
+      <div class="stat-row">
+        <div class="stat"><span>满足子句</span><b class="green" id="okn">0/4</b></div>
+        <div class="stat"><span>φ 整体</span><b class="rose" id="all">UNSAT</b></div>
+      </div>
+      <div class="log" id="log">调整赋值，使全部子句为真。</div>
+      <div class="tip" style="margin-top:12px">3-SAT：每子句恰 3 文字，仍是 NPC。大量 NPC 证明从 3-SAT 归约出发。</div>
+    </div>
+  </div>
+</div>
+
+<section class="sec">
+  <div class="sec-head"><h2>一、合取范式 CNF 与 SAT</h2><span class="sub">CNF &amp; Satisfiability</span></div>
+  <p class="desc">SAT 里的公式都写成一种规整形状——<b>合取范式</b>：一串「或」连成的子句，再用「且」把子句串起来。把定义拆成三层来记。</p>
+
+  <div class="defn"><span class="lbl">定义 1 · 文字 / 子句 / CNF</span>
+    <p><b>文字（literal）</b>：一个布尔变量 x<sub>i</sub> 或它的否定 ¬x<sub>i</sub>。<br/><b>子句（clause）</b>：若干文字的<b>析取（∨，或）</b>，如 (x<sub>1</sub> ∨ ¬x<sub>2</sub> ∨ x<sub>3</sub>)。<br/><b>合取范式（CNF）</b>：若干子句的<b>合取（∧，且）</b>，即 φ = C<sub>1</sub> ∧ C<sub>2</sub> ∧ … ∧ C<sub>m</sub>。</p>
+  </div>
+  <div class="formula lg">φ = C<sub>1</sub> ∧ C<sub>2</sub> ∧ … ∧ C<sub>m</sub>，C<sub>i</sub> = (ℓ<sub>i1</sub> ∨ ℓ<sub>i2</sub> ∨ …)</div>
+
+  <div class="defn"><span class="lbl">定义 2 · SAT 问题（布尔可满足性）</span>
+    <p><b>SAT</b>：给定一个 CNF 公式 φ，判定<b>是否存在</b>一组变量真值赋值（每个变量取 0 或 1）使得 <b>φ 整体为真</b>。若存在，称 φ <b>可满足（satisfiable）</b>；否则称<b>不可满足（unsatisfiable）</b>。由 Cook-Levin 定理，SAT ∈ NPC。</p>
+  </div>
+
+  <div class="deriv">
+    <span class="step">子句用 ∨ 连接：<b>只要有一个文字为真，整条子句为真</b> <span class="why">析取</span></span>
+    <span class="step">公式用 ∧ 连接：<b>只要有一条子句为假，整个 φ 为假</b> <span class="why">合取</span></span>
+    <span class="step">故 φ 为真 ⟺ <b>每一条子句都至少有一个真文字</b> <span class="why">SAT 的核心判据</span></span>
+  </div>
+  <p class="desc">上方演示的 φ 有 4 个子句、4 个变量。点击变量切换 0/1，观察哪些子句被「点亮」——当 4 条全亮时 φ 可满足。</p>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>二、3-SAT：每子句恰 3 个文字</h2><span class="sub">3-SAT</span></div>
+  <div class="defn"><span class="lbl">定义 3 · 3-SAT</span>
+    <p><b>3-SAT</b> 是 SAT 的特例：要求 CNF 中<b>每个子句恰含 3 个文字</b>。别看限制变严，它<b>依然是 NP 完全</b>的。</p>
+  </div>
+  <div class="defn thm"><span class="lbl">定理 4 · 3-SAT ∈ NPC</span>
+    <p>3-SAT ∈ NP（一个赋值即证书，O(m) 验证）；且 <b>SAT ≤<sub>p</sub> 3-SAT</b>：把过长或过短的子句用<b>引入辅助变量</b>的方式改写成一串恰含 3 文字的等价子句（如 (a∨b∨c∨d) 拆成 (a∨b∨z)∧(¬z∨c∨d)），规模只增多项式。故 3-SAT 是 NPC。<b>对照：2-SAT（每子句 2 文字）却在 P 中</b>——可用「蕴含图 + 强连通分量」线性判定。<b>子句文字数 2→3 正是易解与难解的分界。</b></p>
+  </div>
+  <div class="tip">正因为 3-SAT 结构极其规整又仍然最难，它成了后续几乎所有 NPC 证明（团、顶点覆盖、独立集、图着色…）最顺手的<b>归约起点</b>。</div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><h2>三、小实例判定演示</h2><span class="sub">A worked instance</span></div>
+  <p class="desc">以演示公式 φ = (x₁ ∨ ¬x₂ ∨ x₃) ∧ (¬x₁ ∨ x₂ ∨ x₄) ∧ (x₂ ∨ x₃ ∨ ¬x₄) ∧ (¬x₁ ∨ ¬x₃ ∨ x₄) 为例，验证赋值 <b>x₁=0, x₂=1, x₃=0, x₄=1</b>：</p>
+  <div class="deriv">
+    <span class="step">C₁ = (x₁ ∨ ¬x₂ ∨ x₃) = (0 ∨ 0 ∨ 0) = <b>0</b>？ ¬x₂=0、x₁=0、x₃=0 <span class="why">该赋值下 C₁ 为假</span></span>
+    <span class="step">故此赋值<b>不</b>满足 φ；改取 <b>x₁=0, x₂=0, x₃=1, x₄=1</b> 再试 <span class="why">调整</span></span>
+    <span class="step">C₁=(0∨1∨1)=1，C₂=(1∨0∨1)=1，C₃=(0∨1∨0)=1，C₄=(1∨0∨1)=1 <span class="why">四子句全真</span></span>
+    <span class="step">四条子句都至少一个真文字 ⇒ φ = 1 ⇒ <b>φ 可满足</b> <span class="why">找到满足赋值</span></span>
+  </div>
+  <p class="desc">「验证一个给定赋值」只需 O(m) 逐子句扫描（这正是 NP 的可验证性）；但「<b>找到</b>满足赋值」在最坏情形要搜 2<sup>n</sup> 种可能——演示里的「暴力搜」按钮枚举全部 2⁴=16 种即体现了这道鸿沟。</p>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span>
+  <ul>
+    <li>把「可满足」理解成「所有赋值都为真」。SAT 只问<b>是否存在</b>一组赋值使 φ 为真（存在量词），全真那是「重言式」。</li>
+    <li>混淆 <b>CNF 与 DNF</b>。CNF-SAT 很难（NPC）；而 DNF（析取范式）的可满足性反而 ∈ P。范式形状不同，难度天差地别。</li>
+    <li>以为 3-SAT 比一般 SAT 简单。子句限成 3 文字后<b>仍是 NPC</b>；真正变简单的是 <b>2-SAT（∈P）</b>。</li>
+    <li>把「多项式时间<b>验证</b>一个赋值」当成「多项式时间<b>求解</b> SAT」。会验证不等于会求解——两者的落差正是 P vs NP。</li>
+    <li>子句与公式的真值判据记反：<b>子句是 ∨（一个真即真），公式是 ∧（一个假即假）</b>。</li>
+    <li>以为「每子句恰 3 文字」是苛刻限制。可通过重复文字（补足）或引入辅助变量拆分（削减）达成，<b>不失一般性</b>。</li>
+  </ul>
+</div>
+
+<div class="summary"><span class="lbl">本节小结</span>
+  <ul>
+    <li><b>文字→子句（∨）→CNF（∧）</b>：φ = C₁∧…∧C<sub>m</sub>，每 C<sub>i</sub> 是文字的析取。</li>
+    <li><b>SAT</b>：给定 CNF，是否<b>存在</b>赋值使 φ 为真；φ 为真 ⟺ 每条子句至少一个真文字。SAT ∈ NPC。</li>
+    <li><b>3-SAT</b>（每子句恰 3 文字）<b>仍是 NPC</b>；SAT ≤<sub>p</sub> 3-SAT 靠引入辅助变量拆分。</li>
+    <li><b>2-SAT ∈ P</b>：文字数从 3 降到 2 就跨过易解/难解分界。</li>
+    <li>验证赋值 O(m)（可验证性）远易于寻找赋值（最坏 2<sup>n</sup>）；3-SAT 是众多 NPC 证明的归约起点。</li>
+  </ul>
+</div>
+
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>「CNF 公式 φ 可满足」的准确含义是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>对所有变量赋值 φ 都为真</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>至少存在一组变量赋值使 φ 为真</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>φ 中每个子句都只含一个文字</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>φ 能在多项式时间内被求解</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。可满足 = <b>存在</b>一组赋值使 φ 为真（存在量词）。A 描述的是「重言式（恒真）」；C 是对 CNF 结构的错误理解；D 与可满足性无关（SAT 恰恰未知是否多项式可解）。</div>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>关于 2-SAT 与 3-SAT，正确的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>两者都是 NPC</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>两者都在 P 中</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>2-SAT ∈ P，而 3-SAT 是 NPC</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>3-SAT ∈ P，而 2-SAT 是 NPC</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。2-SAT 可用蕴含图 + 强连通分量线性判定，∈P；3-SAT 仍是 NPC。子句文字数 2→3 正是分水岭，D 恰好说反。</div>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>给定赋值 x₁=1, x₂=0，子句 C = (¬x₁ ∨ x₂ ∨ ¬x₃) 何时为真？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>无论 x₃ 取何值都为真</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>当 x₃=0 时为真（此时 ¬x₃=1）；x₃=1 时该子句为假</span></div>
+      <div class="quiz-opt"><span class="mk">C</span><span>无论 x₃ 取何值都为假</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>需要其他子句才能判断</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 B。当前 ¬x₁=0、x₂=0，子句真假全看 ¬x₃：x₃=0 时 ¬x₃=1，子句为真；x₃=1 时三个文字全 0，子句为假。子句是文字的析取，独立判定，无需其他子句。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="07-npc.html"><span class="dir">← 上一节</span><span class="name">NPC证明</span></a><a href="09-clique.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">团问题</span></a></div>
+<div class="footer">算法设计与分析 · <b>第11章 计算复杂性</b> · 强交互可视化版<br/>增长 · 归约 · SAT · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(179,69,59,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+// clauses: list of literals {v:0..3, neg:bool}
+const C=[
+  [{v:0,neg:false},{v:1,neg:true},{v:2,neg:false}],
+  [{v:0,neg:true},{v:1,neg:false},{v:3,neg:false}],
+  [{v:1,neg:false},{v:2,neg:false},{v:3,neg:true}],
+  [{v:0,neg:true},{v:2,neg:true},{v:3,neg:false}],
+];
+let asg=[false,false,false,false];
+function litTrue(L){ return L.neg ? !asg[L.v] : asg[L.v]; }
+function clauseOk(cl){ return cl.some(litTrue); }
+function render(){
+  vars.innerHTML=asg.map((b,i)=>`<div class="cell ${b?'hit':'dead'}" data-i="${i}">x${i+1}=${b?1:0}</div>`).join('');
+  vars.querySelectorAll('.cell').forEach(el=>el.onclick=()=>{ asg[+el.dataset.i]=!asg[+el.dataset.i]; render(); });
+  let ok=0;
+  clauses.innerHTML=C.map((cl,i)=>{
+    const good=clauseOk(cl); if(good) ok++;
+    const txt=cl.map(L=>(L.neg?'¬':'')+'x'+(L.v+1)).join(' ∨ ');
+    return `<div class="list-step" style="border-color:${good?'#3B7A57':'#A02C55'};background:${good?'#EEF5F0':'#FBF1EC'}">
+      <div class="n" style="background:${good?'#3B7A57':'#A02C55'}">${i+1}</div>
+      <div class="body"><b>(${txt})</b> → ${good?'满足':'未满足'}</div></div>`;
+  }).join('');
+  okn.textContent=ok+'/4';
+  const sat=ok===4;
+  all.textContent=sat?'SAT':'UNSAT';
+  all.className=sat?'green':'rose';
+  log.textContent=sat?'🎉 公式可满足！':'还有子句为假，继续调整。';
+}
+rand.onclick=()=>{ asg=asg.map(()=>Math.random()<.5); render(); };
+search.onclick=async()=>{
+  for(let m=0;m<16;m++){
+    asg=[!!(m&1),!!(m&2),!!(m&4),!!(m&8)];
+    render(); log.textContent=`枚举赋值 #${m} · ${asg.map((b,i)=>'x'+(i+1)+'='+(b|0)).join(' ')}`;
+    await sleep(120);
+    if(C.every(clauseOk)){ log.textContent='找到可满足赋值！'; return; }
+  }
+  log.textContent='本公式在 16 种赋值下…（应存在解，再试）';
+};
+render();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

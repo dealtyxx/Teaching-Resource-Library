@@ -1,0 +1,130 @@
+---
+module: 4
+moduleName: 正则表达式
+order: 17
+title: 个人信息自动识别脱敏系统
+level: 综合挑战
+scene: 隐私合规
+knowledge: [全方法综合, 多模式匹配, 脱敏规则引擎]
+stars: 4
+minutes: 70
+goal: 构建完整脱敏系统
+sizheng: 恪守个人信息保护的职业底线
+dims: [法治意识, 职业伦理]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, CaseFileCard, Callout } from '../../components/react/ui';
+import MaskingMachineLab from '../../components/react/labs/MaskingMachineLab';
+
+## 场景导入
+
+实习第一周，导师发来一个「小活」：客服工单要交给外包团队做质检分析，但工单文本里散落着用户手机号、身份证号、邮箱。「把敏感信息全部脱敏，一条都不能漏。」手工找？一万条工单会看瞎眼。这正是正则模块的毕业设计——用**多模式规则引擎**让机器自动识别、自动打码，让「合规」变成一个可以被调用的函数。
+
+## 玩一玩
+
+先感受脱敏前后的差别：把信息填进脱敏机，拉下拉杆，看泄露风险仪表从红区回落：
+
+<MaskingMachineLab client:visible />
+
+## 动手实验
+
+现在造出真正的规则引擎：模式列表驱动，逐条扫描、分类打码、输出审计统计——这就是企业脱敏中间件的雏形：
+
+<PyPlayground
+  client:visible
+  title="多模式脱敏规则引擎"
+  height={340}
+  note="试着往 ticket 里再塞一个新手机号或邮箱，或给 RULES 增加一条「QQ号」规则（5-11位数字），看引擎能否自动接管。"
+  code={`import re
+
+# 规则引擎：名称 + 识别模式 + 脱敏函数，可持续扩展
+RULES = [
+    ("手机号", re.compile(r"1[3-9]\\d{9}"),
+     lambda m: m.group()[:3] + "****" + m.group()[7:]),
+    ("身份证", re.compile(r"\\d{17}[\\dXx]"),
+     lambda m: m.group()[:6] + "********" + m.group()[14:]),
+    ("邮箱", re.compile(r"[\\w.]+@[\\w.]+\\.[a-zA-Z]{2,}"),
+     lambda m: m.group()[0] + "***@" + m.group().split("@")[1]),
+]
+
+ticket = """工单#8801 用户王女士来电 13812345678 反馈快递丢失，
+登记身份证 110101199001011234 用于理赔，
+回执发送至 wang.lady@example.com，请尽快处理。"""
+
+masked = ticket
+stats = {}
+for name, pattern, fn in RULES:
+    masked, n = pattern.subn(fn, masked)
+    stats[name] = n
+
+print("=== 脱敏后工单 ===")
+print(masked)
+print()
+print("=== 审计统计 ===")
+for name, n in stats.items():
+    print(f"{name}: 命中并脱敏 {n} 处")
+print("原文仅在授权系统内留存，外发版本零明文。")`}
+/>
+
+## 思政会客厅
+
+<CaseFileCard name="脉脉非法获取用户数据案" year={2016} tag="侵犯隐私权" verdict="被判侵犯用户隐私权，赔偿并道歉">
+职场社交应用脉脉未经授权使用用户数据建立社交关系。本案的行业启示：数据「拿得到」不等于「用得了」——外发、共享前的脱敏与授权检查，是每个数据岗位的日常义务，而不是法务部门的专利。
+</CaseFileCard>
+
+<Callout icon="⚖️" tone="red" title="法条对照">
+《个人信息保护法》第13条：处理个人信息须取得明示同意或具备法定事由；第66条：情节严重的，最高可处 5000 万元以下或上一年度营业额 5% 以下罚款。给外包团队的每一份数据，都适用这两条。
+</Callout>
+
+<DimCard dim="法治意识" title="脱敏是法定义务的工程实现">
+  <ul>
+    <li>《个保法》第51条要求采取「去标识化、加密」等技术措施——你写的 subn 规则引擎，就是这一条的代码形态。</li>
+    <li>外发数据的默认姿势：能聚合不明细，能脱敏不明文，能不给就不给。</li>
+    <li>审计统计（命中几处、何时处理）让合规可证明——出了纠纷，日志就是证据。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="职业伦理" title="一条都不能漏的责任心">
+  <ul>
+    <li>脱敏系统的可怕之处在于「漏一条」：99% 的覆盖率意味着一万条工单里有一百个明文手机号流出。</li>
+    <li>规则引擎要配测试用例：新号段、带空格的身份证、大小写混合的邮箱——边界即职业素养。</li>
+    <li>把「我处理的是人的信息」刻进直觉：工单背后是一位真实的王女士。</li>
+  </ul>
+</DimCard>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p17-d1"
+  question="脱敏规则不可能一次写全（比如将来出现新号段）。如何设计流程保证系统「持续不漏」？"
+  hints={['规则外置为配置 + 版本管理，新增规则走评审与回归测试', '抽样人工复核 + 漏报上报通道，让漏网之鱼变成新规则', '上线前用构造的「攻击样本集」做覆盖率测试']}
+/>
+
+<DiscussCard
+  client:visible
+  storageKey="p17-d2"
+  question="质检分析真的需要看到手机号吗？从「最小化」角度重新设计这次外包合作。"
+  hints={['质检关注服务质量，联系方式与身份证对分析毫无必要——直接删除列比脱敏更彻底', '若需回访抽样，可由内部系统凭工单号反查，不把号码交给外包', '最小化的思考顺序：不采集、其次删除、再次脱敏、最后受控明文']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="代码中 pattern.subn(fn, masked) 相比 sub() 的额外好处是？"
+  options={['运行速度更快', '同时返回替换次数，天然形成审计统计', '可以跳过错误', '自动去重']}
+  answer={1}
+  explain="subn 返回（新文本, 替换次数）二元组——替换次数正是「命中几处敏感信息」的审计数据，合规系统应当留存。"
+/>
+
+<QuizItem
+  client:visible
+  question="按《个人信息保护法》，把含明文手机号的工单直接发给外包团队，最准确的定性是？"
+  options={['正常业务协作，无需处理', '只要签了合同就可以给明文', '属于向第三方提供个人信息，须有合法依据并尽脱敏等保护义务', '发内网邮件就不算外发']}
+  answer={2}
+  explain="向外包方提供即属对外提供个人信息：需要合法依据（同意或合同必要），并履行去标识化等安全义务；载体是不是邮件、有没有合同，都不豁免脱敏责任。"
+/>

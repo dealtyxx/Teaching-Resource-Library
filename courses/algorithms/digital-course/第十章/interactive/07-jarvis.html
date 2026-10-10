@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>礼品包裹 · 第10章 计算几何</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">10</div>算法可视化 · <span>第10章 计算几何</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-vector.html">向量运算</a><a class="pill" href="02-direction.html">方向判断</a><a class="pill" href="03-point-seg.html">点与线段</a><a class="pill" href="04-intersect.html">线段相交</a><a class="pill" href="05-inpoly.html">点在多边形</a><a class="pill" href="06-area.html">多边形面积</a><a class="pill active" href="07-jarvis.html">礼品包裹</a><a class="pill" href="08-graham.html">Graham</a><a class="pill" href="09-closest.html">最近点对</a><a class="pill" href="10-calipers.html">旋转卡壳</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 7 · O(nh)</div>
+  <h1>Jarvis 步进 · 礼品包裹</h1>
+  <p>从最左点开始，每次选极角最小的下一点，像包装礼物一样绕一圈。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>理解<b>凸包</b>（convex hull）的定义：包含所有点的<b>最小凸多边形</b>，其顶点是原点集的子集</li>
+  <li>掌握 Jarvis 步进（礼品包裹 gift wrapping）的核心：从一个<b>必在凸包上</b>的极值点出发，每步用叉积找<b>最外侧</b>的下一顶点</li>
+  <li>能用叉积比较器在一趟扫描中选出下一顶点，说明为什么不需要真正算出极角</li>
+  <li>能分析其复杂度为 <b>O(nh)</b>，其中 n 为点数、h 为凸包顶点数，并说明它对 <b>h 很小</b>时的优势与 <b>h≈n</b> 时的劣势</li>
+  <li>能正确处理<b>共线点</b>与<b>重合点</b>等退化情形，避免死循环</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="run">▶ 步进动画</button>
+    <button class="btn" id="rand">🎲 随机点</button>
+    <div class="speed" id="spd"><button data-ms="700">慢</button><button data-ms="350" class="on">中</button><button data-ms="120">快</button></div>
+  </div>
+  <div class="stage-wrap light">
+    <canvas class="stage" id="cv" width="1000" height="420"></canvas>
+    <div class="stage-hud"><span class="hud-pill light">Jarvis</span><span class="hud-pill light" id="hud">—</span></div>
+  </div>
+  <div class="stat-row"><div class="stat"><span>凸包顶点数</span><b class="teal" id="hn">0</b></div></div>
+</div>
+
+<section class="sec">
+<div class="sec-head"><h2>一、凸包与「礼品包裹」的直觉</h2><span class="sub">convex hull · gift wrapping</span></div>
+
+<div class="defn"><span class="lbl">定义</span><p>平面点集的<b>凸包</b>（convex hull）是<b>包含所有点的最小凸多边形</b>。想象在这些点外套一根橡皮筋并松手，橡皮筋收紧后贴住的那些点就是凸包顶点——它们一定是原点集的子集。凸包顶点数记为 <b>h</b>，满足 3 ≤ h ≤ n。</p></div>
+
+<div class="tip info"><strong>为什么叫礼品包裹：</strong>从一个<b>肯定在凸包上</b>的点出发，想象用一张包装纸沿着点集<b>最外沿</b>一路贴过去，纸每次绷紧到下一个最外侧的点，绕一圈回到起点，包裹完成——贴过的点就是凸包。</div>
+</section>
+
+<section class="sec">
+<div class="sec-head"><h2>二、算法步骤</h2><span class="sub">从极值点起，逐点包裹</span></div>
+
+<div class="list-step"><span class="n">1</span><div class="body"><b>选起点</b>：取<b>最左点</b>（x 最小，若并列取 y 最小）。它是 x 方向的极值点，<b>必定在凸包上</b>，作为包裹的起点与终点。</div></div>
+<div class="list-step"><span class="n">2</span><div class="body"><b>找下一顶点</b>：设当前顶点为 <code>cur</code>，先随便挑一个候选 <code>nxt</code>；扫描其余每个点 r，若 <b>Cross(cur, nxt, r) 表明 r 更靠外</b>（在有向边 cur→nxt 的外侧），就令 nxt = r。一趟 O(n) 扫完后，nxt 使<b>所有其余点都落在 cur→nxt 的同一侧</b>，即为下一个凸包顶点。</div></div>
+<div class="list-step"><span class="n">3</span><div class="body"><b>推进</b>：把 nxt 加入凸包，令 cur = nxt。</div></div>
+<div class="list-step"><span class="n">4</span><div class="body"><b>终止</b>：重复第 2、3 步，直到 nxt <b>回到起点</b>，一圈包裹闭合，凸包求解完成。</div></div>
+
+<div class="tip warn"><strong>共线点要小心：</strong>当 Cross(cur, nxt, r) = 0 时三点<b>共线</b>，此时应约定取<b>离 cur 更远</b>的那个点作 nxt（或统一取更近的），否则可能把共线中间点当成顶点，甚至在两点之间<b>反复横跳导致死循环</b>。</div>
+</section>
+
+<section class="sec">
+<div class="sec-head"><h2>三、复杂度分析</h2><span class="sub">输出敏感的 O(nh)</span></div>
+
+<div class="formula">T(n) = h × O(n) = O(nh)　　（3 ≤ h ≤ n）</div>
+
+<div class="defn prop"><span class="lbl">分析</span><p>凸包共 h 个顶点，求<b>每一个</b>顶点都要对全部 n 个点扫一趟找最外侧点，故总时间 <b>O(nh)</b>。这是一个<b>输出敏感</b>（output-sensitive）算法：当凸包很「瘦」、h 是常数或 O(log n) 时，Jarvis 快过 O(n log n) 的 Graham；但当点几乎都在凸包上（如所有点落在一个圆上）时 h ≈ n，退化为 <b>O(n²)</b>，反而更慢。</p></div>
+</section>
+
+<section class="sec">
+<div class="sec-head"><h2>四、C++ 实现</h2><span class="sub">Jarvis March</span></div>
+
+<div class="code"><span class="cm">// 依赖基础模板：Point / Cross(a,b,c) / Dist</span>
+<span class="cm">// 返回凸包顶点，逆时针序（数学坐标下），共 h 个</span>
+vector&lt;Point&gt; <span class="fn">Jarvis</span>(vector&lt;Point&gt; p) {
+    <span class="kw">int</span> n = p.size();
+    <span class="kw">if</span> (n &lt; <span class="nu">3</span>) <span class="kw">return</span> p;                 <span class="cm">// 不足 3 点无需求包</span>
+    <span class="cm">// 1) 找最左(下)点，必在凸包上</span>
+    <span class="kw">int</span> start = <span class="nu">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">1</span>; i &lt; n; i++)
+        <span class="kw">if</span> (p[i].x &lt; p[start].x ||
+           (p[i].x == p[start].x &amp;&amp; p[i].y &lt; p[start].y)) start = i;
+    vector&lt;Point&gt; hull;
+    <span class="kw">int</span> cur = start;
+    <span class="kw">do</span> {
+        hull.push_back(p[cur]);
+        <span class="kw">int</span> nxt = (cur + <span class="nu">1</span>) % n;          <span class="cm">// 先任选一个候选</span>
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; n; i++) {
+            <span class="kw">double</span> c = <span class="fn">Cross</span>(p[cur], p[nxt], p[i]);
+            <span class="cm">// i 更靠外(cur→nxt 外侧)就替换；共线时取更远的点</span>
+            <span class="kw">if</span> (c &lt; <span class="nu">0</span> ||
+               (c == <span class="nu">0</span> &amp;&amp; <span class="fn">Dist</span>(p[cur], p[i]) &gt; <span class="fn">Dist</span>(p[cur], p[nxt])))
+                nxt = i;
+        }
+        cur = nxt;                        <span class="cm">// 前进到新顶点</span>
+    } <span class="kw">while</span> (cur != start);              <span class="cm">// 绕回起点即闭合</span>
+    <span class="kw">return</span> hull;
+}</div>
+
+<div class="tip ok"><strong>无需真正算极角：</strong>「谁更靠外」完全由<b>叉积符号</b>决定，不必调用 <code>atan2</code>。整数坐标下叉积精确无误差，既避开三角函数的开销，又躲开极角在象限边界上的麻烦。</div>
+</section>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+  <li>起点<b>没选极值点</b>（随便取一点），它可能不在凸包上，包裹会漏点或错误。</li>
+  <li><b>共线情形</b>不处理：把共线中间点当成顶点，或在两共线点之间<b>反复横跳导致死循环</b>。</li>
+  <li>点集含<b>重合点</b>时可能出现 nxt == cur，同样死循环，应先<b>去重</b>。</li>
+  <li>用 <code>atan2</code> 极角排序代替叉积，既慢又有浮点误差，还需额外处理象限与并列角。</li>
+  <li>误以为凸包一定是 O(n log n)：Jarvis 是 <b>O(nh)</b>，h ≈ n 时退化成 <b>O(n²)</b>。</li>
+  <li>终止条件写错，没有以「回到 start」判定，导致少绕半圈或起点被重复加入。</li>
+</ul></div>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+  <li>凸包是包含所有点的<b>最小凸多边形</b>，顶点是原点集的子集，顶点数记为 h。</li>
+  <li>Jarvis 步进从一个<b>极值点</b>出发，每步用叉积找<b>最外侧</b>的下一顶点，绕一圈闭合。</li>
+  <li>选下一顶点只看<b>叉积符号</b>，无需计算极角，整数坐标下精确。</li>
+  <li>复杂度 <b>O(nh)</b>，输出敏感：h 小时极快，h ≈ n 时退化为 O(n²)。</li>
+  <li>必须处理<b>共线</b>与<b>重合</b>退化情形，否则会漏点或陷入死循环。</li>
+</ul></div>
+
+<div class="quiz">
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">1</span>Jarvis 步进的时间复杂度是 O(nh)。当<b>所有 n 个点都落在凸包上</b>（如均匀分布在圆周）时，复杂度退化为？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>O(n log n)</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>O(n<sup>2</sup>)</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>O(n)</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>O(h<sup>2</sup>)</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 B。此时 h = n，代入 O(nh) 得 <b>O(n²)</b>。这正是 Jarvis 的软肋：凸包越「胖」它越慢，此时应改用 O(n log n) 的 Graham / Andrew 扫描。反过来，若 h 是常数，O(nh) = O(n)，Jarvis 反而最快。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">2</span>算法为什么以<b>最左点</b>作为起点？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>因为最左点计算叉积最方便</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>x 方向的<b>极值点必在凸包上</b>，保证起点正确、包裹能正确闭合</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>任意点都可以，选最左只是习惯</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>最左点使凸包一定是逆时针</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 B。凸包必须从一个<b>确定在其上</b>的顶点起步，x（或 y）方向的极值点满足这一点。若从内部点起步，第一步就错。C 错在「任意点」——内部点不在凸包上；D 把绕向的成因归错了，绕向由叉积判据的方向决定。</div>
+</div>
+<div class="quiz-item">
+  <div class="quiz-q"><span class="qn">3</span>选下一顶点时，用<b>叉积符号</b>而不用 <code>atan2</code> 极角比较，主要好处是？</div>
+  <div class="quiz-opts">
+    <div class="quiz-opt"><span class="mk">A</span><span>叉积能顺便算出面积</span></div>
+    <div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>整数坐标下叉积<b>精确无误差</b>，且省去三角函数开销与象限判断</span></div>
+    <div class="quiz-opt"><span class="mk">C</span><span>atan2 无法比较两个点的方向</span></div>
+    <div class="quiz-opt"><span class="mk">D</span><span>叉积可以避免处理共线点</span></div>
+  </div>
+  <div class="quiz-exp"><b>解析：</b>选 B。叉积只有乘法与减法，整数输入下结果精确，可放心判符号；<code>atan2</code> 引入浮点误差、开销大，还要处理象限边界与并列角。D 恰恰相反——叉积等于 0 正是<b>需要额外处理</b>共线的信号，而非自动回避。</div>
+</div>
+</div>
+
+<div class="page-nav"><a href="06-area.html"><span class="dir">← 上一节</span><span class="name">多边形面积</span></a><a href="08-graham.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">Graham</span></a></div>
+<div class="footer">算法设计与分析 · <b>第10章 计算几何</b> · 强交互可视化版<br/>拖拽 · 扫描 · 凸包 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(62,133,120,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const cross=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x);
+const dot=(a,b)=>a.x*b.x+a.y*b.y;
+const sub=(a,b)=>({x:a.x-b.x,y:a.y-b.y});
+const add=(a,b)=>({x:a.x+b.x,y:a.y+b.y});
+const mul=(a,k)=>({x:a.x*k,y:a.y*k});
+const len=a=>Math.hypot(a.x,a.y);
+function dragPoints(cv, pts, onChange){
+  let drag=-1;
+  const pos=e=>{const r=cv.getBoundingClientRect(); return {x:(e.clientX-r.left)*cv.width/r.width, y:(e.clientY-r.top)*cv.height/r.height};};
+  cv.addEventListener('mousedown',e=>{
+    const p=pos(e); drag=pts.findIndex(q=>(q.x-p.x)**2+(q.y-p.y)**2<400);
+    cv.style.cursor=drag>=0?'grabbing':'crosshair';
+  });
+  cv.addEventListener('mousemove',e=>{
+    if(drag<0) return;
+    const p=pos(e);
+    pts[drag].x=Math.max(20,Math.min(cv.width-20,p.x));
+    pts[drag].y=Math.max(20,Math.min(cv.height-20,p.y));
+    onChange();
+  });
+  const up=()=>{drag=-1; cv.style.cursor='crosshair';};
+  cv.addEventListener('mouseup',up); cv.addEventListener('mouseleave',up);
+}
+function drawDot(ctx,p,col,label){
+  ctx.beginPath(); ctx.arc(p.x,p.y,11,0,Math.PI*2);
+  ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=12; ctx.fill(); ctx.shadowBlur=0;
+  if(label){ ctx.fillStyle='#1D1B16'; ctx.font='12px ui-monospace'; ctx.fillText(label, p.x+14, p.y-10); }
+}
+function drawArrow(ctx,a,b,col){
+  ctx.strokeStyle=col; ctx.lineWidth=3; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+  const ang=Math.atan2(b.y-a.y,b.x-a.x);
+  ctx.beginPath();
+  ctx.moveTo(b.x,b.y);
+  ctx.lineTo(b.x-12*Math.cos(ang-0.4), b.y-12*Math.sin(ang-0.4));
+  ctx.lineTo(b.x-12*Math.cos(ang+0.4), b.y-12*Math.sin(ang+0.4));
+  ctx.closePath(); ctx.fillStyle=col; ctx.fill();
+}
+
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let pts=[], ms=350;
+spd.querySelectorAll('button').forEach(b=>b.onclick=()=>{spd.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');ms=+b.dataset.ms;});
+function randomize(){
+  pts=Array.from({length:20},()=>({x:80+Math.random()*840,y:50+Math.random()*320}));
+  draw([],-1,-1); hn.textContent=0; hud.textContent='ready';
+}
+function draw(hull, cur, cand){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  if(hull.length>1){
+    ctx.strokeStyle='#3E8578'; ctx.lineWidth=3;
+    ctx.beginPath(); hull.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+    if(cur>=0) ctx.lineTo(pts[cur].x,pts[cur].y);
+    ctx.stroke();
+    ctx.fillStyle='rgba(62,133,120,.08)'; ctx.beginPath();
+    hull.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)); ctx.closePath(); ctx.fill();
+  }
+  if(cur>=0&&cand>=0){
+    ctx.strokeStyle='rgba(184,134,43,.7)'; ctx.lineWidth=2; ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.moveTo(pts[cur].x,pts[cur].y); ctx.lineTo(pts[cand].x,pts[cand].y); ctx.stroke(); ctx.setLineDash([]);
+  }
+  pts.forEach((p,i)=>{
+    const onH=hull.includes(p), onC=i===cand, onU=i===cur;
+    ctx.beginPath(); ctx.arc(p.x,p.y, onU||onC?8:5,0,Math.PI*2);
+    ctx.fillStyle=onU?'#B8862B':onC?'#D2705F':onH?'#3E8578':'#E39A7C'; ctx.fill();
+  });
+}
+run.onclick=async()=>{
+  let start=0; for(let i=1;i<pts.length;i++) if(pts[i].x<pts[start].x) start=i;
+  const hull=[pts[start]]; let p=start;
+  do{
+    let q=(p+1)%pts.length;
+    for(let i=0;i<pts.length;i++){
+      draw(hull,p,i); await sleep(ms*0.15);
+      if(cross(pts[p],pts[q],pts[i])<0) q=i;
+    }
+    draw(hull,p,q); hud.textContent=`选中下一顶点 ${q}`; await sleep(ms);
+    p=q; if(p!==start) hull.push(pts[p]);
+    hn.textContent=hull.length;
+  }while(p!==start);
+  draw(hull,-1,-1); hud.textContent='完成 h='+hull.length;
+};
+document.getElementById('rand').onclick=randomize; randomize();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

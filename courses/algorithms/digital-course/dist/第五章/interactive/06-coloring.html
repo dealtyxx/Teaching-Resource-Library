@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>着色 · 第5章 回溯法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">05</div>算法可视化 · <span>第5章 回溯法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill" href="02-trees.html">树类型</a><a class="pill" href="03-powerset.html">幂集</a><a class="pill" href="04-prune.html">剪支</a><a class="pill" href="05-knapsack.html">背包</a><a class="pill active" href="06-coloring.html">着色</a><a class="pill" href="07-perm.html">全排列</a><a class="pill" href="08-nqueens.html">n皇后</a><a class="pill" href="09-opt.html">任务分配</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 6 · 加深</div><h1>图 m 着色 · 冲突剪支</h1>
+<p>为顶点试色，邻点同色则剪。逐步演示一种可行着色。演示图为 4 顶点 5 条边（K<sub>4</sub> 去掉一条边）。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>陈述</b>图的 m 着色问题与色数（chromatic number）的定义，并举出三个现实中的建模场景。</li>
+  <li>能够<b>说明</b>为何 m 着色的解空间树是 <b>m 叉树</b>而非子集树或排列树，并写出其规模 m<sup>n</sup>。</li>
+  <li>能够<b>写出</b>带冲突剪支的 m 着色 C++ 代码，指出其中的约束函数以及"为何本问题没有限界函数"。</li>
+  <li>能够<b>推导</b>时间复杂度 O(m<sup>n</sup>&middot;n)，并解释单结点检查代价 O(n) 的来源。</li>
+  <li>能够<b>运用</b>对称性优化：固定首顶点的颜色可把搜索量降为 1/m，并说明它为什么不丢解。</li>
+</ol></div>
+<div class="grid grid-2">
+  <div class="card">
+    <div class="stage-wrap light" style="height:320px"><canvas class="stage" id="cv" width="400" height="320"></canvas></div>
+    <div class="stat-row"><div class="stat"><span>方案数</span><b class="p" id="cnt">—</b></div><div class="stat"><span>m</span><b class="g" id="mv">3</b></div></div>
+  </div>
+  <div class="card">
+    <div class="toolbar">
+      <label>m</label><input type="number" id="mIn" value="3" min="1" max="5" style="width:56px"/>
+      <button class="btn primary" id="anim">▶ 逐步试色</button>
+      <button class="btn" id="all">统计全部</button>
+    </div>
+    <div class="log" id="log">—</div>
+    <div class="tip">judge：邻点已着同色则不可用。</div>
+  </div>
+</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul><li><b>m 着色约束</b>：用 m 种颜色给顶点着色，使<strong>相邻顶点颜色不同</strong>。</li><li><b>冲突检查范围</b>：给当前顶点试色时，只需与它<strong>已着色的邻接点</strong>比较。</li><li><b>回溯时机</b>：当前顶点 m 种颜色都冲突，则回退到上一顶点换色，而非死循环。</li><li><b>色数概念</b>：<code>&chi;(G)</code> 为使图可正常着色的最少颜色数；判定“是否 m 可着色”（<code>m&ge;3</code>）是 NP 完全问题。</li><li><b>颜色从 1 计还是 0 计</b>：与数组下标统一，避免越界或漏色。</li><li><b>无解也要正确返回</b>：所有分支失败应返回“无解”，不可停在半途。</li></ul></div>
+<div class="summary"><span class="lbl">本节小结</span><ul><li>图的 m 着色：用 m 种颜色着色顶点，相邻顶点异色。</li><li>回溯框架：逐顶点尝试 <code>1..m</code> 色，与已着色邻居冲突则换色，都失败则回退。</li><li>约束函数只检查与已着色邻接点是否同色。</li><li>色数 <code>&chi;(G)</code> 是最小可行 m；判定 m 可着色（<code>m&ge;3</code>）为 NPC。</li><li>最坏时间随 m、顶点数指数增长，空间 <code>O(n)</code>。</li></ul></div>
+<div class="quiz"><div class="quiz-item"><div class="quiz-q"><span class="qn">1</span>图的 m 着色问题要求满足什么约束？</div><div class="quiz-opts"><div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>相邻顶点颜色不同</span></div><div class="quiz-opt"><span class="mk">B</span><span>相邻顶点颜色相同</span></div><div class="quiz-opt"><span class="mk">C</span><span>每种颜色用的次数相同</span></div></div><div class="quiz-exp">正常着色的定义即相邻（有边相连的）顶点异色。</div></div><div class="quiz-item"><div class="quiz-q"><span class="qn">2</span>判定“一般图是否可用 m 种颜色着色”（m≥3）属于哪类问题？</div><div class="quiz-opts"><div class="quiz-opt"><span class="mk">A</span><span>P</span></div><div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>NP 完全</span></div><div class="quiz-opt"><span class="mk">C</span><span>可在 O(n) 内判定</span></div></div><div class="quiz-exp">图 m 着色（m≥3）是经典 NP 完全问题。</div></div><div class="quiz-item"><div class="quiz-q"><span class="qn">3</span>回溯着色时，当前顶点所有颜色都冲突，应该？</div><div class="quiz-opts"><div class="quiz-opt"><span class="mk">A</span><span>随便选一个颜色继续</span></div><div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>回退到上一个顶点换色</span></div><div class="quiz-opt"><span class="mk">C</span><span>直接结束并报有解</span></div></div><div class="quiz-exp">当前顶点无可行色，说明前面的选择需要更改，回退换色。</div></div></div>
+<div class="page-nav"><a href="05-knapsack.html"><span class="dir">← 上一节</span><span class="name">背包</span></a><a href="07-perm.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">全排列</span></a></div>
+<div class="footer">算法设计与分析 · <b>第5章 回溯法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(110,86,145,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const edges=[[0,1],[0,2],[0,3],[1,2],[2,3]];
+const pos=[[200,40],[70,140],[200,260],[330,140]];
+const pal=['#A02C55','#C2603F','#3B7A57','#9C7420','#7E62A6'];
+let col=[-1,-1,-1,-1];
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+function draw(){
+  ctx.clearRect(0,0,400,320);
+  ctx.strokeStyle='#A29C90'; ctx.lineWidth=2;
+  edges.forEach(([a,b])=>{ctx.beginPath();ctx.moveTo(pos[a][0],pos[a][1]);ctx.lineTo(pos[b][0],pos[b][1]);ctx.stroke();});
+  pos.forEach((p,i)=>{
+    ctx.beginPath(); ctx.arc(p[0],p[1],22,0,Math.PI*2);
+    ctx.fillStyle=col[i]<0?'#E4E0D4':pal[col[i]%pal.length]; ctx.fill();
+    ctx.strokeStyle='#1D1B16'; ctx.stroke();
+    ctx.fillStyle=col[i]<0?'#1D1B16':'#fff'; ctx.font='bold 14px sans-serif'; ctx.textAlign='center'; ctx.fillText(i,p[0],p[1]+4);
+  });
+}
+function adj(i,j){return edges.some(([a,b])=>(a===i&&b===j)||(a===j&&b===i));}
+function ok(i,c,x){ for(let k=0;k<i;k++) if(adj(i,k)&&x[k]===c) return false; return true; }
+anim.onclick=async()=>{
+  const m=+mIn.value; mv.textContent=m; const x=[-1,-1,-1,-1];
+  async function dfs(i){
+    if(i>=4){ col=x.slice(); draw(); log.textContent=`方案 [${x}]`; return true; }
+    for(let c=0;c<m;c++){
+      log.textContent=`试 顶点${i} 色${c} ${ok(i,c,x)?'✓':'✗剪支'}`;
+      col=x.map((v,k)=>k===i?c:v); draw(); await sleep(350);
+      if(ok(i,c,x)){ x[i]=c; col=x.slice(); draw(); if(await dfs(i+1)) return true; x[i]=-1; }
+    }
+    return false;
+  }
+  await dfs(0);
+};
+all.onclick=()=>{
+  const m=+mIn.value; let n=0; const x=[-1,-1,-1,-1];
+  (function dfs(i){ if(i>=4){n++;return;} for(let c=0;c<m;c++) if(ok(i,c,x)){ x[i]=c; dfs(i+1); x[i]=-1; } })(0);
+  cnt.textContent=n; log.textContent=`m=${m} 共 ${n} 种着色`;
+};
+draw();
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

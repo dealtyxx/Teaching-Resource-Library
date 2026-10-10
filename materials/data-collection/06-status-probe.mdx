@@ -1,0 +1,117 @@
+---
+module: 2
+moduleName: 网络爬虫基础
+order: 6
+title: 网页状态码探测器
+level: 基础必做
+scene: HTTP实验
+knowledge: [HTTP原理, GET请求, 状态码, requests安装]
+stars: 2
+minutes: 25
+goal: 掌握requests基础GET请求，能识别常见HTTP状态码
+sizheng: 读懂服务器的每一次回应——尊重对方是协议的底色
+dims: [职业伦理]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+import HttpStatusLab from '../../components/react/labs/HttpStatusLab';
+
+## 场景导入
+
+你在命令行敲下 `pip install requests`，写出人生第一段爬虫代码，满怀期待地打印结果——`resp.status_code` 给你的见面礼却是一个 404。别慌，这正是 HTTP 的说话方式：爬虫每发出一次 GET 请求，服务器都会用一个三位数**状态码**回应你，可能是欢迎（200）、指路（301）、拒绝（403），也可能是求饶（429）。爬虫工程师的第一课不是「抓到数据」，而是**听懂对方在说什么**。
+
+## 玩一玩
+
+先来一台状态码探测器：挑一个 URL 发起模拟 GET 请求，看服务器回什么牌，集齐全部 7 张状态码卡即通关。悄悄说一句，`/teapot` 那张有彩蛋：
+
+<HttpStatusLab client:visible />
+
+## 动手实验
+
+真实环境里，一次有教养的 GET 请求长这样（浏览器沙箱不发真实网络请求，这段请在本机体验）：
+
+```python
+# 本机真实环境：先安装 requests（pip install requests）
+import requests
+
+resp = requests.get(
+    "https://httpbin.org/get",                # 一个专供练习的测试站点
+    headers={"User-Agent": "study-bot/0.1 (contact: you@campus.edu)"},  # 亮明身份
+    timeout=5,                                # 最多等 5 秒，不无限期挂着
+)
+print(resp.status_code)                       # 200 —— 一切顺利
+print(resp.headers.get("Content-Type"))       # 响应头：内容类型
+print(resp.text[:120])                        # 响应正文前 120 个字符
+```
+
+而在下面的 Playground 里，我们不发一个真实请求，照样把状态码学明白——把刚才集齐的 7 张卡编成一部「图鉴」，`explain_status()` 按首位数字分类，循环批量打印每张卡的含义与爬虫应对策略：
+
+<PyPlayground
+  client:visible
+  title="HTTP 状态码图鉴生成器"
+  note="试着往 STATUS 里加两张新卡：302（临时重定向）和 503（服务不可用），写上你自己的应对策略再运行，看它们被归入哪一类。"
+  code={`# HTTP 状态码图鉴：code -> (含义, 爬虫应对策略)
+STATUS = {
+    200: ("OK 请求成功", "放心解析正文——最理想的回应"),
+    301: ("Moved Permanently 永久搬家", "记下新地址（requests 默认自动跟随重定向）"),
+    403: ("Forbidden 拒绝访问", "对方明确说「不」：自查权限与协议，绝不硬闯"),
+    404: ("Not Found 页面不存在", "别盲目重试，先检查 URL 拼写或页面是否已下线"),
+    418: ("I'm a teapot 我是茶壶", "1998 年 RFC 彩蛋，常被网站幽默地用来婉拒爬虫"),
+    429: ("Too Many Requests 请求太多", "立即降速！读 Retry-After 头，等够时间再来"),
+    500: ("Internal Server Error 服务器内部错误", "不是你的错，但请稍候重试，给对方喘息时间"),
+}
+
+def explain_status(code):
+    """按首位数字把状态码归入 2xx/3xx/4xx/5xx 四大类"""
+    kinds = {2: "2xx 成功", 3: "3xx 重定向", 4: "4xx 客户端问题", 5: "5xx 服务器问题"}
+    return kinds.get(code // 100, "未知类别")
+
+# 批量探测：逐张打印类别、含义与应对策略
+for code, (meaning, action) in STATUS.items():
+    print(f"[{code}] {explain_status(code)}｜{meaning}")
+    print(f"      爬虫应对：{action}")`}
+/>
+
+## 思政会客厅
+
+<DimCard dim="职业伦理" title="状态码是对话，不是障碍">
+  <ul>
+    <li>2xx 放行、3xx 指路、4xx 说「你这边有问题」、5xx 说「我这边出了状况」——把每个状态码当成对方的话来听，而不是当成待绕过的墙，是爬虫工程师的第一层职业操守。</li>
+    <li>403 出现时，先自查权限与协议，而不是研究伪装；429 出现时，先降速，而不是换 IP。技术上能绕过，不代表职业上应该绕过。</li>
+    <li>在 User-Agent 里亮明身份、附上联系方式，是行业里的老礼节：让站长找得到你，问题才有商量的余地。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="🫖" tone="gold" title="彩蛋 418 的提醒">
+1998 年愚人节，工程师们在 RFC 2324 里一本正经地定义了「超文本咖啡壶控制协议」，418 的意思是「我是茶壶，煮不了咖啡」。这个玩笑保留至今，还常被网站借来婉拒爬虫——它提醒我们：HTTP 从来不是冷冰冰的管道，而是人与人之间的约定，幽默、克制与尊重都写在协议里。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p06-d1"
+  question="如果把服务器想成一位接待员，403 和 429 分别在对你说什么？一个假装听不懂的爬虫，最终会给双方带来什么？"
+  hints={['403 是「此路不通，请回」，429 是「请慢一点」——语气不同，敬意相同', '装听不懂的代价：IP 封禁、UA 拉黑，甚至连累同网段的同学一起被误伤', '把状态码处理写成代码分支，就是把尊重固化为工程习惯']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="哪个状态码表示「资源已永久迁移到新地址」？"
+  options={['200', '404', '301', '500']}
+  answer={2}
+  explain="301 Moved Permanently：资源永久搬家。requests 默认自动跟随重定向，resp.url 会显示最终到达的地址；合规爬虫应顺手更新自己的 URL 库。"
+/>
+
+<QuizItem
+  client:visible
+  question="爬虫收到 429 Too Many Requests，职业的做法是？"
+  options={['换一个代理 IP 继续全速抓取', '按 Retry-After 指示等待，并调低整体请求频率', '把 User-Agent 伪装成浏览器绕过限制', '开更多线程，抢在被封禁前抓完']}
+  answer={1}
+  explain="429 是服务器发出的正式减速信号。换 IP、伪装 UA、加线程都是把「对方的拒绝」当「待破解的障碍」，既失职业体面，也可能升级为法律风险；按提示降速才是专业答案。"
+/>

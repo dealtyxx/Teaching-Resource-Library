@@ -1,0 +1,133 @@
+---
+module: 7
+moduleName: 数据持久化
+order: 26
+title: 爬取结果JSON落盘工具
+level: 基础必做
+scene: 文件存储
+knowledge: [JSON持久化, "json.dump()", 编码设置, 完整性校验]
+stars: 2
+minutes: 25
+goal: 掌握JSON文件存储，能将采集数据完整落盘
+sizheng: 数据完整性是可信的起点——落盘必校验
+dims: [科研诚信]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import PyStepRunner from '../../components/react/PyStepRunner';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, Callout } from '../../components/react/ui';
+
+## 场景导入
+
+你的爬虫辛苦跑了半小时，抓下三千条商品数据，正得意时手一抖关掉了终端——数据全没了。采集只是上半场，把结果稳稳「落盘」保存下来才算真正到手。这一课我们用最通用的 JSON 给采集结果安个家，并立一条规矩：**每次落盘，都回读校验一遍**，确认一条不丢、一字不错。
+
+## 动手实验
+
+下面这个迷你落盘工具把一批书籍数据序列化成 JSON 文本，再原样读回来逐条比对。注意看 `ensure_ascii` 开与关时，中文的两副面孔：
+
+<PyPlayground
+  client:visible
+  title="JSON 落盘与完整性校验"
+  note="把 records 里的中文书名换成你在追的一部剧名，再运行——看 ensure_ascii=False 如何让中文原样落盘。"
+  code={`import json
+
+# 模拟采集到的结果：一批书籍条目（dict 列表）
+records = [
+    {"title": "活着", "author": "余华", "price": 28.0},
+    {"title": "三体", "author": "刘慈欣", "price": 59.5},
+    {"title": "红楼梦", "author": "曹雪芹", "price": 88.0},
+]
+
+# 1) 落盘：dict 列表 -> JSON 文本（Pyodide 里用字符串模拟文件）
+#    ensure_ascii=False 让中文原样输出，而非 uXXXX 转义
+blob = json.dumps(records, ensure_ascii=False, indent=2)
+print("=== 落盘内容（前 40 字）===")
+print(blob[:40], "...")
+
+# 对比：默认 ensure_ascii=True 会把中文变成 uXXXX 码
+ascii_blob = json.dumps(records, ensure_ascii=True)
+print("\\n默认转义：", ascii_blob[:36], "...")
+
+# 2) 回读：JSON 文本 -> dict 列表
+loaded = json.loads(blob)
+
+# 3) 完整性校验：条数 + 关键字段逐条比对
+ok_count = len(loaded) == len(records)
+ok_field = all(a["title"] == b["title"] and a["price"] == b["price"]
+               for a, b in zip(records, loaded))
+
+print("\\n=== 完整性校验报告 ===")
+print(f"条数：写入 {len(records)} / 读回 {len(loaded)}")
+print(f"字段：title 与 price 逐条比对 -> {'一致' if ok_field else '不一致'}")
+if ok_count and ok_field:
+    print("✅ 完整性校验通过：落盘数据可信")
+else:
+    print("❌ 校验失败：数据在落盘或回读中丢失")`}
+/>
+
+## 逐行看懂
+
+落盘四步走——序列化、写出、读回、比对。点开单步执行，看数据如何「出门又平安回家」：
+
+<PyStepRunner
+  client:visible
+  title="JSON 落盘校验四步"
+  fileName="json_dump.py"
+  code={`import json
+records = [{"title": "活着"}, {"title": "三体"}]
+blob = json.dumps(records, ensure_ascii=False)
+loaded = json.loads(blob)
+same = len(records) == len(loaded)
+print("完整性校验通过" if same else "校验失败")`}
+  steps={[
+    { line: 0, desc: '导入标准库 json，Python 自带，无需安装。' },
+    { line: 1, desc: '准备两条采集结果，放进 dict 列表。', vars: { records: '[活着, 三体] 2条' } },
+    { line: 2, desc: 'json.dumps 把列表序列化成 JSON 文本；ensure_ascii=False 保留中文。', vars: { blob: 'JSON 文本(含中文)' } },
+    { line: 3, desc: 'json.loads 把文本还原回 dict 列表——这一步模拟「回读」。', vars: { loaded: '[活着, 三体] 2条' } },
+    { line: 4, desc: '比对写入与读回的条数是否相等，得到校验结论。', vars: { same: 'True' } },
+    { line: 5, desc: '条数一致，打印「完整性校验通过」。', out: '完整性校验通过' },
+  ]}
+/>
+
+## 思政会客厅
+
+<DimCard dim="科研诚信" title="落盘必校验">
+  <ul>
+    <li>采集数据是后续分析与论文的原始证据。落盘时少一条、串一行，结论就可能被悄悄改写，而你毫不知情。</li>
+    <li>「写完就走」是侥幸，「写完回读」才是专业。多花的零点一秒，换来的是数据可信的底气。</li>
+    <li>科研诚信不是空话，它就藏在 len(读回) == len(写入) 这一行断言里：能复现的数据，才是能被信任的数据。</li>
+  </ul>
+</DimCard>
+
+<Callout icon="🔍" tone="green" title="一个好习惯：写完就读一遍">
+把「校验」写进落盘函数的最后一步，就像快递员当面清点包裹。数据科学里最贵的错误，往往不是算法算错了，而是原始数据在某一次保存中悄悄缺了角。
+</Callout>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p26-d1"
+  question="有同学说「JSON 落盘还要回读校验，太麻烦，反正 dumps 很少出错」。你同意吗？说说校验能挡住哪些真实事故。"
+  hints={['磁盘写满、程序中途崩溃、编码不一致，都可能让落盘文件残缺', '校验的成本是一次 loads，事故的成本可能是整批数据重跑', '关键不在 dumps 会不会错，而在出错时你能不能第一时间发现']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="用 json.dumps 保存中文数据时，想让文件里的中文原样显示、而不是变成 uXXXX 形式的转义码，应设置哪个参数？"
+  options={['ensure_ascii=True', 'ensure_ascii=False', 'indent=2', 'sort_keys=True']}
+  answer={1}
+  explain="ensure_ascii=False 让中文等非 ASCII 字符原样写出；默认 True 会把它们转成 uXXXX 转义码，机器能读但人不好读。indent 只管缩进，sort_keys 只管键的排序。"
+/>
+
+<QuizItem
+  client:visible
+  question="爬虫落盘五千条数据后，最专业的下一步是？"
+  options={['立刻关机休息，任务完成', '回读文件校验条数与关键字段，确认完整', '再抓一遍覆盖旧文件以防万一', '把文件复制三份就一定安全']}
+  answer={1}
+  explain="落盘必校验：回读比对能第一时间发现写入残缺或编码错误。重复抓取浪费资源，盲目复制残缺文件只是复制了错误——完整性要靠校验确认，而非靠份数。"
+/>

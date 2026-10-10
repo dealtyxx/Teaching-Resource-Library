@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>快速排序 · 第4章 分治法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">04</div>算法可视化 · <span>第4章 分治法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-overview.html">概述</a><a class="pill active" href="02-quicksort.html">快排</a><a class="pill" href="03-mergesort.html">归并</a><a class="pill" href="04-binsearch.html">二分</a><a class="pill" href="05-median.html">中位数</a><a class="pill" href="06-maxsub.html">最大子段</a><a class="pill" href="07-chessboard.html">棋盘覆盖</a><a class="pill" href="08-schedule.html">日程</a><a class="pill" href="09-tsp.html">TSP</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero"><div class="eyebrow">图 2 · 加深</div><h1>快速排序 · 分区指针动画</h1>
+<p>选 pivot，双指针划分使左 ≤ pivot ≤ 右，再递归两边。平均 O(n log n)，最坏 O(n²)。</p></section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+<li>能够<b>写出</b> partition 划分函数与 quickSort 的 C++ 代码，说明双指针的移动与交换时机。</li>
+<li>能够<b>推导</b>最好情形 T(n)=2T(n/2)+&Theta;(n)、最坏情形 T(n)=T(n&minus;1)+&Theta;(n) 的求解过程。</li>
+<li>能够<b>指出</b>最坏情形的<b>触发条件</b>，并说明随机化、三数取中等 pivot 选取策略如何规避。</li>
+<li>能够<b>举反例证明</b>快速排序<b>不稳定</b>，并解释不稳定发生在哪一次交换上。</li>
+<li>能够<b>填出</b>快排最好／平均／最坏时间、空间、稳定性的完整对照表。</li>
+</ol></div>
+<div class="card">
+  <div class="toolbar">
+    <button class="btn primary" id="step">下一步分区</button>
+    <button class="btn" id="play">▶ 完整排序</button>
+    <button class="btn" id="rand">随机数组</button>
+    <button class="btn" id="rst">重置</button>
+    <div class="speed" id="spd"><button data-s="1" class="on">1×</button><button data-s="2">2×</button><button data-s="4">4×</button></div>
+  </div>
+  <div class="stage-wrap light">
+    <canvas class="stage" id="cv" width="1000" height="280"></canvas>
+    <div class="stage-hud"><span class="hud-pill light">Quicksort</span><span class="hud-pill light" id="hud">就绪</span></div>
+  </div>
+  <div class="legend"><span><i style="background:#9C7420"></i>pivot</span><span><i style="background:#A02C55"></i>i/j 交换</span><span><i style="background:#3B7A57"></i>已就位</span><span><i style="background:#C2603F"></i>当前区间</span></div>
+  <div class="stat-row">
+    <div class="stat"><span>比较</span><b class="p" id="cmp">0</b></div>
+    <div class="stat"><span>交换</span><b class="a" id="swp">0</b></div>
+    <div class="stat"><span>递归深度</span><b class="g" id="dep">0</b></div>
+  </div>
+  <div class="log" id="log">点击「完整排序」观看 Lomuto/双指针划分过程。</div>
+  <div class="formula">平均 T(n)=2T(n/2)+Θ(n) = Θ(n log n)</div>
+</div>
+
+<section class="sec"><div class="sec-head"><h2>一、算法思想与划分不变量</h2><span class="sub">Quick Sort · Partition</span></div>
+<div class="defn"><span class="lbl">定义</span><p><b>快速排序（Quick Sort）</b>：在待排序区间 a[lo..hi] 中选一个元素作为<b>基准 pivot</b>，通过一趟<b>划分（partition）</b>把区间重排为「左段所有元素 &le; pivot &le; 右段所有元素」，此时 pivot <b>已落在最终位置</b> p 上；然后对 a[lo..p&minus;1] 与 a[p+1..hi] 递归执行同样过程。</p></div>
+<div class="defn prop"><span class="lbl">性质（划分不变量）</span><p>一趟划分结束时必有：<b>a[lo..p&minus;1] &le; a[p] &le; a[p+1..hi]</b>，且 a[p] 之后<b>永不再移动</b>。因此快排的"合并"步骤是<b>空操作</b>——这是它与归并排序最大的结构差异：快排"重活在分解"，归并"重活在合并"。</p></div>
+<div class="tip info"><strong>与分治框架的对应：</strong>分解 = partition（&Theta;(n)）；求解 = 两次递归；合并 = 什么都不做（&Theta;(1)）。所以 d=1、b=2、a=2（划分均衡时），主定理情形② ⇒ &Theta;(n log n)。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>二、C++ 实现</h2><span class="sub">Hoare 双指针划分（与上方动画一致）</span></div>
+<div class="code"><span class="cm">// ---------- 一趟划分：以 a[lo] 为基准，返回基准的最终下标 ----------</span>
+<span class="kw">int</span> <span class="fn">partition</span>(<span class="kw">int</span> a[], <span class="kw">int</span> lo, <span class="kw">int</span> hi) {
+    <span class="kw">int</span> pivot = a[lo];              <span class="cm">// 基准值暂存（挖坑法可省一次赋值）</span>
+    <span class="kw">int</span> i = lo, j = hi;
+    <span class="kw">while</span> (i &lt; j) {
+        <span class="cm">// 必须先从右往左找：保证最后 i==j 处的元素 &lt;= pivot</span>
+        <span class="kw">while</span> (i &lt; j &amp;&amp; a[j] &gt; pivot) --j;
+        <span class="kw">while</span> (i &lt; j &amp;&amp; a[i] &lt;= pivot) ++i;
+        <span class="kw">if</span> (i &lt; j) <span class="fn">swap</span>(a[i], a[j]);   <span class="cm">// 大的换到右边，小的换到左边</span>
+    }
+    <span class="fn">swap</span>(a[lo], a[i]);              <span class="cm">// 基准归位，a[i] 即最终位置</span>
+    <span class="kw">return</span> i;
+}
+
+<span class="cm">// ---------- 快速排序主过程 ----------</span>
+<span class="kw">void</span> <span class="fn">quickSort</span>(<span class="kw">int</span> a[], <span class="kw">int</span> lo, <span class="kw">int</span> hi) {
+    <span class="kw">if</span> (lo &gt;= hi) <span class="kw">return</span>;          <span class="cm">// 出口：区间长度 &lt;= 1</span>
+    <span class="kw">int</span> p = <span class="fn">partition</span>(a, lo, hi);  <span class="cm">// 分解：&Theta;(n)</span>
+    <span class="fn">quickSort</span>(a, lo, p - <span class="nu">1</span>);       <span class="cm">// 求解左子问题</span>
+    <span class="fn">quickSort</span>(a, p + <span class="nu">1</span>, hi);       <span class="cm">// 求解右子问题（p 不再参与）</span>
+    <span class="cm">// 合并：空操作</span>
+}</div>
+<div class="tip warn"><strong>为什么"必须先从右往左找"？</strong>因为基准取的是 a[lo]（左端）。若先从左往右移动 i，循环结束时 a[i] 可能是一个 &gt; pivot 的元素，最后 <span style="font-family:var(--mono)">swap(a[lo], a[i])</span> 会把大数换到最左边，划分立即失效。反之若基准取 a[hi]，则必须先从左往右找。<b>基准在哪端，就先从另一端开始扫描</b>——这是必考的细节。</div>
+
+<div class="code"><span class="cm">// ---------- Lomuto 划分（代码更短，常见于教材与面试）----------</span>
+<span class="kw">int</span> <span class="fn">partitionLomuto</span>(<span class="kw">int</span> a[], <span class="kw">int</span> lo, <span class="kw">int</span> hi) {
+    <span class="kw">int</span> pivot = a[hi];              <span class="cm">// 取末元素为基准</span>
+    <span class="kw">int</span> i = lo - <span class="nu">1</span>;                 <span class="cm">// i 指向 "&lt;=pivot 区" 的最后一个位置</span>
+    <span class="kw">for</span> (<span class="kw">int</span> j = lo; j &lt; hi; ++j)
+        <span class="kw">if</span> (a[j] &lt;= pivot) <span class="fn">swap</span>(a[++i], a[j]);
+    <span class="fn">swap</span>(a[i + <span class="nu">1</span>], a[hi]);
+    <span class="kw">return</span> i + <span class="nu">1</span>;
+}</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>三、复杂度分析（含完整推导）</h2><span class="sub">最好 / 最坏 / 平均</span></div>
+
+<h3>3.1 最好情形：每次划分都恰好均分</h3>
+<div class="formula">T(n) = 2T(n/2) + &Theta;(n)</div>
+<div class="deriv">
+  <span class="step">T(n) = 2T(n/2) + cn <span class="why">划分代价 cn，两个规模 n/2 的子问题</span></span>
+  <span class="step">　　 = 2[2T(n/4) + cn/2] + cn = 4T(n/4) + 2cn</span>
+  <span class="step">　　 = 4[2T(n/8) + cn/4] + 2cn = 8T(n/8) + 3cn</span>
+  <span class="step">　　 = 2<sup>k</sup>T(n/2<sup>k</sup>) + k&middot;cn <span class="why">第 k 步通式</span></span>
+  <span class="step">令 n/2<sup>k</sup>=1 ⇒ k = log<sub>2</sub>n</span>
+  <span class="step">T(n) = n&middot;T(1) + cn&middot;log<sub>2</sub>n = &Theta;(n log n)</span>
+  <span class="step">（主定理校验：a=2, b=2, d=1，log<sub>2</sub>2 = 1 = d ⇒ 情形② ⇒ &Theta;(n log n)）</span>
+</div>
+
+<h3>3.2 最坏情形：每次划分都极不均衡（0 : n&minus;1）</h3>
+<div class="formula">T(n) = T(n&minus;1) + &Theta;(n)&nbsp;&nbsp;⇒&nbsp;&nbsp;T(n) = &Theta;(n<sup>2</sup>)</div>
+<div class="deriv">
+  <span class="step">T(n) = T(n&minus;1) + cn <span class="why">基准落到端点，左段空、右段 n&minus;1</span></span>
+  <span class="step">　　 = T(n&minus;2) + c(n&minus;1) + cn</span>
+  <span class="step">　　 = T(n&minus;3) + c(n&minus;2) + c(n&minus;1) + cn</span>
+  <span class="step">　　 &hellip;</span>
+  <span class="step">　　 = T(1) + c[2 + 3 + &hellip; + n] <span class="why">一直展开到出口</span></span>
+  <span class="step">　　 = T(1) + c[n(n+1)/2 &minus; 1] <span class="why">等差数列求和</span></span>
+  <span class="step">∴ T(n) = &Theta;(n<sup>2</sup>) <span class="why">注意此式 b 不是常数倍缩小，不能套主定理</span></span>
+</div>
+<div class="tip danger"><strong>触发条件（必考）：</strong>当输入是<b>已经有序（升序）或完全逆序</b>的数组，而基准又固定取<b>首元素（或末元素）</b>时，每趟划分都得到 0 个和 n&minus;1 个元素的两段，退化为 &Theta;(n<sup>2</sup>)，且递归深度达 n、栈空间 O(n)。<b>越"整齐"的数据反而越慢，这是快排最反直觉的一点。</b></div>
+
+<h3>3.3 平均情形：基准等概率落在任意位置</h3>
+<div class="deriv">
+  <span class="step">设基准归位于下标 i（i = 0,1,&hellip;,n&minus;1）各以概率 1/n 出现：</span>
+  <span class="step">T(n) = (1/n)&middot;&Sigma;<sub>i=0..n&minus;1</sub>[T(i) + T(n&minus;1&minus;i)] + cn</span>
+  <span class="step">　　 = (2/n)&middot;&Sigma;<sub>i=0..n&minus;1</sub>T(i) + cn <span class="why">两个求和是同一组数，合并</span></span>
+  <span class="step">两边乘 n：&nbsp; n&middot;T(n) = 2&Sigma;<sub>i=0..n&minus;1</sub>T(i) + cn<sup>2</sup>&nbsp;&nbsp;……(1)</span>
+  <span class="step">以 n&minus;1 代 n：(n&minus;1)T(n&minus;1) = 2&Sigma;<sub>i=0..n&minus;2</sub>T(i) + c(n&minus;1)<sup>2</sup>&nbsp;&nbsp;……(2)</span>
+  <span class="step">(1)&minus;(2)：n&middot;T(n) &minus; (n&minus;1)T(n&minus;1) = 2T(n&minus;1) + c(2n&minus;1) <span class="why">消去求和号，关键一步</span></span>
+  <span class="step">整理：n&middot;T(n) = (n+1)T(n&minus;1) + c(2n&minus;1)</span>
+  <span class="step">两边除以 n(n+1)：T(n)/(n+1) = T(n&minus;1)/n + c(2n&minus;1)/[n(n+1)] &asymp; T(n&minus;1)/n + 2c/n</span>
+  <span class="step">令 S(n)=T(n)/(n+1)，则 S(n) &asymp; S(n&minus;1) + 2c/n，逐项累加：</span>
+  <span class="step">S(n) &asymp; S(1) + 2c&middot;&Sigma;<sub>k=2..n</sub>(1/k) &asymp; 2c&middot;ln n <span class="why">调和级数 H<sub>n</sub> &asymp; ln n</span></span>
+  <span class="step">∴ T(n) = (n+1)&middot;S(n) &asymp; 2c(n+1)ln n = &Theta;(n log n)</span>
+</div>
+<div class="tip info"><strong>结论解读：</strong>2ln n &asymp; 1.386&middot;log<sub>2</sub>n，即平均只比最好情形慢约 39%。这说明<b>"极端不均衡的划分是小概率事件"</b>，快排在实践中常数因子小、缓存友好，是最常用的内部排序。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>四、pivot 选取策略</h2><span class="sub">如何规避 &Theta;(n<sup>2</sup>)</span></div>
+<div class="code"><span class="cm">// 策略 1：随机化 —— 把最坏情形从"特定输入"变成"极小概率事件"</span>
+<span class="kw">int</span> <span class="fn">randPartition</span>(<span class="kw">int</span> a[], <span class="kw">int</span> lo, <span class="kw">int</span> hi) {
+    <span class="kw">int</span> r = lo + <span class="fn">rand</span>() % (hi - lo + <span class="nu">1</span>);
+    <span class="fn">swap</span>(a[lo], a[r]);              <span class="cm">// 随机元素换到 lo 后照常划分</span>
+    <span class="kw">return</span> <span class="fn">partition</span>(a, lo, hi);
+}
+
+<span class="cm">// 策略 2：三数取中 median-of-three —— 取 a[lo], a[mid], a[hi] 的中位数</span>
+<span class="kw">void</span> <span class="fn">medianOfThree</span>(<span class="kw">int</span> a[], <span class="kw">int</span> lo, <span class="kw">int</span> hi) {
+    <span class="kw">int</span> mid = lo + (hi - lo) / <span class="nu">2</span>;
+    <span class="kw">if</span> (a[mid] &lt; a[lo])  <span class="fn">swap</span>(a[mid], a[lo]);
+    <span class="kw">if</span> (a[hi]  &lt; a[lo])  <span class="fn">swap</span>(a[hi],  a[lo]);
+    <span class="kw">if</span> (a[hi]  &lt; a[mid]) <span class="fn">swap</span>(a[hi],  a[mid]);
+    <span class="fn">swap</span>(a[lo], a[mid]);            <span class="cm">// 中位数放到 lo 作基准</span>
+}
+
+<span class="cm">// 策略 3：小区间改用插入排序（工程优化，阈值常取 8~16）</span>
+<span class="kw">if</span> (hi - lo &lt; <span class="nu">12</span>) { <span class="fn">insertSort</span>(a, lo, hi); <span class="kw">return</span>; }</div>
+<div class="table-scroll"><table class="data">
+  <tr><th>策略</th><th>做法</th><th>能否消除最坏情形</th><th>代价</th></tr>
+  <tr><td>固定取首/末元素</td><td>pivot = a[lo] 或 a[hi]</td><td>否，有序输入必退化</td><td>0</td></tr>
+  <tr><td class="hl">随机化</td><td>随机下标换到端点</td><td>不能消除，但概率降到可忽略（期望仍 &Theta;(n log n)）</td><td>一次 rand()</td></tr>
+  <tr><td class="hl">三数取中</td><td>首/中/末三者取中位数</td><td>对<b>有序/逆序</b>输入完全免疫（此时正好取到真中位数）</td><td>至多 3 次比较</td></tr>
+  <tr><td>五数取中 / BFPRT</td><td>线性时间选真中位数</td><td>可保证最坏 &Theta;(n log n)</td><td>常数因子大，实用性差</td></tr>
+</table></div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>五、稳定性：快排为什么不稳定</h2><span class="sub">常见考点</span></div>
+<div class="defn"><span class="lbl">定义</span><p><b>稳定性（Stability）</b>：若排序前后<b>关键字相等</b>的记录的相对先后次序保持不变，则称该排序算法是稳定的；否则不稳定。</p></div>
+<div class="defn prop"><span class="lbl">性质</span><p>快速排序<b>不稳定</b>。根源在于划分时的 <span style="font-family:var(--mono)">swap(a[i], a[j])</span> 与最后的 <span style="font-family:var(--mono)">swap(a[lo], a[i])</span> 都是<b>跨越大段距离的交换</b>，可能把相等元素"跳过"彼此，从而颠倒它们的原始次序。</p></div>
+<div class="tip danger"><strong>最小反例：</strong>序列 (3<sub>a</sub>, 3<sub>b</sub>, 1)，取 pivot = a[lo] = 3<sub>a</sub>。<br/>
+① j 从右扫：a[2]=1 不大于 3，停在 j=2；<br/>
+② i 从左扫：a[0]=3<sub>a</sub> &le; 3 → i=1；a[1]=3<sub>b</sub> &le; 3 → i=2，此时 i=j=2 退出；<br/>
+③ 基准归位 swap(a[0], a[2])：序列变为 <b>(1, 3<sub>b</sub>, 3<sub>a</sub>)</b>。<br/>
+两个关键字均为 3 的记录，原次序 3<sub>a</sub> 在前，排序后 3<sub>b</sub> 反而在前 ⇒ <b>不稳定</b>。</div>
+
+<div class="table-scroll"><table class="data">
+  <tr><th>算法</th><th>最好</th><th>平均</th><th>最坏</th><th>辅助空间</th><th>稳定性</th><th>最坏触发条件</th></tr>
+  <tr><td class="hl">快速排序</td><td>O(n log n)</td><td class="hl">O(n log n)</td><td>O(n<sup>2</sup>)</td><td>O(log n) 平均<br/>O(n) 最坏（递归栈）</td><td>不稳定</td><td>有序/逆序 + 端点作基准</td></tr>
+  <tr><td>归并排序</td><td>O(n log n)</td><td>O(n log n)</td><td class="hl">O(n log n)</td><td>O(n) 辅助数组</td><td class="hl">稳定</td><td>—（与输入无关）</td></tr>
+  <tr><td>堆排序</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n log n)</td><td>O(1)</td><td>不稳定</td><td>—</td></tr>
+  <tr><td>直接插入排序</td><td>O(n)</td><td>O(n<sup>2</sup>)</td><td>O(n<sup>2</sup>)</td><td>O(1)</td><td>稳定</td><td>逆序</td></tr>
+  <tr><td>冒泡排序</td><td>O(n)</td><td>O(n<sup>2</sup>)</td><td>O(n<sup>2</sup>)</td><td>O(1)</td><td>稳定</td><td>逆序</td></tr>
+</table></div>
+<div class="tip"><strong>关于空间复杂度：</strong>快排本身是<b>原地（in-place）</b>交换，不需要辅助数组，但<b>递归栈</b>要占空间。划分均衡时递归深度 log<sub>2</sub>n ⇒ O(log n)；退化时深度 n ⇒ O(n)。工程上可对<b>较短的一侧先递归、较长的一侧改写成尾循环</b>，把最坏栈深压回 O(log n)。</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>六、例题：一趟划分的手工模拟</h2><span class="sub">Worked Example</span></div>
+<div class="tip info"><strong>题目：</strong>对序列 (30, 24, 5, 58, 18, 36, 12, 42, 39) 以第一个元素 30 为基准，写出<b>第一趟划分</b>后的结果与基准的最终下标。</div>
+<div class="deriv">
+  <span class="step">初始：[<b>30</b>, 24, 5, 58, 18, 36, 12, 42, 39]&nbsp;&nbsp;pivot=30, i=0, j=8</span>
+  <span class="step">j 左移：39&gt;30→j=7；42&gt;30→j=6；a[6]=12 不大于 30，停 ⇒ j=6</span>
+  <span class="step">i 右移：30&le;30→i=1；24&le;30→i=2；5&le;30→i=3；a[3]=58&gt;30，停 ⇒ i=3</span>
+  <span class="step">i&lt;j，交换 a[3]&harr;a[6]：[30, 24, 5, <b>12</b>, 18, 36, <b>58</b>, 42, 39]</span>
+  <span class="step">j 左移：58&gt;30→j=5；36&gt;30→j=4；a[4]=18 不大于 30，停 ⇒ j=4</span>
+  <span class="step">i 右移：a[3]=12&le;30→i=4，此时 i=j=4，退出外层循环</span>
+  <span class="step">基准归位，交换 a[0]&harr;a[4]：[18, 24, 5, 12, <b>30</b>, 36, 58, 42, 39]</span>
+  <span class="step">答：划分结果如上，基准 30 的最终下标 p = 4；左段 {18,24,5,12} 全 &le; 30，右段 {36,58,42,39} 全 &gt; 30。</span>
+</div>
+<div class="terms">
+  <span class="term"><b>基准</b>Pivot</span>
+  <span class="term"><b>划分</b>Partition</span>
+  <span class="term"><b>原地排序</b>In-place Sort</span>
+  <span class="term"><b>稳定性</b>Stability</span>
+  <span class="term"><b>三数取中</b>Median-of-Three</span>
+  <span class="term"><b>随机化算法</b>Randomized Algorithm</span>
+  <span class="term"><b>尾递归优化</b>Tail Recursion Elimination</span>
+</div>
+</section>
+
+<section class="sec"><div class="sec-head"><h2>七、易错点</h2><span class="sub">Common Pitfalls</span></div>
+<div class="pitfall"><span class="lbl">易错点</span><ul>
+<li><b>扫描方向搞反</b>：基准取 a[lo] 却先移动 i（从左往右），会把大于 pivot 的元素换到最左端，划分失效。口诀：<b>基准在左，先从右扫</b>。</li>
+<li>内层 while 忘记加 <span style="font-family:var(--mono)">i &lt; j</span> 的边界判断，指针会越过区间造成数组越界。</li>
+<li>比较符号写成 <span style="font-family:var(--mono)">a[j] &ge; pivot</span> 与 <span style="font-family:var(--mono)">a[i] &lt; pivot</span>（两侧都不含等号或都含等号），遇到<b>大量重复元素</b>时指针不前进 ⇒ 死循环，或划分极度不均衡。正确写法是<b>一侧含等号、另一侧不含</b>。</li>
+<li>递归时写成 <span style="font-family:var(--mono)">quickSort(a, lo, p)</span> 而非 <span style="font-family:var(--mono)">p&minus;1</span>：基准被重复纳入子问题，区间不缩小 ⇒ 无限递归。</li>
+<li>误以为"最坏 O(n<sup>2</sup>) 只在数据随机很差时出现"。恰恰相反：<b>已排序数据是最坏输入</b>，而这在实际数据中非常常见。</li>
+<li>把最坏情形递推 T(n)=T(n&minus;1)+&Theta;(n) 硬套主定理。主定理要求 T(n/b) 形式的<b>常数倍缩小</b>，n&minus;1 不满足，必须用迭代展开。</li>
+<li>误答"快排是稳定的"。只要出现跨距离交换就可能失稳，务必能当场举出 (3<sub>a</sub>, 3<sub>b</sub>, 1) 这类反例。</li>
+</ul></div>
+</section>
+
+<div class="summary"><span class="lbl">本节小结</span><ul>
+<li>快排 = <b>partition（重活）+ 两次递归 + 空合并</b>，与归并排序"轻分解、重合并"正好相反。</li>
+<li>一趟划分的不变量：a[lo..p&minus;1] &le; a[p] &le; a[p+1..hi]，且 a[p] 永久就位。</li>
+<li>最好 T(n)=2T(n/2)+&Theta;(n) ⇒ &Theta;(n log n)；最坏 T(n)=T(n&minus;1)+&Theta;(n) ⇒ &Theta;(n<sup>2</sup>)，由<b>有序/逆序输入 + 端点基准</b>触发。</li>
+<li>平均情形通过"两式相减消去求和号"化为 T(n)/(n+1)=T(n&minus;1)/n+2c/n，累加得调和级数 ⇒ &Theta;(n log n)，约为最好情形的 1.39 倍。</li>
+<li>规避最坏：<b>随机化</b>（概率意义）或<b>三数取中</b>（对有序输入完全免疫）；小区间转插入排序是常用工程优化。</li>
+<li>快排<b>不稳定</b>、原地、辅助空间 O(log n)（最坏 O(n) 为递归栈）。</li>
+</ul></div>
+
+<section class="sec"><div class="sec-head"><h2>自测题</h2><span class="sub">点击选项查看解析</span></div>
+<div class="quiz">
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">1</span>对已经按升序排好的 n 个元素的数组执行快速排序，且每次都取<b>区间第一个元素</b>为基准，则时间复杂度和递归栈空间分别是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>O(n log n) 和 O(log n) —— 数据有序反而更快</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>O(n) 和 O(1) —— 一趟扫描即可发现已有序</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>O(n<sup>2</sup>) 和 O(n)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>O(n<sup>2</sup>) 和 O(log n)</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。升序数组中第一个元素恰是最小值，每趟划分得到「空段 + n&minus;1 段」，递推 T(n)=T(n&minus;1)+&Theta;(n) ⇒ &Theta;(n<sup>2</sup>)；同时递归链长度为 n，栈空间 O(n)。<br/>A 是最典型的错误直觉——<b>有序对插入排序有利，对快排却是最坏输入</b>；B 错在标准快排<b>没有</b>"已有序"的提前检测机制（冒泡排序才有 flag 优化）；<b>D 是最迷惑的干扰项</b>：很多同学记住了"快排空间 O(log n)"就直接选，但 O(log n) 是<b>划分均衡时</b>的递归深度，退化时深度与时间复杂度同步恶化为 O(n)。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">2</span>以 a[lo] 为基准的双指针划分中，若把两个内层循环写成 <span style="font-family:var(--mono)">while(i&lt;j &amp;&amp; a[j] &gt;= pivot) --j;</span> 和 <span style="font-family:var(--mono)">while(i&lt;j &amp;&amp; a[i] &lt;= pivot) ++i;</span>（两侧都含等号），会出现什么问题？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>结果仍完全正确，只是常数因子略大</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>数组下标越界，程序崩溃</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>等于 pivot 的元素被两侧同时"跳过"，划分被推向极端不均衡，重复元素多时退化为 O(n<sup>2</sup>)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>排序结果错误，左段会出现比 pivot 大的元素</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C。两侧都含等号时，与 pivot 相等的元素既会被 j 跳过、也会被 i 跳过，于是所有等值元素都被"扫"到同一侧。极端情形是全部元素相同的数组：每趟划分都产生 0 : n&minus;1 的分割，退化为 &Theta;(n<sup>2</sup>)。<br/>A 错在这不是常数因子问题而是阶的恶化；B 错在有 <span style="font-family:var(--mono)">i&lt;j</span> 守卫，不会越界；D 错在划分的<b>正确性</b>仍然成立（左段仍 &le; pivot），坏的是<b>效率</b>而不是结果——这正是本题想区分的点：正确性与效率是两回事。</div>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q"><span class="qn">3</span>关于快速排序的稳定性，下列说法正确的是？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt"><span class="mk">A</span><span>稳定，因为相等元素在划分时不会被交换</span></div>
+      <div class="quiz-opt"><span class="mk">B</span><span>稳定性取决于 pivot 的选取策略，三数取中后即为稳定</span></div>
+      <div class="quiz-opt" data-ok="1"><span class="mk">C</span><span>不稳定，例如 (3<sub>a</sub>, 3<sub>b</sub>, 1) 划分后变为 (1, 3<sub>b</sub>, 3<sub>a</sub>)</span></div>
+      <div class="quiz-opt"><span class="mk">D</span><span>不稳定，因为它是递归算法，递归算法都不稳定</span></div>
+    </div>
+    <div class="quiz-exp"><b>解析：</b>选 C，且必须能举出具体反例。基准归位那一次 <span style="font-family:var(--mono)">swap(a[lo], a[i])</span> 是跨距离交换，会让基准"越过"与它关键字相等的元素。<br/>A 错在相等元素恰恰会因跨距离交换而换位；B 错在 pivot 策略只影响<b>效率</b>（划分是否均衡），与稳定性无关；<b>D 是似是而非的干扰项</b>——结论对但理由完全错误：归并排序同样是递归算法，却是<b>稳定</b>的。稳定与否取决于是否存在跨距离的元素移动，而非是否递归。</div>
+  </div>
+</div>
+</section>
+
+<div class="page-nav"><a href="01-overview.html"><span class="dir">← 上一节</span><span class="name">概述</span></a><a href="03-mergesort.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">归并</span></a></div>
+<div class="footer">算法设计与分析 · <b>第4章 分治法</b> · 算法演示加深版<br/>
+<a href="../../index.html" style="color:var(--primary);font-weight:800">课程总览</a><br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:24},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(74,108,140,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function barDraw(ctx,W,H,arr,hi={}){
+  ctx.clearRect(0,0,W,H);
+  const n=arr.length, pad=28, gap=6, bw=Math.max(8,(W-pad*2)/n-gap);
+  const mx=Math.max(...arr,1);
+  arr.forEach((v,i)=>{
+    const x=pad+i*(bw+gap), h=(H-pad*2)*(v/mx), y=H-pad-h;
+    let col=hi.sorted&&hi.sorted.has(i)?'#3B7A57':(hi.pivot===i?'#9C7420':(hi.i===i||hi.j===i?'#A02C55':(hi.mid===i?'#7E62A6':(hi.range&&i>=hi.range[0]&&i<=hi.range[1]?'#C2603F':'#7A746A'))));
+    if(hi.active&&hi.active.has(i)) col='#A02C55';
+    if(hi.lo===i||hi.hi===i) col='#4A6C8C';
+    ctx.fillStyle=col; ctx.beginPath();
+    const r=6; ctx.moveTo(x+r,y); ctx.arcTo(x+bw,y,x+bw,y+h,r); ctx.arcTo(x+bw,y+h,x,y+h,0); ctx.arcTo(x,y+h,x,y,0); ctx.arcTo(x,y,x+bw,y,r); ctx.fill();
+    ctx.fillStyle='#1D1B16'; ctx.font='bold 11px ui-monospace'; ctx.textAlign='center';
+    ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+let arr=[5,3,8,1,9,2,7,4,6], speed=1, busy=false, cmpN=0, swpN=0;
+function paint(hi={}){ barDraw(ctx,cv.width,cv.height,arr,hi); }
+function resetStats(){ cmpN=0; swpN=0; cmp.textContent=0; swp.textContent=0; dep.textContent=0; }
+async function partition(lo,hi){
+  const pivot=arr[lo]; let i=lo, j=hi;
+  hud.textContent=`partition [${lo},${hi}] pivot=${pivot}`;
+  paint({pivot:lo, range:[lo,hi]}); await sleep(350/speed);
+  while(i<j){
+    while(i<j){ cmpN++; cmp.textContent=cmpN; if(arr[j]>pivot){j--; paint({pivot:lo,i,j,range:[lo,hi]}); await sleep(120/speed);} else break; }
+    while(i<j){ cmpN++; cmp.textContent=cmpN; if(arr[i]<=pivot){i++; paint({pivot:lo,i,j,range:[lo,hi]}); await sleep(120/speed);} else break; }
+    if(i<j){ [arr[i],arr[j]]=[arr[j],arr[i]]; swpN++; swp.textContent=swpN;
+      paint({pivot:lo,i,j,range:[lo,hi]}); log.textContent+=`\\n交换 a[${i}]↔a[${j}]`; await sleep(280/speed); }
+  }
+  [arr[lo],arr[i]]=[arr[i],arr[lo]]; swpN++; swp.textContent=swpN;
+  paint({pivot:i, sorted:new Set([i]), range:[lo,hi]}); await sleep(300/speed);
+  return i;
+}
+async function qs(lo,hi,depth){
+  if(lo>=hi) return;
+  dep.textContent=depth;
+  const p=await partition(lo,hi);
+  log.textContent+=`\\n✓ pivot 落位于 ${p}`;
+  await qs(lo,p-1,depth+1);
+  await qs(p+1,hi,depth+1);
+}
+play.onclick=async()=>{
+  if(busy) return; busy=true; resetStats(); log.textContent='开始快排…';
+  await qs(0,arr.length-1,1);
+  paint({sorted:new Set(arr.map((_,i)=>i))}); hud.textContent='完成'; log.textContent+='\\n排序完成'; busy=false;
+};
+step.onclick=async()=>{
+  if(busy) return; busy=true;
+  await partition(0,arr.length-1);
+  busy=false;
+};
+rand.onclick=()=>{ arr=Array.from({length:10},()=>1+Math.floor(Math.random()*20)); paint({}); log.textContent='已随机'; resetStats(); };
+rst.onclick=()=>{ arr=[5,3,8,1,9,2,7,4,6]; paint({}); log.textContent='重置'; resetStats(); };
+spd.querySelectorAll('button').forEach(b=>b.onclick=()=>{ spd.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); speed=+b.dataset.s; });
+paint({});
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

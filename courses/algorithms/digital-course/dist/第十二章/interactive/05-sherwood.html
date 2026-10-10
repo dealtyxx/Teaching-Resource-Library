@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>舍伍德 · 第12章 概率算法和近似算法</title>
+<link rel="stylesheet" href="../../assets/theme.css"/>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem("cc.theme")||'"auto"');var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">12</div>算法可视化 · <span>第12章 概率算法和近似算法</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill" href="01-prob.html">概率概述</a><a class="pill" href="02-pi.html">求π</a><a class="pill" href="03-monte.html">蒙特卡罗</a><a class="pill" href="04-vegas.html">拉斯维加斯</a><a class="pill active" href="05-sherwood.html">舍伍德</a><a class="pill" href="06-approx.html">近似概述</a><a class="pill" href="07-sched.html">多机调度</a><a class="pill" href="08-knapsack.html">背包近似</a><a class="pill" href="09-tsp.html">TSP近似</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 5 · Sherwood</div>
+  <h1>舍伍德 · 随机快速选择</h1>
+  <p>随机选 pivot 划分，期望 O(n) 找第 k 小。消除有序输入导致的最坏 O(n²)。</p>
+</section>
+
+<div class="objectives"><h3>学习目标</h3><ol>
+  <li>能够<b>写出</b>舍伍德算法的正式定义，并说明它与拉斯维加斯算法的差别（舍伍德<b>绝不失败</b>）。</li>
+  <li>能够<b>说明</b>确定性快速选择（固定取首元素为 pivot）为什么在<b>有序输入</b>上退化为 O(n<sup>2</sup>)，并写出该退化的求和过程。</li>
+  <li>能够<b>推导</b>随机 pivot 后期望复杂度为 O(n) 的直观论证：每次划分期望去掉常数比例的元素。</li>
+  <li>能够<b>解释</b>舍伍德的真正意义：期望代价<b>与输入分布无关</b>——把"对某些输入很慢"变成"对任何输入都以高概率不慢"。</li>
+  <li>能够<b>写出</b>规范的 C++ 随机化快速选择代码。</li>
+</ol></div>
+
+<div class="card">
+  <div class="toolbar">
+    <label>k（第 k 小，1-based）= <b id="kv">5</b></label>
+    <input type="range" id="kr" min="1" max="12" value="5" style="width:160px;accent-color:#9C7420"/>
+    <button class="btn primary" id="run">▶ 随机选择</button>
+    <button class="btn" id="bad">有序最坏输入</button>
+  </div>
+  <div class="cells" id="arr"></div>
+  <div class="stat-row">
+    <div class="stat"><span>结果</span><b class="amber" id="ans">—</b></div>
+    <div class="stat"><span>比较次数（示意）</span><b class="orange" id="cmp">0</b></div>
+  </div>
+  <div class="log" id="log">随机 pivot 使任意固定输入的期望代价平滑。</div>
+  <div class="code"><span class="cm">// 随机化 select</span>
+random pivot → partition
+<span class="kw">if</span> k in left: recurse left
+<span class="kw">else if</span> k is pivot: <span class="fn">return</span>
+<span class="kw">else</span> recurse right</div>
+</div>
+
+<div class="pitfall"><span class="lbl">易错点</span><ul><li><b>Sherwood 的目的</b>：对确定算法注入随机性，<strong>抹平最坏输入的系统性偏差</strong>，让期望性能对所有输入趋于一致。</li><li><b>不改变平均复杂度</b>：期望时间仍等于原算法的平均情形，只是<strong>降低方差</strong>、消除特定坏实例。</li><li><b>始终给正确解</b>：Sherwood 属 Las Vegas 类，结果<strong>永远正确</strong>，随机的只是运行时间。</li><li><b>与 Monte Carlo 区分</b>：Monte Carlo 可能给错误答案（有小概率出错）；Sherwood / Las Vegas 不会。</li><li><b>随机源的作用</b>：把“输入分布可能很坏”转化为“随机数可能很坏”，而随机数由算法自己掌控。</li><li><b>典型应用</b>：随机化快排选主元、随机化选择 / 查找，避免对手构造最坏输入。</li></ul></div>
+<div class="summary"><span class="lbl">本节小结</span><ul><li>Sherwood 算法：给确定算法加随机化，使期望性能与输入无关。</li><li>期望复杂度 = 原算法平均复杂度，方差显著下降。</li><li>总返回正确解（Las Vegas 类），随机的只是耗时。</li><li>与 Monte Carlo 的区别：后者可能出错，前者不会。</li><li>思想是“用可控的随机源替代对输入分布的依赖”。</li></ul></div>
+<div class="quiz"><div class="quiz-item"><div class="quiz-q"><span class="qn">1</span>Sherwood 算法对平均时间复杂度的影响是？</div><div class="quiz-opts"><div class="quiz-opt"><span class="mk">A</span><span>显著降低数量级</span></div><div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>期望不变，但降低方差、消除坏实例</span></div><div class="quiz-opt"><span class="mk">C</span><span>会变差</span></div></div><div class="quiz-exp">Sherwood 不改变期望（=原平均），价值在于让性能对所有输入稳定一致。</div></div><div class="quiz-item"><div class="quiz-q"><span class="qn">2</span>Sherwood 算法会返回错误答案吗？</div><div class="quiz-opts"><div class="quiz-opt"><span class="mk">A</span><span>可能，有小概率出错</span></div><div class="quiz-opt" data-ok="1"><span class="mk">B</span><span>不会，总是正确（Las Vegas 类）</span></div><div class="quiz-opt"><span class="mk">C</span><span>取决于随机种子</span></div></div><div class="quiz-exp">Sherwood 属 Las Vegas 类，结果永远正确，只有运行时间随机。</div></div><div class="quiz-item"><div class="quiz-q"><span class="qn">3</span>Sherwood 与 Monte Carlo 算法的关键区别是？</div><div class="quiz-opts"><div class="quiz-opt" data-ok="1"><span class="mk">A</span><span>Monte Carlo 可能给错误解，Sherwood 不会</span></div><div class="quiz-opt"><span class="mk">B</span><span>Sherwood 更快</span></div><div class="quiz-opt"><span class="mk">C</span><span>两者都可能出错</span></div></div><div class="quiz-exp">Monte Carlo 以正确性换效率（可能出错）；Sherwood / Las Vegas 保证正确。</div></div></div>
+<div class="page-nav"><a href="04-vegas.html"><span class="dir">← 上一节</span><span class="name">拉斯维加斯</span></a><a href="06-approx.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">近似概述</span></a></div>
+<div class="footer">算法设计与分析 · <b>第12章 概率算法和近似算法</b> · 强交互可视化版<br/>随机 · 近似 · 建议全屏投影<br/><span class="copyright">算法设计与分析&copy;2026 湖南信息学院 ｜ 作者：谢鑫</span></div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(156,116,32,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+let a=[4,1,9,2,7,3,8,6,5,12,10,11];
+let cmps=0;
+function show(lo,hi,piv=-1,found=-1){
+  arr.innerHTML=a.map((v,i)=>{
+    let cls='';
+    if(i===found) cls='hit';
+    else if(i===piv) cls='on';
+    else if(i>=lo&&i<=hi) cls='';
+    else cls='dead';
+    return `<div class="cell ${cls}">${v}</div>`;
+  }).join('');
+}
+function partition(lo,hi,p){
+  const pivot=a[p]; [a[p],a[hi]]=[a[hi],a[p]];
+  let i=lo;
+  for(let j=lo;j<hi;j++){ cmps++; if(a[j]<pivot){ [a[i],a[j]]=[a[j],a[i]]; i++; } }
+  [a[i],a[hi]]=[a[hi],a[i]]; return i;
+}
+async function select(lo,hi,k){ // k 0-based
+  if(lo===hi) return a[lo];
+  const p=lo+Math.floor(Math.random()*(hi-lo+1));
+  show(lo,hi,p); log.textContent=`区间 [${lo},${hi}] pivot=a[${p}]=${a[p]}`; await sleep(450);
+  const mid=partition(lo,hi,p);
+  show(lo,hi,mid); await sleep(300);
+  if(k===mid) return a[mid];
+  if(k<mid) return select(lo,mid-1,k);
+  return select(mid+1,hi,k);
+}
+kr.oninput=()=>kv.textContent=kr.value;
+run.onclick=async()=>{
+  cmps=0; const k=+kr.value-1;
+  const v=await select(0,a.length-1,k);
+  ans.textContent=v; cmp.textContent=cmps;
+  const idx=a.indexOf(v); show(0,a.length-1,-1,idx);
+  log.textContent=`第 ${k+1} 小 = ${v} · 比较约 ${cmps} 次`;
+};
+bad.onclick=()=>{ a=Array.from({length:12},(_,i)=>i+1); show(0,11); log.textContent='已设为有序：确定性 pivot 最坏，随机 pivot 仍期望线性'; ans.textContent='—'; };
+show(0,11);
+
+</script>
+<script src="../../assets/sitemap.js"></script>
+<script src="../../assets/theme.js"></script>
+</body></html>

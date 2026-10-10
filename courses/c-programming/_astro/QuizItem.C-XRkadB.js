@@ -1,0 +1,1 @@
+import{j as t}from"./jsx-runtime.D_zvdyIk.js";import{r as a}from"./index.DBy5LfQW.js";import{Q as n}from"./ui.BRGL6oFt.js";function x({question:r,options:s,answer:e,explain:o}){const[i,m]=a.useState(null);return t.jsx("div",{className:"not-prose my-4",children:t.jsx(n,{question:r,options:s,answer:e,explain:o,picked:i,onPick:m})})}export{x as default};

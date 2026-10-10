@@ -1,0 +1,174 @@
+---
+module: 2
+moduleName: 网络爬虫基础
+order: 9
+title: 通用合规爬虫基础框架
+level: 综合挑战
+scene: 工程设计
+knowledge: [异常重试, 指数退避, 合规校验]
+stars: 4
+minutes: 60
+goal: 设计健壮爬虫框架
+sizheng: 将合规要求内化为系统功能
+dims: [法治意识, 创新思维]
+---
+
+import PyPlayground from '../../components/react/PyPlayground';
+import PyStepRunner from '../../components/react/PyStepRunner';
+import QuizItem from '../../components/react/QuizItem';
+import DiscussCard from '../../components/react/DiscussCard';
+import { DimCard, CaseFileCard } from '../../components/react/ui';
+
+## 场景导入
+
+模块 2 的前三个项目给你攒齐了三块积木：听得懂状态码、查得了 robots、控得住节奏。现在把它们拼成一个能复用的框架。真实网络从不温柔：Wi-Fi 抖一下就超时，服务器忙起来回 503，你稍快一点就吃 429。新手的本能是失败立刻重试——结果往往是给本已过载的服务器补上最后一击。工程界的成熟答案叫**指数退避**：每失败一次，等待时间翻倍（1 秒 → 2 秒 → 4 秒），既给对方恢复的时间，也让重试大军自然错峰。而比重试更要紧的，是站在框架大门口的那道**合规闸门**。
+
+## 动手实验
+
+下面这个迷你框架浓缩了本模块的全部要点：一个按剧本「两败一成」回应的模拟服务、一道入口合规闸门、一个带指数退避的 `fetch_with_retry()`。跑一跑，先看第 3 次请求如何柳暗花明，再看不合规的 URL 如何被一票否决：
+
+<PyPlayground
+  client:visible
+  title="合规爬虫基础框架（指数退避版）"
+  note="把 SCRIPT 改成 [503, 429, 503] 再运行，观察「重试用尽、礼貌放弃」的分支；再把 max_retry 调到 5，看看退避时间会翻到多少秒。"
+  code={`import time
+
+# ---- 模拟一个不稳定的目标服务：按剧本回应 ----
+SCRIPT = [503, 429, 200]           # 前两次故障，第三次成功
+state = {"n": 0}
+
+def flaky_get(path):
+    """替身版 requests.get：只返回状态码"""
+    code = SCRIPT[state["n"] % len(SCRIPT)]
+    state["n"] += 1
+    return code
+
+# ---- 第一道闸门：合规校验前置（robots 判决沉淀成的白名单） ----
+ALLOWED_PREFIX = ("/news/", "/notice/")
+
+def compliance_ok(path):
+    return path.startswith(ALLOWED_PREFIX)
+
+# ---- 核心：带指数退避的抓取 ----
+def fetch_with_retry(path, max_retry=3):
+    if not compliance_ok(path):
+        print(f"⛔ 合规校验未通过，拒绝抓取 {path}（一个请求都不发）")
+        return None
+    delay = 1
+    for attempt in range(1, max_retry + 1):
+        code = flaky_get(path)
+        print(f"第{attempt}次请求 {path} -> 状态码 {code}")
+        if code == 200:
+            print("✅ 成功！移交解析模块")
+            return code
+        print(f"   指数退避：等 {delay}s 再试（演示用 sleep 0.05s 代替）")
+        time.sleep(0.05)
+        delay *= 2                 # 1 -> 2 -> 4
+    print("❌ 重试用尽：记录日志，礼貌放弃")
+    return None
+
+fetch_with_retry("/news/2026-07-21.html")
+print("=" * 46)
+fetch_with_retry("/admin/secret")  # 不在白名单：一票否决`}
+/>
+
+注意这个框架的骨相：合规校验站在函数第一行，比任何网络代码都靠前；重试只面向 503、429 这类「值得等待」的故障，拿到 200 立刻收手。健壮与守规，在这里是同一套代码。
+
+## 逐行看懂
+
+Playground 里输出一闪而过？把指数退避的骨架单独抽出来，单步走一遍——盯住 `delay` 的翻倍轨迹：
+
+<PyStepRunner
+  client:visible
+  title="指数退避重试：三次请求的完整轨迹"
+  fileName="retry_demo.py"
+  code={`responses = [503, 429, 200]       # 服务器回应剧本：两败一成
+delay = 1                         # 初始退避 1 秒
+
+for attempt in range(1, 4):
+    code = responses[attempt - 1]
+    print(f"第{attempt}次请求 -> {code}")
+    if code == 200:
+        print("成功！返回数据")
+        break
+    print(f"失败，等待 {delay}s 后重试")
+    delay = delay * 2             # 指数退避：1 -> 2 -> 4`}
+  steps={[
+    { line: 0, desc: '预设服务器回应剧本：前两次失败（503 服务不可用、429 请求过多），第三次成功。', vars: { responses: '[503, 429, 200]' } },
+    { line: 1, desc: '退避时间从 1 秒起步——之后每失败一次就翻倍。', vars: { responses: '[503, 429, 200]', delay: '1' } },
+    { line: 3, desc: '进入重试循环，最多尝试 3 次（attempt 依次取 1、2、3）。', vars: { attempt: '1', delay: '1' } },
+    { line: 4, desc: '第 1 次「请求」：取剧本第 1 个回应，得到 503。', vars: { attempt: '1', code: '503', delay: '1' } },
+    { line: 5, desc: '打印本次请求结果。', out: '第1次请求 -> 503' },
+    { line: 6, desc: '503 不等于 200，判断不成立，跳过成功分支继续向下。' },
+    { line: 9, desc: '宣布本轮失败，按当前退避时间等 1 秒（真实框架里这里是 time.sleep(delay)）。', out: '失败，等待 1s 后重试' },
+    { line: 10, desc: '指数退避：delay 翻倍，1 秒变 2 秒。', vars: { attempt: '1', code: '503', delay: '2' } },
+    { line: 3, desc: '第 2 轮循环开始。', vars: { attempt: '2', code: '503', delay: '2' } },
+    { line: 4, desc: '第 2 次「请求」：得到 429——服务器在喊「太快了」。', vars: { attempt: '2', code: '429', delay: '2' } },
+    { line: 5, desc: '打印本次请求结果。', out: '第2次请求 -> 429' },
+    { line: 6, desc: '429 也不等于 200，仍然走失败路线。' },
+    { line: 9, desc: '这次等 2 秒——比上一轮更有耐心，正是退避的本意。', out: '失败，等待 2s 后重试' },
+    { line: 10, desc: 'delay 再翻倍：2 秒变 4 秒，为可能的下一次失败做准备。', vars: { attempt: '2', code: '429', delay: '4' } },
+    { line: 3, desc: '第 3 轮循环——最后一次机会。', vars: { attempt: '3', code: '429', delay: '4' } },
+    { line: 4, desc: '第 3 次「请求」：服务器缓过来了，返回 200！', vars: { attempt: '3', code: '200', delay: '4' } },
+    { line: 5, desc: '打印本次请求结果。', out: '第3次请求 -> 200' },
+    { line: 6, desc: 'code 等于 200，判断成立，进入成功分支。' },
+    { line: 7, desc: '拿到数据，宣布成功。', out: '成功！返回数据' },
+    { line: 8, desc: 'break 立刻跳出循环：成功后不再发多余请求——及时收手也是框架的节制。' },
+  ]}
+/>
+
+## 思政会客厅
+
+<DimCard dim="法治意识" title="合规是闸门，不是滤网">
+  <ul>
+    <li>校验前置：robots 判决、路径白名单、身份声明都要在第一个请求发出之前完成——不合规的 URL，一个字节都不该发。</li>
+    <li>分清「值得重试」与「不该重试」：503、429、超时是偶发故障，可以退避再试；403、401 是明确拒绝，反复重试就从容错变成了撞门。</li>
+    <li>全程留痕：每次请求、退避、放弃都写日志。可审计，本身就是一种合规能力。</li>
+  </ul>
+</DimCard>
+
+<DimCard dim="创新思维" title="约束催生好设计">
+  <ul>
+    <li>指数退避源自以太网时代的冲突避免算法，四十多年后仍是各大云服务重试机制的标配——好的工程思想会跨时代迁移。</li>
+    <li>把「不能太快」「不能越界」翻译成默认参数、入口校验与退避策略，约束就从负担变成了框架的竞争力。</li>
+    <li>框架设计的最高境界：让做对的事成为最省力的路径，让做错的事必须费很大的劲。</li>
+  </ul>
+</DimCard>
+
+<CaseFileCard name="「车来了」实时公交数据案" year={2019} tag="刑事案件" verdict="法院认定构成非法获取计算机信息系统数据罪，多名涉案人员被判处有期徒刑（适用缓刑）并处罚金。">
+  「车来了」App 运营方为补足数据，指使技术人员编写爬虫，破解竞品「酷米客」App 的接口加密措施，长期高频抓取其实时公交数据为己所用。法院认定该行为已远超采集公开数据的边界。同样是搭爬虫框架：把合规校验做成入口闸门的人在做产品，把破解加密做成功能模块的人在给自己制造罪证。
+</CaseFileCard>
+
+## 课堂讨论
+
+<DiscussCard
+  client:visible
+  storageKey="p09-d1"
+  question="有同学说：「重试就是为了对抗反爬，多试几次总能进去。」指数退避和这种死磕，本质区别在哪里？"
+  hints={['退避应对的是偶发故障（503、429、超时），不是权限拒绝', '收到 403、401 还反复重试，性质就从容错变成了撞门', '成功立刻 break、失败够次就放弃——节制本身是框架功能的一部分']}
+/>
+
+<DiscussCard
+  client:visible
+  storageKey="p09-d2"
+  question="如果把这套框架开源发布，你会在 README 的「使用红线」里写下哪几条？"
+  hints={['「默认遵守 robots 且不可关闭」还是「允许关闭、用户自担责任」？说说你的理由', '默认限速值定多少：参考站点 Crawl-delay 与常识流量', '声明禁止用途：抓取个人信息、破解加密接口、绕过技术措施（想想车来了案的教训）']}
+/>
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="重试等待为什么设计成 1 秒、2 秒、4 秒指数增长，而不是固定每次等 1 秒？"
+  options={['指数写起来显得更高级', '连续失败说明对方大概率仍在过载，翻倍等待给恢复留足时间，也让各客户端的重试自然错峰', '为了让日志时间戳更整齐', 'Python 的循环语法要求等待时间递增']}
+  answer={1}
+  explain="固定短间隔重试相当于对过载的服务器持续施压；指数退避一边给对方越来越长的恢复窗口，一边天然打散大量客户端的重试节奏——这是从以太网沿用至今的经典智慧。"
+/>
+
+<QuizItem
+  client:visible
+  question="为什么合规校验要放在框架入口，而不是抓完数据再做筛选？"
+  options={['放在前面代码更短', '放在后面会占用更多内存', '不合规的请求一个都不该发出——把守法做成系统默认路径，任何调用者都绕不开', '前置校验能显著提高抓取速度']}
+  answer={2}
+  explain="事后筛选时，越界的请求已经发出、数据已经落地，风险无法撤回。把合规做成入口闸门，让每个调用者自动走在合法路径上，才是「将合规要求内化为系统功能」。"
+/>

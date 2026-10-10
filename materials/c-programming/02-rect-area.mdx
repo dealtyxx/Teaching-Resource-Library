@@ -1,0 +1,81 @@
+---
+module: 1
+moduleName: 顺序结构
+order: 2
+title: 矩形面积计算器
+level: 基础必做
+scene: 数学应用
+knowledge: [变量定义, 算术运算, 顺序执行]
+stars: 1
+minutes: 40
+goal: 掌握数据类型与基础运算
+sizheng: 类型即契约——一次不经意的截断，就是工程里的一次失约
+---
+
+import CStepRunner from '../../components/react/CStepRunner';
+import RectAreaLab from '../../components/react/RectAreaLab';
+import QuizItem from '../../components/react/QuizItem';
+
+## 场景导入：从"输出"到"计算"
+
+名片项目里程序只会"说话"；这一次，它要开始"算数"。
+计算矩形面积需要三样东西：**变量**（存长和宽）、**算术运算**（乘法）、**顺序执行**（先定义、再计算、后输出）。顺序错了，程序就错了——你不能先输出面积再定义长宽。
+
+## 一步一步看变量进入内存
+
+<CStepRunner
+  client:visible
+  title="顺序执行模拟：变量定义 → 运算 → 输出"
+  code={`#include <stdio.h>
+
+int main(void) {
+    float width  = 7.5f;
+    float height = 4.2f;
+    float area = width * height;
+    printf("面积 = %.2f\\n", area);
+    return 0;
+}`}
+  steps={[
+    { line: 2, desc: '程序入口。此刻内存中还没有任何变量。' },
+    { line: 3, desc: '在栈上为 width 分配 4 字节，写入 7.5。变量诞生了！', vars: { width: '7.5' } },
+    { line: 4, desc: '为 height 分配 4 字节，写入 4.2。', vars: { width: '7.5', height: '4.2' } },
+    { line: 5, desc: 'CPU 从内存取出两个值，送入运算器相乘，结果写入 area。注意：必须先有 width/height，才能算 area——顺序不可颠倒。', vars: { width: '7.5', height: '4.2', area: '31.5' } },
+    { line: 6, desc: 'printf 用 %.2f 把 area 格式化为两位小数输出。', out: '面积 = 31.50', vars: { width: '7.5', height: '4.2', area: '31.5' } },
+    { line: 7, desc: 'return 0，程序正常结束，栈上的三个变量随之销毁。' },
+  ]}
+/>
+
+## 动手实验：int 还是 float？
+
+第 3 章讲过「类型即契约」。现在亲手验证：同样的长宽，换一个类型，答案就不同——切到 `int` 看看会丢掉什么。
+
+<RectAreaLab client:visible />
+
+## VibeCoding 三段迭代提示
+
+1. **手写基础版**：用 `scanf` 让用户输入长和宽，计算面积与周长（注意 `scanf("%f", &width)` 里的 `&`——先照抄，第 9 章指针会揭晓它的秘密）。
+2. **AI 优化进阶版**：让 AI 补充"输入校验"：长宽为负数或 0 时怎么办？审查它的方案用了什么语句（很可能是 `if`——这正是模块二的预告）。
+3. **信创加固定稿版**：把长宽上限设为宏常量 `#define MAX_SIDE 1000`，超限拒算。想想为什么工程代码不允许"魔数"。
+
+## 素养与思政
+
+港珠澳大桥的沉管对接误差不到 5 厘米，靠的不是运气，而是每一次计算都**类型明确、精度可控**。
+你在实验中看到：把 7.5 存进 `int`，0.5 米就悄无声息地消失了。在工程世界里，"差不多"就是"差很多"——**对数字的严谨，就是对生命的负责**。
+
+## 随堂小测
+
+<QuizItem
+  client:visible
+  question="float width = 7.5f; 中的 f 后缀表示什么？"
+  options={['这是一个函数', '这是 float 类型的字面量', '强制四舍五入', '表示可变精度']}
+  answer={1}
+  explain="不加 f 的 7.5 默认是 double 类型；后缀 f 明确告诉编译器这是 float 字面量，避免隐式转换。"
+/>
+
+<QuizItem
+  client:visible
+  question="int a = 7.9; 之后，a 的值是？"
+  options={['8（四舍五入）', '7（直接截断）', '7.9', '编译报错']}
+  answer={1}
+  explain="浮点数赋给 int 时小数部分被直接截断（向零截断），不是四舍五入——这是第 3 章表 3-8 的『赋值转换』规则。"
+/>

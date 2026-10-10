@@ -1,0 +1,188 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="884" viewBox="0 0 1400 884" font-family="'Noto Sans SC','Source Han Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif">
+<rect x="0" y="0" width="1400" height="884" fill="#f9f9f7"/>
+<defs>
+<marker id="arr" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#52514e"/>
+</marker>
+<marker id="arrB" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#2a78d6"/>
+</marker>
+<marker id="arrO" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#eb6834"/>
+</marker>
+<marker id="arrG" markerWidth="10" markerHeight="10" refX="7.5" refY="5" orient="auto">
+  <path d="M1,1.5 L8.5,5 L1,8.5 Z" fill="#127a56"/>
+</marker>
+<marker id="arrM" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+  <path d="M1,1 L8,4.5 L1,8 Z" fill="#898781"/>
+</marker>
+</defs>
+<text x="700.0" y="60" font-size="36" fill="#0b0b0b" font-weight="700" text-anchor="middle"   >0/1 背包：递归模型与记忆化</text>
+<text x="700.0" y="94" font-size="18" fill="#898781" font-weight="normal" text-anchor="middle"   >对每个物品“选或不选”，并用 dp 表消除重复子问题（2.4）</text>
+<text x="1360" y="40" font-size="13" fill="#898781" font-weight="normal" text-anchor="end"   >算法设计与分析 · 第2章 递归算法设计技术</text>
+<rect x="40" y="128" width="560" height="436" fill="#ffffff" stroke="#e1e0d9" stroke-width="1.5" rx="16" opacity="1" />
+<text x="66" y="168" font-size="22" fill="#0b0b0b" font-weight="700" text-anchor="start"   >问题与递归模型</text>
+<text x="70" y="202" font-size="15" fill="#0b0b0b" font-weight="700" text-anchor="start"   >物品（W = 6）</text>
+<text x="100" y="232" font-size="14" fill="#52514e" font-weight="600" text-anchor="start"   >物品</text>
+<text x="240" y="232" font-size="14" fill="#52514e" font-weight="600" text-anchor="start"   >重量 w</text>
+<text x="380" y="232" font-size="14" fill="#52514e" font-weight="600" text-anchor="start"   >价值 v</text>
+<line x1="70" y1="244" x2="420" y2="244" stroke="#c3c2b7" stroke-width="1.2" stroke-linecap="butt" />
+<text x="100" y="270" font-size="14.5" fill="#52514e" font-weight="normal" text-anchor="start"   >0</text>
+<text x="240" y="270" font-size="14.5" fill="#52514e" font-weight="normal" text-anchor="start"   >5</text>
+<text x="380" y="270" font-size="14.5" fill="#52514e" font-weight="normal" text-anchor="start"   >4</text>
+<rect x="80" y="282" width="360" height="30" fill="#e9f7f1" stroke="none" stroke-width="1" rx="6" opacity="1" />
+<text x="100" y="302" font-size="14.5" fill="#127a56" font-weight="700" text-anchor="start"   >1</text>
+<text x="240" y="302" font-size="14.5" fill="#127a56" font-weight="700" text-anchor="start"   >3</text>
+<text x="380" y="302" font-size="14.5" fill="#127a56" font-weight="700" text-anchor="start"   >4</text>
+<rect x="80" y="314" width="360" height="30" fill="#e9f7f1" stroke="none" stroke-width="1" rx="6" opacity="1" />
+<text x="100" y="334" font-size="14.5" fill="#127a56" font-weight="700" text-anchor="start"   >2</text>
+<text x="240" y="334" font-size="14.5" fill="#127a56" font-weight="700" text-anchor="start"   >2</text>
+<text x="380" y="334" font-size="14.5" fill="#127a56" font-weight="700" text-anchor="start"   >3</text>
+<rect x="80" y="346" width="360" height="30" fill="#e9f7f1" stroke="none" stroke-width="1" rx="6" opacity="1" />
+<text x="100" y="366" font-size="14.5" fill="#127a56" font-weight="700" text-anchor="start"   >3</text>
+<text x="240" y="366" font-size="14.5" fill="#127a56" font-weight="700" text-anchor="start"   >1</text>
+<text x="380" y="366" font-size="14.5" fill="#127a56" font-weight="700" text-anchor="start"   >1</text>
+<text x="70" y="404" font-size="12.5" fill="#898781" font-weight="normal" text-anchor="start"   >绿色行为最优选择（物品 1、2、3）</text>
+<rect x="66" y="408" width="508" height="130" fill="#fff7f2" stroke="#f3c1ac" stroke-width="1.3" rx="12" opacity="1" />
+<text x="84" y="438" font-size="15.5" fill="#b0491d" font-weight="700" text-anchor="start"   >递归模型  f(i, rw)</text>
+<text x="84" y="468" font-size="15" fill="#127a56" font-weight="700" text-anchor="start"   font-family="ui-monospace,monospace">= 0</text>
+<text x="190" y="468" font-size="13" fill="#898781" font-weight="normal" text-anchor="start"   >i=n 或 rw&lt;0（出口）</text>
+<text x="84" y="496" font-size="14" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">= max{ f(i+1, rw−w[i])+v[i],</text>
+<text x="440" y="496" font-size="12.5" fill="#b0491d" font-weight="600" text-anchor="start"   >选 i</text>
+<text x="84" y="520" font-size="14" fill="#52514e" font-weight="normal" text-anchor="start"   font-family="ui-monospace,monospace">            f(i+1, rw) }</text>
+<text x="440" y="520" font-size="12.5" fill="#52514e" font-weight="600" text-anchor="start"   >不选 i</text>
+<rect x="620" y="128" width="740" height="436" fill="#ffffff" stroke="#e1e0d9" stroke-width="1.5" rx="16" opacity="1" />
+<text x="646" y="168" font-size="22" fill="#0b0b0b" font-weight="700" text-anchor="start"   >“选 / 不选”决策树</text>
+<text x="900" y="167" font-size="14" fill="#898781" font-weight="normal" text-anchor="start"   >状态 (i, rw)</text>
+<path d="M 990 245 L 820 315" stroke="#eb6834" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrO)" />
+<rect x="881.0" y="269.0" width="48" height="22" fill="#fff" stroke="#eb6834" stroke-width="1" rx="6" opacity="1" />
+<text x="905.0" y="285.0" font-size="12" fill="#eb6834" font-weight="700" text-anchor="middle"   >选0</text>
+<path d="M 990 245 L 1160 315" stroke="#1c5cab" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrM)" />
+<rect x="1051.0" y="269.0" width="48" height="22" fill="#fff" stroke="#1c5cab" stroke-width="1" rx="6" opacity="1" />
+<text x="1075.0" y="285.0" font-size="12" fill="#1c5cab" font-weight="700" text-anchor="middle"   >不选0</text>
+<path d="M 820 359 L 740 441" stroke="#eb6834" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrO)" />
+<rect x="756.0" y="389.0" width="48" height="22" fill="#fff" stroke="#eb6834" stroke-width="1" rx="6" opacity="1" />
+<text x="780.0" y="405.0" font-size="12" fill="#eb6834" font-weight="700" text-anchor="middle"   >选1</text>
+<path d="M 820 359 L 910 441" stroke="#898781" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrM)" />
+<rect x="841.0" y="389.0" width="48" height="22" fill="#fff" stroke="#898781" stroke-width="1" rx="6" opacity="1" />
+<text x="865.0" y="405.0" font-size="12" fill="#898781" font-weight="700" text-anchor="middle"   >不选1</text>
+<path d="M 1160 359 L 1080 441" stroke="#b0491d" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrO)" />
+<rect x="1096.0" y="389.0" width="48" height="22" fill="#fff" stroke="#b0491d" stroke-width="1" rx="6" opacity="1" />
+<text x="1120.0" y="405.0" font-size="12" fill="#b0491d" font-weight="700" text-anchor="middle"   >选1</text>
+<path d="M 1160 359 L 1250 441" stroke="#898781" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="1" marker-end="url(#arrM)" />
+<rect x="1181.0" y="389.0" width="48" height="22" fill="#fff" stroke="#898781" stroke-width="1" rx="6" opacity="1" />
+<text x="1205.0" y="405.0" font-size="12" fill="#898781" font-weight="700" text-anchor="middle"   >不选1</text>
+<rect x="938" y="203" width="104" height="42" fill="#2a78d6" stroke="#1c5cab" stroke-width="1.4" rx="10" opacity="1" />
+<text x="990" y="229" font-size="15" fill="#fff" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">f(0,6)</text>
+<rect x="768" y="317" width="104" height="42" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.4" rx="10" opacity="1" />
+<text x="820" y="343" font-size="15" fill="#1c5cab" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">f(1,1)</text>
+<rect x="1108" y="317" width="104" height="42" fill="#2a78d6" stroke="#1c5cab" stroke-width="1.4" rx="10" opacity="1" />
+<text x="1160" y="343" font-size="15" fill="#fff" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">f(1,6)</text>
+<rect x="688" y="443" width="104" height="42" fill="#f6f5f2" stroke="#c3c2b7" stroke-width="1.4" rx="10" opacity="1" />
+<text x="740" y="469" font-size="15" fill="#898781" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">f(2,−2)</text>
+<rect x="858" y="443" width="104" height="42" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.4" rx="10" opacity="1" />
+<text x="910" y="469" font-size="15" fill="#1c5cab" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">f(2,1)</text>
+<rect x="1028" y="443" width="104" height="42" fill="#2a78d6" stroke="#1c5cab" stroke-width="1.4" rx="10" opacity="1" />
+<text x="1080" y="469" font-size="15" fill="#fff" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">f(2,3)</text>
+<rect x="1198" y="443" width="104" height="42" fill="#eef4fc" stroke="#b7d3f6" stroke-width="1.4" rx="10" opacity="1" />
+<text x="1250" y="469" font-size="15" fill="#1c5cab" font-weight="700" text-anchor="middle"   font-family="ui-monospace,monospace">f(2,6)</text>
+<text x="740" y="504" font-size="11.5" fill="#898781" font-weight="normal" text-anchor="middle"   >rw&lt;0，剪枝</text>
+<text x="990" y="528" font-size="14" fill="#1c5cab" font-weight="600" text-anchor="middle"   >蓝色路径为最优解：不选0 → 选1 → 选2 → 选3</text>
+<text x="990" y="550" font-size="13" fill="#898781" font-weight="normal" text-anchor="middle"   >继续向下展开会出现相同的 (i, rw) 状态</text>
+<rect x="40" y="588" width="1320" height="268" fill="#ffffff" stroke="#e1e0d9" stroke-width="1.5" rx="16" opacity="1" />
+<text x="66" y="628" font-size="22" fill="#0b0b0b" font-weight="700" text-anchor="start"   >记忆化：消除重复子问题</text>
+<text x="320" y="627" font-size="14" fill="#898781" font-weight="normal" text-anchor="start"   >例2.11</text>
+<text x="70" y="662" font-size="15" fill="#52514e" font-weight="normal" text-anchor="start"   >朴素递归中同一个 f(i, rw) 会被反复计算（如 f(2,10) 可能算 10 次），</text>
+<text x="70" y="688" font-size="15" fill="#52514e" font-weight="normal" text-anchor="start"   >导致指数级时间、提交超时（TLE）。</text>
+<rect x="70" y="708" width="620" height="116" fill="#e9f7f1" stroke="#a9e0cb" stroke-width="1.2" rx="12" opacity="1" />
+<text x="88" y="736" font-size="15" fill="#127a56" font-weight="700" text-anchor="start"   >记忆化做法</text>
+<text x="88" y="764" font-size="14" fill="#52514e" font-weight="normal" text-anchor="start"   >① 建二维数组 dp[i][rw]，初始化为 −1；</text>
+<text x="88" y="790" font-size="14" fill="#52514e" font-weight="normal" text-anchor="start"   >② 求出 f(i,rw) 后存入 dp[i][rw]；</text>
+<text x="88" y="816" font-size="14" fill="#52514e" font-weight="normal" text-anchor="start"   >③ 再次遇到时若 dp≠−1 直接返回。</text>
+<text x="919.0" y="666" font-size="14" fill="#0b0b0b" font-weight="700" text-anchor="middle"   >dp[i][rw] 表（i × rw）</text>
+<text x="857.0" y="682" font-size="11.5" fill="#898781" font-weight="normal" text-anchor="middle"   >0</text>
+<text x="891.0" y="682" font-size="11.5" fill="#898781" font-weight="normal" text-anchor="middle"   >1</text>
+<text x="925.0" y="682" font-size="11.5" fill="#898781" font-weight="normal" text-anchor="middle"   >2</text>
+<text x="959.0" y="682" font-size="11.5" fill="#898781" font-weight="normal" text-anchor="middle"   >3</text>
+<text x="993.0" y="682" font-size="11.5" fill="#898781" font-weight="normal" text-anchor="middle"   >4</text>
+<text x="1027.0" y="682" font-size="11.5" fill="#898781" font-weight="normal" text-anchor="middle"   >5</text>
+<text x="1061.0" y="682" font-size="11.5" fill="#898781" font-weight="normal" text-anchor="middle"   >6</text>
+<text x="820" y="682" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >rw→</text>
+<text x="824" y="721.0" font-size="11.5" fill="#898781" font-weight="normal" text-anchor="middle"   >0</text>
+<rect x="840" y="704" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="857.0" y="726.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="874" y="704" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="891.0" y="726.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="908" y="704" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="925.0" y="726.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="942" y="704" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="959.0" y="726.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="976" y="704" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="993.0" y="726.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="1010" y="704" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="1027.0" y="726.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="1044" y="704" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="1061.0" y="726.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<text x="824" y="755.0" font-size="11.5" fill="#898781" font-weight="normal" text-anchor="middle"   >1</text>
+<rect x="840" y="738" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="857.0" y="760.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="874" y="738" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="891.0" y="760.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="908" y="738" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="925.0" y="760.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="942" y="738" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="959.0" y="760.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="976" y="738" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="993.0" y="760.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="1010" y="738" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="1027.0" y="760.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="1044" y="738" width="34" height="34" fill="#e9f7f1" stroke="#127a56" stroke-width="1.2" rx="4" opacity="1" />
+<text x="1061.0" y="760.0" font-size="13" fill="#127a56" font-weight="700" text-anchor="middle"   >8</text>
+<text x="824" y="789.0" font-size="11.5" fill="#898781" font-weight="normal" text-anchor="middle"   >2</text>
+<rect x="840" y="772" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="857.0" y="794.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="874" y="772" width="34" height="34" fill="#e9f7f1" stroke="#127a56" stroke-width="1.2" rx="4" opacity="1" />
+<text x="891.0" y="794.0" font-size="13" fill="#127a56" font-weight="700" text-anchor="middle"   >0</text>
+<rect x="908" y="772" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="925.0" y="794.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="942" y="772" width="34" height="34" fill="#e9f7f1" stroke="#127a56" stroke-width="1.2" rx="4" opacity="1" />
+<text x="959.0" y="794.0" font-size="13" fill="#127a56" font-weight="700" text-anchor="middle"   >4</text>
+<rect x="976" y="772" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="993.0" y="794.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="1010" y="772" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="1027.0" y="794.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="1044" y="772" width="34" height="34" fill="#e9f7f1" stroke="#127a56" stroke-width="1.2" rx="4" opacity="1" />
+<text x="1061.0" y="794.0" font-size="13" fill="#127a56" font-weight="700" text-anchor="middle"   >3</text>
+<text x="824" y="823.0" font-size="11.5" fill="#898781" font-weight="normal" text-anchor="middle"   >3</text>
+<rect x="840" y="806" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="857.0" y="828.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="874" y="806" width="34" height="34" fill="#e9f7f1" stroke="#127a56" stroke-width="1.2" rx="4" opacity="1" />
+<text x="891.0" y="828.0" font-size="13" fill="#127a56" font-weight="700" text-anchor="middle"   >1</text>
+<rect x="908" y="806" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="925.0" y="828.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="942" y="806" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="959.0" y="828.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="976" y="806" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="993.0" y="828.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="1010" y="806" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="1027.0" y="828.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="1044" y="806" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="1061.0" y="828.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<text x="824" y="857.0" font-size="11.5" fill="#898781" font-weight="normal" text-anchor="middle"   >4</text>
+<rect x="840" y="840" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="857.0" y="862.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="874" y="840" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="891.0" y="862.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="908" y="840" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="925.0" y="862.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="942" y="840" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="959.0" y="862.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="976" y="840" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="993.0" y="862.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="1010" y="840" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="1027.0" y="862.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<rect x="1044" y="840" width="34" height="34" fill="#fbfbfa" stroke="#c3c2b7" stroke-width="1" rx="4" opacity="1" />
+<text x="1061.0" y="862.0" font-size="11" fill="#898781" font-weight="normal" text-anchor="middle"   >−1</text>
+<text x="959.0" y="900" font-size="13.5" fill="#127a56" font-weight="600" text-anchor="middle"   >已求出的状态直接查表  →  O(n·W)</text>
+<rect x="70" y="826" width="620" height="0" fill="#ffffff" stroke="none" stroke-width="1" rx="0" opacity="1" />
+</svg>
