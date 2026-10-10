@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>算法设计与分析 · 交互可视化课程总览</title>
+<style>
+:root{
+  --text:#0b1220; --muted:#5a6b85; --faint:#8b9bb5;
+  --line:rgba(37,99,235,.12);
+  --blue:#2563eb; --indigo:#4f46e5; --rose:#e11d48;
+  --shadow:0 10px 36px rgba(15,23,42,.08);
+  --r:22px;
+  --font:"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:ui-monospace,"Cascadia Code",Consolas,monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:var(--font);color:var(--text);min-height:100vh;
+  background:
+    radial-gradient(1100px 560px at 8% -10%,rgba(37,99,235,.16),transparent 55%),
+    radial-gradient(900px 480px at 95% 0%,rgba(225,29,72,.08),transparent 50%),
+    radial-gradient(700px 400px at 50% 110%,rgba(79,70,229,.08),transparent 45%),
+    linear-gradient(180deg,#f8fafc,#eef2ff 55%,#e8ecfb);
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto;padding:36px 18px 70px}
+.hero{margin-bottom:22px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:800;color:var(--blue);
+  letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border-radius:999px;
+  background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);margin-bottom:14px}
+.hero h1{font-size:clamp(1.7rem,3.6vw,2.6rem);font-weight:900;line-height:1.15;letter-spacing:-.03em;margin-bottom:12px;
+  background:linear-gradient(120deg,#0b1220,#1e3a8a 35%,#2563eb 60%,#e11d48 95%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--muted);font-size:1.05rem;max-width:820px;line-height:1.75}
+.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.chip{padding:6px 12px;border-radius:999px;font-size:12.5px;font-weight:700;background:#fff;border:1px solid var(--line);color:var(--muted);box-shadow:0 2px 8px rgba(15,23,42,.04)}
+.chip.b{background:rgba(37,99,235,.1);color:var(--blue)}
+.chip.r{background:rgba(225,29,72,.08);color:var(--rose)}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 8px}
+.toolbar input{
+  flex:1;min-width:200px;max-width:360px;padding:11px 14px;border-radius:14px;border:1px solid var(--line);
+  background:#fff;font:inherit;box-shadow:0 2px 8px rgba(15,23,42,.04);
+}
+.toolbar input:focus{outline:2px solid rgba(37,99,235,.35);border-color:transparent}
+.toolbar .btn{
+  appearance:none;border:1px solid var(--line);background:#fff;color:var(--text);
+  padding:10px 14px;border-radius:13px;cursor:pointer;font-weight:800;font-size:13px;
+}
+.toolbar .btn:hover{border-color:rgba(37,99,235,.35);color:var(--blue)}
+.toolbar .btn.primary{background:linear-gradient(135deg,#60a5fa,#2563eb);border:none;color:#fff}
+.section-title{font-size:13px;font-weight:800;color:var(--faint);letter-spacing:.08em;text-transform:uppercase;margin:28px 0 12px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.card{
+  position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:168px;
+  padding:18px;border-radius:var(--r);background:#fff;border:1px solid var(--line);
+  box-shadow:var(--shadow);transition:transform .28s var(--ease),box-shadow .28s,border-color .28s;
+}
+.card.hidden{display:none}
+.card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--acc)}
+.card::after{content:attr(data-ico);position:absolute;right:12px;top:10px;font-size:42px;opacity:.12;transition:.3s}
+.card:hover{transform:translateY(-6px) scale(1.01);box-shadow:0 22px 50px rgba(37,99,235,.14);border-color:color-mix(in srgb,var(--acc) 40%,transparent)}
+.card:hover::after{opacity:.24;transform:scale(1.12) rotate(8deg)}
+.card .num{font:800 12px var(--mono);color:var(--acc);letter-spacing:.06em;margin-bottom:8px}
+.card h3{font-size:1.08rem;font-weight:800;margin-bottom:6px}
+.card p{color:var(--muted);font-size:.88rem;line-height:1.55;flex:1}
+.card .go{margin-top:12px;font-size:12.5px;font-weight:800;color:var(--acc);opacity:0;transform:translateX(-6px);transition:.25s}
+.card:hover .go{opacity:1;transform:none}
+.card .tag{display:inline-flex;margin-top:8px;font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;background:color-mix(in srgb,var(--acc) 12%,white);color:var(--acc)}
+.footer{margin-top:40px;text-align:center;color:var(--faint);font-size:12.5px;line-height:1.7}
+.footer b{color:var(--muted)}
+.note{margin-top:20px;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.75);border:1px solid var(--line);color:var(--muted);font-size:13.5px;line-height:1.65}
+.kbd{font-family:var(--mono);font-size:12px;background:#eef2ff;border:1px solid #c7d2fe;border-radius:6px;padding:1px 6px;color:#1d4ed8;font-weight:800}
+.help-modal{position:fixed;inset:0;z-index:10000;display:none;place-items:center;background:rgba(15,23,42,.5);padding:20px}
+.help-modal.on{display:grid}
+.help-modal .box{max-width:560px;width:100%;background:#fff;border-radius:18px;padding:22px;box-shadow:0 25px 60px rgba(0,0,0,.28)}
+.help-modal h3{margin:0 0 12px}
+.help-modal table{width:100%;border-collapse:collapse;font-size:13.5px}
+.help-modal td{padding:8px 4px;border-bottom:1px solid #e2e8f0;color:#334155}
+.help-modal td:first-child{width:140px;font-family:var(--mono);font-weight:800;color:#1d4ed8}
+.help-modal .close{margin-top:14px;width:100%;padding:10px;border:none;border-radius:12px;background:#2563eb;color:#fff;font-weight:800;cursor:pointer}
+.empty{display:none;padding:24px;text-align:center;color:var(--muted);font-weight:700}
+.empty.on{display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <div class="eyebrow">李春葆《算法设计与分析》第3版 · Interactive Course</div>
+    <h1>算法设计与分析 · 交互可视化总览</h1>
+    <p>十二章完整交互教学系统：Canvas 动画、逐步演示、剪支与复杂度可视化。纯前端、离线可用，适合课堂投影与自学。</p>
+    <div class="meta">
+      <span class="chip b">12 章 · 125+ 页</span>
+      <span class="chip">算法演示加深 · 第1–5章</span>
+      <span class="chip r">强可视化 · 第6–12章</span>
+      <span class="chip">Offline · No CDN</span>
+    </div>
+  </section>
+
+  <div class="toolbar">
+    <input id="q" type="search" placeholder="搜索章节：快排、皇后、网络流、凸包…" autocomplete="off"/>
+    <button class="btn primary" type="button" id="btnFs">⛶ 全屏投影</button>
+    <button class="btn" type="button" id="btnHelp">? 课堂快捷键</button>
+    <a class="btn" href="README.md">使用说明</a>
+  </div>
+  <div class="empty" id="empty">没有匹配的章节，试试「排序」「背包」「TSP」</div>
+
+  <div class="section-title" data-sec="1">基础与设计技术 · 第1–5 章</div>
+  <div class="grid" id="g1"></div>
+
+  <div class="section-title" data-sec="2">进阶范式 · 第6–9 章</div>
+  <div class="grid" id="g2"></div>
+
+  <div class="section-title" data-sec="3">专题 · 第10–12 章</div>
+  <div class="grid" id="g3"></div>
+
+  <div class="note">
+    <strong>课堂建议：</strong>打开章节后按 <span class="kbd">F</span> 全屏，
+    <span class="kbd">Space</span> 播放主演示，
+    <span class="kbd">←</span><span class="kbd">→</span> 翻节。
+    各演示页右下角有「全屏 / 帮助 / 专注」工具条。整份 <code>PPT/</code> 文件夹可直接拷贝分发。
+  </div>
+  <div class="footer">算法设计与分析 · <b>交互可视化课程门户</b><br/>详见 README.md</div>
+</div>
+
+<div class="help-modal" id="help">
+  <div class="box">
+    <h3>课堂快捷键（演示页内）</h3>
+    <table>
+      <tr><td>F / F11</td><td>全屏 / 退出全屏</td></tr>
+      <tr><td>← / →</td><td>上一节 / 下一节</td></tr>
+      <tr><td>Space</td><td>触发主按钮（播放/运行）</td></tr>
+      <tr><td>? / H</td><td>打开本帮助</td></tr>
+      <tr><td>1 / 2 / 4</td><td>切换演示速度（若有）</td></tr>
+      <tr><td>Esc</td><td>关闭帮助 / 退出全屏</td></tr>
+    </table>
+    <button type="button" class="close" id="helpClose">知道了</button>
+  </div>
+</div>
+
+<script>
+const chs=[
+  {g:1,n:'01',title:'绪论',sub:'算法 · 复杂度 · vector 扩容 · 插入排序',path:'第一章/interactive/index.html',ico:'📘',acc:'#2563eb',tag:'加深演示',kw:'复杂度 渐进 插入排序 stl vector 栈 队列'},
+  {g:1,n:'02',title:'递归算法设计',sub:'系统栈 · Fib 树 · 汉诺塔 · 记忆化',path:'第二章/interactive/index.html',ico:'🔁',acc:'#7c3aed',tag:'加深演示',kw:'递归 汉诺塔 斐波那契 栈帧 递推式 背包'},
+  {g:1,n:'03',title:'穷举法',sub:'前缀和 · 并查集 · Kadane · 皇后',path:'第三章/interactive/index.html',ico:'🔍',acc:'#0f766e',tag:'加深演示',kw:'穷举 前缀和 并查集 最大子段 幂集 排列 皇后 tsp'},
+  {g:1,n:'04',title:'分治法',sub:'快排 · 归并 · 二分 · 棋盘覆盖',path:'第四章/interactive/index.html',ico:'✂️',acc:'#0891b2',tag:'加深演示',kw:'分治 快排 归并 二分 中位数 棋盘 日程 tsp'},
+  {g:1,n:'05',title:'回溯法',sub:'解空间树 · n 皇后 · 限界剪支',path:'第五章/interactive/index.html',ico:'🌳',acc:'#4f46e5',tag:'加深演示',kw:'回溯 皇后 着色 背包 剪支 排列 分配'},
+  {g:2,n:'06',title:'分支限界法',sub:'BFS/A* · 0/1 背包 · 8 数码',path:'第六章/interactive/index.html',ico:'🌿',acc:'#4f46e5',tag:'强交互',kw:'分支限界 队列 优先队列 a* 迷宫 背包'},
+  {g:2,n:'07',title:'动态规划',sub:'LIS · LCS · 背包 · TSP DP',path:'第七章/interactive/index.html',ico:'📊',acc:'#ea580c',tag:'强交互',kw:'动态规划 dp lis lcs 编辑距离 背包 tsp'},
+  {g:2,n:'08',title:'贪心法',sub:'活动选择 · Huffman · 田忌赛马',path:'第八章/interactive/index.html',ico:'⚡',acc:'#059669',tag:'强交互',kw:'贪心 活动选择 哈夫曼 田忌 硬币 调度'},
+  {g:2,n:'09',title:'图算法',sub:'MST · 最短路 · 网络流 · 匹配',path:'第九章/interactive/index.html',ico:'🕸️',acc:'#4f46e5',tag:'强交互',kw:'图 prim kruskal dijkstra floyd 网络流 ek 匹配'},
+  {g:3,n:'10',title:'计算几何',sub:'凸包 · 相交 · 最近点对 · 卡壳',path:'第十章/interactive/index.html',ico:'📐',acc:'#0d9488',tag:'强交互',kw:'计算几何 凸包 graham jarvis 最近点 线段'},
+  {g:3,n:'11',title:'计算复杂性',sub:'P/NP · 归约 · SAT · 团',path:'第十一章/interactive/index.html',ico:'🧩',acc:'#e11d48',tag:'强交互',kw:'复杂性 p np npc 归约 sat 团 图灵机'},
+  {g:3,n:'12',title:'概率与近似',sub:'蒙特卡罗 · LPT · TSP 近似',path:'第十二章/interactive/index.html',ico:'🎲',acc:'#d97706',tag:'强交互',kw:'概率 蒙特卡罗 拉斯维加斯 近似 lpt 背包 tsp π'},
+];
+function card(c){
+  return `<a class="card" href="${c.path}" data-ico="${c.ico}" style="--acc:${c.acc}" data-kw="${c.title} ${c.sub} ${c.kw}">
+    <div class="num">第 ${c.n} 章</div>
+    <h3>${c.title}</h3>
+    <p>${c.sub}</p>
+    <span class="tag">${c.tag}</span>
+    <div class="go">进入章节 →</div>
+  </a>`;
+}
+g1.innerHTML=chs.filter(c=>c.g===1).map(card).join('');
+g2.innerHTML=chs.filter(c=>c.g===2).map(card).join('');
+g3.innerHTML=chs.filter(c=>c.g===3).map(card).join('');
+
+function filter(){
+  const s=(q.value||'').trim().toLowerCase();
+  let vis=0;
+  document.querySelectorAll('.card').forEach(el=>{
+    const ok=!s || (el.dataset.kw||'').toLowerCase().includes(s) || el.textContent.toLowerCase().includes(s);
+    el.classList.toggle('hidden', !ok);
+    if(ok) vis++;
+  });
+  empty.classList.toggle('on', vis===0);
+  // hide empty section titles roughly
+  [1,2,3].forEach(g=>{
+    const grid=document.getElementById('g'+g);
+    const any=[...grid.querySelectorAll('.card')].some(c=>!c.classList.contains('hidden'));
+    const title=document.querySelector('.section-title[data-sec="'+g+'"]');
+    if(title) title.style.display=any?'':'none';
+    grid.style.display=any?'':'none';
+  });
+}
+q.addEventListener('input', filter);
+
+btnFs.onclick=()=>{
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+};
+btnHelp.onclick=()=>help.classList.add('on');
+helpClose.onclick=()=>help.classList.remove('on');
+help.onclick=e=>{ if(e.target===help) help.classList.remove('on'); };
+addEventListener('keydown', e=>{
+  if(e.target===q) return;
+  if(e.key==='f'||e.key==='F'||e.key==='F11'){ e.preventDefault(); btnFs.click(); }
+  if(e.key==='?'||e.key==='h'||e.key==='H'){ e.preventDefault(); help.classList.toggle('on'); }
+  if(e.key==='Escape') help.classList.remove('on');
+  if((e.key==='/' || (e.ctrlKey&&e.key==='k')) && e.target!==q){ e.preventDefault(); q.focus(); }
+});
+</script>
+</body>
+</html>

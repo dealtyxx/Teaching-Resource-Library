@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>易解难解 · 第11章 计算复杂性</title>
+<style>
+:root{
+  --bg:#fff1f2; --surface:#fff; --s2:#fff5f6; --s3:#ffe4e8;
+  --text:#0b1220; --muted:#5a6b85; --faint:#8b9bb5;
+  --line:rgba(225,29,72,.15); --line2:rgba(225,29,72,.28);
+  --rose:#e11d48; --rose2:#be123c; --roseS:rgba(225,29,72,.1);
+  --violet:#7c3aed; --violetS:rgba(124,58,237,.1);
+  --blue:#2563eb; --blueS:rgba(37,99,235,.1);
+  --green:#059669; --greenS:rgba(5,150,105,.1);
+  --amber:#d97706; --red:#dc2626; --redS:rgba(220,38,38,.09);
+  --cyan:#0891b2;
+  --shadow:0 8px 28px rgba(225,29,72,.12); --shadow2:0 22px 50px rgba(225,29,72,.18);
+  --r:22px;
+  --font:"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:ui-monospace,"Cascadia Code",Consolas,monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font);color:var(--text);min-height:100vh;overflow-x:hidden;
+  background:
+    radial-gradient(1100px 560px at 5% -8%,rgba(225,29,72,.14),transparent 55%),
+    radial-gradient(900px 480px at 95% 0%,rgba(124,58,237,.1),transparent 50%),
+    radial-gradient(700px 400px at 50% 110%,rgba(37,99,235,.06),transparent 45%),
+    linear-gradient(180deg,#fff8f9,#fff1f2 50%,#ffe4e8);
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none} button,input{font:inherit}
+.fx-bg{position:fixed;inset:0;pointer-events:none;z-index:0}
+.fx-bg canvas{width:100%;height:100%;display:block;opacity:.4}
+.nav,.wrap{position:relative;z-index:1}
+.nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:11px 18px;background:rgba(255,255,255,.88);backdrop-filter:blur(18px) saturate(1.35);
+  border-bottom:1px solid var(--line);box-shadow:0 8px 24px rgba(15,23,42,.05)}
+.nav .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:14px}
+.nav .logo{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;
+  background:linear-gradient(135deg,#fb7185,#e11d48 55%,#7c3aed);color:#fff;
+  font:800 11px var(--mono);box-shadow:0 6px 16px rgba(225,29,72,.4);
+  transform:perspective(200px) rotateY(-8deg);transition:transform .3s var(--ease)}
+.nav .brand:hover .logo{transform:perspective(200px) rotateY(8deg) scale(1.05)}
+.nav .brand span{color:var(--rose)}
+.nav .links{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto;justify-content:flex-end;max-width:min(100%,920px)}
+.nav a.pill{font-size:11.5px;font-weight:700;padding:6px 10px;border-radius:999px;color:var(--muted);border:1px solid transparent;transition:.2s var(--ease)}
+.nav a.pill:hover{color:var(--rose);background:var(--roseS);border-color:var(--line)}
+.nav a.pill.active{color:#fff;background:linear-gradient(135deg,#fb7185,#e11d48);box-shadow:0 4px 14px rgba(225,29,72,.35)}
+.wrap{max-width:1160px;margin:0 auto;padding:26px 16px 70px}
+.hero{margin-bottom:24px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:800;color:var(--rose);
+  letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border-radius:999px;background:var(--roseS);
+  border:1px solid rgba(225,29,72,.22);margin-bottom:12px}
+.hero h1{font-size:clamp(1.55rem,3.3vw,2.4rem);line-height:1.15;font-weight:900;letter-spacing:-.025em;margin-bottom:12px;
+  background:linear-gradient(120deg,#0b1220,#9f1239 30%,#e11d48 55%,#7c3aed 90%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--muted);font-size:1.04rem;max-width:780px;line-height:1.7}
+.hero-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-size:12.5px;font-weight:700;
+  background:#fff;border:1px solid var(--line);color:var(--muted);box-shadow:0 2px 8px rgba(15,23,42,.04)}
+.chip.rose{background:var(--roseS);color:var(--rose)} .chip.violet{background:var(--violetS);color:var(--violet)}
+.chip.green{background:var(--greenS);color:var(--green)} .chip.amber{background:rgba(217,119,6,.1);color:var(--amber)}
+.grid{display:grid;gap:16px}
+.grid-2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.grid-3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--shadow);
+  position:relative;overflow:hidden;transition:transform .28s var(--ease),box-shadow .28s,border-color .28s}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadow2);border-color:var(--line2)}
+.card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--accent,linear-gradient(90deg,#fb7185,#7c3aed))}
+.card h3{font-size:1.08rem;font-weight:800;margin-bottom:8px}
+.card p,.desc{color:var(--muted);line-height:1.65;font-size:.94rem}
+.badge{display:inline-flex;font-size:11px;font-weight:800;padding:4px 10px;border-radius:999px;margin-bottom:10px;
+  background:var(--roseS);color:var(--rose);border:1px solid rgba(225,29,72,.2)}
+.badge.violet{background:var(--violetS);color:var(--violet)} .badge.green{background:var(--greenS);color:var(--green)}
+.badge.amber{background:rgba(217,119,6,.1);color:var(--amber)}
+a.feature-card{display:flex;flex-direction:column;min-height:158px;padding:18px;border-radius:var(--r);
+  background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);position:relative;overflow:hidden;
+  transition:transform .3s var(--ease),box-shadow .3s}
+a.feature-card::after{content:attr(data-ico);position:absolute;right:12px;top:10px;font-size:40px;opacity:.14;transition:.35s var(--ease)}
+a.feature-card:hover{transform:translateY(-8px) scale(1.015);box-shadow:var(--shadow2);
+  border-color:color-mix(in srgb,var(--c,#e11d48) 40%,transparent)}
+a.feature-card:hover::after{opacity:.28;transform:scale(1.15) rotate(8deg)}
+a.feature-card .num{font:800 12px var(--mono);color:var(--c,#e11d48);letter-spacing:.06em;margin-bottom:8px}
+a.feature-card h3{font-size:1.08rem;margin-bottom:6px}
+a.feature-card p{color:var(--muted);font-size:.87rem;line-height:1.55;flex:1}
+a.feature-card .go{margin-top:12px;font-size:12.5px;font-weight:800;color:var(--c,#e11d48);opacity:0;transform:translateX(-8px);transition:.25s}
+a.feature-card:hover .go{opacity:1;transform:none}
+.btn{appearance:none;border:1px solid var(--line);background:var(--s2);color:var(--text);
+  padding:10px 16px;border-radius:13px;cursor:pointer;font-weight:800;font-size:13.5px;
+  transition:.2s var(--ease);display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--line2);background:#fff;color:var(--rose);transform:translateY(-1px)}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:linear-gradient(135deg,#fb7185,#e11d48);border:none;color:#fff;box-shadow:0 8px 20px rgba(225,29,72,.32)}
+.btn.primary:hover{filter:brightness(1.06);color:#fff}
+.btn.ghost{background:transparent}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:12px 0}
+.toolbar label{font-size:12.5px;color:var(--muted);font-weight:700}
+.speed{display:flex;gap:4px;background:var(--s2);padding:3px;border-radius:11px;border:1px solid var(--line)}
+.speed button{border:none;background:transparent;padding:6px 11px;border-radius:8px;font-size:12px;font-weight:800;color:var(--muted);cursor:pointer}
+.speed button.on{background:#fff;color:var(--rose);box-shadow:0 1px 4px rgba(15,23,42,.08)}
+.tip{margin-top:12px;padding:13px 15px;border-radius:15px;background:linear-gradient(135deg,var(--roseS),var(--violetS));
+  border:1px solid var(--line);color:var(--muted);font-size:13.5px;line-height:1.65}
+.tip strong{color:var(--text)}
+.tip.ok{background:var(--greenS);border-color:rgba(5,150,105,.25)}
+.tip.warn{background:rgba(217,119,6,.1);border-color:rgba(217,119,6,.22)}
+.formula{font-family:var(--mono);background:linear-gradient(135deg,#fff1f2,#f5f3ff);border:1px solid rgba(225,29,72,.22);
+  border-radius:16px;padding:16px 18px;margin-top:10px;color:var(--rose2);font-size:15px;line-height:1.55;text-align:center;font-weight:750}
+.formula.lg{font-size:clamp(1.05rem,2.4vw,1.45rem);padding:20px}
+.code{font-family:var(--mono);font-size:12.5px;line-height:1.7;background:#0f172a;color:#e2e8f0;border-radius:16px;
+  padding:15px 16px;overflow:auto;white-space:pre;margin-top:10px}
+.code .cm{color:#64748b}.code .kw{color:#fda4af}.code .fn{color:#c4b5fd}
+.stat-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.stat{flex:1;min-width:100px;background:var(--s2);border:1px solid var(--line);border-radius:15px;padding:12px 14px}
+.stat span{font-size:11.5px;color:var(--faint);font-weight:700}
+.stat b{display:block;font-size:1.25rem;margin-top:4px;font-weight:900;font-variant-numeric:tabular-nums}
+.stat b.rose{color:var(--rose)}.stat b.violet{color:var(--violet)}.stat b.green{color:var(--green)}.stat b.amber{color:var(--amber)}
+.list-step{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;margin:8px 0;border-radius:14px;border:1px solid var(--line);background:#fff}
+.list-step .n{flex-shrink:0;width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#fb7185,#e11d48);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:900}
+.list-step .body{flex:1;font-size:.92rem;color:var(--muted);line-height:1.55}
+.list-step .body b{color:var(--text)}
+.stage-wrap{position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);background:#0b1220}
+.stage-wrap.light{background:
+  linear-gradient(rgba(225,29,72,.04) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(124,58,237,.04) 1px,transparent 1px),#f8fafc;
+  background-size:24px 24px,24px 24px,auto}
+canvas.stage{width:100%;display:block;touch-action:none}
+.stage-hud{position:absolute;left:12px;top:12px;right:12px;display:flex;justify-content:space-between;gap:8px;pointer-events:none;flex-wrap:wrap}
+.hud-pill{padding:6px 11px;border-radius:999px;background:rgba(15,23,42,.72);color:#e2e8f0;font:700 12px var(--mono);border:1px solid rgba(255,255,255,.1)}
+.hud-pill.light{background:rgba(255,255,255,.92);color:var(--text);border-color:var(--line)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;font-size:12.5px;color:var(--muted);font-weight:700}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:4px;margin-right:5px;vertical-align:middle}
+.log{max-height:170px;overflow:auto;font:12px/1.65 var(--mono);color:var(--muted);background:var(--s2);border:1px solid var(--line);border-radius:15px;padding:12px 14px;margin-top:10px}
+.cells{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:12px 0}
+.cell{min-width:48px;min-height:48px;border-radius:12px;display:grid;place-items:center;font-weight:900;font-size:14px;
+  border:1.5px solid var(--line);background:#fff;transition:all .25s var(--ease);box-shadow:0 2px 8px rgba(15,23,42,.05);cursor:pointer;user-select:none}
+.cell.on{border-color:var(--rose);background:var(--roseS);color:var(--rose);transform:translateY(-4px) scale(1.06)}
+.cell.hit{border-color:var(--green);background:var(--greenS);color:var(--green)}
+.cell.dead{border-color:var(--red);background:var(--redS);color:var(--red);opacity:.75}
+.cell.live{border-color:var(--violet);background:var(--violetS);color:var(--violet)}
+.page-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:36px;padding-top:22px;border-top:1px solid var(--line)}
+.page-nav a{display:flex;flex-direction:column;min-width:160px;padding:14px 16px;border-radius:16px;border:1px solid var(--line);
+  background:#fff;box-shadow:var(--shadow);transition:.25s var(--ease)}
+.page-nav a:hover{transform:translateY(-3px);box-shadow:var(--shadow2);border-color:var(--line2)}
+.page-nav .dir{font-size:11px;font-weight:800;color:var(--faint);letter-spacing:.06em;text-transform:uppercase}
+.page-nav .name{font-weight:800;margin-top:4px}
+.footer{margin-top:28px;text-align:center;color:var(--faint);font-size:12.5px;line-height:1.65}
+.footer b{color:var(--muted)}
+.fade-in{animation:up .5s var(--ease) both}
+@keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.stagger>*{animation:up .45s var(--ease) both}
+.stagger>*:nth-child(1){animation-delay:.03s}.stagger>*:nth-child(2){animation-delay:.07s}
+.stagger>*:nth-child(3){animation-delay:.11s}.stagger>*:nth-child(4){animation-delay:.15s}
+.stagger>*:nth-child(5){animation-delay:.19s}.stagger>*:nth-child(6){animation-delay:.23s}
+.pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--rose);box-shadow:0 0 0 0 rgba(225,29,72,.45);animation:pulse 1.6s infinite;display:inline-block}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(225,29,72,.45)}70%{box-shadow:0 0 0 10px transparent}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* TEACH_MODE_V1 */
+.teach-bar{position:fixed;right:14px;bottom:14px;z-index:9999;display:flex;gap:8px;align-items:center;
+  padding:8px 10px;border-radius:14px;background:rgba(15,23,42,.88);color:#e2e8f0;font:700 12px system-ui,sans-serif;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1)}
+.teach-bar button{appearance:none;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);
+  color:#fff;border-radius:10px;padding:6px 10px;cursor:pointer;font:700 12px system-ui,sans-serif}
+.teach-bar button:hover{background:rgba(255,255,255,.16)}
+.teach-help{position:fixed;inset:0;z-index:10000;display:none;place-items:center;background:rgba(15,23,42,.55);padding:20px}
+.teach-help.on{display:grid}
+.teach-help .box{max-width:520px;width:100%;background:#fff;border-radius:18px;padding:20px 22px;box-shadow:0 25px 60px rgba(0,0,0,.3)}
+.teach-help h3{margin:0 0 12px;font-size:1.15rem}
+.teach-help table{width:100%;border-collapse:collapse;font-size:13.5px}
+.teach-help td{padding:8px 6px;border-bottom:1px solid #e2e8f0;color:#334155}
+.teach-help td:first-child{font-family:ui-monospace,Consolas,monospace;font-weight:800;color:#1d4ed8;width:120px}
+.teach-help .close{margin-top:14px;width:100%;padding:10px;border:none;border-radius:12px;background:#2563eb;color:#fff;font-weight:800;cursor:pointer}
+body.teach-focus .nav{opacity:.35;transition:.25s}
+body.teach-focus .nav:hover{opacity:1}
+body.teach-focus .footer,body.teach-focus .page-nav{opacity:.2}
+
+</style></head><body>
+<div class="fx-bg" aria-hidden="true"></div>
+<nav class="nav"><div class="brand"><div class="logo">11</div>算法可视化 · <span>第11章 计算复杂性</span></div>
+<div class="links"><a class="pill" href="index.html">总览</a><a class="pill active" href="01-easy-hard.html">易解难解</a><a class="pill" href="02-decision.html">判定优化</a><a class="pill" href="03-turing.html">图灵机</a><a class="pill" href="04-p-np.html">P与NP</a><a class="pill" href="05-classes.html">类关系</a><a class="pill" href="06-reduce.html">归约</a><a class="pill" href="07-npc.html">NPC证明</a><a class="pill" href="08-sat.html">SAT</a><a class="pill" href="09-clique.html">团问题</a></div></nav>
+<div class="wrap fade-in">
+
+<section class="hero">
+  <div class="eyebrow">图 1 · 时间增长</div>
+  <h1>易解 · 难解 · 不可计算</h1>
+  <p>拖动 n，对比多项式与指数爆炸。伪多项式（如 O(nW)）在数值很大时仍不「真多项式」。</p>
+</section>
+<div class="grid grid-2">
+  <div class="card">
+    <div class="toolbar">
+      <label>规模 n = <b id="nv">20</b></label>
+      <input type="range" id="nr" min="5" max="60" value="20" style="width:200px;accent-color:#e11d48"/>
+    </div>
+    <div class="stage-wrap light" style="height:340px">
+      <canvas class="stage" id="cv" width="560" height="340"></canvas>
+      <div class="stage-hud"><span class="hud-pill light">T(n) 对比（对数纵轴）</span></div>
+    </div>
+    <div class="legend">
+      <span><i style="background:#059669"></i>n²</span>
+      <span><i style="background:#2563eb"></i>n³</span>
+      <span><i style="background:#d97706"></i>2ⁿ</span>
+      <span><i style="background:#e11d48"></i>n!</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="grid" style="gap:12px">
+      <div class="list-step"><div class="n">易</div><div class="body"><b>易解</b> — 存在多项式时间算法（排序、最短路、最大流…）</div></div>
+      <div class="list-step"><div class="n">难</div><div class="body"><b>难解</b> — 目前仅指数级，或被证明「很难」（NPC 等）</div></div>
+      <div class="list-step"><div class="n">∄</div><div class="body"><b>不可计算</b> — 不存在算法（停机问题）</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><span>n²</span><b class="green" id="s2">—</b></div>
+      <div class="stat"><span>2ⁿ</span><b class="amber" id="s2n">—</b></div>
+      <div class="stat"><span>n!</span><b class="rose" id="sf">—</b></div>
+    </div>
+    <div class="tip"><strong>伪多项式：</strong>0/1 背包 O(nW)，W 的二进制位数大时并非真多项式。</div>
+  </div>
+</div>
+
+<div class="page-nav"><a href="index.html"><span class="dir">← 上一节</span><span class="name">总览</span></a><a href="02-decision.html" style="text-align:right"><span class="dir">下一节 →</span><span class="name">判定优化</span></a></div>
+<div class="footer">算法设计与分析 · <b>第11章 计算复杂性</b> · 强交互可视化版<br/>增长 · 归约 · SAT · 建议全屏投影</div>
+</div>
+<script>
+
+(function(){
+  const host=document.querySelector('.fx-bg'); if(!host) return;
+  const cv=document.createElement('canvas'); host.appendChild(cv);
+  const ctx=cv.getContext('2d'); let parts=[];
+  function resize(){
+    cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio;
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    parts=Array.from({length:26},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+      r:1+Math.random()*2, vx:(Math.random()-.5)*.18, vy:-.1-Math.random()*.22, a:.12+Math.random()*.28}));
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; if(p.y<-10){p.y=innerHeight+10;p.x=Math.random()*innerWidth;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(225,29,72,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize',resize); resize(); tick();
+})();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+function fact(n){ let r=1; for(let i=2;i<=n;i++){ r*=i; if(r>1e300) return Infinity;} return r; }
+function fmt(x){ if(!isFinite(x)) return '∞'; if(x>=1e6) return x.toExponential(2); return Math.round(x).toLocaleString(); }
+function draw(n){
+  nv.textContent=n;
+  s2.textContent=fmt(n*n); s2n.textContent=fmt(Math.pow(2,n)); sf.textContent=fmt(fact(Math.min(n,20)));
+  const W=cv.width,H=cv.height, pad=40, plotW=W-pad*2, plotH=H-pad*2;
+  ctx.clearRect(0,0,W,H);
+  // axes
+  ctx.strokeStyle='#cbd5e1'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad,pad); ctx.lineTo(pad,H-pad); ctx.lineTo(W-pad,H-pad); ctx.stroke();
+  const curves=[
+    {f:x=>x*x, col:'#059669', name:'n²'},
+    {f:x=>x*x*x, col:'#2563eb', name:'n³'},
+    {f:x=>Math.pow(2,x), col:'#d97706', name:'2ⁿ'},
+    {f:x=>fact(Math.min(x,18)), col:'#e11d48', name:'n!'},
+  ];
+  const maxN=n, samples=80;
+  let ymax=1;
+  curves.forEach(c=>{ for(let i=1;i<=samples;i++){ const x=1+(maxN-1)*i/samples; const y=c.f(x); if(isFinite(y)) ymax=Math.max(ymax,y);} });
+  const logMax=Math.log10(ymax+1);
+  function X(x){ return pad + (x-1)/(maxN-1||1)*plotW; }
+  function Y(v){ const lv=Math.log10(Math.max(v,1)); return H-pad - (lv/logMax)*plotH; }
+  curves.forEach(c=>{
+    ctx.strokeStyle=c.col; ctx.lineWidth=2.5; ctx.beginPath();
+    let started=false;
+    for(let i=0;i<=samples;i++){
+      const x=1+(maxN-1)*i/samples, y=c.f(x);
+      if(!isFinite(y)||y<=0) continue;
+      const px=X(x), py=Y(y);
+      if(!started){ctx.moveTo(px,py); started=true;} else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+  });
+  // vertical marker at n
+  ctx.strokeStyle='rgba(225,29,72,.45)'; ctx.setLineDash([5,4]);
+  ctx.beginPath(); ctx.moveTo(X(n),pad); ctx.lineTo(X(n),H-pad); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle='#e11d48'; ctx.font='bold 12px ui-monospace'; ctx.fillText('n='+n, X(n)+6, pad+14);
+}
+nr.oninput=()=>draw(+nr.value); draw(20);
+
+</script><script>
+
+/* TEACH_MODE_V1 */
+(function(){
+  if(window.__TEACH_MODE__) return; window.__TEACH_MODE__=1;
+  const bar=document.createElement('div'); bar.className='teach-bar'; bar.innerHTML=
+    '<button type="button" id="teachFs" title="F">⛶ 全屏</button>'+
+    '<button type="button" id="teachHelpBtn" title="?">? 帮助</button>'+
+    '<button type="button" id="teachFocus" title="专注">专注</button>';
+  document.body.appendChild(bar);
+  const help=document.createElement('div'); help.className='teach-help'; help.innerHTML=
+    '<div class="box"><h3>课堂快捷键</h3><table>'+
+    '<tr><td>F / F11</td><td>进入或退出全屏（适合投影）</td></tr>'+
+    '<tr><td>← / →</td><td>上一节 / 下一节</td></tr>'+
+    '<tr><td>Space</td><td>触发主按钮（▶ 播放 / 运行）</td></tr>'+
+    '<tr><td>? / H</td><td>打开或关闭本帮助</td></tr>'+
+    '<tr><td>Esc</td><td>关闭帮助 / 退出全屏</td></tr>'+
+    '<tr><td>1 / 2 / 4</td><td>若有速度条，切换 1× 2× 4×</td></tr>'+
+    '</table><button type="button" class="close" id="teachClose">知道了</button></div>';
+  document.body.appendChild(help);
+  function toggleFs(){
+    if(!document.fullscreenElement){ document.documentElement.requestFullscreen?.(); }
+    else document.exitFullscreen?.();
+  }
+  function showHelp(on){ help.classList.toggle('on', on!==false ? !help.classList.contains('on') : false); if(on===false) help.classList.remove('on'); if(on===true) help.classList.add('on'); }
+  function navDir(dir){
+    const links=[...document.querySelectorAll('.page-nav a[href]')];
+    if(!links.length) return;
+    if(dir<0) links[0].click();
+    else links[links.length-1].click();
+  }
+  function firePrimary(){
+    const b=document.querySelector('.btn.primary, button.primary, #run, #play, #anim');
+    if(b && !b.disabled) b.click();
+  }
+  function setSpeed(s){
+    const btn=[...document.querySelectorAll('.speed button')].find(x=>x.dataset.s===String(s) || x.textContent.trim().startsWith(String(s)));
+    if(btn) btn.click();
+  }
+  teachFs.onclick=toggleFs;
+  teachHelpBtn.onclick=()=>showHelp();
+  teachClose.onclick=()=>showHelp(false);
+  help.onclick=e=>{ if(e.target===help) showHelp(false); };
+  teachFocus.onclick=()=>document.body.classList.toggle('teach-focus');
+  addEventListener('keydown', e=>{
+    const tag=(e.target&&e.target.tagName||'').toLowerCase();
+    if(tag==='input'||tag==='textarea'||tag==='select'||e.target.isContentEditable) return;
+    if(e.key==='f'||e.key==='F'||e.key==='F11'){ e.preventDefault(); toggleFs(); }
+    else if(e.key==='?'||e.key==='h'||e.key==='H'){ e.preventDefault(); showHelp(); }
+    else if(e.key==='Escape'){ showHelp(false); if(document.fullscreenElement) document.exitFullscreen?.(); }
+    else if(e.key==='ArrowLeft'){ e.preventDefault(); navDir(-1); }
+    else if(e.key==='ArrowRight'){ e.preventDefault(); navDir(1); }
+    else if(e.key===' ' || e.code==='Space'){ e.preventDefault(); firePrimary(); }
+    else if(e.key==='1'||e.key==='2'||e.key==='4'){ setSpeed(e.key); }
+  });
+})();
+
+</script>
+</body></html>
